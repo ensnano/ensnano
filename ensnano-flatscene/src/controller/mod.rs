@@ -1,20 +1,3 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
 //! The [Controller] struct handles the event that happens on the drawing area of the scene.
 //!
 //! The [Controller] is internally implemented as a finite automata that transitions when a event
@@ -22,32 +5,35 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! scene, that describes the consequences that the input must have on the view or the data held by
 //! the scene.
 
-use super::data::{ClickResult, FreeEnd};
-use super::{
-    ActionMode, AppState, CameraPtr, DataPtr, FlatHelix, FlatNucl, PhySize, PhysicalPosition,
-    Selection, ViewPtr, WindowEvent,
+mod automata;
+
+use crate::{
+    AppState, CameraPtr, DataPtr, ViewPtr,
+    data::{ClickResult, strand::FreeEnd},
+    flat_types::{FlatHelix, FlatNucl},
+};
+use automata::{ControllerState, NormalState, Transition, ctrl};
+use ensnano_interactor::{
+    graphics::PhySize,
+    selection::{ActionMode, Selection},
 };
 use std::cell::RefCell;
 use ultraviolet::Vec2;
 use winit::{
-    event::{ElementState, KeyEvent},
+    dpi::PhysicalPosition,
+    event::{ElementState, KeyEvent, WindowEvent},
     keyboard::{Key, ModifiersState, NamedKey},
     window::CursorIcon,
 };
 
-mod automata;
-use automata::{ControllerState, NormalState, Transition, ctrl};
-
-pub struct Controller<S: AppState> {
-    #[allow(dead_code)]
+pub(crate) struct Controller<S: AppState> {
     view: ViewPtr,
     data: DataPtr<S::Reader>,
-    #[allow(dead_code)]
     window_size: PhySize,
     area_size: PhySize,
     camera_top: CameraPtr,
     camera_bottom: CameraPtr,
-    splited: bool,
+    is_split: bool,
     state: RefCell<Box<dyn ControllerState<S>>>,
     action_mode: ActionMode,
     modifiers: ModifiersState,
@@ -55,7 +41,7 @@ pub struct Controller<S: AppState> {
 }
 
 #[derive(Debug)]
-pub enum Consequence {
+pub(crate) enum Consequence {
     Nothing,
     Xover(FlatNucl, FlatNucl),
     Cut(FlatNucl),
@@ -77,7 +63,7 @@ pub enum Consequence {
     DoubleClick(ClickResult),
     MoveBuilders(isize),
     InitBuilding(FlatNucl),
-    Helix2DMvmtEnded,
+    Helix2DMovementEnded,
     Snap {
         pivots: Vec<FlatNucl>,
         translation: Vec2,
@@ -96,14 +82,14 @@ pub enum Consequence {
 }
 
 impl<S: AppState> Controller<S> {
-    pub fn new(
+    pub(crate) fn new(
         view: ViewPtr,
         data: DataPtr<S::Reader>,
         window_size: PhySize,
         area_size: PhySize,
         camera_top: CameraPtr,
         camera_bottom: CameraPtr,
-        splited: bool,
+        is_split: bool,
     ) -> Self {
         Self {
             view,
@@ -115,29 +101,29 @@ impl<S: AppState> Controller<S> {
             state: RefCell::new(Box::new(NormalState {
                 mouse_position: PhysicalPosition::new(-1., -1.),
             })),
-            splited,
+            is_split,
             action_mode: ActionMode::Normal,
             modifiers: ModifiersState::empty(),
             mouse_position: PhysicalPosition::from((0., 0.)),
         }
     }
 
-    pub fn update_modifiers(&mut self, modifiers: ModifiersState) {
+    pub(crate) fn update_modifiers(&mut self, modifiers: ModifiersState) {
         self.modifiers = modifiers;
     }
 
-    pub fn resize(&mut self, window_size: PhySize, area_size: PhySize) {
+    pub(crate) fn resize(&mut self, window_size: PhySize, area_size: PhySize) {
         self.area_size = area_size;
         self.window_size = window_size;
         self.update_globals();
     }
 
-    pub fn set_split(&mut self, splited: bool, refit: bool) {
-        self.splited = splited;
+    pub(crate) fn set_split(&mut self, is_split: bool, refit: bool) {
+        self.is_split = is_split;
         let old_rectangle_top = self.camera_top.borrow().get_visible_rectangle();
         self.update_globals();
         if refit {
-            if splited {
+            if is_split {
                 let (new_top, new_bottom) = old_rectangle_top.split_vertically();
                 self.camera_top.borrow_mut().fit_center(new_top);
                 self.camera_bottom.borrow_mut().fit_center(new_bottom);
@@ -148,8 +134,8 @@ impl<S: AppState> Controller<S> {
         }
     }
 
-    fn update_globals(&mut self) {
-        if self.splited {
+    fn update_globals(&self) {
+        if self.is_split {
             self.camera_top.borrow_mut().resize(
                 self.area_size.width as f32,
                 self.area_size.height as f32 / 2.,
@@ -165,8 +151,8 @@ impl<S: AppState> Controller<S> {
         }
     }
 
-    pub fn get_camera(&self, y: f64) -> CameraPtr {
-        if self.splited {
+    pub(crate) fn get_camera(&self, y: f64) -> CameraPtr {
+        if self.is_split {
             if y > self.area_size.height as f64 / 2. {
                 self.camera_bottom.clone()
             } else {
@@ -177,8 +163,8 @@ impl<S: AppState> Controller<S> {
         }
     }
 
-    pub fn get_other_camera(&self, y: f64) -> Option<CameraPtr> {
-        if self.splited {
+    pub(crate) fn get_other_camera(&self, y: f64) -> Option<CameraPtr> {
+        if self.is_split {
             if y > self.area_size.height as f64 / 2. {
                 Some(self.camera_top.clone())
             } else {
@@ -189,14 +175,7 @@ impl<S: AppState> Controller<S> {
         }
     }
 
-    #[allow(dead_code)]
-    pub fn fit(&mut self) {
-        let rectangle = self.data.borrow().get_fit_rectangle();
-        self.camera_top.borrow_mut().fit_center(rectangle);
-        self.camera_bottom.borrow_mut().fit_center(rectangle);
-    }
-
-    pub fn input(
+    pub(crate) fn input(
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
@@ -204,7 +183,8 @@ impl<S: AppState> Controller<S> {
     ) -> Consequence {
         self.update_hovered_nucl(position);
         self.mouse_position = position;
-        let transition = if let WindowEvent::Focused(false) = event {
+
+        let transition = if matches!(event, WindowEvent::Focused(false)) {
             Transition {
                 new_state: Some(Box::new(NormalState {
                     mouse_position: PhysicalPosition::new(-1., -1.),
@@ -219,9 +199,9 @@ impl<S: AppState> Controller<S> {
 
         if let Some(state) = transition.new_state {
             log::info!("2D automata state: {}", state.display());
-            self.state.borrow().transition_from(&self);
+            self.state.borrow().transition_from(self);
             self.state = RefCell::new(state);
-            self.state.borrow().transition_to(&self);
+            self.state.borrow().transition_to(self);
         }
         transition.consequences
     }
@@ -243,7 +223,7 @@ impl<S: AppState> Controller<S> {
         self.view.borrow_mut().set_hovered_nucl(nucl);
     }
 
-    pub fn process_keyboard(&self, event: &WindowEvent) {
+    pub(crate) fn process_keyboard(&self, event: &WindowEvent) {
         if let WindowEvent::KeyboardInput {
             event:
                 KeyEvent {
@@ -262,15 +242,11 @@ impl<S: AppState> Controller<S> {
                 Key::Named(NamedKey::ArrowRight) if self.modifiers.alt_key() => {
                     camera.borrow_mut().tilt_right();
                 }
-                Key::Named(NamedKey::ArrowLeft) | Key::Named(NamedKey::ArrowRight)
-                    if ctrl(&self.modifiers) =>
-                {
-                    camera.borrow_mut().apply_symmetry_x()
+                Key::Named(NamedKey::ArrowLeft | NamedKey::ArrowRight) if ctrl(&self.modifiers) => {
+                    camera.borrow_mut().apply_symmetry_x();
                 }
-                Key::Named(NamedKey::ArrowUp) | Key::Named(NamedKey::ArrowDown)
-                    if ctrl(&self.modifiers) =>
-                {
-                    camera.borrow_mut().apply_symmetry_y()
+                Key::Named(NamedKey::ArrowUp | NamedKey::ArrowDown) if ctrl(&self.modifiers) => {
+                    camera.borrow_mut().apply_symmetry_y();
                 }
                 Key::Character("J") => {
                     self.data.borrow_mut().move_helix_backward();
@@ -289,7 +265,7 @@ impl<S: AppState> Controller<S> {
     }
 
     fn get_height(&self) -> u32 {
-        if self.splited {
+        if self.is_split {
             self.area_size.height / 2
         } else {
             self.area_size.height
@@ -297,31 +273,31 @@ impl<S: AppState> Controller<S> {
     }
 
     fn is_bottom(&self, y: f64) -> bool {
-        if self.splited {
+        if self.is_split {
             y > self.area_size.height as f64 / 2.
         } else {
             false
         }
     }
 
-    pub fn check_timers(&mut self) -> Consequence {
-        let transition = self.state.borrow_mut().check_timers(&self);
+    pub(crate) fn check_timers(&mut self) -> Consequence {
+        let transition = self.state.borrow_mut().check_timers(self);
         if let Some(state) = transition.new_state {
             log::info!("{}", state.display());
-            self.state.borrow().transition_from(&self);
+            self.state.borrow().transition_from(self);
             self.state = RefCell::new(state);
-            self.state.borrow().transition_to(&self);
+            self.state.borrow().transition_to(self);
         }
         transition.consequences
     }
 
-    pub fn flip_split_views(&mut self) {
+    pub(crate) fn flip_split_views(&self) {
         self.camera_bottom
             .borrow_mut()
-            .swap(&mut self.camera_top.borrow_mut())
+            .swap(&mut self.camera_top.borrow_mut());
     }
 
-    pub fn get_icon(&self) -> Option<CursorIcon> {
+    pub(crate) fn get_icon(&self) -> Option<CursorIcon> {
         self.state.borrow().cursor()
     }
 }

@@ -1,28 +1,12 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
 //! A handmade color picker for ENSnano.
 //!
 //! This module is an example of how to embed mini iced applications. It is inspired by the
 //! [`Component`](https://docs.rs/iced/0.12.1/iced/widget/trait.Component.html) trait, but it does
 //! not use it as this trait is deprecated since v0.13…
-//!
-//!
-use super::widgets::{ColorSquare, HueRow, LightSatSquare};
+
+use crate::widgets::{
+    color_square::ColorSquare, hue_row::HueRow, light_sat_square::LightSatSquare,
+};
 use color_space::{Hsv, Rgb};
 use iced::{
     Color, Length,
@@ -57,7 +41,7 @@ fn hsv_to_color(hsv: Hsv) -> Color {
 }
 
 fn color_to_hsv(color: Color) -> Hsv {
-    let Color { r, g, b, a: _ } = color;
+    let Color { r, g, b, .. } = color;
     Hsv::from(Rgb {
         r: r as f64 * 255.,
         g: g as f64 * 255.,
@@ -166,15 +150,11 @@ impl ColorPicker {
     }
 
     fn view_color_history(&self) -> iced::Element<'_, Message> {
-        let mut color_squares = self
-            .color_history
-            .iter()
-            .map(|c| {
-                color_square(c.to_owned())
-                    .height(Length::Fixed(self.size - GAP))
-                    .width(Length::Fixed(self.size - GAP))
-            })
-            .into_iter();
+        let mut color_squares = self.color_history.iter().map(|c| {
+            color_square(c.to_owned())
+                .height(Length::Fixed(self.size - GAP))
+                .width(Length::Fixed(self.size - GAP))
+        });
         let mut row = Vec::new();
         loop {
             let first_square = color_squares.next();

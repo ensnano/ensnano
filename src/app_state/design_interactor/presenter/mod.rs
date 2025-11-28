@@ -1,42 +1,37 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+pub(crate) mod design_content;
+pub(crate) mod impl_main_reader;
+pub(crate) mod impl_reader2d;
+pub(crate) mod impl_reader3d;
+pub(crate) mod impl_readergui;
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-pub mod design_content;
-pub mod impl_main_reader;
-pub mod impl_reader2d;
-pub mod impl_reader3d;
-pub mod impl_readergui;
-
-#[cfg(test)]
-use self::design_content::Staple;
-
-use super::*;
+use crate::app_state::{address_pointer::AddressPointer, design_interactor::DesignInteractor};
 use design_content::DesignContent;
 use ensnano_design::{
-    BezierPathId, Extremity, HelixCollection, InstantiatedPiecewiseBezier, Nucl, NuclCollection,
+    CameraId, Design, Nucl,
+    bezier_plane::{BezierPath, BezierPathId},
+    collection::Collection as _,
+    curves::bezier::InstantiatedPiecewiseBezier,
+    elements::DesignElementKey,
+    grid::{Grid, GridId},
+    helices::{Helix, HelixCollection as _, NuclCollection},
+    strands::{Domain, Extremity, Strand},
 };
+use ensnano_exports::{ExportResult, ExportType, oxdna::BACKBONE_TO_CM};
 use ensnano_interactor::{
-    NeighborDescriptor, NeighborDescriptorGiver, Referential, ScaffoldInfo, Selection,
+    Referential, ScaffoldInfo,
+    app_state_parameters::suggestion_parameters::SuggestionParameters,
     application::Camera3D,
+    selection::Selection,
+    strand_builder::{NeighborDescriptor, NeighborDescriptorGiver as _},
 };
-use ensnano_scene::data::{HBond, HalfHBond};
+use ensnano_scene::data::design3d::{HBond, HalfHBond};
 use ensnano_utils::id_generator::IdGenerator;
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::{
+    collections::{BTreeMap, HashMap, HashSet},
+    fmt::Write as _,
+    path::PathBuf,
+    sync::Arc,
+};
 use ultraviolet::{Mat4, Rotor3, Vec3};
 
 type JunctionsIds = IdGenerator<(Nucl, Nucl)>;
@@ -51,7 +46,7 @@ type JunctionsIds = IdGenerator<(Nucl, Nucl)>;
 /// stored. To obtain a design reader, a pointer to the current design must be given. If the given
 /// pointer does not point to the same address as the one that was used to create the data
 /// structures, the structures are updated before returning the design reader.
-pub struct Presenter {
+pub(crate) struct Presenter {
     pub current_design: AddressPointer<Design>,
     current_suggestion_parameters: SuggestionParameters,
     model_matrix: AddressPointer<Mat4>,
@@ -79,18 +74,20 @@ impl Default for Presenter {
 
 impl Presenter {
     #[cfg(test)]
-    pub(super) fn get_staples(&self) -> Vec<Staple> {
+    pub(super) fn get_staples(&self) -> Vec<design_content::Staple> {
         self.content.get_staples(&self.current_design, self)
     }
 
-    pub fn can_start_builder_at(&self, nucl: Nucl) -> bool {
+    pub(crate) fn can_start_builder_at(&self, nucl: Nucl) -> bool {
         let left = self.current_design.get_neighbor_nucl(nucl.left());
         let right = self.current_design.get_neighbor_nucl(nucl.right());
         if self.content.nucl_collection.contains_nucl(&nucl) {
             if let Some(desc) = self.current_design.get_neighbor_nucl(nucl) {
                 let filter =
                     |d: &NeighborDescriptor| !(d.identifier.is_same_domain_than(&desc.identifier));
-                !left.filter(filter).and(right.filter(filter)).is_some()
+                left.filter(filter)
+                    .and_then(|_| right.filter(filter))
+                    .is_none()
             } else {
                 false
             }
@@ -99,7 +96,7 @@ impl Presenter {
         }
     }
 
-    pub fn update(
+    pub(crate) fn update(
         mut self,
         design: AddressPointer<Design>,
         suggestion_parameters: &SuggestionParameters,
@@ -117,7 +114,7 @@ impl Presenter {
 
     /// Return a fresh presenter presenting an imported `Design` with a given set of junctions, as
     /// well as a pointer to the design held by this fresh presenter.
-    pub fn from_new_design(
+    pub(crate) fn from_new_design(
         design: Design,
         old_junctions_ids: &JunctionsIds,
         suggestion_parameters: SuggestionParameters,
@@ -167,7 +164,7 @@ impl Presenter {
         log::trace!("Presenter design <- {:p}", self.current_design);
         self.content = AddressPointer::new(content);
         self.junctions_ids = AddressPointer::new(new_junctions_ids);
-        self.current_suggestion_parameters = suggestion_parameters.clone();
+        self.current_suggestion_parameters = *suggestion_parameters;
     }
 
     pub(super) fn has_different_model_matrix_than(&self, other: &Self) -> bool {
@@ -205,7 +202,7 @@ impl Presenter {
                 .and_then(|s_id| self.current_design.strands.get(s_id))
             {
                 for domain in &strand.domains {
-                    if let ensnano_design::Domain::HelixDomain(dom) = domain {
+                    if let Domain::HelixDomain(dom) = domain {
                         for nucl_position in dom.iter() {
                             let nucl = Nucl {
                                 helix: dom.helix,
@@ -214,7 +211,7 @@ impl Presenter {
                             };
                             let basis = sequence.next();
                             let basis_compl = compl(basis);
-                            log::debug!("basis {:?}, basis_compl {:?}", basis, basis_compl);
+                            log::debug!("basis {basis:?}, basis_compl {basis_compl:?}");
                             if let Some((basis, basis_compl)) = basis.zip(basis_compl) {
                                 basis_map.insert(nucl, basis);
                                 if let Some(virtual_compl) = Nucl::map_to_virtual_nucl(
@@ -228,16 +225,15 @@ impl Presenter {
                             } else if basis.is_none() {
                                 if !ran_out {
                                     log::error!(
-                                        "Ran out of base for nucleotide {:?}. Scaffold sequence is too short",
-                                        nucl
+                                        "Ran out of base for nucleotide {nucl:?}. Scaffold sequence is too short",
                                     );
                                     ran_out = true;
                                 }
                             } else {
-                                log::error!("Could not get virtual mapping of {:?}", nucl.compl())
+                                log::error!("Could not get virtual mapping of {:?}", nucl.compl());
                             }
                         }
-                    } else if let ensnano_design::Domain::Insertion { nb_nucl, .. } = domain {
+                    } else if let Domain::Insertion { nb_nucl, .. } = domain {
                         for _ in 0..*nb_nucl {
                             sequence.next();
                         }
@@ -289,27 +285,27 @@ impl Presenter {
             .content
             .space_position
             .get(&forward_id)
-            .cloned()?
+            .copied()?
             .into();
         let pos_backward: Vec3 = self
             .content
             .space_position
             .get(&backward_id)
-            .cloned()?
+            .copied()?
             .into();
         let a1 = (pos_backward - pos_forward).normalized();
         let forward_half = HalfHBond {
             backbone: pos_forward,
-            center_of_mass: pos_forward + 2. * a1 * ensnano_exports::oxdna::BACKBONE_TO_CM,
-            base: self.content.letter_map.get(&forward_nucl).cloned(),
-            backbone_color: self.content.color_map.get(&forward_id).cloned()?,
+            center_of_mass: pos_forward + 2. * a1 * BACKBONE_TO_CM,
+            base: self.content.letter_map.get(&forward_nucl).copied(),
+            backbone_color: self.content.color_map.get(&forward_id).copied()?,
         };
 
         let backward_half = HalfHBond {
             backbone: pos_backward,
-            center_of_mass: pos_backward - 2. * a1 * ensnano_exports::oxdna::BACKBONE_TO_CM,
-            base: self.content.letter_map.get(&backward_nucl).cloned(),
-            backbone_color: self.content.color_map.get(&backward_id).cloned()?,
+            center_of_mass: pos_backward - 2. * a1 * BACKBONE_TO_CM,
+            base: self.content.letter_map.get(&backward_nucl).copied(),
+            backbone_color: self.content.color_map.get(&backward_id).copied()?,
         };
         Some(HBond {
             forward: forward_half,
@@ -328,10 +324,10 @@ impl Presenter {
             for nucl in self.content.nucleotide.values() {
                 if self.selection_contains_nucl(selection, *nucl) != *compl {
                     if !visible {
-                        new_invisible_nucls.insert(nucl.clone());
+                        new_invisible_nucls.insert(*nucl);
                     }
                 } else if self.invisible_nucls.contains(nucl) {
-                    new_invisible_nucls.insert(nucl.clone());
+                    new_invisible_nucls.insert(*nucl);
                 }
             }
         }
@@ -346,24 +342,20 @@ impl Presenter {
     }
 
     fn selection_contains_nucl(&self, selection: &[Selection], nucl: Nucl) -> bool {
-        let identifier_nucl = if let Some(id) = self.content.nucl_collection.get_identifier(&nucl) {
-            id
-        } else {
+        let Some(identifier_nucl) = self.content.nucl_collection.get_identifier(&nucl) else {
             return false;
         };
         let mut ret = false;
-        for s in selection.iter() {
+        for s in selection {
             ret = ret
                 || match s {
                     Selection::Design(_) => true,
                     Selection::Strand(_, s_id) => {
-                        self.content.strand_map.get(identifier_nucl).cloned()
+                        self.content.strand_map.get(identifier_nucl).copied()
                             == Some(*s_id as usize)
                     }
-                    Selection::Grid(_, _) => false,
                     Selection::Nucleotide(_, n) => nucl == *n,
                     Selection::Helix { helix_id, .. } => nucl.helix == *helix_id,
-                    Selection::Nothing => false,
                     Selection::Xover(_, xover_id) => {
                         if let Some((n1, n2)) = self.junctions_ids.get_element(*xover_id) {
                             n1 == nucl || n2 == nucl
@@ -373,8 +365,10 @@ impl Presenter {
                     }
                     Selection::Bond(_, n1, n2) => *n1 == nucl || *n2 == nucl,
                     Selection::Phantom(e) => e.to_nucl() == nucl,
-                    Selection::BezierControlPoint { .. } => false,
-                    Selection::BezierVertex(_) => false,
+                    Selection::Grid(_, _)
+                    | Selection::Nothing
+                    | Selection::BezierControlPoint { .. }
+                    | Selection::BezierVertex(_) => false,
                 };
         }
         ret
@@ -382,15 +376,15 @@ impl Presenter {
 
     /// Return a string describing the decomposition of the length of the strand `s_id` into the
     /// sum of the length of its domains
-    pub fn decompose_length(&self, s_id: usize) -> String {
+    pub(crate) fn decompose_length(&self, s_id: usize) -> String {
         let mut ret = String::new();
         if let Some(strand) = self.current_design.strands.get(&s_id) {
             ret.push_str(&strand.length().to_string());
             let mut first = true;
             let lengths = strand.domain_lengths();
-            for len in lengths.iter() {
+            for len in &lengths {
                 let sign = if first { '=' } else { '+' };
-                ret.push_str(&format!(" {} {}", sign, len));
+                let _ = write!(ret, " {sign} {len}");
                 first = false;
             }
         }
@@ -399,10 +393,8 @@ impl Presenter {
 
     fn get_name_of_group_having_strand(&self, s_id: usize) -> Vec<String> {
         let tree = &self.current_design.organizer_tree.as_ref();
-        tree.map(|t| {
-            t.get_names_of_groups_having(&ensnano_design::elements::DesignElementKey::Strand(s_id))
-        })
-        .unwrap_or_default()
+        tree.map(|t| t.get_names_of_groups_having(&DesignElementKey::Strand(s_id)))
+            .unwrap_or_default()
     }
 
     fn get_names_of_all_groups(&self) -> Vec<String> {
@@ -411,7 +403,7 @@ impl Presenter {
             .unwrap_or_default()
     }
 
-    pub fn get_strand_domain(&self, s_id: usize, d_id: usize) -> Option<&ensnano_design::Domain> {
+    pub(crate) fn get_strand_domain(&self, s_id: usize, d_id: usize) -> Option<&Domain> {
         self.current_design
             .strands
             .get(&s_id)
@@ -424,16 +416,16 @@ impl Presenter {
 
     fn whole_selection_is_visible(&self, selection: &[Selection], compl: bool) -> bool {
         for nucl in self.content.nucleotide.values() {
-            if self.selection_contains_nucl(selection, *nucl) != compl {
-                if self.invisible_nucls.contains(nucl) {
-                    return false;
-                }
+            if self.selection_contains_nucl(selection, *nucl) != compl
+                && self.invisible_nucls.contains(nucl)
+            {
+                return false;
             }
         }
         true
     }
 
-    pub fn set_visibility_sieve(&mut self, selection: Vec<Selection>, compl: bool) {
+    pub(crate) fn set_visibility_sieve(&mut self, selection: Vec<Selection>, compl: bool) {
         if selection.is_empty() {
             self.visibility_sieve = None;
         } else {
@@ -447,7 +439,7 @@ impl Presenter {
         self.update_visibility();
     }
 
-    pub fn get_checked_xovers_ids(&self) -> Vec<u32> {
+    pub(crate) fn get_checked_xovers_ids(&self) -> Vec<u32> {
         self.current_design
             .checked_xovers
             .iter()
@@ -457,11 +449,11 @@ impl Presenter {
                     .as_ref()
                     .and_then(|bound_id| self.content.identifier_bond.get(bound_id))
             })
-            .cloned()
+            .copied()
             .collect()
     }
 
-    pub fn get_unchecked_xovers_ids(&self) -> Vec<u32> {
+    pub(crate) fn get_unchecked_xovers_ids(&self) -> Vec<u32> {
         let mut checked_nucl = HashSet::new();
         let mut unchecked_pairs = Vec::new();
         for (xover_id, (n1, n2)) in self.junctions_ids.get_all_elements() {
@@ -478,13 +470,13 @@ impl Presenter {
                 && !checked_nucl.contains(&n1.prime5())
                 && let Some(id) = self.content.identifier_bond.get(&(n1, n2))
             {
-                ret.push(*id)
+                ret.push(*id);
             }
         }
         ret
     }
 
-    pub fn get_xover_len(&self, xover_id: usize) -> Option<f32> {
+    pub(crate) fn get_xover_len(&self, xover_id: usize) -> Option<f32> {
         let (n1, n2) = self.junctions_ids.get_element(xover_id)?;
         let pos1 = self
             .content
@@ -499,7 +491,7 @@ impl Presenter {
         Some((Vec3::from(pos1) - Vec3::from(pos2)).mag())
     }
 
-    pub fn get_id_of_xover_involving_nucl(&self, nucl: Nucl) -> Option<usize> {
+    pub(crate) fn get_id_of_xover_involving_nucl(&self, nucl: Nucl) -> Option<usize> {
         self.junctions_ids
             .get_all_elements()
             .into_iter()
@@ -507,7 +499,7 @@ impl Presenter {
             .map(|t| t.0)
     }
 
-    pub fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
+    pub(crate) fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
         ensnano_exports::export(
             &self.current_design,
             export_type,
@@ -516,54 +508,56 @@ impl Presenter {
         )
     }
 
-    pub fn get_bezier_path_2d(&self, path_id: BezierPathId) -> Option<InstantiatedPiecewiseBezier> {
-        use ensnano_design::Collection;
+    pub(crate) fn get_bezier_path_2d(
+        &self,
+        path_id: BezierPathId,
+    ) -> Option<InstantiatedPiecewiseBezier> {
         self.current_design
             .bezier_paths
             .get(&path_id)
-            .and_then(|path| path.to_instantiated_path_2d())
+            .and_then(BezierPath::to_instantiated_path_2d)
     }
 
-    pub fn get_xovers_list(&self) -> Vec<(Nucl, Nucl)> {
+    pub(crate) fn get_xovers_list(&self) -> Vec<(Nucl, Nucl)> {
         self.current_design.strands.get_xovers()
     }
 
-    pub fn get_design(&self) -> &Design {
+    pub(crate) fn get_design(&self) -> &Design {
         self.current_design.as_ref()
     }
 
-    pub fn get_all_bonds(&self) -> Vec<(Nucl, Nucl)> {
-        self.content.identifier_bond.keys().cloned().collect()
+    pub(crate) fn get_all_bonds(&self) -> Vec<(Nucl, Nucl)> {
+        self.content.identifier_bond.keys().copied().collect()
     }
 
-    pub fn get_identifier(&self, nucl: &Nucl) -> Option<u32> {
-        self.content.nucl_collection.get_identifier(nucl).cloned()
+    pub(crate) fn get_identifier(&self, nucl: &Nucl) -> Option<u32> {
+        self.content.nucl_collection.get_identifier(nucl).copied()
     }
 
-    pub fn get_space_position(&self, nucl: &Nucl) -> Option<Vec3> {
+    pub(crate) fn get_space_position(&self, nucl: &Nucl) -> Option<Vec3> {
         self.get_identifier(nucl)
-            .and_then(|id| self.content.space_position.get(&id).map(|v| v.into()))
+            .and_then(|id| self.content.space_position.get(&id).map(Into::into))
     }
 
-    pub fn has_nucl(&self, nucl: &Nucl) -> bool {
+    pub(crate) fn has_nucl(&self, nucl: &Nucl) -> bool {
         self.content.nucl_collection.contains_nucl(nucl)
     }
 
-    pub fn get_helices_attached_to_grid(&self, g_id: GridId) -> Option<Vec<usize>> {
+    pub(crate) fn get_helices_attached_to_grid(&self, g_id: GridId) -> Option<Vec<usize>> {
         self.content
             .get_helices_on_grid(g_id)
             .map(|set| set.into_iter().collect())
     }
 
-    pub fn get_grid(&self, g_id: GridId) -> Option<&ensnano_design::grid::Grid> {
+    pub(crate) fn get_grid(&self, g_id: GridId) -> Option<&Grid> {
         self.content.grid_manager.grids.get(&g_id)
     }
 
-    pub fn get_helices(&self) -> BTreeMap<usize, ensnano_design::Helix> {
+    pub(crate) fn get_helices(&self) -> BTreeMap<usize, Helix> {
         self.current_design
             .helices
             .iter()
-            .map(|(k, h)| (*k, ensnano_design::Helix::clone(h)))
+            .map(|(k, h)| (*k, Helix::clone(h)))
             .collect()
     }
 }
@@ -670,34 +664,30 @@ impl DesignInteractor {
             .content
             .nucl_collection
             .get_identifier(nucl)?;
-        self.presenter.content.strand_map.get(e_id).cloned()
+        self.presenter.content.strand_map.get(e_id).copied()
     }
 
     /// Return the xover extremity status of nucl.
-    pub fn is_xover_end(&self, nucl: &Nucl) -> Extremity {
-        let strand_id = if let Some(id) = self.get_id_of_strand_containing_nucl(nucl) {
-            id
-        } else {
+    pub(crate) fn is_xover_end(&self, nucl: &Nucl) -> Extremity {
+        let Some(strand_id) = self.get_id_of_strand_containing_nucl(nucl) else {
+            return Extremity::No;
+        };
+        let Some(strand) = self.presenter.current_design.strands.get(&strand_id) else {
             return Extremity::No;
         };
 
-        let strand = if let Some(strand) = self.presenter.current_design.strands.get(&strand_id) {
-            strand
-        } else {
-            return Extremity::No;
-        };
         let mut prev_helix = None;
-        for domain in strand.domains.iter() {
+        for domain in &strand.domains {
             if domain.prime5_end() == Some(*nucl) && prev_helix != domain.half_helix() {
                 return Extremity::Prime5;
             } else if domain.prime3_end() == Some(*nucl) {
                 return Extremity::Prime3;
-            } else if let Some(_) = domain.has_nucl(nucl) {
+            } else if domain.has_nucl(nucl).is_some() {
                 return Extremity::No;
             }
             prev_helix = domain.half_helix();
         }
-        return Extremity::No;
+        Extremity::No
     }
 
     fn get_strand_length(&self, s_id: usize) -> Option<usize> {
@@ -705,10 +695,10 @@ impl DesignInteractor {
             .current_design
             .strands
             .get(&s_id)
-            .map(|s| s.length())
+            .map(Strand::length)
     }
 
-    pub fn get_scaffold_info(&self) -> Option<ScaffoldInfo> {
+    pub(crate) fn get_scaffold_info(&self) -> Option<ScaffoldInfo> {
         let id = self.presenter.current_design.scaffold_id?;
         let length = self.get_strand_length(id)?;
         let shift = self.presenter.current_design.scaffold_shift;
@@ -725,10 +715,10 @@ impl DesignInteractor {
         })
     }
 
-    pub fn get_camera_with_id(&self, cam_id: ensnano_design::CameraId) -> Option<Camera3D> {
+    pub(crate) fn get_camera_with_id(&self, camera_id: CameraId) -> Option<Camera3D> {
         self.presenter
             .current_design
-            .get_camera(cam_id)
+            .get_camera(camera_id)
             .cloned()
             .map(|c| Camera3D {
                 position: c.position,
@@ -737,7 +727,7 @@ impl DesignInteractor {
             })
     }
 
-    pub fn get_nth_camera(&self, n: u32) -> Option<Camera3D> {
+    pub(crate) fn get_nth_camera(&self, n: u32) -> Option<Camera3D> {
         self.presenter
             .current_design
             .get_cameras()
@@ -749,7 +739,7 @@ impl DesignInteractor {
             })
     }
 
-    pub fn get_favorite_camera(&self) -> Option<(Vec3, Rotor3)> {
+    pub(crate) fn get_favorite_camera(&self) -> Option<(Vec3, Rotor3)> {
         self.presenter
             .current_design
             .get_favorite_camera()
@@ -757,7 +747,7 @@ impl DesignInteractor {
     }
 }
 
-pub trait SimulationUpdate: Send + Sync {
+pub(crate) trait SimulationUpdate: Send + Sync {
     fn update_positions(
         &self,
         _identifier_nucl: &NuclCollection,

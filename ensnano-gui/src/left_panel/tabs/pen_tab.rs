@@ -1,29 +1,16 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::tabs::GuiTab;
-use super::{AppState, GridTypeDescr, Message, UiSize};
-use ensnano_consts::{ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID};
-use ensnano_iced::iced;
-use ensnano_iced::{
-    fonts::{MaterialIcon, MaterialIconStyle, icon_to_char},
-    helpers::*,
-    iced_aw::TabLabel,
+use crate::{
+    AppState,
+    left_panel::{Message, tabs::GuiTab},
 };
+use ensnano_consts::{ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID};
+use ensnano_design::grid::GridTypeDescr;
+use ensnano_iced::{
+    fonts::material_icons::{MaterialIcon, MaterialIconStyle, icon_to_char},
+    helpers::{extra_jump, icon_button, material_icon_button, section},
+    ui_size::UiSize,
+};
+use iced::widget::{checkbox, column, row, text};
+use iced_aw::TabLabel;
 use std::marker::PhantomData;
 
 const NEW_BEZIER_PLANE_ICON: MaterialIcon = MaterialIcon::HistoryEdu;
@@ -43,9 +30,10 @@ impl<State: AppState> GuiTab<State> for PenTab<State> {
 
     fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {
         let selected_path_id = app_state.get_selected_bezier_path();
-        let path_txt = selected_path_id
-            .map(|p| format!("{:?}", p))
-            .unwrap_or_else(|| "None".to_string());
+        let path_txt = match selected_path_id {
+            Some(p) => format!("{p:?}"),
+            None => "None".to_owned(),
+        };
 
         let content = self::column![
             section("Bezier Planes", ui_size),

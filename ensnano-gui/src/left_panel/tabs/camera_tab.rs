@@ -1,35 +1,25 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::{
-    AppState, CheckXoversParameter, FogParameters, HBondDisplay, Message, UiSize, tabs::GuiTab,
+use crate::{
+    AppState,
+    left_panel::{Message, tabs::GuiTab},
 };
 use ensnano_iced::{
-    fonts::{MaterialIcon, icon_to_char},
-    helpers::*,
-    iced::{Alignment, Length},
-    iced_aw::TabLabel,
+    fonts::material_icons::{MaterialIcon, icon_to_char},
+    helpers::{extra_jump, right_checkbox, section, subsection, text_button},
     theme,
+    ui_size::UiSize,
 };
 use ensnano_interactor::{
-    app_state_parameters::AppStateParameters,
-    graphics::{ALL_BACKGROUND3D, ALL_RENDERING_MODE, Background3D, RenderingMode},
+    app_state_parameters::{AppStateParameters, check_xovers_parameter::CheckXoversParameter},
+    graphics::{
+        ALL_BACKGROUND3D, ALL_RENDERING_MODE, Background3D, FogParameters, HBondDisplay,
+        RenderingMode, fog_kind,
+    },
 };
+use iced::{
+    Alignment, Length,
+    widget::{checkbox, column, pick_list, row, scrollable, slider, text},
+};
+use iced_aw::TabLabel;
 use std::marker::PhantomData;
 
 pub struct CameraTab<State: AppState> {
@@ -50,23 +40,23 @@ impl<State: AppState> CameraTab<State> {
     }
 
     pub fn fog_visible(&mut self, visible: bool) {
-        self.fog.is_activated = visible
+        self.fog.is_activated = visible;
     }
 
     pub fn fog_dark(&mut self, dark: bool) {
-        self.fog.dark = dark
+        self.fog.dark = dark;
     }
 
     pub fn fog_reversed(&mut self, reversed: bool) {
-        self.fog.is_reversed = reversed
+        self.fog.is_reversed = reversed;
     }
 
     pub fn fog_length(&mut self, length: f32) {
-        self.fog.length = length
+        self.fog.length = length;
     }
 
     pub fn fog_radius(&mut self, radius: f32) {
-        self.fog.softness = radius
+        self.fog.softness = radius;
     }
 
     pub fn fog_camera(&mut self, from_camera: bool) {
@@ -85,11 +75,7 @@ impl<State: AppState> GuiTab<State> for CameraTab<State> {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Videocam)))
     }
 
-    fn content(
-        &self,
-        ui_size: UiSize,
-        app_state: &State,
-    ) -> ensnano_iced::Element<'_, Message<State>> {
+    fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Message<State>> {
         let content = self::column![
             section("Camera", ui_size),
             subsection("Toggle visibility", ui_size),
@@ -191,7 +177,7 @@ struct FogGuiParameters {
 }
 
 impl FogGuiParameters {
-    fn view<State: AppState>(&self, ui_size: UiSize) -> ensnano_iced::Element<'_, Message<State>> {
+    fn view<State: AppState>(&self, ui_size: UiSize) -> iced::Element<'_, Message<State>> {
         let radius_text = if self.is_activated {
             text("Radius")
         } else {
@@ -225,7 +211,7 @@ impl FogGuiParameters {
             row![
                 subsection("Distance Fog", ui_size),
                 pick_list(
-                    &ALL_FOG_CHOICES[..],
+                    ALL_FOG_CHOICES,
                     Some(FogChoices::from_param(
                         self.is_activated,
                         self.from_camera,
@@ -276,8 +262,9 @@ impl Default for FogGuiParameters {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum FogChoices {
+    #[default]
     None,
     FromCamera,
     FromPivot,
@@ -286,13 +273,7 @@ pub enum FogChoices {
     ReversedFromPivot,
 }
 
-impl Default for FogChoices {
-    fn default() -> Self {
-        Self::None
-    }
-}
-
-const ALL_FOG_CHOICES: &'static [FogChoices] = &[
+const ALL_FOG_CHOICES: &[FogChoices] = &[
     FogChoices::None,
     FogChoices::FromCamera,
     FogChoices::FromPivot,
@@ -311,7 +292,7 @@ impl std::fmt::Display for FogChoices {
             Self::DarkFromPivot => "Dark from Pivot",
             Self::ReversedFromPivot => "Reversed from Pivot",
         };
-        write!(f, "{}", ret)
+        write!(f, "{ret}")
     }
 }
 
@@ -324,7 +305,7 @@ impl FogChoices {
             .reversed(reversed)
     }
 
-    pub fn to_param(&self) -> (bool, bool, bool, bool) {
+    pub fn to_param(self) -> (bool, bool, bool, bool) {
         (
             self.is_visible(),
             self.is_from_camera(),
@@ -335,7 +316,7 @@ impl FogChoices {
 
     fn visible(self, visible: bool) -> Self {
         if visible {
-            if let Self::None = self {
+            if self == Self::None {
                 Self::FromPivot
             } else {
                 self
@@ -402,7 +383,6 @@ impl FogChoices {
     }
 
     fn fog_kind(&self) -> u32 {
-        use ensnano_interactor::graphics::fog_kind;
         match self {
             Self::None => fog_kind::NO_FOG,
             Self::FromCamera | Self::FromPivot => fog_kind::TRANSPARENT_FOG,

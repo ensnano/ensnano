@@ -1,5 +1,7 @@
 //! Allow your users to drag and drop widgets.
-use ensnano_iced::iced::{
+
+use crate::{NodeId, OrganizerMessage, element::OrganizerElement};
+use iced::{
     Element, Length, Padding, Rectangle, Size, Vector,
     advanced::{
         layout::{self, Layout},
@@ -11,12 +13,10 @@ use ensnano_iced::iced::{
     widget::container,
 };
 
-use super::OrganizerMessage;
-
 /// Identifier for drag-drop widgets.
 #[derive(Debug, Clone, PartialOrd, PartialEq, Eq, Ord)]
 pub enum DragIdentifier<K, AutoGroup> {
-    Group { id: super::NodeId<AutoGroup> },
+    Group { id: NodeId<AutoGroup> },
     Section { key: K },
 }
 
@@ -41,10 +41,10 @@ impl<'a, Message, Theme, Renderer, K, E> DragDropTarget<'a, Message, Theme, Rend
     }
 }
 
-impl<'a, E, Theme, Renderer> Widget<OrganizerMessage<E>, Theme, Renderer>
-    for DragDropTarget<'a, OrganizerMessage<E>, Theme, Renderer, E::Key, E::AutoGroup>
+impl<E, Theme, Renderer> Widget<OrganizerMessage<E>, Theme, Renderer>
+    for DragDropTarget<'_, OrganizerMessage<E>, Theme, Renderer, E::Key, E::AutoGroup>
 where
-    E: super::OrganizerElement,
+    E: OrganizerElement,
     Renderer: renderer::Renderer,
 {
     fn tag(&self) -> widget::tree::Tag {
@@ -60,7 +60,7 @@ where
     }
 
     fn diff(&self, tree: &mut widget::Tree) {
-        self.content.as_widget().diff(tree)
+        self.content.as_widget().diff(tree);
     }
 
     fn size(&self) -> Size<Length> {
@@ -113,17 +113,17 @@ where
         match event {
             event::Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left)) => {
                 if cursor_position.is_over(layout.bounds()) {
-                    shell.publish(OrganizerMessage::drag_dropped(self.identifier.clone()))
+                    shell.publish(OrganizerMessage::drag_dropped(self.identifier.clone()));
                 }
             }
             event::Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left)) => {
                 if cursor_position.is_over(layout.bounds()) {
-                    shell.publish(OrganizerMessage::dragging(self.identifier.clone()))
+                    shell.publish(OrganizerMessage::dragging(self.identifier.clone()));
                 }
                 return event::Status::Captured;
             }
             _ => (),
-        };
+        }
         status
     }
 
@@ -133,8 +133,8 @@ where
         renderer: &mut Renderer,
         theme: &Theme,
         style: &renderer::Style,
-        layout: layout::Layout,
-        cursor_position: mouse::Cursor,
+        layout: Layout,
+        cursor: mouse::Cursor,
         viewport: &Rectangle,
     ) {
         self.content.as_widget().draw(
@@ -143,9 +143,9 @@ where
             theme,
             style,
             layout.children().next().unwrap(),
-            cursor_position,
+            cursor,
             viewport,
-        )
+        );
     }
 
     fn overlay<'b>(
@@ -168,13 +168,13 @@ impl<'a, E, Theme, Renderer>
     From<DragDropTarget<'a, OrganizerMessage<E>, Theme, Renderer, E::Key, E::AutoGroup>>
     for Element<'a, OrganizerMessage<E>, Theme, Renderer>
 where
-    E: super::OrganizerElement,
+    E: OrganizerElement,
     Theme: 'a,
     Renderer: 'a + renderer::Renderer,
 {
     fn from(
         value: DragDropTarget<'a, OrganizerMessage<E>, Theme, Renderer, E::Key, E::AutoGroup>,
-    ) -> Element<'a, OrganizerMessage<E>, Theme, Renderer> {
+    ) -> Self {
         Element::new(value)
     }
 }

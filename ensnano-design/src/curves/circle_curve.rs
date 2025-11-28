@@ -1,29 +1,13 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::Curved;
-use crate::HelixParameters;
+use crate::{
+    curves::{CurveBounds, Curved, time_nucl_map::AbscissaConverter},
+    parameters::HelixParameters,
+};
 use serde::{Deserialize, Serialize};
 use std::f64::consts::TAU;
 use ultraviolet::DVec3;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CircleCurve {
+pub(super) struct CircleCurve {
     pub _parameters: HelixParameters,
     pub radius: f64,
     pub z: f64,
@@ -77,20 +61,20 @@ impl Curved for CircleCurve {
         DVec3 { x, y, z }
     }
 
-    fn curvilinear_abscissa(&self, _t: f64) -> Option<f64> {
-        Some(self.radius * TAU * _t)
+    fn curvilinear_abscissa(&self, t: f64) -> Option<f64> {
+        Some(self.radius * TAU * t)
     }
 
-    fn inverse_curvilinear_abscissa(&self, _x: f64) -> Option<f64> {
-        Some(_x / TAU / self.radius)
+    fn inverse_curvilinear_abscissa(&self, x: f64) -> Option<f64> {
+        Some(x / TAU / self.radius)
     }
 
-    fn bounds(&self) -> super::CurveBounds {
-        super::CurveBounds::Finite
+    fn bounds(&self) -> CurveBounds {
+        CurveBounds::Finite
     }
 
     fn objective_nb_nt(&self) -> Option<usize> {
-        return self.target_nb_nt;
+        self.target_nb_nt
     }
 
     fn full_turn_at_t(&self) -> Option<f64> {
@@ -108,9 +92,9 @@ impl Curved for CircleCurve {
         0.
     }
 
-    fn abscissa_converter(&self) -> Option<crate::AbscissaConverter> {
-        return Some(crate::AbscissaConverter::linear(
+    fn abscissa_converter(&self) -> Option<AbscissaConverter> {
+        Some(AbscissaConverter::linear(
             self.abscissa_converter_factor.unwrap_or(1.),
-        ));
+        ))
     }
 }

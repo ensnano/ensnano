@@ -1,28 +1,18 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 //! Implements the [Requests](`ensnano_scene::Requests`) trait for [Requests](`super::Requests`).
 
-use super::*;
 use crate::app_state::design_interactor::controller::clipboard::PastePosition;
-use ensnano_interactor::DesignOperation;
+use crate::controller::normal_state::Action;
+use crate::requests::Requests;
+use ensnano_design::{Nucl, grid::GridPosition, group_attributes::GroupPivot};
+use ensnano_interactor::{
+    DesignOperation,
+    application::AppId,
+    operation::Operation,
+    selection::{CenterOfSelection, Selection},
+};
 use ensnano_scene::Requests as SceneRequests;
-use ultraviolet::Rotor3;
+use std::sync::Arc;
+use ultraviolet::{Rotor3, Vec3};
 
 impl SceneRequests for Requests {
     fn update_operation(&mut self, op: Arc<dyn Operation>) {
@@ -36,7 +26,7 @@ impl SceneRequests for Requests {
     fn set_selection(
         &mut self,
         selection: Vec<Selection>,
-        center_of_selection: Option<ensnano_interactor::CenterOfSelection>,
+        center_of_selection: Option<CenterOfSelection>,
     ) {
         self.new_selection = Some(selection);
         self.new_center_of_selection = Some(center_of_selection);
@@ -72,7 +62,7 @@ impl SceneRequests for Requests {
             .push_back(Action::DesignOperation(DesignOperation::GeneralXover {
                 source,
                 target,
-            }))
+            }));
     }
 
     fn suspend_op(&mut self) {
@@ -95,27 +85,27 @@ impl SceneRequests for Requests {
         self.keep_proceed
             .push_back(Action::DesignOperation(DesignOperation::MoveBuilders(
                 position,
-            )))
+            )));
     }
 
     fn toggle_widget_basis(&mut self) {
-        self.toggle_widget_basis = Some(())
+        self.toggle_widget_basis = Some(());
     }
 
     fn apply_design_operation(&mut self, op: DesignOperation) {
-        self.keep_proceed.push_back(Action::DesignOperation(op))
+        self.keep_proceed.push_back(Action::DesignOperation(op));
     }
 
-    fn set_current_group_pivot(&mut self, pivot: ensnano_design::group_attributes::GroupPivot) {
-        self.keep_proceed.push_back(Action::SetGroupPivot(pivot))
+    fn set_current_group_pivot(&mut self, pivot: GroupPivot) {
+        self.keep_proceed.push_back(Action::SetGroupPivot(pivot));
     }
 
     fn translate_group_pivot(&mut self, translation: Vec3) {
         if let Some(Action::TranslateGroupPivot(t)) = self.keep_proceed.iter_mut().last() {
-            *t = translation
+            *t = translation;
         } else {
             self.keep_proceed
-                .push_back(Action::TranslateGroupPivot(translation))
+                .push_back(Action::TranslateGroupPivot(translation));
         }
     }
 
@@ -124,7 +114,7 @@ impl SceneRequests for Requests {
             *r = rotation;
         } else {
             self.keep_proceed
-                .push_back(Action::RotateGroupPivot(rotation))
+                .push_back(Action::RotateGroupPivot(rotation));
         }
     }
 

@@ -1,24 +1,9 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
+use crate::app_state::design_interactor::controller::{Controller, ErrOperation};
+use ensnano_design::{
+    Design,
+    strands::{Domain, DomainJunction, Strand},
+};
 use ensnano_interactor::InsertionPoint;
-
-use super::*;
 
 impl Controller {
     pub(super) fn update_insertion_length(
@@ -52,14 +37,13 @@ impl Controller {
         if let Some(insertion_mut) = get_insertion_length_mut(strand_mut, insertion_point) {
             if length > 0 {
                 *insertion_mut.length = length;
-                Ok(design)
             } else {
                 let d_id = insertion_mut.domain_id;
                 strand_mut.domains.remove(d_id);
                 strand_mut.junctions.remove(d_id);
                 strand_mut.merge_consecutive_domains();
-                Ok(design)
             }
+            Ok(design)
         } else if length > 0 {
             // if the nucl is the 5' end of the insertion we want it to be the 3' end of the
             // resulting strand, and therefore be on the 5' end of the split
@@ -79,7 +63,7 @@ impl Controller {
                 println!(
                     "junction after split {}",
                     strand_mut.formatted_anonymous_junctions()
-                )
+                );
             }
             if insertion_point.nucl_is_prime5_of_insertion {
                 // The nucl is the 3' end of the split strand
@@ -145,29 +129,29 @@ impl Controller {
 
 /// If there already is an insertion at insertion point, return a mutable reference to its
 /// length. Otherwise return None
-fn get_insertion_length_mut<'a>(
-    strand: &'a mut Strand,
+fn get_insertion_length_mut(
+    strand: &mut Strand,
     insertion_point: InsertionPoint,
-) -> Option<InsertionMut<'a>> {
+) -> Option<InsertionMut<'_>> {
+    let domains_iterator: Box<dyn Iterator<Item = _>> = if strand.is_cyclic {
+        Box::new(
+            strand
+                .domains
+                .iter()
+                .enumerate()
+                .zip(strand.domains.iter().cycle().enumerate().skip(1)),
+        )
+    } else {
+        Box::new(
+            strand
+                .domains
+                .iter()
+                .enumerate()
+                .zip(strand.domains.iter().enumerate().skip(1)),
+        )
+    };
+
     let mut insertion_id: Option<usize> = None;
-    let domains_iterator: Box<dyn Iterator<Item = ((usize, &Domain), (usize, &Domain))>> =
-        if strand.is_cyclic {
-            Box::new(
-                strand
-                    .domains
-                    .iter()
-                    .enumerate()
-                    .zip(strand.domains.iter().cycle().enumerate().skip(1)),
-            )
-        } else {
-            Box::new(
-                strand
-                    .domains
-                    .iter()
-                    .enumerate()
-                    .zip(strand.domains.iter().enumerate().skip(1)),
-            )
-        };
     if insertion_point.nucl_is_prime5_of_insertion {
         // look for an insertion after the domain ending with the desired nucl
         for ((_, d_nucl), (d_id, d_insertion)) in domains_iterator {

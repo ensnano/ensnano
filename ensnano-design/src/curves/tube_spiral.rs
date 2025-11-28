@@ -1,23 +1,7 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::Curved;
-use crate::HelixParameters;
+use crate::{
+    curves::{CurveBounds, Curved},
+    parameters::HelixParameters,
+};
 use serde::{Deserialize, Serialize};
 use std::f64::consts::{PI, TAU};
 use ultraviolet::{DRotor3, DVec3};
@@ -44,7 +28,7 @@ impl TubeSpiralDescriptor {
         TubeSpiral {
             theta_0: self.theta_0,
             big_axis: self.big_axis,
-            _parameters: helix_parameters,
+            parameters: helix_parameters,
             height: self.height,
             number_of_helices: self.number_of_helices,
             small_axis: self.small_axis,
@@ -65,7 +49,7 @@ impl TubeSpiralDescriptor {
 pub(super) struct TubeSpiral {
     pub theta_0: f64,
     pub big_axis: f64,
-    pub _parameters: HelixParameters,
+    pub parameters: HelixParameters,
     pub height: f64,
     pub number_of_helices: usize,
     pub small_axis: f64,
@@ -77,7 +61,7 @@ pub(super) struct TubeSpiral {
 impl TubeSpiral {
     fn dist_turn(&self) -> f64 {
         let nb_helices = self.number_of_helices as f64;
-        nb_helices * self._parameters.inter_helix_axis_gap() as f64 / self.inclination().cos()
+        nb_helices * self.parameters.inter_helix_axis_gap() as f64 / self.inclination().cos()
     }
 
     fn nb_turn(&self) -> f64 {
@@ -93,7 +77,7 @@ impl TubeSpiral {
             // the correct result is the perimeter of the polygon inscribed in the helix
             let slice_width = self.perimeter / 2. / PI * (PI / nb_helices).sin();
 
-            (self._parameters.inter_helix_axis_gap() as f64 / 2. / slice_width).asin()
+            (self.parameters.inter_helix_axis_gap() as f64 / 2. / slice_width).asin()
         }
     }
 }
@@ -136,8 +120,8 @@ impl Curved for TubeSpiral {
         DVec3 { x, y, z }.rotated_by(DRotor3::from_rotation_xy(self.theta_0))
     }
 
-    fn bounds(&self) -> super::CurveBounds {
-        super::CurveBounds::Finite
+    fn bounds(&self) -> CurveBounds {
+        CurveBounds::Finite
     }
 
     fn subdivision_for_t(&self, t: f64) -> Option<usize> {

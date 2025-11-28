@@ -1,24 +1,14 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::download_intervals::DownloadIntervals;
-use super::messages::CHANGING_DNA_PARAMETERS_WARNING;
-use super::*;
+use crate::MainStateView;
+use crate::controller::{
+    State, TransitionMessage, YesNo,
+    download_intervals::DownloadIntervals,
+    messages::{
+        CHANGING_DNA_PARAMETERS_WARNING, OXDNA_EXPORT_FAILED, SAVE_DESIGN_FAILED,
+        SET_DESIGN_DIRECTORY_FIRST,
+    },
+    quit::{Exporting, Load, LoadType, NewDesign, Quit, SaveAs, SaveWithPath},
+    set_scaffold_sequence::SetScaffoldSequence,
+};
 use crate::{
     app_state::design_interactor::controller::{
         clipboard::PastePosition, simulations::SimulationOperation,
@@ -27,19 +17,31 @@ use crate::{
 };
 use ensnano_consts::ENS_EXTENSION;
 use ensnano_design::{
-    self, HelixParameters,
+    CameraId,
+    bezier_plane::BezierPlaneDescriptor,
     grid::{GridDescriptor, GridId, GridTypeDescr},
     group_attributes::GroupPivot,
+    parameters::HelixParameters,
 };
+use ensnano_exports::ExportType;
+use ensnano_gui::OverlayType;
+use ensnano_iced::ui_size::UiSize;
 use ensnano_interactor::{
     DesignOperation, HyperboloidOperation, HyperboloidRequest, RapierSimulationRequest,
-    RevolutionSurfaceSystemDescriptor, RigidBodyConstants, RollRequest, application::Notification,
-    graphics::FogParameters,
+    RigidBodyConstants, RollRequest,
+    application::Notification,
+    graphics::{FogParameters, SplitMode},
+    selection::{all_helices_no_grid, extract_grids, extract_strands_from_selection},
+    surfaces::RevolutionSurfaceSystemDescriptor,
 };
-use std::sync::Arc;
+use std::{
+    path::{Path, PathBuf},
+    sync::Arc,
+};
+use ultraviolet::{Rotor3, Vec3};
 
 /// User is interacting with graphical components.
-pub(super) struct NormalState;
+pub(crate) struct NormalState;
 
 impl State for NormalState {
     fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
@@ -75,7 +77,7 @@ impl State for NormalState {
                     self
                 }
                 Action::ErrorMsg(msg) => {
-                    TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(NormalState))
+                    TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(Self))
                 }
                 Action::DesignOperation(op) => {
                     main_state.apply_operation(op);
@@ -115,9 +117,9 @@ impl State for NormalState {
                         Load::load(None, LoadType::Object3D)
                     } else {
                         TransitionMessage::new(
-                            messages::SET_DESIGN_DIRECTORY_FIRST,
+                            SET_DESIGN_DIRECTORY_FIRST,
                             rfd::MessageLevel::Error,
-                            Box::new(NormalState),
+                            Box::new(Self),
                         )
                     }
                 }
@@ -173,11 +175,11 @@ impl State for NormalState {
                         main_state.get_bezier_sheet_creation_position()
                     {
                         main_state.apply_operation(DesignOperation::AddBezierPlane {
-                            desc: ensnano_design::BezierPlaneDescriptor {
+                            desc: BezierPlaneDescriptor {
                                 position,
                                 orientation,
                             },
-                        })
+                        });
                     }
                     self
                 }
@@ -259,7 +261,7 @@ impl State for NormalState {
                     self
                 }
                 Action::TranslateGroupPivot(translation) => {
-                    log::info!("Translating group pivot {:?}", translation);
+                    log::info!("Translating group pivot {translation:?}");
                     main_state.translate_group_pivot(translation);
                     self
                 }
@@ -334,11 +336,11 @@ impl State for ChangingDnaParameters {
 impl NormalState {
     fn turn_selection_into_grid(self: Box<Self>, main_state: &mut MainStateView) -> Box<Self> {
         let selection = main_state.get_selection();
-        if ensnano_interactor::all_helices_no_grid(
+        if all_helices_no_grid(
             selection.as_ref().as_ref(),
             main_state.get_design_reader().as_ref(),
         ) {
-            let selection = selection.as_ref().as_ref().iter().cloned().collect();
+            let selection = selection.as_ref().as_ref().to_vec();
             main_state.apply_operation(DesignOperation::HelicesToGrid(selection));
         }
         self
@@ -357,7 +359,7 @@ impl NormalState {
                 helix_parameters: None, // Some(HelixParameters::GEARY_2014_RNA), // c'est ici
                 invisible: false,
                 bezier_vertex: None,
-            }))
+            }));
         } else {
             println!("Could not get position and orientation for new grid");
         }
@@ -365,9 +367,7 @@ impl NormalState {
     }
 
     fn change_color(self: Box<Self>, main_state: &mut MainStateView, color: u32) -> Box<Self> {
-        let strands = ensnano_interactor::extract_strands_from_selection(
-            main_state.get_selection().as_ref().as_ref(),
-        );
+        let strands = extract_strands_from_selection(main_state.get_selection().as_ref().as_ref());
         main_state.apply_operation(DesignOperation::ChangeColor { color, strands });
         self
     }
@@ -377,8 +377,7 @@ impl NormalState {
         main_state: &mut MainStateView,
         small: bool,
     ) -> Box<Self> {
-        let grid_ids =
-            ensnano_interactor::extract_grids(main_state.get_selection().as_ref().as_ref());
+        let grid_ids = extract_grids(main_state.get_selection().as_ref().as_ref());
         if !grid_ids.is_empty() {
             main_state.apply_operation(DesignOperation::SetSmallSpheres { grid_ids, small });
         }
@@ -390,8 +389,7 @@ impl NormalState {
         main_state: &mut MainStateView,
         persistent: bool,
     ) -> Box<Self> {
-        let grid_ids =
-            ensnano_interactor::extract_grids(main_state.get_selection().as_ref().as_ref());
+        let grid_ids = extract_grids(main_state.get_selection().as_ref().as_ref());
         if !grid_ids.is_empty() {
             main_state.apply_operation(DesignOperation::SetHelicesPersistence {
                 grid_ids,
@@ -410,7 +408,7 @@ fn save_as() -> Box<dyn State> {
 
 fn could_not_save_design() -> Box<dyn State> {
     TransitionMessage::new(
-        messages::SAVE_DESIGN_FAILED,
+        SAVE_DESIGN_FAILED,
         rfd::MessageLevel::Error,
         Box::new(NormalState),
     )
@@ -427,7 +425,7 @@ fn quicksave<P: AsRef<Path>>(starting_path: P) -> Box<dyn State> {
 fn export(export_type: ExportType) -> Box<dyn State> {
     let on_success = Box::new(NormalState);
     let on_error = TransitionMessage::new(
-        messages::OXDNA_EXPORT_FAILED,
+        OXDNA_EXPORT_FAILED,
         rfd::MessageLevel::Error,
         Box::new(NormalState),
     );
@@ -437,7 +435,7 @@ fn export(export_type: ExportType) -> Box<dyn State> {
 /// An action to be performed at the end of an event loop iteration, and that will have an effect
 /// on the main application state, e.g. Closing the window, or toggling between 3D/2D views.
 #[derive(Debug, Clone)]
-pub enum Action {
+pub(crate) enum Action {
     LoadDesign(Option<PathBuf>),
     NewDesign,
     SaveAs,
@@ -505,7 +503,7 @@ pub enum Action {
     TranslateGroupPivot(Vec3),
     RotateGroupPivot(Rotor3),
     NewCamera,
-    SelectCamera(ensnano_design::CameraId),
+    SelectCamera(CameraId),
     SelectFavoriteCamera(u32),
     Toggle2D,
     MakeAllSuggestedXover {

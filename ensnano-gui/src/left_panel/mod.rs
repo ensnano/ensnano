@@ -1,69 +1,69 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+mod color_picker;
+mod contextual_panel;
+mod discrete_value;
+mod export_menu;
+pub mod tabs;
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::{AppState, FogParameters, OverlayType, Requests, fonts};
+use crate::{
+    AppState, OverlayType, Requests,
+    left_panel::tabs::{
+        camera_tab::FogChoices,
+        revolution_tab::{CurveDescriptorBuilder, RevolutionParameterId},
+    },
+};
+use color_picker::ColorPicker;
+use contextual_panel::{
+    ContextualPanel,
+    value_constructor::{InstantiatedValue, ValueKind},
+};
+use discrete_value::{FactoryId, Requestable, ValueId};
 use ensnano_design::{
-    BezierPathId, CameraId, NamedParameter,
+    CameraId,
+    bezier_plane::BezierPathId,
     elements::{DesignElement, DesignElementKey},
     grid::GridTypeDescr,
+    parameters::NamedParameter,
 };
 use ensnano_exports::ExportType;
 use ensnano_iced::{
-    UiSize,
     color_picker::ColorPickerMessage,
-    iced::{Color, Command, Element, Length},
-    iced_aw::widgets::{TabBarPosition, TabLabel, Tabs},
-    iced_runtime::Program,
-    iced_widget::*,
-    iced_winit::{
-        conversion,
-        winit::{
-            dpi::{LogicalPosition, LogicalSize},
-            event::Modifiers,
-        },
-    },
+    fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
+    theme::GuiBackground,
+    ui_size::UiSize,
     widgets::keyboard_priority::PriorityRequest,
 };
 use ensnano_interactor::{
-    ActionMode, EquadiffSolvingMethod, HyperboloidRequest, RapierSimulationRequest, Selection,
-    SelectionConversion,
-    app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
+    HyperboloidRequest, RapierSimulationRequest,
+    app_state_parameters::{
+        AppStateParameters, check_xovers_parameter::CheckXoversParameter,
+        suggestion_parameters::SuggestionParameters,
+    },
     graphics::{Background3D, HBondDisplay, RenderingMode},
+    selection::{ActionMode, Selection, SelectionConversion as _},
+    surfaces::EquadiffSolvingMethod,
 };
-use ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
+use ensnano_organizer::{Organizer, OrganizerMessage, tree::OrganizerTree};
 use ensnano_physics::parameters::RapierParameters;
-use std::sync::{Arc, Mutex};
-use ultraviolet::Vec3;
-
-mod discrete_value;
-use discrete_value::{FactoryId, RequestFactory, Requestable, ValueId};
-
-mod contextual_panel;
-use contextual_panel::{ContextualPanel, InstantiatedValue, ValueKind};
-
-mod export_menu;
 use export_menu::ExportMenu;
-
-mod tabs;
-pub use tabs::revolution_tab::*;
+use iced::{
+    Color, Command, Element, Length,
+    widget::{Button, Column, Container, Text, column, container, horizontal_rule, text_input},
+};
+use iced_aw::widgets::{TabBarPosition, Tabs};
+use iced_runtime::Program;
+use std::{
+    f32::consts::PI,
+    sync::{Arc, Mutex},
+};
 use tabs::{
-    CameraShortcutPanel, CameraTab, EditionTab, GridTab, GuiTab, ParametersTab, PenTab,
-    SequenceTab, SimulationTab, TabId,
+    GuiTab as _, TabId, camera_shortcut::CameraShortcutPanel, camera_tab::CameraTab,
+    edition_tab::EditionTab, grids_tab::GridTab, parameters_tab::ParametersTab, pen_tab::PenTab,
+    revolution_tab::RevolutionTab, sequence_tab::SequenceTab, simulation_tab::SimulationTab,
+};
+use ultraviolet::Vec3;
+use winit::{
+    dpi::{LogicalPosition, LogicalSize},
+    event::Modifiers,
 };
 
 pub struct LeftPanel<R: Requests, S: AppState> {
@@ -136,7 +136,7 @@ pub enum Message<S: AppState> {
     BrownianMotion(bool),
     Nothing,
     CancelHyperboloid,
-    SelectionValueChanged(usize, String),
+    SelectionValueChanged(String),
     SetSmallSpheres(bool),
     ScaffoldIdSet(usize, bool),
     SelectScaffold,
@@ -146,7 +146,7 @@ pub enum Message<S: AppState> {
     Background3D(Background3D),
     OpenLink(&'static str),
     NewApplicationState(S),
-    FogChoice(tabs::FogChoices),
+    FogChoice(FogChoices),
     SetScaffoldSeqButtonPressed,
     OptimizeScaffoldShiftPressed,
     ResetSimulation,
@@ -281,7 +281,7 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
                     .update_attribute_of_elements(a, keys.into_iter().collect());
             }
             OrganizerMessage::NewTree(tree) => {
-                self.requests.lock().unwrap().update_organizer_tree(tree)
+                self.requests.lock().unwrap().update_organizer_tree(tree);
             }
             OrganizerMessage::Candidates(candidates) => self
                 .requests
@@ -309,7 +309,7 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
                 .unwrap()
                 .set_keyboard_priority(priority),
             OrganizerMessage::SetFocus(id) => return Some(Message::SetFocus(id)),
-            _ => (),
+            OrganizerMessage::ElementUpdate(_) => (),
         }
         None
     }
@@ -320,8 +320,8 @@ where
     R: Requests,
     S: AppState,
 {
-    type Theme = ensnano_iced::Theme;
-    type Renderer = super::Renderer;
+    type Theme = iced::Theme;
+    type Renderer = iced::Renderer;
     type Message = Message<S>;
 
     // BUG: Increasing the left panel too much crashes ENSnano.
@@ -345,7 +345,7 @@ where
             self.requests
                 .lock()
                 .unwrap()
-                .update_organizer_tree(self.organizer.tree())
+                .update_organizer_tree(self.organizer.tree());
         }
         log::debug!("Message: {:?}", &message);
         let command = match message {
@@ -418,7 +418,7 @@ where
             Message::ScaffoldPositionInput(position_str) => {
                 if let Some(n) = self.sequence_tab.update_pos_str(position_str) {
                     self.requests.lock().unwrap().set_scaffold_shift(n);
-                };
+                }
                 Command::none()
             }
             Message::FogLength(length) => {
@@ -435,7 +435,7 @@ where
             }
             Message::RollSimulationRequest => {
                 if self.application_state.get_simulation_state().is_rolling() {
-                    self.requests.lock().unwrap().stop_simulations()
+                    self.requests.lock().unwrap().stop_simulations();
                 } else {
                     let request = self.simulation_tab.get_physical_simulation_request();
                     self.requests.lock().unwrap().start_roll_simulation(request);
@@ -635,7 +635,7 @@ where
                         .leave_tab(Arc::clone(&self.requests), &self.application_state);
                 }
                 if tab_id == TabId::Revolution {
-                    self.requests.lock().unwrap().notify_revolution_tab()
+                    self.requests.lock().unwrap().notify_revolution_tab();
                 }
                 self.active_tab = tab_id;
                 Command::none()
@@ -650,7 +650,7 @@ where
             }
             Message::ModifiersChanged(modifiers) => {
                 self.organizer
-                    .new_modifiers(conversion::modifiers(modifiers.state()));
+                    .new_modifiers(iced_winit::conversion::modifiers(modifiers.state()));
                 Command::none()
             }
             Message::UiSizePicked(ui_size) => {
@@ -713,9 +713,9 @@ where
                 self.requests.lock().unwrap().cancel_hyperboloid();
                 Command::none()
             }
-            Message::SelectionValueChanged(n, s) => {
+            Message::SelectionValueChanged(s) => {
                 self.contextual_panel
-                    .selection_value_changed(n, s, Arc::clone(&self.requests));
+                    .selection_value_changed(s, Arc::clone(&self.requests));
                 Command::none()
             }
             Message::SetSmallSpheres(b) => {
@@ -823,7 +823,7 @@ where
             }
             Message::ContextualValueSubmitted(kind) => {
                 if let Some(request) = self.contextual_panel.submit_value(kind) {
-                    request.make_request(Arc::clone(&self.requests))
+                    request.make_request(Arc::clone(&self.requests));
                 }
                 Command::none()
             }
@@ -833,7 +833,7 @@ where
             }
             Message::InstantiatedValueSubmitted(value) => {
                 if let Some(request) = self.contextual_panel.request_from_value(value) {
-                    request.make_request(Arc::clone(&self.requests))
+                    request.make_request(Arc::clone(&self.requests));
                 }
                 Command::none()
             }
@@ -869,9 +869,9 @@ where
             }
             Message::StartTwist => {
                 if let Some(Selection::Grid(_, g_id)) =
-                    self.application_state.get_selection().get(0)
+                    self.application_state.get_selection().first()
                 {
-                    self.requests.lock().unwrap().start_twist_simulation(*g_id)
+                    self.requests.lock().unwrap().start_twist_simulation(*g_id);
                 }
                 Command::none()
             }
@@ -904,7 +904,7 @@ where
                         self.requests
                             .lock()
                             .unwrap()
-                            .set_insertion_length(insertion_point, request.length)
+                            .set_insertion_length(insertion_point, request.length);
                     } else {
                         log::error!("No insertion point for {:?}", request.selection);
                     }
@@ -969,7 +969,7 @@ where
                 Command::none()
             }
             Message::RevolutionParameterUpdate { parameter_id, text } => {
-                if let RevolutionParameterId::RevolutionRadius = parameter_id
+                if matches!(parameter_id, RevolutionParameterId::RevolutionRadius)
                     && let Some(radius) = text.parse::<f64>().ok()
                 {
                     self.requests
@@ -977,6 +977,7 @@ where
                         .unwrap()
                         .set_bezier_revolution_radius(radius);
                 }
+
                 self.revolution_tab
                     .update_builder_parameter(parameter_id, text);
                 let bezier_path_id = self.revolution_tab.get_current_bezier_path_id();
@@ -1060,8 +1061,8 @@ where
             self.parameters_tab.update(&mut self.application_state),
             self.pen_tab.update(&mut self.application_state),
             self.revolution_tab.update(&mut self.application_state),
-            self.camera_shortcut.update(&mut self.application_state),
-            self.contextual_panel.update(&mut self.application_state),
+            self.camera_shortcut.update(&self.application_state),
+            self.contextual_panel.update(&self.application_state),
         ]);
         log::debug!("Command: {:?}", &command);
         command
@@ -1116,12 +1117,12 @@ where
             )
             .set_active_tab(&self.active_tab)
             .tab_bar_position(TabBarPosition::Top)
-            .icon_font(fonts::ENSNANO_FONT)
+            .icon_font(ENSNANO_FONT)
             .icon_size(self.ui_size.icon())
-            .text_font(fonts::MATERIAL_ICONS_DARK)
+            .text_font(MATERIAL_ICONS_DARK)
             .text_size(self.ui_size.main_text())
             .tab_bar_height(Length::Fixed(self.ui_size.tab_bar_height()))
-            .tab_bar_style(ensnano_iced::theme::GuiBackground.into())
+            .tab_bar_style(GuiBackground.into())
             .width(Length::Fixed(width as f32))
             .height(Length::Fill);
         // NOTE: The style, height and width values are necessary to clear the tab when
@@ -1165,16 +1166,13 @@ where
             .width(Length::Fill)
             .padding(1),
         )
-        .style(ensnano_iced::theme::GuiBackground)
+        .style(GuiBackground)
         .height(self.logical_size.height as f32)
         .into()
     }
 }
 
 // TODO: Remove ColorOverlay
-
-mod color_picker;
-use color_picker::ColorPicker;
 
 pub struct ColorOverlay<R: Requests> {
     logical_size: LogicalSize<f64>,
@@ -1190,31 +1188,25 @@ impl<R: Requests> ColorOverlay<R> {
             requests,
         }
     }
-
-    pub fn resize(&mut self, logical_size: LogicalSize<f64>) {
-        self.logical_size = logical_size;
-    }
 }
 
 #[derive(Debug, Clone)]
 pub enum ColorMessage {
     HsvSatValueChanged(f64, f64),
     HueChanged(f64),
-    #[allow(dead_code)]
-    Resized(LogicalSize<f64>),
     FinishChangingColor,
     Closed,
 }
 
 impl<R: Requests> Program for ColorOverlay<R> {
-    type Renderer = super::Renderer;
-    type Theme = ensnano_iced::Theme;
+    type Renderer = iced::Renderer;
+    type Theme = iced::Theme;
     type Message = ColorMessage;
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
             ColorMessage::HsvSatValueChanged(_sat, _value) => {}
-            ColorMessage::HueChanged(x) => self.color_picker.change_hue(x as f64),
+            ColorMessage::HueChanged(x) => self.color_picker.change_hue(x),
             ColorMessage::Closed => {
                 self.requests
                     .lock()
@@ -1224,8 +1216,7 @@ impl<R: Requests> Program for ColorOverlay<R> {
             ColorMessage::FinishChangingColor => {
                 self.requests.lock().unwrap().finish_changing_color();
             }
-            ColorMessage::Resized(size) => self.resize(size),
-        };
+        }
         Command::none()
     }
 
@@ -1248,34 +1239,42 @@ impl<R: Requests> Program for ColorOverlay<R> {
     }
 }
 
-pub struct Hyperboloid_ {}
+pub struct Hyperboloid_;
 
 impl Requestable for Hyperboloid_ {
     type Request = HyperboloidRequest;
+
     fn request_from_values(&self, values: &[f32]) -> HyperboloidRequest {
+        let &[radius, length, shift, radius_shift, nb_turn] = values else {
+            panic!("expected 5 inputs to Hyperboloid_::request_from_values")
+        };
+
         HyperboloidRequest {
-            radius: values[0].round() as usize,
-            length: values[1],
-            shift: values[2],
-            radius_shift: values[3],
-            nb_turn: values[4] as f64,
+            radius: radius.round() as usize,
+            length,
+            shift,
+            radius_shift,
+            nb_turn: nb_turn as f64,
         }
     }
+
     fn nb_values(&self) -> usize {
         5
     }
+
+    #[expect(clippy::match_same_arms)]
     fn initial_value(&self, n: usize) -> f32 {
         match n {
             0 => 10f32,
             1 => 30f32,
             2 => 0f32,
             3 => 0.2f32,
-            4 => 0.0f32,
+            4 => 0f32,
             _ => unreachable!(),
         }
     }
+
     fn min_val(&self, n: usize) -> f32 {
-        use std::f32::consts::PI;
         match n {
             0 => 5f32,
             1 => 1f32,
@@ -1296,6 +1295,8 @@ impl Requestable for Hyperboloid_ {
             _ => unreachable!(),
         }
     }
+
+    #[expect(clippy::match_same_arms)]
     fn step_val(&self, n: usize) -> f32 {
         match n {
             0 => 1f32,
@@ -1306,6 +1307,7 @@ impl Requestable for Hyperboloid_ {
             _ => unreachable!(),
         }
     }
+
     fn name_val(&self, n: usize) -> String {
         match n {
             0 => String::from("Nb helices"),
@@ -1328,12 +1330,15 @@ struct ScrollSensitivity {
 
 impl Requestable for ScrollSensitivity {
     type Request = f32;
+
     fn request_from_values(&self, values: &[f32]) -> f32 {
         values[0]
     }
+
     fn nb_values(&self) -> usize {
         1
     }
+
     fn initial_value(&self, n: usize) -> f32 {
         if n == 0 {
             self.initial_value
@@ -1341,15 +1346,19 @@ impl Requestable for ScrollSensitivity {
             unreachable!()
         }
     }
+
     fn min_val(&self, n: usize) -> f32 {
         if n == 0 { -10f32 } else { unreachable!() }
     }
+
     fn max_val(&self, n: usize) -> f32 {
         if n == 0 { 10f32 } else { unreachable!() }
     }
+
     fn step_val(&self, n: usize) -> f32 {
         if n == 0 { 0.5f32 } else { unreachable!() }
     }
+
     fn name_val(&self, n: usize) -> String {
         if n == 0 {
             String::from("Sensitivity")
@@ -1359,42 +1368,47 @@ impl Requestable for ScrollSensitivity {
     }
 }
 
-struct HelixRoll {}
+struct HelixRoll;
 
 impl Requestable for HelixRoll {
     type Request = f32;
+
     fn request_from_values(&self, values: &[f32]) -> f32 {
         values[0]
     }
+
     fn nb_values(&self) -> usize {
         1
     }
+
     fn initial_value(&self, n: usize) -> f32 {
         match n {
             0 => 0f32,
             _ => unreachable!(),
         }
     }
+
     fn min_val(&self, n: usize) -> f32 {
-        use std::f32::consts::PI;
         match n {
             0 => -PI,
             _ => unreachable!(),
         }
     }
+
     fn max_val(&self, n: usize) -> f32 {
-        use std::f32::consts::PI;
         match n {
             0 => PI,
             _ => unreachable!(),
         }
     }
+
     fn step_val(&self, n: usize) -> f32 {
         match n {
             0 => 1f32.to_radians(),
             _ => unreachable!(),
         }
     }
+
     fn name_val(&self, n: usize) -> String {
         match n {
             0 => String::from("Roll helix"),
@@ -1428,11 +1442,12 @@ struct BrownianParametersFactory {
 
 impl Requestable for BrownianParametersFactory {
     type Request = Self;
+
     fn request_from_values(&self, values: &[f32]) -> Self {
-        Self {
-            rate: values[0],
-            amplitude: values[1],
-        }
+        let &[rate, amplitude] = values else {
+            panic!("expected 2 inputs to BrownianParametersFactory::request_from_values")
+        };
+        Self { rate, amplitude }
     }
 
     fn nb_values(&self) -> usize {
@@ -1482,55 +1497,55 @@ impl Requestable for BrownianParametersFactory {
 
 impl Requestable for RigidBodyFactory {
     type Request = RigidBodyParametersRequest;
+
     fn request_from_values(&self, values: &[f32]) -> RigidBodyParametersRequest {
+        let &[k_springs, k_friction, mass_factor] = values else {
+            panic!("expected 3 inputs to RigidBodyFactory::request_from_values")
+        };
+
         RigidBodyParametersRequest {
-            k_springs: values[0],
-            k_friction: values[1],
-            mass_factor: values[2],
+            k_springs,
+            k_friction,
+            mass_factor,
             volume_exclusion: self.volume_exclusion,
             brownian_motion: self.brownian_motion,
             brownian_rate: self.brownian_parameters.rate,
             brownian_amplitude: self.brownian_parameters.amplitude,
         }
     }
+
     fn nb_values(&self) -> usize {
         3
     }
+
     fn initial_value(&self, n: usize) -> f32 {
         match n {
-            0 => 0f32,
-            1 => 0f32,
-            2 => 0f32,
+            0..=2 => 0f32,
             _ => unreachable!(),
         }
     }
+
     fn min_val(&self, n: usize) -> f32 {
         match n {
-            0 => -4.,
-            1 => -4.,
-            2 => -4.,
-            3 => -4.,
+            0..=3 => -4.,
             _ => unreachable!(),
         }
     }
+
     fn max_val(&self, n: usize) -> f32 {
         match n {
-            0 => 4.,
-            1 => 4.,
-            2 => 4.,
-            3 => 4.,
+            0..=3 => 4.,
             _ => unreachable!(),
         }
     }
+
     fn step_val(&self, n: usize) -> f32 {
         match n {
-            0 => 0.1f32,
-            1 => 0.1f32,
-            2 => 0.1f32,
-            3 => 0.1f32,
+            0..=3 => 0.1f32,
             _ => unreachable!(),
         }
     }
+
     fn name_val(&self, n: usize) -> String {
         match n {
             0 => String::from("Stiffness (log scale)"),

@@ -1,26 +1,16 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::*;
-use ensnano_design::{CameraId, Collection, elements::DesignElement};
+use crate::app_state::design_interactor::DesignInteractor;
+use ensnano_design::{
+    CameraId, Nucl,
+    bezier_plane::{BezierPathId, BezierVertexId},
+    collection::Collection as _,
+    elements::DesignElement,
+    grid::GridId,
+    strands::Strand,
+};
 use ensnano_gui::{EnsnTree, GuiDesignReaderExt as ReaderGui};
-use ensnano_interactor::InsertionPoint;
-use ultraviolet::{Rotor3, Vec2};
+use ensnano_interactor::{InsertionPoint, selection::Selection};
+use std::sync::Arc;
+use ultraviolet::{Rotor3, Vec2, Vec3};
 
 impl ReaderGui for DesignInteractor {
     fn grid_has_small_spheres(&self, g_id: GridId) -> bool {
@@ -40,7 +30,7 @@ impl ReaderGui for DesignInteractor {
             .current_design
             .strands
             .get(&s_id)
-            .map(|s| s.length())
+            .map(Strand::length)
     }
 
     fn is_id_of_scaffold(&self, s_id: usize) -> bool {
@@ -68,7 +58,7 @@ impl ReaderGui for DesignInteractor {
             .current_design
             .strands
             .get(&s_id)
-            .and_then(|s| s.name.as_ref().map(|n| n.to_string()))
+            .and_then(|s| s.name.as_ref().map(ToString::to_string))
             .unwrap_or_else(|| String::from("Unnamed strand"))
     }
 
@@ -77,7 +67,6 @@ impl ReaderGui for DesignInteractor {
         self.presenter
             .current_design
             .get_cameras()
-            .into_iter()
             .map(|(id, cam)| (*id, cam.name.as_str()))
             .collect()
     }
@@ -139,7 +128,7 @@ impl ReaderGui for DesignInteractor {
                     .content
                     .insertion_length
                     .get(bond_id)
-                    .cloned()
+                    .copied()
                     .or(Some(0))
             }
             Selection::Xover(_, xover_id) => {
@@ -154,7 +143,7 @@ impl ReaderGui for DesignInteractor {
                     .content
                     .insertion_length
                     .get(bond_id)
-                    .cloned()
+                    .copied()
                     .or(Some(0))
             }
             Selection::Nucleotide(_, nucl) => {
@@ -170,7 +159,7 @@ impl ReaderGui for DesignInteractor {
                         .content
                         .insertion_length
                         .get(nucl_id)
-                        .cloned()
+                        .copied()
                         .or(Some(0))
                 } else {
                     None
@@ -211,7 +200,7 @@ impl ReaderGui for DesignInteractor {
         }
     }
 
-    fn is_bezier_path_cyclic(&self, path_id: ensnano_design::BezierPathId) -> Option<bool> {
+    fn is_bezier_path_cyclic(&self, path_id: BezierPathId) -> Option<bool> {
         self.presenter
             .current_design
             .bezier_paths
@@ -219,10 +208,7 @@ impl ReaderGui for DesignInteractor {
             .map(|p| p.is_cyclic)
     }
 
-    fn get_bezier_vertex_position(
-        &self,
-        vertex_id: ensnano_design::BezierVertexId,
-    ) -> Option<Vec2> {
+    fn get_bezier_vertex_position(&self, vertex_id: BezierVertexId) -> Option<Vec2> {
         let path = self
             .presenter
             .current_design

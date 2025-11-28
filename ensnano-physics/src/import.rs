@@ -20,7 +20,7 @@ const FREE_NUCLEOTIDE_DAMPING: f32 = 50000.0;
 const FREE_NUCLEOTIDE_DISTANCE: f32 = 0.64;
 
 #[derive(Copy, Clone, Debug)]
-pub enum BaseOrNucleotide {
+pub(crate) enum BaseOrNucleotide {
     // always backward, forward
     Base((u32, Nucl), (u32, Nucl)),
     ForwardNucleotide((u32, Nucl)),
@@ -28,7 +28,7 @@ pub enum BaseOrNucleotide {
 }
 
 impl BaseOrNucleotide {
-    pub fn into_rigid_body(
+    pub(crate) fn into_rigid_body(
         self,
         space_position: &HashMap<u32, [f32; 3]>,
         rigid_body_set: &mut RigidBodySet,
@@ -40,7 +40,7 @@ impl BaseOrNucleotide {
         Option<ColliderHandle>,
     ) {
         match self {
-            BaseOrNucleotide::Base((k1, _), (k2, _)) => {
+            Self::Base((k1, _), (k2, _)) => {
                 let p1 = space_position
                     .get(&k1)
                     .expect("Couldn't get position of nucl");
@@ -55,15 +55,15 @@ impl BaseOrNucleotide {
                 let p2 = p2 - center;
 
                 let rigid_body = RigidBodyBuilder::dynamic()
-                    .translation(center.into())
+                    .translation(center)
                     .linear_damping(BASE_LINEAR_DAMPING)
                     .angular_damping(BASE_ANGULAR_DAMPING);
 
                 let collider1 = ColliderBuilder::ball(NUCLEOTIDE_RADIUS)
-                    .translation(p1.into())
+                    .translation(p1)
                     .build();
                 let collider2 = ColliderBuilder::ball(NUCLEOTIDE_RADIUS)
-                    .translation(p2.into())
+                    .translation(p2)
                     .build();
 
                 let rigid_body_handle = rigid_body_set.insert(rigid_body);
@@ -81,7 +81,7 @@ impl BaseOrNucleotide {
                     Some(collider_handle2),
                 )
             }
-            BaseOrNucleotide::BackwardNucleotide((k1, _)) => {
+            Self::BackwardNucleotide((k1, _)) => {
                 let position = space_position
                     .get(&k1)
                     .expect("Couldn't get position of nucl");
@@ -99,7 +99,7 @@ impl BaseOrNucleotide {
 
                 (rigid_body_handle, Some(collider_handle), None)
             }
-            BaseOrNucleotide::ForwardNucleotide((k2, _)) => {
+            Self::ForwardNucleotide((k2, _)) => {
                 let position = space_position
                     .get(&k2)
                     .expect("Couldn't get position of nucl");
@@ -121,7 +121,7 @@ impl BaseOrNucleotide {
     }
 }
 
-pub fn add_crossover_springs(
+pub(crate) fn add_crossover_springs(
     object_type: &HashMap<u32, ObjectType>,
     nucleotide: &HashMap<u32, Nucl>,
     nucleotide_body_map: &HashMap<u32, ColliderHandle>,
@@ -130,7 +130,7 @@ pub fn add_crossover_springs(
 ) {
     let mut bonds: Vec<(u32, u32)> = Default::default();
 
-    for (_, ty) in object_type.iter() {
+    for ty in object_type.values() {
         match ty {
             ObjectType::Bond(a, b) | ObjectType::SlicedBond(_, a, b, _) => {
                 if nucleotide[a].helix == nucleotide[b].helix {
@@ -163,7 +163,7 @@ pub fn add_crossover_springs(
     }
 }
 
-pub fn generate_springs(
+pub(crate) fn generate_springs(
     from: (
         RigidBodyHandle,
         Option<ColliderHandle>,
@@ -174,8 +174,8 @@ pub fn generate_springs(
         Option<ColliderHandle>,
         Option<ColliderHandle>,
     ),
-    rigid_body_set: &mut RigidBodySet,
-    collider_set: &mut ColliderSet,
+    rigid_body_set: &RigidBodySet,
+    collider_set: &ColliderSet,
     impulse_joint_set: &mut ImpulseJointSet,
 ) {
     if from.1.is_some() && from.2.is_some() && to.1.is_some() && to.2.is_some() {
@@ -216,22 +216,20 @@ pub fn generate_springs(
             collider_set,
             impulse_joint_set,
         );
-
-        return;
     }
 
     // in this case, we can't connect anything, so we don't add anything
 }
 
-// Tries to stick two rigidbody handles in the same place; for this, it
+// Tries to stick two rigid body handles in the same place; for this, it
 // supposes that the rigid bodies are at 0, 0, 0.
 fn link_with_springs(
     left_a: ColliderHandle,
     right_a: ColliderHandle,
     left_b: ColliderHandle,
     right_b: ColliderHandle,
-    rigid_body_set: &mut RigidBodySet,
-    collider_set: &mut ColliderSet,
+    rigid_body_set: &RigidBodySet,
+    collider_set: &ColliderSet,
     impulse_joint_set: &mut ImpulseJointSet,
 ) {
     let a_handle = collider_set.get(left_a).unwrap().parent().unwrap();
@@ -296,7 +294,7 @@ fn create_spring(
 fn generate_single_spring(
     from: (RigidBodyHandle, ColliderHandle),
     to: (RigidBodyHandle, ColliderHandle),
-    collider_set: &mut ColliderSet,
+    collider_set: &ColliderSet,
     impulse_joint_set: &mut ImpulseJointSet,
 ) {
     let anchor1 = collider_set
@@ -329,7 +327,7 @@ fn generate_single_spring(
 
 /// Generates a list of BaseOrNucleotide from the information provided
 /// by ensnano
-pub fn generate_intermediary_representation(
+pub(crate) fn generate_intermediary_representation(
     nucleotide: &HashMap<u32, Nucl>,
 ) -> Vec<Vec<BaseOrNucleotide>> {
     let mut result = vec![];
@@ -357,13 +355,9 @@ pub fn generate_intermediary_representation(
         } else {
             // in this case, we only have one nucleotide left, so it is alone.
             if nucleotide_list[i].1.forward {
-                current_helix.push(BaseOrNucleotide::ForwardNucleotide(
-                    nucleotide_list[i].clone(),
-                ));
+                current_helix.push(BaseOrNucleotide::ForwardNucleotide(nucleotide_list[i]));
             } else {
-                current_helix.push(BaseOrNucleotide::BackwardNucleotide(
-                    nucleotide_list[i].clone(),
-                ));
+                current_helix.push(BaseOrNucleotide::BackwardNucleotide(nucleotide_list[i]));
             }
             break;
         };
@@ -373,8 +367,8 @@ pub fn generate_intermediary_representation(
             && nucleotide_list[i].1.position == nucleotide_list[j].1.position
         {
             current_helix.push(BaseOrNucleotide::Base(
-                nucleotide_list[i].clone(),
-                nucleotide_list[j].clone(),
+                nucleotide_list[i],
+                nucleotide_list[j],
             ));
 
             i += 2;
@@ -383,13 +377,9 @@ pub fn generate_intermediary_representation(
 
         // the next nucleotide is alone
         if nucleotide_list[i].1.forward {
-            current_helix.push(BaseOrNucleotide::ForwardNucleotide(
-                nucleotide_list[i].clone(),
-            ));
+            current_helix.push(BaseOrNucleotide::ForwardNucleotide(nucleotide_list[i]));
         } else {
-            current_helix.push(BaseOrNucleotide::BackwardNucleotide(
-                nucleotide_list[i].clone(),
-            ));
+            current_helix.push(BaseOrNucleotide::BackwardNucleotide(nucleotide_list[i]));
         }
 
         // we check if the next nucleotide is connected;

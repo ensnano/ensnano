@@ -1,23 +1,5 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::instances_drawer::{Instantiable, ResourceProvider, Vertexable};
-use ensnano_utils::text::Letter;
+use crate::view::instances_drawer::{Instantiable, ResourceProvider, Vertexable};
+use ensnano_utils::text::{self, Letter};
 use ultraviolet::{Vec2, Vec3, Vec4};
 use wgpu::{Device, include_spirv};
 
@@ -68,7 +50,7 @@ impl ResourceProvider for Letter {
     where
         Self: Sized,
     {
-        Some(ensnano_utils::text::Vertex::desc())
+        Some(text::Vertex::desc())
     }
 
     fn resources(&self) -> Vec<wgpu::BindGroupEntry<'_>> {
@@ -100,7 +82,7 @@ pub struct LetterVertex {
 }
 
 impl Vertexable for LetterVertex {
-    type RawType = LetterVertex;
+    type RawType = Self;
 
     fn to_raw(&self) -> Self {
         *self
@@ -108,7 +90,7 @@ impl Vertexable for LetterVertex {
 
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         wgpu::VertexBufferLayout {
-            array_stride: std::mem::size_of::<LetterVertex>() as wgpu::BufferAddress,
+            array_stride: size_of::<Self>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &wgpu::vertex_attr_array![0 => Float32x2],
         }

@@ -1,16 +1,16 @@
 //! ENSnano theme.
 //!
 //! The theme of the GUI is defined here
-use std::rc::Rc;
 
-pub use iced::theme::*;
 use iced::{
-    Background, Border, Color,
+    Background, Border, Color, Theme,
     advanced::renderer::Style,
     border::Radius,
+    theme::{Container, Palette, Slider, Text, TextInput},
     widget::{container, slider, text_input},
 };
 use iced_aw::widgets::tab_bar;
+use std::rc::Rc;
 
 /// Color palette
 pub const GUI_PALETTE: Palette = Palette {
@@ -22,7 +22,7 @@ pub const GUI_PALETTE: Palette = Palette {
 };
 
 pub fn gui_theme() -> Theme {
-    Theme::custom("ENSnano UI Theme".to_string(), GUI_PALETTE)
+    Theme::custom("ENSnano UI Theme".to_owned(), GUI_PALETTE)
 }
 
 pub fn gui_style(theme: &Theme) -> Style {
@@ -42,7 +42,7 @@ pub const DISABLED_TEXT: Text = Text::Color(Color::from_rgb(
     0.6 * GUI_PALETTE.text.b,
 ));
 
-/// Custom StyleSheet for the background of top_bar, status_bar, and left_pannel.
+/// Custom StyleSheet for the background of top_bar, status_bar, and left_panel.
 #[derive(Default)]
 pub struct GuiBackground;
 
@@ -72,7 +72,7 @@ impl From<GuiBackground> for Container {
 }
 
 impl tab_bar::StyleSheet for GuiBackground {
-    type Style = iced::Theme;
+    type Style = Theme;
 
     fn active(&self, _style: &Self::Style, _is_active: bool) -> tab_bar::Appearance {
         tab_bar::Appearance {
@@ -144,7 +144,7 @@ impl From<DeactivatedSlider> for Slider {
     }
 }
 
-// A TextInput that changes appareance when the contained value is bad.
+// A TextInput that changes appearance when the contained value is bad.
 //
 // A `true` value means bad.
 //

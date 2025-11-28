@@ -1,30 +1,22 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 //! Export to pdb file format. The method used here is an adaptation from the one used in
 //! [tacOxDNA](https://github.com/lorenzo-rovigatti/tacoxDNA)
 
-use super::PathBuf;
-use crate::BasisMapper;
-use crate::oxdna::{OXDNA_LEN_FACTOR, OxDnaHelix};
+use crate::{
+    BasisMapper,
+    oxdna::{OXDNA_LEN_FACTOR, OxDnaHelix as _, free_oxdna_nucl},
+    rand_base_from_symbol,
+};
 use ahash::AHashMap;
-use ensnano_design::{Design, Domain, HelixCollection, Nucl};
-use std::borrow::Cow;
+use ensnano_design::{Design, Nucl, helices::HelixCollection as _, strands::Domain};
+use itertools::Itertools as _;
+use std::{
+    borrow::Cow,
+    fmt::Write as _,
+    fs::File,
+    io::Write as _,
+    mem::ManuallyDrop,
+    path::{Path, PathBuf},
+};
 use ultraviolet::{Mat3, Rotor3, Vec3};
 
 const MAX_ATOM_SERIAL_NUMBER: usize = 99_999;
@@ -131,13 +123,13 @@ impl PdbNucleotide {
         }
 
         for a in self.sugar_atoms.values() {
-            ret += a.position
+            ret += a.position;
         }
         for a in self.phosphate_atoms.values() {
-            ret += a.position
+            ret += a.position;
         }
         for a in self.base_atoms.values() {
-            ret += a.position
+            ret += a.position;
         }
 
         Ok(ret / (nb_atoms as f32))
@@ -152,7 +144,7 @@ impl PdbNucleotide {
         }
 
         for a in self.base_atoms.values() {
-            ret += a.position
+            ret += a.position;
         }
 
         Ok(ret / (nb_atoms as f32))
@@ -171,11 +163,11 @@ impl PdbNucleotide {
             let p = self
                 .base_atoms
                 .get(pair[0])
-                .ok_or_else(|| PdbError::MissingAtom(pair[0].to_string()))?;
+                .ok_or_else(|| PdbError::MissingAtom(pair[0].to_owned()))?;
             let q = self
                 .base_atoms
                 .get(pair[1])
-                .ok_or_else(|| PdbError::MissingAtom(pair[1].to_string()))?;
+                .ok_or_else(|| PdbError::MissingAtom(pair[1].to_owned()))?;
             ret += p.position - q.position;
         }
 
@@ -190,18 +182,17 @@ impl PdbNucleotide {
             .get("O4'")
             .or_else(|| self.sugar_atoms.get("O4*"))
             .ok_or_else(|| PdbError::MissingAtom(String::from("O4'")))?;
-        let parralel_to = oxygen4.position - base_com;
+        let parallel_to = oxygen4.position - base_com;
 
         let mut ret = Vec3::zero();
 
         let get_base_atom = |name: &str| {
             self.base_atoms
                 .get(name)
-                .ok_or_else(|| PdbError::MissingAtom(name.to_string()))
+                .ok_or_else(|| PdbError::MissingAtom(name.to_owned()))
         };
         let ring_atom_names = ["C2", "C4", "C5", "C6", "N1", "N3"];
 
-        use itertools::Itertools;
         for perm in ring_atom_names.iter().permutations(3) {
             let p = get_base_atom(perm[0])?;
             let q = get_base_atom(perm[1])?;
@@ -212,7 +203,7 @@ impl PdbNucleotide {
 
             if v1.dot(v2).abs() > 0.01 {
                 let mut a3 = v1.cross(v2).normalized();
-                a3 *= a3.dot(parralel_to).signum();
+                a3 *= a3.dot(parallel_to).signum();
                 ret += a3;
             }
         }
@@ -247,7 +238,7 @@ impl PdbNucleotide {
                     },
                     residue_type,
                 )
-                .map_err(PdbError::Formating)?,
+                .map_err(PdbError::Formatting)?,
             );
             *nb_atom += 1;
         }
@@ -259,12 +250,12 @@ impl PdbNucleotide {
         let get_phosphate_atom = |name: &str| {
             self.phosphate_atoms
                 .get(name)
-                .ok_or_else(|| PdbError::MissingAtom(name.to_string()))
+                .ok_or_else(|| PdbError::MissingAtom(name.to_owned()))
         };
         let get_sugar_atom = |name: &str| {
             self.sugar_atoms
                 .get(name)
-                .ok_or_else(|| PdbError::MissingAtom(name.to_string()))
+                .ok_or_else(|| PdbError::MissingAtom(name.to_owned()))
         };
         match residue_type {
             ResidueType::Prime5 => {
@@ -421,12 +412,11 @@ fn read_pdb_string(
     if let Some(nucl) = current_nucl.take() {
         ret.present_candidate(nucl)?;
     }
-    println!("{:#?}", ret);
+    println!("{ret:#?}");
     Ok(ret)
 }
 
 #[derive(Debug)]
-#[allow(unused)]
 pub enum PdbError {
     ParsingError {
         line_number: usize,
@@ -435,11 +425,11 @@ pub enum PdbError {
     EmptyNucleotide,
     EmptyBase,
     MissingAtom(String),
-    Formating(std::fmt::Error),
+    Formatting(std::fmt::Error),
     IOError(std::io::Error),
 }
 
-const OCCUPENCY: f32 = 1.0;
+const OCCUPANCY: f32 = 1.0;
 const TEMPERATURE_FACTOR: f32 = 1.0;
 
 struct AtomFormatParameter {
@@ -465,7 +455,6 @@ impl PdbAtom {
 
     fn pdb_repr(&self, residue_type: ResidueType) -> Result<String, std::fmt::Error> {
         // https://www.cgl.ucsf.edu/chimera/docs/UsersGuide/tutorials/framepdbintro.html
-        use std::fmt::Write;
         let mut ret = String::with_capacity(80);
         write!(&mut ret, "ATOM")?; // 1-4
         ret.push_str("  "); // 5-6
@@ -486,22 +475,23 @@ impl PdbAtom {
         )?; // 18-20
         write!(&mut ret, " {}", self.chain_id)?; //21-22
         write!(&mut ret, "{:>4}", self.residue_idx)?; // 23-26
-        ret.push_str(&vec![" "; 4].join("")); // 27-30
-        let s_x = format!("{:>8.3}", self.position.x).to_string(); // 31-38
+        ret.push_str(&[" "; 4].join("")); // 27-30
+        let s_x = format!("{:>8.3}", self.position.x); // 31-38
         write!(&mut ret, "{}", &s_x[0..8])?;
-        let s_y = format!("{:>8.3}", self.position.y).to_string(); // 39-46
+        let s_y = format!("{:>8.3}", self.position.y); // 39-46
         write!(&mut ret, "{}", &s_y[0..8])?;
-        let s_z = format!("{:>8.3}", self.position.z).to_string(); // 47-54
+        let s_z = format!("{:>8.3}", self.position.z); // 47-54
         write!(&mut ret, "{}", &s_z[0..8])?;
         // write!(&mut ret, "{:>8.3}", self.position.x)?; // 31-38
         // write!(&mut ret, "{:>8.3}", self.position.y)?; // 39-46
         // write!(&mut ret, "{:>8.3}", self.position.z)?; // 47-54
-        write!(&mut ret, "{:>6.2}", OCCUPENCY)?; // 55-60
-        write!(&mut ret, "{:>6.2}", TEMPERATURE_FACTOR)?; // 61-66
+        write!(&mut ret, "{OCCUPANCY:>6.2}")?; // 55-60
+        write!(&mut ret, "{TEMPERATURE_FACTOR:>6.2}")?; // 61-66
         ret.push_str(&vec![" "; 14].join("")); // 67-80
         Ok(ret)
     }
 
+    #[expect(clippy::map_err_ignore)]
     fn parse_line<S: AsRef<str>>(input: &S) -> Result<Self, PdbAtomParseError> {
         let input: &str = input.as_ref();
         if !input.is_ascii() {
@@ -520,8 +510,8 @@ impl PdbAtom {
             .trim()
             .parse::<usize>()
             .map_err(|_| PdbAtomParseError::InvalidSerialNumber)?;
-        let name = input[12..16].trim().to_string();
-        let residue_name = input[17..20].trim().to_string();
+        let name = input[12..16].trim().to_owned();
+        let residue_name = input[17..20].trim().to_owned();
         let chain_id: char = input
             .chars()
             .nth(21)
@@ -567,8 +557,6 @@ pub enum PdbAtomParseError {
     InvalidCoordinateZ,
 }
 
-use std::fs::File;
-use std::mem::ManuallyDrop;
 pub struct PdbFormatter {
     out_file: File,
     current_strand_id: usize,
@@ -577,7 +565,7 @@ pub struct PdbFormatter {
 }
 
 pub struct PdbStrand<'a> {
-    pdb_formater: ManuallyDrop<&'a mut PdbFormatter>,
+    pdb_formatter: ManuallyDrop<&'a mut PdbFormatter>,
     nucleotides: Vec<PdbNucleotide>,
     is_cyclic: bool,
 }
@@ -597,10 +585,9 @@ impl NucleicAcidKind {
     }
 }
 
-use std::path::Path;
 impl PdbFormatter {
     pub fn new<P: AsRef<Path>>(path: P, nu_kind: NucleicAcidKind) -> Result<Self, PdbError> {
-        let out_file = std::fs::File::create(path).map_err(PdbError::IOError)?;
+        let out_file = File::create(path).map_err(PdbError::IOError)?;
 
         let reference = match nu_kind {
             NucleicAcidKind::Dna => make_reference_nucleotides()?,
@@ -615,10 +602,10 @@ impl PdbFormatter {
         })
     }
 
-    /// Create a new strand. The returned value must be droped with `PdbStrand::write`.
-    pub fn start_strand<'a>(&'a mut self, cyclic: bool) -> PdbStrand<'a> {
+    /// Create a new strand. The returned value must be dropped with `PdbStrand::write`.
+    pub fn start_strand(&mut self, cyclic: bool) -> PdbStrand<'_> {
         PdbStrand {
-            pdb_formater: ManuallyDrop::new(self),
+            pdb_formatter: ManuallyDrop::new(self),
             nucleotides: Vec::new(),
             is_cyclic: cyclic,
         }
@@ -633,11 +620,11 @@ impl PdbStrand<'_> {
         orientation: Rotor3,
     ) -> Result<(), PdbError> {
         let nucl = self
-            .pdb_formater
+            .pdb_formatter
             .reference
             .get_nucl(&base.to_string())
-            .or_else(|| self.pdb_formater.reference.get_nucl("A"))
-            .ok_or_else(|| PdbError::MissingAtom("A".to_string()))?
+            .or_else(|| self.pdb_formatter.reference.get_nucl("A"))
+            .ok_or_else(|| PdbError::MissingAtom("A".to_owned()))?
             .clone()
             .with_residue_idx(self.nucleotides.len() + 1)
             .translated_by(position)
@@ -649,7 +636,7 @@ impl PdbStrand<'_> {
     pub fn write(self) -> Result<(), PdbError> {
         let mut nucls_strs = Vec::with_capacity(self.nucleotides.len());
 
-        let pdb_formatter = ManuallyDrop::into_inner(self.pdb_formater);
+        let pdb_formatter = ManuallyDrop::into_inner(self.pdb_formatter);
 
         let chain_id = ((pdb_formatter.current_strand_id % 26) as u8 + b'A') as char;
 
@@ -674,7 +661,6 @@ impl PdbStrand<'_> {
 
         let to_write = nucls_strs.join("\n");
 
-        use std::io::Write;
         writeln!(&mut pdb_formatter.out_file, "{to_write}").map_err(PdbError::IOError)?;
 
         pdb_formatter.current_strand_id += 1;
@@ -699,7 +685,7 @@ pub(super) fn pdb_export(
     for s in design.strands.values() {
         let mut pdb_strand = exporter.start_strand(s.is_cyclic);
 
-        for d in s.domains.iter() {
+        for d in &s.domains {
             if let Domain::HelixDomain(dom) = d {
                 for position in dom.iter() {
                     let ox_nucl = design.helices.get(&dom.helix).unwrap().ox_dna_nucl(
@@ -714,7 +700,7 @@ pub(super) fn pdb_export(
                     };
                     previous_position = Some(ox_nucl.position);
                     let symbol = basis_map.get_basis(&nucl, na_kind.compl_to_a());
-                    let base = super::rand_base_from_symbol(symbol, na_kind.compl_to_a());
+                    let base = rand_base_from_symbol(symbol, na_kind.compl_to_a());
                     pdb_strand.add_nucl(
                         base,
                         ox_nucl.position * 10. / OXDNA_LEN_FACTOR,
@@ -727,7 +713,7 @@ pub(super) fn pdb_export(
             } = d
             {
                 for (insertion_idx, position) in instantiation.pos().iter().enumerate() {
-                    let ox_nucl = crate::oxdna::free_oxdna_nucl(
+                    let ox_nucl = free_oxdna_nucl(
                         *position,
                         previous_position,
                         insertion_idx,

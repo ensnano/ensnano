@@ -1,25 +1,3 @@
-use ensnano_iced::iced_winit::winit::dpi::{PhysicalPosition, PhysicalSize, Pixel};
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use serde::{Deserialize, Serialize};
-use wgpu::util::{BufferInitDescriptor, DeviceExt};
-
 pub mod bindgroup_manager;
 pub mod camera2d;
 pub mod chars2d;
@@ -34,7 +12,9 @@ pub mod obj_loader;
 pub mod text;
 pub mod texture;
 
-pub type PhySize = PhysicalSize<u32>;
+use serde::{Deserialize, Serialize};
+use wgpu::util::{BufferInitDescriptor, DeviceExt as _};
+use winit::dpi::{PhysicalPosition, PhysicalSize, Pixel};
 
 pub const TEXTURE_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8UnormSrgb;
 
@@ -70,7 +50,7 @@ pub struct BufferDimensions {
 
 impl BufferDimensions {
     pub fn new(width: usize, height: usize) -> Self {
-        let bytes_per_pixel = std::mem::size_of::<u32>();
+        let bytes_per_pixel = size_of::<u32>();
         let unpadded_bytes_per_row = width * bytes_per_pixel;
         let block_size = wgpu::COPY_BYTES_PER_ROW_ALIGNMENT as usize;
         let padding = (block_size - unpadded_bytes_per_row % block_size) % block_size;

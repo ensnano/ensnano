@@ -1,20 +1,3 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
 //! This module handles the different regions of the window.
 //!
 //! The [layout_manager] splits the window into different regions and attribute each region to an
@@ -27,39 +10,33 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! directly, like resizing events or keyboard input that should be handled independently of the
 //! focused region.
 //!
-//!
-//!
 //! The multiplexer is also in charge of drawing to the frame.
 
-pub mod layout_manager;
+pub(crate) mod layout_manager;
 
-use crate::{PhySize, controller::normal_state::Action, requests::Requests};
-use ensnano_iced::{
-    UiSize,
-    iced_wgpu::wgpu,
-    iced_wgpu::wgpu::Device,
-    iced_winit::winit::{
-        dpi::{PhysicalPosition, PhysicalSize},
-        event::{ElementState, KeyEvent, Modifiers, WindowEvent},
-        keyboard::{Key, KeyLocation, ModifiersState, NamedKey},
-        window::{CursorIcon, Window},
-    },
-};
+use crate::{controller::normal_state::Action, requests::Requests};
+use ensnano_iced::ui_size::UiSize;
 use ensnano_interactor::{
-    ActionMode, SelectionMode,
-    graphics::{DrawArea, GuiComponentType, SplitMode},
+    graphics::{DrawArea, GuiComponentType, PhySize, SplitMode},
+    multiplexer::Multiplexer as GuiMultiplexer,
+    selection::{ActionMode, SelectionMode},
 };
 use ensnano_utils::texture::SampledTexture;
+use iced_wgpu::wgpu::Device;
 use layout_manager::{LayoutTree, PixelRegion};
 use std::{
     rc::Rc,
     sync::{Arc, Mutex},
 };
+use winit::{
+    dpi::{PhysicalPosition, PhysicalSize},
+    event::{ElementState, KeyEvent, Modifiers, WindowEvent},
+    keyboard::{Key, KeyLocation, ModifiersState, NamedKey},
+    window::{CursorIcon, Window},
+};
 
 /// A structure that handles the division of the window into different `DrawArea`.
-///
-///
-pub struct Multiplexer {
+pub(crate) struct Multiplexer {
     /// The *physical* size of the window.
     pub window_size: PhySize,
     /// The scale factor of the window.
@@ -134,7 +111,7 @@ impl Multiplexer {
     ///     └───────────────────────────┘
     /// ```
     ///
-    pub fn new(
+    pub(crate) fn new(
         window_size: PhySize,
         scale_factor: f64,
         device: Rc<Device>,
@@ -200,7 +177,10 @@ impl Multiplexer {
     }
 
     /// Return a view of the texture on which the element must be rendered
-    pub fn get_texture_view(&self, element_type: GuiComponentType) -> Option<&wgpu::TextureView> {
+    pub(crate) fn get_texture_view(
+        &self,
+        element_type: GuiComponentType,
+    ) -> Option<&wgpu::TextureView> {
         match element_type {
             GuiComponentType::StereographicScene => self
                 .stereographic_scene_texture
@@ -241,40 +221,26 @@ impl Multiplexer {
         }
     }
 
-    pub fn update_modifiers(&mut self, modifiers: Modifiers) {
-        self.modifiers_state = modifiers.state()
+    pub(crate) fn update_modifiers(&mut self, modifiers: Modifiers) {
+        self.modifiers_state = modifiers.state();
     }
 
-    pub fn draw(
+    pub(crate) fn draw(
         &mut self,
         encoder: &mut wgpu::CommandEncoder,
         target: &wgpu::TextureView,
-        window: &crate::Window,
+        window: &Window,
     ) {
         if self.pipeline.is_none() {
             let bg_layout = &self.top_bar_texture.as_ref().unwrap().texture.bg_layout;
             self.pipeline = Some(create_pipeline(self.device.as_ref(), bg_layout));
         }
 
-        let msaa_texture = None;
-
-        let attachment = if msaa_texture.is_some() {
-            msaa_texture.as_ref().unwrap()
-        } else {
-            target
-        };
-
-        let resolve_target = if msaa_texture.is_some() {
-            Some(target)
-        } else {
-            None
-        };
-
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Multiplexer render pass"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                view: attachment,
-                resolve_target,
+                view: target,
+                resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
                     store: wgpu::StoreOp::Store,
@@ -284,8 +250,9 @@ impl Multiplexer {
             timestamp_writes: None,
             occlusion_query_set: None,
         });
+
         if self.window_size.width > 0 && self.window_size.height > 0 {
-            for element in [
+            for element in &[
                 GuiComponentType::TopBar,
                 GuiComponentType::LeftPanel,
                 GuiComponentType::GridPanel,
@@ -293,10 +260,8 @@ impl Multiplexer {
                 GuiComponentType::FlatScene,
                 GuiComponentType::StereographicScene,
                 GuiComponentType::StatusBar,
-            ]
-            .iter()
-            {
-                log::debug!("Draw {:?}", element);
+            ] {
+                log::debug!("Draw {element:?}");
                 if let Some(area) = self.get_texture_size(*element) {
                     render_pass.set_bind_group(0, self.get_bind_group(element), &[]);
 
@@ -354,7 +319,7 @@ impl Multiplexer {
     }
 
     /// Return the drawing area attributed to an element.
-    pub fn get_draw_area(&self, element_type: GuiComponentType) -> Option<DrawArea> {
+    pub(crate) fn get_draw_area(&self, element_type: GuiComponentType) -> Option<DrawArea> {
         let (position, size) = if let GuiComponentType::Overlay(n) = element_type {
             (self.overlays[n].position, self.overlays[n].size)
         } else {
@@ -381,7 +346,8 @@ impl Multiplexer {
         Some(DrawArea { position, size })
     }
 
-    pub fn check_scale_factor(&mut self, window: &crate::Window) -> bool {
+    pub(crate) fn check_scale_factor(&mut self, window: &Window) -> bool {
+        #[expect(clippy::float_cmp)]
         if self.scale_factor != window.scale_factor() {
             self.scale_factor = window.scale_factor();
             self.window_size = window.inner_size();
@@ -397,7 +363,7 @@ impl Multiplexer {
     }
 
     /// Forwards event to the element on which they happen.
-    pub fn event(
+    pub(crate) fn event(
         &mut self,
         mut event: WindowEvent,
         resized: &mut bool,
@@ -413,16 +379,12 @@ impl Multiplexer {
                     old_proportion,
                 } => {
                     *mouse_position = *position;
-                    let mut position = position.clone();
+                    let mut position = *position;
                     position.x /= self.window_size.width as f64;
                     position.y /= self.window_size.height as f64;
                     *resized = true;
-                    self.layout.resize_click(
-                        *region,
-                        &position,
-                        &clicked_position,
-                        *old_proportion,
-                    );
+                    self.layout
+                        .resize_click(*region, &position, clicked_position, *old_proportion);
                     self.icon = Some(CursorIcon::EwResize);
                     captured = true;
                 }
@@ -444,7 +406,7 @@ impl Multiplexer {
                             }
                             PixelRegion::Area(_) => unreachable!(),
                         }
-                        .or(self.focus.and_then(|e| self.get_draw_area(e)));
+                        .or_else(|| self.focus.and_then(|e| self.get_draw_area(e)));
 
                         if let Some(area) = area {
                             self.cursor_position.x = position.x - area.position.cast::<f64>().x;
@@ -457,7 +419,7 @@ impl Multiplexer {
                     element,
                 } => {
                     *mouse_position = *position;
-                    let element = element.clone();
+                    let element = *element;
                     let area = self.get_draw_area(element);
                     if let Some(area) = area {
                         self.cursor_position.x = position.x - area.position.cast::<f64>().x;
@@ -475,8 +437,8 @@ impl Multiplexer {
             }
             WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
                 self.scale_factor = *scale_factor;
-                //self.window_size = **new_inner_size;
-                //TODO: The WindowEvent used to provide [new_inner_size], that we use to
+                // self.window_size = **new_inner_size;
+                // TODO: The WindowEvent used to provide [new_inner_size], that we use to
                 //      update self.windows_size. This is now longer possible, and I
                 //      don't know where to get the new size.
                 //      Please, check and fix the self.window_size value.
@@ -492,7 +454,7 @@ impl Multiplexer {
                 let mouse_position = self.state.mouse_position();
                 match element {
                     PixelRegion::Resize(n) if *state == ElementState::Pressed => {
-                        let mut clicked_position = mouse_position.clone();
+                        let mut clicked_position = mouse_position;
                         clicked_position.x /= self.window_size.width as f64;
                         clicked_position.y /= self.window_size.height as f64;
                         let old_proportion = self.layout.get_proportion(n).unwrap();
@@ -527,7 +489,7 @@ impl Multiplexer {
                             self.state = State::Normal { mouse_position };
                         }
                     },
-                    _ => unreachable!(),
+                    PixelRegion::Area(_) => unreachable!(),
                 }
             }
             WindowEvent::KeyboardInput {
@@ -540,88 +502,68 @@ impl Multiplexer {
                     },
                 ..
             } => {
-                //
                 // NOTE: Gui keyboard shortcuts are defined and handled here.
-                //
                 captured = true;
                 match logical_key.as_ref() {
                     Key::Named(NamedKey::Escape) => {
-                        self.requests.lock().unwrap().action_mode = Some(ActionMode::Normal)
+                        self.requests.lock().unwrap().action_mode = Some(ActionMode::Normal);
                     }
-                    Key::Character("X") | Key::Character("x") if self.modifiers_state.alt_key() => {
+                    Key::Character("X" | "x") if self.modifiers_state.alt_key() => {
                         self.requests.lock().unwrap().keep_proceed.push_back(
                             Action::MakeAllSuggestedXover {
                                 doubled: self.modifiers_state.shift_key(),
                             },
-                        )
+                        );
                     }
-                    Key::Character("X") | Key::Character("x") => {
+                    Key::Character("X" | "x") => {
                         self.requests.lock().unwrap().toggle_all_helices_on_axis = Some(());
                     }
-                    Key::Character("Z") | Key::Character("z")
-                        if control_key(&self.modifiers_state) =>
-                    {
+                    Key::Character("Z" | "z") if control_key(&self.modifiers_state) => {
                         if self.modifiers_state.shift_key() {
-                            self.requests.lock().unwrap().redo = Some(())
+                            self.requests.lock().unwrap().redo = Some(());
                         } else {
                             self.requests.lock().unwrap().undo = Some(());
                         }
                     }
-                    Key::Character("R") | Key::Character("r")
-                        if control_key(&self.modifiers_state) =>
-                    {
+                    Key::Character("R" | "r") if control_key(&self.modifiers_state) => {
                         self.requests.lock().unwrap().redo = Some(());
                     }
-                    Key::Character("C") | Key::Character("c")
-                        if control_key(&self.modifiers_state) =>
-                    {
+                    Key::Character("C" | "c") if control_key(&self.modifiers_state) => {
                         self.requests.lock().unwrap().copy = Some(());
                     }
-                    Key::Character("V") | Key::Character("v")
-                        if control_key(&self.modifiers_state) =>
-                    {
+                    Key::Character("V" | "v") if control_key(&self.modifiers_state) => {
                         self.requests.lock().unwrap().paste = Some(());
                     }
-                    Key::Character("J") | Key::Character("j")
-                        if control_key(&self.modifiers_state) =>
-                    {
+                    Key::Character("J" | "j") if control_key(&self.modifiers_state) => {
                         self.requests.lock().unwrap().duplication = Some(());
                     }
-                    Key::Character("L") | Key::Character("l")
-                        if control_key(&self.modifiers_state) =>
-                    {
+                    Key::Character("L" | "l") if control_key(&self.modifiers_state) => {
                         self.requests.lock().unwrap().anchor = Some(());
                     }
-                    Key::Character("R") | Key::Character("r")
-                        if !control_key(&self.modifiers_state) =>
-                    {
-                        self.requests.lock().unwrap().action_mode = Some(ActionMode::Rotate)
+                    Key::Character("R" | "r") if !control_key(&self.modifiers_state) => {
+                        self.requests.lock().unwrap().action_mode = Some(ActionMode::Rotate);
                     }
-                    Key::Character("T") | Key::Character("t") => {
-                        self.requests.lock().unwrap().action_mode = Some(ActionMode::Translate)
+                    Key::Character("T" | "t") => {
+                        self.requests.lock().unwrap().action_mode = Some(ActionMode::Translate);
                     }
-                    Key::Character("N") | Key::Character("n") => {
+                    Key::Character("N" | "n") => {
                         self.requests.lock().unwrap().selection_mode =
-                            Some(SelectionMode::Nucleotide)
+                            Some(SelectionMode::Nucleotide);
                     }
-                    Key::Character("H") | Key::Character("h") => {
-                        self.requests.lock().unwrap().selection_mode = Some(SelectionMode::Helix)
+                    Key::Character("H" | "h") => {
+                        self.requests.lock().unwrap().selection_mode = Some(SelectionMode::Helix);
                     }
-                    Key::Character("S") | Key::Character("s")
-                        if control_key(&self.modifiers_state) =>
-                    {
+                    Key::Character("S" | "s") if control_key(&self.modifiers_state) => {
                         self.requests.lock().unwrap().save_shortcut = Some(());
                     }
-                    Key::Character("O") | Key::Character("o")
-                        if control_key(&self.modifiers_state) =>
-                    {
+                    Key::Character("O" | "o") if control_key(&self.modifiers_state) => {
                         self.requests
                             .lock()
                             .unwrap()
                             .keep_proceed
                             .push_back(Action::LoadDesign(None));
                     }
-                    Key::Character("Q") | Key::Character("q")
+                    Key::Character("Q" | "q")
                         if control_key(&self.modifiers_state) && cfg!(target_os = "macos") =>
                     {
                         self.requests
@@ -630,25 +572,16 @@ impl Multiplexer {
                             .keep_proceed
                             .push_back(Action::Exit);
                     }
-                    Key::Character("S") | Key::Character("s") => {
-                        self.requests.lock().unwrap().selection_mode = Some(SelectionMode::Strand)
+                    Key::Character("S" | "s") => {
+                        self.requests.lock().unwrap().selection_mode = Some(SelectionMode::Strand);
                     }
-                    Key::Character("K") | Key::Character("k") => {
+                    Key::Character("K" | "k") => {
                         self.requests.lock().unwrap().recolor_staples = Some(());
                     }
-                    Key::Named(NamedKey::Delete) | Key::Named(NamedKey::Backspace) => {
+                    Key::Named(NamedKey::Delete | NamedKey::Backspace) => {
                         self.requests.lock().unwrap().delete_selection = Some(());
                     }
-                    Key::Character("0")
-                    | Key::Character("1")
-                    | Key::Character("2")
-                    | Key::Character("3")
-                    | Key::Character("4")
-                    | Key::Character("5")
-                    | Key::Character("6")
-                    | Key::Character("7")
-                    | Key::Character("8")
-                    | Key::Character("9")
+                    Key::Character("0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9")
                         if location == &KeyLocation::Standard =>
                     {
                         if let Some(num) = keycode_to_num(logical_key, location) {
@@ -658,7 +591,7 @@ impl Multiplexer {
                                 .keep_proceed
                                 .push_back(Action::SelectFavoriteCamera(num));
                         } else {
-                            captured = false
+                            captured = false;
                         }
                     }
                     _ => captured = false,
@@ -668,14 +601,10 @@ impl Multiplexer {
         }
 
         // NOTE: Return the event if it has not been captured.
-        if let Some(focus) = self.focus.filter(|_| !captured) {
-            Some((event, focus))
-        } else {
-            None
-        }
+        self.focus.filter(|_| !captured).map(|focus| (event, focus))
     }
 
-    pub fn change_ui_size(&mut self, ui_size: UiSize, window: &Window) {
+    pub(crate) fn change_ui_size(&mut self, ui_size: UiSize, window: &Window) {
         self.ui_size = ui_size;
         self.resize(window.inner_size(), window.scale_factor());
         self.generate_textures();
@@ -695,7 +624,7 @@ impl Multiplexer {
                 let id = self
                     .layout
                     .get_area_id(self.element_3d)
-                    .or(self.layout.get_area_id(self.element_2d))
+                    .or_else(|| self.layout.get_area_id(self.element_2d))
                     .unwrap();
                 match split_mode {
                     SplitMode::Both => {
@@ -710,7 +639,7 @@ impl Multiplexer {
         }
     }
 
-    pub fn toggle_2d(&mut self) {
+    pub(crate) fn toggle_2d(&mut self) {
         log::info!("Toggle 2d");
         if log::log_enabled!(log::Level::Info) {
             println!("Old tree");
@@ -723,7 +652,7 @@ impl Multiplexer {
             self.element_2d = GuiComponentType::FlatScene;
         }
         if let Some(id) = self.layout.get_area_id(old_element_2d) {
-            self.layout.attribute_element(id, self.element_2d)
+            self.layout.attribute_element(id, self.element_2d);
         }
         log::info!("new element_2d {:?}", self.element_2d);
         if log::log_enabled!(log::Level::Info) {
@@ -733,15 +662,15 @@ impl Multiplexer {
         self.generate_textures();
     }
 
-    pub fn change_split(&mut self, split_mode: SplitMode) {
+    pub(crate) fn change_split(&mut self, split_mode: SplitMode) {
         if split_mode != self.split_mode {
-            self.change_split_(split_mode)
+            self.change_split_(split_mode);
         }
         self.split_mode = split_mode;
         self.generate_textures();
     }
 
-    pub fn resize(&mut self, window_size: PhySize, scale_factor: f64) -> bool {
+    pub(crate) fn resize(&self, window_size: PhySize, scale_factor: f64) -> bool {
         let ret = self.window_size != window_size;
         let top_panel_prop =
             self.ui_size.top_bar_height() * scale_factor / window_size.height as f64;
@@ -753,14 +682,14 @@ impl Multiplexer {
         ret
     }
 
-    fn texture(&mut self, element_type: GuiComponentType) -> Option<MultiplexerTexture> {
+    fn texture(&self, element_type: GuiComponentType) -> Option<MultiplexerTexture> {
         let area = self.get_draw_area(element_type)?;
-        log::debug!("texture of {:?}: {:?}", element_type, area);
+        log::debug!("texture of {element_type:?}: {area:?}");
         let texture = SampledTexture::create_target_texture(self.device.as_ref(), &area.size);
         Some(MultiplexerTexture { area, texture })
     }
 
-    pub fn generate_textures(&mut self) {
+    pub(crate) fn generate_textures(&mut self) {
         self.scene_texture = self.texture(GuiComponentType::Scene);
         self.top_bar_texture = self.texture(GuiComponentType::TopBar);
         self.left_panel_texture = self.texture(GuiComponentType::LeftPanel);
@@ -770,14 +699,14 @@ impl Multiplexer {
         self.stereographic_scene_texture = self.texture(GuiComponentType::StereographicScene);
 
         self.overlays_textures.clear();
-        for overlay in self.overlays.iter() {
+        for overlay in &self.overlays {
             let position = overlay.position;
             let size = overlay.size;
             let texture = SampledTexture::create_target_texture(self.device.as_ref(), &size);
 
             self.overlays_textures.push(MultiplexerTexture {
                 texture,
-                area: DrawArea { size, position },
+                area: DrawArea { position, size },
             });
         }
     }
@@ -797,37 +726,21 @@ impl Multiplexer {
     }
 
     /// Get the drawing area attributed to an element.
-    pub fn get_element_area(&self, element: GuiComponentType) -> Option<DrawArea> {
+    pub(crate) fn get_element_area(&self, element: GuiComponentType) -> Option<DrawArea> {
         self.get_draw_area(element)
     }
 
     /// Return the *physical* position of the cursor, in the focused element coordinates
-    pub fn get_cursor_position(&self) -> PhysicalPosition<f64> {
+    pub(crate) fn get_cursor_position(&self) -> PhysicalPosition<f64> {
         self.cursor_position
     }
 
     /// Return the focused element
-    pub fn focused_element(&self) -> Option<GuiComponentType> {
+    pub(crate) fn focused_element(&self) -> Option<GuiComponentType> {
         self.focus
     }
 
-    pub fn set_overlays(&mut self, overlays: Vec<Overlay>) {
-        self.overlays = overlays;
-        self.overlays_textures.clear();
-        for overlay in self.overlays.iter_mut() {
-            let size = overlay.size;
-            let texture = SampledTexture::create_target_texture(self.device.as_ref(), &size);
-            self.overlays_textures.push(MultiplexerTexture {
-                texture,
-                area: DrawArea {
-                    size,
-                    position: overlay.position,
-                },
-            });
-        }
-    }
-
-    pub fn is_showing(&self, area: &GuiComponentType) -> bool {
+    pub(crate) fn is_showing(&self, area: &GuiComponentType) -> bool {
         match area {
             GuiComponentType::LeftPanel
             | GuiComponentType::TopBar
@@ -844,13 +757,13 @@ impl Multiplexer {
 }
 
 #[derive(Clone)]
-pub struct Overlay {
+pub(crate) struct Overlay {
     pub position: PhysicalPosition<u32>,
     pub size: PhysicalSize<u32>,
 }
 
 impl Overlay {
-    pub fn contains_pixel(&self, pixel: PhysicalPosition<u32>) -> bool {
+    pub(crate) fn contains_pixel(&self, pixel: PhysicalPosition<u32>) -> bool {
         pixel.x >= self.position.x
             && pixel.y >= self.position.y
             && pixel.x < self.position.x + self.size.width
@@ -859,8 +772,8 @@ impl Overlay {
 }
 
 fn create_pipeline(device: &Device, bg_layout: &wgpu::BindGroupLayout) -> wgpu::RenderPipeline {
-    let vs_module = &device.create_shader_module(wgpu::include_spirv!("multiplexer/draw.vert.spv"));
-    let fs_module = &device.create_shader_module(wgpu::include_spirv!("multiplexer/draw.frag.spv"));
+    let vs_module = &device.create_shader_module(wgpu::include_spirv!("./draw.vert.spv"));
+    let fs_module = &device.create_shader_module(wgpu::include_spirv!("./draw.frag.spv"));
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         bind_group_layouts: &[bg_layout],
         push_constant_ranges: &[],
@@ -884,12 +797,12 @@ fn create_pipeline(device: &Device, bg_layout: &wgpu::BindGroupLayout) -> wgpu::
     let desc = wgpu::RenderPipelineDescriptor {
         layout: Some(&pipeline_layout),
         vertex: wgpu::VertexState {
-            module: &vs_module,
+            module: vs_module,
             entry_point: "main",
             buffers: &[],
         },
         fragment: Some(wgpu::FragmentState {
-            module: &fs_module,
+            module: fs_module,
             entry_point: "main",
             targets,
         }),
@@ -942,8 +855,6 @@ fn control_key(modifiers: &ModifiersState) -> bool {
         modifiers.control_key() // Ctrl
     }
 }
-
-use ensnano_interactor::Multiplexer as GuiMultiplexer;
 
 impl GuiMultiplexer for Multiplexer {
     fn get_draw_area(&self, element_type: GuiComponentType) -> Option<DrawArea> {

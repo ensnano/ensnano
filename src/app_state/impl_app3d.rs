@@ -1,25 +1,16 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::*;
-use ensnano_design::grid::GridId;
-use ensnano_interactor::{StrandBuilder, consts::scroll_sensitivity_conversion};
+use crate::app_state::{AppState, design_interactor::DesignInteractor};
+use ensnano_design::{bezier_plane::BezierVertexId, grid::GridId, group_attributes::GroupPivot};
+use ensnano_interactor::{
+    WidgetBasis,
+    app_state_parameters::check_xovers_parameter::CheckXoversParameter,
+    consts::scroll_sensitivity_conversion,
+    selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
+    strand_builder::StrandBuilder,
+    surfaces::UnrootedRevolutionSurfaceDescriptor,
+};
+use ensnano_organizer::tree::GroupId;
 use ensnano_scene::{AppState as App3D, view::DrawOptions};
+use std::path::PathBuf;
 
 impl App3D for AppState {
     type AppStateDesignReader = DesignInteractor;
@@ -32,13 +23,13 @@ impl App3D for AppState {
         self.0.candidates.as_slice()
     }
 
-    fn selection_was_updated(&self, other: &AppState) -> bool {
+    fn selection_was_updated(&self, other: &Self) -> bool {
         self.selection_content() != other.selection_content()
             || self.0.center_of_selection != other.0.center_of_selection
             || self.is_changing_color() != other.is_changing_color()
     }
 
-    fn candidates_set_was_updated(&self, other: &AppState) -> bool {
+    fn candidates_set_was_updated(&self, other: &Self) -> bool {
         self.0.candidates != other.0.candidates
     }
 
@@ -91,14 +82,14 @@ impl App3D for AppState {
         self.0.center_of_selection
     }
 
-    fn get_current_group_pivot(&self) -> Option<ensnano_design::group_attributes::GroupPivot> {
+    fn get_current_group_pivot(&self) -> Option<GroupPivot> {
         let reader = self.get_design_interactor();
         self.0
             .selection
             .selected_group
             .and_then(|g_id| reader.get_group_attributes(g_id))
             .and_then(|attributes| attributes.pivot)
-            .or(*self.0.selection.pivot.read().as_deref().unwrap())
+            .or_else(|| *self.0.selection.pivot.read().as_deref().unwrap())
     }
 
     fn get_current_group_id(&self) -> Option<GroupId> {
@@ -153,8 +144,8 @@ impl App3D for AppState {
         self.0.path_to_current_design.clone()
     }
 
-    fn get_selected_bezier_vertex(&self) -> Option<ensnano_design::BezierVertexId> {
-        if let Some(Selection::BezierVertex(vertex)) = self.0.selection.selection.get(0) {
+    fn get_selected_bezier_vertex(&self) -> Option<BezierVertexId> {
+        if let Some(Selection::BezierVertex(vertex)) = self.0.selection.selection.first() {
             Some(*vertex)
         } else {
             None
@@ -163,7 +154,7 @@ impl App3D for AppState {
 
     fn has_selected_a_bezier_grid(&self) -> bool {
         matches!(
-            self.get_selection().as_ref().get(0),
+            self.get_selection().as_ref().first(),
             Some(Selection::Grid(_, GridId::BezierPathGrid(_)))
         )
     }
@@ -190,6 +181,7 @@ impl App3D for AppState {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn selection_update() {
         let mut state = AppState::default();

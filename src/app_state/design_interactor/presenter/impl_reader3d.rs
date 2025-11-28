@@ -1,43 +1,41 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::*;
+use crate::app_state::design_interactor::DesignInteractor;
 use ensnano_design::{
-    BezierControlPoint, BezierPlaneDescriptor, BezierPlaneId, BezierVertexId, Collection,
-    CurveDescriptor, Domain, Nucl, SurfaceInfo,
+    AdditionalStructure, Nucl,
+    bezier_plane::{
+        BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
+        InstantiatedPath,
+    },
+    collection::Collection,
+    curves::{
+        CurveDescriptor, SurfaceInfo, SurfacePoint,
+        bezier::{BezierControlPoint, CubicBezierConstructor},
+    },
+    external_3d_objects::External3DObjects,
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
+    helices::{Helix, HelixCollection as _},
+    parameters::HelixParameters,
+    strands::Domain,
 };
 use ensnano_interactor::{
     ObjectType, Referential,
     graphics::{LoopoutBond, LoopoutNucl},
 };
-use ensnano_scene::view::GridInstance;
+use ensnano_scene::{
+    data::design3d::{HBond, Scalebar, SceneDesignReaderExt},
+    view::grid::GridInstance,
+};
 use ensnano_utils::StrandNucleotidesPositions;
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashMap, HashSet};
+use std::sync::Arc;
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 
-impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
+impl SceneDesignReaderExt for DesignInteractor {
     fn get_color(&self, e_id: u32) -> Option<u32> {
-        self.presenter.content.color_map.get(&e_id).cloned()
+        self.presenter.content.color_map.get(&e_id).copied()
     }
 
     fn get_radius(&self, e_id: u32) -> Option<f32> {
-        self.presenter.content.radius_map.get(&e_id).cloned()
+        self.presenter.content.radius_map.get(&e_id).copied()
     }
 
     fn get_xover_coloring(&self, e_id: u32) -> Option<bool> {
@@ -45,11 +43,11 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
             .content
             .xover_coloring_map
             .get(&e_id)
-            .cloned()
+            .copied()
     }
 
     fn get_with_cones(&self, e_id: u32) -> Option<bool> {
-        self.presenter.content.with_cones_map.get(&e_id).cloned()
+        self.presenter.content.with_cones_map.get(&e_id).copied()
     }
 
     fn get_symbol(&self, e_id: u32) -> Option<char> {
@@ -58,7 +56,7 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
             .nucleotide
             .get(&e_id)
             .and_then(|nucl| self.presenter.content.letter_map.get(nucl))
-            .cloned()
+            .copied()
     }
 
     fn get_grid_basis(&self, g_id: GridId) -> Option<Rotor3> {
@@ -93,7 +91,7 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
     }
 
     fn get_all_nucl_ids(&self) -> Vec<u32> {
-        self.presenter.content.nucleotide.keys().cloned().collect()
+        self.presenter.content.nucleotide.keys().copied().collect()
     }
 
     fn get_model_matrix(&self) -> Mat4 {
@@ -102,7 +100,7 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
     }
 
     fn get_nucl_with_id(&self, e_id: u32) -> Option<Nucl> {
-        self.presenter.content.nucleotide.get(&e_id).cloned()
+        self.presenter.content.nucleotide.get(&e_id).copied()
     }
 
     fn get_all_bond_ids(&self) -> Vec<u32> {
@@ -110,7 +108,7 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
             .content
             .nucleotides_involved
             .keys()
-            .cloned()
+            .copied()
             .collect()
     }
 
@@ -140,7 +138,7 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
             .content
             .nucl_collection
             .get_identifier(nucl)
-            .cloned()
+            .copied()
     }
 
     fn get_position_of_nucl_on_helix(
@@ -182,7 +180,7 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
             .content
             .identifier_bond
             .get(&(n1, n2))
-            .cloned()
+            .copied()
     }
 
     fn get_helix_grid_position(&self, h_id: u32) -> Option<HelixGridPosition> {
@@ -203,12 +201,13 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
     }
 
     fn get_nucl_with_id_relaxed(&self, e_id: u32) -> Option<Nucl> {
-        self.get_nucl_with_id(e_id).or(self
-            .presenter
-            .content
-            .nucleotides_involved
-            .get(&e_id)
-            .map(|t| t.0))
+        self.get_nucl_with_id(e_id).or_else(|| {
+            self.presenter
+                .content
+                .nucleotides_involved
+                .get(&e_id)
+                .map(|t| t.0)
+        })
     }
 
     fn get_all_visible_bond_ids(&self) -> Vec<u32> {
@@ -218,8 +217,8 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
         )
     }
 
-    fn get_scalebar(&self) -> Option<(f32, f32, fn(f32, f32, f32) -> u32)> {
-        self.presenter.content.scalebar.clone()
+    fn get_scalebar(&self) -> Option<Scalebar> {
+        self.presenter.content.scalebar
     }
 
     fn get_element_axis_position(&self, e_id: u32, referential: Referential) -> Option<Vec3> {
@@ -261,7 +260,7 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
     }
 
     fn get_id_of_strand_containing(&self, e_id: u32) -> Option<usize> {
-        self.presenter.content.strand_map.get(&e_id).cloned()
+        self.presenter.content.strand_map.get(&e_id).copied()
     }
 
     fn get_used_coordinates_on_grid(&self, g_id: GridId) -> Option<Vec<(isize, isize)>> {
@@ -287,7 +286,7 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
             .iter()
             .filter(|(_k, (n1, n2))| n1.helix == h_id && n2.helix == h_id)
             .map(|t| t.0);
-        nucls.chain(bonds).cloned().collect()
+        nucls.chain(bonds).copied().collect()
     }
 
     fn get_ids_of_elements_belonging_to_strand(&self, s_id: usize) -> Vec<u32> {
@@ -304,7 +303,7 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
             .nucleotides_involved
             .keys()
             .filter(belong_to_strand);
-        nucls.chain(bonds).cloned().collect()
+        nucls.chain(bonds).copied().collect()
     }
 
     fn prime5_of_which_strand(&self, nucl: Nucl) -> Option<usize> {
@@ -334,7 +333,7 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
             .content
             .insertion_length
             .get(&bond_id)
-            .cloned()
+            .copied()
             .unwrap_or(0)
     }
 
@@ -358,14 +357,14 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
         let helix = self.presenter.current_design.helices.get(&helix)?;
         if let BezierControlPoint::PiecewiseBezier(n) = control {
             let points = helix.piecewise_bezier_points()?;
-            points.get(n).cloned()
+            points.get(n).copied()
         } else {
             let points = helix.cubic_bezier_points()?;
             match control {
                 BezierControlPoint::CubicBezier(point) => points.get(usize::from(point)),
                 BezierControlPoint::PiecewiseBezier { .. } => None,
             }
-            .cloned()
+            .copied()
         }
     }
 
@@ -374,7 +373,7 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
             .current_design
             .helices
             .get(&h_id)
-            .and_then(|h| h.get_curve_range())
+            .and_then(Helix::get_curve_range)
     }
 
     fn get_checked_xovers_ids(&self, checked: bool) -> Vec<u32> {
@@ -393,10 +392,7 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
         self.presenter.content.get_grid_object(position)
     }
 
-    fn get_cubic_bezier_controls(
-        &self,
-        helix: usize,
-    ) -> Option<ensnano_design::CubicBezierConstructor> {
+    fn get_cubic_bezier_controls(&self, helix: usize) -> Option<CubicBezierConstructor> {
         let helix = self.presenter.current_design.helices.get(&helix)?;
         if let Some(CurveDescriptor::Bezier(constructor)) = helix.curve.as_ref().map(Arc::as_ref) {
             Some(constructor.clone())
@@ -421,10 +417,7 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
         &self.presenter.current_design.bezier_planes
     }
 
-    fn get_bezier_paths(
-        &self,
-    ) -> Option<&BTreeMap<ensnano_design::BezierPathId, Arc<ensnano_design::InstantiatedPath>>>
-    {
+    fn get_bezier_paths(&self) -> Option<&BTreeMap<BezierPathId, Arc<InstantiatedPath>>> {
         self.presenter
             .current_design
             .try_get_up_to_date()
@@ -438,17 +431,13 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
             .unwrap_or_default()
     }
 
-    fn get_bezier_vertex(
-        &self,
-        path_id: ensnano_design::BezierPathId,
-        vertex_id: usize,
-    ) -> Option<ensnano_design::BezierVertex> {
+    fn get_bezier_vertex(&self, path_id: BezierPathId, vertex_id: usize) -> Option<BezierVertex> {
         self.presenter
             .current_design
             .bezier_paths
             .get(&path_id)
             .and_then(|p| p.vertices().get(vertex_id))
-            .cloned()
+            .copied()
     }
 
     fn get_corners_of_plane(&self, plane_id: BezierPlaneId) -> [Vec2; 4] {
@@ -486,7 +475,7 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
             .current_design
             .helix_parameters
             .unwrap_or_default();
-        let mut opt_dist = std::f32::INFINITY;
+        let mut opt_dist = f32::INFINITY;
         for i in -2..2 {
             let source_candidate = Nucl {
                 position: source.position + i,
@@ -540,7 +529,7 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
         }
     }
 
-    fn get_external_objects(&self) -> &ensnano_design::External3DObjects {
+    fn get_external_objects(&self) -> &External3DObjects {
         &self.presenter.current_design.external_3d_objects
     }
 
@@ -549,12 +538,12 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
         helix.get_surface_info_nucl(nucl)
     }
 
-    fn get_surface_info(&self, point: ensnano_design::SurfacePoint) -> Option<SurfaceInfo> {
+    fn get_surface_info(&self, point: SurfacePoint) -> Option<SurfaceInfo> {
         let helix = self.presenter.current_design.helices.get(&point.helix_id)?;
         helix.get_surface_info(point)
     }
 
-    fn get_additional_structure(&self) -> Option<&dyn ensnano_design::AdditionalStructure> {
+    fn get_additional_structure(&self) -> Option<&dyn AdditionalStructure> {
         self.presenter
             .current_design
             .additional_structure
@@ -589,7 +578,7 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
                             .unwrap_or_else(|| {
                                 unreachable!("nucleotide does not belong to the design content!")
                             });
-                        let position = content.space_position.get(nucl_id).unwrap().clone();
+                        let position = content.space_position[nucl_id];
                         pos_seq.push(position);
                         curvatures.push(
                             design
@@ -620,29 +609,20 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
                 },
             );
         }
-        return nucl_pos;
+        nucl_pos
     }
 }
 
-#[cfg(test)]
-mod tests {
+// TODO
+// #[cfg(test)]
+// mod tests {
 
-    #[test]
-    #[ignore]
-    fn correct_suggestions() {
-        // TODO: write test, and implement function
-        assert!(false)
-    }
+//     #[test]
+//     fn correct_suggestions() {}
 
-    #[test]
-    #[ignore]
-    fn correct_pasted_position() {
-        assert!(false)
-    }
+//     #[test]
+//     fn correct_pasted_position() {}
 
-    #[test]
-    #[ignore]
-    fn nucls_are_filtered_by_visibility() {
-        assert!(false)
-    }
-}
+//     #[test]
+//     fn nucls_are_filtered_by_visibility() {}
+// }

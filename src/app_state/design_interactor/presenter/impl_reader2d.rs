@@ -1,28 +1,17 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::*;
+use crate::app_state::design_interactor::DesignInteractor;
 use ahash::RandomState;
-use ensnano_design::{Domain, Extremity, HelixInterval, NuclCollection};
-use ensnano_flatscene::FlatSceneDesignReaderExt;
+use ensnano_design::{
+    Nucl,
+    curves::time_nucl_map::AbscissaConverter,
+    helices::{Helices, HelixCollection as _, NuclCollection},
+    strands::{Domain, Extremity, HelixInterval, Strand},
+};
+use ensnano_flatscene::data::design::FlatSceneDesignReaderExt;
 use ensnano_interactor::{Referential, torsion::Torsion};
-use std::collections::{BTreeMap, HashMap};
-use std::sync::Arc;
+use std::{
+    collections::{BTreeMap, HashMap},
+    sync::Arc,
+};
 use ultraviolet::{Isometry2, Vec2, Vec3};
 
 impl FlatSceneDesignReaderExt for DesignInteractor {
@@ -64,13 +53,13 @@ impl FlatSceneDesignReaderExt for DesignInteractor {
         let strand = self.presenter.current_design.strands.get(&s_id)?;
         let helices = &self.presenter.current_design.helices;
         let mut ret = Vec::new();
-        for domain in strand.domains.iter() {
+        for domain in &strand.domains {
             if let Domain::HelixDomain(domain) = domain {
                 ret.extend(split_domain_into_helices_segment(domain, helices));
             }
         }
         if strand.is_cyclic {
-            ret.push(ret[0])
+            ret.push(ret[0]);
         }
         Some(ret)
     }
@@ -80,7 +69,7 @@ impl FlatSceneDesignReaderExt for DesignInteractor {
             .current_design
             .strands
             .keys()
-            .cloned()
+            .copied()
             .collect()
     }
 
@@ -109,7 +98,7 @@ impl FlatSceneDesignReaderExt for DesignInteractor {
             .current_design
             .strands
             .get(&s_id)
-            .map(|s| s.get_insertions())
+            .map(Strand::get_insertions)
     }
 
     fn get_copy_points(&self) -> Vec<Vec<Nucl>> {
@@ -129,7 +118,7 @@ impl FlatSceneDesignReaderExt for DesignInteractor {
             .content
             .nucl_collection
             .get_identifier(nucl)
-            .cloned()
+            .copied()
     }
 
     fn get_visibility_helix(&self, h_id: usize) -> Option<bool> {
@@ -154,7 +143,7 @@ impl FlatSceneDesignReaderExt for DesignInteractor {
     }
 
     fn get_id_of_strand_containing_elt(&self, e_id: u32) -> Option<usize> {
-        self.presenter.content.strand_map.get(&e_id).cloned()
+        self.presenter.content.strand_map.get(&e_id).copied()
     }
 
     fn get_id_of_strand_containing_nucl(&self, nucl: &Nucl) -> Option<usize> {
@@ -162,7 +151,7 @@ impl FlatSceneDesignReaderExt for DesignInteractor {
     }
 
     fn get_id_of_of_helix_containing_elt(&self, e_id: u32) -> Option<usize> {
-        self.presenter.content.helix_map.get(&e_id).cloned()
+        self.presenter.content.helix_map.get(&e_id).copied()
     }
 
     fn has_helix(&self, h_id: usize) -> bool {
@@ -185,7 +174,7 @@ impl FlatSceneDesignReaderExt for DesignInteractor {
         self.is_xover_end(nucl)
     }
 
-    fn get_helices_map(&self) -> &ensnano_design::Helices {
+    fn get_helices_map(&self) -> &Helices {
         &self.presenter.current_design.helices
     }
 
@@ -194,7 +183,7 @@ impl FlatSceneDesignReaderExt for DesignInteractor {
             .current_design
             .strands
             .values()
-            .flat_map(|s| Some([s.get_5prime()?, s.get_3prime()?]))
+            .filter_map(|s| Some([s.get_5prime()?, s.get_3prime()?]))
             .flatten()
             .collect()
     }
@@ -203,7 +192,7 @@ impl FlatSceneDesignReaderExt for DesignInteractor {
         self.presenter.content.nucl_collection.clone()
     }
 
-    fn get_abscissa_converter(&self, h_id: usize) -> ensnano_design::AbscissaConverter {
+    fn get_abscissa_converter(&self, h_id: usize) -> AbscissaConverter {
         self.presenter
             .current_design
             .try_get_up_to_date()
@@ -212,23 +201,15 @@ impl FlatSceneDesignReaderExt for DesignInteractor {
     }
 }
 
-fn split_domain_into_helices_segment(
-    domain: &HelixInterval,
-    helices: &ensnano_design::Helices,
-) -> Vec<Nucl> {
+fn split_domain_into_helices_segment(domain: &HelixInterval, helices: &Helices) -> Vec<Nucl> {
     let helix = helices.get(&domain.helix);
     let empty = vec![];
-    let additional_segments = helix.map(|h| &h.additional_isometries).unwrap_or(&empty);
+    let additional_segments = helix.map_or(&empty, |h| &h.additional_isometries);
     let mut ret = Vec::new();
 
-    let intermediate_positions: Vec<isize> = additional_segments
+    let mut iter = additional_segments
         .iter()
-        .map(|s| [s.left - 1, s.left])
-        .flatten()
-        .collect();
-
-    let mut iter = intermediate_positions
-        .into_iter()
+        .flat_map(|s| [s.left - 1, s.left])
         .skip_while(|pos| *pos <= domain.start);
 
     ret.push(Nucl {
@@ -254,25 +235,16 @@ fn split_domain_into_helices_segment(
     ret
 }
 
-#[cfg(test)]
-mod tests {
+// TODO
+// #[cfg(test)]
+// mod tests {
 
-    #[test]
-    #[ignore]
-    fn correct_suggestions() {
-        // TODO: write test, and implement function
-        assert!(false)
-    }
+//     #[test]
+//     fn correct_suggestions() {}
 
-    #[test]
-    #[ignore]
-    fn get_torsions_implemented() {
-        assert!(false)
-    }
+//     #[test]
+//     fn get_torsions_implemented() {}
 
-    #[test]
-    #[ignore]
-    fn get_correct_visibility_helix() {
-        assert!(false)
-    }
-}
+//     #[test]
+//     fn get_correct_visibility_helix() {}
+// }

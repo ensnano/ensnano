@@ -1,26 +1,7 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+use crate::cadnano::CadnanoError;
+use ensnano_design::{Design, helices::HelixCollection as _, strands::Domain};
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use ensnano_design::HelixCollection;
-
-use super::*;
-
-pub fn get_parity(design: &Design, max_helix_idx: usize) -> Result<Vec<bool>, CadnanoError> {
+pub(super) fn get_parity(design: &Design, max_helix_idx: usize) -> Result<Vec<bool>, CadnanoError> {
     let mut father = make_group(design, max_helix_idx);
     let graph = make_graph(design, max_helix_idx, &mut father)?;
 
@@ -42,15 +23,15 @@ fn make_graph(
         for d in &s.domains {
             if let Domain::HelixDomain(d) = d {
                 if d.forward {
-                    group_sens.push(d.helix as usize);
+                    group_sens.push(d.helix);
                 } else {
-                    group_anti.push(d.helix as usize);
+                    group_anti.push(d.helix);
                 }
             }
         }
 
-        for i in group_sens.iter() {
-            for j in group_anti.iter() {
+        for i in &group_sens {
+            for j in &group_anti {
                 let repr_i = find(*i, father);
                 let repr_j = find(*j, father);
                 if repr_i == repr_j {
@@ -65,8 +46,8 @@ fn make_graph(
 }
 
 fn get_color_first_helix(design: &Design, father: &[usize]) -> bool {
-    for h_id in 0..father.len() {
-        if father[h_id] == h_id
+    for (h_id, &item) in father.iter().enumerate() {
+        if item == h_id
             && let Some(grid_pos) = design
                 .helices
                 .get(&h_id)
@@ -79,22 +60,21 @@ fn get_color_first_helix(design: &Design, father: &[usize]) -> bool {
 }
 
 fn color_graph(
-    graph: &Vec<Vec<bool>>,
+    graph: &[Vec<bool>],
     max_helix_idx: usize,
     father: &mut Vec<usize>,
     color_first_helix: bool,
 ) -> Result<Vec<bool>, CadnanoError> {
     let mut color = vec![color_first_helix; max_helix_idx + 1];
-    let mut seen: Vec<bool> = (0..(max_helix_idx + 1)).map(|i| i != father[i]).collect();
+    let mut seen: Vec<bool> = (0..=max_helix_idx).map(|i| i != father[i]).collect();
 
-    for i in 0..(max_helix_idx + 1) {
+    for i in 0..=max_helix_idx {
         if !seen[i] {
             seen[i] = true;
             let mut to_do: Vec<usize> = vec![i];
-            while to_do.len() > 0 {
-                let i = to_do.pop().unwrap();
+            while let Some(i) = to_do.pop() {
                 let i = find(i, father);
-                for j in 0..(max_helix_idx + 1) {
+                for j in 0..=max_helix_idx {
                     let j = find(j, father);
                     if graph[i][j] && !seen[j] {
                         if seen[j] && color[j] == color[i] {
@@ -109,7 +89,7 @@ fn color_graph(
         }
     }
 
-    for i in 0..(max_helix_idx + 1) {
+    for i in 0..=max_helix_idx {
         let repr_i = find(i, father);
         color[i] = color[repr_i];
     }
@@ -117,7 +97,7 @@ fn color_graph(
 }
 
 fn make_group(design: &Design, max_helix_idx: usize) -> Vec<usize> {
-    let mut father: Vec<usize> = (0..(max_helix_idx + 1)).map(|i| i).collect();
+    let mut father: Vec<usize> = (0..=max_helix_idx).collect();
     let mut rank: Vec<usize> = vec![0; max_helix_idx + 1];
     for s in design.strands.values() {
         let mut group_sens: Vec<usize> = Vec::new();
@@ -126,19 +106,19 @@ fn make_group(design: &Design, max_helix_idx: usize) -> Vec<usize> {
         for d in &s.domains {
             if let Domain::HelixDomain(d) = d {
                 if d.forward {
-                    group_sens.push(d.helix as usize);
+                    group_sens.push(d.helix);
                 } else {
-                    group_anti.push(d.helix as usize);
+                    group_anti.push(d.helix);
                 }
             }
         }
-        for i in group_sens.iter() {
-            for j in group_sens.iter() {
+        for i in &group_sens {
+            for j in &group_sens {
                 union(*i, *j, &mut father, &mut rank);
             }
         }
-        for i in group_anti.iter() {
-            for j in group_anti.iter() {
+        for i in &group_anti {
+            for j in &group_anti {
                 union(*i, *j, &mut father, &mut rank);
             }
         }
@@ -146,7 +126,7 @@ fn make_group(design: &Design, max_helix_idx: usize) -> Vec<usize> {
     father
 }
 
-fn union(i: usize, j: usize, father: &mut Vec<usize>, rank: &mut Vec<usize>) {
+fn union(i: usize, j: usize, father: &mut Vec<usize>, rank: &mut [usize]) {
     let i_root = find(i, father);
     let j_root = find(j, father);
     if i_root != j_root {

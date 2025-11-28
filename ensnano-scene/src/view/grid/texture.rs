@@ -1,22 +1,5 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use ensnano_consts::*;
+use ensnano_consts::SAMPLE_COUNT;
+use ensnano_utils::{TEXTURE_FORMAT, texture::Texture};
 use lyon::{
     math::Point,
     path::Path,
@@ -28,20 +11,20 @@ const TEXTURE_SIZE: u32 = 512;
 
 #[derive(Clone, Copy, bytemuck::Zeroable, bytemuck::Pod)]
 #[repr(C)]
-pub struct Vertex {
+pub(super) struct Vertex {
     position: [f32; 2],
     normal: [f32; 2],
 }
 
-type Vertices = lyon::tessellation::VertexBuffers<Vertex, u16>;
+type Vertices = tessellation::VertexBuffers<Vertex, u16>;
 
-pub struct SquareTexture {
+pub(super) struct SquareTexture {
     pub view: TextureView,
     pub sampler: Sampler,
 }
 
 impl SquareTexture {
-    pub fn new(device: &Device, encoder: &mut wgpu::CommandEncoder) -> Self {
+    pub(super) fn new(device: &Device, encoder: &mut wgpu::CommandEncoder) -> Self {
         let texture = device.create_texture(&wgpu::TextureDescriptor {
             size: wgpu::Extent3d {
                 width: TEXTURE_SIZE,
@@ -51,7 +34,7 @@ impl SquareTexture {
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
-            format: ensnano_utils::TEXTURE_FORMAT,
+            format: TEXTURE_FORMAT,
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::RENDER_ATTACHMENT,
             label: Some("square texture"),
             view_formats: Default::default(),
@@ -99,28 +82,20 @@ fn fill_square_texture(target: &TextureView, device: &Device, encoder: &mut wgpu
         height: TEXTURE_SIZE,
     };
 
-    let msaa_texture = if SAMPLE_COUNT > 1 {
-        Some(ensnano_utils::texture::Texture::create_msaa_texture(
+    let msaa_texture = (SAMPLE_COUNT > 1).then(|| {
+        Texture::create_msaa_texture(
             device,
             &texture_size,
             SAMPLE_COUNT,
             wgpu::TextureFormat::Bgra8UnormSrgb,
-        ))
-    } else {
-        None
+        )
+    });
+
+    let (attachment, resolve_target) = match msaa_texture.as_ref() {
+        Some(msaa_texture) => (msaa_texture, Some(target)),
+        None => (target, None),
     };
 
-    let attachment = if msaa_texture.is_some() {
-        msaa_texture.as_ref().unwrap()
-    } else {
-        target
-    };
-
-    let resolve_target = if msaa_texture.is_some() {
-        Some(target)
-    } else {
-        None
-    };
     let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
         label: None,
         color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -154,7 +129,7 @@ fn fill_square_texture(target: &TextureView, device: &Device, encoder: &mut wgpu
 
 fn square_texture_vertices() -> Vertices {
     let mut vertices = Vertices::new();
-    let mut stroke_tess = lyon::tessellation::StrokeTessellator::new();
+    let mut stroke_tess = tessellation::StrokeTessellator::new();
 
     let mut builder = Path::builder();
 
@@ -175,13 +150,13 @@ fn square_texture_vertices() -> Vertices {
     vertices
 }
 
-pub struct HoneyTexture {
+pub(super) struct HoneyTexture {
     pub view: TextureView,
     pub sampler: Sampler,
 }
 
 impl HoneyTexture {
-    pub fn new(device: &Device, encoder: &mut wgpu::CommandEncoder) -> Self {
+    pub(super) fn new(device: &Device, encoder: &mut wgpu::CommandEncoder) -> Self {
         let texture = device.create_texture(&wgpu::TextureDescriptor {
             size: wgpu::Extent3d {
                 width: TEXTURE_SIZE,
@@ -191,7 +166,7 @@ impl HoneyTexture {
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
-            format: ensnano_utils::TEXTURE_FORMAT,
+            format: TEXTURE_FORMAT,
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::RENDER_ATTACHMENT,
             label: Some("honeycomb texture"),
             view_formats: Default::default(),
@@ -243,28 +218,20 @@ fn fill_honeycomb_texture(
         height: TEXTURE_SIZE,
     };
 
-    let msaa_texture = if SAMPLE_COUNT > 1 {
-        Some(ensnano_utils::texture::Texture::create_msaa_texture(
+    let msaa_texture = (SAMPLE_COUNT > 1).then(|| {
+        Texture::create_msaa_texture(
             device,
             &texture_size,
             SAMPLE_COUNT,
             wgpu::TextureFormat::Bgra8UnormSrgb,
-        ))
-    } else {
-        None
+        )
+    });
+
+    let (attachment, resolve_target) = match msaa_texture.as_ref() {
+        Some(msaa_texture) => (msaa_texture, Some(target)),
+        None => (target, None),
     };
 
-    let attachment = if msaa_texture.is_some() {
-        msaa_texture.as_ref().unwrap()
-    } else {
-        target
-    };
-
-    let resolve_target = if msaa_texture.is_some() {
-        Some(target)
-    } else {
-        None
-    };
     let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
         label: None,
         color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -298,7 +265,7 @@ fn fill_honeycomb_texture(
 
 fn honeycomb_texture_vertices() -> Vertices {
     let mut vertices = Vertices::new();
-    let mut stroke_tess = lyon::tessellation::StrokeTessellator::new();
+    let mut stroke_tess = tessellation::StrokeTessellator::new();
 
     let mut builder = Path::builder();
 
@@ -354,16 +321,16 @@ fn pipeline(device: &Device) -> wgpu::RenderPipeline {
     let desc = wgpu::RenderPipelineDescriptor {
         layout: Some(&pipeline_layout),
         vertex: wgpu::VertexState {
-            module: &vs_module,
+            module: vs_module,
             entry_point: "main",
             buffers: &[wgpu::VertexBufferLayout {
-                array_stride: std::mem::size_of::<Vertex>() as u64,
+                array_stride: size_of::<Vertex>() as u64,
                 step_mode: wgpu::VertexStepMode::Vertex,
                 attributes: &wgpu::vertex_attr_array![0 => Float32x2, 1 => Float32x2],
             }],
         },
         fragment: Some(wgpu::FragmentState {
-            module: &fs_module,
+            module: fs_module,
             entry_point: "main",
             targets,
         }),

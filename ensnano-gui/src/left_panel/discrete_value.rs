@@ -1,36 +1,19 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+//! A slider to choose a numerical value within a discrete linear range.
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+// TODO: Make it an independent object like ensnano_iced::color_picker ?
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-//! A slider to choose a numerical value within a dircrete linear range.
-// TODO: Make it an independent object like ensano_iced::color_picker ?
-use super::AppState;
-use super::Message;
-use ensnano_iced::iced;
-use ensnano_iced::{
-    helpers::*,
-    iced::{Alignment, Length, Pixels},
-    theme,
+use crate::{AppState, left_panel::Message};
+use ensnano_iced::theme;
+use iced::{
+    Alignment, Length, Pixels,
+    widget::{Space, button, row, slider, text},
 };
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ValueId(pub usize);
 
-pub trait Requestable {
+pub(super) trait Requestable {
     type Request;
     fn request_from_values(&self, values: &[f32]) -> Self::Request;
     fn nb_values(&self) -> usize;
@@ -41,7 +24,7 @@ pub trait Requestable {
     fn name_val(&self, n: usize) -> String;
 
     fn make_request(&self, values: &[f32], request: &mut Option<Self::Request>) {
-        *request = Some(self.request_from_values(values))
+        *request = Some(self.request_from_values(values));
     }
 
     fn hidden(&self, _: usize) -> bool {
@@ -49,7 +32,7 @@ pub trait Requestable {
     }
 }
 
-pub struct RequestFactory<R: Requestable> {
+pub(super) struct RequestFactory<R: Requestable> {
     values: BTreeMap<ValueId, DiscreteValue>,
     pub requestable: R,
 }
@@ -64,7 +47,7 @@ pub enum FactoryId {
 }
 
 impl<R: Requestable> RequestFactory<R> {
-    pub fn new(factory_id: FactoryId, requestable: R) -> Self {
+    pub(super) fn new(factory_id: FactoryId, requestable: R) -> Self {
         let mut values = BTreeMap::new();
         for n in 0..requestable.nb_values() {
             let default = requestable.initial_value(n);
@@ -92,7 +75,7 @@ impl<R: Requestable> RequestFactory<R> {
         }
     }
 
-    pub fn view<State: AppState>(
+    pub(super) fn view<State: AppState>(
         &self,
         active: bool,
         size: impl Into<Pixels>,
@@ -105,7 +88,7 @@ impl<R: Requestable> RequestFactory<R> {
             .collect()
     }
 
-    pub fn update_request(
+    pub(super) fn update_request(
         &mut self,
         value_id: ValueId,
         new_val: f32,
@@ -115,26 +98,26 @@ impl<R: Requestable> RequestFactory<R> {
             .get_mut(&value_id)
             .unwrap()
             .update_value(new_val);
-        let values: Vec<f32> = self.values.values().map(|v| v.get_value()).collect();
-        self.requestable.make_request(&values, request)
+        let values: Vec<f32> = self.values.values().map(DiscreteValue::get_value).collect();
+        self.requestable.make_request(&values, request);
     }
 
-    pub fn update_value(&mut self, value_id: ValueId, new_val: f32) -> R::Request {
+    pub(super) fn update_value(&mut self, value_id: ValueId, new_val: f32) -> R::Request {
         self.values
             .get_mut(&value_id)
             .unwrap()
             .update_value(new_val);
-        let values: Vec<f32> = self.values.values().map(|v| v.get_value()).collect();
+        let values: Vec<f32> = self.values.values().map(DiscreteValue::get_value).collect();
         self.requestable.request_from_values(&values)
     }
 
-    pub fn make_request(&self, request: &mut Option<R::Request>) {
-        let values: Vec<f32> = self.values.values().map(|v| v.get_value()).collect();
-        self.requestable.make_request(&values, request)
+    pub(super) fn make_request(&self, request: &mut Option<R::Request>) {
+        let values: Vec<f32> = self.values.values().map(DiscreteValue::get_value).collect();
+        self.requestable.make_request(&values, request);
     }
 }
 
-/// A slider to choose a numerical value within a dircrete linear range.
+/// A slider to choose a numerical value within a discrete linear range.
 struct DiscreteValue {
     // Current selected value.
     value: f32,
@@ -193,8 +176,8 @@ impl DiscreteValue {
         } else {
             button(text("+"))
         };
-        let factory_id = self.owner_id.clone();
-        let value_id = self.value_id.clone();
+        let factory_id = self.owner_id;
+        let value_id = self.value_id;
         let slider = if active {
             slider(self.min_val..=self.max_val, self.value, move |value| {
                 Message::DiscreteValue {
@@ -240,6 +223,6 @@ impl DiscreteValue {
     }
 
     fn update_value(&mut self, new_val: f32) {
-        self.value = new_val
+        self.value = new_val;
     }
 }

@@ -1,32 +1,29 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::{
-    BezierPathId, HelixParameters, Nucl, codenano,
-    curves::*,
-    design_operations::ErrOperation,
-    grid::{Grid, GridData, HelixGridPosition, *},
-    scadnano::*,
-    utils::*,
+use crate::{
+    Nucl,
+    bezier_plane::BezierPathId,
+    codenano,
+    curves::{
+        CurveDescriptor, InstantiatedCurve, InstantiatedCurveDescriptor, SurfaceInfo, SurfacePoint,
+        bezier::{BezierControlPoint, BezierEnd, CubicBezierConstructor},
+        sphere_like_spiral::SphereLikeSpiralDescriptor,
+        tube_spiral::TubeSpiralDescriptor,
+    },
+    design_operations::ErrDesignOperation,
+    grid::{Edge, Grid, GridAwareTranslation, GridData, GridId, HelixGridPosition},
+    parameters::HelixParameters,
+    scadnano::{ScadnanoGroup, ScadnanoHelix, ScadnanoImportError},
+    utils::{
+        default_visibility, dvec_to_vec, f32_is_zero, is_false, isize_is_zero, rotor_to_drotor,
+        vec_to_dvec,
+    },
 };
 use ahash::HashMap;
 use serde::{Deserialize, Serialize};
-use std::{collections::BTreeMap, sync::Arc};
+use std::{
+    collections::BTreeMap,
+    f32::consts::{FRAC_PI_2, PI, TAU},
+    sync::Arc,
+};
 use ultraviolet::{DRotor3, DVec3, Isometry2, Mat4, Rotor2, Rotor3, Vec2, Vec3};
 
 /// A structure mapping helices identifier to `Helix` objects
@@ -34,7 +31,7 @@ use ultraviolet::{DRotor3, DVec3, Isometry2, Mat4, Rotor2, Rotor3, Vec2, Vec3};
 pub struct Helices(pub(super) Arc<BTreeMap<usize, Arc<Helix>>>);
 
 impl Helices {
-    pub fn make_mut<'a>(&'a mut self) -> HelicesMut<'a> {
+    pub fn make_mut(&mut self) -> HelicesMut<'_> {
         let new_map = BTreeMap::clone(self.0.as_ref());
         HelicesMut {
             source: self,
@@ -65,7 +62,7 @@ impl HasHelixCollection for Helices {
     }
 }
 
-impl<'a> HasHelixCollection for HelicesMut<'a> {
+impl HasHelixCollection for HelicesMut<'_> {
     fn get_collection(&self) -> &BTreeMap<usize, Arc<Helix>> {
         &self.new_map
     }
@@ -76,7 +73,7 @@ where
     T: HasHelixCollection,
 {
     fn get(&self, id: &usize) -> Option<&Helix> {
-        self.get_collection().get(id).map(|arc| arc.as_ref())
+        self.get_collection().get(id).map(AsRef::as_ref)
     }
 
     fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a usize, &'a Helix)> + 'a> {
@@ -92,7 +89,7 @@ where
     }
 
     fn values<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Helix> + 'a> {
-        Box::new(self.get_collection().values().map(|arc| arc.as_ref()))
+        Box::new(self.get_collection().values().map(AsRef::as_ref))
     }
 
     fn len(&self) -> usize {
@@ -109,7 +106,7 @@ pub struct HelicesMut<'a> {
     new_map: BTreeMap<usize, Arc<Helix>>,
 }
 
-impl<'a> HelicesMut<'a> {
+impl HelicesMut<'_> {
     pub fn get_mut(&mut self, id: &usize) -> Option<&mut Helix> {
         self.new_map.get_mut(id).map(|arc| {
             // For the same reasons as above, ensure that a new helix is created so that the
@@ -156,15 +153,15 @@ impl<'a> HelicesMut<'a> {
     }
 }
 
-impl<'a> AsRef<Helices> for HelicesMut<'a> {
+impl AsRef<Helices> for HelicesMut<'_> {
     fn as_ref(&self) -> &Helices {
         self.source
     }
 }
 
-impl<'a> Drop for HelicesMut<'a> {
+impl Drop for HelicesMut<'_> {
     fn drop(&mut self) {
-        *self.source = Helices(Arc::new(std::mem::take(&mut self.new_map)))
+        *self.source = Helices(Arc::new(std::mem::take(&mut self.new_map)));
     }
 }
 
@@ -206,7 +203,7 @@ pub struct Helix {
     #[serde(
         skip_serializing_if = "Vec::is_empty",
         default,
-        alias = "additonal_isometries" // cspell:disable-line
+        alias = "additonal_isometries" // cspell: disable-line
     )]
     pub additional_isometries: Vec<AdditionalHelix2D>,
 
@@ -225,19 +222,20 @@ pub struct Helix {
     #[serde(
         default,
         skip,
-        alias = "instanciated_descriptor", // cspell:disable-line
+        alias = "instanciated_descriptor", // cspell: disable-line
     )]
     pub(super) instantiated_descriptor: Option<Arc<InstantiatedCurveDescriptor>>,
 
     #[serde(
         default,
         skip,
-        alias = "instanciated_curve", // cspell:disable-line
+        alias = "instanciated_curve", // cspell: disable-line
     )]
     pub(super) instantiated_curve: Option<InstantiatedCurve>,
 
+    // TODO: remove? Seems to always be 0.0
     #[serde(default, skip_serializing_if = "f32_is_zero")]
-    delta_bppt: f32,
+    delta_bases_per_turn: f32,
 
     #[serde(default, skip_serializing_if = "isize_is_zero")]
     pub initial_nt_index: isize,
@@ -277,7 +275,7 @@ impl Helix {
             curve: None,
             instantiated_curve: None,
             instantiated_descriptor: None,
-            delta_bppt: 0.,
+            delta_bases_per_turn: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -296,29 +294,26 @@ impl Helix {
             .unwrap_or_else(|| String::from("default_group"));
         let Some(grid_id) = group_map.get(&group_id) else {
             return Err(ScadnanoImportError::MissingField(format!(
-                "group {}",
-                group_id
+                "group {group_id}",
             )));
         };
-        let Some(x) = scad.grid_position.get(0).cloned() else {
+        let Some(x) = scad.grid_position.first().copied() else {
             return Err(ScadnanoImportError::MissingField(String::from("x")));
         };
-        let Some(y) = scad.grid_position.get(1).cloned() else {
+        let Some(y) = scad.grid_position.get(1).copied() else {
             return Err(ScadnanoImportError::MissingField(String::from("y")));
         };
         let Some(group) = groups.get(*grid_id) else {
             return Err(ScadnanoImportError::MissingField(format!(
-                "group {}",
-                grid_id
+                "group {grid_id}",
             )));
         };
 
-        println!("helices per group {:?}", group_map);
-        println!("helices per group {:?}", helix_per_group);
+        println!("helices per group {group_map:?}");
+        println!("helices per group {helix_per_group:?}");
         let Some(nb_helices) = helix_per_group.get_mut(*grid_id) else {
             return Err(ScadnanoImportError::MissingField(format!(
-                "helix_per_group {}",
-                grid_id
+                "helix_per_group {grid_id}",
             )));
         };
         let rotation = Rotor2::from_angle(group.pitch.unwrap_or_default().to_radians());
@@ -349,14 +344,14 @@ impl Helix {
             curve: None,
             instantiated_curve: None,
             instantiated_descriptor: None,
-            delta_bppt: 0.,
+            delta_bases_per_turn: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
         })
     }
 
-    pub fn translated_by(&self, edge: crate::grid::Edge, grid_data: &GridData) -> Option<Self> {
+    pub fn translated_by(&self, edge: Edge, grid_data: &GridData) -> Option<Self> {
         log::debug!("attempt to translate helix");
         let grid_position = self
             .grid_position
@@ -380,9 +375,7 @@ impl Helix {
             })
         }
     }
-}
 
-impl Helix {
     pub fn new(origin: Vec3, orientation: Rotor3) -> Self {
         Self {
             position: origin,
@@ -398,7 +391,7 @@ impl Helix {
             curve: None,
             instantiated_curve: None,
             instantiated_descriptor: None,
-            delta_bppt: 0.,
+            delta_bases_per_turn: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -427,7 +420,7 @@ impl Helix {
             curve: None,
             instantiated_curve: None,
             instantiated_descriptor: None,
-            delta_bppt: 0.,
+            delta_bases_per_turn: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -449,7 +442,7 @@ impl Helix {
             curve: Some(Arc::new(CurveDescriptor::SphereLikeSpiral(desc))),
             instantiated_curve: None,
             instantiated_descriptor: None,
-            delta_bppt: 0.,
+            delta_bases_per_turn: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -471,7 +464,7 @@ impl Helix {
             curve: Some(Arc::new(CurveDescriptor::TubeSpiral(desc))),
             instantiated_curve: None,
             instantiated_descriptor: None,
-            delta_bppt: 0.,
+            delta_bases_per_turn: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -493,7 +486,7 @@ impl Helix {
             curve: Some(Arc::new(desc)),
             instantiated_curve: None,
             instantiated_descriptor: None,
-            delta_bppt: 0.,
+            delta_bases_per_turn: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -518,29 +511,10 @@ impl Helix {
     }
 
     pub fn translate_bezier_point(
-        &mut self,
+        &self,
         _bezier_point: BezierControlPoint,
         _translation: GridAwareTranslation,
-    ) -> Result<(), ErrOperation> {
-        /*
-        let point = match bezier_point {
-            BezierControlPoint::PiecewiseBezier(n) => {
-                if let Some(CurveDescriptor::PiecewiseBezier { tangents, .. }) =
-                    self.curve.as_mut().map(Arc::make_mut)
-                {
-                    tangents.get_mut(n / 2)
-                } else {
-                    None
-                }
-            }
-            _ => {
-                log::error!("Translation of cubic bezier point not implemented");
-                None
-            }
-        }
-        .ok_or(ErrOperation::NotEnoughBezierPoints)?;
-        *point += translation.0;
-        */
+    ) -> Result<(), ErrDesignOperation> {
         log::error!("Translation of cubic bezier point not implemented");
         Ok(())
     }
@@ -557,10 +531,10 @@ impl Helix {
         grid_manager: &GridData,
         grid_pos_start: HelixGridPosition,
         grid_pos_end: HelixGridPosition,
-    ) -> Result<Self, ErrOperation> {
+    ) -> Result<Self, ErrDesignOperation> {
         let position = grid_manager
             .pos_to_space(grid_pos_start.light())
-            .ok_or(ErrOperation::GridDoesNotExist(grid_pos_start.grid))?;
+            .ok_or(ErrDesignOperation::GridDoesNotExist(grid_pos_start.grid))?;
         let point_start = BezierEnd {
             position: grid_pos_start.light(),
             inward_coeff: 1.,
@@ -590,7 +564,7 @@ impl Helix {
             curve: Some(Arc::new(constructor)),
             instantiated_curve: None,
             instantiated_descriptor: None,
-            delta_bppt: 0.,
+            delta_bases_per_turn: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -605,7 +579,7 @@ impl Helix {
         grid_manager: &GridData,
         grid_pos: HelixGridPosition,
         path_id: BezierPathId,
-    ) -> Result<Self, ErrOperation> {
+    ) -> Result<Self, ErrDesignOperation> {
         let translation = (|| {
             let grid = grid_manager.grids.get(&grid_pos.grid)?;
             let position = grid.position_helix_in_grid_coordinates(grid_pos.x, grid_pos.y);
@@ -634,7 +608,7 @@ impl Helix {
             curve,
             instantiated_curve: None,
             instantiated_descriptor: None,
-            delta_bppt: 0.,
+            delta_bases_per_turn: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: Some(path_id),
@@ -647,48 +621,37 @@ impl Helix {
     pub fn nb_bezier_nucls(&self) -> usize {
         self.instantiated_curve
             .as_ref()
-            .map(|c| c.curve.as_ref().nb_points())
-            .unwrap_or(0)
+            .map_or(0, |c| c.curve.as_ref().nb_points())
     }
 
     pub fn roll_at_pos(&self, n: isize, cst: &HelixParameters) -> f32 {
-        use std::f32::consts::PI;
-        let bpt = match self.helix_parameters {
+        let bases_per_turn = match self.helix_parameters {
             None => cst.bases_per_turn,
             Some(p) => p.bases_per_turn,
-        };
-        let bbpt = bpt + self.delta_bppt;
-        let beta = 2. * PI / bbpt;
+        } + self.delta_bases_per_turn;
+        let beta = TAU / bases_per_turn;
         self.roll - n as f32 * beta // Beta is positive but helix turn clockwise when n increases
     }
 
     /// Angle of base number `n` around this helix.
     pub fn theta(&self, n: isize, forward: bool, cst: &HelixParameters) -> f32 {
-        use std::f32::consts::PI;
         // The groove_angle goes from the backward strand to the forward strand
         let shift = if forward { cst.groove_angle } else { 0. };
-        let bpt = match self.helix_parameters {
+        let bases_per_turn = match self.helix_parameters {
             None => cst.bases_per_turn,
             Some(p) => p.bases_per_turn,
-        };
-        let bbpt = bpt + self.delta_bppt;
-        let beta = 2. * PI / bbpt;
+        } + self.delta_bases_per_turn;
+        let beta = TAU / bases_per_turn;
         self.roll
             -n as f32 * beta  // Beta is positive but helix turn clockwise when n increases
             + shift
-            + std::f32::consts::FRAC_PI_2 // Add PI/2 so that when the roll is 0,
+            + FRAC_PI_2 // Add PI/2 so that when the roll is 0,
         // the backward strand is at vertical position on nucl 0
     }
 
     /// 3D position of a nucleotide on this helix. `n` is the position along the axis, and `forward` is true iff the 5' to 3' direction of the strand containing that nucleotide runs in the same direction as the axis of the helix.
     pub fn space_pos(&self, p: &HelixParameters, n: isize, forward: bool) -> Vec3 {
-        let p = self.helix_parameters.unwrap_or(*p).clone();
-        /*
-        match self.helix_parameters {
-            None => p.clone(),
-            Some(hp) => hp.clone(),
-        };
-        */
+        let p = self.helix_parameters.unwrap_or(*p);
         self.shifted_space_pos(&p, n, forward, 0.0)
     }
 
@@ -721,43 +684,27 @@ impl Helix {
         theta: f32,
         forward: bool,
     ) -> Vec3 {
-        let mut ret;
-        let p = self.helix_parameters.unwrap_or(*p).clone();
-        /*
-        match self.helix_parameters {
-            None => p.clone(),
-            Some(hp) => hp.clone(),
-        };
-        */
-        if let Some(curve) = self.instantiated_curve.as_ref() {
-            if let Some(point) = curve
+        let p = self.helix_parameters.unwrap_or(*p);
+        if let Some(curve) = self.instantiated_curve.as_ref()
+            && let Some(point) = curve
                 .as_ref()
                 .nucl_pos(n, forward, theta as f64, &p)
                 .map(dvec_to_vec)
-            {
-                let (position, orientation) = if curve.as_ref().has_its_own_encoded_frame() {
-                    (Vec3::zero(), Rotor3::identity()) // position and orientation ignored
-                } else {
-                    (self.position, self.orientation)
-                };
-                return point.rotated_by(orientation) + position;
+        {
+            let (position, orientation) = if curve.as_ref().has_its_own_encoded_frame() {
+                (Vec3::zero(), Rotor3::identity()) // position and orientation ignored
             } else {
-                let delta_inclination = if forward { 0.0 } else { p.inclination };
-                ret = Vec3::new(
-                    n as f32 * p.rise + delta_inclination,
-                    theta.sin() * p.helix_radius,
-                    theta.cos() * p.helix_radius,
-                );
-            }
-        } else {
-            let delta_inclination = if forward { 0.0 } else { p.inclination };
-            ret = Vec3::new(
-                n as f32 * p.rise + delta_inclination,
-                theta.sin() * p.helix_radius,
-                theta.cos() * p.helix_radius,
-            );
+                (self.position, self.orientation)
+            };
+            return point.rotated_by(orientation) + position;
         }
 
+        let delta_inclination = if forward { 0.0 } else { p.inclination };
+        let mut ret = Vec3::new(
+            n as f32 * p.rise + delta_inclination,
+            theta.sin() * p.helix_radius,
+            theta.cos() * p.helix_radius,
+        );
         ret = self.rotate_point(ret);
         ret += self.position;
         ret
@@ -770,7 +717,7 @@ impl Helix {
         forward: bool,
         shift: f32,
     ) -> Vec3 {
-        let p = self.helix_parameters.unwrap_or(*p).clone();
+        let p = self.helix_parameters.unwrap_or(*p);
         //  match self.helix_parameters {
         //     None => p.clone(),
         //     Some(hp) => hp.clone(),
@@ -781,10 +728,11 @@ impl Helix {
     }
 
     ///Return an helix that makes an ideal cross-over with self at position n
-    pub fn ideal_neighbor(&self, n: isize, forward: bool, p: &HelixParameters) -> Helix {
+    #[must_use]
+    pub fn ideal_neighbor(&self, n: isize, forward: bool, p: &HelixParameters) -> Self {
         let p = match self.helix_parameters {
-            None => p.clone(),
-            Some(hp) => hp.clone(),
+            None => *p,
+            Some(hp) => hp,
         };
         let other_helix_pos = self.position_ideal_neighbor(n, forward, &p);
         let mut new_helix = self.detached_copy_at(other_helix_pos);
@@ -792,8 +740,8 @@ impl Helix {
         new_helix
     }
 
-    fn detached_copy_at(&self, position: Vec3) -> Helix {
-        Helix {
+    fn detached_copy_at(&self, position: Vec3) -> Self {
+        Self {
             position,
             orientation: self.orientation,
             helix_parameters: None,
@@ -807,7 +755,7 @@ impl Helix {
             curve: None,
             instantiated_curve: None,
             instantiated_descriptor: None,
-            delta_bppt: 0.,
+            delta_bases_per_turn: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -816,8 +764,8 @@ impl Helix {
 
     fn position_ideal_neighbor(&self, n: isize, forward: bool, p: &HelixParameters) -> Vec3 {
         let p = match self.helix_parameters {
-            None => p.clone(),
-            Some(hp) => hp.clone(),
+            None => *p,
+            Some(hp) => hp,
         };
         let axis_pos = self.axis_position(&p, n, forward);
         let my_nucl_pos = self.space_pos(&p, n, forward);
@@ -830,15 +778,15 @@ impl Helix {
         &self,
         n: isize,
         forward: bool,
-        new_helix: &mut Helix,
+        new_helix: &mut Self,
         p: &HelixParameters,
     ) {
         let p = match self.helix_parameters {
-            None => p.clone(),
-            Some(hp) => hp.clone(),
+            None => *p,
+            Some(hp) => hp,
         };
         let theta_current = new_helix.theta(0, forward, &p);
-        let theta_obj = self.theta(n, forward, &p) + std::f32::consts::PI;
+        let theta_obj = self.theta(n, forward, &p) + PI;
         new_helix.roll = theta_obj - theta_current;
     }
 
@@ -862,7 +810,7 @@ impl Helix {
                 orientation,
             }
         } else {
-            let p = self.helix_parameters.unwrap_or(*p).clone();
+            let p = self.helix_parameters.unwrap_or(*p);
             Axis::Line {
                 origin: self.position,
                 direction: self.axis_position(&p, 1, true) - self.position,
@@ -883,7 +831,7 @@ impl Helix {
             };
             return point.rotated_by(orientation) + position;
         }
-        let p = self.helix_parameters.unwrap_or(*p).clone();
+        let p = self.helix_parameters.unwrap_or(*p);
         let mut ret = Vec3::new(n as f32 * p.rise, 0., 0.);
 
         ret = self.rotate_point(ret);
@@ -915,11 +863,11 @@ impl Helix {
     }
 
     pub fn roll(&mut self, roll: f32) {
-        self.roll += roll
+        self.roll += roll;
     }
 
     pub fn set_roll(&mut self, roll: f32) {
-        self.roll = roll
+        self.roll = roll;
     }
 
     pub fn get_bezier_controls(&self) -> Option<CubicBezierConstructor> {
@@ -966,6 +914,7 @@ impl Helix {
 pub struct VirtualNucl(pub(super) Nucl);
 
 impl VirtualNucl {
+    #[must_use]
     pub fn compl(&self) -> Self {
         Self(self.0.compl())
     }
@@ -1008,13 +957,13 @@ impl NuclCollection {
 }
 
 impl Nucl {
-    pub fn map_to_virtual_nucl(nucl: Nucl, helices: &Helices) -> Option<VirtualNucl> {
+    pub fn map_to_virtual_nucl(nucl: Self, helices: &Helices) -> Option<VirtualNucl> {
         let h = helices.get(&nucl.helix)?;
         let support_helix_id = h
             .support_helix
             .or(Some(nucl.helix))
             .filter(|h_id| helices.contains_key(h_id))?;
-        Some(VirtualNucl(Nucl {
+        Some(VirtualNucl(Self {
             helix: support_helix_id,
             position: nucl.position + h.initial_nt_index,
             forward: nucl.forward,
@@ -1022,9 +971,8 @@ impl Nucl {
     }
 }
 
-/// Represents the axis of an helix. At the moment it is a line. In the future it might also be a
-/// bezier curve
-#[derive(Debug, Clone)]
+/// Represents the axis of an helix
+#[derive(Debug, Clone, Copy)]
 pub enum Axis<'a> {
     Line {
         origin: Vec3,
@@ -1054,7 +1002,7 @@ pub enum OwnedAxis {
     },
 }
 
-impl<'a> Axis<'a> {
+impl Axis<'_> {
     pub fn to_owned(self) -> OwnedAxis {
         match self {
             Self::Line { origin, direction } => OwnedAxis::Line { origin, direction },
@@ -1076,7 +1024,7 @@ impl<'a> Axis<'a> {
 }
 
 impl OwnedAxis {
-    pub fn borrow<'a>(&'a self) -> Axis<'a> {
+    pub fn borrow(&self) -> Axis<'_> {
         match self {
             Self::Line { origin, direction } => Axis::Line {
                 origin: *origin,
@@ -1090,7 +1038,7 @@ impl OwnedAxis {
                 position,
             } => Axis::Curve {
                 shift: *shift,
-                points: &points[..],
+                points,
                 nucl_t0: *nucl_t0,
                 orientation: *orientation,
                 position: *position,
@@ -1099,7 +1047,8 @@ impl OwnedAxis {
     }
 }
 
-impl<'a> Axis<'a> {
+impl Axis<'_> {
+    #[must_use]
     pub fn transformed(&self, model_matrix: &Mat4) -> Self {
         match self {
             Self::Line {
@@ -1110,7 +1059,7 @@ impl<'a> Axis<'a> {
                 let direction = model_matrix.transform_vec3(*old_direction);
                 Self::Line { origin, direction }
             }
-            _ => self.clone(),
+            Self::Curve { .. } => *self,
         }
     }
 

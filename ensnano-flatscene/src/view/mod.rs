@@ -1,52 +1,37 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 mod background;
 mod helix_view;
-mod insertion;
+pub(crate) mod insertion;
 mod rectangle;
 
-use super::FlatSelection;
-use super::data::{
-    FlatTorsion, FreeEnd, GpuVertex, Helix, HelixModel, Shift, Strand, StrandVertex,
-    helix::CharCollector,
+use crate::{
+    CameraPtr,
+    data::{
+        design::FlatTorsion,
+        helix::{CharCollector, GpuVertex, Helix, HelixModel, Shift},
+        strand::{FreeEnd, Strand, StrandVertex},
+    },
+    flat_types::{FlatIdx, FlatNucl, FlatSelection},
 };
-use super::{CameraPtr, FlatIdx, FlatNucl};
-use super::{DrawArea, PhySize};
 use ahash::RandomState;
 use background::Background;
-use ensnano_consts::SAMPLE_COUNT;
-use ensnano_design::{Nucl, NuclCollection};
+use ensnano_consts::{CANDIDATE_COLOR, PRINTABLE_CHARS, SAMPLE_COUNT, SELECTED_COLOR};
+use ensnano_design::{Nucl, helices::NuclCollection};
+use ensnano_interactor::graphics::{DrawArea, PhySize};
 use ensnano_utils::{
     Ndc,
     bindgroup_manager::{DynamicBindGroup, UniformBindGroup},
     camera2d::Globals,
-    chars2d::TextDrawer,
+    chars2d::text_drawer::TextDrawer,
     circles2d::{CircleDrawer, CircleInstance, CircleKind},
     texture::Texture,
 };
 use helix_view::{HelixView, StrandView};
 use insertion::InsertionDrawer;
-pub use insertion::{InsertionDescriptor, InsertionInstance};
 use rectangle::Rectangle;
-use std::rc::Rc;
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap},
+    f32::consts::FRAC_1_SQRT_2,
+    rc::Rc,
     sync::Arc,
 };
 use wgpu::{Device, Queue, RenderPipeline};
@@ -71,7 +56,7 @@ pub struct View {
     strand_pipeline: RenderPipeline,
     camera_top: CameraPtr,
     camera_bottom: CameraPtr,
-    splited: bool,
+    is_split: bool,
     was_updated: bool,
     area_size: PhySize,
     free_end: Option<FreeEnd>,
@@ -117,7 +102,7 @@ impl View {
         area: DrawArea,
         camera_top: CameraPtr,
         camera_bottom: CameraPtr,
-        splited: bool,
+        is_split: bool,
     ) -> Self {
         let depth_texture = Arc::new(Texture::create_depth_texture(
             device.as_ref(),
@@ -163,7 +148,11 @@ impl View {
             depth_stencil_state.clone(),
         );
 
-        let background = Background::new(&device, globals_top.get_layout(), &depth_stencil_state);
+        let background = Background::new(
+            &device,
+            globals_top.get_layout(),
+            depth_stencil_state.as_ref(),
+        );
         let circle_drawer_top = CircleDrawer::new(
             device.clone(),
             queue.clone(),
@@ -197,13 +186,13 @@ impl View {
         let rectangle = Rectangle::new(&device, queue.clone());
 
         let text_drawer_top = TextDrawer::new(
-            ensnano_consts::PRINTABLE_CHARS,
+            PRINTABLE_CHARS,
             device.clone(),
             queue.clone(),
             globals_top.get_layout(),
         );
         let text_drawer_bottom = TextDrawer::new(
-            ensnano_consts::PRINTABLE_CHARS,
+            PRINTABLE_CHARS,
             device.clone(),
             queue.clone(),
             globals_bottom.get_layout(),
@@ -233,7 +222,7 @@ impl View {
             strand_pipeline,
             camera_top,
             camera_bottom,
-            splited,
+            is_split,
             was_updated: false,
             area_size: area.size,
             free_end: None,
@@ -277,9 +266,9 @@ impl View {
         self.was_updated = true;
     }
 
-    pub fn set_splited(&mut self, splited: bool) {
+    pub fn set_is_split(&mut self, is_split: bool) {
         self.was_updated = true;
-        self.splited = splited;
+        self.is_split = is_split;
     }
 
     pub fn update_strand_building_info(&mut self, info: Option<EditionInfo>) {
@@ -319,9 +308,9 @@ impl View {
 
     pub fn rm_helices(&mut self, helices: BTreeSet<FlatIdx>) {
         if self.helices.is_empty() {
-            // self was already reseted
-            return;
+            return; // self was already reset
         }
+
         for h in helices.iter().rev() {
             self.helices.remove(h.0);
             self.helices_background.remove(h.0);
@@ -335,17 +324,17 @@ impl View {
     }
 
     pub fn set_torsions(&mut self, torsions: HashMap<(FlatNucl, FlatNucl), FlatTorsion>) {
-        self.torsions = torsions
+        self.torsions = torsions;
     }
 
     pub fn update_helices(&mut self, helices: &[Helix]) {
         for (i, h) in self.helices_view.iter_mut().enumerate() {
             self.helices_model[i] = helices[i].model();
             self.helices_background[i].update(&helices[i]);
-            h.update(&helices[i])
+            h.update(&helices[i]);
         }
         for helix in helices.iter().skip(self.helices_view.len()) {
-            self.add_helix(helix)
+            self.add_helix(helix);
         }
         self.models.update(self.helices_model.as_slice());
         self.helices = helices.to_vec();
@@ -355,7 +344,7 @@ impl View {
     pub fn add_strand(&mut self, strand: &Strand, helices: &[Helix]) {
         self.strands
             .push(StrandView::new(self.device.clone(), self.queue.clone()));
-        let other_cam = if self.splited {
+        let other_cam = if self.is_split {
             &self.camera_bottom
         } else {
             &self.camera_top
@@ -363,7 +352,7 @@ impl View {
         self.strands.iter_mut().last().unwrap().update(
             strand,
             helices,
-            &self.free_end,
+            self.free_end.as_ref(),
             &self.camera_top,
             other_cam,
         );
@@ -380,7 +369,7 @@ impl View {
     pub fn update_strands(&mut self, strands: &[Strand], helices: &[Helix]) {
         self.strands.truncate(strands.len());
         for (i, s) in self.strands.iter_mut().enumerate() {
-            let other_cam = if self.splited {
+            let other_cam = if self.is_split {
                 &self.camera_bottom
             } else {
                 &self.camera_top
@@ -389,17 +378,17 @@ impl View {
                 s.update(
                     &strands[i],
                     helices,
-                    &self.free_end,
+                    self.free_end.as_ref(),
                     &self.camera_top,
                     other_cam,
                 );
             }
         }
         for strand in strands.iter().skip(self.strands.len()) {
-            self.add_strand(strand, helices)
+            self.add_strand(strand, helices);
         }
         let mut insertions = Vec::new();
-        for s in strands.iter() {
+        for s in strands {
             for i in s.get_insertions(helices) {
                 insertions.push(i);
             }
@@ -410,14 +399,14 @@ impl View {
 
     pub fn update_selection(&mut self, strands: &[Strand], helices: &[Helix]) {
         self.selected_strands.clear();
-        let other_cam = if self.splited {
+        let other_cam = if self.is_split {
             &self.camera_bottom
         } else {
             &self.camera_top
         };
-        for s in strands.iter() {
+        for s in strands {
             let mut strand_view = StrandView::new(self.device.clone(), self.queue.clone());
-            strand_view.update(s, helices, &None, &self.camera_top, other_cam);
+            strand_view.update(s, helices, None, &self.camera_top, other_cam);
             self.selected_strands.push(strand_view);
         }
         self.was_updated = true;
@@ -425,14 +414,14 @@ impl View {
 
     pub fn update_candidate(&mut self, strands: &[Strand], helices: &[Helix]) {
         self.candidate_strands.clear();
-        let other_cam = if self.splited {
+        let other_cam = if self.is_split {
             &self.camera_bottom
         } else {
             &self.camera_top
         };
-        for s in strands.iter() {
+        for s in strands {
             let mut strand_view = StrandView::new(self.device.clone(), self.queue.clone());
-            strand_view.update(s, helices, &None, &self.camera_top, other_cam);
+            strand_view.update(s, helices, None, &self.camera_top, other_cam);
             self.candidate_strands.push(strand_view);
         }
         self.was_updated = true;
@@ -451,13 +440,7 @@ impl View {
             .iter()
             .map(|strand| {
                 let mut pasted_strand = StrandView::new(self.device.clone(), self.queue.clone());
-                pasted_strand.update(
-                    strand,
-                    helices,
-                    &None,
-                    &self.camera_top,
-                    &self.camera_bottom,
-                );
+                pasted_strand.update(strand, helices, None, &self.camera_top, &self.camera_bottom);
                 pasted_strand
             })
             .collect();
@@ -468,7 +451,7 @@ impl View {
     }
 
     pub fn needs_redraw(&self) -> bool {
-        if self.splited {
+        if self.is_split {
             self.camera_top.borrow().was_updated()
                 | self.was_updated
                 | self.camera_bottom.borrow().was_updated()
@@ -489,7 +472,7 @@ impl View {
         self.camera_top.borrow_mut().zoom_closer();
         self.was_updated = true;
         match selection {
-            FlatSelection::Bond(_, n1, n2) => {
+            FlatSelection::Bond(n1, n2) => {
                 self.helices[n1.helix].make_visible(n1.flat_position, self.camera_top.clone());
                 let world_pos_1 = self.helices[n1.helix].get_nucl_position(&n1, Shift::No);
                 let world_pos_2 = self.helices[n2.helix].get_nucl_position(&n2, Shift::No);
@@ -501,28 +484,20 @@ impl View {
                     .camera_top
                     .borrow()
                     .world_to_norm_screen(world_pos_2.x, world_pos_2.y);
-                if (screen_pos_1.0 - screen_pos_2.0) * (screen_pos_1.0 - screen_pos_2.0)
+                ((screen_pos_1.0 - screen_pos_2.0) * (screen_pos_1.0 - screen_pos_2.0)
                     + (screen_pos_1.1 - screen_pos_2.1) * (screen_pos_1.1 - screen_pos_2.1)
-                    > 0.25
-                {
-                    // Center the topmost nucleotide on the top camera
-                    if screen_pos_1.1 < screen_pos_2.1 {
-                        Some((n1, n2))
+                    > 0.25)
+                    .then_some(if screen_pos_1.1 < screen_pos_2.1 {
+                        (n1, n2)
                     } else {
-                        Some((n2, n1))
-                    }
-                } else {
-                    None
-                }
+                        (n2, n1)
+                    })
             }
-            FlatSelection::Nucleotide(
-                _,
-                FlatNucl {
-                    helix,
-                    flat_position: position,
-                    ..
-                },
-            ) => {
+            FlatSelection::Nucleotide(FlatNucl {
+                helix,
+                flat_position: position,
+                ..
+            }) => {
                 self.helices[helix].make_visible(position, self.camera_top.clone());
                 None
             }
@@ -530,7 +505,7 @@ impl View {
         }
     }
 
-    pub fn center_split(&mut self, n1: FlatNucl, n2: FlatNucl) {
+    pub fn center_split(&self, n1: FlatNucl, n2: FlatNucl) {
         let zoom = self.camera_top.borrow().get_globals().zoom;
         self.camera_bottom.borrow_mut().set_zoom(zoom);
         self.helices[n1.helix].make_visible(n1.flat_position, self.camera_top.clone());
@@ -538,7 +513,7 @@ impl View {
     }
 
     pub fn update_rectangle(&mut self, c1: PhysicalPosition<f64>, c2: PhysicalPosition<f64>) {
-        if self.splited {
+        if self.is_split {
             if (c1.y < self.area_size.height as f64 / 2.)
                 != (c2.y < self.area_size.height as f64 / 2.)
             {
@@ -567,7 +542,7 @@ impl View {
     ///
     /// # Arguments
     ///
-    /// [png_size]: Export resolution; use area's size if None.
+    /// * png_size: Export resolution; use area's size if None.
     ///
     pub fn draw(
         &mut self,
@@ -577,8 +552,7 @@ impl View {
         png_globals: Option<Globals>,
     ) {
         let exporting_png = png_size.is_some();
-        let texture;
-        let globls_png = if let Some(globals) = png_globals {
+        let globals_png = if let Some(globals) = png_globals {
             Some(UniformBindGroup::new(
                 self.device.clone(),
                 self.queue.clone(),
@@ -588,22 +562,23 @@ impl View {
         } else {
             None
         };
-        let png_glob_bg = globls_png.as_ref().map(|g| g.get_bindgroup());
-        let depth_texture_view = if let Some(size) = png_size {
-            texture = Arc::new(Texture::create_depth_texture(
+        let png_glob_bg = globals_png.as_ref().map(UniformBindGroup::get_bindgroup);
+        let depth_texture = if let Some(size) = png_size {
+            Arc::new(Texture::create_depth_texture(
                 self.device.clone().as_ref(),
                 &size,
                 SAMPLE_COUNT,
-            ));
-            &texture.view
+            ))
         } else {
-            texture = self.depth_texture.clone();
-            &texture.view
+            self.depth_texture.clone()
         };
+        let depth_texture_view = &depth_texture.view;
         let target_size = png_size.unwrap_or(self.area_size);
+
+        #[expect(clippy::useless_let_if_seq)] // false positive in my opinion
         let mut need_new_circles = false;
         if let Some(globals) = self.camera_top.borrow_mut().update() {
-            log::debug!("new camera globals: {:?}", globals);
+            log::debug!("new camera globals: {globals:?}");
             self.globals_top.update(globals);
             need_new_circles = true;
         }
@@ -611,6 +586,7 @@ impl View {
             self.globals_bottom.update(globals);
             need_new_circles = true;
         }
+
         if need_new_circles || self.was_updated {
             let instances_top = self.generate_circle_instances(&self.camera_top);
             let instances_bottom = self.generate_circle_instances(&self.camera_bottom);
@@ -621,34 +597,25 @@ impl View {
             self.circle_drawer_bottom
                 .new_instances(Rc::new(instances_bottom));
             self.generate_char_instances();
-            let nucleotide_highliting = Rc::new(self.generate_nucl_highlighting());
+            let nucleotide_highlighting = Rc::new(self.generate_nucl_highlighting());
             self.nucl_highlighter_top
-                .new_instances(nucleotide_highliting.clone());
+                .new_instances(nucleotide_highlighting.clone());
             self.nucl_highlighter_bottom
-                .new_instances(nucleotide_highliting);
+                .new_instances(nucleotide_highlighting);
         }
 
-        let msaa_texture = if SAMPLE_COUNT > 1 {
-            Some(ensnano_utils::texture::Texture::create_msaa_texture(
+        let msaa_texture = (SAMPLE_COUNT > 1).then(|| {
+            Texture::create_msaa_texture(
                 self.device.clone().as_ref(),
                 &target_size,
                 SAMPLE_COUNT,
                 wgpu::TextureFormat::Bgra8UnormSrgb,
-            ))
-        } else {
-            None
-        };
+            )
+        });
 
-        let attachment = if msaa_texture.is_some() {
-            msaa_texture.as_ref().unwrap()
-        } else {
-            target
-        };
-
-        let resolve_target = if msaa_texture.is_some() {
-            Some(target)
-        } else {
-            None
+        let (attachment, resolve_target) = match msaa_texture.as_ref() {
+            Some(msaa_texture) => (msaa_texture, Some(target)),
+            None => (target, None),
         };
 
         let bottom = false;
@@ -676,7 +643,7 @@ impl View {
             timestamp_writes: None,
             occlusion_query_set: None,
         });
-        if self.splited && !exporting_png {
+        if self.is_split && !exporting_png {
             render_pass.set_viewport(
                 0.,
                 0.,
@@ -700,12 +667,12 @@ impl View {
         render_pass.set_pipeline(&self.helices_pipeline);
 
         log::trace!("Draw helices background..");
-        for background in self.helices_background.iter() {
+        for background in &self.helices_background {
             background.draw(&mut render_pass);
         }
         log::trace!("Done..");
         log::trace!("Draw helices..");
-        for helix in self.helices_view.iter() {
+        for helix in &self.helices_view {
             helix.draw(&mut render_pass);
         }
         log::trace!("Done..");
@@ -739,7 +706,7 @@ impl View {
             timestamp_writes: None,
             occlusion_query_set: None,
         });
-        if self.splited && !exporting_png {
+        if self.is_split && !exporting_png {
             render_pass.set_viewport(
                 0.,
                 0.,
@@ -761,27 +728,27 @@ impl View {
         self.insertion_drawer.draw(&mut render_pass);
         render_pass.set_pipeline(&self.strand_pipeline);
         log::trace!("Draw strands..");
-        for strand in self.strands.iter() {
+        for strand in &self.strands {
             strand.draw(&mut render_pass, bottom);
         }
         log::trace!("..OK");
         log::trace!("Draw pasted strands..");
-        for strand in self.pasted_strands.iter() {
+        for strand in &self.pasted_strands {
             strand.draw(&mut render_pass, bottom);
         }
         log::trace!("..OK");
         log::trace!("Draw suggestion..");
-        for suggestion in self.suggestions_view.iter() {
+        for suggestion in &self.suggestions_view {
             suggestion.draw(&mut render_pass, bottom);
         }
         log::trace!("..OK");
         log::trace!("Draw selected strands..");
-        for highlight in self.selected_strands.iter() {
+        for highlight in &self.selected_strands {
             highlight.draw(&mut render_pass, bottom);
         }
         log::trace!("..OK");
         log::trace!("Draw candidate strands..");
-        for highlight in self.candidate_strands.iter() {
+        for highlight in &self.candidate_strands {
             highlight.draw(&mut render_pass, bottom);
         }
         log::trace!("..OK");
@@ -812,7 +779,7 @@ impl View {
             timestamp_writes: None,
             occlusion_query_set: None,
         });
-        if self.splited {
+        if self.is_split {
             render_pass.set_viewport(
                 0.,
                 0.,
@@ -834,24 +801,24 @@ impl View {
         }
 
         render_pass.set_pipeline(&self.strand_pipeline);
-        for strand in self.strands.iter() {
+        for strand in &self.strands {
             strand.draw_split(&mut render_pass, bottom);
         }
-        for strand in self.pasted_strands.iter() {
+        for strand in &self.pasted_strands {
             strand.draw_split(&mut render_pass, bottom);
         }
-        for suggestion in self.suggestions_view.iter() {
+        for suggestion in &self.suggestions_view {
             suggestion.draw_split(&mut render_pass, bottom);
         }
-        for highlight in self.selected_strands.iter() {
+        for highlight in &self.selected_strands {
             highlight.draw_split(&mut render_pass, bottom);
         }
-        for highlight in self.candidate_strands.iter() {
+        for highlight in &self.candidate_strands {
             highlight.draw_split(&mut render_pass, bottom);
         }
 
         drop(render_pass);
-        if self.splited {
+        if self.is_split {
             let bottom = true;
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: None,
@@ -897,10 +864,10 @@ impl View {
 
             render_pass.set_pipeline(&self.helices_pipeline);
 
-            for background in self.helices_background.iter() {
+            for background in &self.helices_background {
                 background.draw(&mut render_pass);
             }
-            for helix in self.helices_view.iter() {
+            for helix in &self.helices_view {
                 helix.draw(&mut render_pass);
             }
             self.rotation_widget.draw(&mut render_pass);
@@ -949,19 +916,19 @@ impl View {
             self.text_drawer_bottom.draw(&mut render_pass);
             self.insertion_drawer.draw(&mut render_pass);
             render_pass.set_pipeline(&self.strand_pipeline);
-            for strand in self.strands.iter() {
+            for strand in &self.strands {
                 strand.draw(&mut render_pass, bottom);
             }
-            for strand in self.pasted_strands.iter() {
+            for strand in &self.pasted_strands {
                 strand.draw(&mut render_pass, bottom);
             }
-            for suggestion in self.suggestions_view.iter() {
+            for suggestion in &self.suggestions_view {
                 suggestion.draw(&mut render_pass, bottom);
             }
-            for highlight in self.selected_strands.iter() {
+            for highlight in &self.selected_strands {
                 highlight.draw(&mut render_pass, bottom);
             }
-            for highlight in self.candidate_strands.iter() {
+            for highlight in &self.candidate_strands {
                 highlight.draw(&mut render_pass, bottom);
             }
             render_pass.set_pipeline(&self.helices_pipeline);
@@ -1010,19 +977,19 @@ impl View {
             self.background.draw_border(&mut render_pass);
 
             render_pass.set_pipeline(&self.strand_pipeline);
-            for strand in self.strands.iter() {
+            for strand in &self.strands {
                 strand.draw_split(&mut render_pass, bottom);
             }
-            for strand in self.pasted_strands.iter() {
+            for strand in &self.pasted_strands {
                 strand.draw_split(&mut render_pass, bottom);
             }
-            for suggestion in self.suggestions_view.iter() {
+            for suggestion in &self.suggestions_view {
                 suggestion.draw_split(&mut render_pass, bottom);
             }
-            for highlight in self.selected_strands.iter() {
+            for highlight in &self.selected_strands {
                 highlight.draw_split(&mut render_pass, bottom);
             }
-            for highlight in self.candidate_strands.iter() {
+            for highlight in &self.candidate_strands {
                 highlight.draw_split(&mut render_pass, bottom);
             }
         }
@@ -1080,12 +1047,12 @@ impl View {
 
     /// Add the helices circles to the list of circle instances
     fn collect_helices_circles(&self, circles: &mut Vec<CircleInstance>, camera: &CameraPtr) {
-        for h in self.helices.iter() {
+        for h in &self.helices {
             if let Some(circle) = h.get_circle(camera, self.groups.as_ref()) {
                 circles.push(circle);
             }
             for circle in h.handle_circles() {
-                circles.push(circle)
+                circles.push(circle);
             }
         }
         for h_id in self
@@ -1104,7 +1071,7 @@ impl View {
             }
         }
 
-        for h_id in self.candidate_helices.iter() {
+        for h_id in &self.candidate_helices {
             if let Some(mut circle) = self
                 .helices
                 .get(h_id.0)
@@ -1121,7 +1088,7 @@ impl View {
     fn collect_suggestions(&self, circles: &mut Vec<CircleInstance>) {
         let mut last_blue = None;
         let mut k = 1000;
-        for (n1, n2) in self.suggestions.iter() {
+        for (n1, n2) in &self.suggestions {
             // Don't change the color if the value of n1 hasn't change, so that all suggested
             // cross-overs for n1 appears with the same color
             if last_blue != Some(n1) {
@@ -1145,23 +1112,21 @@ impl View {
 
     /// Collect the candidate/selection circles
     fn collect_nucl_highlight(&self, circles: &mut Vec<CircleInstance>) {
-        for n in self.candidate_nucl.iter() {
-            let candidate_color = ensnano_consts::CANDIDATE_COLOR;
+        for n in &self.candidate_nucl {
             if let Some(h1) = self.helices.get(n.helix.flat.0) {
-                let mut c = h1.get_circle_nucl(n.flat_position, n.forward, candidate_color);
+                let mut c = h1.get_circle_nucl(n.flat_position, n.forward, CANDIDATE_COLOR);
                 c.set_radius(1. / 2.);
-                circles.push(c)
+                circles.push(c);
             } else {
                 log::error!("Could not get flat helix {}", n.helix.flat.0);
             }
         }
 
-        for n in self.selected_nucl.iter() {
-            let selected_color = ensnano_consts::SELECTED_COLOR;
+        for n in &self.selected_nucl {
             if let Some(h1) = self.helices.get(n.helix.flat.0) {
-                let mut c = h1.get_circle_nucl(n.flat_position, n.forward, selected_color);
-                c.set_radius(std::f32::consts::FRAC_1_SQRT_2);
-                circles.push(c)
+                let mut c = h1.get_circle_nucl(n.flat_position, n.forward, SELECTED_COLOR);
+                c.set_radius(FRAC_1_SQRT_2);
+                circles.push(c);
             } else {
                 log::error!("Could not get flat helix {}", n.helix.flat.0);
             }
@@ -1169,12 +1134,11 @@ impl View {
     }
 
     /// Collect the torsion indications.
-    /// The radius and color of the circles depends on the strangth amplitude.
+    /// The radius and color of the circles depends on the strength amplitude.
     fn collect_torsion_indications(&self, circles: &mut Vec<CircleInstance>) {
-        for ((n0, n1), torsion) in self.torsions.iter() {
-            let multiplier = ((torsion.strength_prime5 - torsion.strength_prime3).abs() / 200.)
-                .max(0.08)
-                .min(1.);
+        for ((n0, n1), torsion) in &self.torsions {
+            let multiplier =
+                ((torsion.strength_prime5 - torsion.strength_prime3).abs() / 200.).clamp(0.08, 1.);
             let color = torsion_color(torsion.strength_prime5 - torsion.strength_prime3);
             let h0 = &self.helices[n0.helix];
             let mut circle = h0.get_circle_nucl(n0.flat_position, n0.forward, color);
@@ -1199,7 +1163,7 @@ impl View {
 
     fn view_suggestion(&mut self) {
         self.suggestions_view.clear();
-        for (n1, n2) in self.suggestions.iter() {
+        for (n1, n2) in &self.suggestions {
             let mut view = StrandView::new(self.device.clone(), self.queue.clone());
             view.set_indication(*n1, *n2, &self.helices);
             self.suggestions_view.push(view);
@@ -1230,7 +1194,7 @@ impl View {
         self.text_drawer_top.clear();
         self.text_drawer_bottom.clear();
 
-        for h in self.helices.iter() {
+        for h in &self.helices {
             h.add_char_instances(CharCollector {
                 camera: &self.camera_top,
                 text_drawer: &mut self.text_drawer_top,
@@ -1250,7 +1214,7 @@ impl View {
                 edition_info: &self.edition_info,
                 hovered_nucl: &self.hovered_nucl,
                 nucl_collection: self.nucl_collection.as_ref(),
-            })
+            });
         }
     }
 
@@ -1277,9 +1241,9 @@ fn helices_pipeline_descr(
     globals_layout: &wgpu::BindGroupLayout,
     models_layout: &wgpu::BindGroupLayout,
     depth_stencil: Option<wgpu::DepthStencilState>,
-) -> wgpu::RenderPipeline {
-    let vs_module = &device.create_shader_module(wgpu::include_spirv!("view/grid.vert.spv"));
-    let fs_module = &device.create_shader_module(wgpu::include_spirv!("view/grid.frag.spv"));
+) -> RenderPipeline {
+    let vs_module = &device.create_shader_module(wgpu::include_spirv!("./grid.vert.spv"));
+    let fs_module = &device.create_shader_module(wgpu::include_spirv!("./grid.frag.spv"));
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         bind_group_layouts: &[globals_layout, models_layout],
         push_constant_ranges: &[],
@@ -1310,7 +1274,7 @@ fn helices_pipeline_descr(
             module: vs_module,
             entry_point: "main",
             buffers: &[wgpu::VertexBufferLayout {
-                array_stride: std::mem::size_of::<GpuVertex>() as u64,
+                array_stride: size_of::<GpuVertex>() as u64,
                 step_mode: wgpu::VertexStepMode::Vertex,
                 attributes: &wgpu::vertex_attr_array![0 => Float32x2, 1 => Float32x2, 2 => Uint32, 3 => Uint32],
             }],
@@ -1331,9 +1295,9 @@ fn strand_pipeline_descr(
     device: &Device,
     globals: &wgpu::BindGroupLayout,
     depth_stencil: Option<wgpu::DepthStencilState>,
-) -> wgpu::RenderPipeline {
-    let vs_module = &device.create_shader_module(wgpu::include_spirv!("view/strand.vert.spv"));
-    let fs_module = &device.create_shader_module(wgpu::include_spirv!("view/strand.frag.spv"));
+) -> RenderPipeline {
+    let vs_module = &device.create_shader_module(wgpu::include_spirv!("./strand.vert.spv"));
+    let fs_module = &device.create_shader_module(wgpu::include_spirv!("./strand.frag.spv"));
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         bind_group_layouts: &[globals],
         push_constant_ranges: &[],
@@ -1363,7 +1327,7 @@ fn strand_pipeline_descr(
         depth_stencil,
         vertex: wgpu::VertexState {
             buffers: &[wgpu::VertexBufferLayout {
-                array_stride: std::mem::size_of::<StrandVertex>() as u64,
+                array_stride: size_of::<StrandVertex>() as u64,
                 step_mode: wgpu::VertexStepMode::Vertex,
                 attributes: &wgpu::vertex_attr_array![0 => Float32x2, 1 => Float32x2, 2 => Float32x4, 3 => Float32, 4 => Float32],
             }],
@@ -1387,16 +1351,15 @@ fn torsion_color(strength: f32) -> u32 {
     const BLUE_HUE: f32 = 240.;
     const MAX_STRENGTH: f32 = 200.;
     let hue = if strength > 0. { RED_HUE } else { BLUE_HUE };
-    //println!("strength {}", strength);
-    let sat = (strength / MAX_STRENGTH).min(1.).max(-1.);
-    let val = (strength / MAX_STRENGTH).min(1.).max(-1.);
+    let sat = (strength / MAX_STRENGTH).clamp(-1., 1.);
+    let val = (strength / MAX_STRENGTH).clamp(-1., 1.);
     let hsv = color_space::Hsv::new(hue as f64, sat.abs() as f64, val.abs() as f64);
     let rgb = color_space::Rgb::from(hsv);
     (0xFF << 24) | ((rgb.r as u32) << 16) | ((rgb.g as u32) << 8) | (rgb.b as u32)
 }
 
-impl ToString for EditionInfo {
-    fn to_string(&self) -> String {
-        format!("{}nt/{:.1}nm", self.nt_length, self.nm_length)
+impl std::fmt::Display for EditionInfo {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}nt/{:.1}nm", self.nt_length, self.nm_length)
     }
 }

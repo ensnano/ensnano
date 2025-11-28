@@ -1,22 +1,11 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::{NormalState, State, TransitionMessage, messages};
+use crate::controller::{
+    State, TransitionMessage,
+    messages::{
+        NO_FILE_RECEIVED_STAPLE, NO_SCAFFOLD_SEQUENCE_SET, NO_SCAFFOLD_SET, ORIGAMI_FILTERS,
+        successful_staples_export_msg,
+    },
+    normal_state::NormalState,
+};
 use crate::{
     MainStateView,
     controller::download_staples::{DownloadStapleError, DownloadStapleOk, StaplesDownloader},
@@ -31,24 +20,20 @@ pub(super) struct DownloadIntervals {
     step: Step,
 }
 
+#[derive(Default)]
 enum Step {
     /// The staple downloading request has just started
+    #[default]
     Init,
     /// Asking the user where to write the result
     AskingPath(AskingPath_),
     /// The path was asked, waiting for user to chose it
     PathAsked {
-        path_input: dialog::PathInput,
+        path_input: PathInput,
         design_id: usize,
     },
     /// Downloading
     Downloading { design_id: usize, path: PathBuf },
-}
-
-impl Default for Step {
-    fn default() -> Self {
-        Self::Init
-    }
 }
 
 impl State for DownloadIntervals {
@@ -78,17 +63,12 @@ fn get_design_providing_staples(downloader: &dyn StaplesDownloader) -> Box<dyn S
         }
         .to_state(),
         Err(DownloadStapleError::NoScaffoldSet) => TransitionMessage::new(
-            messages::NO_SCAFFOLD_SET,
+            NO_SCAFFOLD_SET,
             rfd::MessageLevel::Error,
             Box::new(NormalState),
         ),
         Err(DownloadStapleError::ScaffoldSequenceNotSet) => TransitionMessage::new(
-            messages::NO_SCAFFOLD_SEQUENCE_SET,
-            rfd::MessageLevel::Error,
-            Box::new(NormalState),
-        ),
-        Err(DownloadStapleError::SeveralDesignNoneSelected) => TransitionMessage::new(
-            messages::NO_DESIGN_SELECTED,
+            NO_SCAFFOLD_SEQUENCE_SET,
             rfd::MessageLevel::Error,
             Box::new(NormalState),
         ),
@@ -112,11 +92,8 @@ fn ask_path(mut state: AskingPath_, main_state: &MainStateView) -> Box<DownloadI
             ret
         });
         let starting_directory = main_state.get_current_design_directory();
-        let path_input = dialog::get_file_to_write(
-            &messages::ORIGAMI_FILTER,
-            starting_directory.as_ref(),
-            candidate_name,
-        );
+        let path_input =
+            dialog::get_file_to_write(ORIGAMI_FILTERS, starting_directory.as_ref(), candidate_name);
         Box::new(DownloadIntervals {
             step: Step::PathAsked {
                 path_input,
@@ -153,7 +130,7 @@ fn poll_path(path_input: PathInput, design_id: usize) -> Box<dyn State> {
             })
         } else {
             TransitionMessage::new(
-                messages::NO_FILE_RECEIVED_STAPLE,
+                NO_FILE_RECEIVED_STAPLE,
                 rfd::MessageLevel::Error,
                 Box::new(NormalState),
             )
@@ -174,6 +151,6 @@ fn download_staples(
     path: PathBuf,
 ) -> Box<dyn State> {
     downloader.write_intervals(&path);
-    let msg = messages::successful_staples_export_msg(&path);
+    let msg = successful_staples_export_msg(&path);
     TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(NormalState))
 }

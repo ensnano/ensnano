@@ -1,21 +1,3 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 //! This module defines the [ChannelReader] struct which is in charge of communication with
 //! computation threads that can be spawned by the program
 
@@ -26,13 +8,13 @@ use crate::app_state::design_interactor::{
 use std::sync::{Arc, Mutex, Weak, mpsc};
 
 #[derive(Default)]
-pub struct ChannelReader {
+pub(crate) struct ChannelReader {
     scaffold_shift_optimization_progress: Option<mpsc::Receiver<f32>>,
     scaffold_shift_optimization_result: Option<mpsc::Receiver<ShiftOptimizationResult>>,
     simulation_interface: Option<Weak<Mutex<dyn SimulationInterface>>>,
 }
 
-pub enum ChannelReaderUpdate {
+pub(crate) enum ChannelReaderUpdate {
     /// Progress has been made in the optimization of the scaffold position
     ScaffoldShiftOptimizationProgress(f32),
     /// The optimum scaffold position has been found
@@ -42,7 +24,7 @@ pub enum ChannelReaderUpdate {
 }
 
 impl ChannelReader {
-    pub fn get_updates(&mut self) -> Vec<ChannelReaderUpdate> {
+    pub(crate) fn get_updates(&mut self) -> Vec<ChannelReaderUpdate> {
         let mut updates = Vec::new();
         if let Some(progress) = self.get_scaffold_shift_optimization_progress() {
             updates.push(ChannelReaderUpdate::ScaffoldShiftOptimizationProgress(
@@ -57,10 +39,10 @@ impl ChannelReader {
             if let Some(interface) = interface_ptr.upgrade() {
                 if !interface.lock().unwrap().still_valid() {
                     invalidated = true;
-                    updates.push(ChannelReaderUpdate::SimulationExpired)
+                    updates.push(ChannelReaderUpdate::SimulationExpired);
                 }
                 if let Some(new_state) = interface.lock().unwrap().get_simulation_state() {
-                    updates.push(ChannelReaderUpdate::SimulationUpdate(new_state))
+                    updates.push(ChannelReaderUpdate::SimulationUpdate(new_state));
                 }
             } else {
                 invalidated = true;
@@ -84,15 +66,15 @@ impl ChannelReader {
             .and_then(|chanel| chanel.try_recv().ok())
     }
 
-    pub fn attach_result_chanel(&mut self, chanel: mpsc::Receiver<ShiftOptimizationResult>) {
+    pub(crate) fn attach_result_chanel(&mut self, chanel: mpsc::Receiver<ShiftOptimizationResult>) {
         self.scaffold_shift_optimization_result = Some(chanel);
     }
 
-    pub fn attach_progress_chanel(&mut self, chanel: mpsc::Receiver<f32>) {
+    pub(crate) fn attach_progress_chanel(&mut self, chanel: mpsc::Receiver<f32>) {
         self.scaffold_shift_optimization_progress = Some(chanel);
     }
 
-    pub fn attach_state(&mut self, state_chanel: &std::sync::Arc<Mutex<dyn SimulationInterface>>) {
+    pub(crate) fn attach_state(&mut self, state_chanel: &Arc<Mutex<dyn SimulationInterface>>) {
         self.simulation_interface = Some(Arc::downgrade(state_chanel));
     }
 }

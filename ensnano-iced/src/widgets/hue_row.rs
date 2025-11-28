@@ -1,23 +1,6 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
 //! A Iced Widget to select Hue.
-use std::marker::PhantomData;
 
+use color_space::{Hsv, Rgb};
 use iced::{
     Length, Point, Rectangle, Size, Vector,
     advanced::{
@@ -31,9 +14,7 @@ use iced_graphics::{
     color::pack,
     mesh::{Indexed, Mesh, SolidVertex2D},
 };
-use iced_wgpu;
-
-use color_space::{Hsv, Rgb};
+use iced_wgpu::primitive::Custom;
 
 const DEFAULT_SIZE: f32 = 90.0;
 
@@ -44,25 +25,28 @@ pub struct State {
 }
 
 /// A HueColumn Widget.
-pub struct HueRow<'a, Message, Theme = iced::Theme, Renderer = iced::Renderer> {
+pub struct HueRow<'a, Message> {
     width: Length,
     height: Length,
     on_slide: Option<Box<dyn Fn(f64) -> Message + 'a>>,
-    _theme: PhantomData<Theme>,
-    _renderer: PhantomData<Renderer>,
 }
 
-impl<'a, Message, Theme> HueRow<'a, Message, Theme, iced::Renderer> {
+impl<Message> Default for HueRow<'_, Message> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<'a, Message> HueRow<'a, Message> {
     pub fn new() -> Self {
         Self {
             width: Length::Fixed(4.0 * DEFAULT_SIZE),
             height: Length::Fixed(DEFAULT_SIZE),
             on_slide: None,
-            _theme: Default::default(),
-            _renderer: Default::default(),
         }
     }
 
+    #[must_use]
     pub fn on_slide<F>(mut self, f: F) -> Self
     where
         F: 'a + Fn(f64) -> Message,
@@ -71,6 +55,7 @@ impl<'a, Message, Theme> HueRow<'a, Message, Theme, iced::Renderer> {
         self
     }
 
+    #[must_use]
     pub fn on_slide_maybe<F>(mut self, f: Option<F>) -> Self
     where
         F: 'a + Fn(f64) -> Message,
@@ -79,20 +64,20 @@ impl<'a, Message, Theme> HueRow<'a, Message, Theme, iced::Renderer> {
         self
     }
 
+    #[must_use]
     pub fn width(mut self, width: impl Into<Length>) -> Self {
         self.width = width.into();
         self
     }
 
+    #[must_use]
     pub fn height(mut self, height: impl Into<Length>) -> Self {
         self.height = height.into();
         self
     }
 }
 
-impl<'a, Message, Theme> Widget<Message, Theme, iced::Renderer>
-    for HueRow<'a, Message, Theme, iced::Renderer>
-{
+impl<Message> Widget<Message, iced::Theme, iced::Renderer> for HueRow<'_, Message> {
     fn state(&self) -> widget::tree::State {
         widget::tree::State::Some(Box::new(State::default()))
     }
@@ -116,7 +101,7 @@ impl<'a, Message, Theme> Widget<Message, Theme, iced::Renderer>
         &self,
         _tree: &widget::Tree,
         renderer: &mut iced::Renderer,
-        _theme: &Theme,
+        _theme: &iced::Theme,
         _style: &Style,
         layout: Layout,
         _cursor: Cursor,
@@ -154,18 +139,19 @@ impl<'a, Message, Theme> Widget<Message, Theme, iced::Renderer>
             }
         }
 
-        let mesh = iced_wgpu::primitive::Custom::Mesh(Mesh::Solid {
+        let mesh = Custom::Mesh(Mesh::Solid {
             buffers: Indexed { vertices, indices },
             size: b.size(),
         });
 
         match renderer {
-            iced::Renderer::Wgpu(wgpu_renderer) => wgpu_renderer
-                .with_translation(Vector::new(b.x, b.y), |renderer| {
-                    renderer.draw_primitive(Primitive::Custom(mesh))
-                }),
-            _ => panic!("Unhandled renderer"),
-        };
+            iced::Renderer::Wgpu(wgpu_renderer) => {
+                wgpu_renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
+                    renderer.draw_primitive(Primitive::Custom(mesh));
+                });
+            }
+            iced::Renderer::TinySkia(_) => unreachable!(),
+        }
     }
 
     fn on_event(
@@ -180,7 +166,7 @@ impl<'a, Message, Theme> Widget<Message, Theme, iced::Renderer>
         _viewport: &Rectangle,
     ) -> event::Status {
         // A closure that takes an absolute position and send Message.
-        let mut change = |Point { x, y: _ }| {
+        let mut change = |Point { x, .. }| {
             let bounds = layout.bounds();
             if x <= bounds.x {
                 if let Some(on_slide) = &self.on_slide {
@@ -190,12 +176,10 @@ impl<'a, Message, Theme> Widget<Message, Theme, iced::Renderer>
                 if let Some(on_slide) = &self.on_slide {
                     shell.publish(on_slide(360.));
                 }
-            } else {
-                if let Some(on_slide) = &self.on_slide {
-                    let percent = (x - bounds.x) / bounds.width;
-                    let value: f32 = percent * 360.;
-                    shell.publish(on_slide(value.into()));
-                }
+            } else if let Some(on_slide) = &self.on_slide {
+                let percent = (x - bounds.x) / bounds.width;
+                let value: f32 = percent * 360.;
+                shell.publish(on_slide(value.into()));
             }
         };
 
@@ -217,7 +201,7 @@ impl<'a, Message, Theme> Widget<Message, Theme, iced::Renderer>
                     event::Status::Captured
                 }
                 mouse::Event::CursorMoved { .. } => {
-                    // NOTE: Using "position" attribute from mouse::Event::CursorMoved dosen't work because
+                    // NOTE: Using "position" attribute from mouse::Event::CursorMoved doesn't work because
                     //       it is not the good coordinates.
                     if state.is_dragging {
                         if let Some(pos) = position {
@@ -237,13 +221,11 @@ impl<'a, Message, Theme> Widget<Message, Theme, iced::Renderer>
     }
 }
 
-impl<'a, Message, Theme> From<HueRow<'a, Message, Theme, iced::Renderer>>
-    for iced::Element<'a, Message, Theme, iced::Renderer>
+impl<'a, Message> From<HueRow<'a, Message>> for iced::Element<'a, Message>
 where
     Message: 'a + Clone,
-    Theme: 'a,
 {
-    fn from(hue_row: HueRow<'a, Message, Theme, iced::Renderer>) -> Self {
+    fn from(hue_row: HueRow<'a, Message>) -> Self {
         Self::new(hue_row)
     }
 }

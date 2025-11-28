@@ -1,28 +1,11 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-//! This modules defines the [Instantiable](Instantiable) trait. Types that implement the
+//! This modules defines the [Instantiable] trait. Types that implement the
 //! `Instantiable` trait can be turned into instances that can be drawn by an
-//! [InstanceDrawer](InstanceDrawer).
+//! [InstanceDrawer].
 
-use ensnano_consts::*;
-use ensnano_utils::bindgroup_manager::DynamicBindGroup;
-use ensnano_utils::create_buffer_with_data;
-use ensnano_utils::texture::Texture;
+use ensnano_consts::SAMPLE_COUNT;
+use ensnano_utils::{
+    bindgroup_manager::DynamicBindGroup, create_buffer_with_data, texture::Texture,
+};
 use std::rc::Rc;
 use wgpu::{
     BindGroupLayoutDescriptor, Device, PrimitiveTopology, Queue, RenderPass, RenderPipeline,
@@ -87,7 +70,7 @@ pub trait Instantiable {
     /// The vertices must be the same for all the instances drawn by an
     /// `Instantiable`. However, vertices can depend on the particular instantiation of the type
     /// that implements `Instantiable`. In that case, the implementation of `Instantiable` must
-    /// overwrite the [`custom_vertices`](`custom_vertices`) method.
+    /// overwrite the [`custom_vertices`](Instantiable::custom_vertices) method.
     fn vertices() -> Vec<Self::Vertex>
     where
         Self: Sized;
@@ -96,7 +79,7 @@ pub trait Instantiable {
     /// The indices must be the same for all the instances drawn by an
     /// `Instantiable`. However, indices can depend on the particular instantiation of the type
     /// that implements `Instantiable`. In that case, the implementation of `Instantiable` must
-    /// overwrite the [`custom_indices`](`custom_indices`) method.
+    /// overwrite the [`custom_indices`](Instantiable::custom_indices) method.
     fn indices() -> Vec<u16>
     where
         Self: Sized;
@@ -315,7 +298,7 @@ impl<D: Instantiable> InstanceDrawer<D> {
         } else {
             D::primitive_topology()
         };
-        let label_string = label.as_ref().to_string();
+        let label_string = label.as_ref().to_owned();
 
         let pipeline = Self::create_pipeline(
             &device,
@@ -361,11 +344,13 @@ impl<D: Instantiable> InstanceDrawer<D> {
     }
 
     pub fn new_instances(&mut self, instances: Vec<D>) {
-        let raw_instances: Vec<D::RawInstance> =
-            instances.iter().map(|d| d.to_raw_instance()).collect();
+        let raw_instances: Vec<D::RawInstance> = instances
+            .iter()
+            .map(Instantiable::to_raw_instance)
+            .collect();
         self.instances.update(raw_instances.as_slice());
         self.nb_instances = instances.len() as u32;
-        if let Some(indices) = instances.get(0).and_then(D::custom_indices) {
+        if let Some(indices) = instances.first().and_then(D::custom_indices) {
             self.nb_indices = indices.len() as u32;
             self.index_buffer = create_buffer_with_data(
                 self.device.as_ref(),
@@ -374,7 +359,7 @@ impl<D: Instantiable> InstanceDrawer<D> {
                 format!("{} index buffer", self.label).as_str(),
             );
         }
-        if let Some(vertices) = instances.get(0).and_then(D::custom_raw_vertices) {
+        if let Some(vertices) = instances.first().and_then(D::custom_raw_vertices) {
             self.vertex_buffer = create_buffer_with_data(
                 self.device.as_ref(),
                 bytemuck::cast_slice(vertices.as_slice()),
@@ -386,8 +371,8 @@ impl<D: Instantiable> InstanceDrawer<D> {
 
     fn create_pipeline<S: AsRef<str>>(
         device: &Device,
-        viewer_bind_group_layout_desc: &wgpu::BindGroupLayoutDescriptor<'static>,
-        models_bind_group_layout_desc: &wgpu::BindGroupLayoutDescriptor<'static>,
+        viewer_bind_group_layout_desc: &BindGroupLayoutDescriptor<'static>,
+        models_bind_group_layout_desc: &BindGroupLayoutDescriptor<'static>,
         vertex_module: ShaderModule,
         fragment_module: ShaderModule,
         primitive_topology: PrimitiveTopology,
@@ -396,9 +381,9 @@ impl<D: Instantiable> InstanceDrawer<D> {
         label: S,
     ) -> RenderPipeline {
         let viewer_bind_group_layout =
-            device.create_bind_group_layout(&viewer_bind_group_layout_desc);
+            device.create_bind_group_layout(viewer_bind_group_layout_desc);
         let models_bind_group_layout =
-            device.create_bind_group_layout(&models_bind_group_layout_desc);
+            device.create_bind_group_layout(models_bind_group_layout_desc);
 
         // gather the resources, [instance, additional resources]
         let instance_entry = wgpu::BindGroupLayoutEntry {
@@ -441,7 +426,7 @@ impl<D: Instantiable> InstanceDrawer<D> {
                 label: None,
                 entries: D::Resource::resources_layout(),
             });
-        let render_pipeline_layout = if D::Resource::resources_layout().len() > 0 {
+        let render_pipeline_layout = if !D::Resource::resources_layout().is_empty() {
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 bind_group_layouts: &[
                     &viewer_bind_group_layout,
@@ -476,7 +461,7 @@ impl<D: Instantiable> InstanceDrawer<D> {
             _ => None,
         };
 
-        let cull_mode = outliner.then(|| wgpu::Face::Front);
+        let cull_mode = outliner.then_some(wgpu::Face::Front);
 
         let primitive = wgpu::PrimitiveState {
             topology: primitive_topology,
@@ -527,15 +512,15 @@ pub trait RawDrawer {
         model_bind_group: &'a wgpu::BindGroup,
     );
 
-    fn new_instances_raw(&mut self, instances_raw: &Vec<Self::RawInstance>);
+    fn new_instances_raw(&mut self, instances_raw: &[Self::RawInstance]);
 }
 
 impl<D: Instantiable> RawDrawer for InstanceDrawer<D> {
     type RawInstance = <D as Instantiable>::RawInstance;
 
-    fn new_instances_raw(&mut self, instances_raw: &Vec<D::RawInstance>) {
+    fn new_instances_raw(&mut self, instances_raw: &[D::RawInstance]) {
         self.nb_instances = instances_raw.len() as u32;
-        self.instances.update(instances_raw.as_slice());
+        self.instances.update(instances_raw);
     }
 
     fn draw<'a>(
@@ -547,13 +532,13 @@ impl<D: Instantiable> RawDrawer for InstanceDrawer<D> {
         if self.nb_instances > 0 {
             let pipeline = &self.pipeline;
             render_pass.set_pipeline(pipeline);
-            let vbo = if let Some(ref vbo) = self.resource.vertex_buffer() {
+            let vbo = if let Some(vbo) = self.resource.vertex_buffer() {
                 vbo.slice(..)
             } else {
                 self.vertex_buffer.slice(..)
             };
             render_pass.set_vertex_buffer(0, vbo);
-            let ibo = if let Some(ref ibo) = self.resource.index_buffer() {
+            let ibo = if let Some(ibo) = self.resource.index_buffer() {
                 ibo.slice(..)
             } else {
                 self.index_buffer.slice(..)
@@ -562,7 +547,7 @@ impl<D: Instantiable> RawDrawer for InstanceDrawer<D> {
             render_pass.set_bind_group(0, viewer_bind_group, &[]);
             render_pass.set_bind_group(1, model_bind_group, &[]);
             render_pass.set_bind_group(2, self.instances.get_bindgroup(), &[]);
-            if let Some(ref additional_bind_group) = self.additional_bind_group {
+            if let Some(additional_bind_group) = &self.additional_bind_group {
                 render_pass.set_bind_group(3, additional_bind_group, &[]);
             }
 

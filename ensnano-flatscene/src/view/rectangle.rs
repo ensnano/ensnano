@@ -1,29 +1,11 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::Rc;
+use ensnano_consts::SAMPLE_COUNT;
 use ensnano_utils::Ndc;
-
-use wgpu::util::DeviceExt;
-use wgpu::{Device, Queue, RenderPipeline};
+use std::rc::Rc;
+use wgpu::{Device, Queue, RenderPipeline, util::DeviceExt as _};
 
 const SELECT_COLOR: [f32; 4] = [0.26, 0.64, 0.85, 0.6];
 
-pub struct Rectangle {
+pub(super) struct Rectangle {
     corner: Option<Option<[Ndc; 2]>>,
     pipeline: RenderPipeline,
     vbo: wgpu::Buffer,
@@ -43,7 +25,7 @@ const VERTEX_ATTR_ARRAY: [wgpu::VertexAttribute; 2] =
 impl Vertex {
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         wgpu::VertexBufferLayout {
-            array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
+            array_stride: size_of::<Self>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &VERTEX_ATTR_ARRAY,
         }
@@ -51,7 +33,7 @@ impl Vertex {
 }
 
 impl Rectangle {
-    pub fn new(device: &Device, queue: Rc<Queue>) -> Self {
+    pub(super) fn new(device: &Device, queue: Rc<Queue>) -> Self {
         let vs_module = device.create_shader_module(wgpu::include_spirv!("rectangle.vert.spv"));
         let fs_module = device.create_shader_module(wgpu::include_spirv!("rectangle.frag.spv"));
 
@@ -115,7 +97,7 @@ impl Rectangle {
             primitive,
             depth_stencil,
             multisample: wgpu::MultisampleState {
-                count: ensnano_consts::SAMPLE_COUNT,
+                count: SAMPLE_COUNT,
                 mask: !0,
                 alpha_to_coverage_enabled: false,
             },
@@ -131,11 +113,11 @@ impl Rectangle {
         }
     }
 
-    pub fn update_corners(&mut self, corner: Option<[Ndc; 2]>) {
-        self.corner = Some(corner)
+    pub(super) fn update_corners(&mut self, corner: Option<[Ndc; 2]>) {
+        self.corner = Some(corner);
     }
 
-    pub fn draw<'a>(&'a mut self, render_pass: &mut wgpu::RenderPass<'a>) {
+    pub(super) fn draw<'a>(&'a mut self, render_pass: &mut wgpu::RenderPass<'a>) {
         if let Some(corners) = self.corner.take() {
             self.update_vertices(corners);
         }
@@ -145,7 +127,7 @@ impl Rectangle {
         render_pass.draw_indexed(0..4, 0, 0..1);
     }
 
-    fn update_vertices(&mut self, corners: Option<[Ndc; 2]>) {
+    fn update_vertices(&self, corners: Option<[Ndc; 2]>) {
         let vertices = if let Some([c1, c2]) = corners {
             let min_x = c1.x.min(c2.x);
             let max_x = c1.x.max(c2.x);

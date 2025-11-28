@@ -1,21 +1,3 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 //! Defines states in which the user is "dragging" something.
 //!
 //! In this context dragging means that the user is holding one of the mouse button while moving
@@ -23,9 +5,29 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! In such a state, cursor movement all cursor movement have similar consequences such has moving
 //! the camera or moving an object.
 
-use ensnano_design::BezierVertexId;
-
-use super::*;
+use crate::{
+    AppState,
+    controller::{
+        Consequence, Controller, Transition, TransitionConsequence,
+        automata::{
+            ControllerState, NormalState, WidgetTarget, XoverOrigin, event_context::EventContext,
+        },
+    },
+    element_selector::SceneElement,
+    view::handle_drawer::{HandleColors, HandleDir},
+};
+use ensnano_design::{
+    Nucl,
+    bezier_plane::{BezierPathId, BezierPlaneId, BezierVertexId},
+    grid::{GridId, GridObject},
+};
+use std::borrow::Cow;
+use ultraviolet::Vec2;
+use winit::{
+    dpi::PhysicalPosition,
+    event::{ElementState, MouseButton, WindowEvent},
+    window::CursorIcon,
+};
 
 pub(super) struct DraggedCursor<'a, 'b, S: AppState> {
     /// The cursor position when the mouse button was pressed
@@ -66,7 +68,7 @@ pub(super) struct ClickInfo {
 }
 
 impl ClickInfo {
-    pub fn new(button: MouseButton, clicked_position: PhysicalPosition<f64>) -> Self {
+    pub(super) fn new(button: MouseButton, clicked_position: PhysicalPosition<f64>) -> Self {
         Self {
             button,
             clicked_position,
@@ -165,11 +167,7 @@ impl<S: AppState, Table: DraggingTransitionTable> ControllerState<S> for Draggin
         Table::description().into()
     }
 
-    fn input<'a>(
-        &mut self,
-        event: &WindowEvent,
-        mut context: EventContext<'a, S>,
-    ) -> Transition<S> {
+    fn input(&mut self, event: &WindowEvent, mut context: EventContext<'_, S>) -> Transition<S> {
         match event {
             WindowEvent::MouseInput {
                 button,
@@ -378,17 +376,18 @@ impl DraggingTransitionTable for MakingXover {
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
         let element = cursor.context.get_element_under_cursor();
-        self.target_element = element.clone();
+        self.target_element = element;
         let projected_position = cursor.context.get_projection_on_plane(self.origin.position);
-        self.current_xover = cursor
-            .context
-            .attempt_xover(&self.origin.scene_element, &self.target_element);
+        self.current_xover = cursor.context.attempt_xover(
+            self.origin.scene_element.as_ref(),
+            self.target_element.as_ref(),
+        );
         self.magic_xover = cursor.context.get_modifiers().shift_key();
         Some(Consequence::MoveFreeXover(element, projected_position))
     }
 
     fn on_button_released(&self) -> Option<Consequence> {
-        if let Some((source, target, design_id)) = self.current_xover.clone() {
+        if let Some((source, target, design_id)) = self.current_xover {
             Some(Consequence::XoverAttempt(
                 source,
                 target,
@@ -452,7 +451,7 @@ impl DraggingTransitionTable for BuildingStrands {
             cursor
                 .context
                 .get_new_build_position()
-                .map(|p| Consequence::Building(p))
+                .map(Consequence::Building)
         }
     }
 

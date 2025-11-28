@@ -5,9 +5,12 @@ authors.workspace = true
 edition.workspace = true
 license.workspace = true
 
+[lints]
+workspace = true
+
 [dependencies]
 ensnano_consts.workspace = true
-ensnano_iced.workspace = true
+ensnano_interactor.workspace = true # TODO: remove (only used for PhySize)
 
 ahash.workspace = true
 bytemuck.workspace = true
@@ -21,3 +24,4 @@ rand.workspace = true
 serde.workspace = true
 ultraviolet.workspace = true
 wgpu.workspace = true
+winit.workspace = true

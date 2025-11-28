@@ -1,27 +1,9 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
 //! This module provides utilities for drawing text in the applications
-use ensnano_iced::iced_wgpu::wgpu;
+
 use fontdue::Font;
-use std::convert::TryInto;
 use std::rc::Rc;
 use wgpu::{
-    BindGroup, BindGroupLayout, Device, Extent3d, Queue, Sampler, TextureView, util::DeviceExt,
+    BindGroup, BindGroupLayout, Device, Extent3d, Queue, Sampler, TextureView, util::DeviceExt as _,
 };
 
 #[repr(C)]
@@ -35,9 +17,8 @@ const VERTEX_ATTR_ARRAY: [wgpu::VertexAttribute; 2] =
     wgpu::vertex_attr_array![0 => Float32x2, 1 => Float32x2];
 impl Vertex {
     pub fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        use std::mem;
         wgpu::VertexBufferLayout {
-            array_stride: mem::size_of::<Vertex>() as wgpu::BufferAddress,
+            array_stride: size_of::<Self>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &VERTEX_ATTR_ARRAY,
         }
@@ -83,9 +64,9 @@ impl Letter {
         });
 
         let font: &[u8] = if character.is_ascii_uppercase() {
-            include_bytes!("../../font/DejaVuSansMono.ttf")
+            include_bytes!("../../fonts/DejaVuSansMono.ttf")
         } else {
-            include_bytes!("../../font/Inconsolata-Regular.ttf")
+            include_bytes!("../../fonts/Inconsolata-Regular.ttf")
         };
         let font = Font::from_bytes(font, fontdue::FontSettings::default()).unwrap();
         let (metrics, _) = font.rasterize(character, size.height as f32);
@@ -118,7 +99,7 @@ impl Letter {
             },
         ];
 
-        let mut last_pixels = None;
+        let mut last_pixels: Option<Vec<u8>> = None;
 
         for mip_level in 0..MIP_LEVEL_COUNT {
             let size = Extent3d {
@@ -128,14 +109,14 @@ impl Letter {
             };
             let mut pixels = vec![0u8; (size.width * size.height * 4) as usize];
 
-            if let Some(ref previous) = last_pixels {
+            if let Some(previous) = &last_pixels {
                 for x in 0..size.width as usize {
                     for y in 0..size.height as usize {
                         // We use 4 bytes per pixel because we use BgraUnormSrgb format
                         let coverage =
                             get_average_pixel_value(previous, x, y, 2 * size.width as usize);
                         for i in 0..4 {
-                            pixels[4 * (y * size.width as usize + x) + i] = coverage
+                            pixels[4 * (y * size.width as usize + x) + i] = coverage;
                         }
                     }
                 }
@@ -165,8 +146,8 @@ impl Letter {
                 // The layout of the texture
                 wgpu::ImageDataLayout {
                     offset: 0,
-                    bytes_per_row: (4 * size.width).try_into().ok(),
-                    rows_per_image: size.height.try_into().ok(),
+                    bytes_per_row: Some(4 * size.width),
+                    rows_per_image: Some(size.height),
                 },
                 size,
             );
@@ -245,10 +226,10 @@ impl Letter {
     }
 }
 
-fn get_average_pixel_value(pixels: &Vec<u8>, x: usize, y: usize, width: usize) -> u8 {
+fn get_average_pixel_value(pixels: &[u8], x: usize, y: usize, width: usize) -> u8 {
     let get = |x, y| pixels[4 * (y * width + x)] as u16;
     let sum = get(2 * x, 2 * y)
-        + get(2 * x + 1, 2 * y)
+        + get(2 * x, 2 * y + 1)
         + get(2 * x + 1, 2 * y)
         + get(2 * x + 1, 2 * y + 1);
     (sum / 4) as u8
