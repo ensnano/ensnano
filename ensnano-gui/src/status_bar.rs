@@ -153,7 +153,7 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
         Command::none()
     }
 
-    fn view(&self) -> Element<'_, Self::Message, Self::Theme, Self::Renderer> {
+    fn view(&self) -> Element<'_, Self::Message> {
         let clipboard_text = format!("Clipboard: {}", self.app_state.get_clipboard_content());
         let pasting_text = match self.app_state.get_pasting_status() {
             PastingStatus::Copy => "Pasting",

@@ -90,6 +90,7 @@ where
     fn state(&self) -> widget::tree::State {
         widget::tree::State::Some(Box::new(LightSatState::default()))
     }
+
     fn size(&self) -> Size<Length> {
         Size {
             width: self.width,

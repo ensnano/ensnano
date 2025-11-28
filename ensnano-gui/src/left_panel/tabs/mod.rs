@@ -47,10 +47,7 @@ pub trait GuiTab<State: AppState> {
 // TODO: Turn this into a widget
 pub mod gostop {
     use crate::{AppState, left_panel::Message};
-    use iced::{
-        Renderer, Theme,
-        widget::{button, row, text},
-    };
+    use iced::widget::{button, row, text};
 
     pub struct GoStop<State: AppState> {
         pub name: String,
@@ -69,11 +66,7 @@ pub mod gostop {
             }
         }
 
-        pub fn view(
-            &self,
-            active: bool,
-            running: bool,
-        ) -> iced::Element<'_, Message<State>, Theme, Renderer> {
+        pub fn view(&self, active: bool, running: bool) -> iced::Element<'_, Message<State>> {
             let button_str = if running {
                 "Stop".to_owned()
             } else {

@@ -170,7 +170,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
         Command::none()
     }
 
-    fn view(&self) -> Element<'_, Self::Message, Self::Theme, Self::Renderer> {
+    fn view(&self) -> Element<'_, Self::Message> {
         let build_helix_mode = self.get_build_helix_mode();
 
         let button_new_empty_design = tooltip(

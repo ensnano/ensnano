@@ -31,43 +31,22 @@ pub fn jump_by(amount: impl Into<Length>) -> Space {
 // === TEXT FUNCTIONS ===
 
 /// Section title widget
-pub fn section<'a, Theme, Renderer>(
-    title: impl ToString,
-    ui_size: UiSize,
-) -> Text<'a, Theme, Renderer>
-where
-    Theme: text::StyleSheet,
-    Renderer: advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
+pub fn section<'a>(title: impl ToString, ui_size: UiSize) -> Text<'a> {
     text(title).size(ui_size.head_text()).font(INTER_BOLD_FONT)
 }
 
 /// Section subtitle widget
-pub fn subsection<'a, Theme, Renderer>(
-    title: impl ToString,
-    ui_size: UiSize,
-) -> Text<'a, Theme, Renderer>
-where
-    Theme: text::StyleSheet,
-    Renderer: advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
+pub fn subsection<'a>(title: impl ToString, ui_size: UiSize) -> Text<'a> {
     text(title).size(ui_size.intermediate_text())
 }
 
 // === ICON FUNCTIONS ===
 
-pub fn material_icon<'a, Theme, Renderer>(
+pub fn material_icon<'a>(
     icon: MaterialIcon,
     style: MaterialIconStyle,
     ui_size: UiSize,
-) -> Text<'a, Theme, Renderer>
-where
-    Theme: text::StyleSheet,
-    Renderer: advanced::Renderer + advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
+) -> Text<'a> {
     text(icon_to_char(icon))
         .font(match style {
             MaterialIconStyle::Light => MATERIAL_ICONS_LIGHT,
@@ -77,12 +56,7 @@ where
 }
 
 /// Return a text widget containing the rotation arrow.
-fn rotation_icon<'a, Theme, Renderer>(i: usize, ui_size: UiSize) -> Text<'a, Theme, Renderer>
-where
-    Theme: text::StyleSheet,
-    Renderer: advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
+fn rotation_icon<'a>(i: usize, ui_size: UiSize) -> Text<'a> {
     match i {
         0 => material_icon(MaterialIcon::ArrowBack, MaterialIconStyle::Dark, ui_size),
         1 => material_icon(MaterialIcon::ArrowForward, MaterialIconStyle::Dark, ui_size),
@@ -115,27 +89,15 @@ macro_rules! button_text_wrapper {
 }
 
 /// Return a text button.
-pub fn text_button<'a, Message, Theme, Renderer>(
-    label: impl ToString,
-    ui_size: UiSize,
-) -> Button<'a, Message, Theme, Renderer>
-where
-    Theme: button::StyleSheet + text::StyleSheet + 'a,
-    Renderer: advanced::Renderer + advanced::text::Renderer + 'a,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
+pub fn text_button<'a, Message>(label: impl ToString, ui_size: UiSize) -> Button<'a, Message> {
     button_text_wrapper!(text(label).size(ui_size.main_text()), ui_size).height(ui_size.button())
 }
-pub fn fixed_text_button<'a, Message, Theme, Renderer>(
+
+pub fn fixed_text_button<'a, Message>(
     label: impl ToString,
     width_factor: f32,
     ui_size: UiSize,
-) -> Button<'a, Message, Theme, Renderer>
-where
-    Theme: button::StyleSheet + text::StyleSheet + 'a,
-    Renderer: advanced::Renderer + advanced::text::Renderer + 'a,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
+) -> Button<'a, Message> {
     button_text_wrapper!(
         text(label)
             .size(ui_size.main_text())
@@ -146,43 +108,24 @@ where
 }
 
 /// Return a button containing an icon in the light theme.
-pub fn material_icon_button<'a, Message, Theme, Renderer>(
+pub fn material_icon_button<'a, Message>(
     icon: MaterialIcon,
     style: MaterialIconStyle,
     ui_size: UiSize,
-) -> Button<'a, Message, Theme, Renderer>
-where
-    Theme: button::StyleSheet + text::StyleSheet + 'a,
-    Renderer: advanced::text::Renderer + 'a,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
+) -> Button<'a, Message> {
     button_text_wrapper!(material_icon(icon, style, ui_size), ui_size)
         .height(ui_size.button())
         .width(ui_size.button())
 }
 
-pub fn rotation_icon_button<'a, Message, Theme, Renderer>(
-    i: usize,
-    ui_size: UiSize,
-) -> Button<'a, Message, Theme, Renderer>
-where
-    Theme: button::StyleSheet + text::StyleSheet + 'a,
-    Renderer: advanced::text::Renderer + 'a,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
+pub fn rotation_icon_button<'a, Message>(i: usize, ui_size: UiSize) -> Button<'a, Message> {
     button_text_wrapper!(rotation_icon(i, ui_size).height(ui_size.button()), ui_size)
 }
 
 /// A button containing an icon from the ENSNANO font.
-pub fn icon_button<'a, Message, Theme, Renderer>(
-    icon_char: char,
-    ui_size: UiSize,
-) -> Button<'a, Message, Theme, Renderer>
+pub fn icon_button<'a, Message>(icon_char: char, ui_size: UiSize) -> Button<'a, Message>
 where
     Message: Clone,
-    Theme: button::StyleSheet + text::StyleSheet + 'a,
-    Renderer: advanced::Renderer + advanced::text::Renderer + 'a,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
 {
     button_text_wrapper!(
         text(icon_char).font(ENSNANO_FONT).size(ui_size.icon()),
@@ -213,18 +156,14 @@ where
 }
 
 /// Return a button that starts, then stops something.
-pub fn start_stop_button<'a, F, Message, Theme, Renderer>(
+pub fn start_stop_button<'a, F, Message>(
     label: impl ToString,
     ui_size: UiSize,
     start_stop_switch: Option<F>,
     is_started: bool,
-) -> Button<'a, Message, Theme, Renderer>
+) -> Button<'a, Message>
 where
     F: 'static + Fn(bool) -> Message,
-    Theme: button::StyleSheet + text::StyleSheet + 'a,
-    <Theme as button::StyleSheet>::Style: From<iced::theme::Button>,
-    Renderer: advanced::text::Renderer + 'a,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
 {
     let style = if is_started {
         iced::theme::Button::Destructive
@@ -245,16 +184,14 @@ where
 // === CHECKBOX FUNCTIONS ===
 
 /// Return a checkbox widget with its label placed on the left.
-pub fn right_checkbox<'a, Message, Theme, Renderer>(
+pub fn right_checkbox<'a, Message>(
     is_checked: bool,
     label: impl ToString,
     toggle_message: impl Fn(bool) -> Message + 'a,
     ui_size: UiSize,
-) -> Row<'a, Message, Theme, Renderer>
+) -> Row<'a, Message>
 where
     Message: 'a,
-    Theme: text::StyleSheet + checkbox::StyleSheet + 'a,
-    Renderer: advanced::text::Renderer + 'a,
 {
     row![
         text(label),

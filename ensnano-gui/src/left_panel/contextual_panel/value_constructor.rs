@@ -6,7 +6,7 @@ use crate::{
 use ensnano_iced::{ui_size::UiSize, widgets::keyboard_priority::keyboard_priority};
 use ensnano_interactor::selection::Selection;
 use iced::{
-    Alignment, Length, Renderer, Theme,
+    Alignment, Length,
     widget::{Column, Space, column, row, slider, text, text_input},
 };
 use paste::paste;
@@ -45,7 +45,7 @@ macro_rules! type_builder {
                     }
                 }
 
-                fn view<State: AppState>(&self) -> iced::Element<'_, Message<State>, Theme, Renderer> {
+                fn view<State: AppState>(&self) -> iced::Element<'_, Message<State>> {
                     let str_values = [$(& self.[<$param _string>],)*];
                     let mut ret = Column::new().width(Length::Fill).align_items(Alignment::End);
                     let value_to_modify = self.value_to_modify;
@@ -168,7 +168,7 @@ impl GridPositionBuilder {
         Self::Cartesian(Vec3Builder::new(ValueKind::HelixGridPosition, position))
     }
 
-    fn view<State: AppState>(&self) -> iced::Element<'_, Message<State>, Theme, Renderer> {
+    fn view<State: AppState>(&self) -> iced::Element<'_, Message<State>> {
         match self {
             Self::Cartesian(builder) => builder.view(),
         }
@@ -201,7 +201,7 @@ impl GridOrientationBuilder {
         ))
     }
 
-    fn view<State: AppState>(&self) -> iced::Element<'_, Message<State>, Theme, Renderer> {
+    fn view<State: AppState>(&self) -> iced::Element<'_, Message<State>> {
         match self {
             Self::DirectionAngle(builder) => builder.view(),
         }
@@ -243,7 +243,7 @@ where
         ui_size: UiSize,
         _selection: &Selection,
         _app_state: &State,
-    ) -> iced::Element<'_, Message<State>, Theme, Renderer> {
+    ) -> iced::Element<'_, Message<State>> {
         self::column![
             text("Position").size(ui_size.intermediate_text()),
             self.position_builder.view(),
@@ -288,7 +288,7 @@ impl GridBuilder {
     fn nb_turn_row<'a, S: AppState>(
         app_state: &S,
         selection: &Selection,
-    ) -> Option<iced::Element<'a, Message<S>, Theme, Renderer>> {
+    ) -> Option<iced::Element<'a, Message<S>>> {
         if let Selection::Grid(_, g_id) = selection {
             if let Some(nb_turn) = app_state.get_reader().get_grid_nb_turn(*g_id) {
                 let row = row![
@@ -318,7 +318,7 @@ where
         ui_size: UiSize,
         selection: &Selection,
         app_state: &State,
-    ) -> iced::Element<'_, Message<State>, Theme, Renderer> {
+    ) -> iced::Element<'_, Message<State>> {
         self::column![
             text("Position").size(ui_size.intermediate_text()),
             self.position_builder.view(),
@@ -366,7 +366,7 @@ where
         ui_size: UiSize,
         selection: &Selection,
         app_state: &State,
-    ) -> iced::Element<'a, Message<State>, Theme, Renderer>;
+    ) -> iced::Element<'a, Message<State>>;
     fn update_str_value(&mut self, value_kind: ValueKind, n: usize, value_str: String);
     fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstantiatedValue>;
 }

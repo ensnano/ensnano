@@ -1068,7 +1068,7 @@ where
         command
     }
 
-    fn view(&self) -> Element<'_, Self::Message, Self::Theme, Self::Renderer> {
+    fn view(&self) -> Element<'_, Self::Message> {
         let width = self.logical_size.cast::<u16>().width;
         let tabs = Tabs::new(Message::TabSelected)
             .push(
@@ -1220,7 +1220,7 @@ impl<R: Requests> Program for ColorOverlay<R> {
         Command::none()
     }
 
-    fn view(&self) -> Element<'_, Self::Message, Self::Theme, Self::Renderer> {
+    fn view(&self) -> Element<'_, Self::Message> {
         let width = self.logical_size.cast::<u16>().width;
 
         let widget = Column::new()
