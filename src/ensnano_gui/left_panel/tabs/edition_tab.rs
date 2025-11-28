@@ -13,7 +13,7 @@ use ensnano_iced::{
     helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
     ui_size::UiSize,
 };
-use crate::ensnano_interactor::{RollRequest, selection::extract_strands_from_selection};
+use ensnano_interactor::{RollRequest, selection::extract_strands_from_selection};
 use iced::{
     Command,
     widget::{column, row, scrollable},

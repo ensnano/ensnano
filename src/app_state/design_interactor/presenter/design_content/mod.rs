@@ -13,7 +13,7 @@ use ensnano_design::{
     isometry3_descriptor::Isometry3MissingMethods as _,
     strands::{Domain, DomainJunction},
 };
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     ObjectType,
     app_state_parameters::suggestion_parameters::SuggestionParameters,
     graphics::{LoopoutBond, LoopoutNucl},

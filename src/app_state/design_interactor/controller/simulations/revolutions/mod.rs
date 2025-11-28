@@ -11,7 +11,7 @@ use ensnano_design::{
     strands::{Domain, DomainJunction, HelixInterval, Strand},
     utils::dvec_to_vec,
 };
-use crate::ensnano_interactor::surfaces::{
+use ensnano_interactor::surfaces::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceSystemDescriptor,
 };
 use crate::ensnano_utils::colors::new_color;

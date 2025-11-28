@@ -19,7 +19,7 @@ use ensnano_design::{
 use crate::ensnano_exports::ExportType;
 use crate::ensnano_gui::OverlayType;
 use ensnano_iced::ui_size::UiSize;
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     DesignOperation, HyperboloidOperation, HyperboloidRequest, RapierSimulationRequest,
     RigidBodyConstants, RollRequest,
     application::Notification,

@@ -6,7 +6,7 @@ use ensnano_design::{
     curves::{SurfaceInfo, SurfacePoint},
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
 };
-use crate::ensnano_interactor::graphics::PhySize;
+use ensnano_interactor::graphics::PhySize;
 use crate::ensnano_scene::{
     AppState, PhysicalPosition, ViewPtr, WindowEvent,
     camera::CameraController,

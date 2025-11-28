@@ -12,7 +12,7 @@ use crate::ensnano_flatscene::{
     data::{ClickResult, strand::FreeEnd},
     flat_types::{FlatHelix, FlatNucl},
 };
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     graphics::PhySize,
     selection::{ActionMode, Selection},
 };

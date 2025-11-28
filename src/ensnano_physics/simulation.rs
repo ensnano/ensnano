@@ -1,5 +1,5 @@
 use ensnano_design::{Nucl, helices::Helices, parameters::HelixParameters};
-use crate::ensnano_interactor::ObjectType;
+use ensnano_interactor::ObjectType;
 use crate::ensnano_physics::{
     full_simulation::{RigidHelicesSetup, build_simulation},
     helices::build_helices,

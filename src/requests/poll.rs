@@ -2,7 +2,7 @@
 //! object.
 
 use crate::controller::normal_state::Action;
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     DesignOperation, HyperboloidOperation, application::Notification,
     selection::SelectionConversion as _,
 };

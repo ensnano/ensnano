@@ -3,7 +3,7 @@ use ensnano_design::{
     curves::bezier::BezierControlPoint,
     grid::{GridId, GridPosition},
 };
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     consts::widget_id_to_bezier,
     graphics::DrawArea,
     selection::{PhantomElement, phantom_helix_decoder},

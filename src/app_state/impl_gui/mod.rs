@@ -9,7 +9,7 @@ use crate::ensnano_gui::{
     left_panel::tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
     status_bar::{ClipboardContent, CurrentOpState},
 };
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     PastingStatus, ScaffoldInfo, SimulationState, StrandBuildingStatus, WidgetBasis,
     app_state_parameters::{
         check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,

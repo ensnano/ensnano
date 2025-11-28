@@ -8,7 +8,7 @@ use ensnano_iced::{
     theme,
     ui_size::UiSize,
 };
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     app_state_parameters::{AppStateParameters, check_xovers_parameter::CheckXoversParameter},
     graphics::{
         ALL_BACKGROUND3D, ALL_RENDERING_MODE, Background3D, FogParameters, HBondDisplay,

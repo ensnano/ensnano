@@ -19,7 +19,7 @@ use ensnano_design::{
     strands::{Domain, Extremity, Strand},
 };
 use crate::ensnano_exports::{ExportResult, ExportType, oxdna::BACKBONE_TO_CM};
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     Referential, ScaffoldInfo,
     app_state_parameters::suggestion_parameters::SuggestionParameters,
     application::Camera3D,

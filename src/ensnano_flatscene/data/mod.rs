@@ -18,7 +18,7 @@ use crate::ensnano_flatscene::{
     },
     view::EditionInfo,
 };
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     StrandBuildingStatus,
     selection::{PhantomElement, Selection, SelectionMode},
 };

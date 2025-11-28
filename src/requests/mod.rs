@@ -13,7 +13,7 @@ use ensnano_design::{
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridPosition, GridTypeDescr},
 };
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     HyperboloidRequest, RapierSimulationRequest, RigidBodyConstants, RollRequest,
     app_state_parameters::{
         check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,

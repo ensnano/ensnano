@@ -23,7 +23,7 @@ use ensnano_design::{
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
     parameters::HelixParameters,
 };
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     ObjectType, Referential,
     graphics::{LoopoutBond, LoopoutNucl},
     selection::{

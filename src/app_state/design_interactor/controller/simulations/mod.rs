@@ -14,7 +14,7 @@ use ensnano_design::{
     helices::{Helix, HelixCollection as _, NuclCollection},
     parameters::HelixParameters,
 };
-use crate::ensnano_interactor::{RigidBodyConstants, surfaces::RevolutionSurfaceSystemDescriptor};
+use ensnano_interactor::{RigidBodyConstants, surfaces::RevolutionSurfaceSystemDescriptor};
 use mathru::{
     algebra::linear::vector::vector::Vector,
     analysis::differential_equation::ordinary::{

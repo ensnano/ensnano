@@ -9,7 +9,7 @@ use ensnano_design::{
     bezier_plane::{BezierVertex, BezierVertexId},
     grid::GridId,
 };
-use crate::ensnano_interactor::selection::ActionMode;
+use ensnano_interactor::selection::ActionMode;
 use crate::ensnano_scene::{
     AppState,
     controller::{Consequence, Controller, TransitionConsequence},

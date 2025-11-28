@@ -2,7 +2,7 @@ use crate::app_state::{AppState, design_interactor::DesignInteractor};
 use ensnano_design::{
     bezier_plane::BezierVertexId, grid::GridId, group_attributes::GroupPivot,
 };
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     WidgetBasis,
     app_state_parameters::check_xovers_parameter::CheckXoversParameter,
     consts::scroll_sensitivity_conversion,

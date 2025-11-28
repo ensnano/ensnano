@@ -5,7 +5,7 @@ use ensnano_design::{
     },
     parameters::HelixParameters,
 };
-use crate::ensnano_interactor::consts::DEFAULT_REVOLUTION_SIMULATION_PARAMETERS;
+use crate::consts::DEFAULT_REVOLUTION_SIMULATION_PARAMETERS;
 use num::integer::gcd;
 use rayon::iter::{IntoParallelIterator as _, ParallelIterator as _};
 use std::f64::consts::TAU;

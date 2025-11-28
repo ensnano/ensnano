@@ -3,7 +3,7 @@ use ensnano_design::{
     Design,
     strands::{Domain, DomainJunction, Strand},
 };
-use crate::ensnano_interactor::InsertionPoint;
+use ensnano_interactor::InsertionPoint;
 
 impl Controller {
     pub(super) fn update_insertion_length(

@@ -6,7 +6,7 @@ use ensnano_design::{
     strands::{Domain, Extremity, HelixInterval, Strand},
 };
 use crate::ensnano_flatscene::data::design::FlatSceneDesignReaderExt;
-use crate::ensnano_interactor::{Referential, torsion::Torsion};
+use ensnano_interactor::{Referential, torsion::Torsion};
 use ahash::RandomState;
 use std::{
     collections::{BTreeMap, HashMap},

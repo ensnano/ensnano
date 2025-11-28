@@ -15,7 +15,7 @@
 pub mod layout_manager;
 
 use ensnano_iced::ui_size::UiSize;
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     graphics::{DrawArea, GuiComponentType, PhySize, SplitMode},
     multiplexer::Multiplexer as GuiMultiplexer,
     selection::{ActionMode, SelectionMode},

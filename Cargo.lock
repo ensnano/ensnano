@@ -1107,6 +1107,7 @@ dependencies = [
  "ensnano_consts",
  "ensnano_design",
  "ensnano_iced",
+ "ensnano_interactor",
  "ensnano_organizer",
  "fontdue",
  "futures",
@@ -1118,7 +1119,6 @@ dependencies = [
  "iced_runtime",
  "iced_wgpu",
  "iced_winit",
- "icondata",
  "image 0.23.14",
  "int-enum",
  "itertools",
@@ -1126,28 +1126,21 @@ dependencies = [
  "lyon",
  "mathru",
  "nom_stl",
- "num",
  "num_enum 0.5.11",
  "open",
  "ordered-float 2.10.1",
  "paste",
- "pathdiff",
  "png 0.17.16",
  "pretty_env_logger",
- "quadrature",
  "rand 0.8.5",
  "rand_distr",
  "rapier3d",
- "rayon",
  "regex",
- "relative-path",
  "rfd",
  "rust_xlsxwriter",
  "serde",
  "serde_json",
- "serde_with",
  "strum",
- "svg",
  "ultraviolet",
  "version-compare",
  "wgpu",
@@ -1203,6 +1196,23 @@ dependencies = [
  "icondata",
  "log",
  "serde",
+]
+
+[[package]]
+name = "ensnano_interactor"
+version = "0.7.0"
+dependencies = [
+ "ensnano_consts",
+ "ensnano_design",
+ "ensnano_iced",
+ "ensnano_organizer",
+ "log",
+ "num",
+ "rayon",
+ "serde",
+ "ultraviolet",
+ "wgpu",
+ "winit",
 ]
 
 [[package]]

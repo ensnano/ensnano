@@ -9,7 +9,7 @@ use ensnano_design::{
 };
 use crate::ensnano_exports::ExportType;
 use crate::ensnano_gui::{OverlayType, left_panel::RigidBodyParametersRequest};
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     DesignOperation, HyperboloidRequest, InsertionPoint, RapierSimulationRequest,
     RigidBodyConstants, RollRequest,
     app_state_parameters::{

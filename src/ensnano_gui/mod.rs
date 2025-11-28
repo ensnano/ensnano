@@ -25,7 +25,7 @@ use ensnano_iced::{
     fonts::{INTER_REGULAR_FONT, load_fonts},
     ui_size::UiSize,
 };
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     HyperboloidRequest, InsertionPoint, PastingStatus, RapierSimulationRequest, RollRequest,
     ScaffoldInfo, SimulationState, StrandBuildingStatus, WidgetBasis,
     app_state_parameters::{

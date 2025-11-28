@@ -1,12 +1,11 @@
-
+use crate::{
+    BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation, IsometryTarget,
+};
 use ensnano_design::{
     Nucl,
     bezier_plane::{BezierPlaneId, BezierVertexId},
     curves::bezier::BezierControlPoint,
     grid::{GridId, HelixGridPosition},
-};
-use crate::ensnano_interactor::{
-    BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation, IsometryTarget,
 };
 use ensnano_organizer::tree::GroupId;
 use std::sync::Arc;

@@ -25,7 +25,7 @@ use ensnano_iced::{
     theme::GuiBackground,
     ui_size::UiSize,
 };
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     HyperboloidRequest, RapierSimulationRequest,
     app_state_parameters::{
         AppStateParameters, check_xovers_parameter::CheckXoversParameter,

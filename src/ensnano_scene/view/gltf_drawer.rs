@@ -4,7 +4,7 @@ use ensnano_design::{
     external_3d_objects::{External3DObject, External3DObjectId},
     utils::dvec_to_vec,
 };
-use crate::ensnano_interactor::surfaces::UnrootedRevolutionSurfaceDescriptor;
+use ensnano_interactor::surfaces::UnrootedRevolutionSurfaceDescriptor;
 use crate::ensnano_utils::{
     TEXTURE_FORMAT,
     colors::hsv_color,

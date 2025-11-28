@@ -1,4 +1,4 @@
-use crate::ensnano_interactor::StandardSequence;
+use ensnano_interactor::StandardSequence;
 use crate::{
     MainStateView,
     controller::{

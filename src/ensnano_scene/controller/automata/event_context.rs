@@ -7,7 +7,7 @@ use ensnano_design::{
     grid::{GridId, GridObject, GridPosition},
     helices::Axis,
 };
-use crate::ensnano_interactor::selection::ActionMode;
+use ensnano_interactor::selection::ActionMode;
 use crate::ensnano_scene::{
     AppState,
     controller::Controller,

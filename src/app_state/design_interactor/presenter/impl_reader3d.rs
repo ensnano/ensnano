@@ -16,7 +16,7 @@ use ensnano_design::{
     parameters::HelixParameters,
     strands::Domain,
 };
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     ObjectType, Referential,
     graphics::{LoopoutBond, LoopoutNucl},
 };

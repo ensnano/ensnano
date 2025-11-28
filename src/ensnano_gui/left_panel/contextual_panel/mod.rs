@@ -12,7 +12,7 @@ use ensnano_iced::{
     ui_size::UiSize,
     widgets::keyboard_priority::keyboard_priority,
 };
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     SimulationState,
     selection::{ActionMode, Selection},
 };

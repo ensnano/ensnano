@@ -15,7 +15,7 @@ use ensnano_design::{
     external_3d_objects::External3DObjectsStamp,
     grid::{GridId, GridObject, GridPosition},
 };
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     ObjectType, Referential,
     application::Camera3D,
     graphics::HBondDisplay,

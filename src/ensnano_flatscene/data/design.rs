@@ -12,7 +12,7 @@ use crate::ensnano_flatscene::{
     data::strand::Strand,
     flat_types::{Flat, FlatHelix, FlatHelixMaps, FlatIdx, FlatNucl, HelixSegment, HelixVec},
 };
-use crate::ensnano_interactor::{Referential, torsion::Torsion};
+use ensnano_interactor::{Referential, torsion::Torsion};
 use crate::ensnano_utils::full_isometry::FullIsometry;
 use ahash::RandomState;
 use std::{

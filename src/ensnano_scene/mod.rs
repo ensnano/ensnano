@@ -15,7 +15,7 @@ use ensnano_design::{
     grid::{GridPosition, HelixGridPosition},
     group_attributes::GroupPivot,
 };
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     DesignOperation, NewBezierTangentVector, WidgetBasis,
     app_state_parameters::check_xovers_parameter::CheckXoversParameter,
     application::{AppId, Application, Camera3D, Notification},

@@ -10,7 +10,7 @@ use ensnano_design::{
     },
     parameters::HelixParameters,
 };
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     consts::{bezier_control_color, bezier_widget_id},
     selection::Selection,
 };

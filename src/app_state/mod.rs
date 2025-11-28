@@ -22,7 +22,7 @@ use ensnano_design::{
 };
 use crate::ensnano_exports::{ExportResult, ExportType};
 use ensnano_iced::ui_size::UiSize;
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     DesignOperation, PastingStatus, StrandBuildingStatus, WidgetBasis,
     app_state_parameters::{
         AppStateParameters, check_xovers_parameter::CheckXoversParameter,
@@ -628,7 +628,7 @@ impl AppState {
         *self.0.selection.pivot.write().unwrap() = Some(new_pivot);
     }
 
-    pub fn get_simulation_state(&self) -> crate::ensnano_interactor::SimulationState {
+    pub fn get_simulation_state(&self) -> ensnano_interactor::SimulationState {
         self.0.design.get_simulation_state()
     }
 

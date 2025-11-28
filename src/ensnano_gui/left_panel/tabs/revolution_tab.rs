@@ -10,7 +10,7 @@ use ensnano_iced::{
     ui_size::UiSize,
     widgets::keyboard_priority::keyboard_priority,
 };
-use crate::ensnano_interactor::surfaces::{
+use ensnano_interactor::surfaces::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceRadius,
     RevolutionSurfaceSystemDescriptor, RootingParameters, ShiftGenerator,
     UnrootedRevolutionSurfaceDescriptor,

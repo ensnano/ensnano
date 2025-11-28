@@ -6,7 +6,7 @@
 //! reduces the confusion, since errors will be detected by the typechecker.
 
 use ensnano_design::Nucl;
-use crate::ensnano_interactor::selection::Selection;
+use ensnano_interactor::selection::Selection;
 use std::{
     collections::{BTreeMap, HashMap},
     hash::{Hash, Hasher},

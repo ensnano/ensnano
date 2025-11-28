@@ -76,7 +76,6 @@ mod main_tests;
 mod ensnano_exports;
 mod ensnano_flatscene;
 mod ensnano_gui;
-mod ensnano_interactor;
 mod ensnano_physics;
 mod ensnano_scene;
 mod ensnano_utils;
@@ -92,24 +91,6 @@ use crate::ensnano_exports::{ExportResult, ExportType};
 use crate::ensnano_flatscene::FlatScene;
 use crate::ensnano_gui::{
     AppState as _, Gui, IcedMessages, OverlayType, TopBarState, left_panel::ColorOverlay,
-};
-use crate::ensnano_interactor::{
-    DesignOperation, DesignRotation, DesignTranslation, IsometryTarget, PastingStatus,
-    RigidBodyConstants,
-    app_state_parameters::{
-        AppStateParameters, check_xovers_parameter::CheckXoversParameter,
-        suggestion_parameters::SuggestionParameters,
-    },
-    application::{Application, Camera3D, Notification},
-    graphics::{Background3D, GuiComponentType, HBondDisplay, PhySize, RenderingMode, SplitMode},
-    operation::Operation,
-    selection::{
-        ActionMode, CenterOfSelection, InteractorDesignReaderExt, Selection, SelectionMode,
-        extract_nucls_from_selection, extract_only_grids, extract_strands_from_selection,
-        list_of_bezier_vertices, list_of_free_grids, list_of_helices, list_of_strands,
-        list_of_xover_as_nucl_pairs,
-    },
-    surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
 };
 use crate::ensnano_scene::{
     AppState as _, Scene, SceneKind, data::design3d::SceneDesignReaderExt as _,
@@ -142,6 +123,24 @@ use ensnano_design::{
     group_attributes::GroupPivot,
 };
 use ensnano_iced::{fonts, theme, ui_size::UiSize};
+use ensnano_interactor::{
+    DesignOperation, DesignRotation, DesignTranslation, IsometryTarget, PastingStatus,
+    RigidBodyConstants,
+    app_state_parameters::{
+        AppStateParameters, check_xovers_parameter::CheckXoversParameter,
+        suggestion_parameters::SuggestionParameters,
+    },
+    application::{Application, Camera3D, Notification},
+    graphics::{Background3D, GuiComponentType, HBondDisplay, PhySize, RenderingMode, SplitMode},
+    operation::Operation,
+    selection::{
+        ActionMode, CenterOfSelection, InteractorDesignReaderExt, Selection, SelectionMode,
+        extract_nucls_from_selection, extract_only_grids, extract_strands_from_selection,
+        list_of_bezier_vertices, list_of_free_grids, list_of_helices, list_of_strands,
+        list_of_xover_as_nucl_pairs,
+    },
+    surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
+};
 use ensnano_organizer::tree::GroupId;
 use iced::{
     advanced::{clipboard, renderer},

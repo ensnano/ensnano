@@ -2,7 +2,7 @@ use crate::ensnano_gui::{AppState, Requests};
 use ensnano_iced::{
     theme::GuiBackground, ui_size::UiSize, widgets::keyboard_priority::keyboard_priority,
 };
-use crate::ensnano_interactor::{StrandBuildingStatus, operation::Operation};
+use ensnano_interactor::{StrandBuildingStatus, operation::Operation};
 use iced::{
     Alignment, Color, Element, Length,
     widget::{Row, Space, Text, column, container, horizontal_space, row, text, text_input},
@@ -155,9 +155,9 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
     fn view(&self) -> Element<'_, Self::Message, Self::Theme, Self::Renderer> {
         let clipboard_text = format!("Clipboard: {}", self.app_state.get_clipboard_content());
         let pasting_text = match self.app_state.get_pasting_status() {
-            crate::ensnano_interactor::PastingStatus::Copy => "Pasting",
-            crate::ensnano_interactor::PastingStatus::None => "",
-            crate::ensnano_interactor::PastingStatus::Duplication => "Duplicating",
+            ensnano_interactor::PastingStatus::Copy => "Pasting",
+            ensnano_interactor::PastingStatus::None => "",
+            ensnano_interactor::PastingStatus::Duplication => "Duplicating",
         }
         .to_owned();
 

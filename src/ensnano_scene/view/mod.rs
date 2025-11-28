@@ -24,10 +24,10 @@ use ensnano_consts::{
 use ensnano_design::{
     grid::GridId, group_attributes::GroupPivot, helices::Axis, utils::dvec_to_vec,
 };
-use crate::ensnano_interactor::graphics::{
+use ensnano_interactor::graphics::{
     Background3D, CutPlaneParameters, DrawArea, FogParameters, HBondDisplay, PhySize, RenderingMode,
 };
-use crate::ensnano_interactor::surfaces::UnrootedRevolutionSurfaceDescriptor;
+use ensnano_interactor::surfaces::UnrootedRevolutionSurfaceDescriptor;
 use crate::ensnano_scene::{
     camera::{Camera, CameraPtr, Projection, ProjectionPtr},
     maths_3d::{cast_ray, distance_to_cursor_with_penalty, unproject_point_on_line},

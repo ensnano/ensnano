@@ -14,7 +14,7 @@ use crate::ensnano_flatscene::{
     },
     flat_types::{FlatIdx, FlatNucl, FlatSelection},
 };
-use crate::ensnano_interactor::graphics::{DrawArea, PhySize};
+use ensnano_interactor::graphics::{DrawArea, PhySize};
 use crate::ensnano_utils::{
     Ndc,
     bindgroup_manager::{DynamicBindGroup, UniformBindGroup},

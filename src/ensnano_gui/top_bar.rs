@@ -18,7 +18,7 @@ use ensnano_iced::{
     theme::GuiBackground,
     ui_size::UiSize,
 };
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     graphics::SplitMode,
     selection::{ActionMode, SelectionMode},
 };

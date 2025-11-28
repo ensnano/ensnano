@@ -1,7 +1,7 @@
 use ensnano_design::curves::{
     CurveDescriptor, revolution::InterpolationDescriptor, torus::CurveDescriptor2D,
 };
-use crate::ensnano_interactor::surfaces::{
+use ensnano_interactor::surfaces::{
     RevolutionSurfaceSystemDescriptor, RootedRevolutionSurface,
 };
 use chebyshev_polynomials::ChebyshevPolynomial;

@@ -4,7 +4,7 @@ use crate::ensnano_gui::{
     left_panel::Message,
 };
 use ensnano_iced::{ui_size::UiSize, widgets::keyboard_priority::keyboard_priority};
-use crate::ensnano_interactor::selection::Selection;
+use ensnano_interactor::selection::Selection;
 use iced::{
     Alignment, Length, Renderer, Theme,
     widget::{Column, Space, column, row, slider, text, text_input},

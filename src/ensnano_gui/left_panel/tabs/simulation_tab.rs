@@ -12,7 +12,7 @@ use ensnano_iced::{
     helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
     ui_size::UiSize,
 };
-use crate::ensnano_interactor::{RollRequest, SimulationState};
+use ensnano_interactor::{RollRequest, SimulationState};
 use iced::widget::{Column, column, row, scrollable};
 use iced_aw::TabLabel;
 use std::sync::{Arc, Mutex};

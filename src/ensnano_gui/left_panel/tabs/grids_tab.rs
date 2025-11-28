@@ -13,7 +13,7 @@ use ensnano_iced::{
     helpers::{extra_jump, icon_button, section, subsection, text_button},
     ui_size::UiSize,
 };
-use crate::ensnano_interactor::HyperboloidRequest;
+use ensnano_interactor::HyperboloidRequest;
 use iced::{
     Length,
     widget::{Column, column, row, scrollable, text, tooltip},

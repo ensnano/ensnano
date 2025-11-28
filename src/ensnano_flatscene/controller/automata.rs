@@ -5,7 +5,7 @@ use crate::ensnano_flatscene::{
     data::{ClickResult, helix::HelixHandle, strand::FreeEnd},
     flat_types::{FlatHelix, FlatNucl},
 };
-use crate::ensnano_interactor::selection::ActionMode;
+use ensnano_interactor::selection::ActionMode;
 use crate::ensnano_utils::circles2d::CircleInstance;
 use std::time::Instant;
 use ultraviolet::Vec2;

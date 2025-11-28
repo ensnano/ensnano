@@ -17,7 +17,7 @@ use ensnano_design::{
 };
 use crate::ensnano_exports::{ExportResult, ExportType};
 use crate::ensnano_gui::status_bar::{ClipboardContent, CurrentOpState};
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     DesignOperation, PastingStatus, SimulationState,
     app_state_parameters::suggestion_parameters::SuggestionParameters, operation::Operation,
     selection::Selection, strand_builder::StrandBuilder,
@@ -396,7 +396,7 @@ mod tests {
         grid::{GridDescriptor, GridId, GridTypeDescr, HelixGridPosition},
         strands::{DomainJunction, Strand},
     };
-    use crate::ensnano_interactor::{
+    use ensnano_interactor::{
         InsertionPoint, operation::GridHelixCreation, selection::InteractorDesignReaderExt as _,
     };
     use crate::ensnano_scene::data::design3d::SceneDesignReaderExt as _;

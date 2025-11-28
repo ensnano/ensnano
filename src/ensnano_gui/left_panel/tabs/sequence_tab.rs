@@ -10,7 +10,7 @@ use ensnano_iced::{
     ui_size::UiSize,
     widgets::keyboard_priority::keyboard_priority,
 };
-use crate::ensnano_interactor::StandardSequence;
+use ensnano_interactor::StandardSequence;
 use iced::{
     Length,
     widget::{column, row, scrollable, text, text_input},

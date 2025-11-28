@@ -32,7 +32,7 @@ use ensnano_design::{
     strands::{Domain, DomainJunction, HelixInterval, Strand, Strands},
 };
 use crate::ensnano_gui::status_bar::ClipboardContent;
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
     HyperboloidOperation, IsometryTarget, NewBezierTangentVector, PastingStatus, SimulationState,
     operation::{Operation, TranslateBezierPathVertex},

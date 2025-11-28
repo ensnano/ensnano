@@ -6,7 +6,7 @@ use crate::app_state::{
     design_interactor::{DesignInteractor, presenter::Presenter},
 };
 use ensnano_design::{Design, Nucl, codenano, ensnano_version, scadnano};
-use crate::ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
+use ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
 use crate::ensnano_utils::id_generator::IdGenerator;
 use crate::{
     app_state::design_interactor::file_parsing::junctions::StrandJunction as _,
