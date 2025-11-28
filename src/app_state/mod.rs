@@ -87,7 +87,7 @@ impl Default for AppState {
 }
 
 impl AppState {
-    pub fn with_preferred_parameters() -> Result<Self, confy::ConfyError> {
+    pub(crate) fn with_preferred_parameters() -> Result<Self, confy::ConfyError> {
         let state: AppState_ = AppState_ {
             parameters: confy::load(APP_NAME, APP_NAME)?,
             ..Default::default()
@@ -102,7 +102,7 @@ impl AppState {
         Ok(Self(AddressPointer::new(with_forgot_update)))
     }
 
-    pub fn with_selection(
+    pub(crate) fn with_selection(
         &self,
         mut selection: Vec<Selection>,
         selected_group: Option<GroupId>,
@@ -133,7 +133,7 @@ impl AppState {
         }
     }
 
-    pub fn with_center_of_selection(&self, center: Option<CenterOfSelection>) -> Self {
+    pub(crate) fn with_center_of_selection(&self, center: Option<CenterOfSelection>) -> Self {
         if center == self.0.center_of_selection {
             self.clone()
         } else {
@@ -143,7 +143,7 @@ impl AppState {
         }
     }
 
-    pub fn with_candidates(&self, mut candidates: Vec<Selection>) -> Self {
+    pub(crate) fn with_candidates(&self, mut candidates: Vec<Selection>) -> Self {
         candidates.sort();
         candidates.dedup();
         if self.0.candidates.content_equal(&candidates) {
@@ -155,29 +155,29 @@ impl AppState {
         }
     }
 
-    pub fn with_selection_mode(&self, selection_mode: SelectionMode) -> Self {
+    pub(crate) fn with_selection_mode(&self, selection_mode: SelectionMode) -> Self {
         let mut new_state = (*self.0).clone();
         new_state.selection_mode = selection_mode;
         Self(AddressPointer::new(new_state))
     }
 
-    pub fn with_suggestion_parameters(&self, suggestion_parameters: SuggestionParameters) -> Self {
+    pub(crate) fn with_suggestion_parameters(&self, suggestion_parameters: SuggestionParameters) -> Self {
         let mut new_state = (*self.0).clone();
         new_state.parameters.suggestion_parameters = suggestion_parameters;
         Self(AddressPointer::new(new_state))
     }
 
-    pub fn with_ui_size(&self, ui_size: UiSize) -> Self {
+    pub(crate) fn with_ui_size(&self, ui_size: UiSize) -> Self {
         self.with_updated_parameters(|p| p.ui_size = ui_size)
     }
 
-    pub fn with_action_mode(&self, action_mode: ActionMode) -> Self {
+    pub(crate) fn with_action_mode(&self, action_mode: ActionMode) -> Self {
         let mut new_state = (*self.0).clone();
         new_state.action_mode = action_mode;
         Self(AddressPointer::new(new_state))
     }
 
-    pub fn with_strand_on_helix(&self, parameters: Option<(isize, usize)>) -> Self {
+    pub(crate) fn with_strand_on_helix(&self, parameters: Option<(isize, usize)>) -> Self {
         let new_strand_parameters =
             parameters.map(|(start, length)| NewHelixStrand { length, start });
         if let ActionMode::BuildHelix { .. } = self.0.action_mode {
@@ -201,32 +201,32 @@ impl AppState {
         }
     }
 
-    pub fn exporting(&self, exporting: bool) -> Self {
+    pub(crate) fn exporting(&self, exporting: bool) -> Self {
         let mut new_state = (*self.0).clone();
         new_state.exporting = exporting;
         Self(AddressPointer::new(new_state))
     }
 
-    pub fn with_toggled_widget_basis(&self) -> Self {
+    pub(crate) fn with_toggled_widget_basis(&self) -> Self {
         let mut new_state = (*self.0).clone();
         new_state.widget_basis.toggle();
         Self(AddressPointer::new(new_state))
     }
 
     #[cfg(test)]
-    pub fn update_design(&mut self, design: Design) {
+    pub(crate) fn update_design(&mut self, design: Design) {
         apply_update(self, |s| s.with_updated_design(design));
     }
 
     #[cfg(test)]
-    pub fn with_updated_design(&self, design: Design) -> Self {
+    pub(crate) fn with_updated_design(&self, design: Design) -> Self {
         let mut new_state = self.0.clone_inner();
         let new_interactor = new_state.design.with_updated_design(design);
         new_state.design = AddressPointer::new(new_interactor);
         Self(AddressPointer::new(new_state))
     }
 
-    pub fn import_design(mut path: PathBuf) -> Result<Self, LoadDesignError> {
+    pub(crate) fn import_design(mut path: PathBuf) -> Result<Self, LoadDesignError> {
         let design_interactor = DesignInteractor::new_with_path(&path)?;
         if path.extension().map(|s| s.to_string_lossy()) != Some(ENS_BACKUP_EXTENSION.into()) {
             path.set_extension(ENS_EXTENSION);
@@ -240,7 +240,7 @@ impl AppState {
         .updated())
     }
 
-    pub fn save_design(
+    pub(crate) fn save_design(
         &mut self,
         path: &PathBuf,
         saving_info: SavingInformation,
@@ -251,7 +251,7 @@ impl AppState {
         Ok(())
     }
 
-    pub fn path_to_current_design(&self) -> Option<&PathBuf> {
+    pub(crate) fn path_to_current_design(&self) -> Option<&PathBuf> {
         self.0.path_to_current_design.as_ref()
     }
 
@@ -379,12 +379,12 @@ impl AppState {
         }
     }
 
-    pub fn notified(&self, notification: InteractorNotification) -> Self {
+    pub(crate) fn notified(&self, notification: InteractorNotification) -> Self {
         let new_interactor = self.0.design.notify(notification);
         self.clone().with_interactor(new_interactor)
     }
 
-    pub fn finish_operation(&self) {
+    pub(crate) fn finish_operation(&self) {
         let pivot = *self.0.selection.pivot.read().unwrap();
         log::info!("Setting pivot {pivot:?}");
         log::info!("was {:?}", self.0.selection.old_pivot.read().unwrap());
@@ -396,16 +396,16 @@ impl AppState {
         );
     }
 
-    pub fn get_design_interactor(&self) -> DesignInteractor {
+    pub(crate) fn get_design_interactor(&self) -> DesignInteractor {
         self.0.design.clone_inner()
     }
 
-    pub fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
+    pub(crate) fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
         self.get_design_interactor()
             .export(export_path, export_type)
     }
 
-    pub fn get_selection(&self) -> impl AsRef<[Selection]> + use<> {
+    pub(crate) fn get_selection(&self) -> impl AsRef<[Selection]> + use<> {
         self.0.selection.selection.clone()
     }
 
@@ -422,52 +422,52 @@ impl AppState {
         *self = self.with_updated_parameters(|p| *p = source.0.parameters.clone());
     }
 
-    pub fn with_check_xovers_parameters(
+    pub(crate) fn with_check_xovers_parameters(
         &self,
         check_xover_parameters: CheckXoversParameter,
     ) -> Self {
         self.with_updated_parameters(|p| p.check_xover_parameters = check_xover_parameters)
     }
 
-    pub fn with_follow_stereographic_camera(&self, follow: bool) -> Self {
+    pub(crate) fn with_follow_stereographic_camera(&self, follow: bool) -> Self {
         self.with_updated_parameters(|p| p.follow_stereography = follow)
     }
 
-    pub fn with_show_stereographic_camera(&self, show: bool) -> Self {
+    pub(crate) fn with_show_stereographic_camera(&self, show: bool) -> Self {
         self.with_updated_parameters(|p| p.show_stereography = show)
     }
 
-    pub fn with_show_h_bonds(&self, show: HBondDisplay) -> Self {
+    pub(crate) fn with_show_h_bonds(&self, show: HBondDisplay) -> Self {
         self.with_updated_parameters(|p| p.show_h_bonds = show)
     }
 
-    pub fn with_show_bezier_paths(&self, show: bool) -> Self {
+    pub(crate) fn with_show_bezier_paths(&self, show: bool) -> Self {
         self.with_updated_parameters(|p| p.show_bezier_paths = show)
     }
 
-    pub fn all_helices_on_axis(&self, on_axis: bool) -> Self {
+    pub(crate) fn all_helices_on_axis(&self, on_axis: bool) -> Self {
         self.with_updated_parameters(|p| p.all_helices_on_axis = on_axis)
     }
 
-    pub fn set_bezier_revolution_id(&self, id: Option<usize>) -> Self {
+    pub(crate) fn set_bezier_revolution_id(&self, id: Option<usize>) -> Self {
         let mut new_state = (*self.0).clone();
         new_state.unrooted_surface.bezier_path_id = id.map(|id| BezierPathId(id as u32));
         Self(AddressPointer::new(new_state))
     }
 
-    pub fn set_bezier_revolution_radius(&self, radius: f64) -> Self {
+    pub(crate) fn set_bezier_revolution_radius(&self, radius: f64) -> Self {
         let mut new_state = (*self.0).clone();
         new_state.set_surface_revolution_radius(radius);
         Self(AddressPointer::new(new_state))
     }
 
-    pub fn set_revolution_axis_position(&self, position: f64) -> Self {
+    pub(crate) fn set_revolution_axis_position(&self, position: f64) -> Self {
         let mut new_state = (*self.0).clone();
         new_state.set_surface_axis_position(position);
         Self(AddressPointer::new(new_state))
     }
 
-    pub fn set_unrooted_surface(
+    pub(crate) fn set_unrooted_surface(
         &self,
         surface: Option<UnrootedRevolutionSurfaceDescriptor>,
     ) -> Self {
@@ -480,23 +480,23 @@ impl AppState {
         }
     }
 
-    pub fn with_toggled_all_helices_on_axis(&self) -> Self {
+    pub(crate) fn with_toggled_all_helices_on_axis(&self) -> Self {
         self.with_updated_parameters(|p| p.all_helices_on_axis ^= true)
     }
 
-    pub fn with_background3d(&self, bg: Background3D) -> Self {
+    pub(crate) fn with_background3d(&self, bg: Background3D) -> Self {
         self.with_updated_parameters(|p| p.background3d = bg)
     }
 
-    pub fn with_rendering_mode(&self, rendering_mode: RenderingMode) -> Self {
+    pub(crate) fn with_rendering_mode(&self, rendering_mode: RenderingMode) -> Self {
         self.with_updated_parameters(|p| p.rendering_mode = rendering_mode)
     }
 
-    pub fn with_scroll_sensitivity(&self, sensitivity: f32) -> Self {
+    pub(crate) fn with_scroll_sensitivity(&self, sensitivity: f32) -> Self {
         self.with_updated_parameters(|p| p.scroll_sensitivity = sensitivity)
     }
 
-    pub fn with_inverted_y_scroll(&self, inverted: bool) -> Self {
+    pub(crate) fn with_inverted_y_scroll(&self, inverted: bool) -> Self {
         self.with_updated_parameters(|p| p.inverted_y_scroll = inverted)
     }
 
@@ -545,7 +545,7 @@ impl AppState {
         self.handle_operation_result(Ok(result))
     }
 
-    pub fn design_was_modified(&self, other: &Self) -> bool {
+    pub(crate) fn design_was_modified(&self, other: &Self) -> bool {
         self.0.design.has_different_design_than(&other.0.design)
             && (self.0.updated_once || other.0.updated_once)
     }
@@ -578,11 +578,11 @@ impl AppState {
         &self.0.selection.selection
     }
 
-    pub fn get_current_group_id(&self) -> Option<GroupId> {
+    pub(crate) fn get_current_group_id(&self) -> Option<GroupId> {
         self.0.selection.selected_group
     }
 
-    pub fn set_current_group_pivot(&self, pivot: GroupPivot) {
+    pub(crate) fn set_current_group_pivot(&self, pivot: GroupPivot) {
         if self.0.selection.pivot.read().unwrap().is_none() {
             log::info!("resetting selection pivot {pivot:?}");
             *self.0.selection.pivot.write().unwrap() = Some(pivot);
@@ -594,7 +594,7 @@ impl AppState {
         }
     }
 
-    pub fn translate_group_pivot(&self, translation: Vec3) {
+    pub(crate) fn translate_group_pivot(&self, translation: Vec3) {
         log::debug!("old pivot {:p}", Arc::as_ptr(&self.0.selection.old_pivot));
         log::info!("is {:?}", self.0.selection.old_pivot.read().unwrap());
         let new_pivot = {
@@ -611,7 +611,7 @@ impl AppState {
         *self.0.selection.pivot.write().unwrap() = Some(new_pivot);
     }
 
-    pub fn rotate_group_pivot(&self, rotation: Rotor3) {
+    pub(crate) fn rotate_group_pivot(&self, rotation: Rotor3) {
         log::debug!("old pivot {:p}", Arc::as_ptr(&self.0.selection.old_pivot));
         log::info!("is {:?}", self.0.selection.old_pivot.read().unwrap());
         let new_pivot = {
@@ -628,15 +628,15 @@ impl AppState {
         *self.0.selection.pivot.write().unwrap() = Some(new_pivot);
     }
 
-    pub fn get_simulation_state(&self) -> SimulationState {
+    pub(crate) fn get_simulation_state(&self) -> SimulationState {
         self.0.design.get_simulation_state()
     }
 
-    pub fn is_building_hyperboloid(&self) -> bool {
+    pub(crate) fn is_building_hyperboloid(&self) -> bool {
         self.0.design.is_building_hyperboloid()
     }
 
-    pub fn with_expand_insertion_set(self, expand: bool) -> Self {
+    pub(crate) fn with_expand_insertion_set(self, expand: bool) -> Self {
         let mut ret = (*self.0).clone();
         ret.show_insertion_discriminants = !expand;
         Self(AddressPointer::new(ret))

@@ -90,7 +90,7 @@ pub(crate) struct AttributeDisplayer<A: OrganizerAttribute> {
 }
 
 impl<Attrib: OrganizerAttribute> AttributeDisplayer<Attrib> {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             being_modified: false,
             widget: None,
@@ -98,17 +98,17 @@ impl<Attrib: OrganizerAttribute> AttributeDisplayer<Attrib> {
         }
     }
 
-    pub fn update_attribute(&mut self, attribute: Option<Attrib>) {
+    pub(crate) fn update_attribute(&mut self, attribute: Option<Attrib>) {
         self.update_widget(attribute.as_ref().map(OrganizerAttribute::widget));
         self.attribute = attribute;
     }
 
-    pub fn update_widget(&mut self, widget: Option<AttributeWidget<Attrib>>) {
+    pub(crate) fn update_widget(&mut self, widget: Option<AttributeWidget<Attrib>>) {
         self.being_modified = false;
         self.widget = widget;
     }
 
-    pub fn view(&self) -> Option<Element<'_, Attrib, iced::Theme, iced::Renderer>> {
+    pub(crate) fn view(&self) -> Option<Element<'_, Attrib, iced::Theme, iced::Renderer>> {
         self.widget.as_ref().map(|widget| {
             match self.attribute.as_ref().map(OrganizerAttribute::char_repr) {
                 Some(AttributeDisplay::Icon(c)) => button(icon(c)),

@@ -388,23 +388,23 @@ impl<T: Flat> std::ops::DerefMut for HelixVec<T> {
 }
 
 impl<T: Flat> HelixVec<T> {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self(Vec::new())
     }
 
-    pub fn remove(&mut self, idx: FlatIdx) -> T {
+    pub(crate) fn remove(&mut self, idx: FlatIdx) -> T {
         self.0.remove(idx.0)
     }
 
-    pub fn push(&mut self, value: T) {
+    pub(crate) fn push(&mut self, value: T) {
         self.0.push(value);
     }
 
-    pub fn get(&self, idx: FlatIdx) -> Option<&T> {
+    pub(crate) fn get(&self, idx: FlatIdx) -> Option<&T> {
         self.0.get(idx.0)
     }
 
-    pub fn get_mut(&mut self, idx: FlatIdx) -> Option<&mut T> {
+    pub(crate) fn get_mut(&mut self, idx: FlatIdx) -> Option<&mut T> {
         self.0.get_mut(idx.0)
     }
 }

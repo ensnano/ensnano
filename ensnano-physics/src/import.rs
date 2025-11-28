@@ -28,7 +28,7 @@ pub enum BaseOrNucleotide {
 }
 
 impl BaseOrNucleotide {
-    pub fn into_rigid_body(
+    pub(crate) fn into_rigid_body(
         self,
         space_position: &HashMap<u32, [f32; 3]>,
         rigid_body_set: &mut RigidBodySet,

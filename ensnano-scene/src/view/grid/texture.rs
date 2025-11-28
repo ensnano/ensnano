@@ -11,20 +11,20 @@ const TEXTURE_SIZE: u32 = 512;
 
 #[derive(Clone, Copy, bytemuck::Zeroable, bytemuck::Pod)]
 #[repr(C)]
-pub struct Vertex {
+pub(super) struct Vertex {
     position: [f32; 2],
     normal: [f32; 2],
 }
 
 type Vertices = tessellation::VertexBuffers<Vertex, u16>;
 
-pub struct SquareTexture {
+pub(super) struct SquareTexture {
     pub view: TextureView,
     pub sampler: Sampler,
 }
 
 impl SquareTexture {
-    pub fn new(device: &Device, encoder: &mut wgpu::CommandEncoder) -> Self {
+    pub(super) fn new(device: &Device, encoder: &mut wgpu::CommandEncoder) -> Self {
         let texture = device.create_texture(&wgpu::TextureDescriptor {
             size: wgpu::Extent3d {
                 width: TEXTURE_SIZE,
@@ -150,13 +150,13 @@ fn square_texture_vertices() -> Vertices {
     vertices
 }
 
-pub struct HoneyTexture {
+pub(super) struct HoneyTexture {
     pub view: TextureView,
     pub sampler: Sampler,
 }
 
 impl HoneyTexture {
-    pub fn new(device: &Device, encoder: &mut wgpu::CommandEncoder) -> Self {
+    pub(super) fn new(device: &Device, encoder: &mut wgpu::CommandEncoder) -> Self {
         let texture = device.create_texture(&wgpu::TextureDescriptor {
             size: wgpu::Extent3d {
                 width: TEXTURE_SIZE,

@@ -34,7 +34,7 @@ pub struct PhysicalSystem {
 }
 
 impl PhysicalSystem {
-    pub fn start_new(
+    pub(crate) fn start_new(
         presenter: &Presenter,
         target_helices: Option<Vec<usize>>,
         reader: &mut ChannelReader,
@@ -69,7 +69,7 @@ impl PhysicalSystem {
 
     /// Spawn a thread to run the physical simulation. Return a pair of pointers. One to request the
     /// termination of the simulation and one to fetch the current state of the helices.
-    pub fn run(mut self) {
+    pub(crate) fn run(mut self) {
         std::thread::spawn(move || {
             while let Some(interface_ptr) = self.interface.upgrade() {
                 let grad = self.roller.solve_one_step(&mut self.data, 1e-3);
@@ -140,7 +140,7 @@ pub(super) struct RollSystem {
 
 impl RollSystem {
     /// Create a system from a design, the system will adjust the helices of the design.
-    pub fn new(
+    pub(super) fn new(
         nb_helices: usize,
         target_helices: Option<Vec<usize>>,
         helix_map: &HashMap<usize, usize>,
@@ -269,7 +269,7 @@ impl RollSystem {
     }
 
     /// Do one step of simulation with time step dt
-    pub fn solve_one_step(&mut self, data: &mut DesignData, lr: f32) -> f32 {
+    pub(super) fn solve_one_step(&mut self, data: &mut DesignData, lr: f32) -> f32 {
         self.time_scale = 1.;
         self.update_acceleration(data);
         log::trace!("acceleration {:?}", self.acceleration);

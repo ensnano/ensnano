@@ -9,7 +9,7 @@ use crate::{
 use std::rc::Rc;
 use wgpu::{Buffer, Device, Queue, RenderPass};
 
-pub struct HelixView {
+pub(super) struct HelixView {
     vertex_buffer: DynamicBuffer,
     index_buffer: DynamicBuffer,
     num_instance: u32,
@@ -17,7 +17,7 @@ pub struct HelixView {
 }
 
 impl HelixView {
-    pub fn new(device: Rc<Device>, queue: Rc<Queue>, background: bool) -> Self {
+    pub(super) fn new(device: Rc<Device>, queue: Rc<Queue>, background: bool) -> Self {
         Self {
             vertex_buffer: DynamicBuffer::new(
                 device.clone(),
@@ -36,7 +36,7 @@ impl HelixView {
         }
     }
 
-    pub fn update(&mut self, helix: &Helix) {
+    pub(super) fn update(&mut self, helix: &Helix) {
         let vertices = if self.background {
             helix.background_vertices()
         } else {
@@ -47,14 +47,14 @@ impl HelixView {
         self.num_instance = vertices.indices.len() as u32;
     }
 
-    pub fn draw<'a>(&'a self, render_pass: &mut RenderPass<'a>) {
+    pub(super) fn draw<'a>(&'a self, render_pass: &mut RenderPass<'a>) {
         render_pass.set_index_buffer(self.index_buffer.get_slice(), wgpu::IndexFormat::Uint16);
         render_pass.set_vertex_buffer(0, self.vertex_buffer.get_slice());
         render_pass.draw_indexed(0..self.num_instance, 0, 0..1);
     }
 }
 
-pub struct StrandView {
+pub(super) struct StrandView {
     vertex_buffer_top: DynamicBuffer,
     index_buffer_top: DynamicBuffer,
     num_instance_top: u32,
@@ -71,7 +71,7 @@ pub struct StrandView {
 }
 
 impl StrandView {
-    pub fn new(device: Rc<Device>, queue: Rc<Queue>) -> Self {
+    pub(super) fn new(device: Rc<Device>, queue: Rc<Queue>) -> Self {
         Self {
             vertex_buffer_top: DynamicBuffer::new(
                 device.clone(),
@@ -128,7 +128,7 @@ impl StrandView {
         }
     }
 
-    pub fn update(
+    pub(super) fn update(
         &mut self,
         strand: &Strand,
         helices: &[Helix],
@@ -164,7 +164,7 @@ impl StrandView {
         self.num_instance_split_bottom = split_vertices_bottom.indices.len() as u32;
     }
 
-    pub fn set_indication(&mut self, nucl1: FlatNucl, nucl2: FlatNucl, helices: &[Helix]) {
+    pub(super) fn set_indication(&mut self, nucl1: FlatNucl, nucl2: FlatNucl, helices: &[Helix]) {
         let vertices = Strand::indication(nucl1, nucl2, helices);
         self.vertex_buffer_top.update(vertices.vertices.as_slice());
         self.index_buffer_top.update(vertices.indices.as_slice());
@@ -175,7 +175,7 @@ impl StrandView {
         self.num_instance_bottom = vertices.indices.len() as u32;
     }
 
-    pub fn draw<'a>(&'a self, render_pass: &mut RenderPass<'a>, bottom: bool) {
+    pub(super) fn draw<'a>(&'a self, render_pass: &mut RenderPass<'a>, bottom: bool) {
         if bottom {
             render_pass.set_index_buffer(
                 self.index_buffer_bottom.get_slice(),
@@ -191,7 +191,7 @@ impl StrandView {
         }
     }
 
-    pub fn draw_split<'a>(&'a self, render_pass: &mut RenderPass<'a>, bottom: bool) {
+    pub(super) fn draw_split<'a>(&'a self, render_pass: &mut RenderPass<'a>, bottom: bool) {
         if bottom {
             if self.num_instance_split_bottom > 0 {
                 render_pass
@@ -217,7 +217,7 @@ struct DynamicBuffer {
 }
 
 impl DynamicBuffer {
-    pub fn new(
+    pub(crate) fn new(
         device: Rc<Device>,
         queue: Rc<Queue>,
         usage: wgpu::BufferUsages,
@@ -243,7 +243,7 @@ impl DynamicBuffer {
     }
 
     /// Replace the data of the associated buffer.
-    pub fn update<I: bytemuck::Pod>(&mut self, data: &[I]) {
+    pub(crate) fn update<I: bytemuck::Pod>(&mut self, data: &[I]) {
         let mut bytes: Vec<u8> = bytemuck::cast_slice(data).into();
         let length = bytes.len();
         while !bytes.len().is_multiple_of(4) {
@@ -264,7 +264,7 @@ impl DynamicBuffer {
         self.queue.write_buffer(&self.buffer, 0, bytes.as_slice());
     }
 
-    pub fn get_slice(&self) -> wgpu::BufferSlice<'_> {
+    pub(crate) fn get_slice(&self) -> wgpu::BufferSlice<'_> {
         self.buffer.slice(..self.length)
     }
 }

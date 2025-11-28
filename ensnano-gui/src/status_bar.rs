@@ -97,7 +97,6 @@ pub enum Message<S: AppState> {
     NewApplicationState(S),
     UiSizeChanged(UiSize),
     TabPressed,
-    #[expect(clippy::enum_variant_names)]
     Message(Option<String>),
     Resize(LogicalSize<f64>),
     SetKeyboardPriority(bool),
@@ -214,7 +213,7 @@ struct OperationInput {
 }
 
 impl OperationInput {
-    pub fn new(operation_state: CurrentOpState) -> Self {
+    pub(crate) fn new(operation_state: CurrentOpState) -> Self {
         let operation = operation_state.current_operation;
         let parameters = operation.parameters();
         let mut status_parameters = Vec::new();
@@ -237,7 +236,7 @@ impl OperationInput {
         }
     }
 
-    pub fn update(&mut self, operation_state: CurrentOpState) {
+    pub(crate) fn update(&mut self, operation_state: CurrentOpState) {
         let op_is_new = self.op_id != operation_state.operation_id;
         let operation = operation_state.current_operation;
         self.values = operation.values();

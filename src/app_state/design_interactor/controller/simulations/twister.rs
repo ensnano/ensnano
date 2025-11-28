@@ -42,7 +42,7 @@ pub struct Twister {
 }
 
 impl Twister {
-    pub fn start_new(
+    pub(crate) fn start_new(
         presenter: &Presenter,
         target_grid: GridId,
         reader: &mut ChannelReader,
@@ -133,7 +133,7 @@ impl Twister {
         println!("current_omega = {}", self.system.current_omega);
     }
 
-    pub fn run(mut self) {
+    pub(crate) fn run(mut self) {
         std::thread::spawn(move || {
             while let Some(interface_ptr) = self.interface.upgrade() {
                 self.solve_one_step();

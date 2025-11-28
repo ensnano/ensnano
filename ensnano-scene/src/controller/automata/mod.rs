@@ -48,14 +48,14 @@ pub(super) struct Transition<S: AppState> {
 }
 
 impl<S: AppState> Transition<S> {
-    pub fn nothing() -> Self {
+    pub(super) fn nothing() -> Self {
         Self {
             new_state: None,
             consequences: Consequence::Nothing,
         }
     }
 
-    pub fn consequence(consequences: Consequence) -> Self {
+    pub(super) fn consequence(consequences: Consequence) -> Self {
         Self {
             new_state: None,
             consequences,

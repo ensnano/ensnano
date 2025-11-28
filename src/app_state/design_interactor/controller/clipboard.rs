@@ -28,7 +28,7 @@ pub enum PastePosition {
 }
 
 impl PastePosition {
-    pub fn to_nucl(self) -> Option<Nucl> {
+    pub(crate) fn to_nucl(self) -> Option<Nucl> {
         if let Self::Nucl(n) = self {
             Some(n)
         } else {
@@ -36,7 +36,7 @@ impl PastePosition {
         }
     }
 
-    pub fn to_grid_position(self) -> Option<GridPosition> {
+    pub(crate) fn to_grid_position(self) -> Option<GridPosition> {
         if let Self::GridPosition(gp) = self {
             Some(gp)
         } else {
@@ -46,7 +46,7 @@ impl PastePosition {
 }
 
 impl Clipboard {
-    pub fn size(&self) -> usize {
+    pub(super) fn size(&self) -> usize {
         match self {
             Self::Empty => 0,
             Self::Strands(strand_clipboard) => strand_clipboard.templates.len(),
@@ -56,7 +56,7 @@ impl Clipboard {
         }
     }
 
-    pub fn get_strand_clipboard(&self) -> Result<StrandClipboard, ErrOperation> {
+    pub(super) fn get_strand_clipboard(&self) -> Result<StrandClipboard, ErrOperation> {
         match self {
             Self::Empty => Err(ErrOperation::EmptyClipboard),
             Self::Strands(strand_clipboard) => Ok(strand_clipboard.clone()),
@@ -119,7 +119,7 @@ enum DomainTemplate {
 }
 
 impl Controller {
-    pub fn copy_grids(
+    pub(crate) fn copy_grids(
         &mut self,
         design: &Design,
         grid_ids: Vec<GridId>,
@@ -133,7 +133,7 @@ impl Controller {
         Ok(())
     }
 
-    pub fn set_templates(
+    pub(crate) fn set_templates(
         &mut self,
         data: &UpToDateDesign,
         strand_ids: Vec<usize>,
@@ -759,7 +759,7 @@ impl Controller {
         }
     }
 
-    pub fn get_pasted_position(&self) -> Vec<(Vec<Vec3>, bool)> {
+    pub(crate) fn get_pasted_position(&self) -> Vec<(Vec<Vec3>, bool)> {
         match &self.state {
             ControllerState::PositioningStrandPastingPoint { pasted_strands, .. } => pasted_strands
                 .iter()
@@ -775,7 +775,7 @@ impl Controller {
         }
     }
 
-    pub fn get_copy_points(&self) -> Vec<Vec<Nucl>> {
+    pub(crate) fn get_copy_points(&self) -> Vec<Vec<Nucl>> {
         let pasted_strands = match &self.state {
             ControllerState::PositioningStrandPastingPoint { pasted_strands, .. } => pasted_strands,
             ControllerState::PositioningStrandDuplicationPoint { pasted_strands, .. } => {

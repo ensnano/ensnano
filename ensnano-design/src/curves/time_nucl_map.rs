@@ -171,7 +171,7 @@ pub(crate) struct RevolutionCurveTimeMaps {
 }
 
 impl RevolutionCurveTimeMaps {
-    pub fn new(curve: &CurveDescriptor2D, helices: &[(usize, &Helix)]) -> Self {
+    pub(crate) fn new(curve: &CurveDescriptor2D, helices: &[(usize, &Helix)]) -> Self {
         let mut time_maps = BTreeMap::new();
 
         let mut square_per_time: f64 = 1.;
@@ -224,7 +224,7 @@ impl RevolutionCurveTimeMaps {
         }
     }
 
-    pub fn get_abscissa_converter(&self, h_id: usize) -> AbscissaConverter {
+    pub(crate) fn get_abscissa_converter(&self, h_id: usize) -> AbscissaConverter {
         if let Some(map) = self.time_maps.get(&h_id) {
             AbscissaConverter(AbscissaConverter_::TimeMap(map.clone()))
         } else {
@@ -234,7 +234,7 @@ impl RevolutionCurveTimeMaps {
 }
 
 impl PathTimeMaps {
-    pub fn new(path_id: BezierPathId, helices: &[(usize, &Helix)]) -> Self {
+    pub(crate) fn new(path_id: BezierPathId, helices: &[(usize, &Helix)]) -> Self {
         let mut time_maps = BTreeMap::new();
 
         let mut square_per_time: f64 = 1.;
@@ -264,7 +264,7 @@ impl PathTimeMaps {
         }
     }
 
-    pub fn get_abscissa_converter(&self, h_id: usize) -> AbscissaConverter {
+    pub(crate) fn get_abscissa_converter(&self, h_id: usize) -> AbscissaConverter {
         if let Some(map) = self.time_maps.get(&h_id) {
             AbscissaConverter(AbscissaConverter_::TimeMap(map.clone()))
         } else {

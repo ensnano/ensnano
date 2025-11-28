@@ -3,10 +3,10 @@ use ensnano_exports::ExportType;
 use iced::widget::{button, column, scrollable, text};
 
 #[derive(Default)]
-pub struct ExportMenu;
+pub(super) struct ExportMenu;
 
 impl ExportMenu {
-    pub fn view<State>(&self) -> iced::Element<'_, Message<State>>
+    pub(super) fn view<State>(&self) -> iced::Element<'_, Message<State>>
     where
         State: AppState,
     {

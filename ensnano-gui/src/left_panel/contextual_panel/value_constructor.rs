@@ -164,7 +164,7 @@ pub enum GridPositionBuilder {
 }
 
 impl GridPositionBuilder {
-    pub fn new_cartesian(position: Vec3) -> Self {
+    pub(crate) fn new_cartesian(position: Vec3) -> Self {
         Self::Cartesian(Vec3Builder::new(ValueKind::HelixGridPosition, position))
     }
 
@@ -194,7 +194,7 @@ pub enum GridOrientationBuilder {
 }
 
 impl GridOrientationBuilder {
-    pub fn new_direction_angle(orientation: Rotor3) -> Self {
+    pub(crate) fn new_direction_angle(orientation: Rotor3) -> Self {
         Self::DirectionAngle(DirectionAngleBuilder::new(
             ValueKind::GridOrientation,
             orientation,
@@ -227,7 +227,7 @@ pub struct BezierVertexBuilder {
 }
 
 impl BezierVertexBuilder {
-    pub fn new(position: Vec2) -> Self {
+    pub(crate) fn new(position: Vec2) -> Self {
         Self {
             position_builder: Vec2Builder::new(ValueKind::BezierVertexPosition, position),
         }
@@ -278,7 +278,7 @@ pub struct GridBuilder {
 }
 
 impl GridBuilder {
-    pub fn new(position: Vec3, orientation: Rotor3) -> Self {
+    pub(crate) fn new(position: Vec3, orientation: Rotor3) -> Self {
         Self {
             position_builder: GridPositionBuilder::new_cartesian(position),
             orientation_builder: GridOrientationBuilder::new_direction_angle(orientation),

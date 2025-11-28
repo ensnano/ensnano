@@ -21,7 +21,7 @@ impl DesignInteractor {
     /// Create a new data by reading a file. At the moment, the supported format are
     /// * codenano
     /// * icednano
-    pub fn new_with_path(json_path: &PathBuf) -> Result<Self, LoadDesignError> {
+    pub(crate) fn new_with_path(json_path: &PathBuf) -> Result<Self, LoadDesignError> {
         let mut xover_ids: IdGenerator<(Nucl, Nucl)> = Default::default();
         let mut design = read_file(json_path)?;
         println!("Design read");

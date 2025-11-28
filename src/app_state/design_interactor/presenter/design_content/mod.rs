@@ -354,7 +354,7 @@ impl DesignContent {
         ret
     }
 
-    pub fn get_all_visible_nucl_ids(
+    pub(crate) fn get_all_visible_nucl_ids(
         &self,
         design: &Design,
         invisible_nucls: &HashSet<Nucl>,
@@ -369,7 +369,7 @@ impl DesignContent {
             .collect()
     }
 
-    pub fn get_all_visible_bonds(
+    pub(crate) fn get_all_visible_bonds(
         &self,
         design: &Design,
         invisible_nucls: &HashSet<Nucl>,
@@ -1267,7 +1267,7 @@ impl DesignContent {
         }
     }
 
-    pub fn read_simulation_update(&mut self, update: &dyn SimulationUpdate) {
+    pub(crate) fn read_simulation_update(&mut self, update: &dyn SimulationUpdate) {
         update.update_positions(self.nucl_collection.as_ref(), &mut self.space_position);
     }
 }

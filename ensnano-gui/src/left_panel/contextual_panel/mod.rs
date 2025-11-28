@@ -1,4 +1,4 @@
-pub mod value_constructor;
+pub(super) mod value_constructor;
 
 use crate::{AppState, GuiDesignReaderExt, Requests, left_panel::Message};
 use ensnano_consts::{
@@ -25,7 +25,7 @@ use std::sync::{Arc, Mutex};
 use ultraviolet::{Rotor3, Vec2, Vec3};
 use value_constructor::{BezierVertexBuilder, Builder, GridBuilder, InstantiatedValue, ValueKind};
 
-pub enum ValueRequest {
+pub(super) enum ValueRequest {
     HelixGridPosition {
         grid_id: GridId,
         position: Vec3,
@@ -203,7 +203,7 @@ impl<State> ContextualPanel<State>
 where
     State: AppState,
 {
-    pub fn new(width: u16) -> Self {
+    pub(super) fn new(width: u16) -> Self {
         Self {
             width,
             force_help: false,
@@ -214,11 +214,11 @@ where
         }
     }
 
-    pub fn new_width(&mut self, width: u16) {
+    pub(super) fn new_width(&mut self, width: u16) {
         self.width = width;
     }
 
-    pub fn update(&mut self, app_state: &State) -> Command<Message<State>> {
+    pub(super) fn update(&mut self, app_state: &State) -> Command<Message<State>> {
         let selection = app_state
             .get_selection()
             .first()
@@ -256,7 +256,7 @@ where
         }
     }
 
-    pub fn view(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Message<State>> {
+    pub(super) fn view(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Message<State>> {
         let selection = app_state
             .get_selection()
             .first()
@@ -393,7 +393,7 @@ where
         // NOTE: I don't really understand why there is a “- 2” here.
     }
 
-    pub fn selection_value_changed<R: Requests>(&self, s: String, requests: Arc<Mutex<R>>) {
+    pub(super) fn selection_value_changed<R: Requests>(&self, s: String, requests: Arc<Mutex<R>>) {
         if let Ok(g_id) = s.parse() {
             requests
                 .lock()
@@ -402,11 +402,11 @@ where
         }
     }
 
-    pub fn set_small_sphere<R: Requests>(&self, b: bool, requests: Arc<Mutex<R>>) {
+    pub(super) fn set_small_sphere<R: Requests>(&self, b: bool, requests: Arc<Mutex<R>>) {
         requests.lock().unwrap().set_small_sphere(b);
     }
 
-    pub fn scaffold_id_set<R: Requests>(&self, n: usize, b: bool, requests: Arc<Mutex<R>>) {
+    pub(super) fn scaffold_id_set<R: Requests>(&self, n: usize, b: bool, requests: Arc<Mutex<R>>) {
         if b {
             requests.lock().unwrap().set_scaffold_id(Some(n));
         } else {
@@ -414,7 +414,7 @@ where
         }
     }
 
-    pub fn state_updated(&mut self) {
+    pub(super) fn state_updated(&mut self) {
         self.force_help = false;
         self.show_tutorial = false;
     }
@@ -427,19 +427,19 @@ where
         self.add_strand_menu.update_length_str(length_str)
     }
 
-    pub fn get_build_helix_mode(&self) -> ActionMode {
+    pub(super) fn get_build_helix_mode(&self) -> ActionMode {
         self.add_strand_menu.get_build_helix_mode()
     }
 
-    pub fn get_new_strand_parameters(&self) -> Option<(isize, usize)> {
+    pub(super) fn get_new_strand_parameters(&self) -> Option<(isize, usize)> {
         self.add_strand_menu.get_new_strand_parameters()
     }
 
-    pub fn set_show_strand(&mut self, show: bool) {
+    pub(super) fn set_show_strand(&mut self, show: bool) {
         self.add_strand_menu.set_show_strand(show);
     }
 
-    pub fn update_builder_value(&mut self, kind: ValueKind, n: usize, value: String) {
+    pub(super) fn update_builder_value(&mut self, kind: ValueKind, n: usize, value: String) {
         if let Some(b) = &mut self.builder {
             b.builder.update_str_value(kind, n, value);
         } else {
@@ -447,7 +447,7 @@ where
         }
     }
 
-    pub fn submit_value(&mut self, kind: ValueKind) -> Option<ValueRequest> {
+    pub(super) fn submit_value(&mut self, kind: ValueKind) -> Option<ValueRequest> {
         if let Some(b) = &mut self.builder {
             if let Some(value) = b.builder.submit_value(kind) {
                 ValueRequest::from_value_and_selection(&b.selection, value)
@@ -460,7 +460,7 @@ where
         }
     }
 
-    pub fn request_from_value(&mut self, value: InstantiatedValue) -> Option<ValueRequest> {
+    pub(super) fn request_from_value(&mut self, value: InstantiatedValue) -> Option<ValueRequest> {
         if let Some(b) = &mut self.builder {
             ValueRequest::from_value_and_selection(&b.selection, value)
         } else {
@@ -469,11 +469,11 @@ where
         }
     }
 
-    pub fn update_insertion_length_input(&mut self, input: String) {
+    pub(super) fn update_insertion_length_input(&mut self, input: String) {
         self.insertion_length_state.input_str = Some(input);
     }
 
-    pub fn get_insertion_request(&self) -> Option<InsertionRequest> {
+    pub(super) fn get_insertion_request(&self) -> Option<InsertionRequest> {
         let length = self
             .insertion_length_state
             .input_str

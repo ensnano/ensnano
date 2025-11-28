@@ -12,7 +12,7 @@ use lyon::{
 };
 use wgpu::util::DeviceExt as _;
 
-pub struct Background {
+pub(super) struct Background {
     pipeline: wgpu::RenderPipeline,
     border_pipeline: wgpu::RenderPipeline,
     vbo: wgpu::Buffer,
@@ -20,7 +20,7 @@ pub struct Background {
 }
 
 impl Background {
-    pub fn new(
+    pub(super) fn new(
         device: &wgpu::Device,
         globals_layout: &wgpu::BindGroupLayout,
         depth_stencil: Option<&wgpu::DepthStencilState>,
@@ -137,7 +137,7 @@ impl Background {
         }
     }
 
-    pub fn draw<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>) {
+    pub(super) fn draw<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>) {
         log::trace!("Draw 2d background..");
         render_pass.set_pipeline(&self.pipeline);
         render_pass.set_index_buffer(self.ibo.slice(..), wgpu::IndexFormat::Uint16);
@@ -146,7 +146,7 @@ impl Background {
         log::trace!("..Done");
     }
 
-    pub fn draw_border<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>) {
+    pub(super) fn draw_border<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>) {
         log::trace!("Draw 2d border..");
         render_pass.set_pipeline(&self.border_pipeline);
         render_pass.set_index_buffer(self.ibo.slice(..), wgpu::IndexFormat::Uint16);
@@ -162,7 +162,7 @@ struct BgPoint {
     point: [f32; 2],
 }
 
-pub struct Custom;
+pub(super) struct Custom;
 
 impl FillVertexConstructor<BgPoint> for Custom {
     fn new_vertex(&mut self, vertex: lyon::tessellation::FillVertex) -> BgPoint {

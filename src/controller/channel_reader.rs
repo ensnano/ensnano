@@ -24,7 +24,7 @@ pub enum ChannelReaderUpdate {
 }
 
 impl ChannelReader {
-    pub fn get_updates(&mut self) -> Vec<ChannelReaderUpdate> {
+    pub(crate) fn get_updates(&mut self) -> Vec<ChannelReaderUpdate> {
         let mut updates = Vec::new();
         if let Some(progress) = self.get_scaffold_shift_optimization_progress() {
             updates.push(ChannelReaderUpdate::ScaffoldShiftOptimizationProgress(
@@ -66,15 +66,15 @@ impl ChannelReader {
             .and_then(|chanel| chanel.try_recv().ok())
     }
 
-    pub fn attach_result_chanel(&mut self, chanel: mpsc::Receiver<ShiftOptimizationResult>) {
+    pub(crate) fn attach_result_chanel(&mut self, chanel: mpsc::Receiver<ShiftOptimizationResult>) {
         self.scaffold_shift_optimization_result = Some(chanel);
     }
 
-    pub fn attach_progress_chanel(&mut self, chanel: mpsc::Receiver<f32>) {
+    pub(crate) fn attach_progress_chanel(&mut self, chanel: mpsc::Receiver<f32>) {
         self.scaffold_shift_optimization_progress = Some(chanel);
     }
 
-    pub fn attach_state(&mut self, state_chanel: &Arc<Mutex<dyn SimulationInterface>>) {
+    pub(crate) fn attach_state(&mut self, state_chanel: &Arc<Mutex<dyn SimulationInterface>>) {
         self.simulation_interface = Some(Arc::downgrade(state_chanel));
     }
 }

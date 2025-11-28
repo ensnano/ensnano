@@ -78,7 +78,7 @@ impl Presenter {
         self.content.get_staples(&self.current_design, self)
     }
 
-    pub fn can_start_builder_at(&self, nucl: Nucl) -> bool {
+    pub(crate) fn can_start_builder_at(&self, nucl: Nucl) -> bool {
         let left = self.current_design.get_neighbor_nucl(nucl.left());
         let right = self.current_design.get_neighbor_nucl(nucl.right());
         if self.content.nucl_collection.contains_nucl(&nucl) {
@@ -96,7 +96,7 @@ impl Presenter {
         }
     }
 
-    pub fn update(
+    pub(crate) fn update(
         mut self,
         design: AddressPointer<Design>,
         suggestion_parameters: &SuggestionParameters,
@@ -114,7 +114,7 @@ impl Presenter {
 
     /// Return a fresh presenter presenting an imported `Design` with a given set of junctions, as
     /// well as a pointer to the design held by this fresh presenter.
-    pub fn from_new_design(
+    pub(crate) fn from_new_design(
         design: Design,
         old_junctions_ids: &JunctionsIds,
         suggestion_parameters: SuggestionParameters,
@@ -376,7 +376,7 @@ impl Presenter {
 
     /// Return a string describing the decomposition of the length of the strand `s_id` into the
     /// sum of the length of its domains
-    pub fn decompose_length(&self, s_id: usize) -> String {
+    pub(crate) fn decompose_length(&self, s_id: usize) -> String {
         let mut ret = String::new();
         if let Some(strand) = self.current_design.strands.get(&s_id) {
             ret.push_str(&strand.length().to_string());
@@ -403,7 +403,7 @@ impl Presenter {
             .unwrap_or_default()
     }
 
-    pub fn get_strand_domain(&self, s_id: usize, d_id: usize) -> Option<&Domain> {
+    pub(crate) fn get_strand_domain(&self, s_id: usize, d_id: usize) -> Option<&Domain> {
         self.current_design
             .strands
             .get(&s_id)
@@ -425,7 +425,7 @@ impl Presenter {
         true
     }
 
-    pub fn set_visibility_sieve(&mut self, selection: Vec<Selection>, compl: bool) {
+    pub(crate) fn set_visibility_sieve(&mut self, selection: Vec<Selection>, compl: bool) {
         if selection.is_empty() {
             self.visibility_sieve = None;
         } else {
@@ -439,7 +439,7 @@ impl Presenter {
         self.update_visibility();
     }
 
-    pub fn get_checked_xovers_ids(&self) -> Vec<u32> {
+    pub(crate) fn get_checked_xovers_ids(&self) -> Vec<u32> {
         self.current_design
             .checked_xovers
             .iter()
@@ -453,7 +453,7 @@ impl Presenter {
             .collect()
     }
 
-    pub fn get_unchecked_xovers_ids(&self) -> Vec<u32> {
+    pub(crate) fn get_unchecked_xovers_ids(&self) -> Vec<u32> {
         let mut checked_nucl = HashSet::new();
         let mut unchecked_pairs = Vec::new();
         for (xover_id, (n1, n2)) in self.junctions_ids.get_all_elements() {
@@ -476,7 +476,7 @@ impl Presenter {
         ret
     }
 
-    pub fn get_xover_len(&self, xover_id: usize) -> Option<f32> {
+    pub(crate) fn get_xover_len(&self, xover_id: usize) -> Option<f32> {
         let (n1, n2) = self.junctions_ids.get_element(xover_id)?;
         let pos1 = self
             .content
@@ -491,7 +491,7 @@ impl Presenter {
         Some((Vec3::from(pos1) - Vec3::from(pos2)).mag())
     }
 
-    pub fn get_id_of_xover_involving_nucl(&self, nucl: Nucl) -> Option<usize> {
+    pub(crate) fn get_id_of_xover_involving_nucl(&self, nucl: Nucl) -> Option<usize> {
         self.junctions_ids
             .get_all_elements()
             .into_iter()
@@ -499,7 +499,7 @@ impl Presenter {
             .map(|t| t.0)
     }
 
-    pub fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
+    pub(crate) fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
         ensnano_exports::export(
             &self.current_design,
             export_type,
@@ -508,49 +508,49 @@ impl Presenter {
         )
     }
 
-    pub fn get_bezier_path_2d(&self, path_id: BezierPathId) -> Option<InstantiatedPiecewiseBezier> {
+    pub(crate) fn get_bezier_path_2d(&self, path_id: BezierPathId) -> Option<InstantiatedPiecewiseBezier> {
         self.current_design
             .bezier_paths
             .get(&path_id)
             .and_then(BezierPath::to_instantiated_path_2d)
     }
 
-    pub fn get_xovers_list(&self) -> Vec<(Nucl, Nucl)> {
+    pub(crate) fn get_xovers_list(&self) -> Vec<(Nucl, Nucl)> {
         self.current_design.strands.get_xovers()
     }
 
-    pub fn get_design(&self) -> &Design {
+    pub(crate) fn get_design(&self) -> &Design {
         self.current_design.as_ref()
     }
 
-    pub fn get_all_bonds(&self) -> Vec<(Nucl, Nucl)> {
+    pub(crate) fn get_all_bonds(&self) -> Vec<(Nucl, Nucl)> {
         self.content.identifier_bond.keys().copied().collect()
     }
 
-    pub fn get_identifier(&self, nucl: &Nucl) -> Option<u32> {
+    pub(crate) fn get_identifier(&self, nucl: &Nucl) -> Option<u32> {
         self.content.nucl_collection.get_identifier(nucl).copied()
     }
 
-    pub fn get_space_position(&self, nucl: &Nucl) -> Option<Vec3> {
+    pub(crate) fn get_space_position(&self, nucl: &Nucl) -> Option<Vec3> {
         self.get_identifier(nucl)
             .and_then(|id| self.content.space_position.get(&id).map(Into::into))
     }
 
-    pub fn has_nucl(&self, nucl: &Nucl) -> bool {
+    pub(crate) fn has_nucl(&self, nucl: &Nucl) -> bool {
         self.content.nucl_collection.contains_nucl(nucl)
     }
 
-    pub fn get_helices_attached_to_grid(&self, g_id: GridId) -> Option<Vec<usize>> {
+    pub(crate) fn get_helices_attached_to_grid(&self, g_id: GridId) -> Option<Vec<usize>> {
         self.content
             .get_helices_on_grid(g_id)
             .map(|set| set.into_iter().collect())
     }
 
-    pub fn get_grid(&self, g_id: GridId) -> Option<&Grid> {
+    pub(crate) fn get_grid(&self, g_id: GridId) -> Option<&Grid> {
         self.content.grid_manager.grids.get(&g_id)
     }
 
-    pub fn get_helices(&self) -> BTreeMap<usize, Helix> {
+    pub(crate) fn get_helices(&self) -> BTreeMap<usize, Helix> {
         self.current_design
             .helices
             .iter()
@@ -665,7 +665,7 @@ impl DesignInteractor {
     }
 
     /// Return the xover extremity status of nucl.
-    pub fn is_xover_end(&self, nucl: &Nucl) -> Extremity {
+    pub(crate) fn is_xover_end(&self, nucl: &Nucl) -> Extremity {
         let Some(strand_id) = self.get_id_of_strand_containing_nucl(nucl) else {
             return Extremity::No;
         };
@@ -695,7 +695,7 @@ impl DesignInteractor {
             .map(Strand::length)
     }
 
-    pub fn get_scaffold_info(&self) -> Option<ScaffoldInfo> {
+    pub(crate) fn get_scaffold_info(&self) -> Option<ScaffoldInfo> {
         let id = self.presenter.current_design.scaffold_id?;
         let length = self.get_strand_length(id)?;
         let shift = self.presenter.current_design.scaffold_shift;
@@ -712,7 +712,7 @@ impl DesignInteractor {
         })
     }
 
-    pub fn get_camera_with_id(&self, camera_id: CameraId) -> Option<Camera3D> {
+    pub(crate) fn get_camera_with_id(&self, camera_id: CameraId) -> Option<Camera3D> {
         self.presenter
             .current_design
             .get_camera(camera_id)
@@ -724,7 +724,7 @@ impl DesignInteractor {
             })
     }
 
-    pub fn get_nth_camera(&self, n: u32) -> Option<Camera3D> {
+    pub(crate) fn get_nth_camera(&self, n: u32) -> Option<Camera3D> {
         self.presenter
             .current_design
             .get_cameras()
@@ -736,7 +736,7 @@ impl DesignInteractor {
             })
     }
 
-    pub fn get_favorite_camera(&self) -> Option<(Vec3, Rotor3)> {
+    pub(crate) fn get_favorite_camera(&self) -> Option<(Vec3, Rotor3)> {
         self.presenter
             .current_design
             .get_favorite_camera()

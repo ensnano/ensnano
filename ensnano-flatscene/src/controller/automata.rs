@@ -18,20 +18,20 @@ use winit::{
 
 const WHEEL_RADIUS: f32 = 1.5;
 
-pub struct Transition<S: AppState> {
+pub(super) struct Transition<S: AppState> {
     pub new_state: Option<Box<dyn ControllerState<S>>>,
     pub consequences: Consequence,
 }
 
 impl<S: AppState> Transition<S> {
-    pub fn nothing() -> Self {
+    pub(super) fn nothing() -> Self {
         Self {
             new_state: None,
             consequences: Consequence::Nothing,
         }
     }
 
-    pub fn consequence(consequences: Consequence) -> Self {
+    pub(super) fn consequence(consequences: Consequence) -> Self {
         Self {
             new_state: None,
             consequences,
@@ -39,7 +39,7 @@ impl<S: AppState> Transition<S> {
     }
 }
 
-pub trait ControllerState<S: AppState> {
+pub(super) trait ControllerState<S: AppState> {
     fn input(
         &mut self,
         event: &WindowEvent,
@@ -63,7 +63,7 @@ pub trait ControllerState<S: AppState> {
     }
 }
 
-pub struct NormalState {
+pub(super) struct NormalState {
     pub mouse_position: PhysicalPosition<f64>,
 }
 
@@ -417,7 +417,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
     fn transition_from(&self, _controller: &Controller<S>) {}
 }
 
-pub struct Translating {
+pub(super) struct Translating {
     mouse_position: PhysicalPosition<f64>,
     world_clicked: Vec2,
     translation_pivots: Vec<FlatNucl>,
@@ -511,7 +511,7 @@ impl<S: AppState> ControllerState<S> for Translating {
     }
 }
 
-pub struct MovingCamera {
+pub(super) struct MovingCamera {
     mouse_position: PhysicalPosition<f64>,
     clicked_position_screen: PhysicalPosition<f64>,
     translation_pivots: Vec<FlatNucl>,
@@ -592,7 +592,7 @@ impl<S: AppState> ControllerState<S> for MovingCamera {
     }
 }
 
-pub struct ReleasedPivot {
+pub(super) struct ReleasedPivot {
     pub mouse_position: PhysicalPosition<f64>,
     pub translation_pivots: Vec<FlatNucl>,
     pub rotation_pivots: Vec<Vec2>,
@@ -994,7 +994,7 @@ impl<S: AppState> ControllerState<S> for ReleasedPivot {
 /// This state in entered when use user has clicked after realizing a pivot. If the user moves
 /// their mouse, go in moving camera mode without unselecting the helix. If the user release their
 /// click without moving their mouse, clear selection
-pub struct LeavingPivot {
+pub(super) struct LeavingPivot {
     translation_pivots: Vec<FlatNucl>,
     rotation_pivots: Vec<Vec2>,
     clicked_position_screen: PhysicalPosition<f64>,
@@ -1098,7 +1098,7 @@ impl<S: AppState> ControllerState<S> for LeavingPivot {
     }
 }
 
-pub struct Rotating {
+pub(super) struct Rotating {
     translation_pivots: Vec<FlatNucl>,
     rotation_pivots: Vec<Vec2>,
     clicked_position_screen: PhysicalPosition<f64>,
@@ -1108,7 +1108,7 @@ pub struct Rotating {
 }
 
 impl Rotating {
-    pub fn new(
+    pub(super) fn new(
         translation_pivots: Vec<FlatNucl>,
         rotation_pivots: Vec<Vec2>,
         clicked_position_screen: PhysicalPosition<f64>,
@@ -1830,7 +1830,7 @@ impl<S: AppState> ControllerState<S> for Building {
     }
 }
 
-pub struct Crossing {
+pub(super) struct Crossing {
     mouse_position: PhysicalPosition<f64>,
     from: FlatNucl,
     to: FlatNucl,

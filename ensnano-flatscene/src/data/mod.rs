@@ -1157,7 +1157,7 @@ impl Default for LastClick {
 }
 
 impl LastClick {
-    pub fn click_on(&mut self, nucl: FlatNucl) {
+    pub(crate) fn click_on(&mut self, nucl: FlatNucl) {
         let now = Instant::now();
         if self.nucl == Some(nucl)
             && (now - self.last_click_time)
@@ -1171,7 +1171,7 @@ impl LastClick {
         self.last_click_time = now;
     }
 
-    pub fn select(&self, pool: &mut Vec<Selection>) -> Selection {
+    pub(crate) fn select(&self, pool: &mut Vec<Selection>) -> Selection {
         if pool.is_empty() {
             Selection::Nothing
         } else {

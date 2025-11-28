@@ -299,11 +299,11 @@ impl DesignInteractor {
         self.controller.get_new_selection()
     }
 
-    pub fn get_next_selection(&mut self) -> Option<Vec<Selection>> {
+    pub(crate) fn get_next_selection(&mut self) -> Option<Vec<Selection>> {
         self.new_selection.take()
     }
 
-    pub fn get_clipboard_content(&self) -> ClipboardContent {
+    pub(crate) fn get_clipboard_content(&self) -> ClipboardContent {
         self.controller.get_clipboard_content()
     }
 
@@ -320,15 +320,15 @@ impl DesignInteractor {
         Ok(())
     }
 
-    pub fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
+    pub(crate) fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
         self.presenter.export(export_path, export_type)
     }
 
-    pub fn get_strand_domain(&self, s_id: usize, d_id: usize) -> Option<&Domain> {
+    pub(crate) fn get_strand_domain(&self, s_id: usize, d_id: usize) -> Option<&Domain> {
         self.presenter.get_strand_domain(s_id, d_id)
     }
 
-    pub fn get_group_attributes(&self, group_id: GroupId) -> Option<&GroupAttribute> {
+    pub(crate) fn get_group_attributes(&self, group_id: GroupId) -> Option<&GroupAttribute> {
         self.presenter
             .current_design
             .as_ref()
@@ -336,11 +336,11 @@ impl DesignInteractor {
             .get(&group_id)
     }
 
-    pub fn get_bezier_path_2d(&self, path_id: BezierPathId) -> Option<InstantiatedPiecewiseBezier> {
+    pub(crate) fn get_bezier_path_2d(&self, path_id: BezierPathId) -> Option<InstantiatedPiecewiseBezier> {
         self.presenter.get_bezier_path_2d(path_id)
     }
 
-    pub fn get_default_bezier(&self) -> Option<&BezierPlaneDescriptor> {
+    pub(crate) fn get_default_bezier(&self) -> Option<&BezierPlaneDescriptor> {
         self.presenter
             .current_design
             .as_ref()
@@ -349,7 +349,7 @@ impl DesignInteractor {
             .next()
     }
 
-    pub fn get_first_bezier_plane(&self, path_id: BezierPathId) -> Option<&BezierPlaneDescriptor> {
+    pub(crate) fn get_first_bezier_plane(&self, path_id: BezierPathId) -> Option<&BezierPlaneDescriptor> {
         let path = self
             .presenter
             .current_design
@@ -378,7 +378,7 @@ pub(super) enum InteractorResult {
 }
 
 impl InteractorResult {
-    pub fn set_operation_state(&mut self, operation: Arc<dyn Operation>, new_op: bool) {
+    pub(super) fn set_operation_state(&mut self, operation: Arc<dyn Operation>, new_op: bool) {
         let (Self::Push { interactor, .. } | Self::Replace(interactor)) = self;
         if new_op {
             interactor.current_operation_id += 1;

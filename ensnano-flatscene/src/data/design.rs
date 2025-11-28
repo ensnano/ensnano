@@ -40,7 +40,7 @@ pub(super) struct Design2d<R: FlatSceneDesignReaderExt> {
 }
 
 impl<R: FlatSceneDesignReaderExt> Design2d<R> {
-    pub fn new(design: R, requests: Arc<Mutex<dyn Requests>>) -> Self {
+    pub(super) fn new(design: R, requests: Arc<Mutex<dyn Requests>>) -> Self {
         Self {
             design,
             helices: HelixVec::new(),
@@ -55,7 +55,7 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
         }
     }
 
-    pub fn clear(&mut self) {
+    pub(super) fn clear(&mut self) {
         self.helices = HelixVec::new();
         self.id_map = Default::default();
         self.strands = Default::default();
@@ -67,7 +67,7 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
     }
 
     /// Re-read the design and update the 2d data accordingly
-    pub fn update(&mut self, design: R) {
+    pub(super) fn update(&mut self, design: R) {
         self.design = design;
         log::trace!("updating design");
         // At the moment we rebuild the strands from scratch. If needed, this might be an optimization
@@ -141,7 +141,7 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
         log::trace!("done");
     }
 
-    pub fn suggestions(&self) -> Vec<(FlatNucl, FlatNucl)> {
+    pub(super) fn suggestions(&self) -> Vec<(FlatNucl, FlatNucl)> {
         let suggestions = self.design.get_suggestions();
         suggestions
             .iter()
@@ -174,11 +174,11 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
         }
     }
 
-    pub fn get_removed_helices(&mut self) -> BTreeSet<FlatIdx> {
+    pub(super) fn get_removed_helices(&mut self) -> BTreeSet<FlatIdx> {
         std::mem::take(&mut self.removed)
     }
 
-    pub fn update_helix(&mut self, helix: FlatHelix, left: isize, right: isize) {
+    pub(super) fn update_helix(&mut self, helix: FlatHelix, left: isize, right: isize) {
         let helix2d = &mut self.helices[helix.flat];
         helix2d.left = left;
         helix2d.right = right;
@@ -296,19 +296,19 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
         }
     }
 
-    pub fn get_helices(&self) -> &[Helix2d] {
+    pub(super) fn get_helices(&self) -> &[Helix2d] {
         &self.helices
     }
 
-    pub fn get_strands(&self) -> &[Strand] {
+    pub(super) fn get_strands(&self) -> &[Strand] {
         &self.strands
     }
 
-    pub fn get_pasted_strand(&self) -> &[Strand] {
+    pub(super) fn get_pasted_strand(&self) -> &[Strand] {
         &self.pasted_strands
     }
 
-    pub fn flip_visibility(&mut self, flat_helix: FlatHelix, apply_to_other: bool) {
+    pub(super) fn flip_visibility(&mut self, flat_helix: FlatHelix, apply_to_other: bool) {
         if apply_to_other {
             let visibility = if self.last_flip_other == Some(flat_helix) {
                 self.last_flip_other = None;
@@ -335,26 +335,26 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
         }
     }
 
-    pub fn flip_group(&self, helix: FlatHelix) {
+    pub(super) fn flip_group(&self, helix: FlatHelix) {
         self.requests
             .lock()
             .unwrap()
             .flip_group(helix.segment.helix_idx);
     }
 
-    pub fn can_start_builder_at(&self, nucl: Nucl) -> bool {
+    pub(super) fn can_start_builder_at(&self, nucl: Nucl) -> bool {
         self.design.can_start_builder_at(nucl)
     }
 
-    pub fn prime3_of(&self, nucl: Nucl) -> Option<usize> {
+    pub(super) fn prime3_of(&self, nucl: Nucl) -> Option<usize> {
         self.design.prime3_of_which_strand(nucl)
     }
 
-    pub fn prime5_of(&self, nucl: Nucl) -> Option<usize> {
+    pub(super) fn prime5_of(&self, nucl: Nucl) -> Option<usize> {
         self.design.prime5_of_which_strand(nucl)
     }
 
-    pub fn remake_id_map(&mut self) {
+    pub(super) fn remake_id_map(&mut self) {
         self.id_map.clear_maps();
         for (i, h) in self.helices.iter().enumerate() {
             self.id_map.insert_segment_key(
@@ -367,23 +367,23 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
         }
     }
 
-    pub fn id_map(&self) -> &FlatHelixMaps {
+    pub(super) fn id_map(&self) -> &FlatHelixMaps {
         &self.id_map
     }
 
-    pub fn is_xover_end(&self, nucl: &Nucl) -> Option<bool> {
+    pub(super) fn is_xover_end(&self, nucl: &Nucl) -> Option<bool> {
         self.design.is_xover_end(nucl).to_opt()
     }
 
-    pub fn has_nucl(&self, nucl: Nucl) -> bool {
+    pub(super) fn has_nucl(&self, nucl: Nucl) -> bool {
         self.design.get_identifier_nucl(&nucl).is_some()
     }
 
-    pub fn get_strand_id(&self, nucl: Nucl) -> Option<usize> {
+    pub(super) fn get_strand_id(&self, nucl: Nucl) -> Option<usize> {
         self.design.get_id_of_strand_containing_nucl(&nucl)
     }
 
-    pub fn get_dist(&self, nucl1: Nucl, nucl2: Nucl) -> Option<f32> {
+    pub(super) fn get_dist(&self, nucl1: Nucl, nucl2: Nucl) -> Option<f32> {
         let pos1 = self
             .design
             .get_position_of_nucl_on_helix(nucl1, Referential::Model, false)?;
@@ -393,7 +393,7 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
         Some((pos1 - pos2).mag())
     }
 
-    pub fn get_torsions(&self) -> HashMap<(FlatNucl, FlatNucl), FlatTorsion> {
+    pub(super) fn get_torsions(&self) -> HashMap<(FlatNucl, FlatNucl), FlatTorsion> {
         let torsions = self.design.get_torsions();
         let conversion = |((n1, n2), k): (&(Nucl, Nucl), &Torsion)| {
             let flat_1 = FlatNucl::from_real(n1, &self.id_map);
@@ -404,7 +404,7 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
         torsions.iter().filter_map(conversion).collect()
     }
 
-    pub fn get_xovers_list(&self) -> Vec<(usize, (FlatNucl, FlatNucl))> {
+    pub(super) fn get_xovers_list(&self) -> Vec<(usize, (FlatNucl, FlatNucl))> {
         let xovers = self.design.get_xovers_list_with_id();
         xovers
             .iter()
@@ -416,7 +416,7 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
             .collect()
     }
 
-    pub fn strand_from_xover(&self, xover: &(Nucl, Nucl), color: u32, thicker: bool) -> Strand {
+    pub(super) fn strand_from_xover(&self, xover: &(Nucl, Nucl), color: u32, thicker: bool) -> Strand {
         // pretend it's a strand with two size one domains
         let flat_nucls = [xover.0, xover.0, xover.1, xover.1]
             .iter()
@@ -432,23 +432,23 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
         Strand::new(0, flat_nucls, vec![], 0, None).highlighted(color, width)
     }
 
-    pub fn get_nucl_id(&self, nucl: Nucl) -> Option<u32> {
+    pub(super) fn get_nucl_id(&self, nucl: Nucl) -> Option<u32> {
         self.design.get_identifier_nucl(&nucl)
     }
 
-    pub fn get_strand_from_eid(&self, element_id: u32) -> Option<usize> {
+    pub(super) fn get_strand_from_eid(&self, element_id: u32) -> Option<usize> {
         self.design.get_id_of_strand_containing_elt(element_id)
     }
 
-    pub fn get_helix_from_eid(&self, element_id: u32) -> Option<usize> {
+    pub(super) fn get_helix_from_eid(&self, element_id: u32) -> Option<usize> {
         self.design.get_id_of_of_helix_containing_elt(element_id)
     }
 
-    pub fn get_xover_with_id(&self, xover_id: usize) -> Option<(Nucl, Nucl)> {
+    pub(super) fn get_xover_with_id(&self, xover_id: usize) -> Option<(Nucl, Nucl)> {
         self.design.get_xover_with_id(xover_id)
     }
 
-    pub fn get_strand_ends(&self) -> Vec<FlatNucl> {
+    pub(super) fn get_strand_ends(&self) -> Vec<FlatNucl> {
         self.design
             .get_strand_ends()
             .iter()

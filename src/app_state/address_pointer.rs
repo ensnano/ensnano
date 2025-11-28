@@ -41,35 +41,35 @@ impl<T: Default> std::ops::Deref for AddressPointer<T> {
 }
 
 impl<T: Default> AddressPointer<T> {
-    pub fn new(content: T) -> Self {
+    pub(crate) fn new(content: T) -> Self {
         Self(Arc::new(content))
     }
 
-    pub fn show_address(&self) {
+    pub(crate) fn show_address(&self) {
         println!("{:p}", Arc::as_ptr(&self.0));
     }
 
-    pub fn get_ptr(&self) -> *const T {
+    pub(crate) fn get_ptr(&self) -> *const T {
         Arc::as_ptr(&self.0)
     }
 }
 
 impl<T: Default + Clone> AddressPointer<T> {
-    pub fn make_mut(&mut self) -> &mut T {
+    pub(crate) fn make_mut(&mut self) -> &mut T {
         Arc::make_mut(&mut self.0)
     }
 }
 
 impl<T: Clone + Default> AddressPointer<T> {
     /// Return a clone of the pointed value.
-    pub fn clone_inner(&self) -> T {
+    pub(crate) fn clone_inner(&self) -> T {
         self.0.deref().clone()
     }
 }
 
 impl<T: Default + PartialEq> AddressPointer<T> {
     /// Test the content of two pointers for equality
-    pub fn content_equal(&self, content: &T) -> bool {
+    pub(crate) fn content_equal(&self, content: &T) -> bool {
         self.0.as_ref() == content
     }
 }

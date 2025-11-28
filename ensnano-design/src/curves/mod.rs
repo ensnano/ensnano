@@ -1041,7 +1041,7 @@ impl InstantiatedPiecewiseBezierDescriptor {
 }
 
 impl InstantiatedCurveDescriptor_ {
-    pub fn into_curve(
+    pub(crate) fn into_curve(
         self,
         helix_parameters: &HelixParameters,
         cache: &mut CurveCache,
@@ -1127,7 +1127,7 @@ impl InstantiatedCurveDescriptor_ {
         }
     }
 
-    pub fn try_into_curve(&self, helix_parameters: &HelixParameters) -> Option<Arc<Curve>> {
+    pub(crate) fn try_into_curve(&self, helix_parameters: &HelixParameters) -> Option<Arc<Curve>> {
         match self {
             Self::Bezier(constructor) => Some(Arc::new(Curve::new(
                 constructor.clone().into_bezier(),
@@ -1304,7 +1304,7 @@ impl InstantiatedCurveDescriptor_ {
         }
     }
 
-    pub fn get_bezier_controls(&self) -> Option<CubicBezierConstructor> {
+    pub(crate) fn get_bezier_controls(&self) -> Option<CubicBezierConstructor> {
         if let Self::Bezier(b) = self {
             Some(b.clone())
         } else {

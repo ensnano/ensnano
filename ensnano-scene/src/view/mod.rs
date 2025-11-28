@@ -1241,7 +1241,7 @@ struct DnaDrawers {
 }
 
 impl DnaDrawers {
-    pub fn get_mut(&mut self, key: Mesh) -> &mut dyn RawDrawer<RawInstance = RawDnaInstance> {
+    pub(crate) fn get_mut(&mut self, key: Mesh) -> &mut dyn RawDrawer<RawInstance = RawDnaInstance> {
         match key {
             Mesh::Sphere => &mut self.sphere,
             Mesh::Tube => &mut self.tube,
@@ -1280,7 +1280,7 @@ impl DnaDrawers {
         }
     }
 
-    pub fn reals(
+    pub(crate) fn reals(
         &mut self,
         draw_options: &DrawOptions,
     ) -> Vec<&mut dyn RawDrawer<RawInstance = RawDnaInstance>> {
@@ -1341,15 +1341,15 @@ impl DnaDrawers {
         ret
     }
 
-    pub fn fakes(&mut self) -> Vec<&mut dyn RawDrawer<RawInstance = RawDnaInstance>> {
+    pub(crate) fn fakes(&mut self) -> Vec<&mut dyn RawDrawer<RawInstance = RawDnaInstance>> {
         vec![&mut self.fake_sphere, &mut self.fake_tube]
     }
 
-    pub fn phantoms(&mut self) -> Vec<&mut dyn RawDrawer<RawInstance = RawDnaInstance>> {
+    pub(crate) fn phantoms(&mut self) -> Vec<&mut dyn RawDrawer<RawInstance = RawDnaInstance>> {
         vec![&mut self.fake_phantom_sphere, &mut self.fake_phantom_tube]
     }
 
-    pub fn fakes_and_phantoms(&mut self) -> Vec<&mut dyn RawDrawer<RawInstance = RawDnaInstance>> {
+    pub(crate) fn fakes_and_phantoms(&mut self) -> Vec<&mut dyn RawDrawer<RawInstance = RawDnaInstance>> {
         vec![
             &mut self.fake_sphere,
             &mut self.fake_tube,
@@ -1358,7 +1358,7 @@ impl DnaDrawers {
         ]
     }
 
-    pub fn new(
+    pub(crate) fn new(
         device: Rc<Device>,
         queue: Rc<Queue>,
         viewer_desc: &wgpu::BindGroupLayoutDescriptor<'static>,

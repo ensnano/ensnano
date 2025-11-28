@@ -18,14 +18,14 @@ pub struct Scheduler {
 }
 
 impl Scheduler {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             applications: HashMap::new(),
             needs_redraw: Vec::new(),
         }
     }
 
-    pub fn add_application(
+    pub(crate) fn add_application(
         &mut self,
         application: Arc<Mutex<dyn Application<AppState = AppState>>>,
         element_type: GuiComponentType,
@@ -34,7 +34,7 @@ impl Scheduler {
     }
 
     /// Forwards an event to the appropriate application
-    pub fn forward_event(
+    pub(crate) fn forward_event(
         &mut self,
         event: &WindowEvent,
         area: GuiComponentType,
@@ -47,7 +47,7 @@ impl Scheduler {
             .on_event(event, cursor_position, &app_state)
     }
 
-    pub fn check_redraw(
+    pub(crate) fn check_redraw(
         &mut self,
         multiplexer: &Multiplexer,
         dt: Duration,
@@ -66,7 +66,7 @@ impl Scheduler {
     }
 
     /// Request an application to draw on a texture
-    pub fn draw_apps(&mut self, encoder: &mut wgpu::CommandEncoder, multiplexer: &Multiplexer) {
+    pub(crate) fn draw_apps(&mut self, encoder: &mut wgpu::CommandEncoder, multiplexer: &Multiplexer) {
         for area in &self.needs_redraw {
             let app = self.applications.get_mut(area).unwrap();
             if let Some(target) = multiplexer.get_texture_view(*area) {
@@ -76,7 +76,7 @@ impl Scheduler {
     }
 
     /// Notify all applications that the size of the window has been modified
-    pub fn forward_new_size(&mut self, window_size: PhysicalSize<u32>, multiplexer: &Multiplexer) {
+    pub(crate) fn forward_new_size(&mut self, window_size: PhysicalSize<u32>, multiplexer: &Multiplexer) {
         if window_size.height > 0 && window_size.width > 0 {
             for (area, app) in &mut self.applications {
                 if let Some(draw_area) = multiplexer.get_draw_area(*area) {

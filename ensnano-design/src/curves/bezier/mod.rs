@@ -107,7 +107,7 @@ impl CubicBezierPolynomial {
         (6. * t) * self.q3 + 2. * self.q2
     }
 
-    pub fn max_x(&self) -> f64 {
+    pub(crate) fn max_x(&self) -> f64 {
         let a = 3. * self.q3.x;
         let b = 2. * self.q2.x;
         let c = self.q1.x;
@@ -128,7 +128,7 @@ impl CubicBezierPolynomial {
         ret
     }
 
-    pub fn min_x(&self) -> f64 {
+    pub(crate) fn min_x(&self) -> f64 {
         let a = 3. * self.q3.x;
         let b = 2. * self.q2.x;
         let c = self.q1.x;

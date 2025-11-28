@@ -182,7 +182,7 @@ pub struct UnalignedBoundaries {
 }
 
 impl UnalignedBoundaries {
-    pub fn from_basis(basis: Basis3D) -> Self {
+    pub(crate) fn from_basis(basis: Basis3D) -> Self {
         Self {
             min_x: f32::INFINITY,
             min_y: f32::INFINITY,
@@ -194,7 +194,7 @@ impl UnalignedBoundaries {
         }
     }
 
-    pub fn add_point(&mut self, point: Vec3) {
+    pub(crate) fn add_point(&mut self, point: Vec3) {
         let real_point = self.basis.convert_point_to_self(point);
         self.min_x = self.min_x.min(real_point.x);
         self.max_x = self.max_x.max(real_point.x);
@@ -204,7 +204,7 @@ impl UnalignedBoundaries {
         self.max_z = self.max_z.max(real_point.z);
     }
 
-    pub fn middle(&self) -> Option<Vec3> {
+    pub(crate) fn middle(&self) -> Option<Vec3> {
         let x = (self.min_x + self.max_x) / 2.;
         let y = (self.min_y + self.max_y) / 2.;
         let z = (self.min_z + self.max_z) / 2.;
@@ -224,7 +224,7 @@ impl UnalignedBoundaries {
             .then(|| max_length / 2. * 3f32.sqrt())
     }
 
-    pub fn fit_point(&self, fovy: f32, ratio: f32) -> Option<Vec3> {
+    pub(crate) fn fit_point(&self, fovy: f32, ratio: f32) -> Option<Vec3> {
         let middle = self.middle()?;
         let radius = self.bounding_sphere_radius()? * 1.1;
         let ratio_adjust = (1. / ratio).max(1.);

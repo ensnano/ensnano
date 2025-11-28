@@ -23,7 +23,7 @@ pub struct InsertionDrawer {
 }
 
 impl InsertionDrawer {
-    pub fn new(
+    pub(crate) fn new(
         device: Rc<Device>,
         queue: Rc<Queue>,
         globals: &BindGroupLayout,
@@ -68,7 +68,7 @@ impl InsertionDrawer {
         }
     }
 
-    pub fn draw<'a>(&'a mut self, render_pass: &mut RenderPass<'a>) {
+    pub(crate) fn draw<'a>(&'a mut self, render_pass: &mut RenderPass<'a>) {
         self.update_instances();
         render_pass.set_pipeline(&self.pipeline);
         render_pass.set_bind_group(1, self.instances.get_bindgroup(), &[]);
@@ -81,7 +81,7 @@ impl InsertionDrawer {
         );
     }
 
-    pub fn new_instances(&mut self, instances: Vec<InsertionInstance>) {
+    pub(crate) fn new_instances(&mut self, instances: Vec<InsertionInstance>) {
         self.new_instances = Some(instances);
     }
 

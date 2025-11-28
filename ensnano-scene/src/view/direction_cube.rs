@@ -7,11 +7,11 @@ use wgpu::{Device, Queue};
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct SkyBox {
+pub(super) struct SkyBox {
     size: f32,
 }
 impl SkyBox {
-    pub fn new(size: f32) -> Self {
+    pub(super) fn new(size: f32) -> Self {
         Self { size }
     }
 }
@@ -48,12 +48,12 @@ impl Instantiable for SkyBox {
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Default, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct DirectionCube {
+pub(super) struct DirectionCube {
     dist: f32,
 }
 
 impl DirectionCube {
-    pub fn new(dist: f32) -> Self {
+    pub(super) fn new(dist: f32) -> Self {
         Self { dist }
     }
 }
@@ -196,7 +196,7 @@ impl Instantiable for DirectionCube {
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct CubeVertex {
+pub(super) struct CubeVertex {
     position: Vec3,
     texture_position: Vec2,
 }
@@ -220,7 +220,7 @@ impl Vertexable for CubeVertex {
     }
 }
 
-pub struct DirectionTexture {
+pub(super) struct DirectionTexture {
     pub texture_view: wgpu::TextureView,
     pub sampler: wgpu::Sampler,
 }
@@ -262,7 +262,7 @@ impl ResourceProvider for DirectionTexture {
 }
 
 impl DirectionTexture {
-    pub fn new(device: Rc<Device>, queue: Rc<Queue>) -> Self {
+    pub(super) fn new(device: Rc<Device>, queue: Rc<Queue>) -> Self {
         let diffuse_bytes = include_bytes!("../../../icons/direction_cube.png");
         let diffuse_image = image::load_from_memory(diffuse_bytes).unwrap();
         let dimensions = diffuse_image.dimensions();

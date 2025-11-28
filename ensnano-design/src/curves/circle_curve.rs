@@ -7,7 +7,7 @@ use std::f64::consts::TAU;
 use ultraviolet::DVec3;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CircleCurve {
+pub(super) struct CircleCurve {
     pub _parameters: HelixParameters,
     pub radius: f64,
     pub z: f64,

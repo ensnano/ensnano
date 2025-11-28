@@ -1345,7 +1345,7 @@ struct RigidGrid {
 }
 
 impl RigidGrid {
-    pub fn from_helices(
+    pub(crate) fn from_helices(
         id: GridId,
         helices: Vec<RigidHelix>,
         position_grid: Vec3,

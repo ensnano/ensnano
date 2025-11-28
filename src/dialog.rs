@@ -22,7 +22,7 @@ pub struct DialogFilter {
     extensions: &'static [&'static str],
 }
 impl DialogFilter {
-    pub const fn new(name: &'static str, extensions: &'static [&'static str]) -> Self {
+    pub(crate) const fn new(name: &'static str, extensions: &'static [&'static str]) -> Self {
         Self { name, extensions }
     }
 }
@@ -32,7 +32,7 @@ pub type DialogFilters = &'static [DialogFilter];
 /// A question to which the user must answer yes or no
 pub struct YesNoQuestion(mpsc::Receiver<bool>);
 impl YesNoQuestion {
-    pub fn answer(&self) -> Option<bool> {
+    pub(crate) fn answer(&self) -> Option<bool> {
         self.0.try_recv().ok()
     }
 }
@@ -58,7 +58,7 @@ pub fn yes_no_dialog(message: Cow<'static, str>) -> YesNoQuestion {
 /// A message that the user must acknowledge
 pub struct MustAckMessage(mpsc::Receiver<()>);
 impl MustAckMessage {
-    pub fn was_ack(&self) -> bool {
+    pub(crate) fn was_ack(&self) -> bool {
         self.0.try_recv().is_ok()
     }
 }
@@ -78,7 +78,7 @@ pub fn blocking_message(message: Cow<'static, str>, level: rfd::MessageLevel) ->
 
 pub struct PathInput(mpsc::Receiver<Option<PathBuf>>);
 impl PathInput {
-    pub fn get(&self) -> Option<Option<PathBuf>> {
+    pub(crate) fn get(&self) -> Option<Option<PathBuf>> {
         self.0.try_recv().ok()
     }
 }

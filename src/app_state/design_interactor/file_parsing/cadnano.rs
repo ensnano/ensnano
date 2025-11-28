@@ -21,7 +21,7 @@ pub(super) struct Cadnano {
 }
 
 impl Cadnano {
-    pub fn from_file<P: AsRef<Path>>(file: P) -> Result<Self, CadnanoError> {
+    pub(super) fn from_file<P: AsRef<Path>>(file: P) -> Result<Self, CadnanoError> {
         let f = File::open(file)?;
         Ok(serde_json::from_reader(&f)?)
     }

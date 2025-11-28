@@ -82,7 +82,7 @@ pub enum Consequence {
 }
 
 impl<S: AppState> Controller<S> {
-    pub fn new(
+    pub(crate) fn new(
         view: ViewPtr,
         data: DataPtr<S::Reader>,
         window_size: PhySize,
@@ -108,17 +108,17 @@ impl<S: AppState> Controller<S> {
         }
     }
 
-    pub fn update_modifiers(&mut self, modifiers: ModifiersState) {
+    pub(crate) fn update_modifiers(&mut self, modifiers: ModifiersState) {
         self.modifiers = modifiers;
     }
 
-    pub fn resize(&mut self, window_size: PhySize, area_size: PhySize) {
+    pub(crate) fn resize(&mut self, window_size: PhySize, area_size: PhySize) {
         self.area_size = area_size;
         self.window_size = window_size;
         self.update_globals();
     }
 
-    pub fn set_split(&mut self, is_split: bool, refit: bool) {
+    pub(crate) fn set_split(&mut self, is_split: bool, refit: bool) {
         self.is_split = is_split;
         let old_rectangle_top = self.camera_top.borrow().get_visible_rectangle();
         self.update_globals();
@@ -151,7 +151,7 @@ impl<S: AppState> Controller<S> {
         }
     }
 
-    pub fn get_camera(&self, y: f64) -> CameraPtr {
+    pub(crate) fn get_camera(&self, y: f64) -> CameraPtr {
         if self.is_split {
             if y > self.area_size.height as f64 / 2. {
                 self.camera_bottom.clone()
@@ -163,7 +163,7 @@ impl<S: AppState> Controller<S> {
         }
     }
 
-    pub fn get_other_camera(&self, y: f64) -> Option<CameraPtr> {
+    pub(crate) fn get_other_camera(&self, y: f64) -> Option<CameraPtr> {
         if self.is_split {
             if y > self.area_size.height as f64 / 2. {
                 Some(self.camera_top.clone())
@@ -175,7 +175,7 @@ impl<S: AppState> Controller<S> {
         }
     }
 
-    pub fn input(
+    pub(crate) fn input(
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
@@ -223,7 +223,7 @@ impl<S: AppState> Controller<S> {
         self.view.borrow_mut().set_hovered_nucl(nucl);
     }
 
-    pub fn process_keyboard(&self, event: &WindowEvent) {
+    pub(crate) fn process_keyboard(&self, event: &WindowEvent) {
         if let WindowEvent::KeyboardInput {
             event:
                 KeyEvent {
@@ -280,7 +280,7 @@ impl<S: AppState> Controller<S> {
         }
     }
 
-    pub fn check_timers(&mut self) -> Consequence {
+    pub(crate) fn check_timers(&mut self) -> Consequence {
         let transition = self.state.borrow_mut().check_timers(self);
         if let Some(state) = transition.new_state {
             log::info!("{}", state.display());
@@ -291,13 +291,13 @@ impl<S: AppState> Controller<S> {
         transition.consequences
     }
 
-    pub fn flip_split_views(&self) {
+    pub(crate) fn flip_split_views(&self) {
         self.camera_bottom
             .borrow_mut()
             .swap(&mut self.camera_top.borrow_mut());
     }
 
-    pub fn get_icon(&self) -> Option<CursorIcon> {
+    pub(crate) fn get_icon(&self) -> Option<CursorIcon> {
         self.state.borrow().cursor()
     }
 }

@@ -21,7 +21,7 @@ pub struct Controller {
 }
 
 impl Controller {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             state: Box::new(NormalState),
         }
@@ -29,7 +29,7 @@ impl Controller {
 
     /// This function is called to update the state of ENSnano. Its behavior depends on the state
     /// of the [Controller](`Controller`).
-    pub fn make_progress(&mut self, main_state: &mut MainStateView) {
+    pub(crate) fn make_progress(&mut self, main_state: &mut MainStateView) {
         main_state.check_backup();
         if main_state.need_backup() {
             if let Err(e) = main_state.save_backup() {
@@ -185,7 +185,7 @@ impl<E: std::error::Error> From<E> for SaveDesignError {
 }
 
 impl SaveDesignError {
-    pub fn cannot_open_default_dir() -> Self {
+    pub(crate) fn cannot_open_default_dir() -> Self {
         Self(CANNOT_OPEN_DEFAULT_DIR.to_owned())
     }
 }

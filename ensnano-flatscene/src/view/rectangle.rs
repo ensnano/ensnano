@@ -5,7 +5,7 @@ use wgpu::{Device, Queue, RenderPipeline, util::DeviceExt as _};
 
 const SELECT_COLOR: [f32; 4] = [0.26, 0.64, 0.85, 0.6];
 
-pub struct Rectangle {
+pub(super) struct Rectangle {
     corner: Option<Option<[Ndc; 2]>>,
     pipeline: RenderPipeline,
     vbo: wgpu::Buffer,
@@ -33,7 +33,7 @@ impl Vertex {
 }
 
 impl Rectangle {
-    pub fn new(device: &Device, queue: Rc<Queue>) -> Self {
+    pub(super) fn new(device: &Device, queue: Rc<Queue>) -> Self {
         let vs_module = device.create_shader_module(wgpu::include_spirv!("rectangle.vert.spv"));
         let fs_module = device.create_shader_module(wgpu::include_spirv!("rectangle.frag.spv"));
 
@@ -113,11 +113,11 @@ impl Rectangle {
         }
     }
 
-    pub fn update_corners(&mut self, corner: Option<[Ndc; 2]>) {
+    pub(super) fn update_corners(&mut self, corner: Option<[Ndc; 2]>) {
         self.corner = Some(corner);
     }
 
-    pub fn draw<'a>(&'a mut self, render_pass: &mut wgpu::RenderPass<'a>) {
+    pub(super) fn draw<'a>(&'a mut self, render_pass: &mut wgpu::RenderPass<'a>) {
         if let Some(corners) = self.corner.take() {
             self.update_vertices(corners);
         }

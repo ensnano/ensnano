@@ -1121,7 +1121,7 @@ mod abscissa_converter {
     }
 
     impl AbscissaConverter {
-        pub fn nucl_to_x_conversion(&self, n: FlatPosition) -> f64 {
+        pub(super) fn nucl_to_x_conversion(&self, n: FlatPosition) -> f64 {
             let adjust = if let Some(n) = self.left {
                 self.converter.nucl_to_x_conversion(n)
             } else {
@@ -1132,7 +1132,7 @@ mod abscissa_converter {
             self.converter.nucl_to_x_conversion(real) - adjust
         }
 
-        pub fn x_conversion(&self, x: f64) -> f64 {
+        pub(super) fn x_conversion(&self, x: f64) -> f64 {
             if let Some(n) = self.left {
                 // translate x to the right and back
                 let adjust = self.converter.nucl_to_x_conversion(n);
@@ -1142,7 +1142,7 @@ mod abscissa_converter {
             }
         }
 
-        pub fn x_to_nucl_conversion(&self, x: f64) -> f64 {
+        pub(super) fn x_to_nucl_conversion(&self, x: f64) -> f64 {
             if let Some(n) = self.left {
                 let shift = self.converter.nucl_to_x_conversion(n);
                 self.converter.x_to_nucl_conversion(x + shift) - n as f64

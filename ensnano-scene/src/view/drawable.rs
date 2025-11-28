@@ -4,7 +4,7 @@ use std::rc::Rc;
 use ultraviolet::Vec3;
 use wgpu::{Device, RenderPass, RenderPipeline, include_spirv};
 
-pub trait Drawable {
+pub(super) trait Drawable {
     fn indices() -> Vec<u16>;
     fn vertices(&self, fake: bool) -> Vec<Vertex>;
     fn primitive_topology() -> wgpu::PrimitiveTopology;
@@ -34,7 +34,7 @@ pub trait Drawable {
 }
 
 /// A structure that draw one object
-pub struct Drawer<D: Drawable> {
+pub(super) struct Drawer<D: Drawable> {
     device: Rc<Device>,
     /// An update in the axis defining the planes to be drawn
     new_object: Option<D>,
@@ -51,7 +51,7 @@ pub struct Drawer<D: Drawable> {
 }
 
 impl<D: Drawable> Drawer<D> {
-    pub fn new(device: Rc<Device>) -> Self {
+    pub(super) fn new(device: Rc<Device>) -> Self {
         let index_buffer = create_buffer_with_data(
             device.as_ref(),
             bytemuck::cast_slice(D::indices().as_slice()),
@@ -71,7 +71,7 @@ impl<D: Drawable> Drawer<D> {
         }
     }
 
-    pub fn new_object(&mut self, object: Option<D>) {
+    pub(super) fn new_object(&mut self, object: Option<D>) {
         if object.is_some() {
             self.new_object = object;
         } else {
@@ -80,7 +80,7 @@ impl<D: Drawable> Drawer<D> {
         }
     }
 
-    pub fn draw<'a>(
+    pub(super) fn draw<'a>(
         &'a mut self,
         render_pass: &mut RenderPass<'a>,
         viewer_bind_group: &'a wgpu::BindGroup,
@@ -210,7 +210,7 @@ impl<D: Drawable> Drawer<D> {
 
 #[derive(Debug, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 #[repr(C)]
-pub struct VertexRaw {
+pub(super) struct VertexRaw {
     pub position: [f32; 3],
     pub color: [f32; 4],
 }
@@ -218,7 +218,7 @@ pub struct VertexRaw {
 const VERTEX_ATTR_ARRAY: [wgpu::VertexAttribute; 2] =
     wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x4];
 impl VertexRaw {
-    pub fn buffer_desc<'a>() -> wgpu::VertexBufferLayout<'a> {
+    pub(super) fn buffer_desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         wgpu::VertexBufferLayout {
             array_stride: size_of::<Self>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Vertex,
@@ -227,14 +227,14 @@ impl VertexRaw {
     }
 }
 
-pub struct Vertex {
+pub(super) struct Vertex {
     pub position: Vec3,
     pub color: u32,
     pub fake: bool,
 }
 
 impl Vertex {
-    pub fn to_raw(&self, use_alpha: bool) -> VertexRaw {
+    pub(super) fn to_raw(&self, use_alpha: bool) -> VertexRaw {
         let alpha = if use_alpha || self.fake {
             ((self.color & 0xFF000000) >> 24) as f32 / 255.
         } else {
@@ -251,7 +251,7 @@ impl Vertex {
         }
     }
 
-    pub fn new(position: Vec3, color: u32, fake: bool) -> Self {
+    pub(super) fn new(position: Vec3, color: u32, fake: bool) -> Self {
         Self {
             position,
             color,

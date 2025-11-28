@@ -3,20 +3,20 @@ use hue_column::HueColumn;
 use iced::widget::row;
 use light_sat_square::LightSatSquare;
 
-pub struct ColorPicker {
+pub(super) struct ColorPicker {
     hue: f64,
 }
 
 impl ColorPicker {
-    pub fn new() -> Self {
+    pub(super) fn new() -> Self {
         Self { hue: 0. }
     }
 
-    pub fn change_hue(&mut self, hue: f64) {
+    pub(super) fn change_hue(&mut self, hue: f64) {
         self.hue = hue;
     }
 
-    pub fn new_view(&self) -> iced::Element<'_, ColorMessage> {
+    pub(super) fn new_view(&self) -> iced::Element<'_, ColorMessage> {
         row![
             HueColumn::new(ColorMessage::HueChanged,),
             LightSatSquare::new(
@@ -50,7 +50,7 @@ mod hue_column {
 
     /// The internal state of a [HueColumnState].
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-    pub struct HueColumnState {
+    pub(super) struct HueColumnState {
         is_dragging: bool,
     }
 
@@ -242,7 +242,7 @@ mod light_sat_square {
 
     /// The internal state of a [LightSatSquare].
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-    pub struct LightSatState {
+    pub(super) struct LightSatState {
         is_dragging: bool,
     }
 
@@ -460,7 +460,7 @@ mod color_square {
 
     /// The State of a [ColorSquare]
     #[derive(Default, Clone, Eq, PartialEq)]
-    pub struct ColorSquareState {
+    pub(super) struct ColorSquareState {
         clicked: bool,
     }
 

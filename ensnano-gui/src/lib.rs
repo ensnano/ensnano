@@ -534,7 +534,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
         }
     }
 
-    pub fn render(
+    pub(crate) fn render(
         &mut self,
         device: &Device,
         queue: &Queue,

@@ -12,7 +12,7 @@ pub struct SausageRosary {
 }
 
 impl SausageRosary {
-    pub fn to_raw_dna_instances(
+    pub(crate) fn to_raw_dna_instances(
         &self,
         color: impl Fn(usize) -> u32,
         radius: f32,

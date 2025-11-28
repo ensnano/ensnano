@@ -95,7 +95,7 @@ impl Controller {
     /// Apply an operation to the design. This will either produce a modified copy of the design,
     /// or result in an error that could be shown to the user to explain why the requested
     /// operation could no be applied.
-    pub fn apply_operation(
+    pub(crate) fn apply_operation(
         &self,
         design: &Design,
         operation: DesignOperation,
@@ -369,7 +369,7 @@ impl Controller {
         ret
     }
 
-    pub fn update_pending_operation(
+    pub(crate) fn update_pending_operation(
         &self,
         design: &Design,
         operation: Arc<dyn Operation>,
@@ -389,7 +389,7 @@ impl Controller {
         Ok(ret)
     }
 
-    pub fn apply_copy_operation(
+    pub(crate) fn apply_copy_operation(
         &self,
         up_to_date_design: UpToDateDesign,
         operation: CopyOperation,
@@ -918,7 +918,7 @@ impl Controller {
         matches!(&self.state, ControllerState::MakingHyperboloid { .. })
     }
 
-    pub fn can_iterate_duplication(&self) -> bool {
+    pub(crate) fn can_iterate_duplication(&self) -> bool {
         matches!(
             self.state,
             ControllerState::WithPendingStrandDuplication { .. }
@@ -959,7 +959,7 @@ impl Controller {
         );
     }
 
-    pub fn get_clipboard_content(&self) -> ClipboardContent {
+    pub(crate) fn get_clipboard_content(&self) -> ClipboardContent {
         let n = self.clipboard.size();
         match self.clipboard.as_ref() {
             Clipboard::Empty => ClipboardContent::Empty,
@@ -970,7 +970,7 @@ impl Controller {
         }
     }
 
-    pub fn get_pasting_status(&self) -> PastingStatus {
+    pub(crate) fn get_pasting_status(&self) -> PastingStatus {
         match self.state {
             ControllerState::PositioningStrandDuplicationPoint { .. }
             | ControllerState::DoingFirstXoversDuplication { .. }
@@ -984,7 +984,7 @@ impl Controller {
         }
     }
 
-    pub fn notify(&self, notification: InteractorNotification) -> Self {
+    pub(crate) fn notify(&self, notification: InteractorNotification) -> Self {
         let mut new_interactor = self.clone();
         match notification {
             InteractorNotification::FinishOperation => new_interactor.state = self.state.finish(),
@@ -2269,7 +2269,7 @@ impl Controller {
     /// If `force_end` is `None`, nucl will be on the 5 prime half of the split unless nucl is the 3
     /// prime extremity of a crossover, in which case nucl will be on the 3 prime half of the
     /// split.
-    pub fn split_strand(
+    pub(crate) fn split_strand(
         strands: &mut Strands,
         nucl: &Nucl,
         force_end: Option<bool>,
@@ -3701,11 +3701,11 @@ pub(super) enum StatePersistence {
 }
 
 impl StatePersistence {
-    pub fn is_persistent(&self) -> bool {
+    pub(super) fn is_persistent(&self) -> bool {
         matches!(self, Self::Persistent)
     }
 
-    pub fn is_transitory(&self) -> bool {
+    pub(super) fn is_transitory(&self) -> bool {
         matches!(self, Self::Transitory)
     }
 }

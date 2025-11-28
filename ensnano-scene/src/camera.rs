@@ -237,7 +237,7 @@ pub struct CameraController {
 }
 
 impl CameraController {
-    pub fn new(speed: f32, camera: CameraPtr, projection: ProjectionPtr) -> Self {
+    pub(crate) fn new(speed: f32, camera: CameraPtr, projection: ProjectionPtr) -> Self {
         Self {
             speed,
             amount_left: 0.0,
@@ -264,7 +264,7 @@ impl CameraController {
         }
     }
 
-    pub fn process_keyboard(&mut self, key: KeyCode, state: ElementState) -> bool {
+    pub(crate) fn process_keyboard(&mut self, key: KeyCode, state: ElementState) -> bool {
         let process_translation = |amount: &mut f32| {
             *amount = state.is_pressed() as u8 as f32;
             true
@@ -295,7 +295,7 @@ impl CameraController {
         }
     }
 
-    pub fn is_moving(&self) -> bool {
+    pub(crate) fn is_moving(&self) -> bool {
         self.amount_down != 0.
             || self.amount_up != 0.
             || self.amount_right != 0.
@@ -303,14 +303,14 @@ impl CameraController {
             || self.scroll != 0.
     }
 
-    pub fn stop_camera_movement(&mut self) {
+    pub(crate) fn stop_camera_movement(&mut self) {
         self.amount_left = 0.;
         self.amount_right = 0.;
         self.amount_up = 0.;
         self.amount_down = 0.;
     }
 
-    pub fn set_pivot_point(&mut self, point: Option<FiniteVec3>) {
+    pub(crate) fn set_pivot_point(&mut self, point: Option<FiniteVec3>) {
         if let Some(origin) = point {
             let origin: Vec3 = origin.into();
             self.zoom_plane = Some(Plane {
@@ -321,7 +321,7 @@ impl CameraController {
         self.pivot_point = point;
     }
 
-    pub fn get_projection(
+    pub(crate) fn get_projection(
         &self,
         origin: Vec3,
         x: f64,
@@ -344,13 +344,13 @@ impl CameraController {
         .unwrap_or(origin)
     }
 
-    pub fn process_mouse(&mut self, mouse_dx: f64, mouse_dy: f64) {
+    pub(crate) fn process_mouse(&mut self, mouse_dx: f64, mouse_dy: f64) {
         self.mouse_horizontal = -mouse_dx as f32;
         self.mouse_vertical = -mouse_dy as f32;
         self.processed_move = true;
     }
 
-    pub fn process_scroll(
+    pub(crate) fn process_scroll(
         &mut self,
         delta: &MouseScrollDelta,
         x_cursor: f32,
@@ -368,7 +368,7 @@ impl CameraController {
         } * sensitivity;
     }
 
-    pub fn update_stereographic_zoom(&self, delta: &MouseScrollDelta) {
+    pub(crate) fn update_stereographic_zoom(&self, delta: &MouseScrollDelta) {
         let direction = match delta {
             MouseScrollDelta::LineDelta(_, scroll) => scroll.signum(),
             MouseScrollDelta::PixelDelta(PhysicalPosition { y: scroll, .. }) => {
@@ -557,7 +557,7 @@ impl CameraController {
         }
     }
 
-    pub fn init_movement(&mut self, along_surface: bool) {
+    pub(crate) fn init_movement(&mut self, along_surface: bool) {
         self.processed_move = false;
         if !along_surface {
             log::info!("Setting info to None");
@@ -566,18 +566,18 @@ impl CameraController {
         }
     }
 
-    pub fn init_constrained_rotation(&mut self, force_horizon: bool) {
+    pub(crate) fn init_constrained_rotation(&mut self, force_horizon: bool) {
         self.current_constrained_rotation = Some(ConstrainedRotation::init(
             self.camera.borrow().rotor,
             force_horizon,
         ));
     }
 
-    pub fn end_constrained_rotation(&mut self) {
+    pub(crate) fn end_constrained_rotation(&mut self) {
         self.current_constrained_rotation = None;
     }
 
-    pub fn end_movement(&mut self) {
+    pub(crate) fn end_movement(&mut self) {
         self.cam0 = self.camera.borrow().clone();
         self.surface_point0 = self.surface_point.clone();
         self.mouse_horizontal = 0.;
@@ -594,20 +594,20 @@ impl CameraController {
         self.end_constrained_rotation();
     }
 
-    pub fn teleport_camera(&mut self, position: Vec3, rotation: Rotor3) {
+    pub(crate) fn teleport_camera(&mut self, position: Vec3, rotation: Rotor3) {
         let mut camera = self.camera.borrow_mut();
         camera.position = position;
         camera.rotor = rotation;
         self.cam0 = camera.clone();
     }
 
-    pub fn set_surface_point_if_unset(&mut self, info: SurfaceInfo) {
+    pub(crate) fn set_surface_point_if_unset(&mut self, info: SurfaceInfo) {
         if self.surface_point.is_none() {
             self.set_surface_point(info);
         }
     }
 
-    pub fn set_surface_point(&mut self, info: SurfaceInfo) {
+    pub(crate) fn set_surface_point(&mut self, info: SurfaceInfo) {
         let cam_pos =
             info.position + DEFAULT_DIST_TO_SURFACE * Vec3::unit_z().rotated_by(info.local_frame);
         self.dist_to_surface = self.dist_to_surface.or(Some(DEFAULT_DIST_TO_SURFACE));
@@ -625,7 +625,7 @@ impl CameraController {
         }
     }
 
-    pub fn horizon_angle(&self) -> f32 {
+    pub(crate) fn horizon_angle(&self) -> f32 {
         let pv_matrix = self.projection.borrow().calc_matrix() * self.camera.borrow().calc_matrix();
         let far_dist = 1000.;
         let mut perceived_x_far = pv_matrix
@@ -651,19 +651,19 @@ impl CameraController {
         angle
     }
 
-    pub fn set_camera_position(&mut self, position: Vec3) {
+    pub(crate) fn set_camera_position(&mut self, position: Vec3) {
         let mut camera = self.camera.borrow_mut();
         camera.position = position;
         self.cam0 = camera.clone();
     }
 
-    pub fn resize(&self, size: PhySize) {
+    pub(crate) fn resize(&self, size: PhySize) {
         self.projection.borrow_mut().resize(size.width, size.height);
     }
 
     /// Swing the camera around `self.pivot_point`. Assumes that the pivot_point is where the
     /// camera points at.
-    pub fn swing(&mut self, x: f64, y: f64) {
+    pub(crate) fn swing(&mut self, x: f64, y: f64) {
         let new_angle_yz = -((y + 1.).rem_euclid(2.) - 1.) as f32 * PI;
         let new_angle_xz = ((x + 1.).rem_euclid(2.) - 1.) as f32 * PI;
         let delta_angle_yz = new_angle_yz - self.free_yz_angle;
@@ -679,7 +679,7 @@ impl CameraController {
 
     /// Rotate the camera around a point.
     /// `point` is given in the world's coordinates.
-    pub fn rotate_camera_around(
+    pub(crate) fn rotate_camera_around(
         &mut self,
         delta_xz_angle: f32,
         delta_yz_angle: f32,
@@ -713,7 +713,7 @@ impl CameraController {
 
     /// Modify the camera's rotor so that the camera looks at `point`.
     /// `point` is given in the world's coordinates
-    pub fn look_at_point(&self, point: Vec3, up: Vec3) {
+    pub(crate) fn look_at_point(&self, point: Vec3, up: Vec3) {
         let new_direction = (point - self.camera.borrow().position).normalized();
         let right = new_direction.cross(up);
         let matrix = Mat3::new(right, up, -new_direction);
@@ -723,7 +723,7 @@ impl CameraController {
 
     /// Modify the camera's rotor so that the camera looks at `self.position + point`.
     /// `point` is given in the world's coordinates
-    pub fn look_at_orientation(&mut self, point: Vec3, up: Vec3, pivot: Option<Vec3>) {
+    pub(crate) fn look_at_orientation(&mut self, point: Vec3, up: Vec3, pivot: Option<Vec3>) {
         let dist = pivot.map(|p| (self.camera.borrow().position - p).mag());
         let point = self.camera.borrow().position + point;
         self.look_at_point(point, up);
@@ -749,7 +749,7 @@ impl CameraController {
         }
     }
 
-    pub fn rotate_camera(&mut self, angle_xz: f32, angle_yz: f32, pivot: Option<Vec3>) {
+    pub(crate) fn rotate_camera(&mut self, angle_xz: f32, angle_yz: f32, pivot: Option<Vec3>) {
         let dist = pivot.map(|p| (self.camera.borrow().position - p).mag());
         let rotation = Rotor3::from_rotation_yz(angle_yz) * Rotor3::from_rotation_xz(angle_xz);
 
@@ -764,7 +764,7 @@ impl CameraController {
         }
     }
 
-    pub fn tilt_camera(&mut self, angle_xy: f32) {
+    pub(crate) fn tilt_camera(&mut self, angle_xy: f32) {
         let rotation = Rotor3::from_rotation_xy(angle_xy);
 
         let new_rotor = rotation * self.cam0.rotor;
@@ -772,26 +772,26 @@ impl CameraController {
         self.cam0.rotor = new_rotor;
     }
 
-    pub fn continuous_tilt(&self, angle_xy: f32) {
+    pub(crate) fn continuous_tilt(&self, angle_xy: f32) {
         let rotation = Rotor3::from_rotation_xy(angle_xy);
         let new_rotor = rotation * self.cam0.rotor;
         self.camera.borrow_mut().rotor = new_rotor;
     }
 
-    pub fn shift(&mut self) {
+    pub(crate) fn shift(&mut self) {
         let vec = 0.01 * self.camera.borrow().right_vec() + 0.01 * self.camera.borrow().up_vec();
         self.camera.borrow_mut().position += vec;
         self.cam0.position = self.camera.borrow().position;
         self.cam0.rotor = self.camera.borrow().rotor;
     }
 
-    pub fn center_camera(&mut self, center: Vec3) {
+    pub(crate) fn center_camera(&mut self, center: Vec3) {
         let new_position = center - 5. * self.camera.borrow().direction();
         let orientation = self.camera.borrow().rotor;
         self.teleport_camera(new_position, orientation);
     }
 
-    pub fn ray(&self, x_ndc: f32, y_ndc: f32) -> (Vec3, Vec3) {
+    pub(crate) fn ray(&self, x_ndc: f32, y_ndc: f32) -> (Vec3, Vec3) {
         cast_ray(
             x_ndc,
             y_ndc,
@@ -801,7 +801,7 @@ impl CameraController {
         )
     }
 
-    pub fn get_current_surface_pivot(&self) -> Option<Vec3> {
+    pub(crate) fn get_current_surface_pivot(&self) -> Option<Vec3> {
         self.surface_point.is_some().then(|| {
             let dist = self.dist_to_surface.unwrap_or(DEFAULT_DIST_TO_SURFACE);
             self.camera.borrow().direction() * dist + self.camera.borrow().position

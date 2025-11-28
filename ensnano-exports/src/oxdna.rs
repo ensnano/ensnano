@@ -174,7 +174,7 @@ pub(super) struct OxDnaMaker<'a> {
 }
 
 impl<'a> OxDnaMaker<'a> {
-    pub fn new(basis_map: BasisMapper<'a>, helix_parameters: HelixParameters) -> Self {
+    pub(crate) fn new(basis_map: BasisMapper<'a>, helix_parameters: HelixParameters) -> Self {
         Self {
             nucl_id: 0,
             boundaries: Default::default(),
@@ -186,7 +186,7 @@ impl<'a> OxDnaMaker<'a> {
         }
     }
 
-    pub fn new_strand<'b>(&'b mut self, strand_id: usize) -> ManuallyDrop<StrandMaker<'b, 'a>> {
+    pub(crate) fn new_strand<'b>(&'b mut self, strand_id: usize) -> ManuallyDrop<StrandMaker<'b, 'a>> {
         self.nb_strand += 1;
         let first_strand_nucl = self.nucl_id;
         ManuallyDrop::new(StrandMaker {
@@ -198,7 +198,7 @@ impl<'a> OxDnaMaker<'a> {
         })
     }
 
-    pub fn end(self) -> (OxDnaConfig, OxDnaTopology) {
+    pub(crate) fn end(self) -> (OxDnaConfig, OxDnaTopology) {
         let topology = OxDnaTopology {
             bonds: self.bonds,
             nb_strand: self.nb_strand,

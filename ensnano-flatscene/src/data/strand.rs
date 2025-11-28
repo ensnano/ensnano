@@ -336,7 +336,7 @@ struct MainXoverDescriptor {
 
 impl<'a> StrandVertexBuilder<'a> {
     /// Initialize the builder.
-    pub fn init(initializer: StrandVertexBuilderInitializer<'a>) -> Self {
+    pub(crate) fn init(initializer: StrandVertexBuilderInitializer<'a>) -> Self {
         let main_path_builder = Path::builder_with_attributes(2);
         let split_cross_over_builder = Path::builder_with_attributes(2);
         let last_point = Self::read_free_end(&initializer);
@@ -365,7 +365,7 @@ impl<'a> StrandVertexBuilder<'a> {
         }
     }
 
-    pub fn draw(&mut self, instruction: DrawingInstruction) {
+    pub(crate) fn draw(&mut self, instruction: DrawingInstruction) {
         match instruction {
             DrawingInstruction::StartAt {
                 position: to,
@@ -500,7 +500,7 @@ impl<'a> StrandVertexBuilder<'a> {
         self.main_builder_is_drawing = false;
     }
 
-    pub fn build(mut self) -> (Path, Path) {
+    pub(crate) fn build(mut self) -> (Path, Path) {
         self.stop_drawing();
         (
             self.main_path_builder.build(),
@@ -521,7 +521,7 @@ struct StrandTopologyReader<'a> {
 }
 
 impl<'a> StrandTopologyReader<'a> {
-    pub fn init(helices: &'a [Helix]) -> Self {
+    pub(crate) fn init(helices: &'a [Helix]) -> Self {
         Self {
             nb_point_helix: 0,
             last_nucl: None,
@@ -529,7 +529,7 @@ impl<'a> StrandTopologyReader<'a> {
         }
     }
 
-    pub fn read_nucl(&mut self, nucl: FlatNucl) -> DrawingInstruction {
+    pub(crate) fn read_nucl(&mut self, nucl: FlatNucl) -> DrawingInstruction {
         if let Some(last_nucl) = self.last_nucl.replace(nucl) {
             if last_nucl.helix == nucl.helix {
                 self.nb_point_helix += 1;

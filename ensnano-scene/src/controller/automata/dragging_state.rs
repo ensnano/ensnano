@@ -68,7 +68,7 @@ pub(super) struct ClickInfo {
 }
 
 impl ClickInfo {
-    pub fn new(button: MouseButton, clicked_position: PhysicalPosition<f64>) -> Self {
+    pub(super) fn new(button: MouseButton, clicked_position: PhysicalPosition<f64>) -> Self {
         Self {
             button,
             clicked_position,

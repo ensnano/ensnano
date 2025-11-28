@@ -306,23 +306,23 @@ impl<State: AppState> Default for RevolutionTab<State> {
 }
 
 impl<State: AppState> RevolutionTab<State> {
-    pub fn set_builder(&mut self, builder: CurveDescriptorBuilder<State>) {
+    pub(crate) fn set_builder(&mut self, builder: CurveDescriptorBuilder<State>) {
         if self.curve_descriptor_widget.as_ref().map(|w| w.curve_name) != Some(builder.curve_name) {
             self.curve_descriptor_widget = Some(CurveDescriptorWidget::new(builder));
         }
     }
 
-    pub fn set_method(&mut self, method: EquadiffSolvingMethod) {
+    pub(crate) fn set_method(&mut self, method: EquadiffSolvingMethod) {
         self.equadiff_method = method;
     }
 
-    pub fn get_current_bezier_path_id(&self) -> Option<usize> {
+    pub(crate) fn get_current_bezier_path_id(&self) -> Option<usize> {
         self.curve_descriptor_widget
             .as_ref()
             .and_then(CurveDescriptorWidget::get_bezier_path_id)
     }
 
-    pub fn update_builder_parameter(&mut self, param_id: RevolutionParameterId, text: String) {
+    pub(crate) fn update_builder_parameter(&mut self, param_id: RevolutionParameterId, text: String) {
         match param_id {
             RevolutionParameterId::SectionParameter(id) => {
                 if let Some(widget) = self.curve_descriptor_widget.as_mut() {
@@ -351,7 +351,7 @@ impl<State: AppState> RevolutionTab<State> {
         }
     }
 
-    pub fn get_current_unrooted_surface(
+    pub(crate) fn get_current_unrooted_surface(
         &self,
         app_state: &State,
     ) -> Option<UnrootedRevolutionSurfaceDescriptor> {
@@ -384,7 +384,7 @@ impl<State: AppState> RevolutionTab<State> {
         })
     }
 
-    pub fn get_revolution_system(
+    pub(crate) fn get_revolution_system(
         &self,
         app_state: &State,
         compute_area: bool,
@@ -487,7 +487,7 @@ impl<State: AppState> RevolutionTab<State> {
         })
     }
 
-    pub fn modifying_radius(&self) -> bool {
+    pub(crate) fn modifying_radius(&self) -> bool {
         // self.radius_input.state.is_focused()
         // FIXME
         false

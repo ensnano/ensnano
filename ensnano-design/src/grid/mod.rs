@@ -1333,12 +1333,12 @@ impl Drop for HelicesTranslator<'_> {
 }
 
 impl<'a> HelicesTranslator<'a> {
-    pub fn from_design(design: &'a mut Design) -> Self {
+    pub(crate) fn from_design(design: &'a mut Design) -> Self {
         let grid_data = GridData::new_by_updating_design(design);
         Self { design, grid_data }
     }
 
-    pub fn translate_helices(
+    pub(crate) fn translate_helices(
         &mut self,
         snap: bool,
         helices: Vec<usize>,
@@ -1358,7 +1358,7 @@ impl<'a> HelicesTranslator<'a> {
         }
     }
 
-    pub fn rotate_helices_3d(
+    pub(crate) fn rotate_helices_3d(
         &mut self,
         snap: bool,
         helices: Vec<usize>,

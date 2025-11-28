@@ -167,11 +167,11 @@ impl<S: AppState> Controller<S> {
         }
     }
 
-    pub fn set_stereography(&mut self, stereography: Option<Stereography>) {
+    pub(crate) fn set_stereography(&mut self, stereography: Option<Stereography>) {
         self.stereography = stereography;
     }
 
-    pub fn update_modifiers(&mut self, modifiers: Modifiers) {
+    pub(crate) fn update_modifiers(&mut self, modifiers: Modifiers) {
         log::info!("New modifiers {modifiers:?}");
         self.current_modifiers_state = modifiers.state();
         if !self.current_modifiers_state.shift_key() {
@@ -180,38 +180,38 @@ impl<S: AppState> Controller<S> {
     }
 
     /// Replace the camera by a new one.
-    pub fn teleport_camera(&mut self, position: Vec3, rotation: Rotor3) {
+    pub(crate) fn teleport_camera(&mut self, position: Vec3, rotation: Rotor3) {
         self.camera_controller.teleport_camera(position, rotation);
         self.end_movement();
     }
 
-    pub fn set_surface_point(&mut self, info: SurfaceInfo) {
+    pub(crate) fn set_surface_point(&mut self, info: SurfaceInfo) {
         self.camera_controller.set_surface_point(info);
         self.end_movement();
     }
 
-    pub fn reverse_surface_direction(&mut self) {
+    pub(crate) fn reverse_surface_direction(&mut self) {
         self.camera_controller
             .reverse_surface_direction(self.data.borrow().deref());
         self.end_movement();
     }
 
-    pub fn align_horizon(&mut self) {
+    pub(crate) fn align_horizon(&mut self) {
         let angle = self.camera_controller.horizon_angle();
         self.camera_controller.tilt_camera(angle);
     }
 
-    pub fn set_camera_position(&mut self, position: Vec3) {
+    pub(crate) fn set_camera_position(&mut self, position: Vec3) {
         self.camera_controller.set_camera_position(position);
         self.end_movement();
     }
 
     /// Keep the camera orientation and make it face a given point.
-    pub fn center_camera(&mut self, center: Vec3) {
+    pub(crate) fn center_camera(&mut self, center: Vec3) {
         self.camera_controller.center_camera(center);
     }
 
-    pub fn check_timers(&mut self) -> Consequence {
+    pub(crate) fn check_timers(&mut self) -> Consequence {
         log::debug!("Checking timers");
         let transition = self.state.borrow_mut().check_timers(self);
         if let Some(state) = transition.new_state {
@@ -238,7 +238,7 @@ impl<S: AppState> Controller<S> {
             })
     }
 
-    pub fn input(
+    pub(crate) fn input(
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
@@ -364,22 +364,22 @@ impl<S: AppState> Controller<S> {
     }
 
     /// True if the camera is moving and its position must be updated before next frame
-    pub fn camera_is_moving(&self) -> bool {
+    pub(crate) fn camera_is_moving(&self) -> bool {
         self.camera_controller.is_moving()
     }
 
     /// Set the pivot point of the camera
-    pub fn set_pivot_point(&mut self, point: Option<FiniteVec3>) {
+    pub(crate) fn set_pivot_point(&mut self, point: Option<FiniteVec3>) {
         self.camera_controller.set_pivot_point(point);
     }
 
     /// Swing the camera around its pivot point
-    pub fn swing(&mut self, x: f64, y: f64) {
+    pub(crate) fn swing(&mut self, x: f64, y: f64) {
         self.camera_controller.swing(x, y);
     }
 
     /// Moves the camera according to its speed and the time elapsed since previous frame
-    pub fn update_camera(&mut self, dt: Duration) {
+    pub(crate) fn update_camera(&mut self, dt: Duration) {
         self.camera_controller.update_camera(
             dt,
             &self.current_modifiers_state,
@@ -391,7 +391,7 @@ impl<S: AppState> Controller<S> {
     }
 
     /// Handles a resizing of the window and/or drawing area
-    pub fn resize(&mut self, window_size: PhySize, area_size: PhySize) {
+    pub(crate) fn resize(&mut self, window_size: PhySize, area_size: PhySize) {
         self.window_size = window_size;
         self.area_size = area_size;
         self.camera_controller.resize(area_size);
@@ -399,7 +399,7 @@ impl<S: AppState> Controller<S> {
         self.view.borrow_mut().update(ViewUpdate::Size(window_size));
     }
 
-    pub fn get_window_size(&self) -> PhySize {
+    pub(crate) fn get_window_size(&self) -> PhySize {
         self.window_size
     }
 
@@ -415,25 +415,25 @@ impl<S: AppState> Controller<S> {
         self.camera_controller.end_movement();
     }
 
-    pub fn set_camera_target(&mut self, target: Vec3, up: Vec3, pivot: Option<Vec3>) {
+    pub(crate) fn set_camera_target(&mut self, target: Vec3, up: Vec3, pivot: Option<Vec3>) {
         self.camera_controller.init_movement(false);
         self.camera_controller
             .look_at_orientation(target, up, pivot);
         self.shift_cam();
     }
 
-    pub fn translate_camera(&mut self, dx: f64, dy: f64) {
+    pub(crate) fn translate_camera(&mut self, dx: f64, dy: f64) {
         self.camera_controller.process_mouse(dx, dy);
     }
 
-    pub fn rotate_camera(&mut self, xz: f32, yz: f32, xy: f32, pivot: Option<Vec3>) {
+    pub(crate) fn rotate_camera(&mut self, xz: f32, yz: f32, xy: f32, pivot: Option<Vec3>) {
         self.camera_controller.init_movement(false);
         self.camera_controller.rotate_camera(xz, yz, pivot);
         self.camera_controller.tilt_camera(xy);
         self.shift_cam();
     }
 
-    pub fn continuous_tilt(&self, angle: f32) {
+    pub(crate) fn continuous_tilt(&self, angle: f32) {
         self.camera_controller.continuous_tilt(angle);
     }
 
@@ -441,11 +441,11 @@ impl<S: AppState> Controller<S> {
         self.camera_controller.shift();
     }
 
-    pub fn stop_camera_movement(&mut self) {
+    pub(crate) fn stop_camera_movement(&mut self) {
         self.camera_controller.stop_camera_movement();
     }
 
-    pub fn update_data(&self) {
+    pub(crate) fn update_data(&self) {
         self.update_handle_colors();
     }
 
@@ -455,7 +455,7 @@ impl<S: AppState> Controller<S> {
             .update_handle_colors(self.handles_color_system());
     }
 
-    pub fn is_building_bezier_curve(&self) -> bool {
+    pub(crate) fn is_building_bezier_curve(&self) -> bool {
         self.current_modifiers_state.shift_key()
     }
 
@@ -464,7 +464,7 @@ impl<S: AppState> Controller<S> {
     /// If an origin was set, `point` is treated as a destination and the pair
     /// `(origin, destination)` is returned. Otherwise, `point` is treated as an origin and `None`
     /// is returned.
-    pub fn add_bezier_point(
+    pub(crate) fn add_bezier_point(
         &mut self,
         point: HelixGridPosition,
     ) -> Option<(HelixGridPosition, HelixGridPosition)> {
@@ -476,7 +476,7 @@ impl<S: AppState> Controller<S> {
         }
     }
 
-    pub fn get_icon(&self) -> Option<CursorIcon> {
+    pub(crate) fn get_icon(&self) -> Option<CursorIcon> {
         self.state.borrow().cursor()
     }
 }

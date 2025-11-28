@@ -89,7 +89,7 @@ impl LayoutTree {
     ///
     /// Note — The identifier of the area is `0`.
     ///
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         let root = Rc::new(RefCell::new(LayoutNode::Area {
             left: 0.,
             top: 0.,
@@ -123,7 +123,7 @@ impl LayoutTree {
     ///
     /// Note — The identifier of the root area is usually `0`.
     ///
-    pub fn vsplit(
+    pub(crate) fn vsplit(
         &mut self,
         parent_ident: usize,
         left_proportion: f64,
@@ -163,7 +163,7 @@ impl LayoutTree {
     ///
     /// Note — The identifier of the root area is usually `0`.
     ///
-    pub fn hsplit(
+    pub(crate) fn hsplit(
         &mut self,
         parent_ident: usize,
         top_proportion: f64,
@@ -191,7 +191,7 @@ impl LayoutTree {
 
     /// Undo a split by deleting the leaf with type `old_leaf` and its sibling and giving their parent the type
     /// `new_leaf`.
-    pub fn merge(&mut self, old_leaf: GuiComponentType, new_leaf: GuiComponentType) {
+    pub(crate) fn merge(&mut self, old_leaf: GuiComponentType, new_leaf: GuiComponentType) {
         let area_ident = *self
             .area_identifiers
             .get(&old_leaf)
@@ -215,7 +215,7 @@ impl LayoutTree {
     }
 
     /// Return the boundaries of the area attributed to an element
-    pub fn get_area(&self, element: GuiComponentType) -> Option<(f64, f64, f64, f64)> {
+    pub(crate) fn get_area(&self, element: GuiComponentType) -> Option<(f64, f64, f64, f64)> {
         let area_id = *self.area_identifiers.get(&element)?;
         match *self.areas[area_id].borrow() {
             LayoutNode::Area {
@@ -229,23 +229,23 @@ impl LayoutTree {
         }
     }
 
-    pub fn get_area_id(&self, element: GuiComponentType) -> Option<usize> {
+    pub(crate) fn get_area_id(&self, element: GuiComponentType) -> Option<usize> {
         self.area_identifiers.get(&element).copied()
     }
 
     /// Attribute an element_type to an area.
-    pub fn attribute_element(&mut self, area_ident: usize, element_type: GuiComponentType) {
+    pub(crate) fn attribute_element(&mut self, area_ident: usize, element_type: GuiComponentType) {
         let old_element = self.element_types[area_ident];
         self.area_identifiers.remove(&old_element);
         self.element_types[area_ident] = element_type;
         self.area_identifiers.insert(element_type, area_ident);
     }
 
-    pub fn resize(&self, node_id: usize, new_prop: f64) {
+    pub(crate) fn resize(&self, node_id: usize, new_prop: f64) {
         self.areas[node_id].borrow_mut().resize(new_prop);
     }
 
-    pub fn resize_click(
+    pub(crate) fn resize_click(
         &self,
         node_id: usize,
         position: &PhysicalPosition<f64>,
@@ -261,11 +261,11 @@ impl LayoutTree {
         }
     }
 
-    pub fn get_proportion(&self, region: usize) -> Option<f64> {
+    pub(crate) fn get_proportion(&self, region: usize) -> Option<f64> {
         self.areas.get(region).and_then(|a| a.borrow().proportion())
     }
 
-    pub fn log_tree(&self) {
+    pub(crate) fn log_tree(&self) {
         println!("{:#?}", self.root);
     }
 }
@@ -284,7 +284,7 @@ impl LayoutNode {
     ///
     /// A pair `(t, b)` where `t` is a pointer to the top area and `b` is a pointer to the bottom
     /// area
-    pub fn hsplit(
+    pub(crate) fn hsplit(
         &mut self,
         top_proportion: f64,
         top_ident: usize,
@@ -347,7 +347,7 @@ impl LayoutNode {
     ///
     /// A pair `(l, r)` where `l` is a pointer to the left area and `r` is a pointer to the right
     /// area
-    pub fn vsplit(
+    pub(crate) fn vsplit(
         &mut self,
         left_proportion: f64,
         left_ident: usize,
@@ -405,7 +405,7 @@ impl LayoutNode {
     /// Gives the identifier `ident` to the new merged Area, and return the identifier of the two
     /// merged children.
     ///
-    pub fn merge(&mut self, ident: usize) -> (usize, usize) {
+    pub(crate) fn merge(&mut self, ident: usize) -> (usize, usize) {
         let merged_node;
         let new_self = match self {
             Self::VSplit {
@@ -475,7 +475,7 @@ impl LayoutNode {
     }
 
     /// Return the identifier of the leaf owning pixel `(x, y)`
-    pub fn get_area_pixel(&self, x: f64, y: f64) -> PixelRegion {
+    pub(crate) fn get_area_pixel(&self, x: f64, y: f64) -> PixelRegion {
         match self {
             Self::Area { identifier, .. } => PixelRegion::Area(*identifier),
             Self::VSplit {
@@ -522,7 +522,7 @@ impl LayoutNode {
     }
 
     /// Resize a split layout according to mouse click.
-    pub fn resize_click(
+    pub(crate) fn resize_click(
         &mut self,
         position: &PhysicalPosition<f64>,
         clicked_position: &PhysicalPosition<f64>,
@@ -548,7 +548,7 @@ impl LayoutNode {
     }
 
     /// Resize a split layout according to the new proportion given.
-    pub fn resize(&mut self, new_proportion: f64) {
+    pub(crate) fn resize(&mut self, new_proportion: f64) {
         match self {
             Self::VSplit {
                 left,
@@ -650,7 +650,7 @@ impl LayoutNode {
         }
     }
 
-    pub fn proportion(&self) -> Option<f64> {
+    pub(crate) fn proportion(&self) -> Option<f64> {
         match self {
             Self::VSplit {
                 left_proportion, ..

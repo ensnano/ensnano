@@ -58,7 +58,7 @@ impl Clone for RevolutionSurfaceSystem {
 }
 
 impl RevolutionSurfaceSystem {
-    pub fn new(desc: RevolutionSurfaceSystemDescriptor) -> Self {
+    pub(crate) fn new(desc: RevolutionSurfaceSystemDescriptor) -> Self {
         let scaffold_len_target = desc.scaffold_len_target;
         let dna_parameters = desc.helix_parameters;
         let simulation_parameters = desc.simulation_parameters.clone();
@@ -415,7 +415,7 @@ pub struct RevolutionSystemThread {
 }
 
 impl RevolutionSystemThread {
-    pub fn start_new(
+    pub(crate) fn start_new(
         system: RevolutionSurfaceSystemDescriptor,
         reader: &mut ChannelReader,
     ) -> Result<Arc<Mutex<RevolutionSystemInterface>>, ErrOperation> {
@@ -638,11 +638,11 @@ pub struct RevolutionSystemInterface {
 }
 
 impl RevolutionSystemInterface {
-    pub fn kill(&mut self) {
+    pub(crate) fn kill(&mut self) {
         self.helices_routing = OptionOnce::Taken;
     }
 
-    pub fn finish(&mut self) {
+    pub(crate) fn finish(&mut self) {
         self.finished = true;
     }
 }

@@ -37,7 +37,7 @@ impl Quit {
         }
     }
 
-    pub fn quit(need_save: Option<Option<PathBuf>>) -> Box<Self> {
+    pub(super) fn quit(need_save: Option<Option<PathBuf>>) -> Box<Self> {
         Box::new(Self {
             step: QuitStep::Init { need_save },
         })
@@ -117,7 +117,7 @@ impl Load {
         })
     }
 
-    pub fn load(need_save: Option<Option<PathBuf>>, load_type: LoadType) -> Box<Self> {
+    pub(super) fn load(need_save: Option<Option<PathBuf>>, load_type: LoadType) -> Box<Self> {
         Box::new(Self {
             step: LoadStep::Init { need_save },
             load_type,
@@ -269,7 +269,7 @@ enum NewStep {
 }
 
 impl NewDesign {
-    pub fn init(need_save: Option<Option<PathBuf>>) -> Self {
+    pub(super) fn init(need_save: Option<Option<PathBuf>>) -> Self {
         Self {
             step: NewStep::Init { need_save },
         }

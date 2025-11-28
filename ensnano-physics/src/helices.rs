@@ -15,15 +15,15 @@ pub enum IntermediaryPair {
 }
 
 impl IntermediaryPair {
-    pub fn is_a_pair(&self) -> bool {
+    pub(crate) fn is_a_pair(&self) -> bool {
         matches!(self, Self::Pair(..))
     }
 
-    pub fn is_only_forward(&self) -> bool {
+    pub(crate) fn is_only_forward(&self) -> bool {
         matches!(self, Self::OnlyForward(..))
     }
 
-    pub fn is_only_backward(&self) -> bool {
+    pub(crate) fn is_only_backward(&self) -> bool {
         matches!(self, Self::OnlyBackward(..))
     }
 }
@@ -62,7 +62,7 @@ pub fn build_helices(nucleotide: &HashMap<u32, Nucl>) -> HashMap<usize, Intermed
 }
 
 impl IntermediaryHelix {
-    pub fn compute_ranges(&mut self) {
+    pub(crate) fn compute_ranges(&mut self) {
         self.double_ranges = self.compute_ranges_only(IntermediaryPair::is_a_pair);
         self.single_ranges = self.compute_ranges_only(IntermediaryPair::is_only_forward);
         self.single_ranges
@@ -108,7 +108,7 @@ impl IntermediaryHelix {
         result
     }
 
-    pub fn push_nucleotide(&mut self, id: u32, nucl: Nucl) -> Option<()> {
+    pub(crate) fn push_nucleotide(&mut self, id: u32, nucl: Nucl) -> Option<()> {
         if let Some(pair) = self.pairs.get_mut(&nucl.position) {
             match pair {
                 IntermediaryPair::OnlyForward(i, n) => {

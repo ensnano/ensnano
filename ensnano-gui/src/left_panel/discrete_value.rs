@@ -13,7 +13,7 @@ use std::collections::BTreeMap;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ValueId(pub usize);
 
-pub trait Requestable {
+pub(super) trait Requestable {
     type Request;
     fn request_from_values(&self, values: &[f32]) -> Self::Request;
     fn nb_values(&self) -> usize;
@@ -32,7 +32,7 @@ pub trait Requestable {
     }
 }
 
-pub struct RequestFactory<R: Requestable> {
+pub(super) struct RequestFactory<R: Requestable> {
     values: BTreeMap<ValueId, DiscreteValue>,
     pub requestable: R,
 }
@@ -47,7 +47,7 @@ pub enum FactoryId {
 }
 
 impl<R: Requestable> RequestFactory<R> {
-    pub fn new(factory_id: FactoryId, requestable: R) -> Self {
+    pub(super) fn new(factory_id: FactoryId, requestable: R) -> Self {
         let mut values = BTreeMap::new();
         for n in 0..requestable.nb_values() {
             let default = requestable.initial_value(n);
@@ -75,7 +75,7 @@ impl<R: Requestable> RequestFactory<R> {
         }
     }
 
-    pub fn view<State: AppState>(
+    pub(super) fn view<State: AppState>(
         &self,
         active: bool,
         size: impl Into<Pixels>,
@@ -88,7 +88,7 @@ impl<R: Requestable> RequestFactory<R> {
             .collect()
     }
 
-    pub fn update_request(
+    pub(super) fn update_request(
         &mut self,
         value_id: ValueId,
         new_val: f32,
@@ -102,7 +102,7 @@ impl<R: Requestable> RequestFactory<R> {
         self.requestable.make_request(&values, request);
     }
 
-    pub fn update_value(&mut self, value_id: ValueId, new_val: f32) -> R::Request {
+    pub(super) fn update_value(&mut self, value_id: ValueId, new_val: f32) -> R::Request {
         self.values
             .get_mut(&value_id)
             .unwrap()
@@ -111,7 +111,7 @@ impl<R: Requestable> RequestFactory<R> {
         self.requestable.request_from_values(&values)
     }
 
-    pub fn make_request(&self, request: &mut Option<R::Request>) {
+    pub(super) fn make_request(&self, request: &mut Option<R::Request>) {
         let values: Vec<f32> = self.values.values().map(DiscreteValue::get_value).collect();
         self.requestable.make_request(&values, request);
     }

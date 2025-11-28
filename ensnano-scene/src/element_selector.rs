@@ -26,7 +26,7 @@ pub struct ElementSelector {
 }
 
 impl ElementSelector {
-    pub fn new(
+    pub(crate) fn new(
         device: Rc<Device>,
         queue: Rc<Queue>,
         window_size: PhysicalSize<u32>,
@@ -50,19 +50,19 @@ impl ElementSelector {
         }
     }
 
-    pub fn set_stereographic(&mut self, stereographic: bool) {
+    pub(crate) fn set_stereographic(&mut self, stereographic: bool) {
         if self.stereographic != stereographic {
             self.readers[0].pixels = None;
         }
         self.stereographic = stereographic;
     }
 
-    pub fn resize(&mut self, window_size: PhysicalSize<u32>, area: DrawArea) {
+    pub(crate) fn resize(&mut self, window_size: PhysicalSize<u32>, area: DrawArea) {
         self.area = area;
         self.window_size = window_size;
     }
 
-    pub fn set_selected_id(
+    pub(crate) fn set_selected_id(
         &mut self,
         clicked_pixel: PhysicalPosition<f64>,
     ) -> Option<SceneElement> {
@@ -345,7 +345,7 @@ enum ObjType {
 }
 
 impl SceneReader {
-    pub fn new(draw_type: DrawType) -> Self {
+    pub(crate) fn new(draw_type: DrawType) -> Self {
         Self {
             pixels: None,
             draw_type,

@@ -20,7 +20,7 @@ pub struct RapierPhysicalSystem {
 }
 
 impl RapierPhysicalSystem {
-    pub fn start_new(
+    pub(crate) fn start_new(
         presenter: &Presenter,
         reader: &mut ChannelReader,
     ) -> Arc<Mutex<RapierInterface>> {
@@ -52,7 +52,7 @@ impl RapierPhysicalSystem {
         interface
     }
 
-    pub fn run(mut self) {
+    pub(crate) fn run(mut self) {
         std::thread::spawn(move || {
             while let Some(interface) = self.interface.upgrade() {
                 // we update the physics
@@ -74,7 +74,7 @@ pub struct RapierInterface {
 }
 
 impl RapierInterface {
-    pub fn kill(&mut self) {
+    pub(crate) fn kill(&mut self) {
         self.force_stop = true;
     }
 }
