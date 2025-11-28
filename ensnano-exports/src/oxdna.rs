@@ -186,7 +186,10 @@ impl<'a> OxDnaMaker<'a> {
         }
     }
 
-    pub(crate) fn new_strand<'b>(&'b mut self, strand_id: usize) -> ManuallyDrop<StrandMaker<'b, 'a>> {
+    pub(crate) fn new_strand<'b>(
+        &'b mut self,
+        strand_id: usize,
+    ) -> ManuallyDrop<StrandMaker<'b, 'a>> {
         self.nb_strand += 1;
         let first_strand_nucl = self.nucl_id;
         ManuallyDrop::new(StrandMaker {

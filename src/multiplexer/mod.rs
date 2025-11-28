@@ -177,7 +177,10 @@ impl Multiplexer {
     }
 
     /// Return a view of the texture on which the element must be rendered
-    pub(crate) fn get_texture_view(&self, element_type: GuiComponentType) -> Option<&wgpu::TextureView> {
+    pub(crate) fn get_texture_view(
+        &self,
+        element_type: GuiComponentType,
+    ) -> Option<&wgpu::TextureView> {
         match element_type {
             GuiComponentType::StereographicScene => self
                 .stereographic_scene_texture

@@ -29,10 +29,12 @@ pub(super) fn successful_staples_export_msg<P: AsRef<Path>>(file: P) -> String {
 pub(super) const OXDNA_EXPORT_FAILED: &str = "OxDNA export failed";
 pub(super) const SAVE_DESIGN_FAILED: &str = "Could not save design";
 pub(super) const SAVE_BEFORE_EXIT: &str = "Do you want to save your design before exiting?";
-pub(super) const SAVE_BEFORE_LOAD: &str = "Do you want to save your design before loading an other one?";
+pub(super) const SAVE_BEFORE_LOAD: &str =
+    "Do you want to save your design before loading an other one?";
 pub(super) const SAVE_BEFORE_RELOAD: &str =
     "Do you want to save your changes in an other file before reloading?";
-pub(super) const SAVE_BEFORE_NEW: &str = "Do you want to save your design before starting a new one?";
+pub(super) const SAVE_BEFORE_NEW: &str =
+    "Do you want to save your design before starting a new one?";
 
 pub(super) const CHANGING_DNA_PARAMETERS_WARNING: &str =
     "Are you sure that you want to change DNA parameters?";

@@ -10,7 +10,10 @@ use ensnano_interactor::{
 };
 use std::ops::DerefMut;
 
-pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(mut requests: R, main_state: &mut MainState) {
+pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
+    mut requests: R,
+    main_state: &mut MainState,
+) {
     if requests.fitting.take().is_some() {
         main_state.push_action(Action::NotifyApps(Notification::FitRequest));
     }

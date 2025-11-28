@@ -256,7 +256,11 @@ where
         }
     }
 
-    pub(super) fn view(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Message<State>> {
+    pub(super) fn view(
+        &self,
+        ui_size: UiSize,
+        app_state: &State,
+    ) -> iced::Element<'_, Message<State>> {
         let selection = app_state
             .get_selection()
             .first()

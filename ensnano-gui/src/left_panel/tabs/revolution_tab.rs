@@ -322,7 +322,11 @@ impl<State: AppState> RevolutionTab<State> {
             .and_then(CurveDescriptorWidget::get_bezier_path_id)
     }
 
-    pub(crate) fn update_builder_parameter(&mut self, param_id: RevolutionParameterId, text: String) {
+    pub(crate) fn update_builder_parameter(
+        &mut self,
+        param_id: RevolutionParameterId,
+        text: String,
+    ) {
         match param_id {
             RevolutionParameterId::SectionParameter(id) => {
                 if let Some(widget) = self.curve_descriptor_widget.as_mut() {

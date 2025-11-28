@@ -148,7 +148,11 @@ impl CloseSurfaceTopology {
         self.target.d2pos_dtheta2(revolution_angle, section_t)
     }
 
-    pub(super) fn rescale_radius(&mut self, objective_number_of_nts: usize, actual_number_of_nt: usize) {
+    pub(super) fn rescale_radius(
+        &mut self,
+        objective_number_of_nts: usize,
+        actual_number_of_nt: usize,
+    ) {
         self.target
             .rescale_radius(objective_number_of_nts, actual_number_of_nt);
     }
@@ -161,7 +165,11 @@ impl CloseSurfaceTopology {
         self.target.axis(revolution_angle)
     }
 
-    pub(super) fn to_curve_descriptor(&self, thetas: Vec<f64>, finished: bool) -> Vec<CurveDescriptor> {
+    pub(super) fn to_curve_descriptor(
+        &self,
+        thetas: Vec<f64>,
+        finished: bool,
+    ) -> Vec<CurveDescriptor> {
         let mut ret = Vec::new();
 
         let nb_segment_per_helix = self.nb_segment / self.target.nb_spirals();

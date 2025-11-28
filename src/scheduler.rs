@@ -66,7 +66,11 @@ impl Scheduler {
     }
 
     /// Request an application to draw on a texture
-    pub(crate) fn draw_apps(&mut self, encoder: &mut wgpu::CommandEncoder, multiplexer: &Multiplexer) {
+    pub(crate) fn draw_apps(
+        &mut self,
+        encoder: &mut wgpu::CommandEncoder,
+        multiplexer: &Multiplexer,
+    ) {
         for area in &self.needs_redraw {
             let app = self.applications.get_mut(area).unwrap();
             if let Some(target) = multiplexer.get_texture_view(*area) {
@@ -76,7 +80,11 @@ impl Scheduler {
     }
 
     /// Notify all applications that the size of the window has been modified
-    pub(crate) fn forward_new_size(&mut self, window_size: PhysicalSize<u32>, multiplexer: &Multiplexer) {
+    pub(crate) fn forward_new_size(
+        &mut self,
+        window_size: PhysicalSize<u32>,
+        multiplexer: &Multiplexer,
+    ) {
         if window_size.height > 0 && window_size.width > 0 {
             for (area, app) in &mut self.applications {
                 if let Some(draw_area) = multiplexer.get_draw_area(*area) {

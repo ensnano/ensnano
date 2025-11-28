@@ -336,7 +336,10 @@ impl DesignInteractor {
             .get(&group_id)
     }
 
-    pub(crate) fn get_bezier_path_2d(&self, path_id: BezierPathId) -> Option<InstantiatedPiecewiseBezier> {
+    pub(crate) fn get_bezier_path_2d(
+        &self,
+        path_id: BezierPathId,
+    ) -> Option<InstantiatedPiecewiseBezier> {
         self.presenter.get_bezier_path_2d(path_id)
     }
 
@@ -349,7 +352,10 @@ impl DesignInteractor {
             .next()
     }
 
-    pub(crate) fn get_first_bezier_plane(&self, path_id: BezierPathId) -> Option<&BezierPlaneDescriptor> {
+    pub(crate) fn get_first_bezier_plane(
+        &self,
+        path_id: BezierPathId,
+    ) -> Option<&BezierPlaneDescriptor> {
         let path = self
             .presenter
             .current_design

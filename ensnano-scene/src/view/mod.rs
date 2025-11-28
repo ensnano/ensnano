@@ -1241,7 +1241,10 @@ struct DnaDrawers {
 }
 
 impl DnaDrawers {
-    pub(crate) fn get_mut(&mut self, key: Mesh) -> &mut dyn RawDrawer<RawInstance = RawDnaInstance> {
+    pub(crate) fn get_mut(
+        &mut self,
+        key: Mesh,
+    ) -> &mut dyn RawDrawer<RawInstance = RawDnaInstance> {
         match key {
             Mesh::Sphere => &mut self.sphere,
             Mesh::Tube => &mut self.tube,
@@ -1349,7 +1352,9 @@ impl DnaDrawers {
         vec![&mut self.fake_phantom_sphere, &mut self.fake_phantom_tube]
     }
 
-    pub(crate) fn fakes_and_phantoms(&mut self) -> Vec<&mut dyn RawDrawer<RawInstance = RawDnaInstance>> {
+    pub(crate) fn fakes_and_phantoms(
+        &mut self,
+    ) -> Vec<&mut dyn RawDrawer<RawInstance = RawDnaInstance>> {
         vec![
             &mut self.fake_sphere,
             &mut self.fake_tube,

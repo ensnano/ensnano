@@ -508,7 +508,10 @@ impl Presenter {
         )
     }
 
-    pub(crate) fn get_bezier_path_2d(&self, path_id: BezierPathId) -> Option<InstantiatedPiecewiseBezier> {
+    pub(crate) fn get_bezier_path_2d(
+        &self,
+        path_id: BezierPathId,
+    ) -> Option<InstantiatedPiecewiseBezier> {
         self.current_design
             .bezier_paths
             .get(&path_id)

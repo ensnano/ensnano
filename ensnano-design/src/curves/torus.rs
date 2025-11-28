@@ -637,7 +637,10 @@ pub struct TwistedTorusDescriptor {
 }
 
 impl TwistedTorus {
-    pub(super) fn new(descriptor: TwistedTorusDescriptor, helix_parameters: &HelixParameters) -> Self {
+    pub(super) fn new(
+        descriptor: TwistedTorusDescriptor,
+        helix_parameters: &HelixParameters,
+    ) -> Self {
         let instantiated_curve = descriptor.curve.clone().instantiate();
         let scale = 2.
             * Self::inter_helix_gap(helix_parameters)

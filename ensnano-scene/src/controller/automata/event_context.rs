@@ -46,7 +46,10 @@ impl<'a, S: AppState> EventContext<'a, S> {
         self.normalize_position(self.cursor_position)
     }
 
-    pub(crate) fn normalize_position(&self, position: PhysicalPosition<f64>) -> PhysicalPosition<f64> {
+    pub(crate) fn normalize_position(
+        &self,
+        position: PhysicalPosition<f64>,
+    ) -> PhysicalPosition<f64> {
         let normalized_x = position.x / self.controller.area_size.width as f64;
         let normalized_y = position.y / self.controller.area_size.height as f64;
         PhysicalPosition {
@@ -79,7 +82,10 @@ impl<'a, S: AppState> EventContext<'a, S> {
     /// If element is a grid, get the grid disc corresponding to the grid position under the
     /// current cursor.
     /// Otherwise, return element
-    pub(crate) fn convert_grid_to_grid_disc(&self, element: Option<SceneElement>) -> Option<SceneElement> {
+    pub(crate) fn convert_grid_to_grid_disc(
+        &self,
+        element: Option<SceneElement>,
+    ) -> Option<SceneElement> {
         let normalized_position = self.normalized_cursor_position();
         if let Some(SceneElement::Grid(d_id, _)) = element {
             if let Some(intersection) = self
@@ -230,7 +236,9 @@ impl<'a, S: AppState> EventContext<'a, S> {
 
     /// If there is a bezier plane under the cursor, return it's identifier and the coordinates of
     /// the projection of the cursor on the plane
-    pub(crate) fn get_plane_under_cursor(&self) -> Option<(BezierPlaneId, BezierPlaneIntersection)> {
+    pub(crate) fn get_plane_under_cursor(
+        &self,
+    ) -> Option<(BezierPlaneId, BezierPlaneIntersection)> {
         let ray = self.shoot_ray(self.cursor_position);
         ray_bezier_plane_intersection(
             self.app_state
@@ -260,7 +268,10 @@ impl<'a, S: AppState> EventContext<'a, S> {
             .grid_intersection(normalized_position.x as f32, normalized_position.y as f32)
     }
 
-    pub(crate) fn get_specific_grid_intersection(&self, grid_id: GridId) -> Option<GridIntersection> {
+    pub(crate) fn get_specific_grid_intersection(
+        &self,
+        grid_id: GridId,
+    ) -> Option<GridIntersection> {
         let normalized_position = self.normalized_cursor_position();
         self.controller.view.borrow().specific_grid_intersection(
             normalized_position.x as f32,

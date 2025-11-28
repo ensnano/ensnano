@@ -161,7 +161,10 @@ impl AppState {
         Self(AddressPointer::new(new_state))
     }
 
-    pub(crate) fn with_suggestion_parameters(&self, suggestion_parameters: SuggestionParameters) -> Self {
+    pub(crate) fn with_suggestion_parameters(
+        &self,
+        suggestion_parameters: SuggestionParameters,
+    ) -> Self {
         let mut new_state = (*self.0).clone();
         new_state.parameters.suggestion_parameters = suggestion_parameters;
         Self(AddressPointer::new(new_state))

@@ -63,7 +63,10 @@ impl MustAckMessage {
     }
 }
 
-pub(crate) fn blocking_message(message: Cow<'static, str>, level: rfd::MessageLevel) -> MustAckMessage {
+pub(crate) fn blocking_message(
+    message: Cow<'static, str>,
+    level: rfd::MessageLevel,
+) -> MustAckMessage {
     let msg = rfd::AsyncMessageDialog::new()
         .set_level(level)
         .set_description(message.as_ref())
@@ -182,7 +185,10 @@ pub(crate) fn get_file_to_write(
     PathInput(rcv)
 }
 
-pub(crate) fn load<P: AsRef<Path>>(starting_path: Option<P>, dialog_filters: DialogFilters) -> PathInput {
+pub(crate) fn load<P: AsRef<Path>>(
+    starting_path: Option<P>,
+    dialog_filters: DialogFilters,
+) -> PathInput {
     let mut dialog = rfd::AsyncFileDialog::new();
     for dialog_filter in dialog_filters {
         dialog = dialog.add_filter(dialog_filter.name, dialog_filter.extensions);
