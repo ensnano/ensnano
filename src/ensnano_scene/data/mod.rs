@@ -23,6 +23,7 @@ use crate::ensnano_interactor::selection::{
 use crate::ensnano_interactor::{ObjectType, Referential, graphics::HBondDisplay};
 use crate::ensnano_scene::AppState;
 use crate::ensnano_scene::camera::CameraController;
+use crate::ensnano_scene::controller::Data as ControllerData;
 use crate::ensnano_scene::element_selector::{SceneElement, bezier_vertex_id};
 use crate::ensnano_scene::view::{Mesh, View, ViewUpdate};
 use crate::ensnano_scene::view::{
@@ -1900,7 +1901,7 @@ fn toggle_selection(mode: SelectionMode) -> SelectionMode {
     }
 }
 
-impl<R: SceneDesignReaderExt> crate::ensnano_scene::controller::Data for Data<R> {
+impl<R: SceneDesignReaderExt> ControllerData for Data<R> {
     fn element_to_nucl(
         &self,
         element: Option<&SceneElement>,

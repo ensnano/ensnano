@@ -34,7 +34,7 @@ pub(super) struct Design2d<R: FlatSceneDesignReaderExt> {
     removed: BTreeSet<FlatIdx>,
     requests: Arc<Mutex<dyn Requests>>,
     known_helices: HashMap<usize, *const Helix>,
-    known_map: *const crate::ensnano_design::helices::Helices,
+    known_map: *const Helices,
 }
 
 impl<R: FlatSceneDesignReaderExt> Design2d<R> {
