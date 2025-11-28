@@ -112,6 +112,6 @@ pub fn load_stl<P: AsRef<Path>>(path: P) -> Result<StlMesh, ErrStl> {
 
 #[derive(Debug)]
 pub enum ErrStl {
-    FileErr(#[expect(unused)] std::io::Error),
-    StlParseErr(#[expect(unused)] nom_stl::Error),
+    FileErr(std::io::Error),
+    StlParseErr(nom_stl::Error),
 }

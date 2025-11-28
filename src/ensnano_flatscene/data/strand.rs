@@ -4,7 +4,7 @@ use crate::ensnano_flatscene::{
     flat_types::FlatNucl,
     view::insertion::InsertionInstance,
 };
-use crate::ensnano_utils::instance::Instance;
+use ensnano_utils::instance::Instance;
 use lyon::{
     math::Point,
     path::{Path, path::BuilderWithAttributes},

@@ -1100,7 +1100,6 @@ dependencies = [
  "ahash 0.8.12",
  "bytemuck",
  "chebyshev_polynomials",
- "chrono",
  "color_space",
  "confy",
  "dirs",
@@ -1110,10 +1109,9 @@ dependencies = [
  "ensnano_iced",
  "ensnano_interactor",
  "ensnano_organizer",
- "fontdue",
+ "ensnano_utils",
  "futures",
  "futures-channel",
- "gltf",
  "iced",
  "iced_aw",
  "iced_graphics",
@@ -1126,7 +1124,6 @@ dependencies = [
  "log",
  "lyon",
  "mathru",
- "nom_stl",
  "num_enum 0.5.11",
  "open",
  "ordered-float 2.10.1",
@@ -1239,6 +1236,28 @@ dependencies = [
  "log",
  "rand 0.8.5",
  "serde",
+]
+
+[[package]]
+name = "ensnano_utils"
+version = "0.7.0"
+dependencies = [
+ "ahash 0.8.12",
+ "bytemuck",
+ "chrono",
+ "color_space",
+ "ensnano_consts",
+ "ensnano_iced",
+ "ensnano_interactor",
+ "fontdue",
+ "gltf",
+ "log",
+ "nom_stl",
+ "rand 0.8.5",
+ "serde",
+ "ultraviolet",
+ "wgpu",
+ "winit",
 ]
 
 [[package]]

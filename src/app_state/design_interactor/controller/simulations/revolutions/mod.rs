@@ -14,7 +14,7 @@ use ensnano_design::{
 use ensnano_interactor::surfaces::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceSystemDescriptor,
 };
-use crate::ensnano_utils::colors::new_color;
+use ensnano_utils::colors::new_color;
 use crate::{app_state::ErrOperation, controller::channel_reader::ChannelReader};
 use closed_curves::CloseSurfaceTopology;
 use mathru::{

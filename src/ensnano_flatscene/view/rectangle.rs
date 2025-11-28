@@ -1,4 +1,4 @@
-use crate::ensnano_utils::Ndc;
+use ensnano_utils::Ndc;
 use ensnano_consts::SAMPLE_COUNT;
 use std::rc::Rc;
 use wgpu::{Device, Queue, RenderPipeline, util::DeviceExt as _};

@@ -9,7 +9,7 @@ use ensnano_interactor::{
     selection::{PhantomElement, phantom_helix_decoder},
 };
 use crate::ensnano_scene::{ViewPtr, view::DrawType};
-use crate::ensnano_utils::BufferDimensions;
+use ensnano_utils::BufferDimensions;
 use num_enum::IntoPrimitive;
 use std::rc::Rc;
 use wgpu::{Device, Queue};

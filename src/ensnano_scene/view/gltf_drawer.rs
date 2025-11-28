@@ -5,7 +5,7 @@ use ensnano_design::{
     utils::dvec_to_vec,
 };
 use ensnano_interactor::surfaces::UnrootedRevolutionSurfaceDescriptor;
-use crate::ensnano_utils::{
+use ensnano_utils::{
     TEXTURE_FORMAT,
     colors::hsv_color,
     create_buffer_with_data,

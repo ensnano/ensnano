@@ -1,4 +1,4 @@
-use crate::ensnano_utils::chars2d::{CharDrawer, CharInstance};
+use crate::chars2d::{CharDrawer, CharInstance};
 use fontdue::layout::Layout;
 use std::{collections::HashMap, rc::Rc};
 use ultraviolet::{Mat2, Rotor2, Vec2, Vec4};

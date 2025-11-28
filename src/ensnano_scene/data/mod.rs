@@ -42,7 +42,7 @@ use crate::ensnano_scene::{
         },
     },
 };
-use crate::ensnano_utils::StrandNucleotidesPositions;
+use ensnano_utils::StrandNucleotidesPositions;
 use design3d::{Design3D, SceneDesignReaderExt};
 use std::{
     cell::RefCell,

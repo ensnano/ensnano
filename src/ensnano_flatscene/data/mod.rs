@@ -22,7 +22,7 @@ use ensnano_interactor::{
     StrandBuildingStatus,
     selection::{PhantomElement, Selection, SelectionMode},
 };
-use crate::ensnano_utils::camera2d::FitRectangle;
+use ensnano_utils::camera2d::FitRectangle;
 use ahash::RandomState;
 use design::Design2d;
 use std::{

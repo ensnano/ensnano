@@ -1,5 +1,5 @@
 use crate::ensnano_scene::view::instances_drawer::{Instantiable, ResourceProvider, Vertexable};
-use crate::ensnano_utils::text::{self, Letter};
+use ensnano_utils::text::{self, Letter};
 use ultraviolet::{Vec2, Vec3, Vec4};
 use wgpu::{Device, include_spirv};
 

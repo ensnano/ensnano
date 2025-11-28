@@ -8,7 +8,7 @@ use crate::ensnano_scene::view::{
     Mesh,
     instances_drawer::{Instantiable, Vertexable},
 };
-use crate::ensnano_utils::instance::Instance;
+use ensnano_utils::instance::Instance;
 use std::{
     f32::consts::{FRAC_1_SQRT_2, PI, TAU},
     iter::zip,

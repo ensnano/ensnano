@@ -14,14 +14,14 @@
 
 pub mod layout_manager;
 
+use crate::{controller::normal_state::Action, requests::Requests};
 use ensnano_iced::ui_size::UiSize;
 use ensnano_interactor::{
     graphics::{DrawArea, GuiComponentType, PhySize, SplitMode},
     multiplexer::Multiplexer as GuiMultiplexer,
     selection::{ActionMode, SelectionMode},
 };
-use crate::ensnano_utils::texture::SampledTexture;
-use crate::{controller::normal_state::Action, requests::Requests};
+use ensnano_utils::texture::SampledTexture;
 use iced_wgpu::wgpu::Device;
 use layout_manager::{LayoutTree, PixelRegion};
 use std::{

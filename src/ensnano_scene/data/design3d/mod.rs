@@ -47,7 +47,7 @@ use crate::ensnano_scene::{
         letter::LetterInstance,
     },
 };
-use crate::ensnano_utils::{
+use ensnano_utils::{
     StrandNucleotidesPositions,
     colors::{self, purple_to_blue_gradient_color_in_range},
     instance::Instance,

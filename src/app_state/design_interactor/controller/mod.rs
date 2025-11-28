@@ -42,7 +42,7 @@ use ensnano_interactor::{
     },
 };
 use ensnano_organizer::tree::GroupId;
-use crate::ensnano_utils::colors;
+use ensnano_utils::colors;
 use crate::{
     app_state::{
         AddressPointer,

@@ -14,7 +14,7 @@ use crate::ensnano_flatscene::{
         insertion::{InsertionDescriptor, InsertionInstance},
     },
 };
-use crate::ensnano_utils::{
+use ensnano_utils::{
     chars2d::text_drawer::{Line, Sentence, TextDrawer},
     circles2d::CircleInstance,
     full_isometry::FullIsometry,

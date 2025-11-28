@@ -400,7 +400,7 @@ mod tests {
         InsertionPoint, operation::GridHelixCreation, selection::InteractorDesignReaderExt as _,
     };
     use crate::ensnano_scene::data::design3d::SceneDesignReaderExt as _;
-    use crate::ensnano_utils::id_generator::IdGenerator;
+    use ensnano_utils::id_generator::IdGenerator;
     use crate::{
         OkOperation as TopOkOperation,
         app_state::{

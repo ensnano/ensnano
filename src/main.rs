@@ -77,7 +77,6 @@ mod ensnano_flatscene;
 mod ensnano_gui;
 mod ensnano_physics;
 mod ensnano_scene;
-mod ensnano_utils;
 
 mod app_state;
 mod controller;
@@ -93,7 +92,6 @@ use crate::ensnano_gui::{
 use crate::ensnano_scene::{
     AppState as _, Scene, SceneKind, data::design3d::SceneDesignReaderExt as _,
 };
-use crate::ensnano_utils::TEXTURE_FORMAT;
 use app_state::{
     AppState,
     design_interactor::controller::{
@@ -141,6 +139,7 @@ use ensnano_interactor::{
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
 };
 use ensnano_organizer::tree::GroupId;
+use ensnano_utils::TEXTURE_FORMAT;
 use iced::{
     advanced::{clipboard, renderer},
     mouse::Cursor,

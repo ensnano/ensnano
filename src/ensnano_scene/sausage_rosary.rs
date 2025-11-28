@@ -3,7 +3,7 @@ use crate::ensnano_scene::{
     rotor_utils::SafeRotor as _,
     view::dna_obj::{SlicedTubeInstance, TubeLidInstance},
 };
-use crate::ensnano_utils::instance::Instance;
+use ensnano_utils::instance::Instance;
 use ultraviolet::{Rotor3, Vec3};
 
 pub struct SausageRosary {

@@ -11,7 +11,7 @@ use crate::ensnano_scene::{
         letter::LetterInstance,
     },
 };
-use crate::ensnano_utils::instance::Instance;
+use ensnano_utils::instance::Instance;
 use std::collections::BTreeMap;
 use ultraviolet::{Mat4, Vec2, Vec3, Vec4};
 use wgpu::{Device, RenderPass, include_spirv};

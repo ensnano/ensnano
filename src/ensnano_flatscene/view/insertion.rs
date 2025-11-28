@@ -1,5 +1,5 @@
 use ensnano_consts::SAMPLE_COUNT;
-use crate::ensnano_utils::{bindgroup_manager::DynamicBindGroup, instance::Instance};
+use ensnano_utils::{bindgroup_manager::DynamicBindGroup, instance::Instance};
 use lyon::{
     math::Point,
     path::Path,

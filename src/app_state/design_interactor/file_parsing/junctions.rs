@@ -2,7 +2,7 @@ use ensnano_design::{
     Nucl,
     strands::{Domain, DomainJunction, HelixInterval, Strand, sanitize_domains},
 };
-use crate::ensnano_utils::id_generator::IdGenerator;
+use ensnano_utils::id_generator::IdGenerator;
 
 pub trait StrandJunction {
     /// Read the junctions for self when loading the design.

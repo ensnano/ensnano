@@ -15,7 +15,7 @@ use crate::ensnano_flatscene::{
     flat_types::{FlatIdx, FlatNucl, FlatSelection},
 };
 use ensnano_interactor::graphics::{DrawArea, PhySize};
-use crate::ensnano_utils::{
+use ensnano_utils::{
     Ndc,
     bindgroup_manager::{DynamicBindGroup, UniformBindGroup},
     camera2d::Globals,

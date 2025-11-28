@@ -1,80 +1,104 @@
-pub mod text_drawer;
-
-use ensnano_consts::{SAMPLE_COUNT, TEXTURE_BINDING_ID};
-use crate::ensnano_utils::{
-    bindgroup_manager::DynamicBindGroup,
-    text::{Letter, Vertex as CharVertex},
-    texture::Texture,
-};
+use ensnano_consts::SAMPLE_COUNT;
+use crate::{bindgroup_manager::DynamicBindGroup, texture::Texture};
 use std::rc::Rc;
-use ultraviolet::{Mat2, Vec2, Vec4};
+use ultraviolet::Vec2;
 use wgpu::{BindGroupLayout, Device, Queue, RenderPass, RenderPipeline, include_spirv};
 
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct CharInstance {
-    /// The top left of the glyph's bounding box
-    pub top_left: Vec2,
-    pub rotation: Mat2,
-    pub size: f32,
+pub struct CircleInstance {
+    pub center: Vec2,
+    pub radius: f32,
+    pub angle: f32,
     pub z_index: i32,
-    pub color: Vec4,
+    color: u32,
 }
 
-pub struct CharDrawer {
+impl CircleInstance {
+    pub fn new(center: Vec2, radius: f32, z_index: i32, color: u32) -> Self {
+        Self {
+            center,
+            radius,
+            angle: 0.,
+            z_index,
+            color,
+        }
+    }
+
+    pub fn set_radius(&mut self, radius: f32) {
+        self.radius = radius;
+    }
+
+    pub fn set_color(&mut self, color: u32) {
+        self.color = color;
+    }
+
+    pub fn in_rectangle(&self, c1: &Vec2, c2: &Vec2) -> bool {
+        let min_x = c1.x.min(c2.x);
+        let max_x = c1.x.max(c2.x);
+        let min_y = c1.y.min(c2.y);
+        let max_y = c1.y.max(c2.y);
+
+        (self.center.x >= min_x
+            && self.center.x <= max_x
+            && self.center.y >= min_y
+            && self.center.y <= max_y)
+            || (self.center - Vec2::new(min_x, min_y)).mag() <= self.radius
+            || (self.center - Vec2::new(min_x, max_y)).mag() <= self.radius
+            || (self.center - Vec2::new(max_x, min_y)).mag() <= self.radius
+            || (self.center - Vec2::new(max_x, max_y)).mag() <= self.radius
+    }
+}
+
+pub struct CircleDrawer {
     device: Rc<Device>,
     /// A possible updates to the instances to be drawn. Must be taken into account before drawing
     /// next frame
-    new_instances: Option<Rc<Vec<CharInstance>>>,
+    new_instances: Option<Rc<Vec<CircleInstance>>>,
     /// The number of instance to draw.
     number_instances: usize,
     /// The data sent the the GPU
     instances_bg: DynamicBindGroup,
     /// The pipeline created by `self`
     pipeline: Option<RenderPipeline>,
-    letter: Rc<Letter>,
 }
 
-impl CharDrawer {
+pub enum CircleKind {
+    FullCircle,
+    RotationWidget,
+}
+
+impl CircleDrawer {
     pub fn new(
         device: Rc<Device>,
         queue: Rc<Queue>,
         globals_layout: &BindGroupLayout,
-        character: char,
+        circle_kind: CircleKind,
     ) -> Self {
-        let instances_bg = DynamicBindGroup::new(device.clone(), queue.clone(), "chars instances");
-        let char_texture = Rc::new(Letter::new(character, device.clone(), queue));
+        let instances_bg = DynamicBindGroup::new(device.clone(), queue, "circles instances");
 
-        let new_instances = vec![CharInstance {
-            top_left: Vec2::zero(),
-            rotation: Mat2::identity(),
-            z_index: -1,
-            size: 1.,
-            color: Vec4::zero(),
-        }];
         let mut ret = Self {
             device,
-            new_instances: Some(Rc::new(new_instances)),
+            new_instances: None,
             number_instances: 0,
             pipeline: None,
             instances_bg,
-            letter: char_texture,
         };
-        let pipeline = ret.create_pipeline(globals_layout);
+        let pipeline = ret.create_pipeline(globals_layout, circle_kind);
         ret.pipeline = Some(pipeline);
         ret
     }
 
     pub fn draw<'a>(&'a mut self, render_pass: &mut RenderPass<'a>) {
         self.update_instances();
-        render_pass.set_pipeline(self.pipeline.as_ref().unwrap());
-        render_pass.set_bind_group(1, self.instances_bg.get_bindgroup(), &[]);
-        render_pass.set_bind_group(TEXTURE_BINDING_ID, &self.letter.bind_group, &[]);
-        render_pass.set_vertex_buffer(0, self.letter.vertex_buffer.slice(..));
-        render_pass.draw(0..4, 0..self.number_instances as u32);
+        if self.number_instances > 0 {
+            render_pass.set_pipeline(self.pipeline.as_ref().unwrap());
+            render_pass.set_bind_group(1, self.instances_bg.get_bindgroup(), &[]);
+            render_pass.draw(0..4, 0..self.number_instances as u32);
+        }
     }
 
-    pub fn new_instances(&mut self, instances: Rc<Vec<CharInstance>>) {
+    pub fn new_instances(&mut self, instances: Rc<Vec<CircleInstance>>) {
         self.new_instances = Some(instances);
     }
 
@@ -88,23 +112,30 @@ impl CharDrawer {
 
     /// Create a render pipeline. This function is meant to be called once, before drawing for the
     /// first time.
-    fn create_pipeline(&self, globals_layout: &BindGroupLayout) -> RenderPipeline {
+    fn create_pipeline(
+        &self,
+        globals_layout: &BindGroupLayout,
+        circle_kind: CircleKind,
+    ) -> RenderPipeline {
         let vertex_module = self
             .device
-            .create_shader_module(include_spirv!("chars.vert.spv"));
-        let fragment_module = self
-            .device
-            .create_shader_module(include_spirv!("chars.frag.spv"));
+            .create_shader_module(include_spirv!("circle.vert.spv"));
+
+        let fragment_module = match circle_kind {
+            CircleKind::FullCircle => self
+                .device
+                .create_shader_module(include_spirv!("circle.frag.spv")),
+            CircleKind::RotationWidget => self
+                .device
+                .create_shader_module(include_spirv!("rotation_widget.frag.spv")),
+        };
+
         let render_pipeline_layout =
             self.device
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                    bind_group_layouts: &[
-                        globals_layout,
-                        self.instances_bg.get_layout(),
-                        &self.letter.bind_group_layout,
-                    ],
+                    bind_group_layouts: &[globals_layout, self.instances_bg.get_layout()],
                     push_constant_ranges: &[],
-                    label: Some("render_pipeline_layout"),
+                    label: Some("Circle drawer pipeline layout"),
                 });
 
         let format = wgpu::TextureFormat::Bgra8UnormSrgb;
@@ -129,7 +160,7 @@ impl CharDrawer {
                 vertex: wgpu::VertexState {
                     module: &vertex_module,
                     entry_point: "main",
-                    buffers: &[CharVertex::desc()],
+                    buffers: &[],
                 },
                 fragment: Some(wgpu::FragmentState {
                     module: &fragment_module,
@@ -150,7 +181,7 @@ impl CharDrawer {
                     alpha_to_coverage_enabled: false,
                 },
                 multiview: None,
-                label: Some("Char drawer render pipeline"),
+                label: Some("CircleDrawer render pipeline"),
             })
     }
 }

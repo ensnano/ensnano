@@ -13,7 +13,7 @@ use crate::ensnano_flatscene::{
     flat_types::{Flat, FlatHelix, FlatHelixMaps, FlatIdx, FlatNucl, HelixSegment, HelixVec},
 };
 use ensnano_interactor::{Referential, torsion::Torsion};
-use crate::ensnano_utils::full_isometry::FullIsometry;
+use ensnano_utils::full_isometry::FullIsometry;
 use ahash::RandomState;
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap},

@@ -33,7 +33,7 @@ use ensnano_interactor::{
     },
     strand_builder::StrandBuilder,
 };
-use crate::ensnano_utils::{
+use ensnano_utils::{
     BufferDimensions,
     camera2d::{self, Camera2D, FitRectangle},
     filename::derive_path_with_prefix_and_time_stamp_and_suffix,

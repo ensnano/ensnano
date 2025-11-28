@@ -24,7 +24,7 @@ use crate::ensnano_scene::{
     data::design3d::{HBond, Scalebar, SceneDesignReaderExt},
     view::grid::GridInstance,
 };
-use crate::ensnano_utils::StrandNucleotidesPositions;
+use ensnano_utils::StrandNucleotidesPositions;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::Arc;
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};

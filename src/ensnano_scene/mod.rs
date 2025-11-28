@@ -34,7 +34,7 @@ use ensnano_interactor::{
 };
 use ensnano_organizer::tree::GroupId;
 use crate::ensnano_scene::controller::automata::WidgetTarget;
-use crate::ensnano_utils::{BufferDimensions, filename};
+use ensnano_utils::{BufferDimensions, filename};
 use controller::{Consequence, Controller};
 use data::{Data, design3d::SceneDesignReaderExt};
 use element_selector::{ElementSelector, SceneElement};

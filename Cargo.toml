@@ -6,6 +6,7 @@ members = [
     "ensnano-iced",
     "ensnano-interactor",
     "ensnano-organizer",
+    "ensnano-utils",
 ]
 
 [workspace.package]
@@ -29,6 +30,7 @@ ensnano_exports = { path = "ensnano-exports" }
 ensnano_iced = { path = "ensnano-iced" }
 ensnano_interactor = { path = "ensnano-interactor" }
 ensnano_organizer = { path = "ensnano-organizer" }
+ensnano_utils = { path = "ensnano-utils" }
 
 ahash = "0.8.6"
 bytemuck = "1.2.0"
@@ -101,18 +103,16 @@ ensnano_exports.workspace = true
 ensnano_iced.workspace = true
 ensnano_interactor.workspace = true
 ensnano_organizer.workspace = true
+ensnano_utils.workspace = true
 
 ahash.workspace = true
 bytemuck.workspace = true
 chebyshev_polynomials.workspace = true
-chrono.workspace = true
 color_space.workspace = true
 confy.workspace = true
 dirs.workspace = true
-fontdue.workspace = true
 futures.workspace = true
 futures-channel.workspace = true
-gltf.workspace = true
 iced.workspace = true
 iced_aw.workspace = true
 iced_graphics.workspace = true
@@ -125,7 +125,6 @@ itertools.workspace = true
 log.workspace = true
 lyon.workspace = true
 mathru.workspace = true
-nom_stl.workspace = true
 num_enum.workspace = true
 open.workspace = true
 ordered-float.workspace = true

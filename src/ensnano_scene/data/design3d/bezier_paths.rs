@@ -24,7 +24,7 @@ use crate::ensnano_scene::{
         sheet_2d::Sheet2D,
     },
 };
-use crate::ensnano_utils::instance::Instance;
+use ensnano_utils::instance::Instance;
 use ultraviolet::{Rotor3, Vec2, Vec3};
 
 impl<R: SceneDesignReaderExt> Design3D<R> {
