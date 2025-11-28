@@ -6,7 +6,7 @@ use std::ops::Range;
 /// of a nucleotide pair.
 /// Handles the case of free nucleotides;
 #[derive(Copy, Clone, Debug)]
-pub(crate) enum IntermediaryPair {
+pub enum IntermediaryPair {
     OnlyForward(u32, Nucl),
     OnlyBackward(u32, Nucl),
     // always forward, backward
@@ -38,7 +38,7 @@ impl IntermediaryPair {
 /// of those continuous segments can be better
 /// ensured by the physical simulation.
 #[derive(Default)]
-pub(crate) struct IntermediaryHelix {
+pub struct IntermediaryHelix {
     pub pairs: HashMap<isize, IntermediaryPair>,
     pub double_ranges: Vec<Range<isize>>,
     pub single_ranges: Vec<Range<isize>>,

@@ -489,7 +489,7 @@ fn ctrl(modifiers: &ModifiersState) -> bool {
     }
 }
 
-pub(super) trait Data {
+pub trait Data {
     fn element_to_nucl(
         &self,
         element: Option<&SceneElement>,

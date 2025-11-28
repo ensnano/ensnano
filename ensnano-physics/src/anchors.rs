@@ -11,7 +11,7 @@ use ultraviolet::{Rotor3, Vec3};
 /// and computes the ideal spring anchor points to enforce
 /// a rigid, straight DNA or RNA strand
 #[derive(Clone, Debug)]
-pub(crate) struct SpringAnchorsReference {
+pub struct SpringAnchorsReference {
     nucleotide_forward: OVector<f32, Const<3>>,
 
     // from center of the pair to the center of
