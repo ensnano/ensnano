@@ -106,7 +106,7 @@ pub struct InsertionVertex {
 pub struct InsertionInstance {
     pub position: Vec2,
     pub depth: f32,
-    pub _padding: u32,
+    _padding: u32,
     pub orientation: Mat2,
     pub color: [f32; 4],
 }

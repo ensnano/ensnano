@@ -9,7 +9,7 @@ use ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
 /// the camera position and the Projection and View matrices.
 pub struct Uniforms {
     //  name: type, // alignment of the next field
-    pub camera_position: Vec4,    //0
+    pub camera_position: Vec4,    // 0
     pub view: Mat4,               // 0
     pub proj: Mat4,               // 0
     pub inversed_view: Mat4,      // 0
@@ -26,7 +26,7 @@ pub struct Uniforms {
     pub is_cut: u32,              // 0
     pub cut_normal: Vec3,         // 3
     pub cut_dot_value: f32,       // 0
-    pub _padding: [f32; 4],
+    _padding: [f32; 4],
 }
 
 #[derive(Clone, Debug)]
