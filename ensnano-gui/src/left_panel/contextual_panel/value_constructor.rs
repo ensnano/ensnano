@@ -15,7 +15,7 @@ use ultraviolet::{Bivec3, Mat3, Rotor3, Vec2, Vec3};
 macro_rules! type_builder {
     ($builder_name:ident, $initializer:tt, $internal:tt, $convert_in:path, $convert_out:path, $($param: ident: $param_type: tt %$formatter:path), *) => {
         paste! {
-            pub struct $builder_name {
+            pub(crate) struct $builder_name {
                 $(
                     #[expect(clippy::allow_attributes)]
                     #[allow(dead_code)]
@@ -27,7 +27,7 @@ macro_rules! type_builder {
 
             impl $builder_name {
                 const PARAMETER_NAMES: &'static [&'static str] = &[$(stringify!($param),)*];
-                pub fn new(value_to_modify: ValueKind, initial_value: $initializer) -> Self {
+                pub(crate) fn new(value_to_modify: ValueKind, initial_value: $initializer) -> Self {
                     let initial: $internal = $convert_in(initial_value);
                     Self {
                         value_to_modify,
