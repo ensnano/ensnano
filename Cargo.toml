@@ -133,6 +133,8 @@ unused_macro_rules = "warn"
 unused_qualifications = "warn"
 variant_size_differences = "warn"
 
+# Run with: cargo clippy --workspace --all-targets --all-features
+
 [lints.clippy]
 # Warn or deny all lints by default
 cargo = { level = "deny", priority = -1 }

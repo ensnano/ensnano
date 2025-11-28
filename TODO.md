@@ -92,11 +92,7 @@
   - `color_square`
   - `gostop`
   - `fog_kind`
-- Rename structs with the same name in different crates
-- Remove as many `pub use` as possible
-- Remove as many `use *` as possible
-- Remove as many `use ... as ...` as possible
-- Remove as many `#[allow(...)]` as possible
+- Rename structs with the same name in different crates, then remove all use aliases (`use ... as ...`)
 - kebab-case -> snake_case for the crate directories
 - More consistent styling:
   - Create some `rustfmt.toml` rules?
@@ -114,7 +110,6 @@
   - `OverlayType`
   - `RotationWidgetOrientation`
 - Replace `ensnano_iced/fonts/material_icons.rs` by SVG icons from `icondata` lib
-- `cargo clippy --workspace --all-targets --all-features`
 - `build.rs` for shaders instead of manual compilation
 - Merge `ensnano_organizer` and `ensnano_gui`
 - Merge `ensnano_interactor` and `ensnano_utils`?
