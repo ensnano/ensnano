@@ -7,7 +7,6 @@ license.workspace = true
 
 [dependencies]
 ensnano_consts.workspace = true
-ensnano_iced.workspace = true
 ensnano_interactor.workspace = true # TODO: remove (only used for PhySize)
 
 ahash.workspace = true
