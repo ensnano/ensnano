@@ -1,14 +1,16 @@
 //! Implements the [Requests](`crate::ensnano_gui::Requests`) trait for [Requests](`super::Requests`).
 
 use crate::controller::normal_state::Action;
+use crate::ensnano_gui::{OverlayType, left_panel::RigidBodyParametersRequest};
+use crate::requests::Requests;
 use ensnano_design::{
     bezier_plane::{BezierPathId, BezierVertexId},
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridTypeDescr},
     parameters::HelixParameters,
 };
-use crate::ensnano_exports::ExportType;
-use crate::ensnano_gui::{OverlayType, left_panel::RigidBodyParametersRequest};
+use ensnano_exports::ExportType;
+use ensnano_iced::ui_size::UiSize;
 use ensnano_interactor::{
     DesignOperation, HyperboloidRequest, InsertionPoint, RapierSimulationRequest,
     RigidBodyConstants, RollRequest,
@@ -22,8 +24,6 @@ use ensnano_interactor::{
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
 };
 use ensnano_organizer::tree::{GroupId, OrganizerTree};
-use crate::requests::Requests;
-use ensnano_iced::ui_size::UiSize;
 use std::{collections::BTreeSet, sync::Arc};
 use ultraviolet::{Rotor3, Vec2, Vec3};
 

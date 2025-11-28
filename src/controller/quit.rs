@@ -1,4 +1,4 @@
-use crate::ensnano_exports::ExportType;
+use ensnano_exports::ExportType;
 use crate::{
     MainStateView,
     controller::{

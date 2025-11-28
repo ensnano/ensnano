@@ -2,6 +2,7 @@
 members = [
     "ensnano-consts",
     "ensnano-design",
+    "ensnano-exports",
     "ensnano-iced",
     "ensnano-interactor",
     "ensnano-organizer",
@@ -24,6 +25,7 @@ version = "0.7.0"
 [workspace.dependencies]
 ensnano_consts = { path = "ensnano-consts" }
 ensnano_design = { path = "ensnano-design" }
+ensnano_exports = { path = "ensnano-exports" }
 ensnano_iced = { path = "ensnano-iced" }
 ensnano_interactor = { path = "ensnano-interactor" }
 ensnano_organizer = { path = "ensnano-organizer" }
@@ -95,6 +97,7 @@ winit = "0.29"
 [dependencies]
 ensnano_consts.workspace = true
 ensnano_design.workspace = true
+ensnano_exports.workspace = true
 ensnano_iced.workspace = true
 ensnano_interactor.workspace = true
 ensnano_organizer.workspace = true
@@ -137,7 +140,6 @@ rfd.workspace = true
 rust_xlsxwriter.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-strum.workspace = true
 ultraviolet.workspace = true
 version-compare.workspace = true
 wgpu.workspace = true

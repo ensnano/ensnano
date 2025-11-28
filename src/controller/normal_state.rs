@@ -16,7 +16,7 @@ use ensnano_design::{
     group_attributes::GroupPivot,
     parameters::HelixParameters,
 };
-use crate::ensnano_exports::ExportType;
+use ensnano_exports::ExportType;
 use crate::ensnano_gui::OverlayType;
 use ensnano_iced::ui_size::UiSize;
 use ensnano_interactor::{

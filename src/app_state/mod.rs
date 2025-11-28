@@ -20,7 +20,7 @@ use ensnano_consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION};
 use ensnano_design::{
     SavingInformation, bezier_plane::BezierPathId, group_attributes::GroupPivot, strands::Domain,
 };
-use crate::ensnano_exports::{ExportResult, ExportType};
+use ensnano_exports::{ExportResult, ExportType};
 use ensnano_iced::ui_size::UiSize;
 use ensnano_interactor::{
     DesignOperation, PastingStatus, StrandBuildingStatus, WidgetBasis,

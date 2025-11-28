@@ -73,7 +73,6 @@
 #[cfg(test)]
 mod main_tests;
 
-mod ensnano_exports;
 mod ensnano_flatscene;
 mod ensnano_gui;
 mod ensnano_physics;
@@ -87,7 +86,6 @@ mod multiplexer;
 mod requests;
 mod scheduler;
 
-use crate::ensnano_exports::{ExportResult, ExportType};
 use crate::ensnano_flatscene::FlatScene;
 use crate::ensnano_gui::{
     AppState as _, Gui, IcedMessages, OverlayType, TopBarState, left_panel::ColorOverlay,
@@ -122,6 +120,7 @@ use ensnano_design::{
     Camera, CameraId, SavingInformation, bezier_plane::BezierPlaneDescriptor, grid::GridId,
     group_attributes::GroupPivot,
 };
+use ensnano_exports::{ExportResult, ExportType};
 use ensnano_iced::{fonts, theme, ui_size::UiSize};
 use ensnano_interactor::{
     DesignOperation, DesignRotation, DesignTranslation, IsometryTarget, PastingStatus,

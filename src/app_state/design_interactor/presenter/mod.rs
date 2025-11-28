@@ -18,7 +18,7 @@ use ensnano_design::{
     helices::{Helix, HelixCollection as _, NuclCollection},
     strands::{Domain, Extremity, Strand},
 };
-use crate::ensnano_exports::{ExportResult, ExportType, oxdna::BACKBONE_TO_CM};
+use ensnano_exports::{ExportResult, ExportType, oxdna::BACKBONE_TO_CM};
 use ensnano_interactor::{
     Referential, ScaffoldInfo,
     app_state_parameters::suggestion_parameters::SuggestionParameters,
@@ -503,7 +503,7 @@ impl Presenter {
     }
 
     pub fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
-        crate::ensnano_exports::export(
+        ensnano_exports::export(
             &self.current_design,
             export_type,
             Some(self.content.letter_map.as_ref()),

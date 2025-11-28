@@ -15,7 +15,7 @@ use ensnano_design::{
     parameters::HelixParameters,
     strands::Domain,
 };
-use crate::ensnano_exports::{ExportResult, ExportType};
+use ensnano_exports::{ExportResult, ExportType};
 use crate::ensnano_gui::status_bar::{ClipboardContent, CurrentOpState};
 use ensnano_interactor::{
     DesignOperation, PastingStatus, SimulationState,

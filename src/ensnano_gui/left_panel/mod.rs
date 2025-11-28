@@ -11,7 +11,7 @@ use ensnano_design::{
     grid::GridTypeDescr,
     parameters::NamedParameter,
 };
-use crate::ensnano_exports::ExportType;
+use ensnano_exports::ExportType;
 use crate::ensnano_gui::{
     AppState, OverlayType, Requests,
     left_panel::tabs::{

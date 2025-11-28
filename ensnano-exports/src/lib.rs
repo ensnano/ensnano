@@ -4,8 +4,8 @@ pub mod cadnano;
 pub mod oxdna;
 pub mod pdb;
 
-use ensnano_design::{Design, Nucl};
 use cadnano::CadnanoError;
+use ensnano_design::{Design, Nucl};
 use pdb::PdbError;
 use std::{collections::HashMap, io::Write as _, path::PathBuf};
 
@@ -53,9 +53,9 @@ impl ExportSuccess {
 
 #[derive(Debug)]
 pub enum ExportError {
-    CadnanoConversion(#[expect(unused)] CadnanoError),
-    PdbConversion(#[expect(unused)] PdbError),
-    IOError(#[expect(unused)] std::io::Error),
+    CadnanoConversion(CadnanoError),
+    PdbConversion(PdbError),
+    IOError(std::io::Error),
 }
 
 impl From<CadnanoError> for ExportError {
