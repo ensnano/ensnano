@@ -73,18 +73,15 @@ impl SpringAnchorsReference {
         helix.helix_parameters = helix_parameters;
 
         let (nucleotide_forward, nucleotide_backward, center) = pair(&helix, default_parameters, 0);
-        let (next_nucleotide_forward, next_nucleotide_backward, next_center) =
-            pair(&helix, default_parameters, 1);
+        let (_, _, next_center) = pair(&helix, default_parameters, 1);
 
         let (up_nucleotide_forward, up_nucleotide_backward, up_center) =
             pair(&helix, default_parameters, distance as isize);
-        let (next_up_nucleotide_forward, next_up_nucleotide_backward, next_up_center) =
-            pair(&helix, default_parameters, distance as isize + 1);
+        let (_, _, next_up_center) = pair(&helix, default_parameters, distance as isize + 1);
 
         let (down_nucleotide_forward, down_nucleotide_backward, down_center) =
             pair(&helix, default_parameters, -(distance as isize));
-        let (next_down_nucleotide_forward, next_down_nucleotide_backward, next_down_center) =
-            pair(&helix, default_parameters, 1 - distance as isize);
+        let (_, _, next_down_center) = pair(&helix, default_parameters, 1 - distance as isize);
 
         let up = next_center - center;
 
