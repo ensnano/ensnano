@@ -9,12 +9,16 @@ use crate::{
 use ensnano_consts::ICON_PHYSICAL_ENGINE;
 use ensnano_iced::{
     helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
+    theme::BadValue,
     ui_size::UiSize,
     widgets::keyboard_priority::keyboard_priority,
 };
 use ensnano_interactor::{RollRequest, SimulationState};
 use ensnano_physics::parameters::{RapierParameters, RapierSimulationType};
-use iced::widget::{Column, column, pick_list, row, scrollable, text, text_input};
+use iced::{
+    Alignment,
+    widget::{Column, Space, column, pick_list, row, scrollable, text, text_input},
+};
 use iced_aw::TabLabel;
 use std::sync::{Arc, Mutex};
 
@@ -190,9 +194,11 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
                 )],
                 self::row![
                     text_button("Start", ui_size).on_press(Message::StartRapierSimulation),
+                    Space::with_width(ui_size.button_spacing()),
                     text_button("Stop", ui_size),
                 ],
-            ],
+            ]
+            .spacing(ui_size.button_spacing()),
             view_rapier_parameters(self.rapier_parameters, ui_size)
         ]
         .spacing(5);
@@ -205,27 +211,32 @@ fn rapier_parameters_field_editor<State: AppState, F>(
     description: impl ToString,
     value: f32,
     message_builder: F,
+    ui_size: UiSize,
 ) -> iced::Element<'static, Message<State>>
 where
     F: Fn(f32) -> Message<State> + 'static,
 {
     let current_value = value.to_string();
-
     let description = description.to_string();
 
     row![
         text(&description),
+        Space::with_width(ui_size.checkbox_spacing()),
         keyboard_priority(
             "Rapier parameters ".to_owned() + &description,
             Message::<State>::SetKeyboardPriority,
-            text_input(&current_value, &current_value).on_input(move |str| {
-                match str.parse::<f32>() {
-                    Ok(new_value) => message_builder(new_value),
-                    _ => message_builder(value),
-                }
-            })
+            text_input(&current_value, &current_value)
+                .on_input(move |str| {
+                    match str.parse::<f32>() {
+                        Ok(new_value) => message_builder(new_value),
+                        _ => message_builder(value),
+                    }
+                })
+                .width(70)
+                .style(BadValue(true)),
         )
     ]
+    .align_items(Alignment::Center)
     .into()
 }
 
@@ -235,12 +246,17 @@ fn view_rapier_parameters<State: AppState>(
 ) -> iced::Element<'static, Message<State>> {
     self::column![
         subsection("Rapier parameters", ui_size),
-        rapier_parameters_field_editor("Linear damping", parameters.linear_damping, move |value| {
-            Message::UpdateRapierParameters(RapierParameters {
-                linear_damping: value,
-                ..parameters
-            })
-        }),
+        rapier_parameters_field_editor(
+            "Linear damping",
+            parameters.linear_damping,
+            move |value| {
+                Message::UpdateRapierParameters(RapierParameters {
+                    linear_damping: value,
+                    ..parameters
+                })
+            },
+            ui_size
+        ),
         rapier_parameters_field_editor(
             "Angular damping",
             parameters.angular_damping,
@@ -249,7 +265,8 @@ fn view_rapier_parameters<State: AppState>(
                     angular_damping: value,
                     ..parameters
                 })
-            }
+            },
+            ui_size
         ),
         rapier_parameters_field_editor(
             "Interbase spring stiffness",
@@ -259,7 +276,8 @@ fn view_rapier_parameters<State: AppState>(
                     interbase_spring_stiffness: value,
                     ..parameters
                 })
-            }
+            },
+            ui_size
         ),
         rapier_parameters_field_editor(
             "Interbase spring damping",
@@ -269,7 +287,8 @@ fn view_rapier_parameters<State: AppState>(
                     interbase_spring_damping: value,
                     ..parameters
                 })
-            }
+            },
+            ui_size
         ),
         rapier_parameters_field_editor(
             "Crossover stiffness",
@@ -279,7 +298,8 @@ fn view_rapier_parameters<State: AppState>(
                     crossover_stiffness: value,
                     ..parameters
                 })
-            }
+            },
+            ui_size
         ),
         rapier_parameters_field_editor(
             "Crossover damping",
@@ -289,7 +309,8 @@ fn view_rapier_parameters<State: AppState>(
                     crossover_damping: value,
                     ..parameters
                 })
-            }
+            },
+            ui_size
         ),
         rapier_parameters_field_editor(
             "Crossover rest length",
@@ -299,7 +320,8 @@ fn view_rapier_parameters<State: AppState>(
                     crossover_rest_length: value,
                     ..parameters
                 })
-            }
+            },
+            ui_size
         ),
         rapier_parameters_field_editor(
             "Free nucleotide stiffness",
@@ -309,7 +331,8 @@ fn view_rapier_parameters<State: AppState>(
                     free_nucleotide_stiffness: value,
                     ..parameters
                 })
-            }
+            },
+            ui_size
         ),
         rapier_parameters_field_editor(
             "Free nucleotide damping",
@@ -319,7 +342,8 @@ fn view_rapier_parameters<State: AppState>(
                     free_nucleotide_damping: value,
                     ..parameters
                 })
-            }
+            },
+            ui_size
         ),
         rapier_parameters_field_editor(
             "Free nucleotide rest length",
@@ -329,7 +353,8 @@ fn view_rapier_parameters<State: AppState>(
                     free_nucleotide_rest_length: value,
                     ..parameters
                 })
-            }
+            },
+            ui_size
         ),
         rapier_parameters_field_editor(
             "Repulsion strength",
@@ -339,7 +364,8 @@ fn view_rapier_parameters<State: AppState>(
                     repulsion_strength: value,
                     ..parameters
                 })
-            }
+            },
+            ui_size
         ),
         rapier_parameters_field_editor(
             "Repulsion range",
@@ -349,9 +375,11 @@ fn view_rapier_parameters<State: AppState>(
                     repulsion_range: value,
                     ..parameters
                 })
-            }
+            },
+            ui_size
         ),
     ]
+    .spacing(ui_size.button_spacing())
     .into()
 }
 
