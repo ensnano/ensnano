@@ -425,6 +425,7 @@ impl RevolutionSurfaceRadius {
         }
     }
 
+    #[must_use]
     pub fn scaled(self, scale: f64) -> Self {
         match self {
             Self::Left(x) => Self::Left(scale * x),

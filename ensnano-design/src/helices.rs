@@ -728,6 +728,7 @@ impl Helix {
     }
 
     ///Return an helix that makes an ideal cross-over with self at position n
+    #[must_use]
     pub fn ideal_neighbor(&self, n: isize, forward: bool, p: &HelixParameters) -> Self {
         let p = match self.helix_parameters {
             None => *p,
@@ -913,6 +914,7 @@ impl Helix {
 pub struct VirtualNucl(pub(super) Nucl);
 
 impl VirtualNucl {
+    #[must_use]
     pub fn compl(&self) -> Self {
         Self(self.0.compl())
     }
@@ -1046,6 +1048,7 @@ impl OwnedAxis {
 }
 
 impl Axis<'_> {
+    #[must_use]
     pub fn transformed(&self, model_matrix: &Mat4) -> Self {
         match self {
             Self::Line {

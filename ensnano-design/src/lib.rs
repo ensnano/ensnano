@@ -730,6 +730,7 @@ impl Nucl {
         }
     }
 
+    #[must_use]
     pub fn left(&self) -> Self {
         Self {
             position: self.position - 1,
@@ -737,6 +738,7 @@ impl Nucl {
         }
     }
 
+    #[must_use]
     pub fn right(&self) -> Self {
         Self {
             position: self.position + 1,
@@ -744,6 +746,7 @@ impl Nucl {
         }
     }
 
+    #[must_use]
     pub fn prime3(&self) -> Self {
         Self {
             position: if self.forward {
@@ -755,6 +758,7 @@ impl Nucl {
         }
     }
 
+    #[must_use]
     pub fn prime5(&self) -> Self {
         Self {
             position: if self.forward {
@@ -766,6 +770,7 @@ impl Nucl {
         }
     }
 
+    #[must_use]
     pub fn compl(&self) -> Self {
         Self {
             forward: !self.forward,

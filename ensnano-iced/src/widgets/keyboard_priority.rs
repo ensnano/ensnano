@@ -51,30 +51,35 @@ where
     }
 
     /// Sets the [`Id`] of the [`KeyboardPriority`].
+    #[must_use]
     pub fn id(mut self, id: Id) -> Self {
         self.id = Some(id);
         self
     }
 
     /// Sets the width of the [`KeyboardPriority`].
+    #[must_use]
     pub fn width(mut self, width: Length) -> Self {
         self.width = width;
         self
     }
 
     /// Sets the height of the [`KeyboardPriority`].
+    #[must_use]
     pub fn height(mut self, height: Length) -> Self {
         self.height = height;
         self
     }
 
     /// Sets the message that will be produced when the content is hovered.
+    #[must_use]
     pub fn on_priority(mut self, message: Message) -> Self {
         self.on_priority = Some(message);
         self
     }
 
     /// Sets the message that will be produced when the content is unhovered.
+    #[must_use]
     pub fn on_unpriority(mut self, message: Message) -> Self {
         self.on_unpriority = Some(message);
         self

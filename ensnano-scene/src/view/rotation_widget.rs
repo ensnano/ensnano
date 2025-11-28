@@ -352,6 +352,7 @@ impl Circle {
         self.translation = translation;
     }
 
+    #[must_use]
     pub fn bigger_version(&self) -> Self {
         Self {
             thickness: 0.3,

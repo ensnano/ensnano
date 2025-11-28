@@ -350,6 +350,7 @@ pub struct TubeInstance {
 }
 
 impl TubeInstance {
+    #[must_use]
     pub fn with_radius(self, radius: f32) -> Self {
         Self { radius, ..self }
     }

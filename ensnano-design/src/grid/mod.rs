@@ -636,6 +636,7 @@ pub struct GridPosition {
 }
 
 impl HelixGridPosition {
+    #[must_use]
     pub fn with_roll(self, roll: Option<f32>) -> Self {
         if let Some(roll) = roll {
             Self { roll, ..self }

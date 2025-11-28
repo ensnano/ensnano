@@ -21,24 +21,28 @@ impl Default for SuggestionParameters {
 }
 
 impl SuggestionParameters {
+    #[must_use]
     pub fn with_include_scaffold(&self, include_scaffold: bool) -> Self {
         let mut ret = *self;
         ret.include_scaffold = include_scaffold;
         ret
     }
 
+    #[must_use]
     pub fn with_intra_strand(&self, intra_strand: bool) -> Self {
         let mut ret = *self;
         ret.include_intra_strand = intra_strand;
         ret
     }
 
+    #[must_use]
     pub fn with_ignore_groups(&self, ignore_groups: bool) -> Self {
         let mut ret = *self;
         ret.ignore_groups = ignore_groups;
         ret
     }
 
+    #[must_use]
     pub fn with_xover_ends(&self, include_xover_ends: bool) -> Self {
         let mut ret = *self;
         ret.include_xover_ends = include_xover_ends;

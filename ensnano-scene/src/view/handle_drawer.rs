@@ -250,6 +250,7 @@ impl Handle {
         }
     }
 
+    #[must_use]
     pub fn bigger_version(&self) -> Self {
         Self {
             length: 1.1 * self.length,

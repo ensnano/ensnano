@@ -172,6 +172,7 @@ impl<Label> Domain<Label> {
     /// Translate this domain. The first parameter is the translation
     /// along the helix, the second one is a translation across
     /// helices (probably most meaningful for a flat design).
+    #[must_use]
     pub fn translate(self, dx: isize, dy: isize) -> Self {
         Self {
             start: self.start + dx,
@@ -182,6 +183,7 @@ impl<Label> Domain<Label> {
     }
 
     /// Translate this domain along its helix.
+    #[must_use]
     pub fn shift_x(self, dx: isize) -> Self {
         Self {
             start: self.start + dx,
@@ -192,6 +194,7 @@ impl<Label> Domain<Label> {
 
     /// Translate this domain to a different helix (probably most
     /// meaningful for a flat design).
+    #[must_use]
     pub fn shift_y(self, dy: isize) -> Self {
         Self {
             helix: usize::try_from(self.helix + dy).unwrap() as isize,
@@ -200,11 +203,13 @@ impl<Label> Domain<Label> {
     }
 
     /// Number of Nucleotides on the domain
+    #[must_use]
     pub fn length(&self) -> isize {
         self.end - self.start
     }
 
     /// Return a domain that has the same bounds as self
+    #[must_use]
     pub fn pseudo_copy(&self) -> Self {
         Self {
             helix: self.helix,
@@ -468,6 +473,7 @@ impl Helix {
     }
 
     /// A clone of `self` translated by one step along the y vector
+    #[must_use]
     pub fn clone_up(&self, p: &Parameters) -> Self {
         let mut new_position = [0., p.helix_radius * 2. + p.inter_helix_gap, 0.];
         new_position = self.rotate_point(new_position);
@@ -481,6 +487,7 @@ impl Helix {
     }
 
     /// A clone of `self` translated by minus one step along the y vector
+    #[must_use]
     pub fn clone_down(&self, p: &Parameters) -> Self {
         let mut new_position = [0., -p.helix_radius * 2. - p.inter_helix_gap, 0.];
         new_position = self.rotate_point(new_position);
@@ -494,6 +501,7 @@ impl Helix {
     }
 
     /// A clone of `self` translated by minus one step along the z vector
+    #[must_use]
     pub fn clone_left(&self, p: &Parameters) -> Self {
         let mut new_position = [0., 0., -p.helix_radius * 2. - p.inter_helix_gap];
         new_position = self.rotate_point(new_position);
@@ -507,6 +515,7 @@ impl Helix {
     }
 
     /// A clone of `self` translated by one step along the z vector
+    #[must_use]
     pub fn clone_forward(&self, p: &Parameters) -> Self {
         let mut new_position = [0., 0., p.helix_radius * 2. + p.inter_helix_gap];
         new_position = self.rotate_point(new_position);

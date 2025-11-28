@@ -164,6 +164,7 @@ impl Strand {
         vertices
     }
 
+    #[must_use]
     pub fn highlighted(&self, color: u32, highlight_thickness: f32) -> Self {
         Self {
             color,

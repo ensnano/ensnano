@@ -212,6 +212,7 @@ impl From<Vec<DrawingAttribute>> for DrawingStyle {
 }
 
 impl DrawingStyle {
+    #[must_use]
     pub fn complete_with_attribute(&self, att: DrawingAttribute) -> Self {
         match att {
             DrawingAttribute::SphereRadius(r) => Self {
@@ -270,6 +271,7 @@ impl DrawingStyle {
         }
     }
 
+    #[must_use]
     pub fn complete_with_attributes(&self, attributes: Vec<DrawingAttribute>) -> Self {
         let mut style = *self;
         for att in attributes {
@@ -278,6 +280,7 @@ impl DrawingStyle {
         style
     }
 
+    #[must_use]
     pub fn complete_with(&self, other: &Self) -> Self {
         Self {
             sphere_radius: self.sphere_radius.or(other.sphere_radius),

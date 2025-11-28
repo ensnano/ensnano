@@ -60,6 +60,7 @@ impl<'a, Message, Theme> LightSatSquare<'a, Message, Theme, iced::Renderer> {
         }
     }
 
+    #[must_use]
     pub fn on_slide<F>(mut self, f: F) -> Self
     where
         F: 'a + Fn(f64, f64) -> Message,
@@ -68,16 +69,19 @@ impl<'a, Message, Theme> LightSatSquare<'a, Message, Theme, iced::Renderer> {
         self
     }
 
+    #[must_use]
     pub fn on_finish(mut self, message: Message) -> Self {
         self.on_finish = Some(message);
         self
     }
 
+    #[must_use]
     pub fn width(mut self, width: impl Into<Length>) -> Self {
         self.width = width.into();
         self
     }
 
+    #[must_use]
     pub fn height(mut self, height: impl Into<Length>) -> Self {
         self.height = height.into();
         self

@@ -48,6 +48,7 @@ impl<'a, Message, Theme> ColorSquare<'a, Message, Theme, iced::Renderer> {
         }
     }
 
+    #[must_use]
     pub fn on_click<F>(mut self, f: F) -> Self
     where
         F: 'a + Fn(Color) -> Message,
@@ -56,16 +57,19 @@ impl<'a, Message, Theme> ColorSquare<'a, Message, Theme, iced::Renderer> {
         self
     }
 
+    #[must_use]
     pub fn on_release(mut self, message: Message) -> Self {
         self.on_release = Some(message);
         self
     }
 
+    #[must_use]
     pub fn width(mut self, width: impl Into<Length>) -> Self {
         self.width = width.into();
         self
     }
 
+    #[must_use]
     pub fn height(mut self, height: impl Into<Length>) -> Self {
         self.height = height.into();
         self

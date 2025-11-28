@@ -363,13 +363,12 @@ impl FitRectangle {
     }
 
     /// Add a new point to include into the [FitRectangle].
-    pub fn add_point(&mut self, point: impl Into<[f32; 2]>) -> Self {
+    fn add_point(&mut self, point: impl Into<[f32; 2]>) {
         let [x, y] = point.into();
         self.x_min = f32::min(self.x_min, x);
         self.x_max = f32::max(self.x_max, x);
         self.y_min = f32::min(self.y_min, y);
         self.y_max = f32::max(self.y_max, y);
-        *self
     }
 
     pub fn from_points(points: impl IntoIterator<Item = [f32; 2]>) -> Option<Self> {
@@ -463,6 +462,7 @@ impl FitRectangle {
         )
     }
 
+    #[must_use]
     pub fn double_height(mut self) -> Self {
         self.ensure_min_size([20., 35.], [0.25, 0.14285715]);
         self.y_max += 2.0 * self.height();

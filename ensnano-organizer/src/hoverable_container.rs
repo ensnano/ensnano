@@ -41,18 +41,21 @@ impl<'a, Message, Theme, Renderer> HoverableContainer<'a, Message, Theme, Render
     }
 
     /// Sets the [`Padding`] of the content.
+    #[must_use]
     pub fn padding<P: Into<Padding>>(mut self, padding: P) -> Self {
         self.padding = padding.into();
         self
     }
 
     /// Sets the message that will be produced when the content is hovered.
+    #[must_use]
     pub fn on_hover(mut self, message: Message) -> Self {
         self.on_hover = Some(message);
         self
     }
 
     /// Sets the message that will be produced when the content is unhovered.
+    #[must_use]
     pub fn on_unhover(mut self, message: Message) -> Self {
         self.on_unhover = Some(message);
         self
