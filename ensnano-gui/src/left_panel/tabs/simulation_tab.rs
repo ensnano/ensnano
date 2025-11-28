@@ -10,9 +10,11 @@ use ensnano_consts::ICON_PHYSICAL_ENGINE;
 use ensnano_iced::{
     helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
     ui_size::UiSize,
+    widgets::keyboard_priority::keyboard_priority,
 };
 use ensnano_interactor::{RollRequest, SimulationState};
-use iced::widget::{Column, column, row, scrollable};
+use ensnano_physics::parameters::{RapierParameters, RapierSimulationType};
+use iced::widget::{Column, column, pick_list, row, scrollable, text, text_input};
 use iced_aw::TabLabel;
 use std::sync::{Arc, Mutex};
 
@@ -22,6 +24,7 @@ pub struct SimulationTab<State: AppState> {
     //rigid_grid_button: GoStop<State>,
     rigid_helices_button: GoStop<State>,
     physical_simulation: PhysicalSimulation,
+    pub rapier_parameters: RapierParameters,
 }
 
 impl<State: AppState> SimulationTab<State> {
@@ -45,6 +48,7 @@ impl<State: AppState> SimulationTab<State> {
                 Message::RigidHelicesSimulation,
             ),
             physical_simulation: Default::default(),
+            rapier_parameters: Default::default(),
         }
     }
 
@@ -153,7 +157,6 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
                     sim_state.simulating_grid()
                 ),
                 Self::helix_btns(&self.rigid_helices_button, app_state, ui_size,),
-                text_button("Rapier Simulation", ui_size,).on_press(Message::StartRapierSimulation),
             ]
             .spacing(ui_size.button_spacing()),
             subsection("Parameters for helices simulation", ui_size),
@@ -174,11 +177,182 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
                 self.brownian_factory
                     .view(brownian_motion, ui_size.main_text())
             ),
+            section("Rapier Simulation", ui_size),
+            self::column![
+                self::row![pick_list(
+                    [
+                        RapierSimulationType::Full,
+                        RapierSimulationType::Rigid,
+                        RapierSimulationType::Cut
+                    ],
+                    Some(RapierSimulationType::Cut),
+                    |_| Message::StartRapierSimulation,
+                )],
+                self::row![
+                    text_button("Start", ui_size).on_press(Message::StartRapierSimulation),
+                    text_button("Stop", ui_size),
+                ],
+            ],
+            view_rapier_parameters(self.rapier_parameters, ui_size)
         ]
         .spacing(5);
 
         scrollable(content).into()
     }
+}
+
+fn rapier_parameters_field_editor<State: AppState, F>(
+    description: impl ToString,
+    value: f32,
+    message_builder: F,
+) -> iced::Element<'static, Message<State>>
+where
+    F: Fn(f32) -> Message<State> + 'static,
+{
+    let current_value = value.to_string();
+
+    let description = description.to_string();
+
+    row![
+        text(&description),
+        keyboard_priority(
+            "Rapier parameters ".to_owned() + &description,
+            Message::<State>::SetKeyboardPriority,
+            text_input(&current_value, &current_value).on_input(move |str| {
+                match str.parse::<f32>() {
+                    Ok(new_value) => message_builder(new_value),
+                    _ => message_builder(value),
+                }
+            })
+        )
+    ]
+    .into()
+}
+
+fn view_rapier_parameters<State: AppState>(
+    parameters: RapierParameters,
+    ui_size: UiSize,
+) -> iced::Element<'static, Message<State>> {
+    self::column![
+        subsection("Rapier parameters", ui_size),
+        rapier_parameters_field_editor("Linear damping", parameters.linear_damping, move |value| {
+            Message::UpdateRapierParameters(RapierParameters {
+                linear_damping: value,
+                ..parameters
+            })
+        }),
+        rapier_parameters_field_editor(
+            "Angular damping",
+            parameters.angular_damping,
+            move |value| {
+                Message::UpdateRapierParameters(RapierParameters {
+                    angular_damping: value,
+                    ..parameters
+                })
+            }
+        ),
+        rapier_parameters_field_editor(
+            "Interbase spring stiffness",
+            parameters.interbase_spring_stiffness,
+            move |value| {
+                Message::UpdateRapierParameters(RapierParameters {
+                    interbase_spring_stiffness: value,
+                    ..parameters
+                })
+            }
+        ),
+        rapier_parameters_field_editor(
+            "Interbase spring damping",
+            parameters.interbase_spring_damping,
+            move |value| {
+                Message::UpdateRapierParameters(RapierParameters {
+                    interbase_spring_damping: value,
+                    ..parameters
+                })
+            }
+        ),
+        rapier_parameters_field_editor(
+            "Crossover stiffness",
+            parameters.crossover_stiffness,
+            move |value| {
+                Message::UpdateRapierParameters(RapierParameters {
+                    crossover_stiffness: value,
+                    ..parameters
+                })
+            }
+        ),
+        rapier_parameters_field_editor(
+            "Crossover damping",
+            parameters.crossover_damping,
+            move |value| {
+                Message::UpdateRapierParameters(RapierParameters {
+                    crossover_damping: value,
+                    ..parameters
+                })
+            }
+        ),
+        rapier_parameters_field_editor(
+            "Crossover rest length",
+            parameters.crossover_rest_length,
+            move |value| {
+                Message::UpdateRapierParameters(RapierParameters {
+                    crossover_rest_length: value,
+                    ..parameters
+                })
+            }
+        ),
+        rapier_parameters_field_editor(
+            "Free nucleotide stiffness",
+            parameters.free_nucleotide_stiffness,
+            move |value| {
+                Message::UpdateRapierParameters(RapierParameters {
+                    free_nucleotide_stiffness: value,
+                    ..parameters
+                })
+            }
+        ),
+        rapier_parameters_field_editor(
+            "Free nucleotide damping",
+            parameters.free_nucleotide_damping,
+            move |value| {
+                Message::UpdateRapierParameters(RapierParameters {
+                    free_nucleotide_damping: value,
+                    ..parameters
+                })
+            }
+        ),
+        rapier_parameters_field_editor(
+            "Free nucleotide rest length",
+            parameters.free_nucleotide_rest_length,
+            move |value| {
+                Message::UpdateRapierParameters(RapierParameters {
+                    free_nucleotide_rest_length: value,
+                    ..parameters
+                })
+            }
+        ),
+        rapier_parameters_field_editor(
+            "Repulsion strength",
+            parameters.repulsion_strength,
+            move |value| {
+                Message::UpdateRapierParameters(RapierParameters {
+                    repulsion_strength: value,
+                    ..parameters
+                })
+            }
+        ),
+        rapier_parameters_field_editor(
+            "Repulsion range",
+            parameters.repulsion_range,
+            move |value| {
+                Message::UpdateRapierParameters(RapierParameters {
+                    repulsion_range: value,
+                    ..parameters
+                })
+            }
+        ),
+    ]
+    .into()
 }
 
 #[derive(Default)]

@@ -144,6 +144,8 @@ impl ParameterWidget {
         id: RevolutionParameterId,
     ) -> iced::Element<'_, Message<State>> {
         keyboard_priority(
+            format!("Revolution tab {id:?}"),
+            Message::SetKeyboardPriority,
             text_input("", &self.current_text)
                 .on_input(move |s| Message::RevolutionParameterUpdate {
                     parameter_id: id,
@@ -152,8 +154,6 @@ impl ParameterWidget {
                 .width(50)
                 .style(theme::BadValue(self.contains_valid_input())),
         )
-        .on_priority(Message::SetKeyboardPriority(true))
-        .on_unpriority(Message::SetKeyboardPriority(false))
         .into()
     }
 

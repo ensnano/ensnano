@@ -54,13 +54,13 @@ macro_rules! type_builder {
                             text(Self::PARAMETER_NAMES[i]),
                             Space::with_width(5),
                             keyboard_priority(
+                                "Contextual value change priority",
+                                Message::SetKeyboardPriority,
                                 text_input("", str_values[i])
                                     .on_input(move |string| Message::ContextualValueChanged(value_to_modify, i, string))
                                     .on_submit(Message::ContextualValueSubmitted(value_to_modify))
                                     .width(50)
                             )
-                            .on_priority(Message::SetKeyboardPriority(true))
-                            .on_unpriority(Message::SetKeyboardPriority(false)),
                         ].width(Length::Fill))
                     }
                     ret.into()

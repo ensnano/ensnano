@@ -1,6 +1,8 @@
 use crate::{AppState, Requests};
 use ensnano_iced::{
-    theme::GuiBackground, ui_size::UiSize, widgets::keyboard_priority::keyboard_priority,
+    theme::GuiBackground,
+    ui_size::UiSize,
+    widgets::keyboard_priority::{PriorityRequest, keyboard_priority},
 };
 use ensnano_interactor::{PastingStatus, StrandBuildingStatus, operation::Operation};
 use iced::{
@@ -99,7 +101,7 @@ pub enum Message<S: AppState> {
     TabPressed,
     Message(Option<String>),
     Resize(LogicalSize<f64>),
-    SetKeyboardPriority(bool),
+    SetKeyboardPriority(PriorityRequest),
 }
 
 impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
@@ -297,11 +299,11 @@ impl OperationInput {
                 row = row
                     .spacing(20)
                     .push(text(param).size(ui_size.main_text()))
-                    .push(
-                        keyboard_priority(input)
-                            .on_priority(Message::SetKeyboardPriority(true))
-                            .on_unpriority(Message::SetKeyboardPriority(false)),
-                    );
+                    .push(keyboard_priority(
+                        "Status bar unnamed priority",
+                        Message::SetKeyboardPriority,
+                        input,
+                    ))
             }
         }
         if need_validation {

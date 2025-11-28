@@ -11,7 +11,7 @@ use ensnano_design::{
 };
 use ensnano_exports::ExportType;
 use ensnano_gui::{OverlayType, Requests as GuiRequests, left_panel::RigidBodyParametersRequest};
-use ensnano_iced::ui_size::UiSize;
+use ensnano_iced::{ui_size::UiSize, widgets::keyboard_priority::PriorityRequest};
 use ensnano_interactor::{
     DesignOperation, HyperboloidRequest, InsertionPoint, RapierSimulationRequest,
     RigidBodyConstants, RollRequest,
@@ -503,8 +503,11 @@ impl GuiRequests for Requests {
                 Notification::StlExport(path)
             }));
     }
-    fn set_keyboard_priority(&mut self, priority: bool) {
-        self.set_keyboard_priority = Some(priority);
+
+    fn set_keyboard_priority(&mut self, priority: PriorityRequest) {
+        self.set_keyboard_priority
+            .get_or_insert_default()
+            .push(priority);
     }
 }
 

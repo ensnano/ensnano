@@ -30,6 +30,7 @@ use ensnano_iced::{
     fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
     theme::GuiBackground,
     ui_size::UiSize,
+    widgets::keyboard_priority::PriorityRequest,
 };
 use ensnano_interactor::{
     HyperboloidRequest, RapierSimulationRequest,
@@ -42,6 +43,7 @@ use ensnano_interactor::{
     surfaces::EquadiffSolvingMethod,
 };
 use ensnano_organizer::{Organizer, OrganizerMessage, tree::OrganizerTree};
+use ensnano_physics::parameters::RapierParameters;
 use export_menu::ExportMenu;
 use iced::{
     Color, Command, Element, Length,
@@ -103,6 +105,7 @@ pub enum Message<S: AppState> {
     FogRadius(f32),
     FogLength(f32),
     RollSimulationRequest,
+    UpdateRapierParameters(RapierParameters),
     StartRapierSimulation,
     DiscreteValue {
         factory_id: FactoryId,
@@ -196,7 +199,7 @@ pub enum Message<S: AppState> {
     SaveNucleotidesPositions,
     IncrRevolutionShift,
     DecrRevolutionShift,
-    SetKeyboardPriority(bool),
+    SetKeyboardPriority(PriorityRequest),
     SetFocus(text_input::Id),
 }
 
@@ -437,6 +440,10 @@ where
                     let request = self.simulation_tab.get_physical_simulation_request();
                     self.requests.lock().unwrap().start_roll_simulation(request);
                 }
+                Command::none()
+            }
+            Message::UpdateRapierParameters(parameters) => {
+                self.simulation_tab.rapier_parameters = parameters;
                 Command::none()
             }
             Message::StartRapierSimulation => {

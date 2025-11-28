@@ -14,7 +14,7 @@ use crate::{
     drag_drop_target::{DragDropTarget, DragIdentifier},
     element::{AttributeDisplayer, ElementKey, OrganizerAttribute as _, OrganizerElement},
 };
-use ensnano_iced::widgets::keyboard_priority::keyboard_priority;
+use ensnano_iced::widgets::keyboard_priority::{PriorityRequest, keyboard_priority};
 use hoverable_container::HoverableContainer;
 use iced::{
     Element, Length, Renderer, Theme,
@@ -53,7 +53,7 @@ pub enum OrganizerMessage<E: OrganizerElement> {
         new_tree: OrganizerTree<E::Key>,
     },
     /// Taking or releasing keyboard priority.
-    SetKeyboardPriority(bool),
+    SetKeyboardPriority(PriorityRequest),
     /// Ask Iced application to focus on this element
     SetFocus(text_input::Id),
 }
@@ -1042,13 +1042,13 @@ impl<E: OrganizerElement> NodeTitleBar<E> {
                         .on_press(OrganizerMessage::expand(id.clone(), !expanded)),
                     Space::with_width(5.0),
                     keyboard_priority(
-                        text_input("New group name...", name)
+                        "New group name...",
+                        OrganizerMessage::SetKeyboardPriority,
+                        text_input("New group name...", &name)
                             .id(self.name_input_id.clone())
                             .on_input(|s| { OrganizerMessage::name_input(s) })
                             .on_submit(OrganizerMessage::stop_edit())
-                    )
-                    .on_priority(OrganizerMessage::SetKeyboardPriority(true))
-                    .on_unpriority(OrganizerMessage::SetKeyboardPriority(false)),
+                    ),
                     horizontal_space(),
                     button(icon::plus_icon())
                         .on_press(OrganizerMessage::add_selection_to_group(id.clone())), // TODO: change icon later !!!

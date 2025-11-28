@@ -8,6 +8,13 @@
 - Double on organizer tree click should teleport in 2d and 3d scenes
 - Add serialization/deserialization tests to detect regressions based on typo fixes
 
+## Bugs
+
+- Increasing the left panel too much crashes ENSnano
+- Crash when selection "Ellipse" or "Two spheres" in "Revolution Surfaces" tab 
+- Toggle split of flatscene
+- Zooms gets stuck (waiting for Nicolas explanation)
+
 ## Hide scientific WIP
 
 - .ens file encryption
@@ -44,6 +51,7 @@
 ## GUI
 
 - Better looking tabs (and show active)
+- `3D`, `2D` and `3D+2D` should be "radio buttons" with the active one shown like the selection 
 
 ### Help
 

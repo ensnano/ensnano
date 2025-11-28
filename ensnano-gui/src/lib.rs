@@ -23,6 +23,7 @@ use ensnano_exports::ExportType;
 use ensnano_iced::{
     fonts::{INTER_REGULAR_FONT, load_fonts},
     ui_size::UiSize,
+    widgets::keyboard_priority::PriorityRequest,
 };
 use ensnano_interactor::{
     HyperboloidRequest, InsertionPoint, PastingStatus, RapierSimulationRequest, RollRequest,
@@ -210,7 +211,7 @@ pub trait Requests: 'static + Send {
     fn notify_revolution_tab(&mut self);
     fn request_stl_export(&mut self);
     /// Set keyboard priority, i.e. whether activate keyboard shortcuts.
-    fn set_keyboard_priority(&mut self, priority: bool);
+    fn set_keyboard_priority(&mut self, priority: PriorityRequest);
 }
 
 #[derive(Clone, Debug, PartialEq)]

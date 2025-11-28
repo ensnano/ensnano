@@ -1,5 +1,5 @@
 use crate::{
-    full_simulation::{RigidHelicesSetup, build_simulation},
+    full_simulation::{CutHelicesSetup, build_simulation},
     helices::build_helices,
     import::{add_crossover_springs, generate_intermediary_representation, generate_springs},
 };
@@ -32,9 +32,9 @@ impl RapierPhysicsSystem {
         space_position: &HashMap<u32, [f32; 3]>,
         helices: &Helices,
     ) -> Self {
-        let intermediary = build_helices(nucleotide);
+        let intermediary = build_helices(object_type, nucleotide);
 
-        build_simulation::<RigidHelicesSetup>(
+        build_simulation::<CutHelicesSetup>(
             &intermediary,
             object_type,
             nucleotide,

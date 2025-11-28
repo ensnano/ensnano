@@ -111,7 +111,7 @@ use ensnano_flatscene::FlatScene;
 use ensnano_gui::{
     AppState as _, Gui, IcedMessages, OverlayType, TopBarState, left_panel::ColorOverlay,
 };
-use ensnano_iced::{fonts, theme, ui_size::UiSize};
+use ensnano_iced::{fonts, theme, ui_size::UiSize, widgets::keyboard_priority::KeyboardPriorityId};
 use ensnano_interactor::{
     DesignOperation, DesignRotation, DesignTranslation, IsometryTarget, PastingStatus,
     RigidBodyConstants,
@@ -500,17 +500,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 //       as shortcuts by the UI. The “keyboard priority” feature has been made for this,
                 //       and the interception is made here.
                 //
-                WindowEvent::KeyboardInput { .. } if main_state.keyboard_priority => {
-                    if let Some(iced_event) = iced_winit::conversion::window_event(
+                WindowEvent::KeyboardInput { .. } if main_state.keyboard_priority.is_some() => {
+                    iced_winit::conversion::window_event(
                         iced::window::Id::MAIN,
                         // NOTE: Used to be window.id(). It seems dirty,
                         //       but the same is done in iced/examples/integration
                         window_event,
                         window.scale_factor(),
                         kbd_modifiers,
-                    ) {
-                        gui.forward_event_all(iced_event);
-                    }
+                    )
+                    .map(|iced_event| gui.forward_event_all(iced_event));
                 }
 
                 WindowEvent::RedrawRequested
@@ -1029,7 +1028,8 @@ struct MainState {
     applications: HashMap<GuiComponentType, Arc<Mutex<dyn Application<AppState = AppState>>>>,
     focused_component: Option<GuiComponentType>,
     /// Disable the interception of keyboard events, to let the user input text.
-    keyboard_priority: bool,
+    /// Some(id) indicates that object id has the priority; None indicates none have the priority.
+    keyboard_priority: Option<KeyboardPriorityId>,
     last_saved_state: AppState,
 
     /// The name of the file containing the current design.
@@ -1063,7 +1063,7 @@ impl MainState {
             messages,
             applications: Default::default(),
             focused_component: None,
-            keyboard_priority: false,
+            keyboard_priority: None,
             last_saved_state: app_state.clone(),
             file_name: None,
             wants_fit: false,
