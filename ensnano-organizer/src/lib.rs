@@ -17,7 +17,7 @@ use crate::{
 use ensnano_iced::widgets::keyboard_priority::{PriorityRequest, keyboard_priority};
 use hoverable_container::HoverableContainer;
 use iced::{
-    Element, Length, Renderer, Theme,
+    Element, Length,
     keyboard::Modifiers,
     widget::{
         Column, Container, Row, Space, button, column, container, horizontal_space, mouse_area,
@@ -861,7 +861,7 @@ impl<E: OrganizerElement> Section<E> {
         &self,
         theme: &OrganizerTheme,
         selection: &BTreeSet<E::Key>,
-    ) -> Container<'_, OrganizerMessage<E>, Theme, Renderer> {
+    ) -> Container<'_, OrganizerMessage<E>> {
         let title_row = self
             .title_bar
             .view(&self.name, self.id.clone(), self.expanded);
@@ -915,7 +915,7 @@ impl<E: OrganizerElement> ElementView<E> {
         element: &E,
         _selection: &BTreeSet<E::Key>,
         deletable: Option<NodeId<E::AutoGroup>>,
-    ) -> DragDropTarget<'_, OrganizerMessage<E>, Theme, Renderer, E::Key, E::AutoGroup> {
+    ) -> DragDropTarget<'_, OrganizerMessage<E>, E::Key, E::AutoGroup> {
         let mut content = row![text(element.display_name()), horizontal_space(),];
         // [DragIdentifier::Group] are deletable, [DragIdentifier::Section] are not.
         let identifier = match deletable.as_ref() {
@@ -1004,10 +1004,10 @@ impl<E: OrganizerElement> NodeTitleBar<E> {
         name: &String,
         id: NodeId<E::AutoGroup>,
         expanded: bool,
-    ) -> Element<'_, OrganizerMessage<E>, Theme, Renderer> {
+    ) -> Element<'_, OrganizerMessage<E>> {
         let title_row = match &self.state {
             GroupState::Idle => {
-                let mut row: Row<'_, _, Theme, Renderer> = row![
+                let mut row: Row<'_, _> = row![
                     button(icon::expand_icon(expanded))
                         .on_press(OrganizerMessage::<E>::expand(id.clone(), !expanded)),
                     Space::with_width(5.0),

@@ -23,17 +23,14 @@ pub enum DragIdentifier<K, AutoGroup> {
 /// An widget that can be dragged.
 ///
 /// There is no [Padding], [Size] for this widget. It sticks around its content.
-pub struct DragDropTarget<'a, Message, Theme, Renderer, K, E> {
-    content: Element<'a, Message, Theme, Renderer>,
+pub struct DragDropTarget<'a, Message, K, E> {
+    content: Element<'a, Message>,
     identifier: DragIdentifier<K, E>,
 }
 
-impl<'a, Message, Theme, Renderer, K, E> DragDropTarget<'a, Message, Theme, Renderer, K, E> {
+impl<'a, Message, K, E> DragDropTarget<'a, Message, K, E> {
     /// Creates a new [`DragDropTarget`] with the given content and identifier.
-    pub fn new(
-        content: impl Into<Element<'a, Message, Theme, Renderer>>,
-        identifier: DragIdentifier<K, E>,
-    ) -> Self {
+    pub fn new(content: impl Into<Element<'a, Message>>, identifier: DragIdentifier<K, E>) -> Self {
         Self {
             content: content.into(),
             identifier,
@@ -41,11 +38,10 @@ impl<'a, Message, Theme, Renderer, K, E> DragDropTarget<'a, Message, Theme, Rend
     }
 }
 
-impl<E, Theme, Renderer> Widget<OrganizerMessage<E>, Theme, Renderer>
-    for DragDropTarget<'_, OrganizerMessage<E>, Theme, Renderer, E::Key, E::AutoGroup>
+impl<E> Widget<OrganizerMessage<E>, iced::Theme, iced::Renderer>
+    for DragDropTarget<'_, OrganizerMessage<E>, E::Key, E::AutoGroup>
 where
     E: OrganizerElement,
-    Renderer: renderer::Renderer,
 {
     fn tag(&self) -> widget::tree::Tag {
         self.content.as_widget().tag()
@@ -73,7 +69,7 @@ where
     fn layout(
         &self,
         tree: &mut widget::Tree,
-        renderer: &Renderer,
+        renderer: &iced::Renderer,
         limits: &layout::Limits,
     ) -> layout::Node {
         container::layout(
@@ -95,7 +91,7 @@ where
         event: event::Event,
         layout: Layout,
         cursor_position: mouse::Cursor,
-        renderer: &Renderer,
+        renderer: &iced::Renderer,
         clipboard: &mut dyn Clipboard,
         shell: &mut Shell<OrganizerMessage<E>>,
         viewport: &Rectangle,
@@ -130,8 +126,8 @@ where
     fn draw(
         &self,
         tree: &widget::Tree,
-        renderer: &mut Renderer,
-        theme: &Theme,
+        renderer: &mut iced::Renderer,
+        theme: &iced::Theme,
         style: &renderer::Style,
         layout: Layout,
         cursor: mouse::Cursor,
@@ -152,9 +148,9 @@ where
         &'b mut self,
         tree: &'b mut widget::Tree,
         layout: Layout,
-        renderer: &Renderer,
+        renderer: &iced::Renderer,
         translation: Vector,
-    ) -> Option<overlay::Element<'b, OrganizerMessage<E>, Theme, Renderer>> {
+    ) -> Option<overlay::Element<'b, OrganizerMessage<E>, iced::Theme, iced::Renderer>> {
         self.content.as_widget_mut().overlay(
             tree,
             layout.children().next().unwrap(),
@@ -164,17 +160,12 @@ where
     }
 }
 
-impl<'a, E, Theme, Renderer>
-    From<DragDropTarget<'a, OrganizerMessage<E>, Theme, Renderer, E::Key, E::AutoGroup>>
-    for Element<'a, OrganizerMessage<E>, Theme, Renderer>
+impl<'a, E> From<DragDropTarget<'a, OrganizerMessage<E>, E::Key, E::AutoGroup>>
+    for Element<'a, OrganizerMessage<E>>
 where
     E: OrganizerElement,
-    Theme: 'a,
-    Renderer: 'a + renderer::Renderer,
 {
-    fn from(
-        value: DragDropTarget<'a, OrganizerMessage<E>, Theme, Renderer, E::Key, E::AutoGroup>,
-    ) -> Self {
+    fn from(value: DragDropTarget<'a, OrganizerMessage<E>, E::Key, E::AutoGroup>) -> Self {
         Element::new(value)
     }
 }

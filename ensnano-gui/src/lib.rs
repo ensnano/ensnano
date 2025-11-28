@@ -44,7 +44,7 @@ use ensnano_interactor::{
 use ensnano_organizer::tree::{GroupId, OrganizerTree};
 use ensnano_utils::TEXTURE_FORMAT;
 use iced::{
-    Renderer, Size,
+    Size,
     advanced::{clipboard, mouse, renderer},
     event::Event,
     keyboard,
@@ -302,7 +302,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
         &mut self,
         size: Size,
         cursor: Cursor,
-        renderer: &mut Renderer,
+        renderer: &mut iced::Renderer,
         theme: &iced::Theme,
         style: &renderer::Style,
         debug: &mut Debug,
@@ -323,7 +323,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
 
     fn render(
         &mut self,
-        renderer: &mut Renderer,
+        renderer: &mut iced::Renderer,
         device: &Device,
         queue: &Queue,
         encoder: &mut wgpu::CommandEncoder,
@@ -335,7 +335,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
         mouse_interaction: &mut mouse::Interaction,
     ) {
         match renderer {
-            Renderer::Wgpu(wgpu_renderer) => {
+            iced::Renderer::Wgpu(wgpu_renderer) => {
                 wgpu_renderer.with_primitives(|backend, primitives| {
                     backend.present(
                         device,
@@ -350,7 +350,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
                     );
                 });
             }
-            Renderer::TinySkia(_) => panic!("Unhandled renderer"),
+            iced::Renderer::TinySkia(_) => panic!("Unhandled renderer"),
         }
 
         match self {
@@ -377,13 +377,13 @@ struct GuiComponent<R: Requests, S: AppState> {
     debug: Debug,
     redraw: bool,
     element_type: GuiComponentType,
-    renderer: Renderer,
+    renderer: iced::Renderer,
 }
 
 impl<R: Requests, S: AppState> GuiComponent<R, S> {
     /// Initialize the top bar gui component
     fn top_bar(
-        mut renderer: Renderer,
+        mut renderer: iced::Renderer,
         window: &Window,
         multiplexer: &dyn Multiplexer,
         requests: Arc<Mutex<R>>,
@@ -417,7 +417,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
 
     /// Initialize the left panel gui component
     fn left_panel(
-        mut renderer: Renderer,
+        mut renderer: iced::Renderer,
         window: &Window,
         multiplexer: &dyn Multiplexer,
         requests: Arc<Mutex<R>>,
@@ -453,7 +453,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
     }
 
     fn status_bar(
-        mut renderer: Renderer,
+        mut renderer: iced::Renderer,
         window: &Window,
         multiplexer: &dyn Multiplexer,
         requests: Arc<Mutex<R>>,
@@ -639,7 +639,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         //       Type of 'state' is a parameter implementing 'AppState', while top_bar_state
         //       is another type.
         //
-        let mut top_bar_renderer = Renderer::Wgpu(iced_wgpu::Renderer::new(
+        let mut top_bar_renderer = iced::Renderer::Wgpu(iced_wgpu::Renderer::new(
             Backend::new(
                 self.device.as_ref(),
                 self.queue.as_ref(),
@@ -663,7 +663,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
             ),
         );
 
-        let mut left_panel_renderer = Renderer::Wgpu(iced_wgpu::Renderer::new(
+        let mut left_panel_renderer = iced::Renderer::Wgpu(iced_wgpu::Renderer::new(
             Backend::new(
                 self.device.as_ref(),
                 self.queue.as_ref(),
@@ -689,7 +689,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         self.components.insert(
             GuiComponentType::StatusBar,
             GuiComponent::status_bar(
-                Renderer::Wgpu(iced_wgpu::Renderer::new(
+                iced::Renderer::Wgpu(iced_wgpu::Renderer::new(
                     Backend::new(
                         self.device.as_ref(),
                         self.queue.as_ref(),

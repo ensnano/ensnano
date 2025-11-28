@@ -3,7 +3,7 @@
 //! The theme of the GUI is defined here
 
 use iced::{
-    Background, Border, Color, Theme,
+    Background, Border, Color,
     advanced::renderer::Style,
     border::Radius,
     theme::{Container, Palette, Slider, Text, TextInput},
@@ -21,11 +21,11 @@ pub const GUI_PALETTE: Palette = Palette {
     danger: Color::from_rgb(1.0, 0.5, 0.5),
 };
 
-pub fn gui_theme() -> Theme {
-    Theme::custom("ENSnano UI Theme".to_owned(), GUI_PALETTE)
+pub fn gui_theme() -> iced::Theme {
+    iced::Theme::custom("ENSnano UI Theme".to_owned(), GUI_PALETTE)
 }
 
-pub fn gui_style(theme: &Theme) -> Style {
+pub fn gui_style(theme: &iced::Theme) -> Style {
     Style {
         text_color: theme.palette().text,
     }
@@ -48,7 +48,7 @@ pub struct GuiBackground;
 
 // Implement the style sheet using GUI_PALETTE
 impl container::StyleSheet for GuiBackground {
-    type Style = Theme;
+    type Style = iced::Theme;
 
     fn appearance(&self, _: &Self::Style) -> container::Appearance {
         container::Appearance {
@@ -72,7 +72,7 @@ impl From<GuiBackground> for Container {
 }
 
 impl tab_bar::StyleSheet for GuiBackground {
-    type Style = Theme;
+    type Style = iced::Theme;
 
     fn active(&self, _style: &Self::Style, _is_active: bool) -> tab_bar::Appearance {
         tab_bar::Appearance {
@@ -103,7 +103,7 @@ impl From<GuiBackground> for iced_aw::style::TabBarStyles {
 pub struct DeactivatedSlider;
 
 impl slider::StyleSheet for DeactivatedSlider {
-    type Style = Theme;
+    type Style = iced::Theme;
 
     fn active(&self, style: &Self::Style) -> slider::Appearance {
         let palette = style.extended_palette();
@@ -151,7 +151,7 @@ impl From<DeactivatedSlider> for Slider {
 pub struct BadValue(pub bool);
 
 impl text_input::StyleSheet for BadValue {
-    type Style = Theme;
+    type Style = iced::Theme;
 
     fn active(&self, _style: &Self::Style) -> text_input::Appearance {
         text_input::Appearance {
