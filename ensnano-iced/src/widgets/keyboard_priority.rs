@@ -14,11 +14,11 @@ use iced::{
 use iced_graphics::text::Paragraph;
 use std::borrow::Cow;
 
-/// This is sent through messages to indicate
-/// what keyboard priority widget is taking or giving
-/// the priority. Being specific about the id allows
-/// to prevent issues with race conditions in the
-/// order of events.
+/// Signals when a text input claims or releases keyboard focus priority.
+///
+/// This is sent through messages to indicate what keyboard priority widget is taking or giving
+/// the priority. Being specific about the id allows to prevent issues with race conditions in
+/// the order of events.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PriorityRequest {
     pub id: KeyboardPriorityId,

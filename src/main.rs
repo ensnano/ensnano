@@ -508,7 +508,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         window_event,
                         window.scale_factor(),
                         kbd_modifiers,
-                    ) { gui.forward_event_all(iced_event) }
+                    ) {
+                        gui.forward_event_all(iced_event)
+                    }
                 }
 
                 WindowEvent::RedrawRequested

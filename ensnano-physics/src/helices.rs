@@ -129,13 +129,13 @@ pub(crate) fn build_helices(
         }
     }
 
-    result
-        .values_mut()
-        .for_each(IntermediaryHelix::compute_ranges);
+    for helix in result.values_mut() {
+        helix.compute_ranges();
+    }
 
-    result
-        .values_mut()
-        .for_each(|helix| helix.crossover_cuts.sort_unstable());
+    for helix in result.values_mut() {
+        helix.crossover_cuts.sort_unstable();
+    }
 
     result
 }

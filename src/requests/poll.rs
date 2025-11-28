@@ -370,7 +370,8 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
             if request.taking {
                 main_state.keyboard_priority = Some(request.id);
             } else if let Some(id) = &main_state.keyboard_priority
-            && *id == request.id {
+                && *id == request.id
+            {
                 main_state.keyboard_priority = None;
             }
         }
