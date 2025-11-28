@@ -1,4 +1,5 @@
 //! This modules defines operations that can be performed on a design to modify it.
+//!
 //! The functions that apply these operations take a mutable reference to the design that they are
 //! modifying and may return an `ErrOperation` if the operation could not be applied.
 

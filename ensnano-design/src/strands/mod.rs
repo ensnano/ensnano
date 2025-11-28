@@ -249,7 +249,8 @@ struct InsertionAccumulator {
     sequence: String,
 }
 
-/// Return a list of domains that validate the following condition:
+/// Return a list of domains that validate the condition SaneDomains
+///
 /// SaneDomains: There must always be a Domain::HelixDomain between two Domain::Insertion. If the
 /// strand is cyclic, this include the first and the last domain.
 pub fn sanitize_domains(domains: &[Domain], cyclic: bool) -> Vec<Domain> {
