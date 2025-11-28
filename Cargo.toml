@@ -245,7 +245,10 @@ if_not_else = "allow"
 iter_without_into_iter = "allow"
 manual_midpoint = "allow"
 many_single_char_names = "allow"
+missing_errors_doc = "allow" # TODO: warn
 missing_fields_in_debug = "allow"
+missing_panics_doc = "allow" # TODO: warn
+must_use_candidate = "allow"
 needless_pass_by_value = "allow" # TODO: warn
 option_option = "allow"
 similar_names = "allow"
@@ -288,6 +291,7 @@ little_endian_bytes = "allow"
 min_ident_chars = "allow"
 missing_assert_message = "allow"
 missing_docs_in_private_items = "allow" # TODO: warn (major undertaking)
+missing_inline_in_public_items = "allow"
 missing_trait_methods = "allow"
 mod_module_files = "allow"
 module_name_repetitions = "allow"
@@ -325,6 +329,7 @@ use_debug = "allow" # TODO: warn once log! is used everywhere instead of println
 wildcard_enum_match_arm = "allow"
 
 # style
+new_without_default = "allow"
 wrong_self_convention = "allow" # TODO: warn
 
 # suspicious
