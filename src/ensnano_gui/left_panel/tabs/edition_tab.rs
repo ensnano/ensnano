@@ -1,19 +1,19 @@
 use crate::ensnano_design::elements::DesignElementKey;
-use crate::ensnano_gui::AppState;
-use crate::ensnano_gui::left_panel::discrete_value::{FactoryId, RequestFactory, ValueId};
-use crate::ensnano_gui::left_panel::tabs::GuiTab;
-use crate::ensnano_gui::left_panel::{HelixRoll, Message};
-use crate::ensnano_iced::ui_size::UiSize;
-use crate::ensnano_interactor::RollRequest;
-use crate::ensnano_interactor::selection::extract_strands_from_selection;
-use crate::{
-    ensnano_gui::left_panel::color_to_u32,
-    ensnano_iced::{
-        color_picker::{ColorPicker, ColorPickerMessage},
-        fonts::material_icons::{MaterialIcon, icon_to_char},
-        helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
+use crate::ensnano_gui::{
+    AppState,
+    left_panel::{
+        HelixRoll, Message, color_to_u32,
+        discrete_value::{FactoryId, RequestFactory, ValueId},
+        tabs::GuiTab,
     },
 };
+use crate::ensnano_iced::{
+    color_picker::{ColorPicker, ColorPickerMessage},
+    fonts::material_icons::{MaterialIcon, icon_to_char},
+    helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
+    ui_size::UiSize,
+};
+use crate::ensnano_interactor::{RollRequest, selection::extract_strands_from_selection};
 use iced::{
     Command,
     widget::{column, row, scrollable},

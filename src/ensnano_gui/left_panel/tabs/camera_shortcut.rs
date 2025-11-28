@@ -1,16 +1,18 @@
-use crate::ensnano_gui::left_panel::Message;
-use crate::ensnano_gui::{AppState, CameraId};
-use crate::ensnano_iced::helpers::{
-    extra_jump, fixed_text_button, material_icon, material_icon_button, rotation_icon_button,
-    section, subsection,
-};
+use crate::ensnano_gui::{AppState, CameraId, left_panel::Message};
 use crate::ensnano_iced::{
     fonts::material_icons::{MaterialIcon, MaterialIconStyle},
+    helpers::{
+        extra_jump, fixed_text_button, material_icon, material_icon_button, rotation_icon_button,
+        section, subsection,
+    },
     ui_size::UiSize,
     widgets::keyboard_priority::keyboard_priority,
 };
-use iced::widget::{Column, Space, column, row, scrollable, text, text_input};
-use iced::{Alignment, Command, Length, alignment::Horizontal};
+use iced::{
+    Alignment, Command, Length,
+    alignment::Horizontal,
+    widget::{Column, Space, column, row, scrollable, text, text_input},
+};
 use ultraviolet::Vec3;
 
 /// A named camera orientation.

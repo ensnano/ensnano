@@ -2,16 +2,21 @@ use crate::app_state::design_interactor::DesignInteractor;
 use crate::controller::download_staples::{
     DownloadStapleError, DownloadStapleOk, StaplesDownloader,
 };
-use crate::ensnano_design::Nucl;
-use crate::ensnano_design::grid::{GridId, HelixGridPosition};
-use crate::ensnano_design::helices::HelixCollection as _;
-use crate::ensnano_design::strands::Strand;
+use crate::ensnano_design::{
+    Nucl,
+    grid::{GridId, HelixGridPosition},
+    helices::HelixCollection as _,
+    strands::Strand,
+};
 use crate::ensnano_interactor::selection::InteractorDesignReaderExt as MainReader;
 use itertools::Itertools as _;
 use rust_xlsxwriter::{Color, Format, Workbook};
 use serde::Serialize;
-use std::collections::{BTreeMap, HashMap};
-use std::{io::Write as _, path::Path};
+use std::{
+    collections::{BTreeMap, HashMap},
+    io::Write as _,
+    path::Path,
+};
 
 impl StaplesDownloader for DesignInteractor {
     fn download_staples(&self) -> Result<DownloadStapleOk, DownloadStapleError> {

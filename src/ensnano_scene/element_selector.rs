@@ -1,15 +1,15 @@
-use crate::ensnano_design::bezier_plane::{BezierPathId, BezierPlaneId, BezierVertexId};
-use crate::ensnano_design::curves::bezier::BezierControlPoint;
-use crate::ensnano_interactor::consts::widget_id_to_bezier;
-use crate::ensnano_interactor::graphics::DrawArea;
-use crate::ensnano_interactor::selection::phantom_helix_decoder;
-use crate::ensnano_scene::ViewPtr;
-use crate::ensnano_scene::view::DrawType;
-use crate::ensnano_utils::BufferDimensions;
-use crate::{
-    ensnano_design::grid::{GridId, GridPosition},
-    ensnano_interactor::selection::PhantomElement,
+use crate::ensnano_design::{
+    bezier_plane::{BezierPathId, BezierPlaneId, BezierVertexId},
+    curves::bezier::BezierControlPoint,
+    grid::{GridId, GridPosition},
 };
+use crate::ensnano_interactor::{
+    consts::widget_id_to_bezier,
+    graphics::DrawArea,
+    selection::{PhantomElement, phantom_helix_decoder},
+};
+use crate::ensnano_scene::{ViewPtr, view::DrawType};
+use crate::ensnano_utils::BufferDimensions;
 use num_enum::IntoPrimitive;
 use std::rc::Rc;
 use wgpu::{Device, Queue};

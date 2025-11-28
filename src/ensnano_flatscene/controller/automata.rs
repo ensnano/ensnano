@@ -1,18 +1,18 @@
-use crate::ensnano_flatscene::AppState;
-use crate::ensnano_flatscene::controller::{Consequence, Controller};
-use crate::ensnano_flatscene::data::helix::HelixHandle;
-use crate::ensnano_flatscene::data::strand::FreeEnd;
-use crate::ensnano_flatscene::flat_types::{FlatHelix, FlatNucl};
+use crate::ensnano_consts::CIRCLE2D_GREY;
+use crate::ensnano_flatscene::{
+    AppState,
+    controller::{Consequence, Controller},
+    data::{ClickResult, helix::HelixHandle, strand::FreeEnd},
+    flat_types::{FlatHelix, FlatNucl},
+};
 use crate::ensnano_interactor::selection::ActionMode;
 use crate::ensnano_utils::circles2d::CircleInstance;
-use crate::{ensnano_consts::CIRCLE2D_GREY, ensnano_flatscene::data::ClickResult};
 use std::time::Instant;
 use ultraviolet::Vec2;
-use winit::event::{ElementState, KeyEvent};
-use winit::keyboard::{Key, ModifiersState, NamedKey};
 use winit::{
     dpi::PhysicalPosition,
-    event::{MouseButton, WindowEvent},
+    event::{ElementState, KeyEvent, MouseButton, WindowEvent},
+    keyboard::{Key, ModifiersState, NamedKey},
     window::CursorIcon,
 };
 

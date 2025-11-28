@@ -1,7 +1,7 @@
+use crate::ensnano_design::{Design, Nucl, helices::NuclCollection, strands::Domain};
 use crate::{
     app_state::design_interactor::controller::ErrOperation,
     controller::channel_reader::ChannelReader,
-    ensnano_design::{Design, Nucl, helices::NuclCollection, strands::Domain},
 };
 use std::{
     collections::BTreeMap,

@@ -16,8 +16,11 @@ use crate::ensnano_interactor::{
     SimulationState,
     selection::{ActionMode, Selection},
 };
-use iced::widget::{Column, Space, checkbox, column, row, scrollable, text, text_input};
-use iced::{Alignment, Command, Length, alignment::Horizontal};
+use iced::{
+    Alignment, Command, Length,
+    alignment::Horizontal,
+    widget::{Column, Space, checkbox, column, row, scrollable, text, text_input},
+};
 use std::sync::{Arc, Mutex};
 use ultraviolet::{Rotor3, Vec2, Vec3};
 use value_constructor::{BezierVertexBuilder, Builder, GridBuilder, InstantiatedValue, ValueKind};

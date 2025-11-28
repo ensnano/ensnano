@@ -6,24 +6,29 @@ use crate::ensnano_consts::{
     CANDIDATE_COLOR, CANDIDATE_STRAND_HIGHLIGHT_FACTOR_2D, SELECTED_COLOR, SELECTED_HELIX2D_COLOR,
     SELECTED_STRAND_HIGHLIGHT_FACTOR_2D, SELECTION_2D_CYCLE_TIME_LIMIT_MS,
 };
-use crate::ensnano_flatscene::data::design::FlatSceneDesignReaderExt;
-use crate::ensnano_flatscene::data::helix::{Helix, HelixHandle};
-use crate::ensnano_flatscene::data::strand::FreeEnd;
-use crate::ensnano_flatscene::flat_types::{
-    FlatHelix, FlatHelixMaps, FlatIdx, FlatNucl, FlatSelection, HelixSegment, HelixVec,
+use crate::ensnano_flatscene::{
+    AppState, CameraPtr, Requests, ViewPtr,
+    data::{
+        design::FlatSceneDesignReaderExt,
+        helix::{Helix, HelixHandle},
+        strand::FreeEnd,
+    },
+    flat_types::{
+        FlatHelix, FlatHelixMaps, FlatIdx, FlatNucl, FlatSelection, HelixSegment, HelixVec,
+    },
+    view::EditionInfo,
 };
-use crate::ensnano_flatscene::view::EditionInfo;
-use crate::ensnano_flatscene::{AppState, CameraPtr, Requests, ViewPtr};
-use crate::ensnano_interactor::StrandBuildingStatus;
-use crate::ensnano_interactor::selection::Selection;
-use crate::ensnano_interactor::selection::SelectionMode;
-use crate::{ensnano_interactor::selection::PhantomElement, ensnano_utils::camera2d::FitRectangle};
+use crate::ensnano_interactor::{
+    StrandBuildingStatus,
+    selection::{PhantomElement, Selection, SelectionMode},
+};
+use crate::ensnano_utils::camera2d::FitRectangle;
 use ahash::RandomState;
 use design::Design2d;
-use std::time::{Duration, Instant};
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap, HashSet},
     sync::{Arc, Mutex},
+    time::{Duration, Instant},
 };
 use ultraviolet::Vec2;
 

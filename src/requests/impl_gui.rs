@@ -1,28 +1,26 @@
 //! Implements the [Requests](`crate::ensnano_gui::Requests`) trait for [Requests](`super::Requests`).
 
 use crate::controller::normal_state::Action;
-use crate::ensnano_design::bezier_plane::{BezierPathId, BezierVertexId};
-use crate::ensnano_design::parameters::HelixParameters;
 use crate::ensnano_design::{
+    bezier_plane::{BezierPathId, BezierVertexId},
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridTypeDescr},
+    parameters::HelixParameters,
 };
 use crate::ensnano_exports::ExportType;
-use crate::ensnano_gui::OverlayType;
-use crate::ensnano_gui::left_panel::RigidBodyParametersRequest;
+use crate::ensnano_gui::{OverlayType, left_panel::RigidBodyParametersRequest};
 use crate::ensnano_iced::ui_size::UiSize;
-use crate::ensnano_interactor::app_state_parameters::check_xovers_parameter::CheckXoversParameter;
-use crate::ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
-use crate::ensnano_interactor::surfaces::{
-    RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor,
-};
 use crate::ensnano_interactor::{
     DesignOperation, HyperboloidRequest, InsertionPoint, RapierSimulationRequest,
     RigidBodyConstants, RollRequest,
+    app_state_parameters::{
+        check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
+    },
     application::Notification,
     graphics::{Background3D, FogParameters, HBondDisplay, RenderingMode, SplitMode},
     operation::Operation,
     selection::{ActionMode, SelectionMode},
+    surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
 };
 use crate::ensnano_organizer::tree::{GroupId, OrganizerTree};
 use crate::requests::Requests;

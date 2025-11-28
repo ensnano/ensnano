@@ -3,6 +3,7 @@
 // The original source was distributed under the MIT License by Nicolas Silva.
 // A copy of the original license is available in thirdparties/lyon/LICENSE
 
+use crate::ensnano_consts::SAMPLE_COUNT;
 use lyon::{
     geom::{Rect, point, size},
     tessellation::{
@@ -10,8 +11,6 @@ use lyon::{
     },
 };
 use wgpu::util::DeviceExt as _;
-
-use crate::ensnano_consts::SAMPLE_COUNT;
 
 pub struct Background {
     pipeline: wgpu::RenderPipeline,

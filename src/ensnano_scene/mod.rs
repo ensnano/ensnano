@@ -8,18 +8,18 @@ mod sausage_rosary;
 mod stl;
 pub mod view;
 
-use crate::ensnano_design::bezier_plane::BezierVertexId;
 use crate::ensnano_design::{
-    Nucl, consts::ITERATIVE_AXIS_ALGORITHM, grid::GridPosition, grid::HelixGridPosition,
+    Nucl,
+    bezier_plane::BezierVertexId,
+    consts::ITERATIVE_AXIS_ALGORITHM,
+    grid::{GridPosition, HelixGridPosition},
     group_attributes::GroupPivot,
 };
-use crate::ensnano_interactor::graphics::PhySize;
-use crate::ensnano_interactor::surfaces::UnrootedRevolutionSurfaceDescriptor;
 use crate::ensnano_interactor::{
     DesignOperation, NewBezierTangentVector, WidgetBasis,
     app_state_parameters::check_xovers_parameter::CheckXoversParameter,
     application::{AppId, Application, Camera3D, Notification},
-    graphics::{DrawArea, FogParameters},
+    graphics::{DrawArea, FogParameters, PhySize},
     operation::{
         BezierControlPointTranslation, GridHelixCreation, GridRotation, GridTranslation,
         HelixRotation, HelixTranslation, Operation, TranslateBezierPathVertex,
@@ -30,6 +30,7 @@ use crate::ensnano_interactor::{
         list_of_xover_ids, set_of_grids_containing_selection, set_of_helices_containing_selection,
     },
     strand_builder::StrandBuilder,
+    surfaces::UnrootedRevolutionSurfaceDescriptor,
 };
 use crate::ensnano_organizer::tree::GroupId;
 use crate::ensnano_scene::controller::automata::WidgetTarget;

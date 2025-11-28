@@ -1,5 +1,3 @@
-use std::f64::consts::{PI, TAU};
-
 use crate::ensnano_design::{
     curves::{
         CurveBounds, Curved, EPSILON_DERIVATIVE, SurfaceInfo, SurfacePoint,
@@ -10,6 +8,7 @@ use crate::ensnano_design::{
 use chebyshev_polynomials::ChebyshevPolynomial;
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::f64::consts::{PI, TAU};
 use ultraviolet::{DRotor2, DVec2, DVec3, Isometry2, Mat3, Rotor2, Vec2};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

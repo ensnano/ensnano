@@ -1,13 +1,11 @@
 //! Export to pdb file format. The method used here is an adaptation from the one used in
 //! [tacOxDNA](https://github.com/lorenzo-rovigatti/tacoxDNA)
 
-use crate::ensnano_design::helices::HelixCollection as _;
-use crate::ensnano_design::strands::Domain;
-use crate::ensnano_design::{Design, Nucl};
-use crate::ensnano_exports::rand_base_from_symbol;
+use crate::ensnano_design::{Design, Nucl, helices::HelixCollection as _, strands::Domain};
 use crate::ensnano_exports::{
     BasisMapper,
     oxdna::{OXDNA_LEN_FACTOR, OxDnaHelix as _, free_oxdna_nucl},
+    rand_base_from_symbol,
 };
 use ahash::AHashMap;
 use itertools::Itertools as _;

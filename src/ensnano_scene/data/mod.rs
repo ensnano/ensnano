@@ -7,33 +7,40 @@ use crate::ensnano_consts::{
     BOND_RADIUS, CANDIDATE_COLOR, CANDIDATE_SCALE_FACTOR, SELECT_SCALE_FACTOR, SELECTED_COLOR,
     SPHERE_RADIUS,
 };
-use crate::ensnano_design::bezier_plane::BezierVertexId;
-use crate::ensnano_design::collection::Collection as _;
-use crate::ensnano_design::curves::{SurfaceInfo, SurfacePoint};
-use crate::ensnano_design::external_3d_objects::External3DObjectsStamp;
 use crate::ensnano_design::{
     Nucl,
+    bezier_plane::BezierVertexId,
+    collection::Collection as _,
+    curves::{SurfaceInfo, SurfacePoint},
+    external_3d_objects::External3DObjectsStamp,
     grid::{GridId, GridObject, GridPosition},
 };
-use crate::ensnano_interactor::application::Camera3D;
-use crate::ensnano_interactor::selection::{
-    ActionMode, CenterOfSelection, PhantomElement, Selection, SelectionMode,
-    extract_helices_with_controls,
+use crate::ensnano_interactor::{
+    ObjectType, Referential,
+    application::Camera3D,
+    graphics::HBondDisplay,
+    selection::{
+        ActionMode, CenterOfSelection, PhantomElement, Selection, SelectionMode,
+        extract_helices_with_controls,
+    },
 };
-use crate::ensnano_interactor::{ObjectType, Referential, graphics::HBondDisplay};
-use crate::ensnano_scene::AppState;
-use crate::ensnano_scene::camera::CameraController;
-use crate::ensnano_scene::controller::Data as ControllerData;
-use crate::ensnano_scene::element_selector::{SceneElement, bezier_vertex_id};
-use crate::ensnano_scene::view::{Mesh, View, ViewUpdate};
-use crate::ensnano_scene::view::{
-    dna_obj::{RawDnaInstance, StereographicSphereAndPlane},
-    gltf_drawer::ExternalObjects,
-    grid_disc::GridDisc,
-    handle_drawer::{HandleColors, HandlesDescriptor},
-    instances_drawer::Instantiable as _,
-    letter::LetterInstance,
-    rotation_widget::{AvailableRotationAxes, RotationWidgetDescriptor, RotationWidgetOrientation},
+use crate::ensnano_scene::{
+    AppState,
+    camera::CameraController,
+    controller::Data as ControllerData,
+    element_selector::{SceneElement, bezier_vertex_id},
+    view::{
+        Mesh, View, ViewUpdate,
+        dna_obj::{RawDnaInstance, StereographicSphereAndPlane},
+        gltf_drawer::ExternalObjects,
+        grid_disc::GridDisc,
+        handle_drawer::{HandleColors, HandlesDescriptor},
+        instances_drawer::Instantiable as _,
+        letter::LetterInstance,
+        rotation_widget::{
+            AvailableRotationAxes, RotationWidgetDescriptor, RotationWidgetOrientation,
+        },
+    },
 };
 use crate::ensnano_utils::StrandNucleotidesPositions;
 use design3d::{Design3D, SceneDesignReaderExt};

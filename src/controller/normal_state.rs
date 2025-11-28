@@ -1,30 +1,31 @@
 use crate::MainStateView;
-use crate::controller::download_intervals::DownloadIntervals;
-use crate::controller::messages::{
-    CHANGING_DNA_PARAMETERS_WARNING, OXDNA_EXPORT_FAILED, SAVE_DESIGN_FAILED,
-    SET_DESIGN_DIRECTORY_FIRST,
+use crate::controller::{
+    State, TransitionMessage, YesNo,
+    download_intervals::DownloadIntervals,
+    messages::{
+        CHANGING_DNA_PARAMETERS_WARNING, OXDNA_EXPORT_FAILED, SAVE_DESIGN_FAILED,
+        SET_DESIGN_DIRECTORY_FIRST,
+    },
+    quit::{Exporting, Load, LoadType, NewDesign, Quit, SaveAs, SaveWithPath},
+    set_scaffold_sequence::SetScaffoldSequence,
 };
-use crate::controller::quit::{Exporting, Load, LoadType, NewDesign, Quit, SaveAs, SaveWithPath};
-use crate::controller::set_scaffold_sequence::SetScaffoldSequence;
-use crate::controller::{State, TransitionMessage, YesNo};
 use crate::ensnano_consts::ENS_EXTENSION;
-use crate::ensnano_design::bezier_plane::BezierPlaneDescriptor;
-use crate::ensnano_design::parameters::HelixParameters;
 use crate::ensnano_design::{
+    bezier_plane::BezierPlaneDescriptor,
     grid::{GridDescriptor, GridId, GridTypeDescr},
     group_attributes::GroupPivot,
+    parameters::HelixParameters,
 };
 use crate::ensnano_exports::ExportType;
 use crate::ensnano_gui::OverlayType;
 use crate::ensnano_iced::ui_size::UiSize;
-use crate::ensnano_interactor::graphics::SplitMode;
-use crate::ensnano_interactor::surfaces::RevolutionSurfaceSystemDescriptor;
 use crate::ensnano_interactor::{
     DesignOperation, HyperboloidOperation, HyperboloidRequest, RapierSimulationRequest,
     RigidBodyConstants, RollRequest,
     application::Notification,
-    graphics::FogParameters,
+    graphics::{FogParameters, SplitMode},
     selection::{all_helices_no_grid, extract_grids, extract_strands_from_selection},
+    surfaces::RevolutionSurfaceSystemDescriptor,
 };
 use crate::{
     app_state::design_interactor::controller::{

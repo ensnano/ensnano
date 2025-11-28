@@ -13,17 +13,16 @@ use crate::ensnano_design::{
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridPosition, GridTypeDescr},
 };
-use crate::ensnano_interactor::app_state_parameters::check_xovers_parameter::CheckXoversParameter;
-use crate::ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
-use crate::ensnano_interactor::selection::{
-    ActionMode, CenterOfSelection, Selection, SelectionMode,
-};
-use crate::ensnano_interactor::surfaces::UnrootedRevolutionSurfaceDescriptor;
 use crate::ensnano_interactor::{
     HyperboloidRequest, RapierSimulationRequest, RigidBodyConstants, RollRequest,
+    app_state_parameters::{
+        check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
+    },
     application::AppId,
     graphics::{Background3D, FogParameters, HBondDisplay, RenderingMode},
     operation::Operation,
+    selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
+    surfaces::UnrootedRevolutionSurfaceDescriptor,
 };
 use crate::ensnano_organizer::tree::{GroupId, OrganizerTree};
 use std::{collections::VecDeque, sync::Arc};

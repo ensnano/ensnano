@@ -1,14 +1,14 @@
 //! This modules defines the meshes that are used to draw DNA.
 
-use crate::ensnano_scene::view::instances_drawer::{Instantiable, Vertexable};
-use crate::ensnano_utils::instance::Instance;
-use crate::{
-    ensnano_consts::{
-        NB_RAY_TUBE, NB_SECTOR_SPHERE, NB_STACK_SPHERE, SPHERE_RADIUS, STEREOGRAPHIC_SPHERE_COLOR,
-        STEREOGRAPHIC_SPHERE_RADIUS,
-    },
-    ensnano_scene::view::Mesh,
+use crate::ensnano_consts::{
+    NB_RAY_TUBE, NB_SECTOR_SPHERE, NB_STACK_SPHERE, SPHERE_RADIUS, STEREOGRAPHIC_SPHERE_COLOR,
+    STEREOGRAPHIC_SPHERE_RADIUS,
 };
+use crate::ensnano_scene::view::{
+    Mesh,
+    instances_drawer::{Instantiable, Vertexable},
+};
+use crate::ensnano_utils::instance::Instance;
 use std::{
     f32::consts::{FRAC_1_SQRT_2, PI, TAU},
     iter::zip,

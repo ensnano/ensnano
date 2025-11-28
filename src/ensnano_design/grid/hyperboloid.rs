@@ -1,13 +1,11 @@
-use std::{f32::consts::PI, sync::Arc};
-
-use ultraviolet::{Isometry2, Rotor2, Rotor3, Vec2, Vec3};
-
 use crate::ensnano_design::{
     curves::CurveDescriptor,
     grid::{CurveInfo, Edge, GridDivision, GridTypeDescr},
     helices::Helix,
     parameters::HelixParameters,
 };
+use std::{f32::consts::PI, sync::Arc};
+use ultraviolet::{Isometry2, Rotor2, Rotor3, Vec2, Vec3};
 
 /// A structure made of helices arranged circularly on two planes.
 #[derive(Clone, Debug)]

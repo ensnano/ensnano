@@ -1,13 +1,11 @@
-use crate::{
-    ensnano_design::{
-        curves::{
-            revolution::{InterpolatedCurveDescriptor, InterpolationDescriptor},
-            torus::{CurveDescriptor2D, PointOnSurface},
-        },
-        parameters::HelixParameters,
+use crate::ensnano_design::{
+    curves::{
+        revolution::{InterpolatedCurveDescriptor, InterpolationDescriptor},
+        torus::{CurveDescriptor2D, PointOnSurface},
     },
-    ensnano_interactor::consts::DEFAULT_REVOLUTION_SIMULATION_PARAMETERS,
+    parameters::HelixParameters,
 };
+use crate::ensnano_interactor::consts::DEFAULT_REVOLUTION_SIMULATION_PARAMETERS;
 use num::integer::gcd;
 use rayon::iter::{IntoParallelIterator as _, ParallelIterator as _};
 use std::f64::consts::TAU;

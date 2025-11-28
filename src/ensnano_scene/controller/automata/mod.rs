@@ -2,24 +2,21 @@ mod dragging_state;
 pub mod event_context;
 mod point_and_click_state;
 
-use crate::{
-    ensnano_consts::{
-        DIR_HANDLE_ID, FRONT_CIRCLE_ID, RIGHT_CIRCLE_ID, RIGHT_HANDLE_ID, UP_CIRCLE_ID,
-        UP_HANDLE_ID,
-    },
-    ensnano_design::{
-        bezier_plane::{BezierVertex, BezierVertexId},
-        grid::GridId,
-    },
-    ensnano_interactor::selection::ActionMode,
-    ensnano_scene::{
-        AppState,
-        controller::{Consequence, Controller, TransitionConsequence},
-        element_selector::SceneElement,
-        view::{
-            handle_drawer::{HandleColors, HandleDir},
-            rotation_widget::RotationMode,
-        },
+use crate::ensnano_consts::{
+    DIR_HANDLE_ID, FRONT_CIRCLE_ID, RIGHT_CIRCLE_ID, RIGHT_HANDLE_ID, UP_CIRCLE_ID, UP_HANDLE_ID,
+};
+use crate::ensnano_design::{
+    bezier_plane::{BezierVertex, BezierVertexId},
+    grid::GridId,
+};
+use crate::ensnano_interactor::selection::ActionMode;
+use crate::ensnano_scene::{
+    AppState,
+    controller::{Consequence, Controller, TransitionConsequence},
+    element_selector::SceneElement,
+    view::{
+        handle_drawer::{HandleColors, HandleDir},
+        rotation_widget::RotationMode,
     },
 };
 use dragging_state::{

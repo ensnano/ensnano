@@ -1,7 +1,6 @@
+use crate::ensnano_design::curves::bezier::{BezierEndCoordinates, InstantiatedPiecewiseBezier};
 use rand::Rng as _;
 use ultraviolet::{Vec2, Vec3};
-
-use crate::ensnano_design::curves::bezier::{BezierEndCoordinates, InstantiatedPiecewiseBezier};
 
 const DEFAULT_BEZIER_TANGENT_NORM: f32 = 1. / 3.;
 

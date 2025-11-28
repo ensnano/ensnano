@@ -1,11 +1,9 @@
-use std::{collections::BTreeMap, sync::Arc};
-
-use serde::{Deserialize, Serialize};
-
 use crate::ensnano_design::{
     collection::{Collection as _, HasMap},
     grid::{GridDescriptor, GridId},
 };
+use serde::{Deserialize, Serialize};
+use std::{collections::BTreeMap, sync::Arc};
 
 #[derive(
     Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Default, Hash,

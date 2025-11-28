@@ -1,9 +1,7 @@
-use crate::{
-    ensnano_design::group_attributes::GroupPivot,
-    ensnano_interactor::{
-        graphics::{DrawArea, FogParameters},
-        selection::Selection,
-    },
+use crate::ensnano_design::group_attributes::GroupPivot;
+use crate::ensnano_interactor::{
+    graphics::{DrawArea, FogParameters},
+    selection::Selection,
 };
 use std::{path::Path, sync::Arc, time::Duration};
 use ultraviolet::{Rotor3, Vec3};

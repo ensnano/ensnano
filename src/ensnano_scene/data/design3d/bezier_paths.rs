@@ -2,19 +2,27 @@ use crate::ensnano_consts::{
     BEZIER_CONTROL_RADIUS, BEZIER_CONTROL1_COLOR, BEZIER_SHEET_CORNER_COLOR,
     BEZIER_SHEET_CORNER_RADIUS, BEZIER_SKELETON_RADIUS, BOND_RADIUS, SPHERE_RADIUS,
 };
-use crate::ensnano_design::bezier_plane::{
-    BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertexId,
+use crate::ensnano_design::{
+    bezier_plane::{BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertexId},
+    curves::{
+        CurveDescriptor,
+        bezier::{BezierControlPoint, BezierEndCoordinates},
+    },
+    parameters::HelixParameters,
 };
-use crate::ensnano_design::curves::CurveDescriptor;
-use crate::ensnano_design::curves::bezier::{BezierControlPoint, BezierEndCoordinates};
-use crate::ensnano_design::parameters::HelixParameters;
-use crate::ensnano_interactor::consts::{bezier_control_color, bezier_widget_id};
-use crate::ensnano_interactor::selection::Selection;
-use crate::ensnano_scene::data::design3d::{Design3D, SceneDesignReaderExt, create_dna_bond};
-use crate::ensnano_scene::view::dna_obj::{RawDnaInstance, SphereInstance, TubeInstance};
+use crate::ensnano_interactor::{
+    consts::{bezier_control_color, bezier_widget_id},
+    selection::Selection,
+};
 use crate::ensnano_scene::{
-    AppState, element_selector,
-    view::{instances_drawer::Instantiable as _, sheet_2d::Sheet2D},
+    AppState,
+    data::design3d::{Design3D, SceneDesignReaderExt, create_dna_bond},
+    element_selector,
+    view::{
+        dna_obj::{RawDnaInstance, SphereInstance, TubeInstance},
+        instances_drawer::Instantiable as _,
+        sheet_2d::Sheet2D,
+    },
 };
 use crate::ensnano_utils::instance::Instance;
 use ultraviolet::{Rotor3, Vec2, Vec3};

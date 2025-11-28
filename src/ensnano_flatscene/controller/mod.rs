@@ -7,16 +7,14 @@
 
 mod automata;
 
-use crate::{
-    ensnano_flatscene::{
-        AppState, CameraPtr, DataPtr, ViewPtr,
-        data::{ClickResult, strand::FreeEnd},
-        flat_types::{FlatHelix, FlatNucl},
-    },
-    ensnano_interactor::{
-        graphics::PhySize,
-        selection::{ActionMode, Selection},
-    },
+use crate::ensnano_flatscene::{
+    AppState, CameraPtr, DataPtr, ViewPtr,
+    data::{ClickResult, strand::FreeEnd},
+    flat_types::{FlatHelix, FlatNucl},
+};
+use crate::ensnano_interactor::{
+    graphics::PhySize,
+    selection::{ActionMode, Selection},
 };
 use automata::{ControllerState, NormalState, Transition, ctrl};
 use std::cell::RefCell;

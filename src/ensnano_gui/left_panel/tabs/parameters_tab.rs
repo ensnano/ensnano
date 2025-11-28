@@ -1,14 +1,16 @@
-use crate::ensnano_design::ensnano_version;
-use crate::ensnano_design::parameters::NAMED_DNA_PARAMETERS;
-use crate::ensnano_gui::AppState;
-use crate::ensnano_gui::left_panel::discrete_value::{FactoryId, RequestFactory, ValueId};
-use crate::ensnano_gui::left_panel::tabs::GuiTab;
-use crate::ensnano_gui::left_panel::{Message, ScrollSensitivity};
-use crate::ensnano_iced::helpers::{extra_jump, jump_by, right_checkbox, section, subsection};
-use crate::ensnano_iced::ui_size::UiSize;
+use crate::ensnano_design::{ensnano_version, parameters::NAMED_DNA_PARAMETERS};
+use crate::ensnano_gui::{
+    AppState,
+    left_panel::{
+        Message, ScrollSensitivity,
+        discrete_value::{FactoryId, RequestFactory, ValueId},
+        tabs::GuiTab,
+    },
+};
 use crate::ensnano_iced::{
     fonts::material_icons::{MaterialIcon, icon_to_char},
-    ui_size::ALL_UI_SIZES,
+    helpers::{extra_jump, jump_by, right_checkbox, section, subsection},
+    ui_size::{ALL_UI_SIZES, UiSize},
 };
 use iced::widget::{column, pick_list, scrollable, text};
 use iced_aw::TabLabel;

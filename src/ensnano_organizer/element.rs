@@ -1,3 +1,4 @@
+use crate::ensnano_organizer::icon::{ICON_SIZE, icon};
 use iced::{
     Element,
     widget::{button, text},
@@ -5,8 +6,6 @@ use iced::{
 use icondata::Icon;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-
-use crate::ensnano_organizer::icon::{ICON_SIZE, icon};
 
 /// A key identifying an element
 pub trait ElementKey: Clone + Ord + Debug + Serialize + Deserialize<'static> {

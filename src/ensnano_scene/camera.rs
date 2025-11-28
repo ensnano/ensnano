@@ -1,13 +1,12 @@
-use crate::{
-    ensnano_consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP},
-    ensnano_design::curves::{SurfaceInfo, SurfacePoint},
-    ensnano_interactor::graphics::PhySize,
-    ensnano_scene::{
-        controller::Data,
-        maths_3d::{Basis3D, FiniteVec3, Plane, cast_ray, unproject_point_on_plane},
-        view::uniforms::Stereography,
-    },
+use crate::ensnano_consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP};
+use crate::ensnano_design::curves::{SurfaceInfo, SurfacePoint};
+use crate::ensnano_interactor::graphics::PhySize;
+use crate::ensnano_scene::{
+    controller::Data,
+    maths_3d::{Basis3D, FiniteVec3, Plane, cast_ray, unproject_point_on_plane},
+    view::uniforms::Stereography,
 };
+
 use std::{
     cell::RefCell,
     f32::consts::{FRAC_PI_2, PI},

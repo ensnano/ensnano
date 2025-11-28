@@ -1,7 +1,5 @@
-use crate::{
-    ensnano_design::bezier_plane::BezierPlaneId,
-    ensnano_scene::view::instances_drawer::{Instantiable, Vertexable},
-};
+use crate::ensnano_design::bezier_plane::BezierPlaneId;
+use crate::ensnano_scene::view::instances_drawer::{Instantiable, Vertexable};
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 use wgpu::{Device, include_spirv};
 

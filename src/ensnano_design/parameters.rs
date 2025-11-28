@@ -291,9 +291,8 @@ impl Eq for NamedParameter {}
 
 #[cfg(test)]
 mod tests {
-    use crate::ensnano_design::helices::Helix;
-
     use super::*;
+    use crate::ensnano_design::helices::Helix;
     use ultraviolet::{Rotor3, Vec3};
 
     #[test]

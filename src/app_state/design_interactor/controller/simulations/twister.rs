@@ -1,16 +1,19 @@
-use crate::app_state::design_interactor::controller::simulations::SimulationInterface;
-use crate::app_state::design_interactor::controller::simulations::roller::{
-    DesignData, RollSystem,
+use crate::app_state::design_interactor::controller::simulations::{
+    SimulationInterface,
+    roller::{DesignData, RollSystem},
 };
-use crate::ensnano_design::Design;
-use crate::ensnano_design::collection::Collection as _;
-use crate::ensnano_design::curves::CurveDescriptor;
-use crate::ensnano_design::curves::twist::{Twist, nb_turn_per_100_nt_to_omega, twist_to_omega};
-use crate::ensnano_design::grid::grid_collection::FreeGridId;
-use crate::ensnano_design::grid::{GridDescriptor, GridId, GridTypeDescr};
-use crate::ensnano_design::helices::{Helix, HelixCollection as _};
-use crate::ensnano_design::parameters::HelixParameters;
-use crate::ensnano_design::utils::vec_to_dvec;
+use crate::ensnano_design::{
+    Design,
+    collection::Collection as _,
+    curves::{
+        CurveDescriptor,
+        twist::{Twist, nb_turn_per_100_nt_to_omega, twist_to_omega},
+    },
+    grid::{GridDescriptor, GridId, GridTypeDescr, grid_collection::FreeGridId},
+    helices::{Helix, HelixCollection as _},
+    parameters::HelixParameters,
+    utils::vec_to_dvec,
+};
 use crate::{
     app_state::design_interactor::{Presenter, presenter::SimulationUpdate},
     controller::channel_reader::ChannelReader,

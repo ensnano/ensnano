@@ -6,11 +6,9 @@
 //! * [LayoutNode::VSplit] — represents a region divided vertically between two subregions.
 //! * [LayoutNode::HSplit] — represents a region divided horizontally between two subregions.
 
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
-
-use winit::dpi::PhysicalPosition;
-
 use crate::ensnano_interactor::graphics::GuiComponentType;
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use winit::dpi::PhysicalPosition;
 
 /// Half-width of a “resize region”.
 const RESIZE_REGION_WIDTH: f64 = 0.001;

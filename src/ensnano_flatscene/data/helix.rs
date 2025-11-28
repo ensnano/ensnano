@@ -2,16 +2,17 @@ use crate::ensnano_consts::{
     BLACK_VEC4, CIRCLE2D_BLUE, CIRCLE2D_GREEN, CIRCLE2D_GREY, CIRCLE2D_RED, GREY_UNKNOWN_NUCL_VEC4,
     HELIX_BORDER_COLOR,
 };
-use crate::ensnano_design::Nucl;
-use crate::ensnano_design::curves::time_nucl_map::AbscissaConverter as AbscissaConverter_;
-use crate::ensnano_design::helices::NuclCollection;
-use crate::ensnano_flatscene::data::design::Helix2d;
-use crate::ensnano_flatscene::flat_types::{Flat, FlatHelix, FlatNucl};
-use crate::ensnano_flatscene::view::insertion::{InsertionDescriptor, InsertionInstance};
+use crate::ensnano_design::{
+    Nucl, curves::time_nucl_map::AbscissaConverter as AbscissaConverter_, helices::NuclCollection,
+};
 use crate::ensnano_flatscene::{
     CameraPtr,
-    flat_types::{FlatHelixMaps, FlatPosition, HelixSegment},
-    view::EditionInfo,
+    data::design::Helix2d,
+    flat_types::{Flat, FlatHelix, FlatHelixMaps, FlatNucl, FlatPosition, HelixSegment},
+    view::{
+        EditionInfo,
+        insertion::{InsertionDescriptor, InsertionInstance},
+    },
 };
 use crate::ensnano_utils::{
     chars2d::text_drawer::{Line, Sentence, TextDrawer},

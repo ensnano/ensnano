@@ -1,9 +1,11 @@
-use crate::controller::messages::{
-    NO_FILE_RECEIVED_STAPLE, NO_SCAFFOLD_SEQUENCE_SET, NO_SCAFFOLD_SET, ORIGAMI_FILTERS,
-    successful_staples_export_msg,
+use crate::controller::{
+    State, TransitionMessage,
+    messages::{
+        NO_FILE_RECEIVED_STAPLE, NO_SCAFFOLD_SEQUENCE_SET, NO_SCAFFOLD_SET, ORIGAMI_FILTERS,
+        successful_staples_export_msg,
+    },
+    normal_state::NormalState,
 };
-use crate::controller::normal_state::NormalState;
-use crate::controller::{State, TransitionMessage};
 use crate::ensnano_consts::ORIGAMI_EXTENSION;
 use crate::{
     MainStateView,

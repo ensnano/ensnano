@@ -1,3 +1,4 @@
+use crate::ensnano_interactor::StandardSequence;
 use crate::{
     MainStateView,
     controller::{
@@ -9,7 +10,6 @@ use crate::{
         normal_state::NormalState,
     },
     dialog::{self, PathInput},
-    ensnano_interactor::StandardSequence,
 };
 use std::path::{Path, PathBuf};
 

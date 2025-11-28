@@ -1,13 +1,12 @@
 // TODO: check all unused fields (starting with _)
 
-use serde::{Deserialize, Serialize};
-use std::f64::consts::{PI, TAU};
-use ultraviolet::DVec3;
-
 use crate::ensnano_design::{
     curves::{CurveBounds, Curved, time_nucl_map::AbscissaConverter},
     parameters::HelixParameters,
 };
+use serde::{Deserialize, Serialize};
+use std::f64::consts::{PI, TAU};
+use ultraviolet::DVec3;
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct SphereConcentricCircleDescriptor {

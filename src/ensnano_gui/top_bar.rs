@@ -5,21 +5,22 @@
 //!
 //! Drawing the top bar, and triggering events from it is handled here.
 
-use crate::ensnano_gui::icon::{HasIcon as _, HasIconDependentOnAxis as _};
-use crate::ensnano_gui::{Requests, TopBarState};
-use crate::ensnano_interactor::graphics::SplitMode;
-use crate::ensnano_interactor::selection::{ActionMode, SelectionMode};
-use crate::{
-    ensnano_gui::AppState,
-    ensnano_iced::{
-        fonts::{
-            ENSNANO_FONT,
-            material_icons::{MaterialIcon, MaterialIconStyle},
-        },
-        helpers::{fixed_text_button, image_button, material_icon_button, text_button},
-        theme::GuiBackground,
-        ui_size::UiSize,
+use crate::ensnano_gui::{
+    AppState, Requests, TopBarState,
+    icon::{HasIcon as _, HasIconDependentOnAxis as _},
+};
+use crate::ensnano_iced::{
+    fonts::{
+        ENSNANO_FONT,
+        material_icons::{MaterialIcon, MaterialIconStyle},
     },
+    helpers::{fixed_text_button, image_button, material_icon_button, text_button},
+    theme::GuiBackground,
+    ui_size::UiSize,
+};
+use crate::ensnano_interactor::{
+    graphics::SplitMode,
+    selection::{ActionMode, SelectionMode},
 };
 use iced::{
     Element, Length, Padding, theme,

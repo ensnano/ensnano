@@ -1,19 +1,18 @@
-use crate::{
-    ensnano_consts::ICON_PHYSICAL_ENGINE,
-    ensnano_gui::{
-        AppState, Requests,
-        left_panel::{
-            BrownianParametersFactory, Message, RigidBodyFactory, RigidBodyParametersRequest,
-            discrete_value::{FactoryId, RequestFactory, ValueId},
-            tabs::{GuiTab, gostop::GoStop},
-        },
+
+use crate::ensnano_consts::ICON_PHYSICAL_ENGINE;
+use crate::ensnano_gui::{
+    AppState, Requests,
+    left_panel::{
+        BrownianParametersFactory, Message, RigidBodyFactory, RigidBodyParametersRequest,
+        discrete_value::{FactoryId, RequestFactory, ValueId},
+        tabs::{GuiTab, gostop::GoStop},
     },
-    ensnano_iced::{
-        helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
-        ui_size::UiSize,
-    },
-    ensnano_interactor::{RollRequest, SimulationState},
 };
+use crate::ensnano_iced::{
+    helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
+    ui_size::UiSize,
+};
+use crate::ensnano_interactor::{RollRequest, SimulationState};
 use iced::widget::{Column, column, row, scrollable};
 use iced_aw::TabLabel;
 use std::sync::{Arc, Mutex};

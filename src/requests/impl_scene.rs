@@ -3,9 +3,11 @@
 use crate::app_state::design_interactor::controller::clipboard::PastePosition;
 use crate::controller::normal_state::Action;
 use crate::ensnano_design::{Nucl, grid::GridPosition, group_attributes::GroupPivot};
-use crate::ensnano_interactor::selection::CenterOfSelection;
 use crate::ensnano_interactor::{
-    DesignOperation, application::AppId, operation::Operation, selection::Selection,
+    DesignOperation,
+    application::AppId,
+    operation::Operation,
+    selection::{CenterOfSelection, Selection},
 };
 use crate::ensnano_scene::Requests as SceneRequests;
 use crate::requests::Requests;

@@ -17,24 +17,21 @@ pub mod transitions;
 use crate::ensnano_design::Design;
 
 use crate::ensnano_consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION};
-use crate::ensnano_design::bezier_plane::BezierPathId;
-use crate::ensnano_design::strands::Domain;
-use crate::ensnano_design::{SavingInformation, group_attributes::GroupPivot};
+use crate::ensnano_design::{
+    SavingInformation, bezier_plane::BezierPathId, group_attributes::GroupPivot, strands::Domain,
+};
 use crate::ensnano_exports::{ExportResult, ExportType};
 use crate::ensnano_iced::ui_size::UiSize;
-use crate::ensnano_interactor::app_state_parameters::check_xovers_parameter::CheckXoversParameter;
-use crate::ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
-use crate::ensnano_interactor::selection::{
-    ActionMode, CenterOfSelection, Selection, SelectionMode,
-};
-use crate::ensnano_interactor::surfaces::{
-    RevolutionSurfaceRadius, UnrootedRevolutionSurfaceDescriptor,
-};
 use crate::ensnano_interactor::{
     DesignOperation, PastingStatus, StrandBuildingStatus, WidgetBasis,
-    app_state_parameters::AppStateParameters,
+    app_state_parameters::{
+        AppStateParameters, check_xovers_parameter::CheckXoversParameter,
+        suggestion_parameters::SuggestionParameters,
+    },
     graphics::{Background3D, HBondDisplay, RenderingMode},
     operation::Operation,
+    selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
+    surfaces::{RevolutionSurfaceRadius, UnrootedRevolutionSurfaceDescriptor},
 };
 use crate::ensnano_organizer::tree::GroupId;
 use crate::{

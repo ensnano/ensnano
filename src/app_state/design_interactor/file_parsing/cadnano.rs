@@ -1,16 +1,17 @@
 use crate::ensnano_consts::SCAFFOLD_COLOR;
-use crate::ensnano_design::helices::Helix;
-use crate::ensnano_design::strands::{Domain, HelixInterval, Strand};
 use crate::ensnano_design::{
     Design, Nucl,
     grid::{Grid, GridType},
+    helices::Helix,
+    strands::{Domain, HelixInterval, Strand},
 };
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
+    fs::File,
+    path::Path,
     sync::Arc,
 };
-use std::{fs::File, path::Path};
 use ultraviolet::{Rotor3, Vec3};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]

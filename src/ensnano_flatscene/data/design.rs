@@ -1,15 +1,17 @@
 use crate::ensnano_consts::{
     CANDIDATE_COLOR, CANDIDATE_STRAND_HIGHLIGHT_FACTOR_2D, SELECTED_STRAND_HIGHLIGHT_FACTOR_2D,
 };
-use crate::ensnano_design::Nucl;
-use crate::ensnano_design::curves::time_nucl_map::AbscissaConverter;
-use crate::ensnano_design::helices::{Helices, Helix, HelixCollection as _, NuclCollection};
-use crate::ensnano_design::strands::Extremity;
-use crate::ensnano_flatscene::data::strand::Strand;
-use crate::ensnano_flatscene::flat_types::{
-    Flat, FlatHelix, FlatIdx, FlatNucl, HelixSegment, HelixVec,
+use crate::ensnano_design::{
+    Nucl,
+    curves::time_nucl_map::AbscissaConverter,
+    helices::{Helices, Helix, HelixCollection as _, NuclCollection},
+    strands::Extremity,
 };
-use crate::ensnano_flatscene::{Requests, flat_types::FlatHelixMaps};
+use crate::ensnano_flatscene::{
+    Requests,
+    data::strand::Strand,
+    flat_types::{Flat, FlatHelix, FlatHelixMaps, FlatIdx, FlatNucl, HelixSegment, HelixVec},
+};
 use crate::ensnano_interactor::{Referential, torsion::Torsion};
 use crate::ensnano_utils::full_isometry::FullIsometry;
 use ahash::RandomState;

@@ -1,7 +1,6 @@
 use crate::app_state::design_interactor::DesignInteractor;
-use crate::ensnano_design::helices::HelixCollection as _;
 use crate::ensnano_design::{
-    Nucl,
+    AdditionalStructure, Nucl,
     bezier_plane::{
         BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
         InstantiatedPath,
@@ -12,28 +11,20 @@ use crate::ensnano_design::{
         bezier::{BezierControlPoint, CubicBezierConstructor},
     },
     external_3d_objects::External3DObjects,
-    grid::GridId,
-    helices::Helix,
+    grid::{GridId, GridObject, GridPosition, HelixGridPosition},
+    helices::{Helix, HelixCollection as _},
     parameters::HelixParameters,
     strands::Domain,
 };
-use crate::ensnano_interactor::Referential;
-use crate::ensnano_scene::data::design3d::{HBond, Scalebar};
+use crate::ensnano_interactor::{
+    ObjectType, Referential,
+    graphics::{LoopoutBond, LoopoutNucl},
+};
+use crate::ensnano_scene::{
+    data::design3d::{HBond, Scalebar, SceneDesignReaderExt},
+    view::grid::GridInstance,
+};
 use crate::ensnano_utils::StrandNucleotidesPositions;
-use crate::{
-    ensnano_design::{
-        AdditionalStructure,
-        grid::{GridObject, GridPosition, HelixGridPosition},
-    },
-    ensnano_scene::view::grid::GridInstance,
-};
-use crate::{
-    ensnano_interactor::{
-        ObjectType,
-        graphics::{LoopoutBond, LoopoutNucl},
-    },
-    ensnano_scene::data::design3d::SceneDesignReaderExt,
-};
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::Arc;
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};

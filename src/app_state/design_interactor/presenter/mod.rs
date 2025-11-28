@@ -7,31 +7,33 @@ pub mod impl_readergui;
 #[cfg(test)]
 use self::design_content::Staple;
 
-use crate::app_state::address_pointer::AddressPointer;
-use crate::app_state::design_interactor::DesignInteractor;
-use crate::ensnano_design::Design;
-use crate::ensnano_design::bezier_plane::{BezierPath, BezierPathId};
-use crate::ensnano_design::collection::Collection as _;
-use crate::ensnano_design::curves::bezier::InstantiatedPiecewiseBezier;
-use crate::ensnano_design::grid::GridId;
-use crate::ensnano_design::helices::{Helix, HelixCollection as _, NuclCollection};
-use crate::ensnano_design::strands::{Domain, Extremity, Strand};
-use crate::ensnano_design::{Nucl, elements::DesignElementKey, grid::Grid};
-use crate::ensnano_exports::oxdna::BACKBONE_TO_CM;
-use crate::ensnano_exports::{ExportResult, ExportType};
-use crate::ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
-use crate::ensnano_interactor::strand_builder::{NeighborDescriptor, NeighborDescriptorGiver as _};
+use crate::app_state::{address_pointer::AddressPointer, design_interactor::DesignInteractor};
+use crate::ensnano_design::{
+    Design, Nucl,
+    bezier_plane::{BezierPath, BezierPathId},
+    collection::Collection as _,
+    curves::bezier::InstantiatedPiecewiseBezier,
+    elements::DesignElementKey,
+    grid::{Grid, GridId},
+    helices::{Helix, HelixCollection as _, NuclCollection},
+    strands::{Domain, Extremity, Strand},
+};
+use crate::ensnano_exports::{ExportResult, ExportType, oxdna::BACKBONE_TO_CM};
 use crate::ensnano_interactor::{
-    Referential, ScaffoldInfo, application::Camera3D, selection::Selection,
+    Referential, ScaffoldInfo,
+    app_state_parameters::suggestion_parameters::SuggestionParameters,
+    application::Camera3D,
+    selection::Selection,
+    strand_builder::{NeighborDescriptor, NeighborDescriptorGiver as _},
 };
 use crate::ensnano_scene::data::design3d::{HBond, HalfHBond};
 use crate::ensnano_utils::id_generator::IdGenerator;
 use design_content::DesignContent;
-use std::path::PathBuf;
-use std::sync::Arc;
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
     fmt::Write as _,
+    path::PathBuf,
+    sync::Arc,
 };
 use ultraviolet::{Mat4, Rotor3, Vec3};
 

@@ -1,9 +1,9 @@
-use crate::ensnano_scene::rotor_utils::SafeRotor as _;
-use crate::ensnano_scene::view::dna_obj::TubeLidInstance;
-use crate::ensnano_utils::instance::Instance;
-use crate::{
-    ensnano_consts::HELIX_CYLINDER_COLOR, ensnano_scene::view::dna_obj::SlicedTubeInstance,
+use crate::ensnano_consts::HELIX_CYLINDER_COLOR;
+use crate::ensnano_scene::{
+    rotor_utils::SafeRotor as _,
+    view::dna_obj::{SlicedTubeInstance, TubeLidInstance},
 };
+use crate::ensnano_utils::instance::Instance;
 use ultraviolet::{Rotor3, Vec3};
 
 pub struct SausageRosary {

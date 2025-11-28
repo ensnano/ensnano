@@ -3,20 +3,18 @@ pub mod revolutions;
 pub mod roller;
 pub mod twister;
 
-use crate::app_state::design_interactor::controller::ErrOperation;
-use crate::app_state::design_interactor::presenter::SimulationUpdate;
-use crate::controller::channel_reader::ChannelReader;
-use crate::ensnano_design::collection::Collection as _;
-use crate::ensnano_design::grid::GridId;
-use crate::ensnano_design::grid::grid_collection::FreeGridId;
-use crate::ensnano_design::helices::{Helix, HelixCollection as _, NuclCollection};
-use crate::ensnano_design::parameters::HelixParameters;
-use crate::ensnano_design::{Design, Nucl};
-use crate::ensnano_interactor::RigidBodyConstants;
-use crate::{
-    app_state::design_interactor::Presenter,
-    ensnano_interactor::surfaces::RevolutionSurfaceSystemDescriptor,
+use crate::app_state::design_interactor::{
+    Presenter, controller::ErrOperation, presenter::SimulationUpdate,
 };
+use crate::controller::channel_reader::ChannelReader;
+use crate::ensnano_design::{
+    Design, Nucl,
+    collection::Collection as _,
+    grid::{GridId, grid_collection::FreeGridId},
+    helices::{Helix, HelixCollection as _, NuclCollection},
+    parameters::HelixParameters,
+};
+use crate::ensnano_interactor::{RigidBodyConstants, surfaces::RevolutionSurfaceSystemDescriptor};
 use mathru::{
     algebra::linear::vector::vector::Vector,
     analysis::differential_equation::ordinary::{
@@ -27,9 +25,11 @@ use mathru::{
 use ordered_float::OrderedFloat;
 use rand::Rng as _;
 use rand_distr::{Exp, StandardNormal};
-use std::collections::{BTreeMap, HashMap};
-use std::sync::{Arc, Mutex};
-use std::{cmp::Reverse, collections::BinaryHeap, sync::Weak};
+use std::{
+    cmp::Reverse,
+    collections::{BTreeMap, BinaryHeap, HashMap},
+    sync::{Arc, Mutex, Weak},
+};
 use ultraviolet::{Bivec3, Mat3, Rotor3, Vec3};
 
 const MAX_DERIVATIVE_NORM: f32 = 1e4;

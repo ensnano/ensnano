@@ -8,19 +8,17 @@
 //! If the cursor moves away form this position this causes a transition to either the normal
 //! state, or a specific DraggingState.
 
-use crate::{
-    ensnano_design::Nucl,
-    ensnano_scene::{
-        AppState,
-        controller::{
-            Consequence, Controller, Transition,
-            automata::{
-                BuildingHelix, ClickInfo, ControllerState, MovingBezierVertex, NormalState,
-                XoverOrigin, dragging_state, event_context::EventContext,
-            },
+use crate::ensnano_design::Nucl;
+use crate::ensnano_scene::{
+    AppState,
+    controller::{
+        Consequence, Controller, Transition,
+        automata::{
+            BuildingHelix, ClickInfo, ControllerState, MovingBezierVertex, NormalState,
+            XoverOrigin, dragging_state, event_context::EventContext,
         },
-        element_selector::SceneElement,
     },
+    element_selector::SceneElement,
 };
 use std::{borrow::Cow, time::Instant};
 use winit::{

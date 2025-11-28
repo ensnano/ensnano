@@ -1,31 +1,27 @@
 pub mod automata;
 
-use crate::ensnano_design::bezier_plane::{
-    BezierPathId, BezierPlaneId, BezierVertex, BezierVertexId,
-};
-use crate::ensnano_design::curves::{SurfaceInfo, SurfacePoint};
 use crate::ensnano_design::{
     Nucl,
+    bezier_plane::{BezierPathId, BezierPlaneId, BezierVertex, BezierVertexId},
+    curves::{SurfaceInfo, SurfacePoint},
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
 };
 use crate::ensnano_interactor::graphics::PhySize;
-use crate::ensnano_scene::camera::CameraController;
-use crate::ensnano_scene::controller::automata::event_context::EventContext;
-use crate::ensnano_scene::element_selector::{ElementSelector, SceneElement};
-use crate::ensnano_scene::view::ViewUpdate;
-use crate::ensnano_scene::{AppState, ViewPtr};
 use crate::ensnano_scene::{
-    PhysicalPosition, WindowEvent,
+    AppState, PhysicalPosition, ViewPtr, WindowEvent,
+    camera::CameraController,
+    controller::automata::event_context::EventContext,
+    element_selector::{ElementSelector, SceneElement},
     maths_3d::FiniteVec3,
     view::{
+        ViewUpdate,
         handle_drawer::{HandleColors, HandleDir},
         rotation_widget::RotationMode,
         uniforms::Stereography,
     },
 };
 use automata::{NormalState, State, Transition, WidgetTarget};
-use std::time::Duration;
-use std::{cell::RefCell, ops::Deref as _, rc::Rc};
+use std::{cell::RefCell, ops::Deref as _, rc::Rc, time::Duration};
 use ultraviolet::{Rotor3, Vec2, Vec3};
 use winit::{
     event::{ElementState, KeyEvent, Modifiers},

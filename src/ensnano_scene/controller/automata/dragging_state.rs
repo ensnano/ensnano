@@ -5,24 +5,21 @@
 //! In such a state, cursor movement all cursor movement have similar consequences such has moving
 //! the camera or moving an object.
 
-use crate::{
-    ensnano_design::{
-        Nucl,
-        bezier_plane::{BezierPathId, BezierPlaneId, BezierVertexId},
-        grid::{GridId, GridObject},
-    },
-    ensnano_scene::{
-        AppState,
-        controller::{
-            Consequence, Controller, Transition, TransitionConsequence,
-            automata::{
-                ControllerState, NormalState, WidgetTarget, XoverOrigin,
-                event_context::EventContext,
-            },
+use crate::ensnano_design::{
+    Nucl,
+    bezier_plane::{BezierPathId, BezierPlaneId, BezierVertexId},
+    grid::{GridId, GridObject},
+};
+use crate::ensnano_scene::{
+    AppState,
+    controller::{
+        Consequence, Controller, Transition, TransitionConsequence,
+        automata::{
+            ControllerState, NormalState, WidgetTarget, XoverOrigin, event_context::EventContext,
         },
-        element_selector::SceneElement,
-        view::handle_drawer::{HandleColors, HandleDir},
     },
+    element_selector::SceneElement,
+    view::handle_drawer::{HandleColors, HandleDir},
 };
 use std::borrow::Cow;
 use ultraviolet::Vec2;

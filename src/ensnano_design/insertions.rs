@@ -1,3 +1,8 @@
+use crate::ensnano_design::{
+    helices::HelixCollection,
+    parameters::HelixParameters,
+    strands::{Domain, Strand},
+};
 use rand::Rng as _;
 use rand_distr::StandardNormal;
 use std::{
@@ -5,12 +10,6 @@ use std::{
     sync::Arc,
 };
 use ultraviolet::Vec3;
-
-use crate::ensnano_design::{
-    helices::HelixCollection,
-    parameters::HelixParameters,
-    strands::{Domain, Strand},
-};
 
 const EPSILON_DESC: f32 = 0.05;
 const NB_STEP: usize = 1_000;

@@ -3,26 +3,40 @@ pub mod shift_optimization;
 pub mod simulations;
 pub mod update_insertion_length;
 
-use crate::ensnano_design::bezier_plane::import_from_svg::{SvgImportError, read_first_svg_path};
-use crate::ensnano_design::bezier_plane::{
-    BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
+use crate::ensnano_design::{
+    CameraId, Design, Nucl, UpToDateDesign,
+    bezier_plane::{
+        BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
+        import_from_svg::{SvgImportError, read_first_svg_path},
+    },
+    collection::Collection as _,
+    curves::{
+        CurveDescriptor,
+        bezier::{BezierControlPoint, BezierEnd},
+    },
+    design_operations::{
+        ErrDesignOperation, attach_object_to_grid, make_grid_from_helices, rotate_helices_3d,
+        translate_helices,
+    },
+    drawing_style::{DrawingAttribute, DrawingStyle},
+    elements::{DesignElementKey, DnaAttribute},
+    external_3d_objects::{External3DObject, External3DObjectDescriptor},
+    grid::{
+        Edge, GridDescriptor, GridDivision as _, GridId, GridObject, GridPosition, GridTypeDescr,
+        HelixGridPosition, copy_grid::GridCopyError, grid_collection::FreeGridId,
+        hyperboloid::Hyperboloid,
+    },
+    group_attributes::GroupPivot,
+    helices::{Helices, Helix, HelixCollection as _, NuclCollection},
+    mutate_in_arc, mutate_one_helix,
+    strands::{Domain, DomainJunction, HelixInterval, Strand, Strands},
 };
-use crate::ensnano_design::collection::Collection as _;
-use crate::ensnano_design::curves::CurveDescriptor;
-use crate::ensnano_design::curves::bezier::{BezierControlPoint, BezierEnd};
-use crate::ensnano_design::external_3d_objects::{External3DObject, External3DObjectDescriptor};
-use crate::ensnano_design::grid::copy_grid::GridCopyError;
-use crate::ensnano_design::grid::grid_collection::FreeGridId;
-use crate::ensnano_design::grid::hyperboloid::Hyperboloid;
-use crate::ensnano_design::helices::{Helices, Helix, HelixCollection as _, NuclCollection};
-use crate::ensnano_design::strands::{Domain, DomainJunction, HelixInterval, Strand, Strands};
-use crate::ensnano_design::{CameraId, Design, Nucl, mutate_one_helix};
 use crate::ensnano_gui::status_bar::ClipboardContent;
 use crate::ensnano_interactor::{
     BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
     HyperboloidOperation, IsometryTarget, NewBezierTangentVector, PastingStatus, SimulationState,
     operation::{Operation, TranslateBezierPathVertex},
-    selection::Selection,
+    selection::{Selection, list_of_helices},
     strand_builder::{
         DomainIdentifier, NeighborDescriptor, NeighborDescriptorGiver as _, StrandBuilder,
     },
@@ -42,24 +56,6 @@ use crate::{
         },
     },
     controller::channel_reader::ChannelReader,
-};
-use crate::{
-    ensnano_design::{
-        UpToDateDesign,
-        design_operations::{
-            ErrDesignOperation, attach_object_to_grid, make_grid_from_helices, rotate_helices_3d,
-            translate_helices,
-        },
-        drawing_style::{DrawingAttribute, DrawingStyle},
-        elements::{DesignElementKey, DnaAttribute},
-        grid::{
-            Edge, GridDescriptor, GridDivision as _, GridId, GridObject, GridPosition,
-            GridTypeDescr, HelixGridPosition,
-        },
-        group_attributes::GroupPivot,
-        mutate_in_arc,
-    },
-    ensnano_interactor::selection::list_of_helices,
 };
 use clipboard::{Clipboard, CopyOperation, PastePosition, PastedStrand, StrandClipboard};
 use std::{

@@ -1,14 +1,12 @@
-use crate::{
-    app_state::design_interactor::DesignInteractor,
-    ensnano_design::{
-        Nucl,
-        curves::time_nucl_map::AbscissaConverter,
-        helices::{Helices, HelixCollection as _, NuclCollection},
-        strands::{Domain, Extremity, HelixInterval, Strand},
-    },
-    ensnano_flatscene::data::design::FlatSceneDesignReaderExt,
-    ensnano_interactor::{Referential, torsion::Torsion},
+use crate::app_state::design_interactor::DesignInteractor;
+use crate::ensnano_design::{
+    Nucl,
+    curves::time_nucl_map::AbscissaConverter,
+    helices::{Helices, HelixCollection as _, NuclCollection},
+    strands::{Domain, Extremity, HelixInterval, Strand},
 };
+use crate::ensnano_flatscene::data::design::FlatSceneDesignReaderExt;
+use crate::ensnano_interactor::{Referential, torsion::Torsion};
 use ahash::RandomState;
 use std::{
     collections::{BTreeMap, HashMap},

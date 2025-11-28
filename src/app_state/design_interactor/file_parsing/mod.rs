@@ -1,9 +1,10 @@
 mod cadnano;
 pub mod junctions;
 
-use crate::app_state::address_pointer::AddressPointer;
-use crate::app_state::design_interactor::DesignInteractor;
-use crate::app_state::design_interactor::presenter::Presenter;
+use crate::app_state::{
+    address_pointer::AddressPointer,
+    design_interactor::{DesignInteractor, presenter::Presenter},
+};
 use crate::ensnano_design::{Design, Nucl, codenano, ensnano_version, scadnano};
 use crate::ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
 use crate::ensnano_utils::id_generator::IdGenerator;

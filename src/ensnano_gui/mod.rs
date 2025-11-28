@@ -11,45 +11,37 @@ pub mod left_panel;
 pub mod status_bar;
 pub mod top_bar;
 
-use crate::ensnano_design::parameters::HelixParameters;
+use crate::ensnano_design::{
+    CameraId, Nucl,
+    bezier_plane::{BezierPathId, BezierVertexId},
+    elements::{DesignElement, DesignElementKey, DnaAttribute},
+    grid::{GridId, GridTypeDescr},
+    parameters::HelixParameters,
+};
 use crate::ensnano_gui::left_panel::tabs::revolution_tab::{
     CurveDescriptorBuilder, RevolutionScaling,
 };
+use crate::ensnano_iced::{
+    fonts::{INTER_REGULAR_FONT, load_fonts},
+    ui_size::UiSize,
+};
+use crate::ensnano_interactor::{
+    HyperboloidRequest, InsertionPoint, PastingStatus, RapierSimulationRequest, RollRequest,
+    ScaffoldInfo, SimulationState, StrandBuildingStatus, WidgetBasis,
+    app_state_parameters::{
+        AppStateParameters, check_xovers_parameter::CheckXoversParameter,
+        suggestion_parameters::SuggestionParameters,
+    },
+    graphics::{
+        Background3D, DrawArea, FogParameters, GuiComponentType, HBondDisplay, RenderingMode,
+        SplitMode,
+    },
+    multiplexer::Multiplexer,
+    operation::Operation,
+    selection::{ActionMode, Selection, SelectionMode},
+    surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
+};
 use crate::ensnano_organizer::tree::{GroupId, OrganizerTree};
-use crate::{
-    ensnano_design::bezier_plane::{BezierPathId, BezierVertexId},
-    ensnano_interactor::{
-        HyperboloidRequest, InsertionPoint, PastingStatus, RapierSimulationRequest, RollRequest,
-        ScaffoldInfo, SimulationState, StrandBuildingStatus, WidgetBasis,
-        app_state_parameters::{
-            AppStateParameters, check_xovers_parameter::CheckXoversParameter,
-            suggestion_parameters::SuggestionParameters,
-        },
-        graphics::{
-            Background3D, DrawArea, FogParameters, GuiComponentType, HBondDisplay, RenderingMode,
-            SplitMode,
-        },
-        multiplexer::Multiplexer,
-        operation::Operation,
-        selection::Selection,
-        surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
-    },
-};
-use crate::{
-    ensnano_design::{
-        CameraId, Nucl,
-        elements::{DesignElement, DesignElementKey, DnaAttribute},
-        grid::{GridId, GridTypeDescr},
-    },
-    ensnano_interactor::selection::ActionMode,
-};
-use crate::{
-    ensnano_iced::{
-        fonts::{INTER_REGULAR_FONT, load_fonts},
-        ui_size::UiSize,
-    },
-    ensnano_interactor::selection::SelectionMode,
-};
 use iced::{
     Renderer, Size,
     advanced::{clipboard, mouse, renderer},
@@ -60,8 +52,7 @@ use iced::{
 use iced_runtime::{Debug, program};
 use iced_wgpu::Backend;
 use left_panel::{LeftPanel, RigidBodyParametersRequest};
-use status_bar::StatusBar;
-use status_bar::{ClipboardContent, CurrentOpState};
+use status_bar::{ClipboardContent, CurrentOpState, StatusBar};
 use std::{
     collections::{BTreeSet, HashMap, VecDeque},
     rc::Rc,

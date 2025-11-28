@@ -9,30 +9,31 @@ use crate::ensnano_consts::{
     SELECT_SCALE_FACTOR, SELECTED_COLOR, SPHERE_RADIUS, SUGGESTION_COLOR,
     SURFACE_PIVOT_SPHERE_COLOR, UNCHECKED_XOVER_COLOR, basis_color,
 };
-use crate::ensnano_design::bezier_plane::{
-    BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, InstantiatedPath,
-};
-use crate::ensnano_design::collection::Collection;
-use crate::ensnano_design::curves::bezier::{BezierControlPoint, CubicBezierConstructor};
-use crate::ensnano_design::curves::{CurveDescriptor, SurfaceInfo, SurfacePoint};
-use crate::ensnano_design::external_3d_objects::External3DObjects;
-use crate::ensnano_design::parameters::HelixParameters;
 use crate::ensnano_design::{
     AdditionalStructure, Nucl,
+    bezier_plane::{
+        BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, InstantiatedPath,
+    },
+    collection::Collection,
+    curves::{
+        CurveDescriptor, SurfaceInfo, SurfacePoint,
+        bezier::{BezierControlPoint, CubicBezierConstructor},
+    },
+    external_3d_objects::External3DObjects,
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
-};
-use crate::ensnano_interactor::selection::{
-    PHANTOM_RANGE, PhantomElement, phantom_helix_encoder_bond, phantom_helix_encoder_nucl,
+    parameters::HelixParameters,
 };
 use crate::ensnano_interactor::{
     ObjectType, Referential,
     graphics::{LoopoutBond, LoopoutNucl},
-    selection::InteractorDesignReaderExt,
+    selection::{
+        InteractorDesignReaderExt, PHANTOM_RANGE, PhantomElement, phantom_helix_encoder_bond,
+        phantom_helix_encoder_nucl,
+    },
 };
-use crate::ensnano_scene::element_selector::SceneElement;
-use crate::ensnano_scene::view::letter::LetterInstance;
 use crate::ensnano_scene::{
     SceneElement::DesignElement,
+    element_selector::SceneElement,
     maths_3d::{Basis3D, UnalignedBoundaries},
     rotor_utils::SafeRotor as _,
     sausage_rosary::SausageRosary,
@@ -43,6 +44,7 @@ use crate::ensnano_scene::{
         },
         grid::GridInstance,
         instances_drawer::Instantiable as _,
+        letter::LetterInstance,
     },
 };
 use crate::ensnano_utils::{

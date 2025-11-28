@@ -1,14 +1,11 @@
-use std::rc::Rc;
-
-use crate::{
-    ensnano_consts::SAMPLE_COUNT,
-    ensnano_utils::{bindgroup_manager::DynamicBindGroup, instance::Instance},
-};
+use crate::ensnano_consts::SAMPLE_COUNT;
+use crate::ensnano_utils::{bindgroup_manager::DynamicBindGroup, instance::Instance};
 use lyon::{
     math::Point,
     path::Path,
     tessellation::{self, StrokeVertex, StrokeVertexConstructor},
 };
+use std::rc::Rc;
 use ultraviolet::{Mat2, Rotor2, Vec2};
 use wgpu::{
     BindGroupLayout, Buffer, DepthStencilState, Device, Queue, RenderPass, RenderPipeline,

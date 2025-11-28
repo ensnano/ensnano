@@ -1,9 +1,8 @@
+use crate::ensnano_scene::view::instances_drawer::{Instantiable, ResourceProvider, Vertexable};
 use image::GenericImageView as _;
 use std::rc::Rc;
 use ultraviolet::{Vec2, Vec3};
 use wgpu::{Device, Queue};
-
-use crate::ensnano_scene::view::instances_drawer::{Instantiable, ResourceProvider, Vertexable};
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]

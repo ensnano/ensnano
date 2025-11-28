@@ -1,22 +1,23 @@
 mod curve_builders;
 
 use crate::app_state::{AppState, NewHelixStrand};
-use crate::ensnano_design::bezier_plane::BezierPathId;
-use crate::ensnano_design::elements::DesignElementKey;
-use crate::ensnano_design::parameters::HelixParameters;
-use crate::ensnano_gui::AppState as GuiState;
-use crate::ensnano_gui::left_panel::tabs::revolution_tab::{
-    CurveDescriptorBuilder, RevolutionScaling,
+use crate::ensnano_design::{
+    bezier_plane::BezierPathId, elements::DesignElementKey, parameters::HelixParameters,
 };
-use crate::ensnano_gui::status_bar::{ClipboardContent, CurrentOpState};
-use crate::ensnano_interactor::app_state_parameters::check_xovers_parameter::CheckXoversParameter;
-use crate::ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
-use crate::ensnano_interactor::graphics::HBondDisplay;
-use crate::ensnano_interactor::selection::{
-    ActionMode, Selection, SelectionConversion as _, SelectionMode, all_helices_no_grid,
+use crate::ensnano_gui::{
+    AppState as GuiState,
+    left_panel::tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
+    status_bar::{ClipboardContent, CurrentOpState},
 };
 use crate::ensnano_interactor::{
     PastingStatus, ScaffoldInfo, SimulationState, StrandBuildingStatus, WidgetBasis,
+    app_state_parameters::{
+        check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
+    },
+    graphics::HBondDisplay,
+    selection::{
+        ActionMode, Selection, SelectionConversion as _, SelectionMode, all_helices_no_grid,
+    },
 };
 use crate::ensnano_organizer::tree::GroupId;
 use curve_builders::{BEZIER_CURVE_BUILDER, ELLIPSE_BUILDER, TWO_SPHERES_BUILDER};

@@ -1,21 +1,19 @@
-use crate::{
-    ensnano_design::{
-        Nucl,
-        bezier_plane::{
-            BezierPathId, BezierPlaneId, BezierPlaneIntersection, BezierVertex, BezierVertexId,
-            ray_bezier_plane_intersection,
-        },
-        grid::{GridId, GridObject, GridPosition},
-        helices::Axis,
+use crate::ensnano_design::{
+    Nucl,
+    bezier_plane::{
+        BezierPathId, BezierPlaneId, BezierPlaneIntersection, BezierVertex, BezierVertexId,
+        ray_bezier_plane_intersection,
     },
-    ensnano_interactor::selection::ActionMode,
-    ensnano_scene::{
-        AppState,
-        controller::Controller,
-        data::design3d::SceneDesignReaderExt as _,
-        element_selector::{CornerType, ElementSelector, SceneElement},
-        view::grid::GridIntersection,
-    },
+    grid::{GridId, GridObject, GridPosition},
+    helices::Axis,
+};
+use crate::ensnano_interactor::selection::ActionMode;
+use crate::ensnano_scene::{
+    AppState,
+    controller::Controller,
+    data::design3d::SceneDesignReaderExt as _,
+    element_selector::{CornerType, ElementSelector, SceneElement},
+    view::grid::GridIntersection,
 };
 use ultraviolet::{Vec2, Vec3};
 use winit::{dpi::PhysicalPosition, keyboard::ModifiersState};

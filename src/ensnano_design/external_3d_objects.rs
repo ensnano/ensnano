@@ -1,3 +1,4 @@
+use crate::ensnano_design::collection::Collection;
 use relative_path::RelativePathBuf;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -6,8 +7,6 @@ use std::{
     sync::Arc,
 };
 use ultraviolet::{Rotor3, Vec3};
-
-use crate::ensnano_design::collection::Collection;
 
 const DEFAULT_OPACITY: f32 = 1.0;
 const DEFAULT_COLOR: u32 = 0xdb5530; // orange/red

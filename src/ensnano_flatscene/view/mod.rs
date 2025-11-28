@@ -4,13 +4,16 @@ pub mod insertion;
 mod rectangle;
 
 use crate::ensnano_consts::{CANDIDATE_COLOR, PRINTABLE_CHARS, SAMPLE_COUNT, SELECTED_COLOR};
-use crate::ensnano_design::Nucl;
-use crate::ensnano_design::helices::NuclCollection;
-use crate::ensnano_flatscene::CameraPtr;
-use crate::ensnano_flatscene::data::design::FlatTorsion;
-use crate::ensnano_flatscene::data::helix::{CharCollector, GpuVertex, Helix, HelixModel, Shift};
-use crate::ensnano_flatscene::data::strand::{FreeEnd, Strand, StrandVertex};
-use crate::ensnano_flatscene::flat_types::{FlatIdx, FlatNucl, FlatSelection};
+use crate::ensnano_design::{Nucl, helices::NuclCollection};
+use crate::ensnano_flatscene::{
+    CameraPtr,
+    data::{
+        design::FlatTorsion,
+        helix::{CharCollector, GpuVertex, Helix, HelixModel, Shift},
+        strand::{FreeEnd, Strand, StrandVertex},
+    },
+    flat_types::{FlatIdx, FlatNucl, FlatSelection},
+};
 use crate::ensnano_interactor::graphics::{DrawArea, PhySize};
 use crate::ensnano_utils::{
     Ndc,

@@ -1,8 +1,9 @@
-use crate::ensnano_gui::AppState;
-use crate::ensnano_gui::consts::{MAX_NB_TURN, MIN_NB_TURN, NB_TURN_SLIDER_SPACING, NB_TURN_STEP};
-use crate::ensnano_gui::left_panel::Message;
-use crate::ensnano_iced::ui_size::UiSize;
-use crate::ensnano_iced::widgets::keyboard_priority::keyboard_priority;
+use crate::ensnano_gui::{
+    AppState,
+    consts::{MAX_NB_TURN, MIN_NB_TURN, NB_TURN_SLIDER_SPACING, NB_TURN_STEP},
+    left_panel::Message,
+};
+use crate::ensnano_iced::{ui_size::UiSize, widgets::keyboard_priority::keyboard_priority};
 use crate::ensnano_interactor::selection::Selection;
 use iced::{
     Alignment, Length, Renderer, Theme,

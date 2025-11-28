@@ -1,9 +1,8 @@
-use ordered_float::OrderedFloat;
-use std::{collections::BTreeMap, sync::Arc};
-
 use crate::ensnano_design::{
     bezier_plane::BezierPathId, curves::torus::CurveDescriptor2D, helices::Helix,
 };
+use ordered_float::OrderedFloat;
+use std::{collections::BTreeMap, sync::Arc};
 
 /// A structure that can map time points to nucleotide indices.
 #[derive(Clone, Debug)]

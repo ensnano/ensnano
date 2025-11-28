@@ -1,12 +1,9 @@
-use ultraviolet::{Rotor3, Vec3};
-
-use crate::{
-    app_state::AppState,
-    ensnano_design::{bezier_plane::BezierPathId, curves::torus::CurveDescriptor2D},
-    ensnano_gui::left_panel::tabs::revolution_tab::{
-        CurveDescriptorBuilder, CurveDescriptorParameter, InstantiatedParameter,
-    },
+use crate::app_state::AppState;
+use crate::ensnano_design::{bezier_plane::BezierPathId, curves::torus::CurveDescriptor2D};
+use crate::ensnano_gui::left_panel::tabs::revolution_tab::{
+    CurveDescriptorBuilder, CurveDescriptorParameter, InstantiatedParameter,
 };
+use ultraviolet::{Rotor3, Vec3};
 
 pub(super) const ELLIPSE_BUILDER: CurveDescriptorBuilder<AppState> = CurveDescriptorBuilder {
     curve_name: "Ellipse",

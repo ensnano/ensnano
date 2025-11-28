@@ -1,19 +1,13 @@
-use crate::{
-    app_state::{
-        address_pointer::AddressPointer,
-        design_interactor::controller::{
-            Controller, ControllerState, DuplicationEdge, ErrOperation,
-        },
-    },
-    ensnano_design::{
-        Design, MutStrandAndData, Nucl, UpToDateDesign,
-        grid::{
-            Edge, GridData, GridId, GridPosition, HelixGridPosition, grid_collection::FreeGridId,
-        },
-        helices::{Helices, HelixCollection as _},
-        parameters::HelixParameters,
-        strands::{Domain, HelixInterval, Strand, Strands, read_junctions},
-    },
+use crate::app_state::{
+    address_pointer::AddressPointer,
+    design_interactor::controller::{Controller, ControllerState, DuplicationEdge, ErrOperation},
+};
+use crate::ensnano_design::{
+    Design, MutStrandAndData, Nucl, UpToDateDesign,
+    grid::{Edge, GridData, GridId, GridPosition, HelixGridPosition, grid_collection::FreeGridId},
+    helices::{Helices, HelixCollection as _},
+    parameters::HelixParameters,
+    strands::{Domain, HelixInterval, Strand, Strands, read_junctions},
 };
 use ultraviolet::{Rotor3, Vec3};
 

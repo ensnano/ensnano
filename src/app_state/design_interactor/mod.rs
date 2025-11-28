@@ -5,20 +5,22 @@ pub mod presenter;
 use crate::app_state::address_pointer::AddressPointer;
 use crate::controller::SaveDesignError;
 use crate::ensnano_consts::UPDATE_VISIBILITY_SIEVE_LABEL;
-use crate::ensnano_design::Design;
-use crate::ensnano_design::bezier_plane::{BezierPathId, BezierPlaneDescriptor};
-use crate::ensnano_design::collection::Collection as _;
-use crate::ensnano_design::curves::bezier::InstantiatedPiecewiseBezier;
-use crate::ensnano_design::group_attributes::GroupAttribute;
-use crate::ensnano_design::helices::HelixCollection as _;
-use crate::ensnano_design::parameters::HelixParameters;
-use crate::ensnano_design::strands::Domain;
+use crate::ensnano_design::{
+    Design,
+    bezier_plane::{BezierPathId, BezierPlaneDescriptor},
+    collection::Collection as _,
+    curves::bezier::InstantiatedPiecewiseBezier,
+    group_attributes::GroupAttribute,
+    helices::HelixCollection as _,
+    parameters::HelixParameters,
+    strands::Domain,
+};
 use crate::ensnano_exports::{ExportResult, ExportType};
 use crate::ensnano_gui::status_bar::{ClipboardContent, CurrentOpState};
-use crate::ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
-use crate::ensnano_interactor::strand_builder::StrandBuilder;
 use crate::ensnano_interactor::{
-    DesignOperation, PastingStatus, SimulationState, operation::Operation, selection::Selection,
+    DesignOperation, PastingStatus, SimulationState,
+    app_state_parameters::suggestion_parameters::SuggestionParameters, operation::Operation,
+    selection::Selection, strand_builder::StrandBuilder,
 };
 use crate::ensnano_organizer::tree::GroupId;
 use crate::{

@@ -1,10 +1,9 @@
-use crate::app_state::AppState;
-use crate::app_state::design_interactor::DesignInteractor;
-use crate::ensnano_design::bezier_plane::BezierVertexId;
-use crate::ensnano_design::grid::GridId;
-use crate::ensnano_design::group_attributes::GroupPivot;
-use crate::ensnano_interactor::WidgetBasis;
+use crate::app_state::{AppState, design_interactor::DesignInteractor};
+use crate::ensnano_design::{
+    bezier_plane::BezierVertexId, grid::GridId, group_attributes::GroupPivot,
+};
 use crate::ensnano_interactor::{
+    WidgetBasis,
     app_state_parameters::check_xovers_parameter::CheckXoversParameter,
     consts::scroll_sensitivity_conversion,
     selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},

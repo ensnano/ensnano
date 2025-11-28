@@ -1,6 +1,6 @@
-use crate::ensnano_design::Nucl;
-use crate::ensnano_design::strands::{
-    Domain, DomainJunction, HelixInterval, Strand, sanitize_domains,
+use crate::ensnano_design::{
+    Nucl,
+    strands::{Domain, DomainJunction, HelixInterval, Strand, sanitize_domains},
 };
 use crate::ensnano_utils::id_generator::IdGenerator;
 

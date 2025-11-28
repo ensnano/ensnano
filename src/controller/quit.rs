@@ -1,3 +1,4 @@
+use crate::ensnano_exports::ExportType;
 use crate::{
     MainStateView,
     controller::{
@@ -11,7 +12,6 @@ use crate::{
         normal_state::NormalState,
     },
     dialog::{self, DialogFilters, PathInput},
-    ensnano_exports::ExportType,
 };
 use std::path::{Path, PathBuf};
 

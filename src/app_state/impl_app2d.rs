@@ -1,10 +1,8 @@
-use crate::{
-    app_state::{AppState, design_interactor::DesignInteractor},
-    ensnano_flatscene::AppState as App2D,
-    ensnano_interactor::{
-        selection::{Selection, SelectionMode},
-        strand_builder::StrandBuilder,
-    },
+use crate::app_state::{AppState, design_interactor::DesignInteractor};
+use crate::ensnano_flatscene::AppState as App2D;
+use crate::ensnano_interactor::{
+    selection::{Selection, SelectionMode},
+    strand_builder::StrandBuilder,
 };
 
 impl App2D for AppState {

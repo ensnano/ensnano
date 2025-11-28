@@ -1,9 +1,12 @@
 use crate::ensnano_gui::{AppState, Requests};
-use crate::ensnano_iced::widgets::keyboard_priority::keyboard_priority;
-use crate::ensnano_iced::{theme::GuiBackground, ui_size::UiSize};
+use crate::ensnano_iced::{
+    theme::GuiBackground, ui_size::UiSize, widgets::keyboard_priority::keyboard_priority,
+};
 use crate::ensnano_interactor::{StrandBuildingStatus, operation::Operation};
-use iced::widget::{Row, Space, Text, column, container, horizontal_space, row, text, text_input};
-use iced::{Alignment, Color, Element, Length};
+use iced::{
+    Alignment, Color, Element, Length,
+    widget::{Row, Space, Text, column, container, horizontal_space, row, text, text_input},
+};
 use iced_graphics::text::Paragraph;
 use iced_runtime::{Command, Program};
 use input_color::InputValueState;
@@ -341,12 +344,11 @@ impl OperationInput {
 
 mod input_color {
     // TODO: Move this in ensnano_iced.
+    use crate::ensnano_gui::status_bar::GOLD_ORANGE;
     use iced::{
         Background, Border, Color, theme,
         widget::text_input::{Appearance, StyleSheet},
     };
-
-    use crate::ensnano_gui::status_bar::GOLD_ORANGE;
 
     pub enum InputValueState {
         Normal,

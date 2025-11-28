@@ -4,30 +4,31 @@ use crate::app_state::design_interactor::presenter::{JunctionsIds, Presenter, Si
 use crate::ensnano_consts::{
     BOND_RADIUS, CLONE_OPACITY, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, SPHERE_RADIUS,
 };
-use crate::ensnano_design::elements::DesignElementKey;
-use crate::ensnano_design::grid::GridId;
-use crate::ensnano_design::helices::{HelixCollection as _, NuclCollection};
-use crate::ensnano_design::strands::{Domain, DomainJunction};
 use crate::ensnano_design::{
     Design, Nucl,
     drawing_style::{ColorType, DrawingAttribute, DrawingStyle},
-    elements::DesignElement,
-    grid::{GridData, GridObject, GridPosition, HelixGridPosition},
+    elements::{DesignElement, DesignElementKey},
+    grid::{GridData, GridId, GridObject, GridPosition, HelixGridPosition},
+    helices::{HelixCollection as _, NuclCollection},
     isometry3_descriptor::Isometry3MissingMethods as _,
+    strands::{Domain, DomainJunction},
 };
-use crate::ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
 use crate::ensnano_interactor::{
     ObjectType,
+    app_state_parameters::suggestion_parameters::SuggestionParameters,
     graphics::{LoopoutBond, LoopoutNucl},
 };
-use crate::ensnano_scene::data::design3d::Scalebar;
-use crate::ensnano_scene::view::grid::GridInstance;
+use crate::ensnano_scene::{data::design3d::Scalebar, view::grid::GridInstance};
 use crate::ensnano_utils::{click_counter::ClickCounter, colors, instance::Instance};
 use ahash::RandomState;
 use serde::Serialize;
-use std::collections::{BTreeMap, HashMap, HashSet};
-use std::sync::Arc;
-use std::{borrow::Cow, fmt::Write as _, str::FromStr as _};
+use std::{
+    borrow::Cow,
+    collections::{BTreeMap, HashMap, HashSet},
+    fmt::Write as _,
+    str::FromStr as _,
+    sync::Arc,
+};
 use ultraviolet::{Isometry3, Vec3};
 use xover_suggestions::XoverSuggestions;
 

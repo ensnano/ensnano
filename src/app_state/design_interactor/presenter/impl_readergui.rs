@@ -1,15 +1,15 @@
-use std::sync::Arc;
-
 use crate::app_state::design_interactor::DesignInteractor;
-use crate::ensnano_design::Nucl;
-use crate::ensnano_design::bezier_plane::{BezierPathId, BezierVertexId};
-use crate::ensnano_design::collection::Collection as _;
-use crate::ensnano_design::grid::GridId;
-use crate::ensnano_design::strands::Strand;
-use crate::ensnano_design::{CameraId, elements::DesignElement};
+use crate::ensnano_design::{
+    CameraId, Nucl,
+    bezier_plane::{BezierPathId, BezierVertexId},
+    collection::Collection as _,
+    elements::DesignElement,
+    grid::GridId,
+    strands::Strand,
+};
 use crate::ensnano_gui::{EnsnTree, GuiDesignReaderExt as ReaderGui};
-use crate::ensnano_interactor::InsertionPoint;
-use crate::ensnano_interactor::selection::Selection;
+use crate::ensnano_interactor::{InsertionPoint, selection::Selection};
+use std::sync::Arc;
 use ultraviolet::{Rotor3, Vec2, Vec3};
 
 impl ReaderGui for DesignInteractor {

@@ -1,13 +1,9 @@
-use crate::ensnano_design::Nucl;
-use crate::ensnano_design::helices::Helices;
-use crate::ensnano_design::parameters::HelixParameters;
+use crate::ensnano_design::{Nucl, helices::Helices, parameters::HelixParameters};
 use crate::ensnano_interactor::ObjectType;
-use crate::ensnano_physics::import::{
-    add_crossover_springs, generate_intermediary_representation, generate_springs,
-};
 use crate::ensnano_physics::{
     full_simulation::{RigidHelicesSetup, build_simulation},
     helices::build_helices,
+    import::{add_crossover_springs, generate_intermediary_representation, generate_springs},
 };
 use ahash::HashMap;
 use rapier3d::{na::Vector3, prelude::*};
