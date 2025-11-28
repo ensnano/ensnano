@@ -1,5 +1,6 @@
-
 use crate::ensnano_consts::SCAFFOLD_COLOR;
+use crate::ensnano_design::helices::Helix;
+use crate::ensnano_design::strands::{Domain, HelixInterval, Strand};
 use crate::ensnano_design::{
     Design, Nucl,
     grid::{Grid, GridType},

@@ -1,7 +1,16 @@
+use std::sync::Arc;
+
+use crate::app_state::design_interactor::DesignInteractor;
+use crate::ensnano_design::Nucl;
+use crate::ensnano_design::bezier_plane::{BezierPathId, BezierVertexId};
+use crate::ensnano_design::collection::Collection as _;
+use crate::ensnano_design::grid::GridId;
+use crate::ensnano_design::strands::Strand;
 use crate::ensnano_design::{CameraId, elements::DesignElement};
 use crate::ensnano_gui::{EnsnTree, GuiDesignReaderExt as ReaderGui};
 use crate::ensnano_interactor::InsertionPoint;
-use ultraviolet::Vec2;
+use crate::ensnano_interactor::selection::Selection;
+use ultraviolet::{Rotor3, Vec2, Vec3};
 
 impl ReaderGui for DesignInteractor {
     fn grid_has_small_spheres(&self, g_id: GridId) -> bool {
@@ -191,7 +200,7 @@ impl ReaderGui for DesignInteractor {
         }
     }
 
-    fn is_bezier_path_cyclic(&self, path_id: crate::ensnano_design::BezierPathId) -> Option<bool> {
+    fn is_bezier_path_cyclic(&self, path_id: BezierPathId) -> Option<bool> {
         self.presenter
             .current_design
             .bezier_paths
@@ -199,10 +208,7 @@ impl ReaderGui for DesignInteractor {
             .map(|p| p.is_cyclic)
     }
 
-    fn get_bezier_vertex_position(
-        &self,
-        vertex_id: crate::ensnano_design::BezierVertexId,
-    ) -> Option<Vec2> {
+    fn get_bezier_vertex_position(&self, vertex_id: BezierVertexId) -> Option<Vec2> {
         let path = self
             .presenter
             .current_design

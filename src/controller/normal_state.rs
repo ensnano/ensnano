@@ -1,9 +1,23 @@
 use crate::MainStateView;
+use crate::controller::download_intervals::DownloadIntervals;
+use crate::controller::messages::{
+    CHANGING_DNA_PARAMETERS_WARNING, OXDNA_EXPORT_FAILED, SAVE_DESIGN_FAILED,
+    SET_DESIGN_DIRECTORY_FIRST,
+};
+use crate::controller::quit::{Exporting, Load, LoadType, NewDesign, Quit, SaveAs, SaveWithPath};
+use crate::controller::set_scaffold_sequence::SetScaffoldSequence;
+use crate::controller::{State, TransitionMessage, YesNo};
 use crate::ensnano_consts::ENS_EXTENSION;
+use crate::ensnano_design::bezier_plane::BezierPlaneDescriptor;
+use crate::ensnano_design::parameters::HelixParameters;
 use crate::ensnano_design::{
     grid::{GridDescriptor, GridId, GridTypeDescr},
     group_attributes::GroupPivot,
 };
+use crate::ensnano_exports::ExportType;
+use crate::ensnano_gui::OverlayType;
+use crate::ensnano_iced::ui_size::UiSize;
+use crate::ensnano_interactor::graphics::SplitMode;
 use crate::ensnano_interactor::surfaces::RevolutionSurfaceSystemDescriptor;
 use crate::ensnano_interactor::{
     DesignOperation, HyperboloidOperation, HyperboloidRequest, RapierSimulationRequest,
@@ -18,7 +32,11 @@ use crate::{
     },
     controller::download_staples::DownloadStaples,
 };
-use std::sync::Arc;
+use std::{
+    path::{Path, PathBuf},
+    sync::Arc,
+};
+use ultraviolet::{Rotor3, Vec3};
 
 /// User is interacting with graphical components.
 pub struct NormalState;
@@ -97,7 +115,7 @@ impl State for NormalState {
                         Load::load(None, LoadType::Object3D)
                     } else {
                         TransitionMessage::new(
-                            messages::SET_DESIGN_DIRECTORY_FIRST,
+                            SET_DESIGN_DIRECTORY_FIRST,
                             rfd::MessageLevel::Error,
                             Box::new(Self),
                         )
@@ -155,7 +173,7 @@ impl State for NormalState {
                         main_state.get_bezier_sheet_creation_position()
                     {
                         main_state.apply_operation(DesignOperation::AddBezierPlane {
-                            desc: crate::ensnano_design::BezierPlaneDescriptor {
+                            desc: BezierPlaneDescriptor {
                                 position,
                                 orientation,
                             },
@@ -388,7 +406,7 @@ fn save_as() -> Box<dyn State> {
 
 fn could_not_save_design() -> Box<dyn State> {
     TransitionMessage::new(
-        messages::SAVE_DESIGN_FAILED,
+        SAVE_DESIGN_FAILED,
         rfd::MessageLevel::Error,
         Box::new(NormalState),
     )
@@ -405,7 +423,7 @@ fn quicksave<P: AsRef<Path>>(starting_path: P) -> Box<dyn State> {
 fn export(export_type: ExportType) -> Box<dyn State> {
     let on_success = Box::new(NormalState);
     let on_error = TransitionMessage::new(
-        messages::OXDNA_EXPORT_FAILED,
+        OXDNA_EXPORT_FAILED,
         rfd::MessageLevel::Error,
         Box::new(NormalState),
     );

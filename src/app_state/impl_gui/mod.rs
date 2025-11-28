@@ -1,13 +1,28 @@
 mod curve_builders;
 
+use crate::app_state::{AppState, NewHelixStrand};
+use crate::ensnano_design::bezier_plane::BezierPathId;
 use crate::ensnano_design::elements::DesignElementKey;
-use crate::ensnano_gui::{AppState as GuiState, ClipboardContent};
-use crate::ensnano_interactor::selection::{SelectionConversion as _, all_helices_no_grid};
-use crate::ensnano_interactor::{ScaffoldInfo, SimulationState};
+use crate::ensnano_design::parameters::HelixParameters;
+use crate::ensnano_gui::AppState as GuiState;
+use crate::ensnano_gui::left_panel::tabs::revolution_tab::{
+    CurveDescriptorBuilder, RevolutionScaling,
+};
+use crate::ensnano_gui::status_bar::{ClipboardContent, CurrentOpState};
+use crate::ensnano_interactor::app_state_parameters::check_xovers_parameter::CheckXoversParameter;
+use crate::ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
+use crate::ensnano_interactor::graphics::HBondDisplay;
+use crate::ensnano_interactor::selection::{
+    ActionMode, Selection, SelectionConversion as _, SelectionMode, all_helices_no_grid,
+};
+use crate::ensnano_interactor::{
+    PastingStatus, ScaffoldInfo, SimulationState, StrandBuildingStatus, WidgetBasis,
+};
+use crate::ensnano_organizer::tree::GroupId;
 use curve_builders::*;
 
 impl GuiState for AppState {
-    const POSSIBLE_CURVES: &'static [crate::ensnano_gui::CurveDescriptorBuilder<Self>] =
+    const POSSIBLE_CURVES: &'static [CurveDescriptorBuilder<Self>] =
         &[ELLIPSE_BUILDER, TWO_SPHERES_BUILDER, BEZIER_CURVE_BUILDER];
 
     fn get_selection_mode(&self) -> SelectionMode {
@@ -80,7 +95,7 @@ impl GuiState for AppState {
         }
     }
 
-    fn get_current_operation_state(&self) -> Option<crate::ensnano_gui::CurrentOpState> {
+    fn get_current_operation_state(&self) -> Option<CurrentOpState> {
         self.0.design.get_current_operation_state()
     }
 
@@ -132,7 +147,7 @@ impl GuiState for AppState {
         self.0.parameters.show_bezier_paths
     }
 
-    fn get_selected_bezier_path(&self) -> Option<crate::ensnano_design::BezierPathId> {
+    fn get_selected_bezier_path(&self) -> Option<BezierPathId> {
         if let Some(Selection::BezierVertex(vertex)) = self.0.selection.selection.first() {
             Some(vertex.path_id)
         } else {
@@ -160,7 +175,7 @@ impl GuiState for AppState {
     fn get_recommended_scaling_revolution_surface(
         &self,
         scaffold_len: usize,
-    ) -> Option<crate::ensnano_gui::RevolutionScaling> {
+    ) -> Option<RevolutionScaling> {
         let area_surface = self.0.unrooted_surface.area?;
         let perimeter_surface = self
             .0
@@ -179,7 +194,7 @@ impl GuiState for AppState {
         let half_number_helix =
             (scaled_perimeter / 2. / HelixParameters::INTER_CENTER_GAP as f64).floor() as usize;
 
-        Some(crate::ensnano_gui::RevolutionScaling {
+        Some(RevolutionScaling {
             nb_helix: half_number_helix * 2,
         })
     }

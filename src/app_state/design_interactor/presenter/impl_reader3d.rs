@@ -1,4 +1,24 @@
-use crate::ensnano_scene::data::design3d::Scalebar;
+use crate::app_state::design_interactor::DesignInteractor;
+use crate::ensnano_design::helices::HelixCollection as _;
+use crate::ensnano_design::{
+    Nucl,
+    bezier_plane::{
+        BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
+        InstantiatedPath,
+    },
+    collection::Collection,
+    curves::{
+        CurveDescriptor, SurfaceInfo, SurfacePoint,
+        bezier::{BezierControlPoint, CubicBezierConstructor},
+    },
+    external_3d_objects::External3DObjects,
+    grid::GridId,
+    helices::Helix,
+    parameters::HelixParameters,
+    strands::Domain,
+};
+use crate::ensnano_interactor::Referential;
+use crate::ensnano_scene::data::design3d::{HBond, Scalebar};
 use crate::ensnano_utils::StrandNucleotidesPositions;
 use crate::{
     ensnano_design::{
@@ -14,7 +34,9 @@ use crate::{
     },
     ensnano_scene::data::design3d::SceneDesignReaderExt,
 };
-use ultraviolet::Vec2;
+use std::collections::{BTreeMap, HashMap, HashSet};
+use std::sync::Arc;
+use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 
 impl SceneDesignReaderExt for DesignInteractor {
     fn get_color(&self, e_id: u32) -> Option<u32> {
@@ -379,10 +401,7 @@ impl SceneDesignReaderExt for DesignInteractor {
         self.presenter.content.get_grid_object(position)
     }
 
-    fn get_cubic_bezier_controls(
-        &self,
-        helix: usize,
-    ) -> Option<crate::ensnano_design::CubicBezierConstructor> {
+    fn get_cubic_bezier_controls(&self, helix: usize) -> Option<CubicBezierConstructor> {
         let helix = self.presenter.current_design.helices.get(&helix)?;
         if let Some(CurveDescriptor::Bezier(constructor)) = helix.curve.as_ref().map(Arc::as_ref) {
             Some(constructor.clone())
@@ -407,14 +426,7 @@ impl SceneDesignReaderExt for DesignInteractor {
         &self.presenter.current_design.bezier_planes
     }
 
-    fn get_bezier_paths(
-        &self,
-    ) -> Option<
-        &BTreeMap<
-            crate::ensnano_design::BezierPathId,
-            Arc<crate::ensnano_design::InstantiatedPath>,
-        >,
-    > {
+    fn get_bezier_paths(&self) -> Option<&BTreeMap<BezierPathId, Arc<InstantiatedPath>>> {
         self.presenter
             .current_design
             .try_get_up_to_date()
@@ -428,11 +440,7 @@ impl SceneDesignReaderExt for DesignInteractor {
             .unwrap_or_default()
     }
 
-    fn get_bezier_vertex(
-        &self,
-        path_id: crate::ensnano_design::BezierPathId,
-        vertex_id: usize,
-    ) -> Option<crate::ensnano_design::BezierVertex> {
+    fn get_bezier_vertex(&self, path_id: BezierPathId, vertex_id: usize) -> Option<BezierVertex> {
         self.presenter
             .current_design
             .bezier_paths
@@ -530,7 +538,7 @@ impl SceneDesignReaderExt for DesignInteractor {
         }
     }
 
-    fn get_external_objects(&self) -> &crate::ensnano_design::External3DObjects {
+    fn get_external_objects(&self) -> &External3DObjects {
         &self.presenter.current_design.external_3d_objects
     }
 
@@ -539,7 +547,7 @@ impl SceneDesignReaderExt for DesignInteractor {
         helix.get_surface_info_nucl(nucl)
     }
 
-    fn get_surface_info(&self, point: crate::ensnano_design::SurfacePoint) -> Option<SurfaceInfo> {
+    fn get_surface_info(&self, point: SurfacePoint) -> Option<SurfaceInfo> {
         let helix = self.presenter.current_design.helices.get(&point.helix_id)?;
         helix.get_surface_info(point)
     }

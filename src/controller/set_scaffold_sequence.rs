@@ -2,7 +2,10 @@ use crate::{
     MainStateView,
     controller::{
         State, TransitionMessage, YesNo,
-        messages::{NO_FILE_RECEIVED_SCAFFOLD, SEQUENCE_FILTERS, optimize_scaffold_position_msg},
+        messages::{
+            NO_FILE_RECEIVED_SCAFFOLD, SEQUENCE_FILTERS, invalid_sequence_file,
+            optimize_scaffold_position_msg,
+        },
         normal_state::NormalState,
     },
     dialog::{self, PathInput},
@@ -142,7 +145,7 @@ fn got_path(path: PathBuf, shift: usize) -> Box<dyn State> {
     if let Some(n) =
         content.find(|c: char| c != 'A' && c != 'T' && c != 'G' && c != 'C' && !c.is_whitespace())
     {
-        let msg = messages::invalid_sequence_file(n);
+        let msg = invalid_sequence_file(n);
         TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(NormalState))
     } else {
         Box::new(SetScaffoldSequence {

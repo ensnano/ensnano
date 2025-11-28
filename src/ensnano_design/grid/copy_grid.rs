@@ -1,10 +1,11 @@
 use crate::ensnano_design::{
     Design,
+    collection::Collection as _,
     grid::{
         GridDescriptor, GridId, HelixGridPosition,
         grid_collection::{FreeGridId, FreeGrids, FreeGridsMut},
     },
-    helices::Helix,
+    helices::{Helix, HelixCollection as _},
     strands::{Domain, DomainJunction, HelixInterval, Strand},
 };
 use std::{borrow::Cow, collections::HashMap};

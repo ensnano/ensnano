@@ -1,13 +1,15 @@
 //! Implements the [Requests](`crate::ensnano_gui::Requests`) trait for [Requests](`super::Requests`).
 
 use crate::controller::normal_state::Action;
+use crate::ensnano_design::bezier_plane::{BezierPathId, BezierVertexId};
 use crate::ensnano_design::parameters::HelixParameters;
 use crate::ensnano_design::{
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridTypeDescr},
 };
 use crate::ensnano_exports::ExportType;
-use crate::ensnano_gui::{OverlayType, RigidBodyParametersRequest};
+use crate::ensnano_gui::OverlayType;
+use crate::ensnano_gui::left_panel::RigidBodyParametersRequest;
 use crate::ensnano_iced::ui_size::UiSize;
 use crate::ensnano_interactor::app_state_parameters::check_xovers_parameter::CheckXoversParameter;
 use crate::ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
@@ -412,21 +414,13 @@ impl crate::ensnano_gui::Requests for Requests {
         ));
     }
 
-    fn turn_path_into_grid(
-        &mut self,
-        path_id: crate::ensnano_design::BezierPathId,
-        grid_type: GridTypeDescr,
-    ) {
+    fn turn_path_into_grid(&mut self, path_id: BezierPathId, grid_type: GridTypeDescr) {
         self.keep_proceed.push_back(Action::DesignOperation(
             DesignOperation::TurnPathVerticesIntoGrid { path_id, grid_type },
         ));
     }
 
-    fn make_bezier_path_cyclic(
-        &mut self,
-        path_id: crate::ensnano_design::BezierPathId,
-        cyclic: bool,
-    ) {
+    fn make_bezier_path_cyclic(&mut self, path_id: BezierPathId, cyclic: bool) {
         self.keep_proceed.push_back(Action::DesignOperation(
             DesignOperation::MakeBezierPathCyclic { path_id, cyclic },
         ));
@@ -440,11 +434,7 @@ impl crate::ensnano_gui::Requests for Requests {
         self.keep_proceed.push_back(Action::Import3DObject);
     }
 
-    fn set_position_of_bezier_vertex(
-        &mut self,
-        vertex_id: crate::ensnano_design::BezierVertexId,
-        position: Vec2,
-    ) {
+    fn set_position_of_bezier_vertex(&mut self, vertex_id: BezierVertexId, position: Vec2) {
         self.keep_proceed.push_back(Action::DesignOperation(
             DesignOperation::SetBezierVertexPosition {
                 vertex_id,

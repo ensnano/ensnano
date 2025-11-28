@@ -36,11 +36,10 @@ use dna_obj::{
     PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance, SphereInstance,
     StereographicSphereAndPlane, TubeInstance, TubeLidInstance,
 };
-use drawable::{Drawable, Drawer, Vertex};
 use gltf_drawer::ExternalObjects;
 use grid::{GridInstance, GridIntersection, GridManager, GridTextures};
 use grid_disc::GridDisc;
-use handle_drawer::{HandleColors, HandleDir, HandlesDescriptor, HandlesDrawer};
+use handle_drawer::{HandleDir, HandlesDescriptor, HandlesDrawer};
 use instances_drawer::{InstanceDrawer, RawDrawer};
 use int_enum::IntEnum;
 use letter::LetterInstance;

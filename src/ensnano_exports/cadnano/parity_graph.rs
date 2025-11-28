@@ -1,5 +1,5 @@
 use crate::{
-    ensnano_design::{Design, strands::Domain},
+    ensnano_design::{Design, helices::HelixCollection as _, strands::Domain},
     ensnano_exports::cadnano::CadnanoError,
 };
 

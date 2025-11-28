@@ -2,6 +2,10 @@ pub mod design;
 pub mod helix;
 pub mod strand;
 
+use crate::ensnano_consts::{
+    CANDIDATE_COLOR, CANDIDATE_STRAND_HIGHLIGHT_FACTOR_2D, SELECTED_COLOR, SELECTED_HELIX2D_COLOR,
+    SELECTED_STRAND_HIGHLIGHT_FACTOR_2D, SELECTION_2D_CYCLE_TIME_LIMIT_MS,
+};
 use crate::ensnano_flatscene::data::design::FlatSceneDesignReaderExt;
 use crate::ensnano_flatscene::data::helix::{Helix, HelixHandle};
 use crate::ensnano_flatscene::data::strand::FreeEnd;
@@ -11,11 +15,12 @@ use crate::ensnano_flatscene::flat_types::{
 use crate::ensnano_flatscene::view::EditionInfo;
 use crate::ensnano_flatscene::{AppState, CameraPtr, Requests, ViewPtr};
 use crate::ensnano_interactor::StrandBuildingStatus;
-use crate::{ensnano_consts::*, ensnano_interactor::selection::Selection};
-use crate::{ensnano_design::Nucl, ensnano_interactor::selection::SelectionMode};
+use crate::ensnano_interactor::selection::Selection;
+use crate::ensnano_interactor::selection::SelectionMode;
 use crate::{ensnano_interactor::selection::PhantomElement, ensnano_utils::camera2d::FitRectangle};
 use ahash::RandomState;
-use design::{Design2d, Helix2d};
+use design::Design2d;
+use std::time::{Duration, Instant};
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap, HashSet},
     sync::{Arc, Mutex},
@@ -1132,7 +1137,7 @@ impl ToFlatInfo for StrandBuildingStatus {
 
 struct LastClick {
     counter: usize,
-    last_click_time: std::time::Instant,
+    last_click_time: Instant,
     nucl: Option<FlatNucl>,
 }
 
@@ -1140,7 +1145,7 @@ impl Default for LastClick {
     fn default() -> Self {
         Self {
             counter: 0,
-            last_click_time: std::time::Instant::now(),
+            last_click_time: Instant::now(),
             nucl: None,
         }
     }
@@ -1148,10 +1153,10 @@ impl Default for LastClick {
 
 impl LastClick {
     pub fn click_on(&mut self, nucl: FlatNucl) {
-        let now = std::time::Instant::now();
+        let now = Instant::now();
         if self.nucl == Some(nucl)
             && (now - self.last_click_time)
-                < std::time::Duration::from_millis(SELECTION_2D_CYCLE_TIME_LIMIT_MS)
+                < Duration::from_millis(SELECTION_2D_CYCLE_TIME_LIMIT_MS)
         {
             self.counter += 1;
         } else {

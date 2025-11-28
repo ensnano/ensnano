@@ -10,10 +10,15 @@ use self::design_content::Staple;
 use crate::app_state::address_pointer::AddressPointer;
 use crate::app_state::design_interactor::DesignInteractor;
 use crate::ensnano_design::Design;
-use crate::ensnano_design::helices::{Helix, NuclCollection};
-use crate::ensnano_design::strands::{Extremity, Strand};
+use crate::ensnano_design::bezier_plane::{BezierPath, BezierPathId};
+use crate::ensnano_design::collection::Collection as _;
+use crate::ensnano_design::curves::bezier::InstantiatedPiecewiseBezier;
+use crate::ensnano_design::grid::GridId;
+use crate::ensnano_design::helices::{Helix, HelixCollection as _, NuclCollection};
+use crate::ensnano_design::strands::{Domain, Extremity, Strand};
 use crate::ensnano_design::{Nucl, elements::DesignElementKey, grid::Grid};
 use crate::ensnano_exports::oxdna::BACKBONE_TO_CM;
+use crate::ensnano_exports::{ExportResult, ExportType};
 use crate::ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
 use crate::ensnano_interactor::strand_builder::{NeighborDescriptor, NeighborDescriptorGiver as _};
 use crate::ensnano_interactor::{
@@ -22,6 +27,8 @@ use crate::ensnano_interactor::{
 use crate::ensnano_scene::data::design3d::{HBond, HalfHBond};
 use crate::ensnano_utils::id_generator::IdGenerator;
 use design_content::DesignContent;
+use std::path::PathBuf;
+use std::sync::Arc;
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
     fmt::Write as _,
@@ -196,7 +203,7 @@ impl Presenter {
                 .and_then(|s_id| self.current_design.strands.get(s_id))
             {
                 for domain in &strand.domains {
-                    if let crate::ensnano_design::Domain::HelixDomain(dom) = domain {
+                    if let Domain::HelixDomain(dom) = domain {
                         for nucl_position in dom.iter() {
                             let nucl = Nucl {
                                 helix: dom.helix,
@@ -227,8 +234,7 @@ impl Presenter {
                                 log::error!("Could not get virtual mapping of {:?}", nucl.compl());
                             }
                         }
-                    } else if let crate::ensnano_design::Domain::Insertion { nb_nucl, .. } = domain
-                    {
+                    } else if let Domain::Insertion { nb_nucl, .. } = domain {
                         for _ in 0..*nb_nucl {
                             sequence.next();
                         }
@@ -398,11 +404,7 @@ impl Presenter {
             .unwrap_or_default()
     }
 
-    pub fn get_strand_domain(
-        &self,
-        s_id: usize,
-        d_id: usize,
-    ) -> Option<&crate::ensnano_design::Domain> {
+    pub fn get_strand_domain(&self, s_id: usize, d_id: usize) -> Option<&Domain> {
         self.current_design
             .strands
             .get(&s_id)

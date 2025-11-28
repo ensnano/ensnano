@@ -1,8 +1,20 @@
 use crate::{
-    ensnano_design::curves::time_nucl_map::AbscissaConverter, ensnano_interactor::torsion::Torsion,
+    app_state::design_interactor::DesignInteractor,
+    ensnano_design::{
+        Nucl,
+        curves::time_nucl_map::AbscissaConverter,
+        helices::{Helices, HelixCollection as _, NuclCollection},
+        strands::{Domain, Extremity, HelixInterval, Strand},
+    },
+    ensnano_flatscene::data::design::FlatSceneDesignReaderExt,
+    ensnano_interactor::{Referential, torsion::Torsion},
 };
 use ahash::RandomState;
-use ultraviolet::{Isometry2, Vec2};
+use std::{
+    collections::{BTreeMap, HashMap},
+    sync::Arc,
+};
+use ultraviolet::{Isometry2, Vec2, Vec3};
 
 impl FlatSceneDesignReaderExt for DesignInteractor {
     fn get_isometry(&self, h_id: usize, segment_idx: usize) -> Option<Isometry2> {
@@ -164,7 +176,7 @@ impl FlatSceneDesignReaderExt for DesignInteractor {
         self.is_xover_end(nucl)
     }
 
-    fn get_helices_map(&self) -> &crate::ensnano_design::Helices {
+    fn get_helices_map(&self) -> &Helices {
         &self.presenter.current_design.helices
     }
 
@@ -191,10 +203,7 @@ impl FlatSceneDesignReaderExt for DesignInteractor {
     }
 }
 
-fn split_domain_into_helices_segment(
-    domain: &HelixInterval,
-    helices: &crate::ensnano_design::Helices,
-) -> Vec<Nucl> {
+fn split_domain_into_helices_segment(domain: &HelixInterval, helices: &Helices) -> Vec<Nucl> {
     let helix = helices.get(&domain.helix);
     let empty = vec![];
     let additional_segments = helix.map_or(&empty, |h| &h.additional_isometries);

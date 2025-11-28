@@ -20,7 +20,6 @@ use crate::ensnano_interactor::selection::{
 };
 use crate::ensnano_interactor::{
     ObjectType, Referential,
-    consts::*,
     graphics::{LoopoutBond, LoopoutNucl},
     selection::InteractorDesignReaderExt,
 };

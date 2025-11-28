@@ -8,18 +8,11 @@ pub mod normal_state;
 mod quit;
 pub mod set_scaffold_sequence;
 
+use crate::dialog::{self, MustAckMessage, YesNoQuestion};
 use crate::ensnano_consts::CANNOT_OPEN_DEFAULT_DIR;
-use crate::ensnano_exports::ExportType;
-use crate::ensnano_iced::ui_size::UiSize;
 use crate::{MainStateView, ensnano_design::scadnano::ScadnanoImportError};
 use normal_state::NormalState;
-use quit::*;
-use set_scaffold_sequence::*;
-use std::{
-    borrow::Cow,
-    path::{Path, PathBuf},
-};
-use ultraviolet::{Rotor3, Vec3};
+use std::borrow::Cow;
 
 pub struct Controller {
     /// The sate of the windows

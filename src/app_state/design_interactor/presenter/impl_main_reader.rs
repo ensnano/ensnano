@@ -4,6 +4,7 @@ use crate::controller::download_staples::{
 };
 use crate::ensnano_design::Nucl;
 use crate::ensnano_design::grid::{GridId, HelixGridPosition};
+use crate::ensnano_design::helices::HelixCollection as _;
 use crate::ensnano_design::strands::Strand;
 use crate::ensnano_interactor::selection::InteractorDesignReaderExt as MainReader;
 use itertools::Itertools as _;
@@ -313,7 +314,7 @@ impl MainReader for DesignInteractor {
             .and_then(|h| h.grid_position)
     }
 
-    fn get_strand_with_id(&self, id: usize) -> Option<&crate::ensnano_design::Strand> {
+    fn get_strand_with_id(&self, id: usize) -> Option<&Strand> {
         self.presenter.current_design.strands.get(&id)
     }
 

@@ -45,7 +45,6 @@ use data::Data;
 use itertools::Itertools as _;
 use std::{
     cell::RefCell,
-    collections::HashMap,
     io::Write as _,
     path::PathBuf,
     rc::Rc,

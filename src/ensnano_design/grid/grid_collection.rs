@@ -3,7 +3,7 @@ use std::{collections::BTreeMap, sync::Arc};
 use serde::{Deserialize, Serialize};
 
 use crate::ensnano_design::{
-    collection::HasMap,
+    collection::{Collection as _, HasMap},
     grid::{GridDescriptor, GridId},
 };
 

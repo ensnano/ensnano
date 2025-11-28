@@ -6,7 +6,7 @@ use crate::ensnano_consts::{
 };
 use crate::ensnano_design::elements::DesignElementKey;
 use crate::ensnano_design::grid::GridId;
-use crate::ensnano_design::helices::NuclCollection;
+use crate::ensnano_design::helices::{HelixCollection as _, NuclCollection};
 use crate::ensnano_design::strands::{Domain, DomainJunction};
 use crate::ensnano_design::{
     drawing_style::{ColorType, DrawingAttribute, DrawingStyle},

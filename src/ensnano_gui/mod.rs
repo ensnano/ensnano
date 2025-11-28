@@ -59,7 +59,7 @@ use iced::{
 };
 use iced_runtime::{Debug, program};
 use iced_wgpu::Backend;
-use left_panel::{ColorOverlay, LeftPanel, RigidBodyParametersRequest};
+use left_panel::{LeftPanel, RigidBodyParametersRequest};
 use status_bar::StatusBar;
 use status_bar::{ClipboardContent, CurrentOpState};
 use std::{

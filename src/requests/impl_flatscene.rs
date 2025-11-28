@@ -7,6 +7,7 @@ use crate::ensnano_flatscene::Requests as FlatSceneRequests;
 use crate::ensnano_interactor::{
     DesignOperation, application::AppId, operation::Operation, selection::Selection,
 };
+use crate::requests::Requests;
 use std::sync::Arc;
 use ultraviolet::Isometry2;
 

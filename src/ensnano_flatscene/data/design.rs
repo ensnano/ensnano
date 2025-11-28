@@ -3,8 +3,9 @@ use crate::ensnano_consts::{
 };
 use crate::ensnano_design::Nucl;
 use crate::ensnano_design::curves::time_nucl_map::AbscissaConverter;
-use crate::ensnano_design::helices::{Helix, NuclCollection};
-use crate::ensnano_design::strands::{Extremity, Strand};
+use crate::ensnano_design::helices::{Helices, Helix, HelixCollection as _, NuclCollection};
+use crate::ensnano_design::strands::Extremity;
+use crate::ensnano_flatscene::data::strand::Strand;
 use crate::ensnano_flatscene::flat_types::{
     Flat, FlatHelix, FlatIdx, FlatNucl, HelixSegment, HelixVec,
 };
@@ -33,7 +34,7 @@ pub(super) struct Design2d<R: FlatSceneDesignReaderExt> {
     removed: BTreeSet<FlatIdx>,
     requests: Arc<Mutex<dyn Requests>>,
     known_helices: HashMap<usize, *const Helix>,
-    known_map: *const crate::ensnano_design::Helices,
+    known_map: *const crate::ensnano_design::helices::Helices,
 }
 
 impl<R: FlatSceneDesignReaderExt> Design2d<R> {
@@ -518,7 +519,7 @@ pub trait FlatSceneDesignReaderExt: 'static {
     fn can_start_builder_at(&self, nucl: Nucl) -> bool;
     fn prime3_of_which_strand(&self, nucl: Nucl) -> Option<usize>;
     fn prime5_of_which_strand(&self, nucl: Nucl) -> Option<usize>;
-    fn get_helices_map(&self) -> &crate::ensnano_design::Helices;
+    fn get_helices_map(&self) -> &Helices;
     fn is_xover_end(&self, nucl: &Nucl) -> Extremity;
     fn get_identifier_nucl(&self, nucl: &Nucl) -> Option<u32>;
     fn get_id_of_strand_containing_nucl(&self, nucl: &Nucl) -> Option<usize>;

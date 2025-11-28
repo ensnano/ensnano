@@ -1,13 +1,10 @@
 use crate::ensnano_design::curves::torus::CurveDescriptor2D;
 use crate::ensnano_gui::left_panel::tabs::GuiTab;
 use crate::ensnano_gui::{AppState, SimulationState, left_panel::Message};
+use crate::ensnano_iced::fonts::material_icons::{MaterialIcon, icon_to_char};
 use crate::ensnano_iced::helpers::{extra_jump, jump_by, section, subsection, text_button};
 use crate::ensnano_iced::widgets::keyboard_priority::keyboard_priority;
-use crate::ensnano_iced::{
-    fonts::{MaterialIcon, icon_to_char},
-    theme,
-    ui_size::UiSize,
-};
+use crate::ensnano_iced::{theme, ui_size::UiSize};
 use crate::ensnano_interactor::surfaces::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceRadius,
     RevolutionSurfaceSystemDescriptor, RootingParameters, ShiftGenerator,

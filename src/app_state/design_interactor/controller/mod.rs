@@ -7,16 +7,17 @@ use crate::ensnano_design::bezier_plane::import_from_svg::{SvgImportError, read_
 use crate::ensnano_design::bezier_plane::{
     BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
 };
+use crate::ensnano_design::collection::Collection as _;
 use crate::ensnano_design::curves::CurveDescriptor;
 use crate::ensnano_design::curves::bezier::{BezierControlPoint, BezierEnd};
 use crate::ensnano_design::external_3d_objects::{External3DObject, External3DObjectDescriptor};
 use crate::ensnano_design::grid::copy_grid::GridCopyError;
 use crate::ensnano_design::grid::grid_collection::FreeGridId;
 use crate::ensnano_design::grid::hyperboloid::Hyperboloid;
-use crate::ensnano_design::helices::{Helices, Helix, NuclCollection};
+use crate::ensnano_design::helices::{Helices, Helix, HelixCollection as _, NuclCollection};
 use crate::ensnano_design::strands::{Domain, DomainJunction, HelixInterval, Strand, Strands};
 use crate::ensnano_design::{CameraId, Design, Nucl, mutate_one_helix};
-use crate::ensnano_gui::ClipboardContent;
+use crate::ensnano_gui::status_bar::ClipboardContent;
 use crate::ensnano_interactor::{
     BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
     HyperboloidOperation, IsometryTarget, NewBezierTangentVector, PastingStatus, SimulationState,

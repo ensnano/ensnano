@@ -21,7 +21,7 @@ use mathru::{
     },
 };
 use std::{
-    f64::consts::{FRAC_PI_2, TAU},
+    f64::consts::FRAC_PI_2,
     sync::{Arc, Mutex, Weak},
     time::{SystemTime, UNIX_EPOCH},
 };

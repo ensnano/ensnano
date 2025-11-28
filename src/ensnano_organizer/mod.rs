@@ -14,7 +14,7 @@ use crate::{
     ensnano_iced::widgets::keyboard_priority::keyboard_priority,
     ensnano_organizer::{
         drag_drop_target::{DragDropTarget, DragIdentifier},
-        element::{AttributeDisplayer, ElementKey, OrganizerElement},
+        element::{AttributeDisplayer, ElementKey, OrganizerAttribute as _, OrganizerElement},
     },
 };
 use hoverable_container::HoverableContainer;

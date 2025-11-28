@@ -8,6 +8,7 @@ use crate::ensnano_consts::{
     SPHERE_RADIUS,
 };
 use crate::ensnano_design::bezier_plane::BezierVertexId;
+use crate::ensnano_design::collection::Collection as _;
 use crate::ensnano_design::curves::{SurfaceInfo, SurfacePoint};
 use crate::ensnano_design::external_3d_objects::External3DObjectsStamp;
 use crate::ensnano_design::{

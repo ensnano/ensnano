@@ -31,7 +31,7 @@ use crate::{
         curves::CurveCache,
         external_3d_objects::External3DObjects,
         grid::grid_collection::FreeGrids,
-        helices::{Helices, Helix},
+        helices::{Helices, Helix, HelixCollection as _},
         isometry3_descriptor::Isometry3Descriptor,
         parameters::HelixParameters,
         scadnano::{

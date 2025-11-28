@@ -3,11 +3,12 @@ use crate::app_state::design_interactor::controller::simulations::roller::{
     DesignData, RollSystem,
 };
 use crate::ensnano_design::Design;
+use crate::ensnano_design::collection::Collection as _;
 use crate::ensnano_design::curves::CurveDescriptor;
 use crate::ensnano_design::curves::twist::{Twist, nb_turn_per_100_nt_to_omega, twist_to_omega};
 use crate::ensnano_design::grid::grid_collection::FreeGridId;
 use crate::ensnano_design::grid::{GridDescriptor, GridId, GridTypeDescr};
-use crate::ensnano_design::helices::Helix;
+use crate::ensnano_design::helices::{Helix, HelixCollection as _};
 use crate::ensnano_design::parameters::HelixParameters;
 use crate::ensnano_design::utils::vec_to_dvec;
 use crate::{

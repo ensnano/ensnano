@@ -1,6 +1,5 @@
 pub mod automata;
 
-use crate::ensnano_consts::*;
 use crate::ensnano_design::bezier_plane::{
     BezierPathId, BezierPlaneId, BezierVertex, BezierVertexId,
 };

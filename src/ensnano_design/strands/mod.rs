@@ -2,7 +2,7 @@ mod formatting;
 
 use crate::ensnano_design::{
     Nucl, ScadnanoInsertionsDeletions, codenano,
-    helices::{Helices, VirtualNucl},
+    helices::{Helices, HelixCollection as _, VirtualNucl},
     insertions::InstantiatedInsertion,
     scadnano::{ScadnanoDomain, ScadnanoImportError, ScadnanoStrand},
     utils::is_false,

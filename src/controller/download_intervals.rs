@@ -1,3 +1,9 @@
+use crate::controller::messages::{
+    NO_FILE_RECEIVED_STAPLE, NO_SCAFFOLD_SEQUENCE_SET, NO_SCAFFOLD_SET, ORIGAMI_FILTERS,
+    successful_staples_export_msg,
+};
+use crate::controller::normal_state::NormalState;
+use crate::controller::{State, TransitionMessage};
 use crate::ensnano_consts::ORIGAMI_EXTENSION;
 use crate::{
     MainStateView,
@@ -55,12 +61,12 @@ fn get_design_providing_staples(downloader: &dyn StaplesDownloader) -> Box<dyn S
         }
         .to_state(),
         Err(DownloadStapleError::NoScaffoldSet) => TransitionMessage::new(
-            messages::NO_SCAFFOLD_SET,
+            NO_SCAFFOLD_SET,
             rfd::MessageLevel::Error,
             Box::new(NormalState),
         ),
         Err(DownloadStapleError::ScaffoldSequenceNotSet) => TransitionMessage::new(
-            messages::NO_SCAFFOLD_SEQUENCE_SET,
+            NO_SCAFFOLD_SEQUENCE_SET,
             rfd::MessageLevel::Error,
             Box::new(NormalState),
         ),
@@ -84,11 +90,8 @@ fn ask_path(mut state: AskingPath_, main_state: &MainStateView) -> Box<DownloadI
             ret
         });
         let starting_directory = main_state.get_current_design_directory();
-        let path_input = dialog::get_file_to_write(
-            messages::ORIGAMI_FILTERS,
-            starting_directory.as_ref(),
-            candidate_name,
-        );
+        let path_input =
+            dialog::get_file_to_write(ORIGAMI_FILTERS, starting_directory.as_ref(), candidate_name);
         Box::new(DownloadIntervals {
             step: Step::PathAsked {
                 path_input,
@@ -125,7 +128,7 @@ fn poll_path(path_input: PathInput, design_id: usize) -> Box<dyn State> {
             })
         } else {
             TransitionMessage::new(
-                messages::NO_FILE_RECEIVED_STAPLE,
+                NO_FILE_RECEIVED_STAPLE,
                 rfd::MessageLevel::Error,
                 Box::new(NormalState),
             )
@@ -146,6 +149,6 @@ fn download_staples(
     path: PathBuf,
 ) -> Box<dyn State> {
     downloader.write_intervals(&path);
-    let msg = messages::successful_staples_export_msg(&path);
+    let msg = successful_staples_export_msg(&path);
     TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(NormalState))
 }

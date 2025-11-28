@@ -4,7 +4,7 @@ use crate::ensnano_design::grid::{Grid, GridDivision as _, GridId, GridPosition,
 use crate::ensnano_scene::element_selector::bezier_vertex_id;
 use crate::ensnano_scene::view::grid_disc::GridDisc;
 use crate::ensnano_scene::view::instances_drawer::{
-    InstanceDrawer, Instantiable, ResourceProvider, Vertexable,
+    InstanceDrawer, Instantiable, RawDrawer as _, ResourceProvider, Vertexable,
 };
 use crate::ensnano_scene::view::letter::LetterInstance;
 use crate::ensnano_utils::instance::Instance;

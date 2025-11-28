@@ -2,11 +2,19 @@ pub mod controller;
 pub mod file_parsing;
 pub mod presenter;
 
+use crate::app_state::address_pointer::AddressPointer;
 use crate::controller::SaveDesignError;
 use crate::ensnano_consts::UPDATE_VISIBILITY_SIEVE_LABEL;
-use crate::ensnano_design::{grid::GridId, group_attributes::GroupAttribute};
+use crate::ensnano_design::Design;
+use crate::ensnano_design::bezier_plane::{BezierPathId, BezierPlaneDescriptor};
+use crate::ensnano_design::collection::Collection as _;
+use crate::ensnano_design::curves::bezier::InstantiatedPiecewiseBezier;
+use crate::ensnano_design::group_attributes::GroupAttribute;
+use crate::ensnano_design::helices::HelixCollection as _;
+use crate::ensnano_design::parameters::HelixParameters;
+use crate::ensnano_design::strands::Domain;
 use crate::ensnano_exports::{ExportResult, ExportType};
-use crate::ensnano_gui::CurrentOpState;
+use crate::ensnano_gui::status_bar::{ClipboardContent, CurrentOpState};
 use crate::ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
 use crate::ensnano_interactor::strand_builder::StrandBuilder;
 use crate::ensnano_interactor::{
@@ -293,7 +301,7 @@ impl DesignInteractor {
         self.new_selection.take()
     }
 
-    pub fn get_clipboard_content(&self) -> crate::ensnano_gui::ClipboardContent {
+    pub fn get_clipboard_content(&self) -> ClipboardContent {
         self.controller.get_clipboard_content()
     }
 
@@ -314,11 +322,7 @@ impl DesignInteractor {
         self.presenter.export(export_path, export_type)
     }
 
-    pub fn get_strand_domain(
-        &self,
-        s_id: usize,
-        d_id: usize,
-    ) -> Option<&crate::ensnano_design::Domain> {
+    pub fn get_strand_domain(&self, s_id: usize, d_id: usize) -> Option<&Domain> {
         self.presenter.get_strand_domain(s_id, d_id)
     }
 
@@ -387,7 +391,8 @@ mod tests {
     use super::*;
     use crate::ensnano_design::{
         Nucl,
-        grid::{GridDescriptor, GridTypeDescr, HelixGridPosition},
+        grid::{GridDescriptor, GridId, GridTypeDescr, HelixGridPosition},
+        strands::{DomainJunction, Strand},
     };
     use crate::ensnano_interactor::{
         InsertionPoint, operation::GridHelixCreation, selection::InteractorDesignReaderExt as _,

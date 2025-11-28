@@ -1,5 +1,10 @@
 use crate::{
-    ensnano_design::{Design, Nucl, helices::Helix, parameters::HelixParameters, strands::Domain},
+    ensnano_design::{
+        Design, Nucl,
+        helices::{Helix, HelixCollection as _},
+        parameters::HelixParameters,
+        strands::Domain,
+    },
     ensnano_exports::{BasisMapper, rand_base},
 };
 use std::{f32::consts::TAU, io::Write as _, mem::ManuallyDrop, path::Path};

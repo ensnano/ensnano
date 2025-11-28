@@ -1,7 +1,7 @@
 pub mod import_from_svg;
 
 use crate::ensnano_design::{
-    collection::HasMap,
+    collection::{Collection as _, HasMap},
     curves::{
         Curve,
         bezier::{

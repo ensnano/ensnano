@@ -1,6 +1,6 @@
 use crate::ensnano_gui::left_panel::ColorMessage;
 use hue_column::HueColumn;
-use iced::{Color, widget::row};
+use iced::widget::row;
 use light_sat_square::LightSatSquare;
 
 pub struct ColorPicker {

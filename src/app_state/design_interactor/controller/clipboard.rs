@@ -10,7 +10,7 @@ use crate::{
         grid::{
             Edge, GridData, GridId, GridPosition, HelixGridPosition, grid_collection::FreeGridId,
         },
-        helices::Helices,
+        helices::{Helices, HelixCollection as _},
         parameters::HelixParameters,
         strands::{Domain, HelixInterval, Strand, Strands, read_junctions},
     },

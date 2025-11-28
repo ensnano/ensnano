@@ -17,6 +17,8 @@ pub mod transitions;
 use crate::ensnano_design::Design;
 
 use crate::ensnano_consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION};
+use crate::ensnano_design::bezier_plane::BezierPathId;
+use crate::ensnano_design::strands::Domain;
 use crate::ensnano_design::{SavingInformation, group_attributes::GroupPivot};
 use crate::ensnano_exports::{ExportResult, ExportType};
 use crate::ensnano_iced::ui_size::UiSize;
@@ -558,7 +560,7 @@ impl AppState {
             let reader = self.get_design_interactor();
             let domain = reader.get_strand_domain(domain_id.strand, domain_id.domain)?;
             let param = self.0.design.get_dna_parameters();
-            if let crate::ensnano_design::Domain::HelixDomain(interval) = domain {
+            if let Domain::HelixDomain(interval) = domain {
                 let prime5 = interval.prime5();
                 let prime3 = interval.prime3();
                 let nt_length = domain.length();

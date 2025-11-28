@@ -1,6 +1,6 @@
 use super::*;
 use crate::ensnano_design::strands::{
-    Domain, DomainJunction, HelixInterval, Strand, read_junctions, sanitize_domains,
+    DomainJunction, HelixInterval, read_junctions, sanitize_domains,
 };
 use regex::Regex;
 use std::fmt::Write as _;

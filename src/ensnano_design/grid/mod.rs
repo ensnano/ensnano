@@ -6,6 +6,7 @@ pub mod hyperboloid;
 use crate::ensnano_design::{
     Design,
     bezier_plane::{BezierPathData, BezierPathId, BezierVertexId},
+    collection::Collection as _,
     curves::{
         CurveCache, CurveDescriptor, CurveInstantiator, InstantiatedCurve,
         InstantiatedCurveDescriptor,
@@ -16,7 +17,7 @@ use crate::ensnano_design::{
     },
     design_operations::{ErrDesignOperation, MIN_HELICES_TO_MAKE_GRID},
     grid::{grid_collection::FreeGrids, hyperboloid::Hyperboloid},
-    helices::{Axis, Helices, Helix},
+    helices::{Axis, Helices, Helix, HelixCollection as _},
     parameters::HelixParameters,
 };
 use serde::{Deserialize, Serialize};

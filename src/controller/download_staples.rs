@@ -1,4 +1,15 @@
-use crate::{MainStateView, dialog};
+use crate::{
+    MainStateView,
+    controller::{
+        State, TransitionMessage,
+        messages::{
+            NO_FILE_RECEIVED_STAPLE, NO_SCAFFOLD_SEQUENCE_SET, NO_SCAFFOLD_SET, STAPLES_FILTERS,
+            successful_staples_export_msg,
+        },
+        normal_state::NormalState,
+    },
+    dialog,
+};
 use dialog::{MustAckMessage, PathInput};
 use std::path::{Path, PathBuf};
 
@@ -48,12 +59,12 @@ fn get_design_providing_staples(downloader: &dyn StaplesDownloader) -> Box<dyn S
         }
         .to_state(),
         Err(DownloadStapleError::NoScaffoldSet) => TransitionMessage::new(
-            messages::NO_SCAFFOLD_SET,
+            NO_SCAFFOLD_SET,
             rfd::MessageLevel::Error,
             Box::new(NormalState),
         ),
         Err(DownloadStapleError::ScaffoldSequenceNotSet) => TransitionMessage::new(
-            messages::NO_SCAFFOLD_SEQUENCE_SET,
+            NO_SCAFFOLD_SEQUENCE_SET,
             rfd::MessageLevel::Error,
             Box::new(NormalState),
         ),
@@ -72,7 +83,7 @@ fn ask_path(mut state: AskingPath_, main_state: &MainStateView) -> Box<DownloadS
         state.with_ack(must_ack)
     } else {
         let path_input = dialog::get_file_to_write(
-            messages::STAPLES_FILTERS,
+            STAPLES_FILTERS,
             main_state.get_current_design_directory(),
             main_state.get_current_file_name(),
         );
@@ -112,7 +123,7 @@ fn poll_path(path_input: PathInput, design_id: usize) -> Box<dyn State> {
             })
         } else {
             TransitionMessage::new(
-                messages::NO_FILE_RECEIVED_STAPLE,
+                NO_FILE_RECEIVED_STAPLE,
                 rfd::MessageLevel::Error,
                 Box::new(NormalState),
             )
@@ -129,7 +140,7 @@ fn poll_path(path_input: PathInput, design_id: usize) -> Box<dyn State> {
 
 fn download_staples(downloader: &dyn StaplesDownloader, path: PathBuf) -> Box<dyn State> {
     downloader.write_staples_xlsx(&path);
-    let msg = messages::successful_staples_export_msg(&path);
+    let msg = successful_staples_export_msg(&path);
     TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(NormalState))
 }
 

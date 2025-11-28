@@ -132,11 +132,8 @@ impl Curved for Twist {
 
 #[cfg(test)]
 mod tests {
-    use crate::ensnano_design::{
-        curves::InstantiatedCurveDescriptor_, helices::Helix, parameters::HelixParameters,
-    };
-
     use super::*;
+    use crate::ensnano_design::{curves::InstantiatedCurveDescriptor_, helices::Helix};
 
     impl Twist {
         fn with_omega(omega: f64) -> Self {

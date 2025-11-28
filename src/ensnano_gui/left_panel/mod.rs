@@ -40,11 +40,11 @@ use crate::{
 use color_picker::ColorPicker;
 use contextual_panel::ContextualPanel;
 use contextual_panel::value_constructor::{InstantiatedValue, ValueKind};
-use discrete_value::{FactoryId, RequestFactory, Requestable, ValueId};
+use discrete_value::{FactoryId, Requestable, ValueId};
 use export_menu::ExportMenu;
 use iced::widget::{Button, Column, Container, Text, container, horizontal_rule, text_input};
 use iced::{Color, Command, Element, Length, widget::column};
-use iced_aw::widgets::{TabBarPosition, TabLabel, Tabs};
+use iced_aw::widgets::{TabBarPosition, Tabs};
 use iced_runtime::Program;
 use std::{
     f32::consts::PI,

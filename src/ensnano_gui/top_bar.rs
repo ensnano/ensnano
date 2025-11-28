@@ -5,6 +5,7 @@
 //!
 //! Drawing the top bar, and triggering events from it is handled here.
 
+use crate::ensnano_gui::icon::{HasIcon as _, HasIconDependentOnAxis as _};
 use crate::ensnano_gui::{Requests, TopBarState};
 use crate::ensnano_interactor::graphics::SplitMode;
 use crate::ensnano_interactor::selection::{ActionMode, SelectionMode};

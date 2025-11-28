@@ -16,7 +16,6 @@ pub mod twist;
 
 use crate::ensnano_design::{
     bezier_plane::{BezierPathData, BezierPathId},
-    codenano::Helix,
     curves::{
         bezier::{
             BezierEnd, CubicBezierConstructor, InstantiatedPiecewiseBezier,
@@ -37,8 +36,8 @@ use crate::ensnano_design::{
         tube_spiral::TubeSpiralDescriptor,
         twist::Twist,
     },
-    grid::{Edge, grid_collection::FreeGrids, *},
-    helices::AdditionalHelix2D,
+    grid::{Edge, GridPosition, grid_collection::FreeGrids},
+    helices::{AdditionalHelix2D, Helix},
     parameters::HelixParameters,
     utils::{is_false, vec_to_dvec},
 };

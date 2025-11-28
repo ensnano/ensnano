@@ -8,6 +8,7 @@ use crate::ensnano_interactor::{
     DesignOperation, application::AppId, operation::Operation, selection::Selection,
 };
 use crate::ensnano_scene::Requests as SceneRequests;
+use crate::requests::Requests;
 use std::sync::Arc;
 use ultraviolet::{Rotor3, Vec3};
 

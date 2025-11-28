@@ -1,10 +1,16 @@
 use crate::{
     MainStateView,
     controller::{
-        messages::{CADNANO_FILTERS, OXDNA_CONFIG_EXTENSION, OXDNA_CONFIG_FILTERS, PDB_FILTERS},
+        State, TransitionMessage, YesNo,
+        messages::{
+            CADNANO_FILTERS, DESIGN_LOAD_FILTERS, DESIGN_WRITE_FILTERS, NO_FILE_RECEIVED_LOAD,
+            NO_FILE_RECEIVED_OXDNA, NO_FILE_RECEIVED_SAVE, OBJECT3D_FILTERS,
+            OXDNA_CONFIG_EXTENSION, OXDNA_CONFIG_FILTERS, PDB_FILTERS, SAVE_BEFORE_EXIT,
+            SAVE_BEFORE_LOAD, SAVE_BEFORE_NEW, SAVE_BEFORE_RELOAD, SVG_FILTERS, failed_to_save_msg,
+        },
         normal_state::NormalState,
     },
-    dialog::DialogFilters,
+    dialog::{self, DialogFilters, PathInput},
     ensnano_exports::ExportType,
 };
 use std::path::{Path, PathBuf};
@@ -54,7 +60,7 @@ fn init_quit(need_save: Option<Option<PathBuf>>) -> Box<dyn State> {
     if let Some(path) = need_save {
         let quitting = Box::new(Quit::quitting());
         Box::new(YesNo::new(
-            messages::SAVE_BEFORE_EXIT,
+            SAVE_BEFORE_EXIT,
             save_before_quit(path),
             quitting,
         ))
@@ -98,7 +104,7 @@ impl Load {
         if let Some(save_path) = need_save {
             let yes = save_before_known_path(save_path, path_to_load.clone());
             let no = Box::new(Self::known_path(path_to_load));
-            Box::new(YesNo::new(messages::SAVE_BEFORE_RELOAD, yes, no))
+            Box::new(YesNo::new(SAVE_BEFORE_RELOAD, yes, no))
         } else {
             Box::new(Self::known_path(path_to_load))
         }
@@ -154,7 +160,7 @@ fn init_load(path_to_save: Option<Option<PathBuf>>, load_type: LoadType) -> Box<
     if let Some(path_to_save) = path_to_save {
         let yes = save_before_load(path_to_save, load_type);
         let no = Load::ask_path(load_type);
-        Box::new(YesNo::new(messages::SAVE_BEFORE_LOAD, yes, no))
+        Box::new(YesNo::new(SAVE_BEFORE_LOAD, yes, no))
     } else {
         Load::ask_path(load_type)
     }
@@ -202,7 +208,7 @@ fn ask_path<P: AsRef<Path>>(
                 })
             } else {
                 TransitionMessage::new(
-                    messages::NO_FILE_RECEIVED_LOAD,
+                    NO_FILE_RECEIVED_LOAD,
                     rfd::MessageLevel::Error,
                     Box::new(NormalState),
                 )
@@ -217,9 +223,9 @@ fn ask_path<P: AsRef<Path>>(
         }
     } else {
         let filters = match load_type {
-            LoadType::Object3D => messages::OBJECT3D_FILTERS,
-            LoadType::Design => messages::DESIGN_LOAD_FILTERS,
-            LoadType::SvgPath => messages::SVG_FILTERS,
+            LoadType::Object3D => OBJECT3D_FILTERS,
+            LoadType::Design => DESIGN_LOAD_FILTERS,
+            LoadType::SvgPath => SVG_FILTERS,
         };
         let path_input = dialog::load(starting_directory, filters);
         Box::new(Load {
@@ -294,7 +300,7 @@ impl State for NewDesign {
 fn init_new_design(path_to_save: Option<PathBuf>) -> Box<dyn State> {
     let yes = save_before_new(path_to_save);
     let no = NewDesign::make_new_design();
-    Box::new(YesNo::new(messages::SAVE_BEFORE_NEW, yes, no))
+    Box::new(YesNo::new(SAVE_BEFORE_NEW, yes, no))
 }
 
 fn new_design(main_state: &mut MainStateView) -> Box<dyn State> {
@@ -352,7 +358,7 @@ impl State for SaveAs {
                     }
                 } else {
                     TransitionMessage::new(
-                        messages::NO_FILE_RECEIVED_SAVE,
+                        NO_FILE_RECEIVED_SAVE,
                         rfd::MessageLevel::Error,
                         Box::new(NormalState),
                     )
@@ -362,7 +368,7 @@ impl State for SaveAs {
             }
         } else {
             let getter = dialog::get_file_to_write(
-                messages::DESIGN_WRITE_FILTERS,
+                DESIGN_WRITE_FILTERS,
                 main_state.get_current_design_directory(),
                 main_state.get_current_file_name(),
             );
@@ -425,7 +431,7 @@ impl State for Exporting {
                 if let Some(path) = &path_opt {
                     match main_state.export(path, self.export_type) {
                         Err(err) => TransitionMessage::new(
-                            messages::failed_to_save_msg(&err),
+                            failed_to_save_msg(&err),
                             rfd::MessageLevel::Error,
                             self.on_error,
                         ),
@@ -437,7 +443,7 @@ impl State for Exporting {
                     }
                 } else {
                     TransitionMessage::new(
-                        messages::NO_FILE_RECEIVED_OXDNA,
+                        NO_FILE_RECEIVED_OXDNA,
                         rfd::MessageLevel::Error,
                         self.on_error,
                     )

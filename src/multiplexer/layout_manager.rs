@@ -8,6 +8,10 @@
 
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
+use winit::dpi::PhysicalPosition;
+
+use crate::ensnano_interactor::graphics::GuiComponentType;
+
 /// Half-width of a “resize region”.
 const RESIZE_REGION_WIDTH: f64 = 0.001;
 

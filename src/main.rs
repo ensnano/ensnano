@@ -96,9 +96,11 @@ use crate::ensnano_consts::{
     APP_NAME, ENS_BACKUP_EXTENSION, ENS_UNNAMED_FILE_NAME, NO_DESIGN_TITLE, SEC_BETWEEN_BACKUPS,
     SEC_PER_YEAR, WELCOME_MSG,
 };
+use crate::ensnano_design::bezier_plane::BezierPlaneDescriptor;
 use crate::ensnano_design::{Camera, grid::GridId, group_attributes::GroupPivot};
 use crate::ensnano_exports::{ExportResult, ExportType};
 use crate::ensnano_flatscene::FlatScene;
+use crate::ensnano_gui::left_panel::ColorOverlay;
 use crate::ensnano_gui::{AppState as _, Gui, IcedMessages, OverlayType, TopBarState};
 use crate::ensnano_iced::{fonts, theme, ui_size::UiSize};
 use crate::ensnano_interactor::{
@@ -1579,7 +1581,7 @@ impl MainState {
             && let Some((position, orientation)) = self.get_bezier_sheet_creation_position()
         {
             self.apply_operation(DesignOperation::AddBezierPlane {
-                desc: crate::ensnano_design::BezierPlaneDescriptor {
+                desc: BezierPlaneDescriptor {
                     position,
                     orientation,
                 },
