@@ -8,7 +8,7 @@ use crate::ensnano_design::{
 use crate::ensnano_interactor::{
     BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation, IsometryTarget,
 };
-use crate::ensnano_organizer::tree::GroupId;
+use ensnano_organizer::tree::GroupId;
 use std::sync::Arc;
 use ultraviolet::{Bivec3, Rotor3, Vec2, Vec3};
 

@@ -10,7 +10,7 @@ mod icon;
 pub mod theme;
 pub mod tree;
 
-use crate::ensnano_organizer::{
+use crate::{
     drag_drop_target::{DragDropTarget, DragIdentifier},
     element::{AttributeDisplayer, ElementKey, OrganizerAttribute as _, OrganizerElement},
 };

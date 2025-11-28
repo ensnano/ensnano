@@ -35,7 +35,7 @@ use crate::ensnano_interactor::{
     selection::{ActionMode, Selection, SelectionConversion as _},
     surfaces::EquadiffSolvingMethod,
 };
-use crate::ensnano_organizer::{Organizer, OrganizerMessage, tree::OrganizerTree};
+use ensnano_organizer::{Organizer, OrganizerMessage, tree::OrganizerTree};
 use color_picker::ColorPicker;
 use contextual_panel::{
     ContextualPanel,

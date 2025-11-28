@@ -22,7 +22,7 @@ use crate::ensnano_interactor::{
     app_state_parameters::suggestion_parameters::SuggestionParameters, operation::Operation,
     selection::Selection, strand_builder::StrandBuilder,
 };
-use crate::ensnano_organizer::tree::GroupId;
+use ensnano_organizer::tree::GroupId;
 use crate::{
     app_state::design_interactor::controller::{
         OkOperation, clipboard::CopyOperation, simulations::SimulationOperation,

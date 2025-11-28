@@ -19,7 +19,7 @@ use crate::ensnano_interactor::{
         ActionMode, Selection, SelectionConversion as _, SelectionMode, all_helices_no_grid,
     },
 };
-use crate::ensnano_organizer::tree::GroupId;
+use ensnano_organizer::tree::GroupId;
 use curve_builders::{BEZIER_CURVE_BUILDER, ELLIPSE_BUILDER, TWO_SPHERES_BUILDER};
 
 impl GuiState for AppState {

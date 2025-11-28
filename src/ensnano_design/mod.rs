@@ -36,7 +36,7 @@ use crate::ensnano_design::{
     scadnano::{ScadnanoDesign, ScadnanoGroup, ScadnanoImportError, ScadnanoInsertionsDeletions},
     strands::{Domain, Strand, Strands},
 };
-use crate::ensnano_organizer::tree::{GroupId, OrganizerTree};
+use ensnano_organizer::tree::{GroupId, OrganizerTree};
 use elements::DesignElementKey;
 use grid::{GridData, GridDescriptor, GridId};
 use group_attributes::GroupAttribute;

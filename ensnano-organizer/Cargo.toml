@@ -1,0 +1,15 @@
+[package]
+name = "ensnano_organizer"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+ensnano_iced.workspace = true
+
+iced.workspace = true
+icondata.workspace = true
+log.workspace = true
+rand.workspace = true
+serde.workspace = true

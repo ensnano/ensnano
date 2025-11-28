@@ -1,4 +1,4 @@
-use crate::ensnano_organizer::element::{
+use ensnano_organizer::element::{
     AttributeDisplay, AttributeWidget, ElementKey, OrganizerAttribute,
     OrganizerAttributeDiscriminant, OrganizerElement,
 };

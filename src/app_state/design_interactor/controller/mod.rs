@@ -41,7 +41,7 @@ use crate::ensnano_interactor::{
         DomainIdentifier, NeighborDescriptor, NeighborDescriptorGiver as _, StrandBuilder,
     },
 };
-use crate::ensnano_organizer::tree::GroupId;
+use ensnano_organizer::tree::GroupId;
 use crate::ensnano_utils::colors;
 use crate::{
     app_state::{

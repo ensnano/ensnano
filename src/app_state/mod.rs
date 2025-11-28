@@ -33,7 +33,7 @@ use crate::ensnano_interactor::{
     selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
     surfaces::{RevolutionSurfaceRadius, UnrootedRevolutionSurfaceDescriptor},
 };
-use crate::ensnano_organizer::tree::GroupId;
+use ensnano_organizer::tree::GroupId;
 use crate::{
     app_state::design_interactor::{
         controller::{

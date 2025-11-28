@@ -21,7 +21,7 @@ use crate::ensnano_interactor::{
     selection::{ActionMode, SelectionMode},
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
 };
-use crate::ensnano_organizer::tree::{GroupId, OrganizerTree};
+use ensnano_organizer::tree::{GroupId, OrganizerTree};
 use crate::requests::Requests;
 use ensnano_iced::ui_size::UiSize;
 use std::{collections::BTreeSet, sync::Arc};

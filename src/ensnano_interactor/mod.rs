@@ -26,7 +26,7 @@ use crate::ensnano_design::{
     group_attributes::GroupPivot,
     parameters::HelixParameters,
 };
-use crate::ensnano_organizer::tree::{GroupId, OrganizerTree};
+use ensnano_organizer::tree::{GroupId, OrganizerTree};
 use selection::Selection;
 use std::path::PathBuf;
 use surfaces::RevolutionSimulationParameters;

@@ -32,7 +32,7 @@ use crate::ensnano_interactor::{
     strand_builder::StrandBuilder,
     surfaces::UnrootedRevolutionSurfaceDescriptor,
 };
-use crate::ensnano_organizer::tree::GroupId;
+use ensnano_organizer::tree::GroupId;
 use crate::ensnano_scene::controller::automata::WidgetTarget;
 use crate::ensnano_utils::{BufferDimensions, filename};
 use controller::{Consequence, Controller};

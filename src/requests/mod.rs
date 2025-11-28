@@ -24,7 +24,7 @@ use crate::ensnano_interactor::{
     selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
     surfaces::UnrootedRevolutionSurfaceDescriptor,
 };
-use crate::ensnano_organizer::tree::{GroupId, OrganizerTree};
+use ensnano_organizer::tree::{GroupId, OrganizerTree};
 use std::{collections::VecDeque, sync::Arc};
 use ultraviolet::Vec3;
 

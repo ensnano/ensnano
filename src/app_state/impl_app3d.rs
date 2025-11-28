@@ -10,7 +10,7 @@ use crate::ensnano_interactor::{
     strand_builder::StrandBuilder,
     surfaces::UnrootedRevolutionSurfaceDescriptor,
 };
-use crate::ensnano_organizer::tree::GroupId;
+use ensnano_organizer::tree::GroupId;
 use crate::ensnano_scene::{AppState as App3D, view::DrawOptions};
 use std::path::PathBuf;
 

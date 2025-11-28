@@ -78,7 +78,6 @@ mod ensnano_exports;
 mod ensnano_flatscene;
 mod ensnano_gui;
 mod ensnano_interactor;
-mod ensnano_organizer;
 mod ensnano_physics;
 mod ensnano_scene;
 mod ensnano_utils;
@@ -117,7 +116,6 @@ use crate::ensnano_interactor::{
     },
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
 };
-use crate::ensnano_organizer::tree::GroupId;
 use crate::ensnano_scene::{
     AppState as _, Scene, SceneKind, data::design3d::SceneDesignReaderExt as _,
 };
@@ -145,6 +143,7 @@ use ensnano_consts::{
     SEC_PER_YEAR, WELCOME_MSG,
 };
 use ensnano_iced::{fonts, theme, ui_size::UiSize};
+use ensnano_organizer::tree::GroupId;
 use iced::{
     advanced::{clipboard, renderer},
     mouse::Cursor,

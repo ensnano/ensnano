@@ -41,7 +41,7 @@ use crate::ensnano_interactor::{
     selection::{ActionMode, Selection, SelectionMode},
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
 };
-use crate::ensnano_organizer::tree::{GroupId, OrganizerTree};
+use ensnano_organizer::tree::{GroupId, OrganizerTree};
 use iced::{
     Renderer, Size,
     advanced::{clipboard, mouse, renderer},

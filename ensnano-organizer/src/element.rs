@@ -1,4 +1,4 @@
-use crate::ensnano_organizer::icon::{ICON_SIZE, icon};
+use crate::icon::{ICON_SIZE, icon};
 use iced::{
     Element,
     widget::{button, text},
