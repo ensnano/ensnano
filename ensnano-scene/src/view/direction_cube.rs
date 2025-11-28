@@ -1,4 +1,5 @@
 use crate::view::instances_drawer::{Instantiable, ResourceProvider, Vertexable};
+use ensnano_utils::TEXTURE_FORMAT;
 use image::GenericImageView as _;
 use std::rc::Rc;
 use ultraviolet::{Vec2, Vec3};
@@ -278,7 +279,7 @@ impl DirectionTexture {
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
-            format: ensnano_utils::TEXTURE_FORMAT,
+            format: TEXTURE_FORMAT,
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
             view_formats: Default::default(),
         });

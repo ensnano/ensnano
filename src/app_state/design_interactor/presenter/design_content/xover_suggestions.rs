@@ -1,6 +1,6 @@
+use ahash::RandomState;
 use ensnano_design::{Design, Nucl};
 use ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
-use ahash::RandomState;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use ultraviolet::Vec3;
 

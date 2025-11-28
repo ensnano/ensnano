@@ -1,4 +1,3 @@
-use ensnano_design::elements::DesignElementKey;
 use crate::{
     AppState,
     left_panel::{
@@ -7,6 +6,7 @@ use crate::{
         tabs::GuiTab,
     },
 };
+use ensnano_design::elements::DesignElementKey;
 use ensnano_iced::{
     color_picker::{ColorPicker, ColorPickerMessage},
     fonts::material_icons::{MaterialIcon, icon_to_char},

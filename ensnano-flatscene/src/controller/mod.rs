@@ -12,11 +12,11 @@ use crate::{
     data::{ClickResult, strand::FreeEnd},
     flat_types::{FlatHelix, FlatNucl},
 };
+use automata::{ControllerState, NormalState, Transition, ctrl};
 use ensnano_interactor::{
     graphics::PhySize,
     selection::{ActionMode, Selection},
 };
-use automata::{ControllerState, NormalState, Transition, ctrl};
 use std::cell::RefCell;
 use ultraviolet::Vec2;
 use winit::{

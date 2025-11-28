@@ -1,10 +1,10 @@
-use ensnano_consts::CIRCLE2D_GREY;
 use crate::{
     AppState,
     controller::{Consequence, Controller},
     data::{ClickResult, helix::HelixHandle, strand::FreeEnd},
     flat_types::{FlatHelix, FlatNucl},
 };
+use ensnano_consts::CIRCLE2D_GREY;
 use ensnano_interactor::selection::ActionMode;
 use ensnano_utils::circles2d::CircleInstance;
 use std::time::Instant;

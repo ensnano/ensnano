@@ -6,13 +6,13 @@ use crate::controller::{
     },
     normal_state::NormalState,
 };
-use ensnano_consts::ORIGAMI_EXTENSION;
 use crate::{
     MainStateView,
     controller::download_staples::{DownloadStapleError, DownloadStapleOk, StaplesDownloader},
     dialog,
 };
 use dialog::{MustAckMessage, PathInput};
+use ensnano_consts::ORIGAMI_EXTENSION;
 use std::path::PathBuf;
 
 #[derive(Default)]

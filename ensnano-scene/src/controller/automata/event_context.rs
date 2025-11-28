@@ -1,3 +1,10 @@
+use crate::{
+    AppState,
+    controller::Controller,
+    data::design3d::SceneDesignReaderExt as _,
+    element_selector::{CornerType, ElementSelector, SceneElement},
+    view::grid::GridIntersection,
+};
 use ensnano_design::{
     Nucl,
     bezier_plane::{
@@ -8,13 +15,6 @@ use ensnano_design::{
     helices::Axis,
 };
 use ensnano_interactor::selection::ActionMode;
-use crate::{
-    AppState,
-    controller::Controller,
-    data::design3d::SceneDesignReaderExt as _,
-    element_selector::{CornerType, ElementSelector, SceneElement},
-    view::grid::GridIntersection,
-};
 use ultraviolet::{Vec2, Vec3};
 use winit::{dpi::PhysicalPosition, keyboard::ModifiersState};
 

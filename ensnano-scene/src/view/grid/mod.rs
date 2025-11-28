@@ -1,6 +1,5 @@
 mod texture;
 
-use ensnano_design::grid::{Grid, GridDivision as _, GridId, GridPosition, GridType};
 use crate::{
     element_selector::bezier_vertex_id,
     view::{
@@ -11,6 +10,7 @@ use crate::{
         letter::LetterInstance,
     },
 };
+use ensnano_design::grid::{Grid, GridDivision as _, GridId, GridPosition, GridType};
 use ensnano_utils::instance::Instance;
 use std::collections::BTreeMap;
 use ultraviolet::{Mat4, Vec2, Vec3, Vec4};

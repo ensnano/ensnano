@@ -1,4 +1,5 @@
 use crate::app_state::design_interactor::DesignInteractor;
+use ahash::RandomState;
 use ensnano_design::{
     Nucl,
     curves::time_nucl_map::AbscissaConverter,
@@ -7,7 +8,6 @@ use ensnano_design::{
 };
 use ensnano_flatscene::data::design::FlatSceneDesignReaderExt;
 use ensnano_interactor::{Referential, torsion::Torsion};
-use ahash::RandomState;
 use std::{
     collections::{BTreeMap, HashMap},
     sync::Arc,

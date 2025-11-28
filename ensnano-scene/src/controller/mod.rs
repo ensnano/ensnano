@@ -1,12 +1,5 @@
 pub mod automata;
 
-use ensnano_design::{
-    Nucl,
-    bezier_plane::{BezierPathId, BezierPlaneId, BezierVertex, BezierVertexId},
-    curves::{SurfaceInfo, SurfacePoint},
-    grid::{GridId, GridObject, GridPosition, HelixGridPosition},
-};
-use ensnano_interactor::graphics::PhySize;
 use crate::{
     AppState, PhysicalPosition, ViewPtr, WindowEvent,
     camera::CameraController,
@@ -21,6 +14,13 @@ use crate::{
     },
 };
 use automata::{NormalState, State, Transition, WidgetTarget};
+use ensnano_design::{
+    Nucl,
+    bezier_plane::{BezierPathId, BezierPlaneId, BezierVertex, BezierVertexId},
+    curves::{SurfaceInfo, SurfacePoint},
+    grid::{GridId, GridObject, GridPosition, HelixGridPosition},
+};
+use ensnano_interactor::graphics::PhySize;
 use std::{cell::RefCell, ops::Deref as _, rc::Rc, time::Duration};
 use ultraviolet::{Rotor3, Vec2, Vec3};
 use winit::{

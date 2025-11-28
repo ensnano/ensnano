@@ -1,11 +1,12 @@
 mod curve_builders;
 
 use crate::app_state::{AppState, NewHelixStrand};
+use curve_builders::{BEZIER_CURVE_BUILDER, ELLIPSE_BUILDER, TWO_SPHERES_BUILDER};
 use ensnano_design::{
     bezier_plane::BezierPathId, elements::DesignElementKey, parameters::HelixParameters,
 };
 use ensnano_gui::{
-    AppState as GuiState,
+    AppState as GuiState, GuiDesignReaderExt,
     left_panel::tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
     status_bar::{ClipboardContent, CurrentOpState},
 };
@@ -20,7 +21,6 @@ use ensnano_interactor::{
     },
 };
 use ensnano_organizer::tree::GroupId;
-use curve_builders::{BEZIER_CURVE_BUILDER, ELLIPSE_BUILDER, TWO_SPHERES_BUILDER};
 
 impl GuiState for AppState {
     const POSSIBLE_CURVES: &'static [CurveDescriptorBuilder<Self>] =
@@ -70,7 +70,7 @@ impl GuiState for AppState {
             && all_helices_no_grid(self.selection_content(), &self.get_design_interactor())
     }
 
-    fn get_reader(&self) -> Box<dyn ensnano_gui::GuiDesignReaderExt> {
+    fn get_reader(&self) -> Box<dyn GuiDesignReaderExt> {
         Box::new(self.get_design_interactor())
     }
 

@@ -1,5 +1,5 @@
-use ensnano_utils::texture::Texture;
 use ensnano_consts::SAMPLE_COUNT;
+use ensnano_utils::{TEXTURE_FORMAT, texture::Texture};
 use lyon::{
     math::Point,
     path::Path,
@@ -34,7 +34,7 @@ impl SquareTexture {
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
-            format: ensnano_utils::TEXTURE_FORMAT,
+            format: TEXTURE_FORMAT,
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::RENDER_ATTACHMENT,
             label: Some("square texture"),
             view_formats: Default::default(),
@@ -166,7 +166,7 @@ impl HoneyTexture {
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
-            format: ensnano_utils::TEXTURE_FORMAT,
+            format: TEXTURE_FORMAT,
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::RENDER_ATTACHMENT,
             label: Some("honeycomb texture"),
             view_formats: Default::default(),

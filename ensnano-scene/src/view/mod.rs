@@ -18,6 +18,16 @@ pub mod sheet_2d;
 /// A `Uniform` is a structure that manages view and projection matrices.
 pub mod uniforms;
 
+use crate::{
+    camera::{Camera, CameraPtr, Projection, ProjectionPtr},
+    maths_3d::{cast_ray, distance_to_cursor_with_penalty, unproject_point_on_line},
+};
+use bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
+use direction_cube::{DirectionCube, DirectionTexture, SkyBox};
+use dna_obj::{
+    PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance, SphereInstance,
+    StereographicSphereAndPlane, TubeInstance, TubeLidInstance,
+};
 use ensnano_consts::{
     MIN_RADIUS_FOR_FAKE_UPSCALING, PRINTABLE_CHARS, SAMPLE_COUNT, SELECT_SCALE_FACTOR,
 };
@@ -28,17 +38,7 @@ use ensnano_interactor::graphics::{
     Background3D, CutPlaneParameters, DrawArea, FogParameters, HBondDisplay, PhySize, RenderingMode,
 };
 use ensnano_interactor::surfaces::UnrootedRevolutionSurfaceDescriptor;
-use crate::{
-    camera::{Camera, CameraPtr, Projection, ProjectionPtr},
-    maths_3d::{cast_ray, distance_to_cursor_with_penalty, unproject_point_on_line},
-};
 use ensnano_utils::{bindgroup_manager, text, texture};
-use bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
-use direction_cube::{DirectionCube, DirectionTexture, SkyBox};
-use dna_obj::{
-    PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance, SphereInstance,
-    StereographicSphereAndPlane, TubeInstance, TubeLidInstance,
-};
 use gltf_drawer::{ExternalObjects, Object3DDrawer};
 use grid::{GridInstance, GridIntersection, GridManager, GridTextures};
 use grid_disc::GridDisc;

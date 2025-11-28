@@ -2,12 +2,12 @@
 //! object.
 
 use crate::controller::normal_state::Action;
+use crate::requests::Requests;
+use crate::{MainState, app_state::design_interactor::controller::clipboard::PastePosition};
 use ensnano_interactor::{
     DesignOperation, HyperboloidOperation, application::Notification,
     selection::SelectionConversion as _,
 };
-use crate::requests::Requests;
-use crate::{MainState, app_state::design_interactor::controller::clipboard::PastePosition};
 use std::ops::DerefMut;
 
 pub fn poll_all<R: DerefMut<Target = Requests>>(mut requests: R, main_state: &mut MainState) {

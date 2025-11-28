@@ -3,8 +3,6 @@ mod helix_view;
 pub mod insertion;
 mod rectangle;
 
-use ensnano_consts::{CANDIDATE_COLOR, PRINTABLE_CHARS, SAMPLE_COUNT, SELECTED_COLOR};
-use ensnano_design::{Nucl, helices::NuclCollection};
 use crate::{
     CameraPtr,
     data::{
@@ -14,6 +12,10 @@ use crate::{
     },
     flat_types::{FlatIdx, FlatNucl, FlatSelection},
 };
+use ahash::RandomState;
+use background::Background;
+use ensnano_consts::{CANDIDATE_COLOR, PRINTABLE_CHARS, SAMPLE_COUNT, SELECTED_COLOR};
+use ensnano_design::{Nucl, helices::NuclCollection};
 use ensnano_interactor::graphics::{DrawArea, PhySize};
 use ensnano_utils::{
     Ndc,
@@ -23,8 +25,6 @@ use ensnano_utils::{
     circles2d::{CircleDrawer, CircleInstance, CircleKind},
     texture::Texture,
 };
-use ahash::RandomState;
-use background::Background;
 use helix_view::{HelixView, StrandView};
 use insertion::InsertionDrawer;
 use rectangle::Rectangle;

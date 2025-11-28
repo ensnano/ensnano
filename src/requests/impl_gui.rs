@@ -3,13 +3,14 @@
 use crate::controller::normal_state::Action;
 use crate::requests::Requests;
 use ensnano_design::{
+    CameraId,
     bezier_plane::{BezierPathId, BezierVertexId},
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridTypeDescr},
     parameters::HelixParameters,
 };
 use ensnano_exports::ExportType;
-use ensnano_gui::{OverlayType, left_panel::RigidBodyParametersRequest};
+use ensnano_gui::{OverlayType, Requests as GuiRequests, left_panel::RigidBodyParametersRequest};
 use ensnano_iced::ui_size::UiSize;
 use ensnano_interactor::{
     DesignOperation, HyperboloidRequest, InsertionPoint, RapierSimulationRequest,
@@ -27,7 +28,7 @@ use ensnano_organizer::tree::{GroupId, OrganizerTree};
 use std::{collections::BTreeSet, sync::Arc};
 use ultraviolet::{Rotor3, Vec2, Vec3};
 
-impl ensnano_gui::Requests for Requests {
+impl GuiRequests for Requests {
     fn close_overlay(&mut self, overlay_type: OverlayType) {
         self.keep_proceed
             .push_back(Action::CloseOverlay(overlay_type));
@@ -295,18 +296,18 @@ impl ensnano_gui::Requests for Requests {
         self.keep_proceed.push_back(Action::NewCamera);
     }
 
-    fn delete_camera(&mut self, camera_id: ensnano_design::CameraId) {
+    fn delete_camera(&mut self, camera_id: CameraId) {
         self.keep_proceed
             .push_back(Action::DesignOperation(DesignOperation::DeleteCamera(
                 camera_id,
             )));
     }
 
-    fn select_camera(&mut self, camera_id: ensnano_design::CameraId) {
+    fn select_camera(&mut self, camera_id: CameraId) {
         self.keep_proceed.push_back(Action::SelectCamera(camera_id));
     }
 
-    fn set_camera_name(&mut self, camera_id: ensnano_design::CameraId, name: String) {
+    fn set_camera_name(&mut self, camera_id: CameraId, name: String) {
         self.keep_proceed
             .push_back(Action::DesignOperation(DesignOperation::SetCameraName {
                 camera_id,

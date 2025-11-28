@@ -1,5 +1,3 @@
-
-use ensnano_consts::ICON_PHYSICAL_ENGINE;
 use crate::{
     AppState, Requests,
     left_panel::{
@@ -8,6 +6,7 @@ use crate::{
         tabs::{GuiTab, gostop::GoStop},
     },
 };
+use ensnano_consts::ICON_PHYSICAL_ENGINE;
 use ensnano_iced::{
     helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
     ui_size::UiSize,

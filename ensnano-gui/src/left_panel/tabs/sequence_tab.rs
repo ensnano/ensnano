@@ -1,9 +1,9 @@
-use ensnano_consts::ICON_ATGC;
-use ensnano_design::elements::DesignElementKey;
 use crate::{
     AppState,
     left_panel::{Message, tabs::GuiTab},
 };
+use ensnano_consts::ICON_ATGC;
+use ensnano_design::elements::DesignElementKey;
 use ensnano_iced::{
     helpers::{extra_jump, right_checkbox, section, text_button},
     theme,

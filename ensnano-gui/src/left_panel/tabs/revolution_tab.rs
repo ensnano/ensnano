@@ -1,8 +1,8 @@
-use ensnano_design::curves::torus::CurveDescriptor2D;
 use crate::{
     AppState, SimulationState,
     left_panel::{Message, tabs::GuiTab},
 };
+use ensnano_design::curves::torus::CurveDescriptor2D;
 use ensnano_iced::{
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, jump_by, section, subsection, text_button},

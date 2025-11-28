@@ -11,7 +11,7 @@ use crate::{
     },
     controller::channel_reader::ChannelReader,
 };
-use ensnano_design::{Nucl, helices::Helix, parameters::HelixParameters};
+use ensnano_design::{Design, Nucl, helices::Helix, parameters::HelixParameters};
 use std::{
     collections::HashMap,
     f32::consts::{FRAC_PI_2, SQRT_2, TAU},
@@ -330,7 +330,7 @@ impl SimulationInterface for RollInterface {
 pub struct RollState(HashMap<usize, Helix>);
 
 impl SimulationUpdate for RollState {
-    fn update_design(&self, design: &mut ensnano_design::Design) {
+    fn update_design(&self, design: &mut Design) {
         let mut new_helices = design.helices.make_mut();
         for (i, h) in &self.0 {
             new_helices.insert(*i, h.clone());

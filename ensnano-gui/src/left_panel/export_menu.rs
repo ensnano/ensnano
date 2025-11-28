@@ -1,5 +1,5 @@
-use ensnano_exports::ExportType;
 use crate::{AppState, left_panel::Message};
+use ensnano_exports::ExportType;
 use iced::widget::{button, column, scrollable, text};
 
 #[derive(Default)]

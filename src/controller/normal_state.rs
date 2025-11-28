@@ -9,8 +9,15 @@ use crate::controller::{
     quit::{Exporting, Load, LoadType, NewDesign, Quit, SaveAs, SaveWithPath},
     set_scaffold_sequence::SetScaffoldSequence,
 };
+use crate::{
+    app_state::design_interactor::controller::{
+        clipboard::PastePosition, simulations::SimulationOperation,
+    },
+    controller::download_staples::DownloadStaples,
+};
 use ensnano_consts::ENS_EXTENSION;
 use ensnano_design::{
+    CameraId,
     bezier_plane::BezierPlaneDescriptor,
     grid::{GridDescriptor, GridId, GridTypeDescr},
     group_attributes::GroupPivot,
@@ -26,12 +33,6 @@ use ensnano_interactor::{
     graphics::{FogParameters, SplitMode},
     selection::{all_helices_no_grid, extract_grids, extract_strands_from_selection},
     surfaces::RevolutionSurfaceSystemDescriptor,
-};
-use crate::{
-    app_state::design_interactor::controller::{
-        clipboard::PastePosition, simulations::SimulationOperation,
-    },
-    controller::download_staples::DownloadStaples,
 };
 use std::{
     path::{Path, PathBuf},
@@ -502,7 +503,7 @@ pub enum Action {
     TranslateGroupPivot(Vec3),
     RotateGroupPivot(Rotor3),
     NewCamera,
-    SelectCamera(ensnano_design::CameraId),
+    SelectCamera(CameraId),
     SelectFavoriteCamera(u32),
     Toggle2D,
     MakeAllSuggestedXover {

@@ -1,5 +1,5 @@
-use ensnano_design::Nucl;
 use ahash::HashMap;
+use ensnano_design::Nucl;
 use std::ops::Range;
 
 /// Holds the intermediary representation

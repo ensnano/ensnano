@@ -1,6 +1,7 @@
 use crate::app_state::{AppState, design_interactor::DesignInteractor};
 use ensnano_flatscene::AppState as App2D;
 use ensnano_interactor::{
+    StrandBuildingStatus,
     selection::{Selection, SelectionMode},
     strand_builder::StrandBuilder,
 };
@@ -47,7 +48,7 @@ impl App2D for AppState {
         self.get_pasting_status().is_pasting()
     }
 
-    fn get_building_state(&self) -> Option<ensnano_interactor::StrandBuildingStatus> {
+    fn get_building_state(&self) -> Option<StrandBuildingStatus> {
         self.get_strand_building_state()
     }
 }

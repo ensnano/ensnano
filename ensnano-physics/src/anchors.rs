@@ -1,5 +1,5 @@
-use ensnano_design::{helices::Helix, parameters::HelixParameters};
 use crate::vec_to_vector;
+use ensnano_design::{helices::Helix, parameters::HelixParameters};
 use rapier3d::{
     na::{Const, OVector, Rotation2, Unit, UnitQuaternion},
     prelude::*,

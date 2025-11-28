@@ -1,6 +1,4 @@
-use crate::{
-    bezier_plane::BezierPathId, curves::torus::CurveDescriptor2D, helices::Helix,
-};
+use crate::{bezier_plane::BezierPathId, curves::torus::CurveDescriptor2D, helices::Helix};
 use ordered_float::OrderedFloat;
 use std::{collections::BTreeMap, sync::Arc};
 

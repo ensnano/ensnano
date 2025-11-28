@@ -1,10 +1,3 @@
-use ensnano_consts::{
-    BLACK_VEC4, CIRCLE2D_BLUE, CIRCLE2D_GREEN, CIRCLE2D_GREY, CIRCLE2D_RED, GREY_UNKNOWN_NUCL_VEC4,
-    HELIX_BORDER_COLOR,
-};
-use ensnano_design::{
-    Nucl, curves::time_nucl_map::AbscissaConverter as AbscissaConverter_, helices::NuclCollection,
-};
 use crate::{
     CameraPtr,
     data::design::Helix2d,
@@ -14,14 +7,21 @@ use crate::{
         insertion::{InsertionDescriptor, InsertionInstance},
     },
 };
+use abscissa_converter::AbscissaConverter;
+use ahash::RandomState;
+use ensnano_consts::{
+    BLACK_VEC4, CIRCLE2D_BLUE, CIRCLE2D_GREEN, CIRCLE2D_GREY, CIRCLE2D_RED, GREY_UNKNOWN_NUCL_VEC4,
+    HELIX_BORDER_COLOR,
+};
+use ensnano_design::{
+    Nucl, curves::time_nucl_map::AbscissaConverter as AbscissaConverter_, helices::NuclCollection,
+};
 use ensnano_utils::{
     chars2d::text_drawer::{Line, Sentence, TextDrawer},
     circles2d::CircleInstance,
     full_isometry::FullIsometry,
     instance::Instance,
 };
-use abscissa_converter::AbscissaConverter;
-use ahash::RandomState;
 use lyon::{
     math::{Point, rect},
     path::{
@@ -1110,8 +1110,8 @@ pub enum HelixHandle {
 }
 
 mod abscissa_converter {
-    use ensnano_design::curves::time_nucl_map::AbscissaConverter as AbscissaConverter_;
     use crate::flat_types::FlatPosition;
+    use ensnano_design::curves::time_nucl_map::AbscissaConverter as AbscissaConverter_;
     use std::sync::Arc;
 
     #[derive(Debug)]

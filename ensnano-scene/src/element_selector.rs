@@ -1,3 +1,4 @@
+use crate::{ViewPtr, view::DrawType};
 use ensnano_design::{
     bezier_plane::{BezierPathId, BezierPlaneId, BezierVertexId},
     curves::bezier::BezierControlPoint,
@@ -8,7 +9,6 @@ use ensnano_interactor::{
     graphics::DrawArea,
     selection::{PhantomElement, phantom_helix_decoder},
 };
-use crate::{ViewPtr, view::DrawType};
 use ensnano_utils::BufferDimensions;
 use num_enum::IntoPrimitive;
 use std::rc::Rc;

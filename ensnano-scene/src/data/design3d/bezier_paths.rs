@@ -1,3 +1,13 @@
+use crate::{
+    AppState,
+    data::design3d::{Design3D, SceneDesignReaderExt, create_dna_bond},
+    element_selector,
+    view::{
+        dna_obj::{RawDnaInstance, SphereInstance, TubeInstance},
+        instances_drawer::Instantiable as _,
+        sheet_2d::Sheet2D,
+    },
+};
 use ensnano_consts::{
     BEZIER_CONTROL_RADIUS, BEZIER_CONTROL1_COLOR, BEZIER_SHEET_CORNER_COLOR,
     BEZIER_SHEET_CORNER_RADIUS, BEZIER_SKELETON_RADIUS, BOND_RADIUS, SPHERE_RADIUS,
@@ -13,16 +23,6 @@ use ensnano_design::{
 use ensnano_interactor::{
     consts::{bezier_control_color, bezier_widget_id},
     selection::Selection,
-};
-use crate::{
-    AppState,
-    data::design3d::{Design3D, SceneDesignReaderExt, create_dna_bond},
-    element_selector,
-    view::{
-        dna_obj::{RawDnaInstance, SphereInstance, TubeInstance},
-        instances_drawer::Instantiable as _,
-        sheet_2d::Sheet2D,
-    },
 };
 use ensnano_utils::instance::Instance;
 use ultraviolet::{Rotor3, Vec2, Vec3};

@@ -2,6 +2,22 @@
 
 mod bezier_paths;
 
+use crate::{
+    SceneElement::DesignElement,
+    element_selector::SceneElement,
+    maths_3d::{Basis3D, UnalignedBoundaries},
+    rotor_utils::SafeRotor as _,
+    sausage_rosary::SausageRosary,
+    view::{
+        dna_obj::{
+            ConeInstance, Ellipsoid, PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance,
+            SphereInstance, TubeInstance, TubeLidInstance,
+        },
+        grid::GridInstance,
+        instances_drawer::Instantiable as _,
+        letter::LetterInstance,
+    },
+};
 use ensnano_consts::{
     BASIS_SCALE, BOND_RADIUS, CANDIDATE_COLOR, CHECKED_XOVER_COLOR, FREE_XOVER_COLOR,
     FREE_XOVER_SCALE_FACTOR, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, NB_PRINTABLE_CHARS,
@@ -29,22 +45,6 @@ use ensnano_interactor::{
     selection::{
         InteractorDesignReaderExt, PHANTOM_RANGE, PhantomElement, phantom_helix_encoder_bond,
         phantom_helix_encoder_nucl,
-    },
-};
-use crate::{
-    SceneElement::DesignElement,
-    element_selector::SceneElement,
-    maths_3d::{Basis3D, UnalignedBoundaries},
-    rotor_utils::SafeRotor as _,
-    sausage_rosary::SausageRosary,
-    view::{
-        dna_obj::{
-            ConeInstance, Ellipsoid, PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance,
-            SphereInstance, TubeInstance, TubeLidInstance,
-        },
-        grid::GridInstance,
-        instances_drawer::Instantiable as _,
-        letter::LetterInstance,
     },
 };
 use ensnano_utils::{

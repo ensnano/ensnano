@@ -13,7 +13,7 @@ pub mod surfaces;
 pub mod torsion;
 
 use ensnano_design::{
-    Nucl,
+    CameraId, Nucl,
     bezier_plane::{
         BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
     },
@@ -203,14 +203,14 @@ pub enum DesignOperation {
         group_id: GroupId,
         pivot: GroupPivot,
     },
-    DeleteCamera(ensnano_design::CameraId),
+    DeleteCamera(CameraId),
     CreateNewCamera {
         position: Vec3,
         orientation: Rotor3,
         pivot_position: Option<Vec3>,
     },
     SetCameraName {
-        camera_id: ensnano_design::CameraId,
+        camera_id: CameraId,
         name: String,
     },
     SetGridPosition {

@@ -3,6 +3,21 @@ pub mod shift_optimization;
 pub mod simulations;
 pub mod update_insertion_length;
 
+use crate::{
+    app_state::{
+        AddressPointer,
+        design_interactor::controller::simulations::{
+            GridSystemInterface, GridsSystemThread, HelixSystemInterface, HelixSystemThread,
+            SimulationOperation,
+            rapier::{RapierInterface, RapierPhysicalSystem},
+            revolutions::{RevolutionSystemInterface, RevolutionSystemThread},
+            roller::{PhysicalSystem, RollInterface},
+            twister::{TwistInterface, Twister},
+        },
+    },
+    controller::channel_reader::ChannelReader,
+};
+use clipboard::{Clipboard, CopyOperation, PastePosition, PastedStrand, StrandClipboard};
 use ensnano_design::{
     CameraId, Design, Nucl, UpToDateDesign,
     bezier_plane::{
@@ -43,21 +58,6 @@ use ensnano_interactor::{
 };
 use ensnano_organizer::tree::GroupId;
 use ensnano_utils::colors;
-use crate::{
-    app_state::{
-        AddressPointer,
-        design_interactor::controller::simulations::{
-            GridSystemInterface, GridsSystemThread, HelixSystemInterface, HelixSystemThread,
-            SimulationOperation,
-            rapier::{RapierInterface, RapierPhysicalSystem},
-            revolutions::{RevolutionSystemInterface, RevolutionSystemThread},
-            roller::{PhysicalSystem, RollInterface},
-            twister::{TwistInterface, Twister},
-        },
-    },
-    controller::channel_reader::ChannelReader,
-};
-use clipboard::{Clipboard, CopyOperation, PastePosition, PastedStrand, StrandClipboard};
 use std::{
     borrow::Cow,
     collections::{BTreeMap, HashMap},

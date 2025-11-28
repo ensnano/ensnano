@@ -1,5 +1,5 @@
-use ensnano_utils::Ndc;
 use ensnano_consts::SAMPLE_COUNT;
+use ensnano_utils::Ndc;
 use std::rc::Rc;
 use wgpu::{Device, Queue, RenderPipeline, util::DeviceExt as _};
 

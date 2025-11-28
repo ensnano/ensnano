@@ -1,10 +1,8 @@
+use chebyshev_polynomials::ChebyshevPolynomial;
 use ensnano_design::curves::{
     CurveDescriptor, revolution::InterpolationDescriptor, torus::CurveDescriptor2D,
 };
-use ensnano_interactor::surfaces::{
-    RevolutionSurfaceSystemDescriptor, RootedRevolutionSurface,
-};
-use chebyshev_polynomials::ChebyshevPolynomial;
+use ensnano_interactor::surfaces::{RevolutionSurfaceSystemDescriptor, RootedRevolutionSurface};
 use std::f64::consts::TAU;
 use ultraviolet::{DVec3, Similarity3};
 

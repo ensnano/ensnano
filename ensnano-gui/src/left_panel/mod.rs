@@ -4,6 +4,19 @@ mod discrete_value;
 mod export_menu;
 pub mod tabs;
 
+use crate::{
+    AppState, OverlayType, Requests,
+    left_panel::tabs::{
+        camera_tab::FogChoices,
+        revolution_tab::{CurveDescriptorBuilder, RevolutionParameterId},
+    },
+};
+use color_picker::ColorPicker;
+use contextual_panel::{
+    ContextualPanel,
+    value_constructor::{InstantiatedValue, ValueKind},
+};
+use discrete_value::{FactoryId, Requestable, ValueId};
 use ensnano_design::{
     CameraId,
     bezier_plane::BezierPathId,
@@ -12,13 +25,6 @@ use ensnano_design::{
     parameters::NamedParameter,
 };
 use ensnano_exports::ExportType;
-use crate::{
-    AppState, OverlayType, Requests,
-    left_panel::tabs::{
-        camera_tab::FogChoices,
-        revolution_tab::{CurveDescriptorBuilder, RevolutionParameterId},
-    },
-};
 use ensnano_iced::{
     color_picker::ColorPickerMessage,
     fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
@@ -36,12 +42,6 @@ use ensnano_interactor::{
     surfaces::EquadiffSolvingMethod,
 };
 use ensnano_organizer::{Organizer, OrganizerMessage, tree::OrganizerTree};
-use color_picker::ColorPicker;
-use contextual_panel::{
-    ContextualPanel,
-    value_constructor::{InstantiatedValue, ValueKind},
-};
-use discrete_value::{FactoryId, Requestable, ValueId};
 use export_menu::ExportMenu;
 use iced::{
     Color, Command, Element, Length,

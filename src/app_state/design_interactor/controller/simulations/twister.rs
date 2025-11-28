@@ -2,6 +2,10 @@ use crate::app_state::design_interactor::controller::simulations::{
     SimulationInterface,
     roller::{DesignData, RollSystem},
 };
+use crate::{
+    app_state::design_interactor::{Presenter, presenter::SimulationUpdate},
+    controller::channel_reader::ChannelReader,
+};
 use ensnano_design::{
     Design,
     collection::Collection as _,
@@ -13,10 +17,6 @@ use ensnano_design::{
     helices::{Helix, HelixCollection as _},
     parameters::HelixParameters,
     utils::vec_to_dvec,
-};
-use crate::{
-    app_state::design_interactor::{Presenter, presenter::SimulationUpdate},
-    controller::channel_reader::ChannelReader,
 };
 use std::{
     collections::HashMap,

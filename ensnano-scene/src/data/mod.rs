@@ -3,6 +3,25 @@
 
 pub mod design3d;
 
+use crate::{
+    AppState,
+    camera::CameraController,
+    controller::Data as ControllerData,
+    element_selector::{SceneElement, bezier_vertex_id},
+    view::{
+        Mesh, View, ViewUpdate,
+        dna_obj::{RawDnaInstance, StereographicSphereAndPlane},
+        gltf_drawer::ExternalObjects,
+        grid_disc::GridDisc,
+        handle_drawer::{HandleColors, HandlesDescriptor},
+        instances_drawer::Instantiable as _,
+        letter::LetterInstance,
+        rotation_widget::{
+            AvailableRotationAxes, RotationWidgetDescriptor, RotationWidgetOrientation,
+        },
+    },
+};
+use design3d::{Design3D, SceneDesignReaderExt};
 use ensnano_consts::{
     BOND_RADIUS, CANDIDATE_COLOR, CANDIDATE_SCALE_FACTOR, SELECT_SCALE_FACTOR, SELECTED_COLOR,
     SPHERE_RADIUS,
@@ -24,26 +43,7 @@ use ensnano_interactor::{
         extract_helices_with_controls,
     },
 };
-use crate::{
-    AppState,
-    camera::CameraController,
-    controller::Data as ControllerData,
-    element_selector::{SceneElement, bezier_vertex_id},
-    view::{
-        Mesh, View, ViewUpdate,
-        dna_obj::{RawDnaInstance, StereographicSphereAndPlane},
-        gltf_drawer::ExternalObjects,
-        grid_disc::GridDisc,
-        handle_drawer::{HandleColors, HandlesDescriptor},
-        instances_drawer::Instantiable as _,
-        letter::LetterInstance,
-        rotation_widget::{
-            AvailableRotationAxes, RotationWidgetDescriptor, RotationWidgetOrientation,
-        },
-    },
-};
 use ensnano_utils::StrandNucleotidesPositions;
-use design3d::{Design3D, SceneDesignReaderExt};
 use std::{
     cell::RefCell,
     collections::{BTreeMap, HashMap, HashSet},

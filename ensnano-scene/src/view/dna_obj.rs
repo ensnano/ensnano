@@ -1,12 +1,12 @@
 //! This modules defines the meshes that are used to draw DNA.
 
-use ensnano_consts::{
-    NB_RAY_TUBE, NB_SECTOR_SPHERE, NB_STACK_SPHERE, SPHERE_RADIUS, STEREOGRAPHIC_SPHERE_COLOR,
-    STEREOGRAPHIC_SPHERE_RADIUS,
-};
 use crate::view::{
     Mesh,
     instances_drawer::{Instantiable, Vertexable},
+};
+use ensnano_consts::{
+    NB_RAY_TUBE, NB_SECTOR_SPHERE, NB_STACK_SPHERE, SPHERE_RADIUS, STEREOGRAPHIC_SPHERE_COLOR,
+    STEREOGRAPHIC_SPHERE_RADIUS,
 };
 use ensnano_utils::instance::Instance;
 use std::{

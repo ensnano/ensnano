@@ -41,14 +41,12 @@ impl<K: Eq + Hash + Clone> IdGenerator<K> {
         self.ids.get(element).copied()
     }
 
-    #[cfg(test)]
     pub fn remove(&mut self, id: usize) {
         let elt = self.get_element(id).expect("Removing non-existent id");
         self.ids.remove(&elt);
         self.elements.remove(&id);
     }
 
-    #[cfg(test)]
     pub fn is_empty(&self) -> bool {
         self.ids.is_empty() && self.elements.is_empty()
     }

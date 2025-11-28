@@ -1,5 +1,3 @@
-use ensnano_consts::{ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID};
-use ensnano_design::grid::GridTypeDescr;
 use crate::{
     AppState,
     left_panel::{
@@ -8,6 +6,8 @@ use crate::{
         tabs::GuiTab,
     },
 };
+use ensnano_consts::{ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID};
+use ensnano_design::grid::GridTypeDescr;
 use ensnano_iced::{
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, icon_button, section, subsection, text_button},

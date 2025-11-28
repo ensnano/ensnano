@@ -1,4 +1,3 @@
-use ensnano_exports::ExportType;
 use crate::{
     MainStateView,
     controller::{
@@ -13,6 +12,7 @@ use crate::{
     },
     dialog::{self, DialogFilters, PathInput},
 };
+use ensnano_exports::ExportType;
 use std::path::{Path, PathBuf};
 
 pub(super) struct Quit {

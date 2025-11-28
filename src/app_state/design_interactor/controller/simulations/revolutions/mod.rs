@@ -3,8 +3,10 @@ mod closed_curves;
 use crate::app_state::design_interactor::{
     controller::simulations::SimulationInterface, presenter::SimulationUpdate,
 };
+use crate::{app_state::ErrOperation, controller::channel_reader::ChannelReader};
+use closed_curves::CloseSurfaceTopology;
 use ensnano_design::{
-    AdditionalStructure,
+    AdditionalStructure, Design,
     curves::CurveDescriptor,
     helices::Helix,
     parameters::HelixParameters,
@@ -15,8 +17,6 @@ use ensnano_interactor::surfaces::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceSystemDescriptor,
 };
 use ensnano_utils::colors::new_color;
-use crate::{app_state::ErrOperation, controller::channel_reader::ChannelReader};
-use closed_curves::CloseSurfaceTopology;
 use mathru::{
     algebra::linear::vector::vector::Vector,
     analysis::differential_equation::ordinary::{
@@ -472,7 +472,7 @@ impl RevolutionSystemThread {
 }
 
 impl SimulationUpdate for RevolutionSurfaceSystem {
-    fn update_design(&self, design: &mut ensnano_design::Design) {
+    fn update_design(&self, design: &mut Design) {
         design.additional_structure = Some(Arc::new(self.clone()));
     }
 }
@@ -562,7 +562,7 @@ struct HelicesRouting {
 }
 
 impl SimulationUpdate for HelicesRouting {
-    fn update_design(&self, design: &mut ensnano_design::Design) {
+    fn update_design(&self, design: &mut Design) {
         let helix_parameters = design.helix_parameters.unwrap_or_default();
         let mut helices = design.helices.make_mut();
         let mut strand_to_be_added = Vec::new();

@@ -1,7 +1,5 @@
 use super::*;
-use crate::strands::{
-    DomainJunction, HelixInterval, read_junctions, sanitize_domains,
-};
+use crate::strands::{DomainJunction, HelixInterval, read_junctions, sanitize_domains};
 use regex::Regex;
 use std::fmt::Write as _;
 

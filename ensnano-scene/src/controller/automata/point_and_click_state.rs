@@ -8,7 +8,6 @@
 //! If the cursor moves away form this position this causes a transition to either the normal
 //! state, or a specific DraggingState.
 
-use ensnano_design::Nucl;
 use crate::{
     AppState,
     controller::{
@@ -20,6 +19,7 @@ use crate::{
     },
     element_selector::SceneElement,
 };
+use ensnano_design::Nucl;
 use std::{borrow::Cow, time::Instant};
 use winit::{
     dpi::PhysicalPosition,

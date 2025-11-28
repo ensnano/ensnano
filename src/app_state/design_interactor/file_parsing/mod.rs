@@ -5,14 +5,14 @@ use crate::app_state::{
     address_pointer::AddressPointer,
     design_interactor::{DesignInteractor, presenter::Presenter},
 };
-use ensnano_design::{Design, Nucl, codenano, ensnano_version, scadnano};
-use ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
-use ensnano_utils::id_generator::IdGenerator;
 use crate::{
     app_state::design_interactor::file_parsing::junctions::StrandJunction as _,
     controller::LoadDesignError,
 };
 use cadnano::{Cadnano, FromCadnano as _};
+use ensnano_design::{Design, Nucl, codenano, ensnano_version, scadnano};
+use ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
+use ensnano_utils::id_generator::IdGenerator;
 use scadnano::ScadnanoImportError;
 use std::path::{Path, PathBuf};
 use version_compare::Cmp;

@@ -4,9 +4,16 @@ pub mod presenter;
 
 use crate::app_state::address_pointer::AddressPointer;
 use crate::controller::SaveDesignError;
+use crate::{
+    app_state::design_interactor::controller::{
+        OkOperation, clipboard::CopyOperation, simulations::SimulationOperation,
+    },
+    controller::channel_reader::ChannelReader,
+};
+use controller::{Controller, ErrOperation, InteractorNotification};
 use ensnano_consts::UPDATE_VISIBILITY_SIEVE_LABEL;
 use ensnano_design::{
-    Design,
+    Design, SavingInformation,
     bezier_plane::{BezierPathId, BezierPlaneDescriptor},
     collection::Collection as _,
     curves::bezier::InstantiatedPiecewiseBezier,
@@ -23,13 +30,6 @@ use ensnano_interactor::{
     selection::Selection, strand_builder::StrandBuilder,
 };
 use ensnano_organizer::tree::GroupId;
-use crate::{
-    app_state::design_interactor::controller::{
-        OkOperation, clipboard::CopyOperation, simulations::SimulationOperation,
-    },
-    controller::channel_reader::ChannelReader,
-};
-use controller::{Controller, ErrOperation, InteractorNotification};
 use presenter::{Presenter, SimulationUpdate, apply_simulation_update, update_presenter};
 use std::{io::Write as _, path::PathBuf, sync::Arc};
 
@@ -310,7 +310,7 @@ impl DesignInteractor {
     pub(super) fn save_design(
         &self,
         path: &PathBuf,
-        saving_info: ensnano_design::SavingInformation,
+        saving_info: SavingInformation,
     ) -> Result<(), SaveDesignError> {
         let mut design = self.presenter.current_design.clone_inner();
         design.prepare_for_save(saving_info);
@@ -391,6 +391,15 @@ impl InteractorResult {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{
+        OkOperation as TopOkOperation,
+        app_state::{
+            AppState,
+            design_interactor::{
+                controller::clipboard::PastePosition, file_parsing::junctions::StrandJunction as _,
+            },
+        },
+    };
     use ensnano_design::{
         Nucl,
         grid::{GridDescriptor, GridId, GridTypeDescr, HelixGridPosition},
@@ -401,15 +410,6 @@ mod tests {
     };
     use ensnano_scene::data::design3d::SceneDesignReaderExt as _;
     use ensnano_utils::id_generator::IdGenerator;
-    use crate::{
-        OkOperation as TopOkOperation,
-        app_state::{
-            AppState,
-            design_interactor::{
-                controller::clipboard::PastePosition, file_parsing::junctions::StrandJunction as _,
-            },
-        },
-    };
     use regex::Regex;
     use ultraviolet::{Rotor3, Vec3};
 

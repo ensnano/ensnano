@@ -16,24 +16,6 @@ pub mod transitions;
 #[cfg(test)]
 use ensnano_design::Design;
 
-use ensnano_consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION};
-use ensnano_design::{
-    SavingInformation, bezier_plane::BezierPathId, group_attributes::GroupPivot, strands::Domain,
-};
-use ensnano_exports::{ExportResult, ExportType};
-use ensnano_iced::ui_size::UiSize;
-use ensnano_interactor::{
-    DesignOperation, PastingStatus, StrandBuildingStatus, WidgetBasis,
-    app_state_parameters::{
-        AppStateParameters, check_xovers_parameter::CheckXoversParameter,
-        suggestion_parameters::SuggestionParameters,
-    },
-    graphics::{Background3D, HBondDisplay, RenderingMode},
-    operation::Operation,
-    selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
-    surfaces::{RevolutionSurfaceRadius, UnrootedRevolutionSurfaceDescriptor},
-};
-use ensnano_organizer::tree::GroupId;
 use crate::{
     app_state::design_interactor::{
         controller::{
@@ -46,6 +28,24 @@ use crate::{
 };
 use address_pointer::AddressPointer;
 use design_interactor::{DesignInteractor, InteractorResult, controller::ErrOperation};
+use ensnano_consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION};
+use ensnano_design::{
+    SavingInformation, bezier_plane::BezierPathId, group_attributes::GroupPivot, strands::Domain,
+};
+use ensnano_exports::{ExportResult, ExportType};
+use ensnano_iced::ui_size::UiSize;
+use ensnano_interactor::{
+    DesignOperation, PastingStatus, SimulationState, StrandBuildingStatus, WidgetBasis,
+    app_state_parameters::{
+        AppStateParameters, check_xovers_parameter::CheckXoversParameter,
+        suggestion_parameters::SuggestionParameters,
+    },
+    graphics::{Background3D, HBondDisplay, RenderingMode},
+    operation::Operation,
+    selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
+    surfaces::{RevolutionSurfaceRadius, UnrootedRevolutionSurfaceDescriptor},
+};
+use ensnano_organizer::tree::GroupId;
 use std::{
     path::PathBuf,
     sync::{Arc, RwLock},
@@ -628,7 +628,7 @@ impl AppState {
         *self.0.selection.pivot.write().unwrap() = Some(new_pivot);
     }
 
-    pub fn get_simulation_state(&self) -> ensnano_interactor::SimulationState {
+    pub fn get_simulation_state(&self) -> SimulationState {
         self.0.design.get_simulation_state()
     }
 

@@ -4,12 +4,10 @@ pub mod impl_reader2d;
 pub mod impl_reader3d;
 pub mod impl_readergui;
 
-#[cfg(test)]
-use self::design_content::Staple;
-
 use crate::app_state::{address_pointer::AddressPointer, design_interactor::DesignInteractor};
+use design_content::DesignContent;
 use ensnano_design::{
-    Design, Nucl,
+    CameraId, Design, Nucl,
     bezier_plane::{BezierPath, BezierPathId},
     collection::Collection as _,
     curves::bezier::InstantiatedPiecewiseBezier,
@@ -28,7 +26,6 @@ use ensnano_interactor::{
 };
 use ensnano_scene::data::design3d::{HBond, HalfHBond};
 use ensnano_utils::id_generator::IdGenerator;
-use design_content::DesignContent;
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
     fmt::Write as _,
@@ -77,7 +74,7 @@ impl Default for Presenter {
 
 impl Presenter {
     #[cfg(test)]
-    pub(super) fn get_staples(&self) -> Vec<Staple> {
+    pub(super) fn get_staples(&self) -> Vec<design_content::Staple> {
         self.content.get_staples(&self.current_design, self)
     }
 
@@ -715,10 +712,7 @@ impl DesignInteractor {
         })
     }
 
-    pub fn get_camera_with_id(
-        &self,
-        camera_id: ensnano_design::CameraId,
-    ) -> Option<Camera3D> {
+    pub fn get_camera_with_id(&self, camera_id: CameraId) -> Option<Camera3D> {
         self.presenter
             .current_design
             .get_camera(camera_id)

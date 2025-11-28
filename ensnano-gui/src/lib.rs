@@ -19,6 +19,7 @@ use ensnano_design::{
     grid::{GridId, GridTypeDescr},
     parameters::HelixParameters,
 };
+use ensnano_exports::ExportType;
 use ensnano_iced::{
     fonts::{INTER_REGULAR_FONT, load_fonts},
     ui_size::UiSize,
@@ -40,6 +41,7 @@ use ensnano_interactor::{
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
 };
 use ensnano_organizer::tree::{GroupId, OrganizerTree};
+use ensnano_utils::TEXTURE_FORMAT;
 use iced::{
     Renderer, Size,
     advanced::{clipboard, mouse, renderer},
@@ -136,7 +138,7 @@ pub trait Requests: 'static + Send {
         keys: BTreeSet<DesignElementKey>,
     );
     fn change_split_mode(&mut self, split_mode: SplitMode);
-    fn export(&mut self, export_type: ensnano_exports::ExportType);
+    fn export(&mut self, export_type: ExportType);
     /// Split/Unsplit the 2D view
     fn toggle_2d_view_split(&mut self);
     fn undo(&mut self);
@@ -554,7 +556,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
                 queue,
                 encoder,
                 clear_color,
-                ensnano_utils::TEXTURE_FORMAT,
+                TEXTURE_FORMAT,
                 // NOTE: Maybe we should put the format above.
                 frame,
                 &viewport,
@@ -641,7 +643,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
                 self.device.as_ref(),
                 self.queue.as_ref(),
                 self.wgpu_settings,
-                ensnano_utils::TEXTURE_FORMAT,
+                TEXTURE_FORMAT,
             ),
             self.wgpu_settings.default_font,
             self.wgpu_settings.default_text_size,
@@ -665,7 +667,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
                 self.device.as_ref(),
                 self.queue.as_ref(),
                 self.wgpu_settings,
-                ensnano_utils::TEXTURE_FORMAT,
+                TEXTURE_FORMAT,
             ),
             self.wgpu_settings.default_font,
             self.wgpu_settings.default_text_size,
@@ -691,7 +693,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
                         self.device.as_ref(),
                         self.queue.as_ref(),
                         self.wgpu_settings,
-                        ensnano_utils::TEXTURE_FORMAT,
+                        TEXTURE_FORMAT,
                     ),
                     self.wgpu_settings.default_font,
                     self.wgpu_settings.default_text_size,
