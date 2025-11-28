@@ -84,6 +84,10 @@ impl Collection for External3DObjects {
         Box::new(self.0.keys())
     }
 
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
     fn len(&self) -> usize {
         self.0.len()
     }

@@ -7,6 +7,7 @@ pub trait Collection {
     fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a Self::Key, &'a Self::Item)> + 'a>;
     fn values<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Self::Item> + 'a>;
     fn keys<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Self::Key> + 'a>;
+    fn is_empty(&self) -> bool;
     fn len(&self) -> usize;
 }
 
@@ -37,6 +38,10 @@ where
 
     fn values<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Self::Item> + 'a> {
         Box::new(self.get_map().values().map(AsRef::as_ref))
+    }
+
+    fn is_empty(&self) -> bool {
+        self.get_map().is_empty()
     }
 
     fn len(&self) -> usize {
