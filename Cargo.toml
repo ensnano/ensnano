@@ -167,7 +167,10 @@ version.workspace = true
 log_after_renderer_setup = []
 dx12_only = []
 
-[lints.rust]
+[lints]
+workspace = true
+
+[workspace.lints.rust]
 closure_returning_async_block = "warn"
 deref_into_dyn_supertrait = "warn"
 explicit_outlives_requirements = "warn"
@@ -201,9 +204,9 @@ unused_macro_rules = "warn"
 unused_qualifications = "warn"
 variant_size_differences = "warn"
 
-# Run with: cargo clippy --workspace --all-targets --all-features
+# Run with: cargo clippy --workspace --all-targets
 
-[lints.clippy]
+[workspace.lints.clippy]
 # Warn or deny all lints by default
 cargo = { level = "deny", priority = -1 }
 complexity = { level = "warn", priority = -1 }
@@ -216,6 +219,7 @@ style = { level = "warn", priority = -1 }
 suspicious = { level = "deny", priority = -1 }
 
 # cargo
+cargo_common_metadata = "allow" # respected for root crate, too annoying for packages
 multiple_crate_versions = "allow"
 
 # nursery
