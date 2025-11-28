@@ -1104,6 +1104,7 @@ dependencies = [
  "color_space",
  "confy",
  "dirs",
+ "ensnano_consts",
  "ensnano_iced",
  "fontdue",
  "futures",
@@ -1149,6 +1150,13 @@ dependencies = [
  "version-compare",
  "wgpu",
  "winit",
+]
+
+[[package]]
+name = "ensnano_consts"
+version = "0.7.0"
+dependencies = [
+ "ultraviolet",
 ]
 
 [[package]]

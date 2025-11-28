@@ -2,7 +2,7 @@ pub mod design;
 pub mod helix;
 pub mod strand;
 
-use crate::ensnano_consts::{
+use ensnano_consts::{
     CANDIDATE_COLOR, CANDIDATE_STRAND_HIGHLIGHT_FACTOR_2D, SELECTED_COLOR, SELECTED_HELIX2D_COLOR,
     SELECTED_STRAND_HIGHLIGHT_FACTOR_2D, SELECTION_2D_CYCLE_TIME_LIMIT_MS,
 };

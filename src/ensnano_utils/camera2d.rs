@@ -4,7 +4,7 @@
 //! matrix. The [Camera2D] struct modifies a [Globals] attribute and perform some view <-> world
 //! coordinate conversion.
 
-use crate::ensnano_consts::MAX_ZOOM_2D;
+use ensnano_consts::MAX_ZOOM_2D;
 use std::f32::consts::PI;
 use ultraviolet::{Rotor2, Vec2};
 use winit::{dpi::PhysicalPosition, event::MouseScrollDelta};

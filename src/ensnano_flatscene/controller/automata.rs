@@ -1,4 +1,4 @@
-use crate::ensnano_consts::CIRCLE2D_GREY;
+use ensnano_consts::CIRCLE2D_GREY;
 use crate::ensnano_flatscene::{
     AppState,
     controller::{Consequence, Controller},

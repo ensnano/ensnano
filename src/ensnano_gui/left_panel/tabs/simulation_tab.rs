@@ -1,5 +1,5 @@
 
-use crate::ensnano_consts::ICON_PHYSICAL_ENGINE;
+use ensnano_consts::ICON_PHYSICAL_ENGINE;
 use crate::ensnano_gui::{
     AppState, Requests,
     left_panel::{

@@ -9,7 +9,7 @@ use crate::controller::{
     quit::{Exporting, Load, LoadType, NewDesign, Quit, SaveAs, SaveWithPath},
     set_scaffold_sequence::SetScaffoldSequence,
 };
-use crate::ensnano_consts::ENS_EXTENSION;
+use ensnano_consts::ENS_EXTENSION;
 use crate::ensnano_design::{
     bezier_plane::BezierPlaneDescriptor,
     grid::{GridDescriptor, GridId, GridTypeDescr},

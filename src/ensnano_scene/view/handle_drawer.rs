@@ -1,4 +1,4 @@
-use crate::ensnano_consts::{
+use ensnano_consts::{
     CYM_HANDLE_COLORS, DIR_HANDLE_ID, RGB_HANDLE_COLORS, RIGHT_HANDLE_ID, SELECT_SCALE_FACTOR,
     UP_HANDLE_ID,
 };

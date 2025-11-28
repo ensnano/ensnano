@@ -1,4 +1,4 @@
-use crate::ensnano_consts::SAMPLE_COUNT;
+use ensnano_consts::SAMPLE_COUNT;
 use crate::ensnano_design::{
     curves::torus::PointOnSurface,
     external_3d_objects::{External3DObject, External3DObjectId},

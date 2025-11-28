@@ -1,6 +1,6 @@
 pub mod text_drawer;
 
-use crate::ensnano_consts::{SAMPLE_COUNT, TEXTURE_BINDING_ID};
+use ensnano_consts::{SAMPLE_COUNT, TEXTURE_BINDING_ID};
 use crate::ensnano_utils::{
     bindgroup_manager::DynamicBindGroup,
     text::{Letter, Vertex as CharVertex},

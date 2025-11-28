@@ -1,4 +1,4 @@
-use crate::ensnano_consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP};
+use ensnano_consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP};
 use crate::ensnano_design::curves::{SurfaceInfo, SurfacePoint};
 use crate::ensnano_interactor::graphics::PhySize;
 use crate::ensnano_scene::{

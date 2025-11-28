@@ -16,7 +16,7 @@ pub mod transitions;
 #[cfg(test)]
 use crate::ensnano_design::Design;
 
-use crate::ensnano_consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION};
+use ensnano_consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION};
 use crate::ensnano_design::{
     SavingInformation, bezier_plane::BezierPathId, group_attributes::GroupPivot, strands::Domain,
 };

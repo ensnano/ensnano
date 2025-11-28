@@ -3,7 +3,7 @@
 
 pub mod design3d;
 
-use crate::ensnano_consts::{
+use ensnano_consts::{
     BOND_RADIUS, CANDIDATE_COLOR, CANDIDATE_SCALE_FACTOR, SELECT_SCALE_FACTOR, SELECTED_COLOR,
     SPHERE_RADIUS,
 };

@@ -1,4 +1,4 @@
-use crate::ensnano_consts::{SAMPLE_COUNT, VIEWER_BINDING_ID};
+use ensnano_consts::{SAMPLE_COUNT, VIEWER_BINDING_ID};
 use crate::ensnano_utils::{create_buffer_with_data, texture::Texture};
 use std::rc::Rc;
 use ultraviolet::Vec3;

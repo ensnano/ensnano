@@ -1,4 +1,4 @@
-use crate::ensnano_consts::SAMPLE_COUNT;
+use ensnano_consts::SAMPLE_COUNT;
 use crate::ensnano_utils::{bindgroup_manager::DynamicBindGroup, texture::Texture};
 use std::rc::Rc;
 use ultraviolet::Vec2;

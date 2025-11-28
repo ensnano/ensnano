@@ -1,4 +1,4 @@
-use crate::ensnano_consts::HELIX_CYLINDER_COLOR;
+use ensnano_consts::HELIX_CYLINDER_COLOR;
 use crate::ensnano_scene::{
     rotor_utils::SafeRotor as _,
     view::dna_obj::{SlicedTubeInstance, TubeLidInstance},

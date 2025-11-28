@@ -10,7 +10,7 @@ pub mod set_scaffold_sequence;
 
 use crate::MainStateView;
 use crate::dialog::{self, MustAckMessage, YesNoQuestion};
-use crate::ensnano_consts::CANNOT_OPEN_DEFAULT_DIR;
+use ensnano_consts::CANNOT_OPEN_DEFAULT_DIR;
 use crate::ensnano_design::scadnano::ScadnanoImportError;
 use normal_state::NormalState;
 use std::borrow::Cow;

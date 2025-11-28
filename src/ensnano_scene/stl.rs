@@ -10,7 +10,7 @@
 //!     [f32; 3] – Vertex 3               - 12 bytes
 //!     u16      – Attribute byte count   -  2 bytes
 
-use crate::ensnano_consts::NB_RAY_TUBE;
+use ensnano_consts::NB_RAY_TUBE;
 use crate::ensnano_scene::view::{
     Mesh,
     dna_obj::{

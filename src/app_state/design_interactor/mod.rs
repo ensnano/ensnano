@@ -4,7 +4,7 @@ pub mod presenter;
 
 use crate::app_state::address_pointer::AddressPointer;
 use crate::controller::SaveDesignError;
-use crate::ensnano_consts::UPDATE_VISIBILITY_SIEVE_LABEL;
+use ensnano_consts::UPDATE_VISIBILITY_SIEVE_LABEL;
 use crate::ensnano_design::{
     Design,
     bezier_plane::{BezierPathId, BezierPlaneDescriptor},

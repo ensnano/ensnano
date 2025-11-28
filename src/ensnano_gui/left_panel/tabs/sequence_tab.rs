@@ -1,4 +1,4 @@
-use crate::ensnano_consts::ICON_ATGC;
+use ensnano_consts::ICON_ATGC;
 use crate::ensnano_design::elements::DesignElementKey;
 use crate::ensnano_gui::{
     AppState,

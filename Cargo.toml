@@ -1,5 +1,5 @@
 [workspace]
-members = ["ensnano-iced"]
+members = ["ensnano-consts","ensnano-iced"]
 
 [workspace.package]
 authors = [
@@ -16,6 +16,7 @@ repository = "https://github.com/ensnano/ensnano"
 version = "0.7.0"
 
 [workspace.dependencies]
+ensnano_consts = { path = "ensnano-consts" }
 ensnano_iced = { path = "ensnano-iced" }
 
 ahash = "0.8.6"
@@ -83,6 +84,7 @@ wgpu = { version = "0.19", features = ["spirv"] }
 winit = "0.29"
 
 [dependencies]
+ensnano_consts.workspace = true
 ensnano_iced.workspace = true
 
 ahash.workspace = true

@@ -6,7 +6,7 @@ use crate::controller::{
     },
     normal_state::NormalState,
 };
-use crate::ensnano_consts::ORIGAMI_EXTENSION;
+use ensnano_consts::ORIGAMI_EXTENSION;
 use crate::{
     MainStateView,
     controller::download_staples::{DownloadStapleError, DownloadStapleOk, StaplesDownloader},

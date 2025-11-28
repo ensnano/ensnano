@@ -1,6 +1,6 @@
 //! This modules defines the meshes that are used to draw DNA.
 
-use crate::ensnano_consts::{
+use ensnano_consts::{
     NB_RAY_TUBE, NB_SECTOR_SPHERE, NB_STACK_SPHERE, SPHERE_RADIUS, STEREOGRAPHIC_SPHERE_COLOR,
     STEREOGRAPHIC_SPHERE_RADIUS,
 };

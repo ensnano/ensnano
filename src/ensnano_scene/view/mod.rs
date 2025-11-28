@@ -18,7 +18,7 @@ pub mod sheet_2d;
 /// A `Uniform` is a structure that manages view and projection matrices.
 pub mod uniforms;
 
-use crate::ensnano_consts::{
+use ensnano_consts::{
     MIN_RADIUS_FOR_FAKE_UPSCALING, PRINTABLE_CHARS, SAMPLE_COUNT, SELECT_SCALE_FACTOR,
 };
 use crate::ensnano_design::{

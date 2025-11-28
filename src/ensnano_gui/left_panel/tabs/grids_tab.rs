@@ -1,4 +1,4 @@
-use crate::ensnano_consts::{ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID};
+use ensnano_consts::{ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID};
 use crate::ensnano_design::grid::GridTypeDescr;
 use crate::ensnano_gui::{
     AppState,

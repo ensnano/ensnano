@@ -1,4 +1,4 @@
-use crate::ensnano_consts::SCAFFOLD_COLOR;
+use ensnano_consts::SCAFFOLD_COLOR;
 use crate::ensnano_design::{
     Design, Nucl,
     grid::{Grid, GridType},

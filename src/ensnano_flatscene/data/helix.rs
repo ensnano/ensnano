@@ -1,4 +1,4 @@
-use crate::ensnano_consts::{
+use ensnano_consts::{
     BLACK_VEC4, CIRCLE2D_BLUE, CIRCLE2D_GREEN, CIRCLE2D_GREY, CIRCLE2D_RED, GREY_UNKNOWN_NUCL_VEC4,
     HELIX_BORDER_COLOR,
 };

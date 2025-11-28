@@ -2,7 +2,7 @@ mod dragging_state;
 pub mod event_context;
 mod point_and_click_state;
 
-use crate::ensnano_consts::{
+use ensnano_consts::{
     DIR_HANDLE_ID, FRONT_CIRCLE_ID, RIGHT_CIRCLE_ID, RIGHT_HANDLE_ID, UP_CIRCLE_ID, UP_HANDLE_ID,
 };
 use crate::ensnano_design::{
