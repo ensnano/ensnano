@@ -1565,8 +1565,7 @@ impl MainState {
             .app_state
             .get_design_interactor()
             .get_bezier_planes()
-            .len()
-            == 0
+            .is_empty()
             && let Some((position, orientation)) = self.get_bezier_sheet_creation_position()
         {
             self.apply_operation(DesignOperation::AddBezierPlane {
