@@ -13,6 +13,9 @@ FRAG_SRCS := $(shell find . -name '*.frag')
 VERT_SRCS := $(shell find . -name '*.vert')
 SHADERS := $(patsubst %.frag,%.frag.spv,$(FRAG_SRCS)) $(patsubst %.vert,%.vert.spv,$(VERT_SRCS))
 
+lint:
+	@cargo clippy --workspace --all-targets
+
 shaders: $(SHADERS)
 	@echo Shaders compilation: Done.
 
