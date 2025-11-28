@@ -16,11 +16,11 @@ use iced_graphics::text::Paragraph;
 /// A container that should contain a [text_input::TextInput].
 ///
 /// Trigger `on_priority` and `on_unpriority` when the text_input is focused or unfocused.
-pub struct KeyboardPriority<'a, Message, Theme = iced::Theme, Renderer = iced::Renderer> {
+pub struct KeyboardPriority<'a, Message> {
     id: Option<Id>,
     width: Length,
     height: Length,
-    content: Element<'a, Message, Theme, Renderer>,
+    content: Element<'a, Message, iced::Theme, iced::Renderer>,
     on_priority: Option<Message>,
     on_unpriority: Option<Message>,
 }
@@ -32,12 +32,9 @@ pub fn keyboard_priority<'a, Message>(
     KeyboardPriority::new(content)
 }
 
-impl<'a, Message, Theme, Renderer> KeyboardPriority<'a, Message, Theme, Renderer>
-where
-    Renderer: renderer::Renderer,
-{
+impl<'a, Message> KeyboardPriority<'a, Message> {
     /// Creates a new [`KeyboardPriority`] with the given content.
-    pub fn new(content: impl Into<Element<'a, Message, Theme, Renderer>>) -> Self {
+    pub fn new(content: impl Into<Element<'a, Message, iced::Theme, iced::Renderer>>) -> Self {
         let content = content.into();
         let size = content.as_widget().size_hint();
         KeyboardPriority {
@@ -86,11 +83,9 @@ where
     }
 }
 
-impl<'a, Message, Theme, Renderer> Widget<Message, Theme, Renderer>
-    for KeyboardPriority<'a, Message, Theme, Renderer>
+impl<'a, Message> Widget<Message, iced::Theme, iced::Renderer> for KeyboardPriority<'a, Message>
 where
     Message: 'a + Clone,
-    Renderer: renderer::Renderer,
 {
     fn tag(&self) -> widget::tree::Tag {
         widget::tree::Tag::of::<State>()
@@ -116,7 +111,7 @@ where
     fn layout(
         &self,
         tree: &mut widget::Tree,
-        renderer: &Renderer,
+        renderer: &iced::Renderer,
         limits: &layout::Limits,
     ) -> layout::Node {
         container::layout(
@@ -140,7 +135,7 @@ where
         &self,
         tree: &mut widget::Tree,
         layout: Layout<'_>,
-        renderer: &Renderer,
+        renderer: &iced::Renderer,
         operation: &mut dyn widget::Operation<Message>,
     ) {
         operation.container(
@@ -163,7 +158,7 @@ where
         event: event::Event,
         layout: Layout,
         cursor: mouse::Cursor,
-        renderer: &Renderer,
+        renderer: &iced::Renderer,
         clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
         viewport: &Rectangle,
@@ -214,7 +209,7 @@ where
         layout: Layout,
         cursor_position: mouse::Cursor,
         viewport: &Rectangle,
-        renderer: &Renderer,
+        renderer: &iced::Renderer,
     ) -> mouse::Interaction {
         self.content.as_widget().mouse_interaction(
             &tree.children[0],
@@ -228,8 +223,8 @@ where
     fn draw(
         &self,
         tree: &widget::Tree,
-        renderer: &mut Renderer,
-        theme: &Theme,
+        renderer: &mut iced::Renderer,
+        theme: &iced::Theme,
         style: &renderer::Style,
         layout: Layout,
         cursor: mouse::Cursor,
@@ -253,9 +248,9 @@ where
         &'b mut self,
         tree: &'b mut widget::Tree,
         layout: Layout,
-        renderer: &Renderer,
+        renderer: &iced::Renderer,
         translation: Vector,
-    ) -> Option<overlay::Element<'b, Message, Theme, Renderer>> {
+    ) -> Option<overlay::Element<'b, Message, iced::Theme, iced::Renderer>> {
         self.content.as_widget_mut().overlay(
             &mut tree.children[0],
             layout.children().next().unwrap(),
@@ -265,14 +260,12 @@ where
     }
 }
 
-impl<'a, Message, Theme, Renderer> From<KeyboardPriority<'a, Message, Theme, Renderer>>
-    for Element<'a, Message, Theme, Renderer>
+impl<'a, Message> From<KeyboardPriority<'a, Message>>
+    for Element<'a, Message, iced::Theme, iced::Renderer>
 where
     Message: 'a + Clone,
-    Theme: 'a,
-    Renderer: 'a + renderer::Renderer,
 {
-    fn from(value: KeyboardPriority<'a, Message, Theme, Renderer>) -> Self {
+    fn from(value: KeyboardPriority<'a, Message>) -> Self {
         Self::new(value)
     }
 }

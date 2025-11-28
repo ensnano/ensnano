@@ -15,7 +15,6 @@ use iced_graphics::{
     mesh::{Indexed, Mesh, SolidVertex2D},
 };
 use iced_wgpu::primitive::Custom;
-use std::marker::PhantomData;
 
 const DEFAULT_SIZE: f32 = 360.0;
 
@@ -37,17 +36,15 @@ fn hsv_to_linear(hue: f64, sat: f64, light: f64) -> [f32; 4] {
 }
 
 /// A Lightness-Saturation square Widget.
-pub struct LightSatSquare<'a, Message, Theme = iced::Theme, Renderer = iced::Renderer> {
+pub struct LightSatSquare<'a, Message> {
     width: Length,
     height: Length,
     hue: f64,
     on_slide: Option<Box<dyn Fn(f64, f64) -> Message + 'a>>,
     on_finish: Option<Message>,
-    _theme: PhantomData<Theme>,
-    _renderer: PhantomData<Renderer>,
 }
 
-impl<'a, Message, Theme> LightSatSquare<'a, Message, Theme, iced::Renderer> {
+impl<'a, Message> LightSatSquare<'a, Message> {
     pub fn new(hue: f64) -> Self {
         Self {
             width: Length::Fixed(DEFAULT_SIZE),
@@ -55,8 +52,6 @@ impl<'a, Message, Theme> LightSatSquare<'a, Message, Theme, iced::Renderer> {
             hue,
             on_slide: None,
             on_finish: None,
-            _theme: Default::default(),
-            _renderer: Default::default(),
         }
     }
 
@@ -88,8 +83,7 @@ impl<'a, Message, Theme> LightSatSquare<'a, Message, Theme, iced::Renderer> {
     }
 }
 
-impl<Message, Theme> Widget<Message, Theme, iced::Renderer>
-    for LightSatSquare<'_, Message, Theme, iced::Renderer>
+impl<Message> Widget<Message, iced::Theme, iced::Renderer> for LightSatSquare<'_, Message>
 where
     Message: Clone,
 {
@@ -116,7 +110,7 @@ where
         &self,
         _state: &widget::Tree,
         renderer: &mut iced::Renderer,
-        _theme: &Theme,
+        _theme: &iced::Theme,
         _style: &Style,
         layout: Layout,
         _cursor: Cursor,
@@ -247,13 +241,11 @@ where
     }
 }
 
-impl<'a, Message, Theme> From<LightSatSquare<'a, Message, Theme, iced::Renderer>>
-    for iced::Element<'a, Message, Theme, iced::Renderer>
+impl<'a, Message> From<LightSatSquare<'a, Message>> for iced::Element<'a, Message>
 where
     Message: Clone + 'a,
-    Theme: 'a,
 {
-    fn from(value: LightSatSquare<'a, Message, Theme, iced::Renderer>) -> Self {
+    fn from(value: LightSatSquare<'a, Message>) -> Self {
         Self::new(value)
     }
 }

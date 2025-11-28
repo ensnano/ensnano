@@ -22,16 +22,16 @@ use iced::{
 };
 
 /// A widget that emits a message when hovered.
-pub struct HoverableContainer<'a, Message, Theme = iced::Theme, Renderer = iced::Renderer> {
+pub struct HoverableContainer<'a, Message> {
     padding: Padding,
-    content: Element<'a, Message, Theme, Renderer>,
+    content: Element<'a, Message, iced::Theme, iced::Renderer>,
     on_hover: Option<Message>,
     on_unhover: Option<Message>,
 }
 
-impl<'a, Message, Theme, Renderer> HoverableContainer<'a, Message, Theme, Renderer> {
+impl<'a, Message> HoverableContainer<'a, Message> {
     /// Creates a new [HoverableContainer] with the given content.
-    pub fn new(content: impl Into<Element<'a, Message, Theme, Renderer>>) -> Self {
+    pub fn new(content: impl Into<Element<'a, Message, iced::Theme, iced::Renderer>>) -> Self {
         HoverableContainer {
             padding: Padding::ZERO,
             content: content.into(),
@@ -68,11 +68,9 @@ pub struct State {
     is_hovered: bool,
 }
 
-impl<'a, Message, Theme, Renderer> Widget<Message, Theme, Renderer>
-    for HoverableContainer<'a, Message, Theme, Renderer>
+impl<'a, Message> Widget<Message, iced::Theme, iced::Renderer> for HoverableContainer<'a, Message>
 where
     Message: 'a + Clone,
-    Renderer: renderer::Renderer,
 {
     fn tag(&self) -> widget::tree::Tag {
         widget::tree::Tag::of::<State>()
@@ -94,7 +92,7 @@ where
         event: event::Event,
         layout: Layout,
         cursor_position: mouse::Cursor,
-        renderer: &Renderer,
+        renderer: &iced::Renderer,
         clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
         viewport: &Rectangle,
@@ -139,7 +137,7 @@ where
     fn layout(
         &self,
         tree: &mut widget::Tree,
-        renderer: &Renderer,
+        renderer: &iced::Renderer,
         limits: &layout::Limits,
     ) -> layout::Node {
         let Size { width, height } = self.size();
@@ -168,8 +166,8 @@ where
     fn draw(
         &self,
         tree: &widget::Tree,
-        renderer: &mut Renderer,
-        theme: &Theme,
+        renderer: &mut iced::Renderer,
+        theme: &iced::Theme,
         style: &renderer::Style,
         layout: Layout,
         cursor: mouse::Cursor,
@@ -195,7 +193,7 @@ where
         layout: Layout,
         cursor_position: mouse::Cursor,
         viewport: &Rectangle,
-        renderer: &Renderer,
+        renderer: &iced::Renderer,
     ) -> mouse::Interaction {
         self.content.as_widget().mouse_interaction(
             &tree.children[0],
@@ -210,9 +208,9 @@ where
         &'b mut self,
         tree: &'b mut widget::Tree,
         layout: Layout,
-        renderer: &Renderer,
+        renderer: &iced::Renderer,
         translation: Vector,
-    ) -> Option<overlay::Element<'b, Message, Theme, Renderer>> {
+    ) -> Option<overlay::Element<'b, Message, iced::Theme, iced::Renderer>> {
         self.content.as_widget_mut().overlay(
             &mut tree.children[0],
             layout.children().next().unwrap(),
@@ -222,14 +220,12 @@ where
     }
 }
 
-impl<'a, Message, Theme, Renderer> From<HoverableContainer<'a, Message, Theme, Renderer>>
-    for Element<'a, Message, Theme, Renderer>
+impl<'a, Message> From<HoverableContainer<'a, Message>>
+    for Element<'a, Message, iced::Theme, iced::Renderer>
 where
     Message: 'a + Clone,
-    Theme: 'a,
-    Renderer: 'a + renderer::Renderer,
 {
-    fn from(value: HoverableContainer<'a, Message, Theme, Renderer>) -> Self {
+    fn from(value: HoverableContainer<'a, Message>) -> Self {
         Element::new(value)
     }
 }

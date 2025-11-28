@@ -14,7 +14,6 @@ use iced_graphics::{
     mesh::{Indexed, Mesh, SolidVertex2D},
 };
 use iced_wgpu::primitive::Custom;
-use std::marker::PhantomData;
 
 const DEFAULT_SIZE: f32 = 90.0;
 
@@ -25,17 +24,15 @@ pub struct ColorSquareState {
 }
 
 /// A ColorSquare Widget
-pub struct ColorSquare<'a, Message, Theme = iced::Theme, Renderer = iced::Renderer> {
+pub struct ColorSquare<'a, Message> {
     width: Length,
     height: Length,
     color: Color,
     on_click: Option<Box<dyn Fn(Color) -> Message + 'a>>,
     on_release: Option<Message>,
-    _theme: PhantomData<Theme>,
-    _renderer: PhantomData<Renderer>,
 }
 
-impl<'a, Message, Theme> ColorSquare<'a, Message, Theme, iced::Renderer> {
+impl<'a, Message> ColorSquare<'a, Message> {
     pub fn new(color: Color) -> Self {
         Self {
             width: Length::Fixed(DEFAULT_SIZE),
@@ -43,8 +40,6 @@ impl<'a, Message, Theme> ColorSquare<'a, Message, Theme, iced::Renderer> {
             color,
             on_click: None,
             on_release: None,
-            _theme: Default::default(),
-            _renderer: Default::default(),
         }
     }
 
@@ -76,8 +71,7 @@ impl<'a, Message, Theme> ColorSquare<'a, Message, Theme, iced::Renderer> {
     }
 }
 
-impl<Message, Theme> Widget<Message, Theme, iced::Renderer>
-    for ColorSquare<'_, Message, Theme, iced::Renderer>
+impl<Message> Widget<Message, iced::Theme, iced::Renderer> for ColorSquare<'_, Message>
 where
     Message: Clone,
 {
@@ -104,7 +98,7 @@ where
         &self,
         _tree: &widget::Tree,
         renderer: &mut iced::Renderer,
-        _theme: &Theme,
+        _theme: &iced::Theme,
         _style: &Style,
         layout: Layout,
         _cursor: Cursor,
@@ -204,13 +198,11 @@ where
     }
 }
 
-impl<'a, Message, Theme> From<ColorSquare<'a, Message, Theme, iced::Renderer>>
-    for iced::Element<'a, Message, Theme, iced::Renderer>
+impl<'a, Message> From<ColorSquare<'a, Message>> for iced::Element<'a, Message>
 where
     Message: Clone + 'a,
-    Theme: 'a,
 {
-    fn from(color_square: ColorSquare<'a, Message, Theme, iced::Renderer>) -> Self {
+    fn from(color_square: ColorSquare<'a, Message>) -> Self {
         Self::new(color_square)
     }
 }

@@ -15,7 +15,6 @@ use iced_graphics::{
     mesh::{Indexed, Mesh, SolidVertex2D},
 };
 use iced_wgpu::primitive::Custom;
-use std::marker::PhantomData;
 
 const DEFAULT_SIZE: f32 = 90.0;
 
@@ -26,28 +25,24 @@ pub struct State {
 }
 
 /// A HueColumn Widget.
-pub struct HueRow<'a, Message, Theme = iced::Theme, Renderer = iced::Renderer> {
+pub struct HueRow<'a, Message> {
     width: Length,
     height: Length,
     on_slide: Option<Box<dyn Fn(f64) -> Message + 'a>>,
-    _theme: PhantomData<Theme>,
-    _renderer: PhantomData<Renderer>,
 }
 
-impl<Message, Theme> Default for HueRow<'_, Message, Theme, iced::Renderer> {
+impl<Message> Default for HueRow<'_, Message> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<'a, Message, Theme> HueRow<'a, Message, Theme, iced::Renderer> {
+impl<'a, Message> HueRow<'a, Message> {
     pub fn new() -> Self {
         Self {
             width: Length::Fixed(4.0 * DEFAULT_SIZE),
             height: Length::Fixed(DEFAULT_SIZE),
             on_slide: None,
-            _theme: Default::default(),
-            _renderer: Default::default(),
         }
     }
 
@@ -82,9 +77,7 @@ impl<'a, Message, Theme> HueRow<'a, Message, Theme, iced::Renderer> {
     }
 }
 
-impl<Message, Theme> Widget<Message, Theme, iced::Renderer>
-    for HueRow<'_, Message, Theme, iced::Renderer>
-{
+impl<Message> Widget<Message, iced::Theme, iced::Renderer> for HueRow<'_, Message> {
     fn state(&self) -> widget::tree::State {
         widget::tree::State::Some(Box::new(State::default()))
     }
@@ -108,7 +101,7 @@ impl<Message, Theme> Widget<Message, Theme, iced::Renderer>
         &self,
         _tree: &widget::Tree,
         renderer: &mut iced::Renderer,
-        _theme: &Theme,
+        _theme: &iced::Theme,
         _style: &Style,
         layout: Layout,
         _cursor: Cursor,
@@ -228,13 +221,11 @@ impl<Message, Theme> Widget<Message, Theme, iced::Renderer>
     }
 }
 
-impl<'a, Message, Theme> From<HueRow<'a, Message, Theme, iced::Renderer>>
-    for iced::Element<'a, Message, Theme, iced::Renderer>
+impl<'a, Message> From<HueRow<'a, Message>> for iced::Element<'a, Message>
 where
     Message: 'a + Clone,
-    Theme: 'a,
 {
-    fn from(hue_row: HueRow<'a, Message, Theme, iced::Renderer>) -> Self {
+    fn from(hue_row: HueRow<'a, Message>) -> Self {
         Self::new(hue_row)
     }
 }
