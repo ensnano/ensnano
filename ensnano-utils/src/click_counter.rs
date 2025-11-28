@@ -12,7 +12,7 @@ impl ClickCounter {
         self.value = value;
     }
 
-    pub fn next(&mut self) -> u32 {
+    pub fn inc(&mut self) -> u32 {
         let ret = self.value;
         self.value += 1;
         ret

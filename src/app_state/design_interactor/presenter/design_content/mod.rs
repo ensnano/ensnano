@@ -993,7 +993,7 @@ impl DesignContent {
                     .helix_as_cylinder_color
                     .map_or(HELIX_CYLINDER_COLOR, ColorType::to_u32);
                 for (i, j) in a {
-                    let bond_id = id_click_counter.next();
+                    let bond_id = id_click_counter.inc();
                     let n_i = Nucl {
                         helix: h,
                         position: i,
@@ -1073,7 +1073,7 @@ impl DesignContent {
             for isometry3 in &clone_transformations {
                 let mut nucleotides_clones = HashMap::new();
                 for (nucl, nucl_id) in &nucl_collection.identifier {
-                    let clone_nucl_id = id_click_counter.next();
+                    let clone_nucl_id = id_click_counter.inc();
                     nucleotides_clones.insert(nucl, clone_nucl_id);
                     let nucl_color = color_map.get(nucl_id).unwrap_or(&0);
                     let nucl_radius = radius_map.get(nucl_id).unwrap_or(&0.);
@@ -1109,7 +1109,7 @@ impl DesignContent {
                 }
                 // Cloned bonds
                 for (bond, bond_id) in &identifier_bond {
-                    let clone_bond_id = id_click_counter.next();
+                    let clone_bond_id = id_click_counter.inc();
                     let nucl_1_id = &nucleotides_clones[&bond.0];
                     let nucl_1 = &nucleotide[nucl_1_id];
                     let nucl_2_id = &nucleotides_clones[&bond.1];
@@ -1137,7 +1137,7 @@ impl DesignContent {
                 }
                 // Cloned cylinders
                 for bond_id in &helix_cylinders {
-                    let clone_bond_id = id_click_counter.next();
+                    let clone_bond_id = id_click_counter.inc();
                     let (nucl_1, nucl_2) = &nucleotides_involved[bond_id];
                     let clone_nucl_1_id = &nucleotides_clones[nucl_1];
                     let clone_nucl_2_id = &nucleotides_clones[nucl_2];
