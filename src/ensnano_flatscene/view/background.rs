@@ -3,7 +3,12 @@
 // The original source was distributed under the MIT License by Nicolas Silva.
 // A copy of the original license is available in thirdparties/lyon/LICENSE
 
-use lyon::{geom::*, tessellation::*};
+use lyon::{
+    geom::{Rect, point, size},
+    tessellation::{
+        BuffersBuilder, FillOptions, FillTessellator, FillVertexConstructor, VertexBuffers,
+    },
+};
 use wgpu::util::DeviceExt as _;
 
 use crate::ensnano_consts::SAMPLE_COUNT;

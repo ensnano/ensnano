@@ -3,7 +3,7 @@ use crate::{
         Nucl,
         bezier_plane::{BezierPlaneId, BezierVertexId},
         curves::bezier::BezierControlPoint,
-        grid::*,
+        grid::{GridId, HelixGridPosition},
     },
     ensnano_interactor::{
         BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation, IsometryTarget,

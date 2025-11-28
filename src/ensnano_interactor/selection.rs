@@ -2,7 +2,7 @@ use crate::ensnano_design::{
     Nucl,
     bezier_plane::{BezierPathId, BezierVertexId},
     curves::bezier::BezierControlPoint,
-    elements::*,
+    elements::DesignElementKey,
     grid::{GridId, HelixGridPosition},
     strands::{Domain, Strand},
 };

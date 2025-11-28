@@ -29,9 +29,14 @@ use crate::ensnano_scene::maths_3d::{
     cast_ray, distance_to_cursor_with_penalty, unproject_point_on_line,
 };
 use crate::ensnano_utils::{bindgroup_manager, text, texture};
-use crate::{ensnano_consts::*, ensnano_interactor::surfaces::UnrootedRevolutionSurfaceDescriptor};
+use crate::{
+    ensnano_consts::{
+        MIN_RADIUS_FOR_FAKE_UPSCALING, PRINTABLE_CHARS, SAMPLE_COUNT, SELECT_SCALE_FACTOR,
+    },
+    ensnano_interactor::surfaces::UnrootedRevolutionSurfaceDescriptor,
+};
 use bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
-use direction_cube::*;
+use direction_cube::{DirectionCube, DirectionTexture, SkyBox};
 use dna_obj::{
     PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance, SphereInstance,
     StereographicSphereAndPlane, TubeInstance, TubeLidInstance,

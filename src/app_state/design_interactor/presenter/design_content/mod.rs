@@ -9,11 +9,12 @@ use crate::ensnano_design::grid::GridId;
 use crate::ensnano_design::helices::{HelixCollection as _, NuclCollection};
 use crate::ensnano_design::strands::{Domain, DomainJunction};
 use crate::ensnano_design::{
+    AdditionalStructure, Design, Nucl,
     drawing_style::{ColorType, DrawingAttribute, DrawingStyle},
+    elements,
     elements::DesignElement,
     grid::{GridData, GridObject, GridPosition, HelixGridPosition},
     isometry3_descriptor::Isometry3MissingMethods as _,
-    *,
 };
 use crate::ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
 use crate::ensnano_interactor::{

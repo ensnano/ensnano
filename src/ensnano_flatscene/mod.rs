@@ -28,7 +28,7 @@ use crate::ensnano_interactor::{
     DesignOperation, StrandBuildingStatus,
     application::{AppId, Application, Notification},
     graphics::DrawArea,
-    operation::*,
+    operation::{CrossCut, Cut, Operation, Xover},
     selection::{
         InteractorDesignReaderExt, PhantomElement, Selection, SelectionMode,
         extract_nucls_and_xover_ends,

@@ -2,7 +2,7 @@
 //! `Instantiable` trait can be turned into instances that can be drawn by an
 //! [InstanceDrawer].
 
-use crate::ensnano_consts::*;
+use crate::ensnano_consts::SAMPLE_COUNT;
 use crate::ensnano_utils::{
     bindgroup_manager::DynamicBindGroup, create_buffer_with_data, texture::Texture,
 };

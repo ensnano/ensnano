@@ -22,8 +22,11 @@ use crate::{
         },
     },
 };
-use dragging_state::*;
-use event_context::*;
+use dragging_state::{
+    ClickInfo, MovingBezierCorner, MovingBezierTangent, MovingBezierVertex, MovingRevolutionRadius,
+    translating_grid_object,
+};
+use event_context::{EventContext, XoverOrigin};
 use point_and_click_state::PointAndClicking;
 use std::{borrow::Cow, cell::RefCell};
 use ultraviolet::Vec2;

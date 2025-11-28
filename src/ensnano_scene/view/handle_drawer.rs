@@ -1,7 +1,13 @@
 use crate::ensnano_design::group_attributes::GroupPivot;
 use crate::ensnano_scene::camera::{CameraPtr, ProjectionPtr};
 use crate::ensnano_scene::view::drawable::{Drawable, Drawer};
-use crate::{ensnano_consts::*, ensnano_scene::view::drawable::Vertex};
+use crate::{
+    ensnano_consts::{
+        CYM_HANDLE_COLORS, DIR_HANDLE_ID, RGB_HANDLE_COLORS, RIGHT_HANDLE_ID, SELECT_SCALE_FACTOR,
+        UP_HANDLE_ID,
+    },
+    ensnano_scene::view::drawable::Vertex,
+};
 use std::rc::Rc;
 use ultraviolet::{Rotor3, Vec3};
 use wgpu::Device;

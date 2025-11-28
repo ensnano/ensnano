@@ -20,7 +20,11 @@ use crate::ensnano_interactor::{
     app_state_parameters::check_xovers_parameter::CheckXoversParameter,
     application::{AppId, Application, Camera3D, Notification},
     graphics::{DrawArea, FogParameters},
-    operation::*,
+    operation::{
+        BezierControlPointTranslation, GridHelixCreation, GridRotation, GridTranslation,
+        HelixRotation, HelixTranslation, Operation, TranslateBezierPathVertex,
+        TranslateBezierSheetCorner,
+    },
     selection::{
         ActionMode, CenterOfSelection, Selection, SelectionMode, extract_control_points,
         list_of_xover_ids, set_of_grids_containing_selection, set_of_helices_containing_selection,

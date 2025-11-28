@@ -341,7 +341,10 @@ impl OperationInput {
 
 mod input_color {
     // TODO: Move this in ensnano_iced.
-    use iced::{Background, Border, Color, theme, widget::text_input::*};
+    use iced::{
+        Background, Border, Color, theme,
+        widget::text_input::{Appearance, StyleSheet},
+    };
 
     use crate::ensnano_gui::status_bar::GOLD_ORANGE;
 

@@ -1,5 +1,9 @@
 use crate::{
-    ensnano_consts::*,
+    ensnano_consts::{
+        CYM_HANDLE_COLORS, FRONT_CIRCLE_ID, NB_SECTOR_CIRCLE, NB_SECTOR_SPHERE, NB_STACK_SPHERE,
+        RGB_HANDLE_COLORS, RIGHT_CIRCLE_ID, SELECT_SCALE_FACTOR, SPHERE_RADIUS, SPHERE_WIDGET_ID,
+        UP_CIRCLE_ID,
+    },
     ensnano_design::group_attributes::GroupPivot,
     ensnano_scene::{
         camera::{CameraPtr, ProjectionPtr},

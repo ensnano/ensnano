@@ -2,7 +2,13 @@
 
 mod bezier_paths;
 
-use crate::ensnano_consts::*;
+use crate::ensnano_consts::{
+    BASIS_SCALE, BOND_RADIUS, CANDIDATE_COLOR, CHECKED_XOVER_COLOR, FREE_XOVER_COLOR,
+    FREE_XOVER_SCALE_FACTOR, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, NB_PRINTABLE_CHARS,
+    PIVOT_SCALE_FACTOR, PIVOT_SPHERE_COLOR, PRINTABLE_CHARS, REGULAR_H_BOND_COLOR,
+    SELECT_SCALE_FACTOR, SELECTED_COLOR, SPHERE_RADIUS, SUGGESTION_COLOR,
+    SURFACE_PIVOT_SPHERE_COLOR, UNCHECKED_XOVER_COLOR, basis_color,
+};
 use crate::ensnano_design::bezier_plane::{
     BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, InstantiatedPath,
 };

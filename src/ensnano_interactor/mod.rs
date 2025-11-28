@@ -27,9 +27,9 @@ use crate::ensnano_design::{
     parameters::HelixParameters,
 };
 use crate::ensnano_organizer::tree::{GroupId, OrganizerTree};
-use selection::*;
+use selection::Selection;
 use std::path::PathBuf;
-use surfaces::*;
+use surfaces::RevolutionSimulationParameters;
 use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
 
 #[derive(Clone, Eq, PartialEq, Debug)]

@@ -1,4 +1,4 @@
-use crate::{ensnano_consts::*, ensnano_utils::texture::Texture};
+use crate::{ensnano_consts::SAMPLE_COUNT, ensnano_utils::texture::Texture};
 use lyon::{
     math::Point,
     path::Path,

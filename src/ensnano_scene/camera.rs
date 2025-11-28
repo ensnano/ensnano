@@ -17,7 +17,7 @@ use std::{
 use ultraviolet::{Mat3, Mat4, Rotor3, Vec2, Vec3, projection::rh_yup};
 use winit::{
     dpi::PhysicalPosition,
-    event::*,
+    event::{ElementState, MouseScrollDelta},
     keyboard::{KeyCode, ModifiersState},
 };
 

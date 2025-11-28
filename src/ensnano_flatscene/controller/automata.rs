@@ -5,7 +5,7 @@ use crate::ensnano_flatscene::data::strand::FreeEnd;
 use crate::ensnano_flatscene::flat_types::{FlatHelix, FlatNucl};
 use crate::ensnano_interactor::selection::ActionMode;
 use crate::ensnano_utils::circles2d::CircleInstance;
-use crate::{ensnano_consts::*, ensnano_flatscene::data::ClickResult};
+use crate::{ensnano_consts::CIRCLE2D_GREY, ensnano_flatscene::data::ClickResult};
 use std::time::Instant;
 use ultraviolet::Vec2;
 use winit::event::{ElementState, KeyEvent};

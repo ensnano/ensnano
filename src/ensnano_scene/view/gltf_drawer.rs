@@ -1,10 +1,14 @@
-use crate::ensnano_consts::*;
+use crate::ensnano_consts::SAMPLE_COUNT;
 use crate::ensnano_design::curves::torus::PointOnSurface;
 use crate::ensnano_design::external_3d_objects::{External3DObject, External3DObjectId};
 use crate::ensnano_design::utils::dvec_to_vec;
 use crate::ensnano_interactor::surfaces::UnrootedRevolutionSurfaceDescriptor;
 use crate::ensnano_utils::{
-    TEXTURE_FORMAT, colors::hsv_color, create_buffer_with_data, instance::Instance, obj_loader::*,
+    TEXTURE_FORMAT,
+    colors::hsv_color,
+    create_buffer_with_data,
+    instance::Instance,
+    obj_loader::{GltfMesh, ModelVertex, load_gltf, load_stl},
     texture::Texture,
 };
 use std::{

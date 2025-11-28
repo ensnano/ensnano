@@ -19,7 +19,7 @@ use crate::ensnano_interactor::{
     PastingStatus, ScaffoldInfo, SimulationState, StrandBuildingStatus, WidgetBasis,
 };
 use crate::ensnano_organizer::tree::GroupId;
-use curve_builders::*;
+use curve_builders::{BEZIER_CURVE_BUILDER, ELLIPSE_BUILDER, TWO_SPHERES_BUILDER};
 
 impl GuiState for AppState {
     const POSSIBLE_CURVES: &'static [CurveDescriptorBuilder<Self>] =
