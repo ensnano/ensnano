@@ -4,7 +4,7 @@ pub mod insertion;
 mod rectangle;
 
 use ensnano_consts::{CANDIDATE_COLOR, PRINTABLE_CHARS, SAMPLE_COUNT, SELECTED_COLOR};
-use crate::ensnano_design::{Nucl, helices::NuclCollection};
+use ensnano_design::{Nucl, helices::NuclCollection};
 use crate::ensnano_flatscene::{
     CameraPtr,
     data::{

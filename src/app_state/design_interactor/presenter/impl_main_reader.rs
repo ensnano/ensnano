@@ -2,7 +2,7 @@ use crate::app_state::design_interactor::DesignInteractor;
 use crate::controller::download_staples::{
     DownloadStapleError, DownloadStapleOk, StaplesDownloader,
 };
-use crate::ensnano_design::{
+use ensnano_design::{
     Nucl,
     grid::{GridId, HelixGridPosition},
     helices::HelixCollection as _,

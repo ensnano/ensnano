@@ -8,7 +8,7 @@ mod sausage_rosary;
 mod stl;
 pub mod view;
 
-use crate::ensnano_design::{
+use ensnano_design::{
     Nucl,
     bezier_plane::BezierVertexId,
     consts::ITERATIVE_AXIS_ALGORITHM,

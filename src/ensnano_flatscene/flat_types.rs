@@ -5,7 +5,7 @@
 //! converted. For both the flatscene and the design, usize could be used but having distinct types
 //! reduces the confusion, since errors will be detected by the typechecker.
 
-use crate::ensnano_design::Nucl;
+use ensnano_design::Nucl;
 use crate::ensnano_interactor::selection::Selection;
 use std::{
     collections::{BTreeMap, HashMap},

@@ -1,4 +1,4 @@
-use crate::ensnano_design::{
+use ensnano_design::{
     Nucl,
     bezier_plane::{BezierPathId, BezierVertexId},
     curves::bezier::BezierControlPoint,

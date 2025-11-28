@@ -1,4 +1,4 @@
-use crate::ensnano_design::group_attributes::GroupPivot;
+use ensnano_design::group_attributes::GroupPivot;
 use crate::ensnano_interactor::{
     graphics::{DrawArea, FogParameters},
     selection::Selection,

@@ -1,6 +1,6 @@
 pub mod automata;
 
-use crate::ensnano_design::{
+use ensnano_design::{
     Nucl,
     bezier_plane::{BezierPathId, BezierPlaneId, BezierVertex, BezierVertexId},
     curves::{SurfaceInfo, SurfacePoint},

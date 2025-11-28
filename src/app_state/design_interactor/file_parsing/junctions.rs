@@ -1,4 +1,4 @@
-use crate::ensnano_design::{
+use ensnano_design::{
     Nucl,
     strands::{Domain, DomainJunction, HelixInterval, Strand, sanitize_domains},
 };

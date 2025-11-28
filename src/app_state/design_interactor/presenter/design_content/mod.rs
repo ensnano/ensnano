@@ -4,7 +4,7 @@ use crate::app_state::design_interactor::presenter::{JunctionsIds, Presenter, Si
 use ensnano_consts::{
     BOND_RADIUS, CLONE_OPACITY, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, SPHERE_RADIUS,
 };
-use crate::ensnano_design::{
+use ensnano_design::{
     Design, Nucl,
     drawing_style::{ColorType, DrawingAttribute, DrawingStyle},
     elements::{DesignElement, DesignElementKey},

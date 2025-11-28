@@ -1,4 +1,4 @@
-use crate::ensnano_design::{
+use ensnano_design::{
     curves::{
         revolution::{InterpolatedCurveDescriptor, InterpolationDescriptor},
         torus::{CurveDescriptor2D, PointOnSurface},

@@ -4,7 +4,7 @@ use ensnano_consts::{
     RGB_HANDLE_COLORS, RIGHT_CIRCLE_ID, SELECT_SCALE_FACTOR, SPHERE_RADIUS, SPHERE_WIDGET_ID,
     UP_CIRCLE_ID,
 };
-use crate::ensnano_design::group_attributes::GroupPivot;
+use ensnano_design::group_attributes::GroupPivot;
 use crate::ensnano_scene::{
     camera::{CameraPtr, ProjectionPtr},
     maths_3d::unproject_point_on_plane,

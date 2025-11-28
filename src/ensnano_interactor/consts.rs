@@ -1,4 +1,4 @@
-use crate::ensnano_design::curves::bezier::{BezierControlPoint, CubicBezierControlPoint};
+use ensnano_design::curves::bezier::{BezierControlPoint, CubicBezierControlPoint};
 use crate::ensnano_interactor::{RevolutionSimulationParameters, surfaces::EquadiffSolvingMethod};
 use ensnano_consts::{
     BEZIER_CONTROL1_COLOR, BEZIER_CONTROL2_COLOR, BEZIER_END_COLOR, BEZIER_END_WIDGET_ID,

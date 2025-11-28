@@ -1,4 +1,4 @@
-use crate::ensnano_design::{
+use ensnano_design::{
     Nucl,
     helices::{Helices, HelixCollection as _},
     parameters::HelixParameters,

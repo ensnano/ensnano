@@ -1,5 +1,5 @@
 use crate::app_state::design_interactor::controller::{Controller, ErrOperation};
-use crate::ensnano_design::{
+use ensnano_design::{
     Design,
     strands::{Domain, DomainJunction, Strand},
 };

@@ -1,5 +1,5 @@
 use ensnano_consts::ICON_ATGC;
-use crate::ensnano_design::elements::DesignElementKey;
+use ensnano_design::elements::DesignElementKey;
 use crate::ensnano_gui::{
     AppState,
     left_panel::{Message, tabs::GuiTab},

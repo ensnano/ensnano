@@ -1,0 +1,234 @@
+use crate::{
+    grid::{GridDescriptor, GridTypeDescr},
+    parameters::HelixParameters,
+};
+use serde::{Deserialize, Serialize};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
+use ultraviolet::{Rotor3, Vec3};
+
+#[derive(Serialize, Deserialize)]
+pub struct ScadnanoDesign {
+    pub version: String,
+    #[serde(default = "default_grid")]
+    pub grid: String,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub groups: Option<HashMap<String, ScadnanoGroup>>,
+    pub helices: Vec<ScadnanoHelix>,
+    pub strands: Vec<ScadnanoStrand>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub modifications_in_design: Option<HashMap<String, ScadnanoModification>>,
+}
+
+fn default_grid() -> String {
+    String::from("square")
+}
+
+impl ScadnanoDesign {
+    pub fn default_grid_descriptor(&self) -> Result<GridDescriptor, ScadnanoImportError> {
+        let grid_type = match self.grid.as_str() {
+            "square" => Ok(GridTypeDescr::Square { twist: None }),
+            "honeycomb" => Ok(GridTypeDescr::Honeycomb { twist: None }),
+            grid_type => {
+                println!("Unsupported grid type: {grid_type}");
+                Err(ScadnanoImportError::UnsupportedGridType(
+                    grid_type.to_owned(),
+                ))
+            }
+        }?;
+        Ok(GridDescriptor {
+            position: Vec3::zero(),
+            orientation: Rotor3::identity(),
+            helix_parameters: Some(HelixParameters::GEARY_2014_DNA),
+            grid_type,
+            invisible: false,
+            bezier_vertex: None,
+        })
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize, Default)]
+pub struct ScadnanoGroup {
+    pub position: Vec3,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub pitch: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    yaw: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    roll: Option<f32>,
+    grid: String,
+}
+
+impl ScadnanoGroup {
+    pub fn to_grid_desc(&self) -> Result<GridDescriptor, ScadnanoImportError> {
+        let grid_type = match self.grid.as_str() {
+            "square" => Ok(GridTypeDescr::Square { twist: None }),
+            "honeycomb" => Ok(GridTypeDescr::Honeycomb { twist: None }),
+            grid_type => {
+                println!("Unsupported grid type: {grid_type}");
+                Err(ScadnanoImportError::UnsupportedGridType(
+                    grid_type.to_owned(),
+                ))
+            }
+        }?;
+        let orientation = Rotor3::from_euler_angles(
+            self.roll.unwrap_or_default().to_radians(),
+            self.pitch.unwrap_or_default().to_radians(),
+            self.yaw.unwrap_or_default().to_radians(),
+        );
+        Ok(GridDescriptor {
+            grid_type,
+            orientation,
+            helix_parameters: Some(HelixParameters::GEARY_2014_DNA),
+            position: self.position,
+            invisible: false,
+            bezier_vertex: None,
+        })
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct ScadnanoHelix {
+    #[serde(default)]
+    pub max_offset: usize,
+    pub grid_position: Vec<isize>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub group: Option<String>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct ScadnanoStrand {
+    #[serde(default)]
+    pub is_scaffold: bool,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub sequence: Option<String>,
+    pub color: String,
+    pub domains: Vec<ScadnanoDomain>,
+    #[serde(
+        rename = "5prime_modification",
+        skip_serializing_if = "Option::is_none",
+        default
+    )]
+    pub prime5_modification: Option<String>,
+    #[serde(
+        rename = "3prime_modification",
+        skip_serializing_if = "Option::is_none",
+        default
+    )]
+    pub prime3_modification: Option<String>,
+    #[serde(default)]
+    pub circular: bool,
+}
+
+impl ScadnanoStrand {
+    pub fn color(&self) -> Result<u32, ScadnanoImportError> {
+        let color_str = &self.color[1..];
+        let ret = u32::from_str_radix(color_str, 16);
+        if let Ok(ret) = ret {
+            Ok(ret)
+        } else {
+            Err(ScadnanoImportError::InvalidColor(color_str.to_owned()))
+        }
+    }
+
+    pub fn read_deletions(&self, deletions: &mut BTreeMap<usize, BTreeSet<isize>>) {
+        for d in &self.domains {
+            d.read_deletions(deletions);
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ScadnanoDomain {
+    Loopout {
+        loopout: usize,
+    },
+    HelixDomain {
+        helix: usize,
+        start: isize,
+        end: isize,
+        forward: bool,
+        #[serde(skip_serializing_if = "Option::is_none", default)]
+        insertions: Option<Vec<Vec<isize>>>,
+        #[serde(skip_serializing_if = "Option::is_none", default)]
+        deletions: Option<Vec<isize>>,
+    },
+}
+
+impl ScadnanoDomain {
+    fn read_deletions(&self, deletions_map: &mut BTreeMap<usize, BTreeSet<isize>>) {
+        match self {
+            Self::Loopout { .. } => (),
+            Self::HelixDomain {
+                deletions, helix, ..
+            } => {
+                if let Some(vec) = deletions {
+                    let entry = deletions_map.entry(*helix).or_default();
+                    for d in vec {
+                        entry.insert(*d);
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct ScadnanoModification {
+    pub display_text: String,
+    pub idt_text: String,
+    pub location: String,
+}
+
+#[derive(Debug)]
+pub enum ScadnanoImportError {
+    UnsupportedGridType(String),
+    InvalidColor(String),
+    MissingField(String),
+}
+
+#[derive(Default)]
+pub(super) struct ScadnanoInsertionsDeletions {
+    count: BTreeMap<usize, BTreeMap<isize, isize>>,
+}
+
+impl ScadnanoInsertionsDeletions {
+    pub fn read_domain(&mut self, domain: &ScadnanoDomain) {
+        match domain {
+            ScadnanoDomain::Loopout { .. } => (),
+            ScadnanoDomain::HelixDomain {
+                deletions,
+                helix,
+                insertions,
+                ..
+            } => {
+                if let Some(vec) = deletions {
+                    let entry = self.count.entry(*helix).or_default();
+                    for d in vec {
+                        let count_entry = entry.entry(*d).or_default();
+                        *count_entry -= 1;
+                    }
+                }
+                if let Some(vec) = insertions {
+                    let entry = self.count.entry(*helix).or_default();
+                    for insertion in vec {
+                        let position = insertion[0];
+                        let count = insertion[1];
+                        let count_entry = entry.entry(position).or_default();
+                        *count_entry += count;
+                    }
+                }
+            }
+        }
+    }
+
+    pub fn adjust(&self, position: isize, helix: usize) -> isize {
+        let mut ret = position;
+        if let Some(counts) = self.count.get(&helix) {
+            for (_, c) in counts.iter().take_while(|(y, _)| **y <= position) {
+                ret += *c / 2;
+            }
+        }
+        ret
+    }
+}

@@ -3,7 +3,7 @@ mod closed_curves;
 use crate::app_state::design_interactor::{
     controller::simulations::SimulationInterface, presenter::SimulationUpdate,
 };
-use crate::ensnano_design::{
+use ensnano_design::{
     AdditionalStructure,
     curves::CurveDescriptor,
     helices::Helix,
@@ -472,7 +472,7 @@ impl RevolutionSystemThread {
 }
 
 impl SimulationUpdate for RevolutionSurfaceSystem {
-    fn update_design(&self, design: &mut crate::ensnano_design::Design) {
+    fn update_design(&self, design: &mut ensnano_design::Design) {
         design.additional_structure = Some(Arc::new(self.clone()));
     }
 }
@@ -562,7 +562,7 @@ struct HelicesRouting {
 }
 
 impl SimulationUpdate for HelicesRouting {
-    fn update_design(&self, design: &mut crate::ensnano_design::Design) {
+    fn update_design(&self, design: &mut ensnano_design::Design) {
         let helix_parameters = design.helix_parameters.unwrap_or_default();
         let mut helices = design.helices.make_mut();
         let mut strand_to_be_added = Vec::new();

@@ -1,5 +1,5 @@
 use crate::app_state::{AppState, design_interactor::DesignInteractor};
-use crate::ensnano_design::{
+use ensnano_design::{
     bezier_plane::BezierVertexId, grid::GridId, group_attributes::GroupPivot,
 };
 use crate::ensnano_interactor::{

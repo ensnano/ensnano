@@ -21,7 +21,7 @@ pub mod uniforms;
 use ensnano_consts::{
     MIN_RADIUS_FOR_FAKE_UPSCALING, PRINTABLE_CHARS, SAMPLE_COUNT, SELECT_SCALE_FACTOR,
 };
-use crate::ensnano_design::{
+use ensnano_design::{
     grid::GridId, group_attributes::GroupPivot, helices::Axis, utils::dvec_to_vec,
 };
 use crate::ensnano_interactor::graphics::{

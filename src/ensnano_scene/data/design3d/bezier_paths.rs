@@ -2,7 +2,7 @@ use ensnano_consts::{
     BEZIER_CONTROL_RADIUS, BEZIER_CONTROL1_COLOR, BEZIER_SHEET_CORNER_COLOR,
     BEZIER_SHEET_CORNER_RADIUS, BEZIER_SKELETON_RADIUS, BOND_RADIUS, SPHERE_RADIUS,
 };
-use crate::ensnano_design::{
+use ensnano_design::{
     bezier_plane::{BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertexId},
     curves::{
         CurveDescriptor,

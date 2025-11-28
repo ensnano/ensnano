@@ -12,7 +12,7 @@ pub mod strand_builder;
 pub mod surfaces;
 pub mod torsion;
 
-use crate::ensnano_design::{
+use ensnano_design::{
     Nucl,
     bezier_plane::{
         BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
@@ -203,14 +203,14 @@ pub enum DesignOperation {
         group_id: GroupId,
         pivot: GroupPivot,
     },
-    DeleteCamera(crate::ensnano_design::CameraId),
+    DeleteCamera(ensnano_design::CameraId),
     CreateNewCamera {
         position: Vec3,
         orientation: Rotor3,
         pivot_position: Option<Vec3>,
     },
     SetCameraName {
-        camera_id: crate::ensnano_design::CameraId,
+        camera_id: ensnano_design::CameraId,
         name: String,
     },
     SetGridPosition {

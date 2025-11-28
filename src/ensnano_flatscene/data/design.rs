@@ -1,7 +1,7 @@
 use ensnano_consts::{
     CANDIDATE_COLOR, CANDIDATE_STRAND_HIGHLIGHT_FACTOR_2D, SELECTED_STRAND_HIGHLIGHT_FACTOR_2D,
 };
-use crate::ensnano_design::{
+use ensnano_design::{
     Nucl,
     curves::time_nucl_map::AbscissaConverter,
     helices::{Helices, Helix, HelixCollection as _, NuclCollection},

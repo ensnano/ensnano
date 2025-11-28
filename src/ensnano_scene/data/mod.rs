@@ -7,7 +7,7 @@ use ensnano_consts::{
     BOND_RADIUS, CANDIDATE_COLOR, CANDIDATE_SCALE_FACTOR, SELECT_SCALE_FACTOR, SELECTED_COLOR,
     SPHERE_RADIUS,
 };
-use crate::ensnano_design::{
+use ensnano_design::{
     Nucl,
     bezier_plane::BezierVertexId,
     collection::Collection as _,

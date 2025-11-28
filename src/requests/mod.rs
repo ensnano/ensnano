@@ -8,7 +8,7 @@ mod impl_scene;
 pub mod poll;
 
 use crate::controller::normal_state::Action;
-use crate::ensnano_design::{
+use ensnano_design::{
     Nucl,
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridPosition, GridTypeDescr},

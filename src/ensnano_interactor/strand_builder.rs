@@ -1,4 +1,4 @@
-use crate::ensnano_design::{
+use ensnano_design::{
     Design, Nucl,
     helices::{Axis, OwnedAxis},
     strands::Domain,

@@ -239,7 +239,7 @@ impl<E: OrganizerElement> Organizer<E> {
         let mut sections = Vec::new(); // Hold sections that will be added to [Organizer].
 
         // NOTE: Sections are yielded from their index, implicitly defined in
-        // [crate::ensnano_design::elements::DesignElementKey]
+        // [ensnano_design::elements::DesignElementKey]
         let mut i = 0usize;
         let mut section: Result<<E::Key as ElementKey>::Section, _> = i.try_into();
         while let Ok(s) = section {

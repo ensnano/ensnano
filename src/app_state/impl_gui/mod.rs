@@ -1,7 +1,7 @@
 mod curve_builders;
 
 use crate::app_state::{AppState, NewHelixStrand};
-use crate::ensnano_design::{
+use ensnano_design::{
     bezier_plane::BezierPathId, elements::DesignElementKey, parameters::HelixParameters,
 };
 use crate::ensnano_gui::{

@@ -2,7 +2,7 @@ use crate::app_state::design_interactor::controller::simulations::{
     SimulationInterface,
     roller::{DesignData, RollSystem},
 };
-use crate::ensnano_design::{
+use ensnano_design::{
     Design,
     collection::Collection as _,
     curves::{

@@ -10,7 +10,7 @@ use crate::controller::{
     set_scaffold_sequence::SetScaffoldSequence,
 };
 use ensnano_consts::ENS_EXTENSION;
-use crate::ensnano_design::{
+use ensnano_design::{
     bezier_plane::BezierPlaneDescriptor,
     grid::{GridDescriptor, GridId, GridTypeDescr},
     group_attributes::GroupPivot,
@@ -502,7 +502,7 @@ pub enum Action {
     TranslateGroupPivot(Vec3),
     RotateGroupPivot(Rotor3),
     NewCamera,
-    SelectCamera(crate::ensnano_design::CameraId),
+    SelectCamera(ensnano_design::CameraId),
     SelectFavoriteCamera(u32),
     Toggle2D,
     MakeAllSuggestedXover {

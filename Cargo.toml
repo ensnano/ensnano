@@ -1,5 +1,10 @@
 [workspace]
-members = ["ensnano-consts", "ensnano-iced", "ensnano-organizer"]
+members = [
+    "ensnano-consts",
+    "ensnano-design",
+    "ensnano-iced",
+    "ensnano-organizer",
+]
 
 [workspace.package]
 authors = [
@@ -17,6 +22,7 @@ version = "0.7.0"
 
 [workspace.dependencies]
 ensnano_consts = { path = "ensnano-consts" }
+ensnano_design = { path = "ensnano-design" }
 ensnano_iced = { path = "ensnano-iced" }
 ensnano_organizer = { path = "ensnano-organizer" }
 
@@ -86,6 +92,7 @@ winit = "0.29"
 
 [dependencies]
 ensnano_consts.workspace = true
+ensnano_design.workspace = true
 ensnano_iced.workspace = true
 ensnano_organizer.workspace = true
 

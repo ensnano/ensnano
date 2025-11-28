@@ -3,7 +3,7 @@ pub mod shift_optimization;
 pub mod simulations;
 pub mod update_insertion_length;
 
-use crate::ensnano_design::{
+use ensnano_design::{
     CameraId, Design, Nucl, UpToDateDesign,
     bezier_plane::{
         BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,

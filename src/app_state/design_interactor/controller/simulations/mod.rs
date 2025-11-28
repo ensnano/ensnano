@@ -7,7 +7,7 @@ use crate::app_state::design_interactor::{
     Presenter, controller::ErrOperation, presenter::SimulationUpdate,
 };
 use crate::controller::channel_reader::ChannelReader;
-use crate::ensnano_design::{
+use ensnano_design::{
     Design, Nucl,
     collection::Collection as _,
     grid::{GridId, grid_collection::FreeGridId},

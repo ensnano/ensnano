@@ -1,4 +1,4 @@
-use crate::ensnano_design::curves::torus::CurveDescriptor2D;
+use ensnano_design::curves::torus::CurveDescriptor2D;
 use crate::ensnano_gui::{
     AppState, SimulationState,
     left_panel::{Message, tabs::GuiTab},

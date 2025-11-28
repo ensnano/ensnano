@@ -1,4 +1,4 @@
-use crate::ensnano_design::elements::DesignElementKey;
+use ensnano_design::elements::DesignElementKey;
 use crate::ensnano_gui::{
     AppState,
     left_panel::{

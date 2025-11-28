@@ -1,8 +1,8 @@
 //! Test suite for the `MainState` structure
 
 use super::*;
-use crate::ensnano_design::Nucl;
 use crate::ensnano_interactor::graphics::DrawArea;
+use ensnano_design::Nucl;
 use winit::dpi::PhysicalPosition;
 
 struct DummyScene;

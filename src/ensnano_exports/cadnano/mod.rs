@@ -3,7 +3,7 @@
 
 mod parity_graph;
 
-use crate::ensnano_design::{
+use ensnano_design::{
     Design, Nucl,
     collection::Collection as _,
     grid::{GridData, GridTypeDescr},

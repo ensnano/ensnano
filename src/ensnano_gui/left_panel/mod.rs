@@ -4,7 +4,7 @@ mod discrete_value;
 mod export_menu;
 pub mod tabs;
 
-use crate::ensnano_design::{
+use ensnano_design::{
     CameraId,
     bezier_plane::BezierPathId,
     elements::{DesignElement, DesignElementKey},

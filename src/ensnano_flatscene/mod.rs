@@ -20,7 +20,7 @@ mod flat_types;
 mod view;
 
 use ensnano_consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE};
-use crate::ensnano_design::{Nucl, consts::ITERATIVE_AXIS_ALGORITHM};
+use ensnano_design::{Nucl, consts::ITERATIVE_AXIS_ALGORITHM};
 use crate::ensnano_flatscene::{data::design::FlatSceneDesignReaderExt, flat_types::FlatNucl};
 use crate::ensnano_interactor::{
     DesignOperation, StrandBuildingStatus,

@@ -1,4 +1,4 @@
-use crate::ensnano_design::{ensnano_version, parameters::NAMED_DNA_PARAMETERS};
+use ensnano_design::{ensnano_version, parameters::NAMED_DNA_PARAMETERS};
 use crate::ensnano_gui::{
     AppState,
     left_panel::{

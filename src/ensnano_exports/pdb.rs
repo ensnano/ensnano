@@ -1,7 +1,7 @@
 //! Export to pdb file format. The method used here is an adaptation from the one used in
 //! [tacOxDNA](https://github.com/lorenzo-rovigatti/tacoxDNA)
 
-use crate::ensnano_design::{Design, Nucl, helices::HelixCollection as _, strands::Domain};
+use ensnano_design::{Design, Nucl, helices::HelixCollection as _, strands::Domain};
 use crate::ensnano_exports::{
     BasisMapper,
     oxdna::{OXDNA_LEN_FACTOR, OxDnaHelix as _, free_oxdna_nucl},

@@ -8,7 +8,7 @@ pub mod impl_readergui;
 use self::design_content::Staple;
 
 use crate::app_state::{address_pointer::AddressPointer, design_interactor::DesignInteractor};
-use crate::ensnano_design::{
+use ensnano_design::{
     Design, Nucl,
     bezier_plane::{BezierPath, BezierPathId},
     collection::Collection as _,
@@ -717,7 +717,7 @@ impl DesignInteractor {
 
     pub fn get_camera_with_id(
         &self,
-        camera_id: crate::ensnano_design::CameraId,
+        camera_id: ensnano_design::CameraId,
     ) -> Option<Camera3D> {
         self.presenter
             .current_design

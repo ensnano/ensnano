@@ -5,7 +5,7 @@ use crate::app_state::{
     address_pointer::AddressPointer,
     design_interactor::{DesignInteractor, presenter::Presenter},
 };
-use crate::ensnano_design::{Design, Nucl, codenano, ensnano_version, scadnano};
+use ensnano_design::{Design, Nucl, codenano, ensnano_version, scadnano};
 use crate::ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
 use crate::ensnano_utils::id_generator::IdGenerator;
 use crate::{
@@ -104,7 +104,7 @@ impl From<ScadnanoImportError> for LoadDesignError {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ensnano_design::helices::HelixCollection as _;
+    use ensnano_design::helices::HelixCollection as _;
 
     fn one_helix_path() -> PathBuf {
         let mut ret = PathBuf::from(std::env!("CARGO_MANIFEST_DIR"));

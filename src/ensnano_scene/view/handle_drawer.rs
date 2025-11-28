@@ -2,7 +2,7 @@ use ensnano_consts::{
     CYM_HANDLE_COLORS, DIR_HANDLE_ID, RGB_HANDLE_COLORS, RIGHT_HANDLE_ID, SELECT_SCALE_FACTOR,
     UP_HANDLE_ID,
 };
-use crate::ensnano_design::group_attributes::GroupPivot;
+use ensnano_design::group_attributes::GroupPivot;
 use crate::ensnano_scene::{
     camera::{CameraPtr, ProjectionPtr},
     view::drawable::{Drawable, Drawer, Vertex},

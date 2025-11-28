@@ -73,7 +73,6 @@
 #[cfg(test)]
 mod main_tests;
 
-mod ensnano_design;
 mod ensnano_exports;
 mod ensnano_flatscene;
 mod ensnano_gui;
@@ -89,10 +88,6 @@ mod multiplexer;
 mod requests;
 mod scheduler;
 
-use crate::ensnano_design::{
-    Camera, CameraId, SavingInformation, bezier_plane::BezierPlaneDescriptor, grid::GridId,
-    group_attributes::GroupPivot,
-};
 use crate::ensnano_exports::{ExportResult, ExportType};
 use crate::ensnano_flatscene::FlatScene;
 use crate::ensnano_gui::{
@@ -141,6 +136,10 @@ use controller::{
 use ensnano_consts::{
     APP_NAME, ENS_BACKUP_EXTENSION, ENS_UNNAMED_FILE_NAME, NO_DESIGN_TITLE, SEC_BETWEEN_BACKUPS,
     SEC_PER_YEAR, WELCOME_MSG,
+};
+use ensnano_design::{
+    Camera, CameraId, SavingInformation, bezier_plane::BezierPlaneDescriptor, grid::GridId,
+    group_attributes::GroupPivot,
 };
 use ensnano_iced::{fonts, theme, ui_size::UiSize};
 use ensnano_organizer::tree::GroupId;

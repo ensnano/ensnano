@@ -1,5 +1,5 @@
 use crate::app_state::design_interactor::DesignInteractor;
-use crate::ensnano_design::{
+use ensnano_design::{
     Nucl,
     curves::time_nucl_map::AbscissaConverter,
     helices::{Helices, HelixCollection as _, NuclCollection},

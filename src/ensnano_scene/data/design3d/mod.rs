@@ -9,7 +9,7 @@ use ensnano_consts::{
     SELECT_SCALE_FACTOR, SELECTED_COLOR, SPHERE_RADIUS, SUGGESTION_COLOR,
     SURFACE_PIVOT_SPHERE_COLOR, UNCHECKED_XOVER_COLOR, basis_color,
 };
-use crate::ensnano_design::{
+use ensnano_design::{
     AdditionalStructure, Nucl,
     bezier_plane::{
         BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, InstantiatedPath,

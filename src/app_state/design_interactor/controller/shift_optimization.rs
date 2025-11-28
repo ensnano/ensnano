@@ -1,4 +1,4 @@
-use crate::ensnano_design::{Design, Nucl, helices::NuclCollection, strands::Domain};
+use ensnano_design::{Design, Nucl, helices::NuclCollection, strands::Domain};
 use crate::{
     app_state::design_interactor::controller::ErrOperation,
     controller::channel_reader::ChannelReader,

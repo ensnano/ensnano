@@ -1,7 +1,7 @@
 //! Implements the [Requests](`crate::ensnano_gui::Requests`) trait for [Requests](`super::Requests`).
 
 use crate::controller::normal_state::Action;
-use crate::ensnano_design::{
+use ensnano_design::{
     bezier_plane::{BezierPathId, BezierVertexId},
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridTypeDescr},
@@ -295,18 +295,18 @@ impl crate::ensnano_gui::Requests for Requests {
         self.keep_proceed.push_back(Action::NewCamera);
     }
 
-    fn delete_camera(&mut self, camera_id: crate::ensnano_design::CameraId) {
+    fn delete_camera(&mut self, camera_id: ensnano_design::CameraId) {
         self.keep_proceed
             .push_back(Action::DesignOperation(DesignOperation::DeleteCamera(
                 camera_id,
             )));
     }
 
-    fn select_camera(&mut self, camera_id: crate::ensnano_design::CameraId) {
+    fn select_camera(&mut self, camera_id: ensnano_design::CameraId) {
         self.keep_proceed.push_back(Action::SelectCamera(camera_id));
     }
 
-    fn set_camera_name(&mut self, camera_id: crate::ensnano_design::CameraId, name: String) {
+    fn set_camera_name(&mut self, camera_id: ensnano_design::CameraId, name: String) {
         self.keep_proceed
             .push_back(Action::DesignOperation(DesignOperation::SetCameraName {
                 camera_id,

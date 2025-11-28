@@ -5,7 +5,7 @@ pub mod presenter;
 use crate::app_state::address_pointer::AddressPointer;
 use crate::controller::SaveDesignError;
 use ensnano_consts::UPDATE_VISIBILITY_SIEVE_LABEL;
-use crate::ensnano_design::{
+use ensnano_design::{
     Design,
     bezier_plane::{BezierPathId, BezierPlaneDescriptor},
     collection::Collection as _,
@@ -310,7 +310,7 @@ impl DesignInteractor {
     pub(super) fn save_design(
         &self,
         path: &PathBuf,
-        saving_info: crate::ensnano_design::SavingInformation,
+        saving_info: ensnano_design::SavingInformation,
     ) -> Result<(), SaveDesignError> {
         let mut design = self.presenter.current_design.clone_inner();
         design.prepare_for_save(saving_info);
@@ -391,7 +391,7 @@ impl InteractorResult {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ensnano_design::{
+    use ensnano_design::{
         Nucl,
         grid::{GridDescriptor, GridId, GridTypeDescr, HelixGridPosition},
         strands::{DomainJunction, Strand},

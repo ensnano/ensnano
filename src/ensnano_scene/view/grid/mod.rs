@@ -1,6 +1,6 @@
 mod texture;
 
-use crate::ensnano_design::grid::{Grid, GridDivision as _, GridId, GridPosition, GridType};
+use ensnano_design::grid::{Grid, GridDivision as _, GridId, GridPosition, GridType};
 use crate::ensnano_scene::{
     element_selector::bezier_vertex_id,
     view::{

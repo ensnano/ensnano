@@ -1,4 +1,4 @@
-use crate::ensnano_design::Nucl;
+use ensnano_design::Nucl;
 use ahash::HashMap;
 use std::ops::Range;
 

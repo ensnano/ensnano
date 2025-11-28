@@ -14,10 +14,10 @@ pub mod impl_gui;
 pub mod transitions;
 
 #[cfg(test)]
-use crate::ensnano_design::Design;
+use ensnano_design::Design;
 
 use ensnano_consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION};
-use crate::ensnano_design::{
+use ensnano_design::{
     SavingInformation, bezier_plane::BezierPathId, group_attributes::GroupPivot, strands::Domain,
 };
 use crate::ensnano_exports::{ExportResult, ExportType};

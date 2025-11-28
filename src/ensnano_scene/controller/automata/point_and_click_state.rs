@@ -8,7 +8,7 @@
 //! If the cursor moves away form this position this causes a transition to either the normal
 //! state, or a specific DraggingState.
 
-use crate::ensnano_design::Nucl;
+use ensnano_design::Nucl;
 use crate::ensnano_scene::{
     AppState,
     controller::{

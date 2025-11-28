@@ -5,7 +5,7 @@ mod point_and_click_state;
 use ensnano_consts::{
     DIR_HANDLE_ID, FRONT_CIRCLE_ID, RIGHT_CIRCLE_ID, RIGHT_HANDLE_ID, UP_CIRCLE_ID, UP_HANDLE_ID,
 };
-use crate::ensnano_design::{
+use ensnano_design::{
     bezier_plane::{BezierVertex, BezierVertexId},
     grid::GridId,
 };

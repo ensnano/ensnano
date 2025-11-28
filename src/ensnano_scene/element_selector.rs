@@ -1,4 +1,4 @@
-use crate::ensnano_design::{
+use ensnano_design::{
     bezier_plane::{BezierPathId, BezierPlaneId, BezierVertexId},
     curves::bezier::BezierControlPoint,
     grid::{GridId, GridPosition},

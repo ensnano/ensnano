@@ -5,7 +5,7 @@
 //! In such a state, cursor movement all cursor movement have similar consequences such has moving
 //! the camera or moving an object.
 
-use crate::ensnano_design::{
+use ensnano_design::{
     Nucl,
     bezier_plane::{BezierPathId, BezierPlaneId, BezierVertexId},
     grid::{GridId, GridObject},

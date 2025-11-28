@@ -11,7 +11,7 @@ pub mod left_panel;
 pub mod status_bar;
 pub mod top_bar;
 
-use crate::ensnano_design::{
+use ensnano_design::{
     CameraId, Nucl,
     bezier_plane::{BezierPathId, BezierVertexId},
     elements::{DesignElement, DesignElementKey, DnaAttribute},
