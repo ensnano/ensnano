@@ -14,8 +14,8 @@ use crate::{
 const NUCLEOTIDE_RADIUS: f32 = 0.05;
 const PAIR_CAPSULE_RADIUS: f32 = 0.1;
 
-// const STRONG_SPRING_RANGES: [u32; 4] = [1, 2, 4, 8];
-const STRONG_SPRING_RANGES: [u32; 1] = [2];
+const STRONG_SPRING_RANGES: [u32; 4] = [1, 2, 4, 8];
+// const STRONG_SPRING_RANGES: [u32; 1] = [2];
 
 // const BASE_LINEAR_DAMPING: f32 = 0.06;
 // const BASE_ANGULAR_DAMPING: f32 = 0.06;
@@ -518,8 +518,6 @@ fn build_strong_springs(
                     if up_body_handle == down_body_handle {
                         continue;
                     }
-
-                    println!("{down_forward}, {up_forward}");
 
                     // forward spring
                     impulse_joint_set.insert(

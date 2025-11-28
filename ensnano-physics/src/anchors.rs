@@ -49,6 +49,21 @@ fn turn_points(
     )
 }
 
+fn pair(
+    helix: &Helix,
+    parameters: &HelixParameters,
+    index: isize,
+) -> (
+    OVector<f32, Const<3>>,
+    OVector<f32, Const<3>>,
+    OVector<f32, Const<3>>,
+) {
+    let forward = vec_to_vector(helix.space_pos(parameters, index, true));
+    let backward = vec_to_vector(helix.space_pos(parameters, index, false));
+
+    (forward, backward, (forward + backward) / 2.0)
+}
+
 impl SpringAnchorsReference {
     /// Initializes a new reference with the given Helix's parameters,
     /// and to a provided distance. Higher distance means
@@ -57,45 +72,33 @@ impl SpringAnchorsReference {
         let mut helix = Helix::new(Vec3::default(), Rotor3::default());
         helix.helix_parameters = helix_parameters;
 
-        let nucleotide_forward = vec_to_vector(helix.space_pos(default_parameters, 0, true));
-        let nucleotide_backward = vec_to_vector(helix.space_pos(default_parameters, 0, false));
+        let (nucleotide_forward, nucleotide_backward, center) = pair(&helix, default_parameters, 0);
+        let (next_nucleotide_forward, next_nucleotide_backward, next_center) =
+            pair(&helix, default_parameters, 1);
 
-        let center = (nucleotide_forward + nucleotide_backward) / 2.0;
+        let (up_nucleotide_forward, up_nucleotide_backward, up_center) =
+            pair(&helix, default_parameters, distance as isize);
+        let (next_up_nucleotide_forward, next_up_nucleotide_backward, next_up_center) =
+            pair(&helix, default_parameters, distance as isize + 1);
 
-        let up_nucleotide_forward =
-            vec_to_vector(helix.space_pos(default_parameters, distance as isize, true));
-        let up_nucleotide_backward =
-            vec_to_vector(helix.space_pos(default_parameters, distance as isize, false));
+        let (down_nucleotide_forward, down_nucleotide_backward, down_center) =
+            pair(&helix, default_parameters, -(distance as isize));
+        let (next_down_nucleotide_forward, next_down_nucleotide_backward, next_down_center) =
+            pair(&helix, default_parameters, 1 - distance as isize);
 
-        let up_center = (up_nucleotide_forward + up_nucleotide_backward) / 2.0;
-
-        let up = up_center - center;
-
-        let up_up_nucleotide_forward =
-            vec_to_vector(helix.space_pos(default_parameters, 2 * (distance as isize), true));
-        let up_up_nucleotide_backward =
-            vec_to_vector(helix.space_pos(default_parameters, 2 * (distance as isize), false));
-
-        let up_up_center = (up_up_nucleotide_forward + up_up_nucleotide_backward) / 2.0;
+        let up = next_center - center;
 
         // up's up direction
-        let up_up = up_up_center - up_center;
-
-        let down_nucleotide_forward =
-            vec_to_vector(helix.space_pos(default_parameters, -(distance as isize), true));
-        let down_nucleotide_backward =
-            vec_to_vector(helix.space_pos(default_parameters, -(distance as isize), false));
-
-        let down_center = (down_nucleotide_forward + down_nucleotide_backward) / 2.0;
+        let up_up = next_up_center - up_center;
 
         // down's up direction
-        let down_up = center - down_center;
+        let down_up = next_down_center - down_center;
 
         // we compute the left and right anchors by rotating each nucletide pair in its
         // local up axis
 
-        let (up_left, up_right) = turn_points(up_nucleotide_forward, up_nucleotide_backward, up_up);
         let (left, right) = turn_points(nucleotide_forward, nucleotide_backward, up);
+        let (up_left, up_right) = turn_points(up_nucleotide_forward, up_nucleotide_backward, up_up);
         let (down_left, down_right) =
             turn_points(down_nucleotide_forward, down_nucleotide_backward, down_up);
 
