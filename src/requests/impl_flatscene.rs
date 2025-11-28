@@ -1,13 +1,13 @@
-//! Implements the [Requests](`crate::ensnano_flatscene::Requests`) trait for [Requests](`super::Requests`).
+//! Implements the [Requests](`ensnano_flatscene::Requests`) trait for [Requests](`super::Requests`).
 
 use crate::app_state::design_interactor::controller::clipboard::PastePosition;
 use crate::controller::normal_state::Action;
+use crate::requests::Requests;
 use ensnano_design::Nucl;
-use crate::ensnano_flatscene::Requests as FlatSceneRequests;
+use ensnano_flatscene::Requests as FlatSceneRequests;
 use ensnano_interactor::{
     DesignOperation, application::AppId, operation::Operation, selection::Selection,
 };
-use crate::requests::Requests;
 use std::sync::Arc;
 use ultraviolet::Isometry2;
 

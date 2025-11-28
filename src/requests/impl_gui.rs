@@ -1,7 +1,6 @@
-//! Implements the [Requests](`crate::ensnano_gui::Requests`) trait for [Requests](`super::Requests`).
+//! Implements the [Requests](`ensnano_gui::Requests`) trait for [Requests](`super::Requests`).
 
 use crate::controller::normal_state::Action;
-use crate::ensnano_gui::{OverlayType, left_panel::RigidBodyParametersRequest};
 use crate::requests::Requests;
 use ensnano_design::{
     bezier_plane::{BezierPathId, BezierVertexId},
@@ -10,6 +9,7 @@ use ensnano_design::{
     parameters::HelixParameters,
 };
 use ensnano_exports::ExportType;
+use ensnano_gui::{OverlayType, left_panel::RigidBodyParametersRequest};
 use ensnano_iced::ui_size::UiSize;
 use ensnano_interactor::{
     DesignOperation, HyperboloidRequest, InsertionPoint, RapierSimulationRequest,
@@ -27,7 +27,7 @@ use ensnano_organizer::tree::{GroupId, OrganizerTree};
 use std::{collections::BTreeSet, sync::Arc};
 use ultraviolet::{Rotor3, Vec2, Vec3};
 
-impl crate::ensnano_gui::Requests for Requests {
+impl ensnano_gui::Requests for Requests {
     fn close_overlay(&mut self, overlay_type: OverlayType) {
         self.keep_proceed
             .push_back(Action::CloseOverlay(overlay_type));

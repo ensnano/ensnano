@@ -1,4 +1,4 @@
-//! Implements the [Requests](`crate::ensnano_scene::Requests`) trait for [Requests](`super::Requests`).
+//! Implements the [Requests](`ensnano_scene::Requests`) trait for [Requests](`super::Requests`).
 
 use crate::app_state::design_interactor::controller::clipboard::PastePosition;
 use crate::controller::normal_state::Action;
@@ -9,7 +9,7 @@ use ensnano_interactor::{
     operation::Operation,
     selection::{CenterOfSelection, Selection},
 };
-use crate::ensnano_scene::Requests as SceneRequests;
+use ensnano_scene::Requests as SceneRequests;
 use crate::requests::Requests;
 use std::sync::Arc;
 use ultraviolet::{Rotor3, Vec3};

@@ -1,7 +1,7 @@
 mod xover_suggestions;
 
 use crate::app_state::design_interactor::presenter::{JunctionsIds, Presenter, SimulationUpdate};
-use crate::ensnano_scene::{data::design3d::Scalebar, view::grid::GridInstance};
+use ensnano_scene::{data::design3d::Scalebar, view::grid::GridInstance};
 use ahash::RandomState;
 use ensnano_consts::{
     BOND_RADIUS, CLONE_OPACITY, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, SPHERE_RADIUS,

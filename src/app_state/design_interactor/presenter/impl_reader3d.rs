@@ -20,7 +20,7 @@ use ensnano_interactor::{
     ObjectType, Referential,
     graphics::{LoopoutBond, LoopoutNucl},
 };
-use crate::ensnano_scene::{
+use ensnano_scene::{
     data::design3d::{HBond, Scalebar, SceneDesignReaderExt},
     view::grid::GridInstance,
 };

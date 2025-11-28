@@ -1098,7 +1098,6 @@ name = "ensnano"
 version = "0.7.0"
 dependencies = [
  "ahash 0.8.12",
- "bytemuck",
  "chebyshev_polynomials",
  "color_space",
  "confy",
@@ -1106,33 +1105,27 @@ dependencies = [
  "ensnano_consts",
  "ensnano_design",
  "ensnano_exports",
+ "ensnano_flatscene",
+ "ensnano_gui",
  "ensnano_iced",
  "ensnano_interactor",
  "ensnano_organizer",
+ "ensnano_physics",
+ "ensnano_scene",
  "ensnano_utils",
  "futures",
- "futures-channel",
  "iced",
- "iced_aw",
  "iced_graphics",
  "iced_runtime",
  "iced_wgpu",
  "iced_winit",
- "image 0.23.14",
- "int-enum",
  "itertools",
  "log",
- "lyon",
  "mathru",
- "num_enum 0.5.11",
- "open",
  "ordered-float 2.10.1",
- "paste",
- "png 0.17.16",
  "pretty_env_logger",
  "rand 0.8.5",
  "rand_distr",
- "rapier3d",
  "regex",
  "rfd",
  "rust_xlsxwriter",
@@ -1194,6 +1187,55 @@ dependencies = [
 ]
 
 [[package]]
+name = "ensnano_flatscene"
+version = "0.7.0"
+dependencies = [
+ "ahash 0.8.12",
+ "bytemuck",
+ "color_space",
+ "ensnano_consts",
+ "ensnano_design",
+ "ensnano_interactor",
+ "ensnano_utils",
+ "futures",
+ "futures-channel",
+ "itertools",
+ "log",
+ "lyon",
+ "png 0.17.16",
+ "ultraviolet",
+ "wgpu",
+ "winit",
+]
+
+[[package]]
+name = "ensnano_gui"
+version = "0.7.0"
+dependencies = [
+ "color_space",
+ "ensnano_consts",
+ "ensnano_design",
+ "ensnano_exports",
+ "ensnano_iced",
+ "ensnano_interactor",
+ "ensnano_organizer",
+ "ensnano_physics",
+ "ensnano_utils",
+ "iced",
+ "iced_aw",
+ "iced_graphics",
+ "iced_runtime",
+ "iced_wgpu",
+ "iced_winit",
+ "log",
+ "open",
+ "paste",
+ "ultraviolet",
+ "wgpu",
+ "winit",
+]
+
+[[package]]
 name = "ensnano_iced"
 version = "0.7.0"
 dependencies = [
@@ -1236,6 +1278,43 @@ dependencies = [
  "log",
  "rand 0.8.5",
  "serde",
+]
+
+[[package]]
+name = "ensnano_physics"
+version = "0.7.0"
+dependencies = [
+ "ahash 0.8.12",
+ "ensnano_design",
+ "ensnano_interactor",
+ "itertools",
+ "rapier3d",
+ "ultraviolet",
+]
+
+[[package]]
+name = "ensnano_scene"
+version = "0.7.0"
+dependencies = [
+ "bytemuck",
+ "ensnano_consts",
+ "ensnano_design",
+ "ensnano_interactor",
+ "ensnano_organizer",
+ "ensnano_utils",
+ "futures",
+ "futures-channel",
+ "image 0.23.14",
+ "int-enum",
+ "itertools",
+ "log",
+ "lyon",
+ "num_enum 0.5.11",
+ "png 0.17.16",
+ "serde_json",
+ "ultraviolet",
+ "wgpu",
+ "winit",
 ]
 
 [[package]]

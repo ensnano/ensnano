@@ -31,7 +31,7 @@ use ensnano_design::{
     mutate_in_arc, mutate_one_helix,
     strands::{Domain, DomainJunction, HelixInterval, Strand, Strands},
 };
-use crate::ensnano_gui::status_bar::ClipboardContent;
+use ensnano_gui::status_bar::ClipboardContent;
 use ensnano_interactor::{
     BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
     HyperboloidOperation, IsometryTarget, NewBezierTangentVector, PastingStatus, SimulationState,

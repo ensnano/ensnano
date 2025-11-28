@@ -7,7 +7,7 @@ use ensnano_design::{
     grid::GridId,
     strands::Strand,
 };
-use crate::ensnano_gui::{EnsnTree, GuiDesignReaderExt as ReaderGui};
+use ensnano_gui::{EnsnTree, GuiDesignReaderExt as ReaderGui};
 use ensnano_interactor::{InsertionPoint, selection::Selection};
 use std::sync::Arc;
 use ultraviolet::{Rotor3, Vec2, Vec3};

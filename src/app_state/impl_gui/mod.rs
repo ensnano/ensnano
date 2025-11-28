@@ -4,7 +4,7 @@ use crate::app_state::{AppState, NewHelixStrand};
 use ensnano_design::{
     bezier_plane::BezierPathId, elements::DesignElementKey, parameters::HelixParameters,
 };
-use crate::ensnano_gui::{
+use ensnano_gui::{
     AppState as GuiState,
     left_panel::tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
     status_bar::{ClipboardContent, CurrentOpState},
@@ -70,7 +70,7 @@ impl GuiState for AppState {
             && all_helices_no_grid(self.selection_content(), &self.get_design_interactor())
     }
 
-    fn get_reader(&self) -> Box<dyn crate::ensnano_gui::GuiDesignReaderExt> {
+    fn get_reader(&self) -> Box<dyn ensnano_gui::GuiDesignReaderExt> {
         Box::new(self.get_design_interactor())
     }
 

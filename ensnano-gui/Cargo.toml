@@ -1,0 +1,30 @@
+[package]
+name = "ensnano_gui"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+ensnano_consts.workspace = true
+ensnano_design.workspace = true
+ensnano_exports.workspace = true
+ensnano_iced.workspace = true
+ensnano_interactor.workspace = true
+ensnano_organizer.workspace = true
+ensnano_utils.workspace = true
+ensnano_physics.workspace = true
+
+color_space.workspace = true
+iced.workspace = true
+iced_aw.workspace = true
+iced_graphics.workspace = true
+iced_runtime.workspace = true
+iced_wgpu.workspace = true
+iced_winit.workspace = true
+log.workspace = true
+open.workspace = true
+paste.workspace = true
+ultraviolet.workspace = true
+wgpu.workspace = true
+winit.workspace = true

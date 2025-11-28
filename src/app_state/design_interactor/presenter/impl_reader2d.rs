@@ -5,7 +5,7 @@ use ensnano_design::{
     helices::{Helices, HelixCollection as _, NuclCollection},
     strands::{Domain, Extremity, HelixInterval, Strand},
 };
-use crate::ensnano_flatscene::data::design::FlatSceneDesignReaderExt;
+use ensnano_flatscene::data::design::FlatSceneDesignReaderExt;
 use ensnano_interactor::{Referential, torsion::Torsion};
 use ahash::RandomState;
 use std::{

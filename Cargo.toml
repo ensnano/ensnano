@@ -3,9 +3,13 @@ members = [
     "ensnano-consts",
     "ensnano-design",
     "ensnano-exports",
+    "ensnano-flatscene",
+    "ensnano-gui",
     "ensnano-iced",
     "ensnano-interactor",
     "ensnano-organizer",
+    "ensnano-physics",
+    "ensnano-scene",
     "ensnano-utils",
 ]
 
@@ -27,9 +31,13 @@ version = "0.7.0"
 ensnano_consts = { path = "ensnano-consts" }
 ensnano_design = { path = "ensnano-design" }
 ensnano_exports = { path = "ensnano-exports" }
+ensnano_flatscene = { path = "ensnano-flatscene" }
+ensnano_gui = { path = "ensnano-gui" }
 ensnano_iced = { path = "ensnano-iced" }
 ensnano_interactor = { path = "ensnano-interactor" }
 ensnano_organizer = { path = "ensnano-organizer" }
+ensnano_physics = { path = "ensnano-physics" }
+ensnano_scene = { path = "ensnano-scene" }
 ensnano_utils = { path = "ensnano-utils" }
 
 ahash = "0.8.6"
@@ -100,40 +108,33 @@ winit = "0.29"
 ensnano_consts.workspace = true
 ensnano_design.workspace = true
 ensnano_exports.workspace = true
+ensnano_flatscene.workspace = true
+ensnano_gui.workspace = true
 ensnano_iced.workspace = true
 ensnano_interactor.workspace = true
 ensnano_organizer.workspace = true
+ensnano_physics.workspace = true
+ensnano_scene.workspace = true
 ensnano_utils.workspace = true
 
 ahash.workspace = true
-bytemuck.workspace = true
 chebyshev_polynomials.workspace = true
 color_space.workspace = true
 confy.workspace = true
 dirs.workspace = true
 futures.workspace = true
-futures-channel.workspace = true
 iced.workspace = true
-iced_aw.workspace = true
 iced_graphics.workspace = true
 iced_runtime.workspace = true
 iced_wgpu.workspace = true
 iced_winit.workspace = true
-image.workspace = true
-int-enum.workspace = true
 itertools.workspace = true
 log.workspace = true
-lyon.workspace = true
 mathru.workspace = true
-num_enum.workspace = true
-open.workspace = true
 ordered-float.workspace = true
-paste.workspace = true
-png.workspace = true
 pretty_env_logger.workspace = true
 rand.workspace = true
 rand_distr.workspace = true
-rapier3d.workspace = true
 regex.workspace = true
 rfd.workspace = true
 rust_xlsxwriter.workspace = true

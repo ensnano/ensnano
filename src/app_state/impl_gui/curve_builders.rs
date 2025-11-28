@@ -1,6 +1,6 @@
 use crate::app_state::AppState;
 use ensnano_design::{bezier_plane::BezierPathId, curves::torus::CurveDescriptor2D};
-use crate::ensnano_gui::left_panel::tabs::revolution_tab::{
+use ensnano_gui::left_panel::tabs::revolution_tab::{
     CurveDescriptorBuilder, CurveDescriptorParameter, InstantiatedParameter,
 };
 use ultraviolet::{Rotor3, Vec3};

@@ -26,7 +26,7 @@ use ensnano_interactor::{
     selection::Selection,
     strand_builder::{NeighborDescriptor, NeighborDescriptorGiver as _},
 };
-use crate::ensnano_scene::data::design3d::{HBond, HalfHBond};
+use ensnano_scene::data::design3d::{HBond, HalfHBond};
 use ensnano_utils::id_generator::IdGenerator;
 use design_content::DesignContent;
 use std::{

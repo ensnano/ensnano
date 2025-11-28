@@ -73,11 +73,6 @@
 #[cfg(test)]
 mod main_tests;
 
-mod ensnano_flatscene;
-mod ensnano_gui;
-mod ensnano_physics;
-mod ensnano_scene;
-
 mod app_state;
 mod controller;
 mod dialog;
@@ -85,13 +80,6 @@ mod multiplexer;
 mod requests;
 mod scheduler;
 
-use crate::ensnano_flatscene::FlatScene;
-use crate::ensnano_gui::{
-    AppState as _, Gui, IcedMessages, OverlayType, TopBarState, left_panel::ColorOverlay,
-};
-use crate::ensnano_scene::{
-    AppState as _, Scene, SceneKind, data::design3d::SceneDesignReaderExt as _,
-};
 use app_state::{
     AppState,
     design_interactor::controller::{
@@ -119,6 +107,10 @@ use ensnano_design::{
     group_attributes::GroupPivot,
 };
 use ensnano_exports::{ExportResult, ExportType};
+use ensnano_flatscene::FlatScene;
+use ensnano_gui::{
+    AppState as _, Gui, IcedMessages, OverlayType, TopBarState, left_panel::ColorOverlay,
+};
 use ensnano_iced::{fonts, theme, ui_size::UiSize};
 use ensnano_interactor::{
     DesignOperation, DesignRotation, DesignTranslation, IsometryTarget, PastingStatus,
@@ -139,6 +131,7 @@ use ensnano_interactor::{
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
 };
 use ensnano_organizer::tree::GroupId;
+use ensnano_scene::{AppState as _, Scene, SceneKind, data::design3d::SceneDesignReaderExt as _};
 use ensnano_utils::TEXTURE_FORMAT;
 use iced::{
     advanced::{clipboard, renderer},
@@ -204,7 +197,7 @@ const PANIC_ON_WGPU_ERRORS: bool = true;
 /// * It initializes a multiplexer.
 /// * It initializes applications and GUI component, and associate regions of the screen to these
 ///   components
-/// * It initializes the [Scheduler] and the [Gui manager](crate::ensnano_gui::Gui)
+/// * It initializes the [Scheduler] and the [Gui manager](ensnano_gui::Gui)
 ///
 /// # Event loop
 ///
@@ -213,7 +206,7 @@ const PANIC_ON_WGPU_ERRORS: bool = true;
 /// * When a event is received, it is forwarded to the multiplexer. The Multiplexer may then
 ///   convert this event into an event for a specific screen region.
 /// * When all window events have been handled, the main function reads messages that it received
-///   from the [Gui Manager](crate::ensnano_gui::Gui). The consequences of these messages are
+///   from the [Gui Manager](ensnano_gui::Gui). The consequences of these messages are
 ///   forwarded to the applications.
 /// * The main loops then reads the messages that it received and forwards their consequences to
 ///   the Gui components.

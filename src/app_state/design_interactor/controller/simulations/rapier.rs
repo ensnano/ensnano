@@ -1,5 +1,3 @@
-use ensnano_design::{Design, helices::NuclCollection, parameters::HelixParameters};
-use crate::ensnano_physics::simulation::RapierPhysicsSystem;
 use crate::{
     app_state::design_interactor::{
         controller::simulations::SimulationInterface,
@@ -7,6 +5,8 @@ use crate::{
     },
     controller::channel_reader::ChannelReader,
 };
+use ensnano_design::{Design, helices::NuclCollection, parameters::HelixParameters};
+use ensnano_physics::simulation::RapierPhysicsSystem;
 use std::{
     collections::HashMap,
     sync::{Arc, Mutex, Weak},
