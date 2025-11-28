@@ -2,7 +2,7 @@ use crate::ensnano_gui::{
     AppState,
     left_panel::{Message, tabs::GuiTab},
 };
-use crate::ensnano_iced::{
+use ensnano_iced::{
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, right_checkbox, section, subsection, text_button},
     theme,

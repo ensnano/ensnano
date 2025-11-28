@@ -10,13 +10,11 @@ mod icon;
 pub mod theme;
 pub mod tree;
 
-use crate::{
-    ensnano_iced::widgets::keyboard_priority::keyboard_priority,
-    ensnano_organizer::{
-        drag_drop_target::{DragDropTarget, DragIdentifier},
-        element::{AttributeDisplayer, ElementKey, OrganizerAttribute as _, OrganizerElement},
-    },
+use crate::ensnano_organizer::{
+    drag_drop_target::{DragDropTarget, DragIdentifier},
+    element::{AttributeDisplayer, ElementKey, OrganizerAttribute as _, OrganizerElement},
 };
+use ensnano_iced::widgets::keyboard_priority::keyboard_priority;
 use hoverable_container::HoverableContainer;
 use iced::{
     Element, Length, Renderer, Theme,

@@ -6,7 +6,7 @@ use crate::ensnano_consts::{
 };
 use crate::ensnano_design::{bezier_plane::BezierVertexId, grid::GridId};
 use crate::ensnano_gui::{AppState, GuiDesignReaderExt, Requests, left_panel::Message};
-use crate::ensnano_iced::{
+use ensnano_iced::{
     helpers::{extra_jump, right_checkbox, section, subsection, text_button},
     theme,
     ui_size::UiSize,

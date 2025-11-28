@@ -19,7 +19,7 @@ use crate::ensnano_gui::{
         revolution_tab::{CurveDescriptorBuilder, RevolutionParameterId},
     },
 };
-use crate::ensnano_iced::{
+use ensnano_iced::{
     color_picker::ColorPickerMessage,
     fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
     theme::GuiBackground,

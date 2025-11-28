@@ -9,7 +9,6 @@ use crate::ensnano_design::{
 };
 use crate::ensnano_exports::ExportType;
 use crate::ensnano_gui::{OverlayType, left_panel::RigidBodyParametersRequest};
-use crate::ensnano_iced::ui_size::UiSize;
 use crate::ensnano_interactor::{
     DesignOperation, HyperboloidRequest, InsertionPoint, RapierSimulationRequest,
     RigidBodyConstants, RollRequest,
@@ -24,6 +23,7 @@ use crate::ensnano_interactor::{
 };
 use crate::ensnano_organizer::tree::{GroupId, OrganizerTree};
 use crate::requests::Requests;
+use ensnano_iced::ui_size::UiSize;
 use std::{collections::BTreeSet, sync::Arc};
 use ultraviolet::{Rotor3, Vec2, Vec3};
 

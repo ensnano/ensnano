@@ -1,5 +1,5 @@
 use crate::ensnano_gui::{AppState, CameraId, left_panel::Message};
-use crate::ensnano_iced::{
+use ensnano_iced::{
     fonts::material_icons::{MaterialIcon, MaterialIconStyle},
     helpers::{
         extra_jump, fixed_text_button, material_icon, material_icon_button, rotation_icon_button,

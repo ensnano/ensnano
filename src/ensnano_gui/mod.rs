@@ -21,7 +21,7 @@ use crate::ensnano_design::{
 use crate::ensnano_gui::left_panel::tabs::revolution_tab::{
     CurveDescriptorBuilder, RevolutionScaling,
 };
-use crate::ensnano_iced::{
+use ensnano_iced::{
     fonts::{INTER_REGULAR_FONT, load_fonts},
     ui_size::UiSize,
 };

@@ -2,10 +2,8 @@
 
 // TODO: Make it an independent object like ensnano_iced::color_picker ?
 
-use crate::{
-    ensnano_gui::{AppState, left_panel::Message},
-    ensnano_iced::theme,
-};
+use crate::ensnano_gui::{AppState, left_panel::Message};
+use ensnano_iced::theme;
 use iced::{
     Alignment, Length, Pixels,
     widget::{Space, button, row, slider, text},

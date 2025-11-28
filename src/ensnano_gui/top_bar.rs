@@ -9,7 +9,7 @@ use crate::ensnano_gui::{
     AppState, Requests, TopBarState,
     icon::{HasIcon as _, HasIconDependentOnAxis as _},
 };
-use crate::ensnano_iced::{
+use ensnano_iced::{
     fonts::{
         ENSNANO_FONT,
         material_icons::{MaterialIcon, MaterialIconStyle},

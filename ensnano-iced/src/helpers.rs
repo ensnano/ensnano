@@ -1,4 +1,4 @@
-use crate::ensnano_iced::{
+use crate::{
     fonts::{
         ENSNANO_FONT, INTER_BOLD_FONT,
         material_icons::{

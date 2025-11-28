@@ -9,7 +9,7 @@ pub mod sequence_tab;
 pub mod simulation_tab;
 
 use crate::ensnano_gui::{AppState, left_panel::Message};
-use crate::ensnano_iced::ui_size::UiSize;
+use ensnano_iced::ui_size::UiSize;
 use iced::{Command, Length, widget::container};
 use iced_aw::TabLabel;
 

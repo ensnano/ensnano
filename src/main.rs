@@ -78,7 +78,6 @@ mod ensnano_design;
 mod ensnano_exports;
 mod ensnano_flatscene;
 mod ensnano_gui;
-mod ensnano_iced;
 mod ensnano_interactor;
 mod ensnano_organizer;
 mod ensnano_physics;
@@ -105,7 +104,6 @@ use crate::ensnano_flatscene::FlatScene;
 use crate::ensnano_gui::{
     AppState as _, Gui, IcedMessages, OverlayType, TopBarState, left_panel::ColorOverlay,
 };
-use crate::ensnano_iced::{fonts, theme, ui_size::UiSize};
 use crate::ensnano_interactor::{
     DesignOperation, DesignRotation, DesignTranslation, IsometryTarget, PastingStatus,
     RigidBodyConstants,
@@ -147,6 +145,7 @@ use controller::{
         ScaffoldSetter, SetScaffoldSequenceError, SetScaffoldSequenceOk, TargetScaffoldLength,
     },
 };
+use ensnano_iced::{fonts, theme, ui_size::UiSize};
 use iced::{
     advanced::{clipboard, renderer},
     mouse::Cursor,

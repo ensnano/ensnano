@@ -4,7 +4,7 @@ use crate::ensnano_gui::{
     AppState,
     left_panel::{Message, tabs::GuiTab},
 };
-use crate::ensnano_iced::{
+use ensnano_iced::{
     helpers::{extra_jump, right_checkbox, section, text_button},
     theme,
     ui_size::UiSize,

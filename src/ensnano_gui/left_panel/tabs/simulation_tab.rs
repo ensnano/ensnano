@@ -8,7 +8,7 @@ use crate::ensnano_gui::{
         tabs::{GuiTab, gostop::GoStop},
     },
 };
-use crate::ensnano_iced::{
+use ensnano_iced::{
     helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
     ui_size::UiSize,
 };

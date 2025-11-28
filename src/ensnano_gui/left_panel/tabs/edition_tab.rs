@@ -7,7 +7,7 @@ use crate::ensnano_gui::{
         tabs::GuiTab,
     },
 };
-use crate::ensnano_iced::{
+use ensnano_iced::{
     color_picker::{ColorPicker, ColorPickerMessage},
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{right_checkbox, section, start_stop_button, subsection, text_button},

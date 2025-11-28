@@ -21,7 +21,7 @@ use crate::ensnano_design::{
     SavingInformation, bezier_plane::BezierPathId, group_attributes::GroupPivot, strands::Domain,
 };
 use crate::ensnano_exports::{ExportResult, ExportType};
-use crate::ensnano_iced::ui_size::UiSize;
+use ensnano_iced::ui_size::UiSize;
 use crate::ensnano_interactor::{
     DesignOperation, PastingStatus, StrandBuildingStatus, WidgetBasis,
     app_state_parameters::{

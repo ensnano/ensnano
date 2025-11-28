@@ -7,7 +7,7 @@ use crate::ensnano_gui::{
         tabs::GuiTab,
     },
 };
-use crate::ensnano_iced::{
+use ensnano_iced::{
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, jump_by, right_checkbox, section, subsection},
     ui_size::{ALL_UI_SIZES, UiSize},

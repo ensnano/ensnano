@@ -1,3 +1,6 @@
+[workspace]
+members = ["ensnano-iced"]
+
 [workspace.package]
 authors = [
     "thenlevy <nicolaspierrelevy@gmail.com>",
@@ -12,7 +15,9 @@ license = "GPL-3.0-or-later"
 repository = "https://github.com/ensnano/ensnano"
 version = "0.7.0"
 
-[dependencies]
+[workspace.dependencies]
+ensnano_iced = { path = "ensnano-iced" }
+
 ahash = "0.8.6"
 bytemuck = "1.2.0"
 chebyshev_polynomials = { git = "https://github.com/thenlevy/chebyshev_polynomials" }
@@ -76,6 +81,61 @@ ultraviolet = { git = "https://github.com/termhn/ultraviolet", rev = "b2fb29e", 
 version-compare = "0.1.0"
 wgpu = { version = "0.19", features = ["spirv"] }
 winit = "0.29"
+
+[dependencies]
+ensnano_iced.workspace = true
+
+ahash.workspace = true
+bytemuck.workspace = true
+chebyshev_polynomials.workspace = true
+chrono.workspace = true
+color_space.workspace = true
+confy.workspace = true
+dirs.workspace = true
+fontdue.workspace = true
+futures.workspace = true
+futures-channel.workspace = true
+gltf.workspace = true
+iced.workspace = true
+iced_aw.workspace = true
+iced_graphics.workspace = true
+iced_runtime.workspace = true
+iced_wgpu.workspace = true
+iced_winit.workspace = true
+icondata.workspace = true
+image.workspace = true
+int-enum.workspace = true
+itertools.workspace = true
+log.workspace = true
+lyon.workspace = true
+mathru.workspace = true
+nom_stl.workspace = true
+num.workspace = true
+num_enum.workspace = true
+open.workspace = true
+ordered-float.workspace = true
+paste.workspace = true
+pathdiff.workspace = true
+png.workspace = true
+pretty_env_logger.workspace = true
+quadrature.workspace = true
+rand.workspace = true
+rand_distr.workspace = true
+rapier3d.workspace = true
+rayon.workspace = true
+regex.workspace = true
+relative-path.workspace = true
+rfd.workspace = true
+rust_xlsxwriter.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+serde_with.workspace = true
+strum.workspace = true
+svg.workspace = true
+ultraviolet.workspace = true
+version-compare.workspace = true
+wgpu.workspace = true
+winit.workspace = true
 
 # Enable max optimizations for dependencies, but not for our code:
 [profile.dev.package."*"]

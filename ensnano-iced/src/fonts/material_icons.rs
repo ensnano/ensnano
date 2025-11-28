@@ -1,4 +1,3 @@
-#![expect(dead_code)]
 // cspell: disable
 
 use iced::Font;

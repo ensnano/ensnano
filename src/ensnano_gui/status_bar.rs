@@ -1,5 +1,5 @@
 use crate::ensnano_gui::{AppState, Requests};
-use crate::ensnano_iced::{
+use ensnano_iced::{
     theme::GuiBackground, ui_size::UiSize, widgets::keyboard_priority::keyboard_priority,
 };
 use crate::ensnano_interactor::{StrandBuildingStatus, operation::Operation};
