@@ -29,11 +29,12 @@ pub enum ErrDesignOperation {
 pub const MIN_HELICES_TO_MAKE_GRID: usize = 4;
 
 /// Try to create a grid from a set of helices.
+// TODO: rename this or super::grid::make_grid_from_helices to avoid collision
 pub fn make_grid_from_helices(
     design: &mut Design,
     helices: &[usize],
 ) -> Result<(), ErrDesignOperation> {
-    make_grid_from_helices(design, helices)?;
+    super::grid::make_grid_from_helices(design, helices)?;
     Ok(())
 }
 
