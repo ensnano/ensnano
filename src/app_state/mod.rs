@@ -6,12 +6,12 @@
 //!
 //! Each component of ENSnano has specific needs and express them via its own `AppState` trait.
 
-pub mod address_pointer;
-pub mod design_interactor;
-pub mod impl_app2d;
-pub mod impl_app3d;
-pub mod impl_gui;
-pub mod transitions;
+pub(crate) mod address_pointer;
+pub(crate) mod design_interactor;
+pub(crate) mod impl_app2d;
+pub(crate) mod impl_app3d;
+pub(crate) mod impl_gui;
+pub(crate) mod transitions;
 
 #[cfg(test)]
 use ensnano_design::Design;
@@ -58,7 +58,7 @@ use ultraviolet::{Rotor3, Vec3};
 /// At each event loop iteration, a new `AppState` may be created. Successive AppState are stored
 /// on an undo/redo stack.
 #[derive(Clone, PartialEq, Eq)]
-pub struct AppState(pub AddressPointer<AppState_>);
+pub(crate) struct AppState(pub AddressPointer<AppState_>);
 
 impl std::fmt::Debug for AppState {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -648,7 +648,7 @@ impl AppState {
 }
 
 #[derive(Clone, Default)]
-pub struct AppState_ {
+pub(crate) struct AppState_ {
     /// The set of currently selected objects
     pub selection: AppStateSelection,
     /// The set of objects that are "one click away from being selected"
@@ -671,7 +671,7 @@ pub struct AppState_ {
 }
 
 #[derive(Clone, Default)]
-pub struct CurrentUnrootedSurface {
+pub(crate) struct CurrentUnrootedSurface {
     descriptor: Option<UnrootedRevolutionSurfaceDescriptor>,
     bezier_path_id: Option<BezierPathId>,
     area: Option<f64>,
@@ -703,7 +703,7 @@ impl AppState_ {
 }
 
 #[derive(Clone, Default)]
-pub struct AppStateSelection {
+pub(crate) struct AppStateSelection {
     selection: AddressPointer<Vec<Selection>>,
     selected_group: Option<GroupId>,
     pivot: Arc<RwLock<Option<GroupPivot>>>,
@@ -711,7 +711,7 @@ pub struct AppStateSelection {
 }
 
 #[derive(Clone, PartialEq, Eq)]
-pub struct NewHelixStrand {
+pub(crate) struct NewHelixStrand {
     length: usize,
     start: isize,
 }

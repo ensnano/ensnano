@@ -3,7 +3,7 @@ use ensnano_interactor::application::Camera3D;
 use std::borrow::Cow;
 
 /// Represents an undoable operation.
-pub struct AppStateTransition {
+pub(crate) struct AppStateTransition {
     /// The state that the operation was performed on.
     pub state: AppState,
     /// A label describing the operation that was performed. It is meant to be displayed in app.
@@ -15,7 +15,7 @@ pub struct AppStateTransition {
 /// A label describing an operation.
 /// To create a `TransitionLabel`, use its `From<String>` or `From<'static str>` implementation
 #[derive(Clone, Debug)]
-pub struct TransitionLabel(Cow<'static, str>);
+pub(crate) struct TransitionLabel(Cow<'static, str>);
 
 impl<T: Into<Cow<'static, str>>> From<T> for TransitionLabel {
     fn from(x: T) -> Self {
@@ -30,7 +30,7 @@ impl AsRef<str> for TransitionLabel {
 }
 
 #[derive(Debug)]
-pub enum OkOperation {
+pub(crate) enum OkOperation {
     NotUndoable,
     Undoable {
         state: AppState,

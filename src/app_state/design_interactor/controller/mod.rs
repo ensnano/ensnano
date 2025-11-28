@@ -1,7 +1,7 @@
-pub mod clipboard;
-pub mod shift_optimization;
-pub mod simulations;
-pub mod update_insertion_length;
+pub(crate) mod clipboard;
+pub(crate) mod shift_optimization;
+pub(crate) mod simulations;
+pub(crate) mod update_insertion_length;
 
 use crate::{
     app_state::{
@@ -71,7 +71,7 @@ use ultraviolet::{Isometry2, Rotor2, Rotor3, Vec2, Vec3};
 type DuplicationEdge = (Edge, isize);
 
 #[derive(Clone, Default)]
-pub struct Controller {
+pub(crate) struct Controller {
     color_idx: usize,
     state: ControllerState,
     clipboard: AddressPointer<Clipboard>,
@@ -3249,7 +3249,7 @@ impl Controller {
 
 /// An operation has been successfully applied on a design, resulting in a new modified design. The
 /// variants of these enums indicate different ways in which the result should be handled
-pub enum OkOperation {
+pub(crate) enum OkOperation {
     /// Push the current design on the undo stack and replace it by the wrapped value. This variant
     /// is produced when the operation has been performed on a non transitory design and can be
     /// undone.
@@ -3287,7 +3287,7 @@ impl OkOperation {
 // Some values are only used for logging the error, which Rust considers to be unused
 #[expect(unused)]
 #[derive(Debug)]
-pub enum ErrOperation {
+pub(crate) enum ErrOperation {
     GroupHasNoPivot(GroupId),
     NotImplemented,
     /// The operation cannot be applied on the current selection
@@ -3671,7 +3671,7 @@ impl ControllerState {
     }
 }
 
-pub enum InteractorNotification {
+pub(crate) enum InteractorNotification {
     FinishOperation,
     NewSelection,
 }

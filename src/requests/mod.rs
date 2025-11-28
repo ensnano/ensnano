@@ -5,7 +5,7 @@
 mod impl_flatscene;
 mod impl_gui;
 mod impl_scene;
-pub mod poll;
+pub(crate) mod poll;
 
 use crate::controller::normal_state::Action;
 use ensnano_design::{
@@ -34,7 +34,7 @@ use ultraviolet::Vec3;
 /// The GUI and the applications are given a pointer to a `Mutex<Requests>` to store the user
 /// requests.
 #[derive(Default)]
-pub struct Requests {
+pub(crate) struct Requests {
     /// A change of the rotation mode
     pub action_mode: Option<ActionMode>,
     /// A change of the selection mode

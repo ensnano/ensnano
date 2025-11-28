@@ -1,12 +1,12 @@
 //! Handles windows and dialog (Alert, and file pickers) interactions.
 
-pub mod channel_reader;
+pub(crate) mod channel_reader;
 mod download_intervals;
-pub mod download_staples;
+pub(crate) mod download_staples;
 mod messages;
-pub mod normal_state;
+pub(crate) mod normal_state;
 mod quit;
-pub mod set_scaffold_sequence;
+pub(crate) mod set_scaffold_sequence;
 
 use crate::MainStateView;
 use crate::dialog::{self, MustAckMessage, YesNoQuestion};
@@ -15,7 +15,7 @@ use ensnano_design::scadnano::ScadnanoImportError;
 use normal_state::NormalState;
 use std::borrow::Cow;
 
-pub struct Controller {
+pub(crate) struct Controller {
     /// The sate of the windows
     state: Box<dyn State + 'static>,
 }
@@ -42,7 +42,7 @@ impl Controller {
     }
 }
 
-pub trait State {
+pub(crate) trait State {
     /// Operate on [MainStateView] and return the new State of the automata
     fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State>;
 }
@@ -146,7 +146,7 @@ impl State for YesNo {
     }
 }
 
-pub enum LoadDesignError {
+pub(crate) enum LoadDesignError {
     JsonError(serde_json::Error),
     ScadnanoImportError(ScadnanoImportError),
     IncompatibleVersion { current: String, required: String },
@@ -176,7 +176,7 @@ impl std::fmt::Display for LoadDesignError {
 }
 
 #[derive(Debug)]
-pub struct SaveDesignError(String);
+pub(crate) struct SaveDesignError(String);
 
 impl<E: std::error::Error> From<E> for SaveDesignError {
     fn from(e: E) -> Self {

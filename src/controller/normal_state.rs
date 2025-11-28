@@ -41,7 +41,7 @@ use std::{
 use ultraviolet::{Rotor3, Vec3};
 
 /// User is interacting with graphical components.
-pub struct NormalState;
+pub(crate) struct NormalState;
 
 impl State for NormalState {
     fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
@@ -435,7 +435,7 @@ fn export(export_type: ExportType) -> Box<dyn State> {
 /// An action to be performed at the end of an event loop iteration, and that will have an effect
 /// on the main application state, e.g. Closing the window, or toggling between 3D/2D views.
 #[derive(Debug, Clone)]
-pub enum Action {
+pub(crate) enum Action {
     LoadDesign(Option<PathBuf>),
     NewDesign,
     SaveAs,

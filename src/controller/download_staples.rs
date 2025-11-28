@@ -144,20 +144,20 @@ fn download_staples(downloader: &dyn StaplesDownloader, path: PathBuf) -> Box<dy
     TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(NormalState))
 }
 
-pub trait StaplesDownloader {
+pub(crate) trait StaplesDownloader {
     fn download_staples(&self) -> Result<DownloadStapleOk, DownloadStapleError>;
     fn write_staples_xlsx(&self, xlsx_path: &Path);
     fn write_intervals(&self, origami_path: &Path);
     fn default_shift(&self) -> Option<usize>;
 }
 
-pub enum DownloadStapleError {
+pub(crate) enum DownloadStapleError {
     /// No strand is set as the scaffold
     NoScaffoldSet,
     /// There is no sequence set for the scaffold
     ScaffoldSequenceNotSet,
 }
 
-pub struct DownloadStapleOk {
+pub(crate) struct DownloadStapleOk {
     pub warnings: Vec<String>,
 }

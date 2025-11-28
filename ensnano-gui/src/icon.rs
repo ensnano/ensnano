@@ -1,7 +1,7 @@
 use ensnano_interactor::selection::{ActionMode, SelectionMode};
 use iced::widget::image::Handle;
 
-pub trait HasIcon {
+pub(crate) trait HasIcon {
     fn icon_on(&self) -> Handle;
     fn icon_off(&self) -> Handle;
 }
@@ -28,7 +28,7 @@ impl HasIcon for SelectionMode {
     }
 }
 
-pub trait HasIconDependentOnAxis {
+pub(crate) trait HasIconDependentOnAxis {
     fn icon_on(&self, axis_aligned: bool) -> Handle;
     fn icon_off(&self, axis_aligned: bool) -> Handle;
 }

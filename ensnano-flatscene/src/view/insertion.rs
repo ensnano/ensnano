@@ -12,7 +12,7 @@ use wgpu::{
     util::DeviceExt as _,
 };
 
-pub struct InsertionDrawer {
+pub(crate) struct InsertionDrawer {
     new_instances: Option<Vec<InsertionInstance>>,
     vertex_buffer: Buffer,
     index_buffer: Buffer,
@@ -96,7 +96,7 @@ impl InsertionDrawer {
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct InsertionVertex {
+pub(crate) struct InsertionVertex {
     pub position: [f32; 2],
     pub normal: [f32; 2],
 }

@@ -1,5 +1,5 @@
 mod dragging_state;
-pub mod event_context;
+pub(crate) mod event_context;
 mod point_and_click_state;
 
 use crate::{
@@ -91,7 +91,7 @@ pub(super) trait ControllerState<S: AppState> {
     fn give_context(&mut self, _context: EventContext<'_, S>) {}
 }
 
-pub struct NormalState {
+pub(crate) struct NormalState {
     pub mouse_position: PhysicalPosition<f64>,
 }
 
@@ -528,7 +528,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
 
 /// What is being affected by the translation
 #[derive(Clone, Debug, Copy, Eq, PartialEq)]
-pub enum WidgetTarget {
+pub(crate) enum WidgetTarget {
     /// The selected elements
     Object,
     /// The selection's pivot

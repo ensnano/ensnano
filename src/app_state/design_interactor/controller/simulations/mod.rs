@@ -1,7 +1,7 @@
-pub mod rapier;
-pub mod revolutions;
-pub mod roller;
-pub mod twister;
+pub(crate) mod rapier;
+pub(crate) mod revolutions;
+pub(crate) mod roller;
+pub(crate) mod twister;
 
 use crate::app_state::design_interactor::{
     Presenter, controller::ErrOperation, presenter::SimulationUpdate,
@@ -781,13 +781,13 @@ pub(super) struct HelixSystemThread {
 }
 
 #[derive(Default)]
-pub struct HelixSystemInterface {
+pub(crate) struct HelixSystemInterface {
     pub new_state: Option<RigidHelixState>,
     pub(super) parameters_update: Option<RigidBodyConstants>,
 }
 
 #[derive(Debug, Clone)]
-pub struct RigidHelixState {
+pub(crate) struct RigidHelixState {
     positions: Vec<Vec3>,
     orientations: Vec<Rotor3>,
     center_of_mass_from_helix: Vec<Vec3>,
@@ -875,7 +875,7 @@ impl HelixSystemThread {
 }
 
 #[derive(Clone)]
-pub struct GridSystemState {
+pub(crate) struct GridSystemState {
     positions: Vec<Vec3>,
     orientations: Vec<Rotor3>,
     center_of_mass_from_grid: Vec<Vec3>,
@@ -1214,7 +1214,7 @@ fn read_intervals(presenter: &Presenter) -> Result<IntervalResult, ErrOperation>
 }
 
 #[derive(Debug)]
-pub struct IntervalResult {
+pub(crate) struct IntervalResult {
     nucl_map: HashMap<Nucl, FreeNucl>,
     helix_map: Vec<usize>,
     free_nucls: Vec<FreeNucl>,
@@ -1224,7 +1224,7 @@ pub struct IntervalResult {
 }
 
 #[expect(clippy::large_enum_variant)]
-pub enum SimulationOperation<'pres, 'reader> {
+pub(crate) enum SimulationOperation<'pres, 'reader> {
     StartHelices {
         presenter: &'pres Presenter,
         parameters: RigidBodyConstants,
@@ -1261,7 +1261,7 @@ pub enum SimulationOperation<'pres, 'reader> {
     },
 }
 
-pub trait SimulationInterface: Send {
+pub(crate) trait SimulationInterface: Send {
     /// Return the state of the design as determined by the current advancement of the simulation
     fn get_simulation_state(&mut self) -> Option<Box<dyn SimulationUpdate>>;
     /// return true if the simulation should still be running. By overriding this methods, some

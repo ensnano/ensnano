@@ -12,7 +12,7 @@ use winit::{
 };
 
 /// The scheduler is responsible for running the different applications
-pub struct Scheduler {
+pub(crate) struct Scheduler {
     applications: HashMap<GuiComponentType, Arc<Mutex<dyn Application<AppState = AppState>>>>,
     needs_redraw: Vec<GuiComponentType>,
 }

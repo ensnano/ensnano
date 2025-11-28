@@ -36,7 +36,7 @@ pub struct Camera {
     pub rotor: Rotor3,
 }
 
-pub type CameraPtr = Rc<RefCell<Camera>>;
+pub(crate) type CameraPtr = Rc<RefCell<Camera>>;
 
 impl Camera {
     pub fn new(position: Vec3, rotor: Rotor3) -> Self {
@@ -80,7 +80,7 @@ pub struct Projection {
     pub stereographic_zoom: f32,
 }
 
-pub type ProjectionPtr = Rc<RefCell<Projection>>;
+pub(crate) type ProjectionPtr = Rc<RefCell<Projection>>;
 
 impl Projection {
     pub fn new(width: u32, height: u32, fovy: f32, znear: f32, zfar: f32) -> Self {
@@ -209,7 +209,7 @@ impl ConstrainedRotation {
     }
 }
 
-pub struct CameraController {
+pub(crate) struct CameraController {
     speed: f32,
     amount_up: f32,
     amount_down: f32,

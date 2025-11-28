@@ -1,4 +1,4 @@
-pub mod automata;
+pub(crate) mod automata;
 
 use crate::{
     AppState, PhysicalPosition, ViewPtr, WindowEvent,
@@ -30,7 +30,7 @@ use winit::{
 };
 
 /// An object handling input and notification for the scene.
-pub struct Controller<S: AppState> {
+pub(crate) struct Controller<S: AppState> {
     /// A pointer to the View
     view: ViewPtr,
     /// A pointer to the data
@@ -50,7 +50,7 @@ pub struct Controller<S: AppState> {
 }
 
 #[derive(Clone, Debug)]
-pub enum Consequence {
+pub(crate) enum Consequence {
     CameraMoved,
     CameraTranslated(f64, f64),
     XoverAttempt(Nucl, Nucl, usize, bool),
@@ -489,7 +489,7 @@ fn ctrl(modifiers: &ModifiersState) -> bool {
     }
 }
 
-pub trait Data {
+pub(crate) trait Data {
     fn element_to_nucl(
         &self,
         element: Option<&SceneElement>,

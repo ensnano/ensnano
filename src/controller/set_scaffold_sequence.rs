@@ -201,7 +201,7 @@ fn optimize_scaffold_position(_design_id: usize, main_state: &mut MainStateView)
     Box::new(NormalState)
 }
 
-pub trait ScaffoldSetter {
+pub(crate) trait ScaffoldSetter {
     fn get_scaffold_length(&self) -> Option<usize>;
     fn set_scaffold_sequence(
         &mut self,
@@ -211,12 +211,12 @@ pub trait ScaffoldSetter {
     fn optimize_shift(&mut self);
 }
 
-pub struct SetScaffoldSequenceOk {
+pub(crate) struct SetScaffoldSequenceOk {
     pub default_shift: Option<usize>,
     pub target_scaffold_length: TargetScaffoldLength,
 }
 
-pub enum TargetScaffoldLength {
+pub(crate) enum TargetScaffoldLength {
     Ok,
     NotOk {
         design_length: usize,
@@ -225,4 +225,4 @@ pub enum TargetScaffoldLength {
 }
 
 #[derive(Debug)]
-pub struct SetScaffoldSequenceError(#[expect(unused)] pub String);
+pub(crate) struct SetScaffoldSequenceError(#[expect(unused)] pub String);

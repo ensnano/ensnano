@@ -4,7 +4,7 @@ use ensnano_design::{
 };
 use ensnano_utils::id_generator::IdGenerator;
 
-pub trait StrandJunction {
+pub(crate) trait StrandJunction {
     /// Read the junctions for self when loading the design.
     /// If `identified` is true (i.e. during the first pass), read the IdentifiedXover
     /// and insert them in the xover_ids.

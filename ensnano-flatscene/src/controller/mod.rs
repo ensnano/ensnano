@@ -26,7 +26,7 @@ use winit::{
     window::CursorIcon,
 };
 
-pub struct Controller<S: AppState> {
+pub(crate) struct Controller<S: AppState> {
     view: ViewPtr,
     data: DataPtr<S::Reader>,
     window_size: PhySize,
@@ -41,7 +41,7 @@ pub struct Controller<S: AppState> {
 }
 
 #[derive(Debug)]
-pub enum Consequence {
+pub(crate) enum Consequence {
     Nothing,
     Xover(FlatNucl, FlatNucl),
     Cut(FlatNucl),

@@ -33,7 +33,7 @@ use ultraviolet::{DVec3, Isometry2, Isometry3, Rotor2, Similarity3, Vec2, Vec3};
 
 const MAX_ACCEL: f64 = 100.;
 
-pub struct RevolutionSurfaceSystem {
+pub(crate) struct RevolutionSurfaceSystem {
     topology: CloseSurfaceTopology,
     helix_parameters: HelixParameters,
     last_thetas: Option<Vec<f64>>,
@@ -409,7 +409,7 @@ impl ExplicitODE<f64> for RevolutionSurfaceSystem {
     }
 }
 
-pub struct RevolutionSystemThread {
+pub(crate) struct RevolutionSystemThread {
     interface: Weak<Mutex<RevolutionSystemInterface>>,
     system: RevolutionSurfaceSystem,
 }
@@ -631,7 +631,7 @@ impl SimulationUpdate for HelicesRouting {
 }
 
 #[derive(Default)]
-pub struct RevolutionSystemInterface {
+pub(crate) struct RevolutionSystemInterface {
     new_state: Option<RevolutionSurfaceSystem>,
     helices_routing: OptionOnce<HelicesRouting>,
     finished: bool,

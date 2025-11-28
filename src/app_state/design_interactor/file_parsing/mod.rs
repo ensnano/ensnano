@@ -1,5 +1,5 @@
 mod cadnano;
-pub mod junctions;
+pub(crate) mod junctions;
 
 use crate::app_state::{
     address_pointer::AddressPointer,

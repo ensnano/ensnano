@@ -14,7 +14,7 @@ use std::{
 };
 
 #[derive(Default)]
-pub struct RapierPhysicalSystem {
+pub(crate) struct RapierPhysicalSystem {
     system: RapierPhysicsSystem,
     interface: Weak<Mutex<RapierInterface>>,
 }
@@ -68,7 +68,7 @@ impl RapierPhysicalSystem {
 }
 
 #[derive(Default, Clone)]
-pub struct RapierInterface {
+pub(crate) struct RapierInterface {
     space_position: Vec<(u32, [f32; 3])>,
     pub force_stop: bool,
 }

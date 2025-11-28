@@ -71,7 +71,7 @@ type LayoutNodePtr = Rc<RefCell<LayoutNode>>;
 ///     let (left_panel, main_section) = layout.vsplit(content_section, 0.2, true);
 ///
 ///
-pub struct LayoutTree {
+pub(crate) struct LayoutTree {
     /// The root node of the LayoutTree.
     root: LayoutNodePtr,
     /// An array mapping area identifier to leaves of the LayoutTree.

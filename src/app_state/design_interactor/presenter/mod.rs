@@ -1,8 +1,8 @@
-pub mod design_content;
-pub mod impl_main_reader;
-pub mod impl_reader2d;
-pub mod impl_reader3d;
-pub mod impl_readergui;
+pub(crate) mod design_content;
+pub(crate) mod impl_main_reader;
+pub(crate) mod impl_reader2d;
+pub(crate) mod impl_reader3d;
+pub(crate) mod impl_readergui;
 
 use crate::app_state::{address_pointer::AddressPointer, design_interactor::DesignInteractor};
 use design_content::DesignContent;
@@ -46,7 +46,7 @@ type JunctionsIds = IdGenerator<(Nucl, Nucl)>;
 /// stored. To obtain a design reader, a pointer to the current design must be given. If the given
 /// pointer does not point to the same address as the one that was used to create the data
 /// structures, the structures are updated before returning the design reader.
-pub struct Presenter {
+pub(crate) struct Presenter {
     pub current_design: AddressPointer<Design>,
     current_suggestion_parameters: SuggestionParameters,
     model_matrix: AddressPointer<Mat4>,
@@ -744,7 +744,7 @@ impl DesignInteractor {
     }
 }
 
-pub trait SimulationUpdate: Send + Sync {
+pub(crate) trait SimulationUpdate: Send + Sync {
     fn update_positions(
         &self,
         _identifier_nucl: &NuclCollection,

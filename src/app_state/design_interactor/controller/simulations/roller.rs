@@ -25,7 +25,7 @@ const FRICTION: f32 = 100.;
 const SYNC_ROLLS_INSTEAD_OF_COPY_ROLLS: bool = false; // false is ENSnano default
 
 /// A structure performing physical simulation on a design.
-pub struct PhysicalSystem {
+pub(crate) struct PhysicalSystem {
     /// The data representing the design on which the simulation is performed
     data: DesignData,
     /// The structure that handles the simulation of the rotation springs.
@@ -293,7 +293,7 @@ impl RollSystem {
     }
 }
 
-pub struct DesignData {
+pub(crate) struct DesignData {
     pub helices: Vec<Helix>,
     pub helix_map: HashMap<usize, usize>,
     pub xovers: Vec<(Nucl, Nucl)>,
@@ -311,7 +311,7 @@ impl DesignData {
 }
 
 #[derive(Default)]
-pub struct RollInterface {
+pub(crate) struct RollInterface {
     pub new_state: Option<RollState>,
     stabilized: bool,
 }
@@ -327,7 +327,7 @@ impl SimulationInterface for RollInterface {
     }
 }
 
-pub struct RollState(HashMap<usize, Helix>);
+pub(crate) struct RollState(HashMap<usize, Helix>);
 
 impl SimulationUpdate for RollState {
     fn update_design(&self, design: &mut Design) {

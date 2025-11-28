@@ -35,7 +35,7 @@ use xover_suggestions::XoverSuggestions;
 const PRINTOUT_NUCL_POSITIONS: bool = false; // true;
 
 #[derive(Default, Clone)]
-pub struct DesignContent {
+pub(crate) struct DesignContent {
     /// Maps identifier of elements to their object type
     pub object_type: HashMap<u32, ObjectType, RandomState>,
     /// Maps identifier of nucleotide to Nucleotide objects
@@ -1273,7 +1273,7 @@ impl DesignContent {
 }
 
 #[derive(Debug)]
-pub struct Staple {
+pub(crate) struct Staple {
     pub well: String,
     pub name: Cow<'static, str>,
     pub sequence: String,
@@ -1287,7 +1287,7 @@ pub struct Staple {
 }
 
 #[derive(Debug, Serialize, Clone)]
-pub struct StapleIntervals {
+pub(crate) struct StapleIntervals {
     pub staple_id: usize,
     pub intervals: Vec<(isize, isize)>,
 }

@@ -174,7 +174,7 @@ fn triangle_indices_from_strip(indices: Vec<u16>) -> Vec<u16> {
     triangle_from_strip_indices
 }
 
-pub fn stl_bytes_export(raw_instances: Vec<RawDnaInstance>) -> Vec<u8> {
+pub(crate) fn stl_bytes_export(raw_instances: Vec<RawDnaInstance>) -> Vec<u8> {
     let triangles: Vec<StlTriangle> = raw_instances
         .iter()
         .flat_map(|raw_inst| raw_inst.to_stl_triangles())

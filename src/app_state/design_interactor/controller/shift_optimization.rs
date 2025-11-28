@@ -79,7 +79,7 @@ fn read_scaffold_seq(
 }
 
 /// Shift the scaffold at an optimized position and return the corresponding score
-pub fn optimize_shift(
+pub(crate) fn optimize_shift(
     design: Arc<Design>,
     nucl_collection: Arc<NuclCollection>,
     chanel_reader: &mut ChannelReader,
@@ -223,9 +223,9 @@ fn compl(c: Option<char>) -> Option<char> {
     }
 }
 
-pub struct ShiftOptimizationOk {
+pub(crate) struct ShiftOptimizationOk {
     pub position: usize,
     pub score: String,
 }
 
-pub type ShiftOptimizationResult = Result<ShiftOptimizationOk, ErrOperation>;
+pub(crate) type ShiftOptimizationResult = Result<ShiftOptimizationOk, ErrOperation>;

@@ -40,7 +40,7 @@ const CROSSOVER_SIZE: f32 = 0.64;
 /// rigid helices (helices are one rigid body),
 /// or sliced rigid helices (helices are rigid bodies
 /// separated at crossovers)
-pub trait SimulationSetup {
+pub(crate) trait SimulationSetup {
     // creates rigid bodes and assigns the provided
     // colliders to them
     fn build_bodies(
@@ -54,7 +54,7 @@ pub trait SimulationSetup {
 // This is used for full simulations; not used right now, but will be
 // with a proper interface.
 #[expect(dead_code)]
-pub struct FullSimulationSetup;
+pub(crate) struct FullSimulationSetup;
 
 impl SimulationSetup for FullSimulationSetup {
     fn build_bodies(
@@ -86,7 +86,7 @@ impl SimulationSetup for FullSimulationSetup {
     }
 }
 
-pub struct RigidHelicesSetup;
+pub(crate) struct RigidHelicesSetup;
 
 impl SimulationSetup for RigidHelicesSetup {
     fn build_bodies(
@@ -116,7 +116,7 @@ impl SimulationSetup for RigidHelicesSetup {
     }
 }
 
-pub fn build_simulation<S: SimulationSetup>(
+pub(crate) fn build_simulation<S: SimulationSetup>(
     intermediary_representation: &HashMap<usize, IntermediaryHelix>,
     object_type: &HashMap<u32, ObjectType>,
     nucleotide: &HashMap<u32, Nucl>,
@@ -472,7 +472,7 @@ fn build_strong_springs(
     }
 }
 
-pub fn add_crossover_springs(
+pub(crate) fn add_crossover_springs(
     object_type: &HashMap<u32, ObjectType>,
     nucleotide: &HashMap<u32, Nucl>,
     nucleotide_body_map: &HashMap<u32, ColliderHandle>,

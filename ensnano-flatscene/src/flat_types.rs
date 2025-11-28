@@ -357,7 +357,7 @@ impl FlatSelection {
     }
 }
 
-pub struct HelixVec<T: Flat>(Vec<T>);
+pub(crate) struct HelixVec<T: Flat>(Vec<T>);
 
 impl<T: Flat> std::ops::Index<FlatIdx> for HelixVec<T> {
     type Output = T;

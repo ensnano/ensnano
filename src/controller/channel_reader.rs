@@ -8,13 +8,13 @@ use crate::app_state::design_interactor::{
 use std::sync::{Arc, Mutex, Weak, mpsc};
 
 #[derive(Default)]
-pub struct ChannelReader {
+pub(crate) struct ChannelReader {
     scaffold_shift_optimization_progress: Option<mpsc::Receiver<f32>>,
     scaffold_shift_optimization_result: Option<mpsc::Receiver<ShiftOptimizationResult>>,
     simulation_interface: Option<Weak<Mutex<dyn SimulationInterface>>>,
 }
 
-pub enum ChannelReaderUpdate {
+pub(crate) enum ChannelReaderUpdate {
     /// Progress has been made in the optimization of the scaffold position
     ScaffoldShiftOptimizationProgress(f32),
     /// The optimum scaffold position has been found

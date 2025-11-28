@@ -17,7 +17,7 @@ macro_rules! log_err {
     };
 }
 
-pub struct DialogFilter {
+pub(crate) struct DialogFilter {
     name: &'static str,
     extensions: &'static [&'static str],
 }
@@ -27,17 +27,17 @@ impl DialogFilter {
     }
 }
 
-pub type DialogFilters = &'static [DialogFilter];
+pub(crate) type DialogFilters = &'static [DialogFilter];
 
 /// A question to which the user must answer yes or no
-pub struct YesNoQuestion(mpsc::Receiver<bool>);
+pub(crate) struct YesNoQuestion(mpsc::Receiver<bool>);
 impl YesNoQuestion {
     pub(crate) fn answer(&self) -> Option<bool> {
         self.0.try_recv().ok()
     }
 }
 
-pub fn yes_no_dialog(message: Cow<'static, str>) -> YesNoQuestion {
+pub(crate) fn yes_no_dialog(message: Cow<'static, str>) -> YesNoQuestion {
     let msg = rfd::AsyncMessageDialog::new()
         .set_description(message.as_ref())
         .set_buttons(rfd::MessageButtons::YesNo)
@@ -56,14 +56,14 @@ pub fn yes_no_dialog(message: Cow<'static, str>) -> YesNoQuestion {
 }
 
 /// A message that the user must acknowledge
-pub struct MustAckMessage(mpsc::Receiver<()>);
+pub(crate) struct MustAckMessage(mpsc::Receiver<()>);
 impl MustAckMessage {
     pub(crate) fn was_ack(&self) -> bool {
         self.0.try_recv().is_ok()
     }
 }
 
-pub fn blocking_message(message: Cow<'static, str>, level: rfd::MessageLevel) -> MustAckMessage {
+pub(crate) fn blocking_message(message: Cow<'static, str>, level: rfd::MessageLevel) -> MustAckMessage {
     let msg = rfd::AsyncMessageDialog::new()
         .set_level(level)
         .set_description(message.as_ref())
@@ -76,7 +76,7 @@ pub fn blocking_message(message: Cow<'static, str>, level: rfd::MessageLevel) ->
     MustAckMessage(rcv)
 }
 
-pub struct PathInput(mpsc::Receiver<Option<PathBuf>>);
+pub(crate) struct PathInput(mpsc::Receiver<Option<PathBuf>>);
 impl PathInput {
     pub(crate) fn get(&self) -> Option<Option<PathBuf>> {
         self.0.try_recv().ok()
@@ -119,7 +119,7 @@ fn normalize_extension(
     }
 }
 
-pub fn get_file_to_write(
+pub(crate) fn get_file_to_write(
     dialog_filters: DialogFilters,
     starting_path: Option<impl AsRef<Path>>,
     starting_name: Option<impl AsRef<Path>>,
@@ -182,7 +182,7 @@ pub fn get_file_to_write(
     PathInput(rcv)
 }
 
-pub fn load<P: AsRef<Path>>(starting_path: Option<P>, dialog_filters: DialogFilters) -> PathInput {
+pub(crate) fn load<P: AsRef<Path>>(starting_path: Option<P>, dialog_filters: DialogFilters) -> PathInput {
     let mut dialog = rfd::AsyncFileDialog::new();
     for dialog_filter in dialog_filters {
         dialog = dialog.add_filter(dialog_filter.name, dialog_filter.extensions);

@@ -8,7 +8,7 @@ use std::{
 static ICON_HANDLE_CACHE: LazyLock<Mutex<HashMap<Icon, Handle>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
 
-pub const ICON_SIZE: u16 = 10;
+pub(crate) const ICON_SIZE: u16 = 10;
 
 fn icon_to_svg(icon: Icon) -> Svg {
     let handle = ICON_HANDLE_CACHE.lock().unwrap().entry(icon).or_insert_with(|| {
@@ -23,11 +23,11 @@ fn icon_to_svg(icon: Icon) -> Svg {
     Svg::new(handle)
 }
 
-pub fn icon(icon: Icon) -> Svg {
+pub(crate) fn icon(icon: Icon) -> Svg {
     icon_to_svg(icon).width(ICON_SIZE).height(ICON_SIZE)
 }
 
-pub fn expand_icon(expanded: bool) -> Svg {
+pub(crate) fn expand_icon(expanded: bool) -> Svg {
     icon(if expanded {
         icondata::BsCaretDown
     } else {
@@ -35,10 +35,10 @@ pub fn expand_icon(expanded: bool) -> Svg {
     })
 }
 
-pub fn plus_icon() -> Svg {
+pub(crate) fn plus_icon() -> Svg {
     icon(icondata::BsPlus)
 }
 
-pub fn edit_icon() -> Svg {
+pub(crate) fn edit_icon() -> Svg {
     icon(icondata::BsVectorPen)
 }

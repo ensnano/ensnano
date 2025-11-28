@@ -1,6 +1,6 @@
 mod background;
 mod helix_view;
-pub mod insertion;
+pub(crate) mod insertion;
 mod rectangle;
 
 use crate::{

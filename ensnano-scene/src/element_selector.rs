@@ -15,7 +15,7 @@ use std::rc::Rc;
 use wgpu::{Device, Queue};
 use winit::dpi::{PhysicalPosition, PhysicalSize};
 
-pub struct ElementSelector {
+pub(crate) struct ElementSelector {
     pub device: Rc<Device>,
     pub queue: Rc<Queue>,
     readers: Vec<SceneReader>,
@@ -412,11 +412,11 @@ impl SceneReader {
     }
 }
 
-pub fn bezier_vertex_id(path_id: BezierPathId, vertex_id: usize) -> u32 {
+pub(crate) fn bezier_vertex_id(path_id: BezierPathId, vertex_id: usize) -> u32 {
     (u32::from(ObjType::BezierVertex) << 24) | ((path_id.0) << 16) | (vertex_id as u32)
 }
 
-pub fn bezier_tangent_id(path_id: BezierPathId, vertex_id: usize, tangent_in: bool) -> u32 {
+pub(crate) fn bezier_tangent_id(path_id: BezierPathId, vertex_id: usize, tangent_in: bool) -> u32 {
     let front = if tangent_in {
         u32::from(ObjType::BezierTangentIn)
     } else {

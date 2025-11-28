@@ -1,6 +1,6 @@
 #[derive(Debug, PartialEq, strum::EnumString)]
 #[repr(u32)]
-pub enum MaterialColor {
+pub(crate) enum MaterialColor {
     // MARK: - Red
     Red50 = 0xffebee,
     Red100 = 0xffcdd2,

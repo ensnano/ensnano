@@ -4,7 +4,7 @@ use std::{ops::Deref as _, sync::Arc};
 
 /// A wrapper around an `Arc<T>` that uses `Arc::ptr_eq` to test for equality.
 #[derive(Default)]
-pub struct AddressPointer<T: Default>(Arc<T>);
+pub(crate) struct AddressPointer<T: Default>(Arc<T>);
 
 impl<T: Default> Clone for AddressPointer<T> {
     fn clone(&self) -> Self {

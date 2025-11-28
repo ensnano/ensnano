@@ -12,7 +12,7 @@
 //!
 //! The multiplexer is also in charge of drawing to the frame.
 
-pub mod layout_manager;
+pub(crate) mod layout_manager;
 
 use crate::{controller::normal_state::Action, requests::Requests};
 use ensnano_iced::ui_size::UiSize;
@@ -36,7 +36,7 @@ use winit::{
 };
 
 /// A structure that handles the division of the window into different `DrawArea`.
-pub struct Multiplexer {
+pub(crate) struct Multiplexer {
     /// The *physical* size of the window.
     pub window_size: PhySize,
     /// The scale factor of the window.
@@ -754,7 +754,7 @@ impl Multiplexer {
 }
 
 #[derive(Clone)]
-pub struct Overlay {
+pub(crate) struct Overlay {
     pub position: PhysicalPosition<u32>,
     pub size: PhysicalSize<u32>,
 }

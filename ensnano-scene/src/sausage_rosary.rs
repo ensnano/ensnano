@@ -6,7 +6,7 @@ use ensnano_consts::HELIX_CYLINDER_COLOR;
 use ensnano_utils::instance::Instance;
 use ultraviolet::{Rotor3, Vec3};
 
-pub struct SausageRosary {
+pub(crate) struct SausageRosary {
     pub positions: Vec<Vec3>,
     pub is_cyclic: bool,
 }

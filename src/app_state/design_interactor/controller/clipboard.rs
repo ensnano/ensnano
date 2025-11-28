@@ -22,7 +22,7 @@ pub(super) enum Clipboard {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Copy)]
-pub enum PastePosition {
+pub(crate) enum PastePosition {
     Nucl(Nucl),
     GridPosition(GridPosition),
 }
@@ -946,7 +946,7 @@ impl Controller {
     }
 }
 
-pub enum CopyOperation {
+pub(crate) enum CopyOperation {
     CopyGrids(Vec<GridId>),
     CopyStrands(Vec<usize>),
     CopyXovers(Vec<(Nucl, Nucl)>),

@@ -20,7 +20,7 @@ const FREE_NUCLEOTIDE_DAMPING: f32 = 50000.0;
 const FREE_NUCLEOTIDE_DISTANCE: f32 = 0.64;
 
 #[derive(Copy, Clone, Debug)]
-pub enum BaseOrNucleotide {
+pub(crate) enum BaseOrNucleotide {
     // always backward, forward
     Base((u32, Nucl), (u32, Nucl)),
     ForwardNucleotide((u32, Nucl)),
@@ -121,7 +121,7 @@ impl BaseOrNucleotide {
     }
 }
 
-pub fn add_crossover_springs(
+pub(crate) fn add_crossover_springs(
     object_type: &HashMap<u32, ObjectType>,
     nucleotide: &HashMap<u32, Nucl>,
     nucleotide_body_map: &HashMap<u32, ColliderHandle>,
@@ -163,7 +163,7 @@ pub fn add_crossover_springs(
     }
 }
 
-pub fn generate_springs(
+pub(crate) fn generate_springs(
     from: (
         RigidBodyHandle,
         Option<ColliderHandle>,
@@ -327,7 +327,7 @@ fn generate_single_spring(
 
 /// Generates a list of BaseOrNucleotide from the information provided
 /// by ensnano
-pub fn generate_intermediary_representation(
+pub(crate) fn generate_intermediary_representation(
     nucleotide: &HashMap<u32, Nucl>,
 ) -> Vec<Vec<BaseOrNucleotide>> {
     let mut result = vec![];

@@ -21,7 +21,7 @@ use winit::{dpi::PhysicalPosition, keyboard::ModifiersState};
 const REVOLUTION_AXIS_WIDTH: f32 = 1.;
 
 /// The context in which an event took place.
-pub struct EventContext<'a, S: AppState> {
+pub(crate) struct EventContext<'a, S: AppState> {
     controller: &'a Controller<S>,
     app_state: &'a S,
     pixel_reader: &'a mut ElementSelector,

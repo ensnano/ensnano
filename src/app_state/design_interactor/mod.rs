@@ -1,6 +1,6 @@
-pub mod controller;
-pub mod file_parsing;
-pub mod presenter;
+pub(crate) mod controller;
+pub(crate) mod file_parsing;
+pub(crate) mod presenter;
 
 use crate::app_state::address_pointer::AddressPointer;
 use crate::controller::SaveDesignError;
@@ -36,7 +36,7 @@ use std::{io::Write as _, path::PathBuf, sync::Arc};
 /// The `DesignInteractor` handles all read/write operations on the design. It is a stateful struct
 /// so it is meant to be cheap to clone.
 #[derive(Clone, Default)]
-pub struct DesignInteractor {
+pub(crate) struct DesignInteractor {
     /// The current design
     pub design: AddressPointer<Design>,
     /// The structure that handles "read" operations. The graphic components of EnsNano access the

@@ -159,7 +159,7 @@ pub enum InstantiatedValue {
     BezierVertexPosition(Vec2),
 }
 
-pub enum GridPositionBuilder {
+pub(crate) enum GridPositionBuilder {
     Cartesian(Vec3Builder),
 }
 
@@ -189,7 +189,7 @@ impl GridPositionBuilder {
     }
 }
 
-pub enum GridOrientationBuilder {
+pub(crate) enum GridOrientationBuilder {
     DirectionAngle(DirectionAngleBuilder),
 }
 
@@ -222,7 +222,7 @@ impl GridOrientationBuilder {
     }
 }
 
-pub struct BezierVertexBuilder {
+pub(crate) struct BezierVertexBuilder {
     position_builder: Vec2Builder,
 }
 
@@ -272,7 +272,7 @@ where
     }
 }
 
-pub struct GridBuilder {
+pub(crate) struct GridBuilder {
     position_builder: GridPositionBuilder,
     orientation_builder: GridOrientationBuilder,
 }
@@ -357,7 +357,7 @@ where
     }
 }
 
-pub trait Builder<State>
+pub(crate) trait Builder<State>
 where
     State: AppState,
 {

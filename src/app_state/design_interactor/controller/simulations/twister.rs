@@ -34,7 +34,7 @@ struct TwistSystem {
     best_square_error: f64,
 }
 
-pub struct Twister {
+pub(crate) struct Twister {
     data: DesignData,
     system: TwistSystem,
     interface: Weak<Mutex<TwistInterface>>,
@@ -145,7 +145,7 @@ impl Twister {
 }
 
 #[derive(Clone)]
-pub struct TwistState {
+pub(crate) struct TwistState {
     grid_id: GridId,
     helices: HashMap<usize, Helix>,
     grid: GridDescriptor,
@@ -202,7 +202,7 @@ impl SimulationUpdate for TwistState {
 }
 
 #[derive(Default)]
-pub struct TwistInterface {
+pub(crate) struct TwistInterface {
     pub new_state: Option<TwistState>,
     stabilized: bool,
 }
