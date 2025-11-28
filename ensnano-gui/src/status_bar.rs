@@ -303,7 +303,7 @@ impl OperationInput {
                         "Status bar unnamed priority",
                         Message::SetKeyboardPriority,
                         input,
-                    ))
+                    ));
             }
         }
         if need_validation {

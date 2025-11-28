@@ -1044,7 +1044,7 @@ impl<E: OrganizerElement> NodeTitleBar<E> {
                     keyboard_priority(
                         "New group name...",
                         OrganizerMessage::SetKeyboardPriority,
-                        text_input("New group name...", &name)
+                        text_input("New group name...", name)
                             .id(self.name_input_id.clone())
                             .on_input(|s| { OrganizerMessage::name_input(s) })
                             .on_submit(OrganizerMessage::stop_edit())

@@ -501,15 +501,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 //       and the interception is made here.
                 //
                 WindowEvent::KeyboardInput { .. } if main_state.keyboard_priority.is_some() => {
-                    iced_winit::conversion::window_event(
+                    if let Some(iced_event) = iced_winit::conversion::window_event(
                         iced::window::Id::MAIN,
                         // NOTE: Used to be window.id(). It seems dirty,
                         //       but the same is done in iced/examples/integration
                         window_event,
                         window.scale_factor(),
                         kbd_modifiers,
-                    )
-                    .map(|iced_event| gui.forward_event_all(iced_event));
+                    ) { gui.forward_event_all(iced_event) }
                 }
 
                 WindowEvent::RedrawRequested

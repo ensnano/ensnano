@@ -29,17 +29,13 @@ impl IntermediaryPair {
     }
 
     /// Matches two pairs to find the way to link them.
-    /// If both are double, or they missmatch, None is returned instead.
+    /// If both are double, or they mismatch, None is returned instead.
     pub(crate) fn match_single(&self, other: &Self) -> Option<(u32, Nucl, u32, Nucl)> {
         match (self, other) {
-            (IntermediaryPair::OnlyForward(i, n), IntermediaryPair::OnlyForward(j, m))
-            | (IntermediaryPair::OnlyBackward(i, n), IntermediaryPair::OnlyBackward(j, m))
-            | (IntermediaryPair::Pair(i, n, _), IntermediaryPair::OnlyForward(j, m))
-            | (IntermediaryPair::Pair(_, n, i), IntermediaryPair::OnlyBackward(j, m))
-            | (IntermediaryPair::OnlyForward(i, n), IntermediaryPair::Pair(j, m, _))
-            | (IntermediaryPair::OnlyBackward(i, n), IntermediaryPair::Pair(_, m, j)) => {
-                Some((*i, *n, *j, *m))
-            }
+            (Self::OnlyForward(i, n) | Self::Pair(i, n, _), Self::OnlyForward(j, m))
+            | (Self::OnlyBackward(i, n) | Self::Pair(_, n, i), Self::OnlyBackward(j, m))
+            | (Self::OnlyForward(i, n), Self::Pair(j, m, _))
+            | (Self::OnlyBackward(i, n), Self::Pair(_, m, j)) => Some((*i, *n, *j, *m)),
             _ => None,
         }
     }
@@ -133,7 +129,9 @@ pub(crate) fn build_helices(
         }
     }
 
-    result.values_mut().for_each(|helix| helix.compute_ranges());
+    result
+        .values_mut()
+        .for_each(IntermediaryHelix::compute_ranges);
 
     result
         .values_mut()

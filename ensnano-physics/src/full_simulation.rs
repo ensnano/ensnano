@@ -131,7 +131,7 @@ impl SimulationSetup for CutHelicesSetup {
             .angular_damping(BASE_ANGULAR_DAMPING);
 
         // for each helix
-        for (helix_index, helix) in intermediary_representation.iter() {
+        for (helix_index, helix) in intermediary_representation {
             let mut current_rigid_body_handle = rigid_body_set.insert(rigid_body.clone());
             // iterate through the positions, from bottom to top
             let mut positions = helix.pairs.keys().copied().collect::<Vec<_>>();
