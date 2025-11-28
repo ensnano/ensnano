@@ -9,9 +9,9 @@ use crate::{
     ui_size::UiSize,
 };
 use iced::{
-    Font, Length, advanced,
+    Length,
     alignment::{Alignment, Horizontal, Vertical},
-    widget::{Button, Image, Row, Space, Text, button, checkbox, row, text},
+    widget::{Button, Image, Row, Space, Text, button, checkbox, image::Handle, row, text},
 };
 
 // === SPACING FUNCTIONS ===
@@ -136,19 +136,9 @@ where
 }
 
 /// A button containing an icon.
-pub fn image_button<'a, Message, Theme, Renderer, Handle>(
-    image: Image<Handle>,
-    ui_size: UiSize,
-) -> Button<'a, Message, Theme, Renderer>
+pub fn image_button<'a, Message>(image: Image<Handle>, ui_size: UiSize) -> Button<'a, Message>
 where
     Message: Clone + 'a,
-    Theme: button::StyleSheet + text::StyleSheet + 'a,
-    Renderer: advanced::Renderer
-        + advanced::text::Renderer
-        + advanced::image::Renderer<Handle = Handle>
-        + 'a,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-    Handle: std::hash::Hash + Clone + 'a,
 {
     button(row![image].align_items(Alignment::Center))
         .height(ui_size.button())
