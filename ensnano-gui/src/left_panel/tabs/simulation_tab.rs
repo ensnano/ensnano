@@ -191,7 +191,7 @@ impl PhysicalSimulation {
         name: &'static str,
         active: bool,
         running: bool,
-    ) -> iced::Element<'_, Message<State>, iced::Theme, iced::Renderer> {
+    ) -> iced::Element<'_, Message<State>> {
         let button_str = if running { "Stop" } else { name };
         let mut button = text_button(button_str, ui_size);
         button = if running {

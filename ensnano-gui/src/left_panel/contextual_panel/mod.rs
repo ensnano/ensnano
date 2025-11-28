@@ -585,9 +585,7 @@ fn add_help_to_column<'a, State: AppState>(
     ]
 }
 
-fn turn_into_help_column<'a, State: AppState>(
-    ui_size: UiSize,
-) -> Column<'a, Message<State>, iced::Theme, iced::Renderer> {
+fn turn_into_help_column<'a, State: AppState>(ui_size: UiSize) -> Column<'a, Message<State>> {
     self::column![
         section("Help", ui_size)
             .width(Length::Fill)
@@ -847,11 +845,7 @@ impl AddStrandMenu {
         self.text_inputs_are_active = show;
     }
 
-    fn view<State: AppState>(
-        &self,
-        ui_size: UiSize,
-        width: u16,
-    ) -> Column<'_, Message<State>, iced::Theme, iced::Renderer> {
+    fn view<State: AppState>(&self, ui_size: UiSize, width: u16) -> Column<'_, Message<State>> {
         let color_choose_strand_start_length = if self.text_inputs_are_active {
             iced::theme::Text::Color(theme::GUI_PALETTE.text)
         } else {

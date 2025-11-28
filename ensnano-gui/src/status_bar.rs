@@ -79,7 +79,7 @@ impl<R: Requests, State: AppState> StatusBar<R, State> {
         }
     }
 
-    fn view_progress(&self) -> Row<'_, Message<State>, iced::Theme, iced::Renderer> {
+    fn view_progress(&self) -> Row<'_, Message<State>> {
         let progress = self.progress.as_ref().unwrap();
         row![
             text(format!("{}, {:.1}%", progress.0, progress.1 * 100.))
@@ -266,10 +266,7 @@ impl OperationInput {
         self.operation = operation;
     }
 
-    fn view<S: AppState>(
-        &self,
-        ui_size: UiSize,
-    ) -> Row<'_, Message<S>, iced::Theme, iced::Renderer> {
+    fn view<S: AppState>(&self, ui_size: UiSize) -> Row<'_, Message<S>> {
         let mut row = Row::new();
         let op = self.operation.as_ref();
         row = row.push(text(op.description()).size(ui_size.main_text()));

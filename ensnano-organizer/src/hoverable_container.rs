@@ -24,14 +24,14 @@ use iced::{
 /// A widget that emits a message when hovered.
 pub struct HoverableContainer<'a, Message> {
     padding: Padding,
-    content: Element<'a, Message, iced::Theme, iced::Renderer>,
+    content: Element<'a, Message>,
     on_hover: Option<Message>,
     on_unhover: Option<Message>,
 }
 
 impl<'a, Message> HoverableContainer<'a, Message> {
     /// Creates a new [HoverableContainer] with the given content.
-    pub fn new(content: impl Into<Element<'a, Message, iced::Theme, iced::Renderer>>) -> Self {
+    pub fn new(content: impl Into<Element<'a, Message>>) -> Self {
         HoverableContainer {
             padding: Padding::ZERO,
             content: content.into(),
@@ -220,8 +220,7 @@ where
     }
 }
 
-impl<'a, Message> From<HoverableContainer<'a, Message>>
-    for Element<'a, Message, iced::Theme, iced::Renderer>
+impl<'a, Message> From<HoverableContainer<'a, Message>> for Element<'a, Message>
 where
     Message: 'a + Clone,
 {

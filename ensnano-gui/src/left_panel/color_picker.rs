@@ -621,8 +621,7 @@ mod color_square {
         }
     }
 
-    impl<'a, Message> From<ColorSquare<'a, Message>>
-        for iced::Element<'a, Message, iced::Theme, iced::Renderer>
+    impl<'a, Message> From<ColorSquare<'a, Message>> for iced::Element<'a, Message>
     where
         Message: Clone + 'a,
     {

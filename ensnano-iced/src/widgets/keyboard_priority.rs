@@ -20,7 +20,7 @@ pub struct KeyboardPriority<'a, Message> {
     id: Option<Id>,
     width: Length,
     height: Length,
-    content: Element<'a, Message, iced::Theme, iced::Renderer>,
+    content: Element<'a, Message>,
     on_priority: Option<Message>,
     on_unpriority: Option<Message>,
 }
@@ -34,7 +34,7 @@ pub fn keyboard_priority<'a, Message>(
 
 impl<'a, Message> KeyboardPriority<'a, Message> {
     /// Creates a new [`KeyboardPriority`] with the given content.
-    pub fn new(content: impl Into<Element<'a, Message, iced::Theme, iced::Renderer>>) -> Self {
+    pub fn new(content: impl Into<Element<'a, Message>>) -> Self {
         let content = content.into();
         let size = content.as_widget().size_hint();
         KeyboardPriority {
@@ -260,8 +260,7 @@ where
     }
 }
 
-impl<'a, Message> From<KeyboardPriority<'a, Message>>
-    for Element<'a, Message, iced::Theme, iced::Renderer>
+impl<'a, Message> From<KeyboardPriority<'a, Message>> for Element<'a, Message>
 where
     Message: 'a + Clone,
 {

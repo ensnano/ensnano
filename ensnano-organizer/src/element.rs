@@ -108,7 +108,7 @@ impl<Attrib: OrganizerAttribute> AttributeDisplayer<Attrib> {
         self.widget = widget;
     }
 
-    pub(crate) fn view(&self) -> Option<Element<'_, Attrib, iced::Theme, iced::Renderer>> {
+    pub(crate) fn view(&self) -> Option<Element<'_, Attrib>> {
         self.widget.as_ref().map(|widget| {
             match self.attribute.as_ref().map(OrganizerAttribute::char_repr) {
                 Some(AttributeDisplay::Icon(c)) => button(icon(c)),
