@@ -844,7 +844,7 @@ impl AddStrandMenu {
         &self,
         ui_size: UiSize,
         width: u16,
-    ) -> iced::widget::Column<'_, Message<State>, iced::Theme, iced::Renderer> {
+    ) -> Column<'_, Message<State>, iced::Theme, iced::Renderer> {
         let color_choose_strand_start_length = if self.text_inputs_are_active {
             iced::theme::Text::Color(theme::GUI_PALETTE.text)
         } else {

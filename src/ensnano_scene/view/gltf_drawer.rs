@@ -93,8 +93,8 @@ impl Object3DDrawer {
     pub fn update_desired_revolution_shape(
         &mut self,
         shape: Option<UnrootedRevolutionSurfaceDescriptor>,
-        device: &wgpu::Device,
-        view_bg_layout_desc: &wgpu::BindGroupLayoutDescriptor,
+        device: &Device,
+        view_bg_layout_desc: &BindGroupLayoutDescriptor,
     ) -> bool {
         if self
             .desired_revolution_shape_drawer
@@ -194,10 +194,7 @@ pub struct GltfDrawer {
 }
 
 impl GltfDrawer {
-    pub fn new(
-        device: &wgpu::Device,
-        view_bg_layout_desc: &wgpu::BindGroupLayoutDescriptor,
-    ) -> Self {
+    pub fn new(device: &Device, view_bg_layout_desc: &BindGroupLayoutDescriptor) -> Self {
         let primitive_topology = wgpu::PrimitiveTopology::TriangleStrip;
         let render_pipeline =
             build_render_pipeline(device, view_bg_layout_desc, primitive_topology);
@@ -224,7 +221,7 @@ impl GltfDrawer {
         }
     }
 
-    pub fn add_gltf<P: AsRef<Path>>(&mut self, device: &wgpu::Device, path: P) {
+    pub fn add_gltf<P: AsRef<Path>>(&mut self, device: &Device, path: P) {
         match load_gltf(path) {
             Ok(file) => {
                 self.set_meshes(device, file.meshes);
@@ -235,7 +232,7 @@ impl GltfDrawer {
         }
     }
 
-    pub fn set_meshes(&mut self, device: &wgpu::Device, meshes: Vec<GltfMesh>) {
+    pub fn set_meshes(&mut self, device: &Device, meshes: Vec<GltfMesh>) {
         self.nb_idx.clear();
         self.vbos.clear();
         self.ibos.clear();
@@ -264,10 +261,7 @@ pub struct StlDrawer {
 }
 
 impl StlDrawer {
-    pub fn new(
-        device: &wgpu::Device,
-        view_bg_layout_desc: &wgpu::BindGroupLayoutDescriptor,
-    ) -> Self {
+    pub fn new(device: &Device, view_bg_layout_desc: &BindGroupLayoutDescriptor) -> Self {
         let primitive_topology = wgpu::PrimitiveTopology::TriangleList;
         let render_pipeline =
             build_render_pipeline(device, view_bg_layout_desc, primitive_topology);
@@ -292,7 +286,7 @@ impl StlDrawer {
         }
     }
 
-    pub fn add_stl<P: AsRef<Path>>(&mut self, device: &wgpu::Device, path: P) {
+    pub fn add_stl<P: AsRef<Path>>(&mut self, device: &Device, path: P) {
         match load_stl(path) {
             Ok(mesh) => {
                 self.nb_idx.push(mesh.vertices.len() as u32);
@@ -311,8 +305,8 @@ impl StlDrawer {
 }
 
 fn build_render_pipeline(
-    device: &wgpu::Device,
-    view_bg_layout_desc: &wgpu::BindGroupLayoutDescriptor,
+    device: &Device,
+    view_bg_layout_desc: &BindGroupLayoutDescriptor,
     primitive_topology: wgpu::PrimitiveTopology,
 ) -> wgpu::RenderPipeline {
     let viewer_bg_layout = device.create_bind_group_layout(view_bg_layout_desc);

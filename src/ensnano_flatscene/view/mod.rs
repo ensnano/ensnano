@@ -1238,7 +1238,7 @@ fn helices_pipeline_descr(
     globals_layout: &wgpu::BindGroupLayout,
     models_layout: &wgpu::BindGroupLayout,
     depth_stencil: Option<wgpu::DepthStencilState>,
-) -> wgpu::RenderPipeline {
+) -> RenderPipeline {
     let vs_module = &device.create_shader_module(wgpu::include_spirv!("./grid.vert.spv"));
     let fs_module = &device.create_shader_module(wgpu::include_spirv!("./grid.frag.spv"));
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -1271,7 +1271,7 @@ fn helices_pipeline_descr(
             module: vs_module,
             entry_point: "main",
             buffers: &[wgpu::VertexBufferLayout {
-                array_stride: std::mem::size_of::<GpuVertex>() as u64,
+                array_stride: size_of::<GpuVertex>() as u64,
                 step_mode: wgpu::VertexStepMode::Vertex,
                 attributes: &wgpu::vertex_attr_array![0 => Float32x2, 1 => Float32x2, 2 => Uint32, 3 => Uint32],
             }],
@@ -1292,7 +1292,7 @@ fn strand_pipeline_descr(
     device: &Device,
     globals: &wgpu::BindGroupLayout,
     depth_stencil: Option<wgpu::DepthStencilState>,
-) -> wgpu::RenderPipeline {
+) -> RenderPipeline {
     let vs_module = &device.create_shader_module(wgpu::include_spirv!("./strand.vert.spv"));
     let fs_module = &device.create_shader_module(wgpu::include_spirv!("./strand.frag.spv"));
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -1324,7 +1324,7 @@ fn strand_pipeline_descr(
         depth_stencil,
         vertex: wgpu::VertexState {
             buffers: &[wgpu::VertexBufferLayout {
-                array_stride: std::mem::size_of::<StrandVertex>() as u64,
+                array_stride: size_of::<StrandVertex>() as u64,
                 step_mode: wgpu::VertexStepMode::Vertex,
                 attributes: &wgpu::vertex_attr_array![0 => Float32x2, 1 => Float32x2, 2 => Float32x4, 3 => Float32, 4 => Float32],
             }],

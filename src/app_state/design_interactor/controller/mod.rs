@@ -1100,7 +1100,7 @@ impl Controller {
         }
     }
 
-    fn return_design(&self, design: Design, label: std::borrow::Cow<'static, str>) -> OkOperation {
+    fn return_design(&self, design: Design, label: Cow<'static, str>) -> OkOperation {
         if self.is_in_persistent_state().is_persistent() {
             OkOperation::Push { design, label }
         } else {
@@ -3260,7 +3260,7 @@ pub enum OkOperation {
     Push {
         design: Design,
         /// A description of the operation that was applied
-        label: std::borrow::Cow<'static, str>,
+        label: Cow<'static, str>,
     },
     /// Replace the current design by the wrapped value. This variant is produced when the
     /// operation has been performed on a transitory design and should not been undone.

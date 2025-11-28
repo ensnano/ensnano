@@ -98,6 +98,7 @@ use crate::ensnano_consts::{
 };
 use crate::ensnano_design::bezier_plane::BezierPlaneDescriptor;
 use crate::ensnano_design::{Camera, grid::GridId, group_attributes::GroupPivot};
+use crate::ensnano_design::{CameraId, SavingInformation};
 use crate::ensnano_exports::{ExportResult, ExportType};
 use crate::ensnano_flatscene::FlatScene;
 use crate::ensnano_gui::left_panel::ColorOverlay;
@@ -716,7 +717,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 let state = main_state.get_app_state();
                                 main_state.applications_cursor =
                                     scheduler.forward_event(&event, area, cursor_position, state);
-                                if matches!(event, winit::event::WindowEvent::MouseInput { .. }) {
+                                if matches!(event, WindowEvent::MouseInput { .. }) {
                                     gui.clear_focus();
                                 }
                             }
@@ -822,7 +823,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     overlay_manager.forward_messages(&mut messages);
                 }
 
-                let now = std::time::Instant::now();
+                let now = Instant::now();
                 let dt = now - last_render_time;
                 redraw |= scheduler.check_redraw(&multiplexer, dt, main_state.get_app_state());
                 let new_gui_state = (
@@ -1445,7 +1446,7 @@ impl MainState {
                 orientation: camera.0.orientation,
                 pivot_position: camera.0.pivot_position,
             });
-        let save_info = crate::ensnano_design::SavingInformation { camera };
+        let save_info = SavingInformation { camera };
         self.app_state.save_design(path, save_info)?;
 
         if self.app_state.is_in_stable_state() {
@@ -1467,7 +1468,7 @@ impl MainState {
                 orientation: camera.0.orientation,
                 pivot_position: camera.0.pivot_position,
             });
-        let save_info = crate::ensnano_design::SavingInformation { camera };
+        let save_info = SavingInformation { camera };
         let path = if let Some(mut path) = self.app_state.path_to_current_design().cloned() {
             path.set_extension(ENS_BACKUP_EXTENSION);
             path
@@ -2026,7 +2027,7 @@ impl MainStateView<'_> {
         }
     }
 
-    fn select_camera(&mut self, camera_id: crate::ensnano_design::CameraId) {
+    fn select_camera(&mut self, camera_id: CameraId) {
         let reader = self.main_state.app_state.get_design_interactor();
         if let Some(camera) = reader.get_camera_with_id(camera_id) {
             self.notify_apps(Notification::TeleportCamera(camera));

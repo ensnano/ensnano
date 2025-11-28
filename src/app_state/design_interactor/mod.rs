@@ -684,7 +684,7 @@ mod tests {
 
         let strands = &mut app_state.0.design.presenter.current_design.strands.clone();
 
-        let s_id_prime5 = controller::Controller::split_strand(
+        let s_id_prime5 = Controller::split_strand(
             strands,
             &Nucl {
                 helix: 3,

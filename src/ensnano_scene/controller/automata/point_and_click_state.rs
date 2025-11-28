@@ -145,7 +145,7 @@ pub(super) struct PointAndClicking<S: AppState> {
     long_hold_state_maker: Option<ContextDependentTransitionPtr<S>>,
     /// A description of the current state of the controller's automata
     description: &'static str,
-    clicked_date: std::time::Instant,
+    clicked_date: Instant,
 }
 
 impl<S: AppState> PointAndClicking<S> {
@@ -270,7 +270,7 @@ impl<S: AppState> PointAndClicking<S> {
             release_consequences: Consequence::PivotElement(pivot_element),
             long_hold_state: None,
             long_hold_state_maker: None,
-            clicked_date: std::time::Instant::now(),
+            clicked_date: Instant::now(),
         }
     }
 }

@@ -50,7 +50,7 @@ pub struct BufferDimensions {
 
 impl BufferDimensions {
     pub fn new(width: usize, height: usize) -> Self {
-        let bytes_per_pixel = std::mem::size_of::<u32>();
+        let bytes_per_pixel = size_of::<u32>();
         let unpadded_bytes_per_row = width * bytes_per_pixel;
         let block_size = wgpu::COPY_BYTES_PER_ROW_ALIGNMENT as usize;
         let padding = (block_size - unpadded_bytes_per_row % block_size) % block_size;

@@ -100,8 +100,8 @@ impl<S: AppState> fmt::Debug for CurveDescriptorBuilder<S> {
     }
 }
 
-impl<S: AppState> std::fmt::Display for CurveDescriptorBuilder<S> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl<S: AppState> fmt::Display for CurveDescriptorBuilder<S> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.curve_name)
     }
 }

@@ -9,9 +9,8 @@ use crate::ensnano_design::grid::GridId;
 use crate::ensnano_design::helices::{HelixCollection as _, NuclCollection};
 use crate::ensnano_design::strands::{Domain, DomainJunction};
 use crate::ensnano_design::{
-    AdditionalStructure, Design, Nucl,
+    Design, Nucl,
     drawing_style::{ColorType, DrawingAttribute, DrawingStyle},
-    elements,
     elements::DesignElement,
     grid::{GridData, GridObject, GridPosition, HelixGridPosition},
     isometry3_descriptor::Isometry3MissingMethods as _,
@@ -488,7 +487,7 @@ impl DesignContent {
 
         // Scanning strands
         for (s_id, strand) in design.strands.iter_mut() {
-            elements.push(elements::DesignElement::Strand {
+            elements.push(DesignElement::Strand {
                 id: *s_id, // the key in design.strands btreemap
                 length: strand.length(),
                 domain_lengths: strand.domain_lengths(),

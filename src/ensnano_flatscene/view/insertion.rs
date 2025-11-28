@@ -138,7 +138,7 @@ impl InsertionInstance {
     }
 }
 
-type Vertices = lyon::tessellation::VertexBuffers<InsertionVertex, u16>;
+type Vertices = tessellation::VertexBuffers<InsertionVertex, u16>;
 
 fn make_vertices() -> Vertices {
     let mut vertices = Vertices::new();
@@ -149,7 +149,7 @@ fn make_vertices() -> Vertices {
 
     builder.begin(origin);
     builder.cubic_bezier_to(left, right, origin);
-    let mut stroke_tess = lyon::tessellation::StrokeTessellator::new();
+    let mut stroke_tess = tessellation::StrokeTessellator::new();
 
     builder.end(false);
     let path = builder.build();
@@ -169,10 +169,10 @@ fn make_vertices() -> Vertices {
 
 fn insertion_pipeline(
     device: &Device,
-    globals: &wgpu::BindGroupLayout,
-    insertions: &wgpu::BindGroupLayout,
-    depth_stencil: Option<wgpu::DepthStencilState>,
-) -> wgpu::RenderPipeline {
+    globals: &BindGroupLayout,
+    insertions: &BindGroupLayout,
+    depth_stencil: Option<DepthStencilState>,
+) -> RenderPipeline {
     let vs_module = &device.create_shader_module(wgpu::include_spirv!("insertion.vert.spv"));
     let fs_module = &device.create_shader_module(wgpu::include_spirv!("strand.frag.spv"));
 
@@ -200,7 +200,7 @@ fn insertion_pipeline(
             module: vs_module,
             entry_point: "main",
             buffers: &[wgpu::VertexBufferLayout {
-                array_stride: std::mem::size_of::<InsertionVertex>() as u64,
+                array_stride: size_of::<InsertionVertex>() as u64,
                 step_mode: wgpu::VertexStepMode::Vertex,
                 attributes: &wgpu::vertex_attr_array![0 => Float32x2, 1 => Float32x2],
             }],

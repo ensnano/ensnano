@@ -25,17 +25,13 @@ pub struct Design<StrandLabel, DomainLabel> {
     pub parameters: Option<Parameters>,
 }
 
-impl<StrandLabel: serde::Serialize, DomainLabel: serde::Serialize> Default
-    for Design<StrandLabel, DomainLabel>
-{
+impl<StrandLabel: Serialize, DomainLabel: Serialize> Default for Design<StrandLabel, DomainLabel> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<StrandLabel: serde::Serialize, DomainLabel: serde::Serialize>
-    Design<StrandLabel, DomainLabel>
-{
+impl<StrandLabel: Serialize, DomainLabel: Serialize> Design<StrandLabel, DomainLabel> {
     /// Initiates a design.
     pub fn new() -> Self {
         Self {

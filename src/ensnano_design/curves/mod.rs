@@ -1013,7 +1013,7 @@ impl InstantiatedPiecewiseBezierDescriptor {
         t_min: Option<f64>,
         t_max: Option<f64>,
     ) -> Self {
-        let mut rng = rand::thread_rng();
+        let mut rng = thread_rng();
         log::debug!("Instantiating {points:?}");
         let instantiator = PieceWiseBezierInstantiator_ {
             points,

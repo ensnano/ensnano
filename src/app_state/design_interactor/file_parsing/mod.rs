@@ -94,7 +94,7 @@ fn read_file<P: AsRef<Path> + std::fmt::Debug>(path: P) -> Result<Design, LoadDe
     }
 }
 
-impl std::convert::From<ScadnanoImportError> for LoadDesignError {
+impl From<ScadnanoImportError> for LoadDesignError {
     fn from(error: ScadnanoImportError) -> Self {
         Self::ScadnanoImportError(error)
     }

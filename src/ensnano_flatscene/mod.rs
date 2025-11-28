@@ -214,7 +214,7 @@ impl<S: AppState> FlatScene<S> {
         }
     }
 
-    fn read_consequence(&self, consequence: controller::Consequence, new_state: Option<&S>) {
+    fn read_consequence(&self, consequence: Consequence, new_state: Option<&S>) {
         let app_state = new_state.unwrap_or(&self.old_state);
         match consequence {
             Consequence::Xover(nucl1, nucl2) => {

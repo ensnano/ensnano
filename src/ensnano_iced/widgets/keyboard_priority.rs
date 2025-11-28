@@ -20,7 +20,7 @@ pub struct KeyboardPriority<'a, Message, Theme = iced::Theme, Renderer = iced::R
     id: Option<Id>,
     width: Length,
     height: Length,
-    content: iced::Element<'a, Message, Theme, Renderer>,
+    content: Element<'a, Message, Theme, Renderer>,
     on_priority: Option<Message>,
     on_unpriority: Option<Message>,
 }

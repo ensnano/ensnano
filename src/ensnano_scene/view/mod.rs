@@ -115,7 +115,7 @@ pub struct View {
     /// Cutting plane. TODO: remove? I don't see where the value is ever not `None`
     cut_plane_parameters: Option<CutPlaneParameters>,
     // Post-processing shader parameters. TODO: bundle in InstanceDrawer or a new struct
-    queue: Rc<wgpu::Queue>,
+    queue: Rc<Queue>,
     post_processing_pipeline: wgpu::RenderPipeline,
     post_processing_bind_group_layout: wgpu::BindGroupLayout,
     post_processing_buffer: wgpu::Buffer,
@@ -1232,14 +1232,14 @@ struct DnaDrawers {
     xover_tube: InstanceDrawer<TubeInstance>,
     prime3_cones: InstanceDrawer<dna_obj::ConeInstance>,
     outline_prime3_cones: InstanceDrawer<dna_obj::ConeInstance>,
-    bezier_control_points: InstanceDrawer<dna_obj::SphereInstance>,
-    bezier_skeleton: InstanceDrawer<dna_obj::TubeInstance>,
+    bezier_control_points: InstanceDrawer<SphereInstance>,
+    bezier_skeleton: InstanceDrawer<TubeInstance>,
     fake_bezier_control: InstanceDrawer<SphereInstance>,
     stereographic_sphere: InstanceDrawer<StereographicSphereAndPlane>,
     base_ellipsoid: InstanceDrawer<dna_obj::Ellipsoid>,
     outline_base_ellipsoid: InstanceDrawer<dna_obj::Ellipsoid>,
-    hbond: InstanceDrawer<dna_obj::TubeInstance>,
-    outline_hbond: InstanceDrawer<dna_obj::TubeInstance>,
+    hbond: InstanceDrawer<TubeInstance>,
+    outline_hbond: InstanceDrawer<TubeInstance>,
 }
 
 impl DnaDrawers {

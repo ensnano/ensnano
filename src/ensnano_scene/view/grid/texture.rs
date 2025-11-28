@@ -15,7 +15,7 @@ pub struct Vertex {
     normal: [f32; 2],
 }
 
-type Vertices = lyon::tessellation::VertexBuffers<Vertex, u16>;
+type Vertices = tessellation::VertexBuffers<Vertex, u16>;
 
 pub struct SquareTexture {
     pub view: TextureView,
@@ -128,7 +128,7 @@ fn fill_square_texture(target: &TextureView, device: &Device, encoder: &mut wgpu
 
 fn square_texture_vertices() -> Vertices {
     let mut vertices = Vertices::new();
-    let mut stroke_tess = lyon::tessellation::StrokeTessellator::new();
+    let mut stroke_tess = tessellation::StrokeTessellator::new();
 
     let mut builder = Path::builder();
 
@@ -264,7 +264,7 @@ fn fill_honeycomb_texture(
 
 fn honeycomb_texture_vertices() -> Vertices {
     let mut vertices = Vertices::new();
-    let mut stroke_tess = lyon::tessellation::StrokeTessellator::new();
+    let mut stroke_tess = tessellation::StrokeTessellator::new();
 
     let mut builder = Path::builder();
 
@@ -323,7 +323,7 @@ fn pipeline(device: &Device) -> wgpu::RenderPipeline {
             module: vs_module,
             entry_point: "main",
             buffers: &[wgpu::VertexBufferLayout {
-                array_stride: std::mem::size_of::<Vertex>() as u64,
+                array_stride: size_of::<Vertex>() as u64,
                 step_mode: wgpu::VertexStepMode::Vertex,
                 attributes: &wgpu::vertex_attr_array![0 => Float32x2, 1 => Float32x2],
             }],

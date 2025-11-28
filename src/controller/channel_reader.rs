@@ -74,7 +74,7 @@ impl ChannelReader {
         self.scaffold_shift_optimization_progress = Some(chanel);
     }
 
-    pub fn attach_state(&mut self, state_chanel: &std::sync::Arc<Mutex<dyn SimulationInterface>>) {
+    pub fn attach_state(&mut self, state_chanel: &Arc<Mutex<dyn SimulationInterface>>) {
         self.simulation_interface = Some(Arc::downgrade(state_chanel));
     }
 }

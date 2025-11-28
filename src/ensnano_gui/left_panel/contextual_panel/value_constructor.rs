@@ -242,7 +242,7 @@ where
         ui_size: UiSize,
         _selection: &Selection,
         _app_state: &State,
-    ) -> iced::Element<'_, Message<State>, iced::Theme, iced::Renderer> {
+    ) -> iced::Element<'_, Message<State>, Theme, Renderer> {
         self::column![
             text("Position").size(ui_size.intermediate_text()),
             self.position_builder.view(),
@@ -287,7 +287,7 @@ impl GridBuilder {
     fn nb_turn_row<'a, S: AppState>(
         app_state: &S,
         selection: &Selection,
-    ) -> Option<iced::Element<'a, Message<S>, iced::Theme, iced::Renderer>> {
+    ) -> Option<iced::Element<'a, Message<S>, Theme, Renderer>> {
         if let Selection::Grid(_, g_id) = selection {
             if let Some(nb_turn) = app_state.get_reader().get_grid_nb_turn(*g_id) {
                 let row = row![
@@ -317,7 +317,7 @@ where
         ui_size: UiSize,
         selection: &Selection,
         app_state: &State,
-    ) -> iced::Element<'_, Message<State>, iced::Theme, iced::Renderer> {
+    ) -> iced::Element<'_, Message<State>, Theme, Renderer> {
         self::column![
             text("Position").size(ui_size.intermediate_text()),
             self.position_builder.view(),
@@ -365,7 +365,7 @@ where
         ui_size: UiSize,
         selection: &Selection,
         app_state: &State,
-    ) -> iced::Element<'a, Message<State>, iced::Theme, iced::Renderer>;
+    ) -> iced::Element<'a, Message<State>, Theme, Renderer>;
     fn update_str_value(&mut self, value_kind: ValueKind, n: usize, value_str: String);
     fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstantiatedValue>;
 }

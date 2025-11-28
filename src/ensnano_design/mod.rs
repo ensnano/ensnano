@@ -705,13 +705,13 @@ pub struct Nucl {
     pub forward: bool,
 }
 
-impl std::cmp::PartialOrd for Nucl {
+impl PartialOrd for Nucl {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl std::cmp::Ord for Nucl {
+impl Ord for Nucl {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         if self.helix != other.helix {
             self.helix.cmp(&other.helix)

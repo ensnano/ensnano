@@ -14,7 +14,7 @@ use lyon::{
 };
 use ultraviolet::Vec2;
 
-type Vertices = lyon::tessellation::VertexBuffers<StrandVertex, u16>;
+type Vertices = tessellation::VertexBuffers<StrandVertex, u16>;
 
 macro_rules! point {
     ($point: ident) => {
@@ -69,7 +69,7 @@ impl Strand {
             return (vertices, cross_split_vertices);
         }
         let color = self.get_path_color();
-        let mut stroke_tess = lyon::tessellation::StrokeTessellator::new();
+        let mut stroke_tess = tessellation::StrokeTessellator::new();
 
         let filtered_free_end = FilteredFreeEnd::read(free_end, self.id);
         let mut strand_vertex_builder = StrandVertexBuilder::init(StrandVertexBuilderInitializer {
@@ -142,7 +142,7 @@ impl Strand {
 
         builder.begin(Point::new(start.x, start.y), &[1e-4, 1.]);
         builder.line_to(Point::new(end.x, end.y), &[1e-4, 1.]);
-        let mut stroke_tess = lyon::tessellation::StrokeTessellator::new();
+        let mut stroke_tess = tessellation::StrokeTessellator::new();
 
         builder.end(false);
         let path = builder.build();

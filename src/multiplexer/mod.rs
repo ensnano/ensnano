@@ -227,7 +227,7 @@ impl Multiplexer {
         &mut self,
         encoder: &mut wgpu::CommandEncoder,
         target: &wgpu::TextureView,
-        window: &crate::Window,
+        window: &Window,
     ) {
         if self.pipeline.is_none() {
             let bg_layout = &self.top_bar_texture.as_ref().unwrap().texture.bg_layout;
@@ -344,7 +344,7 @@ impl Multiplexer {
         Some(DrawArea { position, size })
     }
 
-    pub fn check_scale_factor(&mut self, window: &crate::Window) -> bool {
+    pub fn check_scale_factor(&mut self, window: &Window) -> bool {
         #[expect(clippy::float_cmp)]
         if self.scale_factor != window.scale_factor() {
             self.scale_factor = window.scale_factor();

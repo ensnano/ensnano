@@ -72,7 +72,7 @@ mod hue_column {
         }
     }
 
-    impl<Message> Widget<Message, iced::Theme, iced::Renderer> for HueColumn<'_, Message> {
+    impl<Message> Widget<Message, iced::Theme, Renderer> for HueColumn<'_, Message> {
         fn state(&self) -> widget::tree::State {
             widget::tree::State::Some(Box::new(HueColumnState::default()))
         }
@@ -86,7 +86,7 @@ mod hue_column {
         fn layout(
             &self,
             _tree: &mut widget::Tree,
-            _renderer: &iced::Renderer,
+            _renderer: &Renderer,
             limits: &layout::Limits,
         ) -> layout::Node {
             let size = limits.resolve(Length::Fill, Length::Fill, Size::ZERO);
@@ -97,7 +97,7 @@ mod hue_column {
         fn draw(
             &self,
             _tree: &widget::Tree,
-            renderer: &mut iced::Renderer,
+            renderer: &mut Renderer,
             _theme: &iced::Theme,
             _style: &Style,
             layout: Layout,
@@ -161,7 +161,7 @@ mod hue_column {
             event: event::Event,
             layout: Layout,
             cursor: Cursor,
-            _renderer: &iced::Renderer,
+            _renderer: &Renderer,
             _clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
             _viewport: &Rectangle,
@@ -212,8 +212,7 @@ mod hue_column {
         }
     }
 
-    impl<'a, Message> From<HueColumn<'a, Message>>
-        for iced::Element<'a, Message, iced::Theme, iced::Renderer>
+    impl<'a, Message> From<HueColumn<'a, Message>> for iced::Element<'a, Message, iced::Theme, Renderer>
     where
         Message: 'a + Clone,
     {
@@ -281,7 +280,7 @@ mod light_sat_square {
         }
     }
 
-    impl<'a, Message> Widget<Message, iced::Theme, iced::Renderer> for LightSatSquare<'a, Message>
+    impl<'a, Message> Widget<Message, iced::Theme, Renderer> for LightSatSquare<'a, Message>
     where
         Message: Clone + 'a,
     {
@@ -298,7 +297,7 @@ mod light_sat_square {
         fn layout(
             &self,
             _tree: &mut widget::Tree,
-            _renderer: &iced::Renderer,
+            _renderer: &Renderer,
             limits: &layout::Limits,
         ) -> layout::Node {
             let size = limits.resolve(Length::Fill, Length::Fill, Size::ZERO);
@@ -309,7 +308,7 @@ mod light_sat_square {
         fn draw(
             &self,
             _state: &widget::Tree,
-            renderer: &mut iced::Renderer,
+            renderer: &mut Renderer,
             _theme: &iced::Theme,
             _style: &Style,
             layout: Layout,
@@ -370,7 +369,7 @@ mod light_sat_square {
             event: event::Event,
             layout: Layout,
             cursor: Cursor,
-            _renderer: &iced::Renderer,
+            _renderer: &Renderer,
             _clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
             _viewport: &Rectangle,
@@ -432,7 +431,7 @@ mod light_sat_square {
     }
 
     impl<'a, Message> From<LightSatSquare<'a, Message>>
-        for iced::Element<'a, Message, iced::Theme, iced::Renderer>
+        for iced::Element<'a, Message, iced::Theme, Renderer>
     where
         Message: Clone + 'a,
     {

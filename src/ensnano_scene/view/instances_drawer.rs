@@ -371,8 +371,8 @@ impl<D: Instantiable> InstanceDrawer<D> {
 
     fn create_pipeline<S: AsRef<str>>(
         device: &Device,
-        viewer_bind_group_layout_desc: &wgpu::BindGroupLayoutDescriptor<'static>,
-        models_bind_group_layout_desc: &wgpu::BindGroupLayoutDescriptor<'static>,
+        viewer_bind_group_layout_desc: &BindGroupLayoutDescriptor<'static>,
+        models_bind_group_layout_desc: &BindGroupLayoutDescriptor<'static>,
         vertex_module: ShaderModule,
         fragment_module: ShaderModule,
         primitive_topology: PrimitiveTopology,

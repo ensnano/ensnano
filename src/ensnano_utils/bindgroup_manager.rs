@@ -73,7 +73,7 @@ impl DynamicBindGroup {
         let bytes = bytemuck::cast_slice(data);
         if self.capacity < bytes.len() {
             self.length = bytes.len() as u64;
-            self.buffer = self.device.create_buffer(&wgpu::BufferDescriptor {
+            self.buffer = self.device.create_buffer(&BufferDescriptor {
                 label: Some(&format!("capacity = {}", 2 * bytes.len())),
                 size: 2 * bytes.len() as u64,
                 usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,

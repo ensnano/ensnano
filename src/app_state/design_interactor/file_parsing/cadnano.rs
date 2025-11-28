@@ -52,13 +52,13 @@ pub(super) enum CadnanoError {
     Json(#[expect(unused)] serde_json::Error),
 }
 
-impl std::convert::From<std::io::Error> for CadnanoError {
+impl From<std::io::Error> for CadnanoError {
     fn from(e: std::io::Error) -> Self {
         Self::IO(e)
     }
 }
 
-impl std::convert::From<serde_json::Error> for CadnanoError {
+impl From<serde_json::Error> for CadnanoError {
     fn from(e: serde_json::Error) -> Self {
         Self::Json(e)
     }

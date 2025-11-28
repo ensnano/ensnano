@@ -38,7 +38,7 @@ use std::{
 };
 use ultraviolet::{Mat2, Rotor2, Vec2, Vec4};
 
-type Vertices = lyon::tessellation::VertexBuffers<GpuVertex, u16>;
+type Vertices = tessellation::VertexBuffers<GpuVertex, u16>;
 
 const CIRCLE_WIDGET_RADIUS: f32 = 1.5;
 const ZOOM_THRESHOLD: f32 = 7.0;
@@ -137,7 +137,7 @@ impl Helix {
         ) as f32;
         let top = 0.;
         let bottom = 2.;
-        let mut fill_tess = lyon::tessellation::FillTessellator::new();
+        let mut fill_tess = tessellation::FillTessellator::new();
 
         let mut builder = Path::builder();
         builder.add_rounded_rectangle(
@@ -175,7 +175,7 @@ impl Helix {
         let top = 0.;
         let bottom = 2.;
 
-        let mut stroke_tess = lyon::tessellation::StrokeTessellator::new();
+        let mut stroke_tess = tessellation::StrokeTessellator::new();
 
         let mut builder = Path::builder();
 

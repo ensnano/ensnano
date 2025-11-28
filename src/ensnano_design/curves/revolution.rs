@@ -114,9 +114,7 @@ impl SmoothInterpolatedCurve {
                     chebyshev_polynomials::interpolate_points(points_values, 1e-4)
                 }
                 InterpolationDescriptor::Chebyshev { coeffs, interval } => {
-                    chebyshev_polynomials::ChebyshevPolynomial::from_coeffs_interval(
-                        coeffs, interval,
-                    )
+                    ChebyshevPolynomial::from_coeffs_interval(coeffs, interval)
                 }
             };
             Self::Open {
@@ -133,9 +131,7 @@ impl SmoothInterpolatedCurve {
                         chebyshev_polynomials::interpolate_points(points_values, 1e-4)
                     }
                     InterpolationDescriptor::Chebyshev { coeffs, interval } => {
-                        chebyshev_polynomials::ChebyshevPolynomial::from_coeffs_interval(
-                            coeffs, interval,
-                        )
+                        ChebyshevPolynomial::from_coeffs_interval(coeffs, interval)
                     }
                 };
                 interpolators.push(interpolator);

@@ -418,10 +418,10 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
             let instantiables = match kind {
                 Some(ObjectType::Bond(id1, id2)) => {
                     let pos1 = self
-                        .get_graphic_element_position(&SceneElement::DesignElement(self.id, id1))
+                        .get_graphic_element_position(&DesignElement(self.id, id1))
                         .unwrap_or_else(|| f32::NAN * Vec3::unit_x());
                     let pos2 = self
-                        .get_graphic_element_position(&SceneElement::DesignElement(self.id, id2))
+                        .get_graphic_element_position(&DesignElement(self.id, id2))
                         .unwrap_or_else(|| f32::NAN * Vec3::unit_x());
                     let id = id | self.id << 24;
                     vec![
@@ -432,14 +432,10 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                 }
                 Some(ObjectType::HelixCylinder(id1, id2)) => {
                     let pos1 = self
-                        .get_graphic_element_axis_position(&SceneElement::DesignElement(
-                            self.id, id1,
-                        ))
+                        .get_graphic_element_axis_position(&DesignElement(self.id, id1))
                         .unwrap_or_else(|| f32::NAN * Vec3::unit_x());
                     let pos2 = self
-                        .get_graphic_element_axis_position(&SceneElement::DesignElement(
-                            self.id, id2,
-                        ))
+                        .get_graphic_element_axis_position(&DesignElement(self.id, id2))
                         .unwrap_or_else(|| f32::NAN * Vec3::unit_x());
                     let id = id | self.id << 24;
                     let (lid1, tube, lid2) =
@@ -452,7 +448,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                 }
                 Some(ObjectType::Nucleotide(id)) => {
                     let position = self
-                        .get_graphic_element_position(&SceneElement::DesignElement(self.id, id))
+                        .get_graphic_element_position(&DesignElement(self.id, id))
                         .unwrap_or_else(|| f32::NAN * Vec3::unit_x());
                     let id = id | self.id << 24;
                     let color = Instance::color_from_au32(color);
@@ -610,10 +606,8 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
             ObjectType::Bond(id1, id2) | ObjectType::SlicedBond(_, id1, id2, _)
                 if self.get_with_cones(id).unwrap_or(true) =>
             {
-                let pos1 =
-                    self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id1))?;
-                let pos2 =
-                    self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id2))?;
+                let pos1 = self.get_graphic_element_position(&DesignElement(self.id, id1))?;
+                let pos2 = self.get_graphic_element_position(&DesignElement(self.id, id2))?;
                 let radius = self.get_radius(id).unwrap_or(BOND_RADIUS);
                 let cone_radius = (1.5 * radius).max(0.75 * SPHERE_RADIUS);
                 self.design_reader.get_nucl_with_id(id1).filter(filter)?;
@@ -634,16 +628,10 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
         id2: u32,
     ) -> Option<(u32, f32)> {
         let real_pos1 = self
-            .get_element_position(
-                &SceneElement::DesignElement(self.id, id1),
-                Referential::World,
-            )
+            .get_element_position(&DesignElement(self.id, id1), Referential::World)
             .unwrap_or_else(|| f32::NAN * Vec3::unit_x());
         let real_pos2 = self
-            .get_element_position(
-                &SceneElement::DesignElement(self.id, id2),
-                Referential::World,
-            )
+            .get_element_position(&DesignElement(self.id, id2), Referential::World)
             .unwrap_or_else(|| f32::NAN * Vec3::unit_x());
         let length = (real_pos2 - real_pos1).mag();
         let expected_length = self.design_reader.get_expected_bond_length(); // SHOULD DEPEND ON THE HELIX_MODEL OF THE STRAND -> SHOULD BE MODIFIED LATER
@@ -665,10 +653,8 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
         let kind = self.get_object_type(id)?;
         let raw_instances = match kind {
             ObjectType::Bond(id1, id2) => {
-                let pos1 =
-                    self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id1))?;
-                let pos2 =
-                    self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id2))?;
+                let pos1 = self.get_graphic_element_position(&DesignElement(self.id, id1))?;
+                let pos2 = self.get_graphic_element_position(&DesignElement(self.id, id2))?;
                 let color = self.get_color(id).unwrap_or(0x00_00_00);
                 let id = id | self.id << 24;
                 // Adjust the color and radius of the bond according to the REAL length of the bond
@@ -684,27 +670,19 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                 vec![tube.to_raw_instance()]
             }
             ObjectType::SlicedBond(prev_nucl_id, nucl1_id, nucl2_id, next_nucl_id) => {
-                let pos1 = self.get_graphic_element_position(&SceneElement::DesignElement(
-                    self.id, nucl1_id,
-                ))?;
-                let pos2 = self.get_graphic_element_position(&SceneElement::DesignElement(
-                    self.id, nucl2_id,
-                ))?;
+                let pos1 = self.get_graphic_element_position(&DesignElement(self.id, nucl1_id))?;
+                let pos2 = self.get_graphic_element_position(&DesignElement(self.id, nucl2_id))?;
 
                 let prev = if prev_nucl_id != nucl1_id {
-                    let pos0 = self.get_graphic_element_position(&SceneElement::DesignElement(
-                        self.id,
-                        prev_nucl_id,
-                    ))?;
+                    let pos0 =
+                        self.get_graphic_element_position(&DesignElement(self.id, prev_nucl_id))?;
                     pos1 - pos0
                 } else {
                     Vec3::zero()
                 };
                 let next = if next_nucl_id != nucl2_id {
-                    let pos3 = self.get_graphic_element_position(&SceneElement::DesignElement(
-                        self.id,
-                        next_nucl_id,
-                    ))?;
+                    let pos3 =
+                        self.get_graphic_element_position(&DesignElement(self.id, next_nucl_id))?;
                     pos3 - pos2
                 } else {
                     Vec3::zero()
@@ -767,12 +745,10 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                 if self.design_reader.get_curve_descriptor(h_id).is_none() {
                     // straight helix
 
-                    let pos1 = self.get_graphic_element_axis_position(
-                        &SceneElement::DesignElement(self.id, id1),
-                    )?;
-                    let pos2 = self.get_graphic_element_axis_position(
-                        &SceneElement::DesignElement(self.id, id2),
-                    )?;
+                    let pos1 =
+                        self.get_graphic_element_axis_position(&DesignElement(self.id, id1))?;
+                    let pos2 =
+                        self.get_graphic_element_axis_position(&DesignElement(self.id, id2))?;
                     let color = self.get_color(id).unwrap_or(HELIX_CYLINDER_COLOR);
                     let color = Instance::add_alpha_to_clear_color_u32(color);
                     let id = id | self.id << 24;
@@ -853,8 +829,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                 }
             }
             ObjectType::Nucleotide(id) => {
-                let position =
-                    self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id))?;
+                let position = self.get_graphic_element_position(&DesignElement(self.id, id))?;
                 let color = self.get_color(id)?;
                 let color = Instance::unclear_color_from_u32(color);
                 let id = id | self.id << 24;
@@ -1091,9 +1066,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
         referential: Referential,
     ) -> Option<Vec3> {
         match element {
-            SceneElement::DesignElement(_, e_id) => {
-                self.get_design_element_position(*e_id, referential)
-            }
+            DesignElement(_, e_id) => self.get_design_element_position(*e_id, referential),
             SceneElement::PhantomElement(phantom) => {
                 self.get_phantom_element_position(phantom, referential, false)
             }
@@ -1126,9 +1099,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
         referential: Referential,
     ) -> Option<Vec3> {
         match element {
-            SceneElement::DesignElement(_, e_id) => {
-                self.get_design_element_axis_position(*e_id, referential)
-            }
+            DesignElement(_, e_id) => self.get_design_element_axis_position(*e_id, referential),
             SceneElement::PhantomElement(phantom) => {
                 self.get_phantom_element_position(phantom, referential, true)
             }
@@ -1148,9 +1119,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
         referential: Referential,
     ) -> Option<Vec3> {
         match element {
-            SceneElement::DesignElement(_, e_id) => {
-                self.get_design_element_graphic_position(*e_id, referential)
-            }
+            DesignElement(_, e_id) => self.get_design_element_graphic_position(*e_id, referential),
             SceneElement::PhantomElement(phantom) => {
                 self.get_phantom_element_position(phantom, referential, true)
             }
@@ -1366,7 +1335,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
 
     pub fn can_start_builder(&self, element: &SceneElement) -> Option<Nucl> {
         match element {
-            SceneElement::DesignElement(_, e_id) => self.can_start_builder_on_element(*e_id),
+            DesignElement(_, e_id) => self.can_start_builder_on_element(*e_id),
             SceneElement::PhantomElement(phantom_element) => {
                 self.can_start_builder_on_phantom(phantom_element)
             }

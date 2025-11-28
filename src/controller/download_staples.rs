@@ -27,7 +27,7 @@ enum Step {
     AskingPath(AskingPath_),
     /// The path was asked, waiting for user to chose it
     PathAsked {
-        path_input: dialog::PathInput,
+        path_input: PathInput,
         design_id: usize,
     },
     /// Downloading

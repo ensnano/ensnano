@@ -24,7 +24,7 @@ pub struct FlatHelix {
     pub segment_left: Option<isize>,
 }
 
-impl std::cmp::PartialEq for FlatHelix {
+impl PartialEq for FlatHelix {
     fn eq(&self, other: &Self) -> bool {
         self.flat == other.flat
     }
@@ -155,13 +155,13 @@ impl FlatHelixMaps {
 
 impl Eq for FlatHelix {}
 
-impl std::cmp::PartialOrd for FlatHelix {
+impl PartialOrd for FlatHelix {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl std::cmp::Ord for FlatHelix {
+impl Ord for FlatHelix {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.flat.cmp(&other.flat)
     }

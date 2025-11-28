@@ -83,7 +83,7 @@ impl Background {
                 module: bg_vs_module,
                 entry_point: "main",
                 buffers: &[wgpu::VertexBufferLayout {
-                    array_stride: std::mem::size_of::<BgPoint>() as u64,
+                    array_stride: size_of::<BgPoint>() as u64,
                     step_mode: wgpu::VertexStepMode::Vertex,
                     attributes: &wgpu::vertex_attr_array![0 => Float32x2],
                 }],
@@ -109,7 +109,7 @@ impl Background {
                 module: border_vs_module,
                 entry_point: "main",
                 buffers: &[wgpu::VertexBufferLayout {
-                    array_stride: std::mem::size_of::<BgPoint>() as u64,
+                    array_stride: size_of::<BgPoint>() as u64,
                     step_mode: wgpu::VertexStepMode::Vertex,
                     attributes: &wgpu::vertex_attr_array![0 => Float32x2],
                 }],

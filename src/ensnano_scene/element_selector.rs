@@ -91,8 +91,7 @@ impl ElementSelector {
             let max_y = (pixel.1 + max_delta).min(self.window_size.height - 1);
             for x in min_x..=max_x {
                 for y in min_y..=max_y {
-                    let byte0 =
-                        (y * self.window_size.width + x) as usize * std::mem::size_of::<u32>();
+                    let byte0 = (y * self.window_size.width + x) as usize * size_of::<u32>();
                     for reader in &self.readers {
                         if let Some(element) = reader.read_pixel(byte0) {
                             return Some(element);

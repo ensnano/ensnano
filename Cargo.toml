@@ -130,7 +130,7 @@ unused_extern_crates = "warn"
 unused_import_braces = "warn"
 unused_lifetimes = "warn"
 unused_macro_rules = "warn"
-# TODO: unused_qualifications = "warn" (after crates are split up)
+unused_qualifications = "warn"
 variant_size_differences = "warn"
 
 [lints.clippy]

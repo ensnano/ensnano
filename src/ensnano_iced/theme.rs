@@ -72,7 +72,7 @@ impl From<GuiBackground> for Container {
 }
 
 impl tab_bar::StyleSheet for GuiBackground {
-    type Style = iced::Theme;
+    type Style = Theme;
 
     fn active(&self, _style: &Self::Style, _is_active: bool) -> tab_bar::Appearance {
         tab_bar::Appearance {

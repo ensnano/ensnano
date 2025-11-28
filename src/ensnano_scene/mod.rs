@@ -1027,7 +1027,7 @@ impl<S: AppState> Scene<S> {
             staging_buffer.unmap();
             pixels
         };
-        if let Ok(f_out) = std::fs::File::create(path) {
+        if let Ok(f_out) = fs::File::create(path) {
             let mut png_encoder = png::Encoder::new(
                 f_out,
                 buffer_dimensions.width as u32,

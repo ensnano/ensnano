@@ -53,7 +53,7 @@ use crate::{
 use iced::{
     Renderer, Size,
     advanced::{clipboard, mouse, renderer},
-    event::{self, Event},
+    event::Event,
     keyboard,
     mouse::Cursor,
 };
@@ -236,7 +236,7 @@ enum GuiState<R: Requests, S: AppState> {
 
 impl<R: Requests, S: AppState> GuiState<R, S> {
     fn queue_event(&mut self, event: Event) {
-        if let Event::Keyboard(iced::keyboard::Event::KeyPressed {
+        if let Event::Keyboard(keyboard::Event::KeyPressed {
             key: keyboard::Key::Named(keyboard::key::Named::Tab),
             ..
         }) = event
@@ -308,7 +308,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
 
     fn update(
         &mut self,
-        size: iced::Size,
+        size: Size,
         cursor: Cursor,
         renderer: &mut Renderer,
         theme: &iced::Theme,
@@ -717,23 +717,23 @@ impl<R: Requests, State: AppState> Gui<R, State> {
     }
 
     /// Forward an event to the appropriate gui component
-    pub fn forward_event(&mut self, area: GuiComponentType, event: event::Event) {
+    pub fn forward_event(&mut self, area: GuiComponentType, event: Event) {
         self.components.get_mut(&area).unwrap().forward_event(event);
     }
 
     /// Clear the focus of all components of the GUI
     pub fn clear_focus(&mut self) {
         for elt in self.components.values_mut() {
-            elt.forward_event(event::Event::Mouse(mouse::Event::CursorMoved {
+            elt.forward_event(Event::Mouse(mouse::Event::CursorMoved {
                 position: [-1., -1.].into(),
             }));
-            elt.forward_event(event::Event::Mouse(mouse::Event::ButtonPressed(
+            elt.forward_event(Event::Mouse(mouse::Event::ButtonPressed(
                 mouse::Button::Left,
             )));
         }
     }
 
-    pub fn forward_event_all(&mut self, event: event::Event) {
+    pub fn forward_event_all(&mut self, event: Event) {
         for e in self.components.values_mut() {
             e.forward_event(event.clone());
         }

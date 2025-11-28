@@ -591,7 +591,7 @@ impl NucleicAcidKind {
 
 impl PdbFormatter {
     pub fn new<P: AsRef<Path>>(path: P, nu_kind: NucleicAcidKind) -> Result<Self, PdbError> {
-        let out_file = std::fs::File::create(path).map_err(PdbError::IOError)?;
+        let out_file = File::create(path).map_err(PdbError::IOError)?;
 
         let reference = match nu_kind {
             NucleicAcidKind::Dna => make_reference_nucleotides()?,

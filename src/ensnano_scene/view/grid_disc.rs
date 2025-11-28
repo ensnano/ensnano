@@ -56,7 +56,7 @@ impl Vertexable for GridDiscVertex {
 
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         wgpu::VertexBufferLayout {
-            array_stride: std::mem::size_of::<GridDiscVertexRaw>() as wgpu::BufferAddress,
+            array_stride: size_of::<GridDiscVertexRaw>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &VERTEX_ATTR_ARRAY,
         }

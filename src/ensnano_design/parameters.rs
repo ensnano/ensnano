@@ -232,7 +232,7 @@ impl HelixParameters {
     }
 }
 
-impl std::default::Default for HelixParameters {
+impl Default for HelixParameters {
     fn default() -> Self {
         Self::DEFAULT
     }
