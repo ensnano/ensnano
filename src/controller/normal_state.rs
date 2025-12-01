@@ -27,13 +27,14 @@ use ensnano_exports::ExportType;
 use ensnano_gui::OverlayType;
 use ensnano_iced::ui_size::UiSize;
 use ensnano_interactor::{
-    DesignOperation, HyperboloidOperation, HyperboloidRequest, RapierSimulationRequest,
-    RigidBodyConstants, RollRequest,
+    DesignOperation, HyperboloidOperation, HyperboloidRequest, RigidBodyConstants, RollRequest,
     application::Notification,
     graphics::{FogParameters, SplitMode},
     selection::{all_helices_no_grid, extract_grids, extract_strands_from_selection},
     surfaces::RevolutionSurfaceSystemDescriptor,
 };
+
+use ensnano_physics::parameters::RapierParameters;
 use std::{
     path::{Path, PathBuf},
     sync::Arc,
@@ -207,12 +208,8 @@ impl State for NormalState {
                     main_state.set_roll_of_selected_helices(roll);
                     self
                 }
-                Action::RapierSimulationRequest(request) => {
-                    match request {
-                        RapierSimulationRequest::Start => {
-                            main_state.main_state().start_rapier_simulation();
-                        }
-                    }
+                Action::UpdateRapierParameters(parameters) => {
+                    main_state.main_state().update_rapier_parameters(parameters);
                     self
                 }
                 Action::ResetSimulation => {
@@ -465,7 +462,7 @@ pub(crate) enum Action {
     ToggleHelicesPersistence(bool),
     ToggleSmallSphere(bool),
     RollRequest(RollRequest),
-    RapierSimulationRequest(RapierSimulationRequest),
+    UpdateRapierParameters(RapierParameters),
     StopSimulation,
     RollHelices(f32),
     Copy,

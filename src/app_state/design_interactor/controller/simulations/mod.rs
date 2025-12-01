@@ -1,3 +1,18 @@
+/*
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 pub(crate) mod rapier;
 pub(crate) mod revolutions;
 pub(crate) mod roller;
@@ -14,7 +29,9 @@ use ensnano_design::{
     helices::{Helix, HelixCollection as _, NuclCollection},
     parameters::HelixParameters,
 };
-use ensnano_interactor::{RigidBodyConstants, surfaces::RevolutionSurfaceSystemDescriptor};
+use ensnano_interactor::RigidBodyConstants;
+use ensnano_interactor::surfaces::RevolutionSurfaceSystemDescriptor;
+use ensnano_physics::parameters::RapierParameters;
 use mathru::{
     algebra::linear::vector::vector::Vector,
     analysis::differential_equation::ordinary::{
@@ -1255,9 +1272,10 @@ pub(crate) enum SimulationOperation<'pres, 'reader> {
         reader: &'reader mut ChannelReader,
     },
     FinishRelaxation,
-    StartRapierSimulation {
+    UpdateRapierParameters {
         presenter: &'pres Presenter,
         reader: &'reader mut ChannelReader,
+        parameters: RapierParameters,
     },
 }
 

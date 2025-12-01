@@ -33,7 +33,7 @@ use ensnano_iced::{
     widgets::keyboard_priority::PriorityRequest,
 };
 use ensnano_interactor::{
-    HyperboloidRequest, RapierSimulationRequest,
+    HyperboloidRequest,
     app_state_parameters::{
         AppStateParameters, check_xovers_parameter::CheckXoversParameter,
         suggestion_parameters::SuggestionParameters,
@@ -105,8 +105,10 @@ pub enum Message<S: AppState> {
     FogRadius(f32),
     FogLength(f32),
     RollSimulationRequest,
+    /// Changes rapier parameters, including
+    /// if a simulation is running.
     UpdateRapierParameters(RapierParameters),
-    StartRapierSimulation,
+    UpdateRapierParameterField(String, String),
     DiscreteValue {
         factory_id: FactoryId,
         value_id: ValueId,
@@ -444,13 +446,16 @@ where
             }
             Message::UpdateRapierParameters(parameters) => {
                 self.simulation_tab.rapier_parameters = parameters;
-                Command::none()
-            }
-            Message::StartRapierSimulation => {
                 self.requests
                     .lock()
                     .unwrap()
-                    .request_rapier_simulation(RapierSimulationRequest::Start);
+                    .request_rapier_simulation(parameters);
+                Command::none()
+            }
+            Message::UpdateRapierParameterField(key, value) => {
+                self.simulation_tab
+                    .rapier_parameter_fields
+                    .insert(key, value);
                 Command::none()
             }
             Message::FogChoice(choice) => {
@@ -864,6 +869,7 @@ where
                 Command::none()
             }
             Message::StopSimulation => {
+                self.simulation_tab.rapier_parameters.is_simulation_running = false;
                 self.requests.lock().unwrap().stop_simulations();
                 Command::none()
             }
