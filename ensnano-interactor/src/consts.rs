@@ -1,24 +1,9 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use crate::RevolutionSimulationParameters;
-use ensnano_consts::*;
-use ensnano_design::BezierControlPoint;
+use crate::{RevolutionSimulationParameters, surfaces::EquadiffSolvingMethod};
+use ensnano_consts::{
+    BEZIER_CONTROL1_COLOR, BEZIER_CONTROL2_COLOR, BEZIER_END_COLOR, BEZIER_END_WIDGET_ID,
+    BEZIER_START_COLOR, BEZIER_START_WIDGET_ID, PIECEWISE_BEZIER_COLOR,
+};
+use ensnano_design::curves::bezier::{BezierControlPoint, CubicBezierControlPoint};
 
 pub fn bezier_widget_id(helix_id: u32, control_point: BezierControlPoint) -> u32 {
     let bezier_id = bezier_control_id(control_point);
@@ -39,12 +24,11 @@ pub fn widget_id_to_bezier(id: u32) -> Option<(usize, BezierControlPoint)> {
 }
 
 pub const fn bezier_control_color(control_point: BezierControlPoint) -> u32 {
-    use ensnano_design::CubicBezierControlPoint::*;
     match control_point {
-        BezierControlPoint::CubicBezier(Start) => BEZIER_START_COLOR,
-        BezierControlPoint::CubicBezier(Control1) => BEZIER_CONTROL1_COLOR,
-        BezierControlPoint::CubicBezier(Control2) => BEZIER_CONTROL2_COLOR,
-        BezierControlPoint::CubicBezier(End) => BEZIER_END_COLOR,
+        BezierControlPoint::CubicBezier(CubicBezierControlPoint::Start) => BEZIER_START_COLOR,
+        BezierControlPoint::CubicBezier(CubicBezierControlPoint::Control1) => BEZIER_CONTROL1_COLOR,
+        BezierControlPoint::CubicBezier(CubicBezierControlPoint::Control2) => BEZIER_CONTROL2_COLOR,
+        BezierControlPoint::CubicBezier(CubicBezierControlPoint::End) => BEZIER_END_COLOR,
         BezierControlPoint::PiecewiseBezier(_) => PIECEWISE_BEZIER_COLOR,
     }
 }
@@ -74,5 +58,5 @@ pub const DEFAULT_REVOLUTION_SIMULATION_PARAMETERS: RevolutionSimulationParamete
         ball_mass: 10.0,
         time_span: 5.0e-2,
         simulation_step: 1e-3,
-        method: super::EquadiffSolvingMethod::Ralston,
+        method: EquadiffSolvingMethod::Ralston,
     };

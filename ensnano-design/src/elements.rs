@@ -1,21 +1,4 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use ensnano_organizer::{
+use ensnano_organizer::element::{
     AttributeDisplay, AttributeWidget, ElementKey, OrganizerAttribute,
     OrganizerAttributeDiscriminant, OrganizerElement,
 };
@@ -25,26 +8,26 @@ use serde::{Deserialize, Serialize};
 /// Actual implementation of the OrganizerElement for the LeftPanel.
 #[derive(Clone, Debug)]
 pub enum DesignElement {
-    GridElement {
+    Grid {
         id: usize,
         visible: bool,
     },
-    StrandElement {
+    Strand {
         id: usize,
         length: usize,
         domain_lengths: Vec<usize>,
     },
-    HelixElement {
+    Helix {
         id: usize,
         group: Option<bool>,
         locked_for_simulations: bool,
     },
-    NucleotideElement {
+    Nucleotide {
         helix: usize,
         position: isize,
         forward: bool,
     },
-    CrossOverElement {
+    CrossOver {
         xover_id: usize,
         helix5prime: usize,
         position5prime: isize,
@@ -61,15 +44,15 @@ pub enum DnaAutoGroup {
     StrandWithDomainOfLength(BoundedLength),
 }
 
-impl ToString for DnaAutoGroup {
-    fn to_string(&self) -> String {
+impl std::fmt::Display for DnaAutoGroup {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::StrandWithLength(length) => format!("Strands with length {}", length.to_string()),
+            Self::StrandWithLength(length) => write!(f, "Strands with length {length}"),
             Self::StrandWithDomainOfLength(length) => match length {
                 BoundedLength::Last(_, _) => {
-                    format!("Strand with domains of lengths {}", length.to_string())
+                    write!(f, "Strand with domains of lengths {length}")
                 }
-                _ => format!("Strands with a domain of length {}", length.to_string()),
+                _ => write!(f, "Strands with a domain of length {length}"),
             },
         }
     }
@@ -103,13 +86,13 @@ impl From<(usize, (usize, usize))> for BoundedLength {
     }
 }
 
-impl ToString for BoundedLength {
-    fn to_string(&self) -> String {
+impl std::fmt::Display for BoundedLength {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Last(ll_min, ll_max) => format!("≥ {ll_min} (max {ll_max})"),
-            Self::Long(m) => format!("> {m}"),
-            Self::Short => format!("< {SHORT}"),
-            Self::Between(n) => format!("= {n}"),
+            Self::Last(ll_min, ll_max) => write!(f, "≥ {ll_min} (max {ll_max})"),
+            Self::Long(m) => write!(f, "> {m}"),
+            Self::Short => write!(f, "< {SHORT}"),
+            Self::Between(n) => write!(f, "= {n}"),
         }
     }
 }
@@ -121,10 +104,10 @@ impl OrganizerElement for DesignElement {
 
     fn key(&self) -> DesignElementKey {
         match self {
-            DesignElement::GridElement { id, .. } => DesignElementKey::Grid(*id),
-            DesignElement::StrandElement { id, .. } => DesignElementKey::Strand(*id),
-            DesignElement::HelixElement { id, .. } => DesignElementKey::Helix(*id),
-            DesignElement::NucleotideElement {
+            Self::Grid { id, .. } => DesignElementKey::Grid(*id),
+            Self::Strand { id, .. } => DesignElementKey::Strand(*id),
+            Self::Helix { id, .. } => DesignElementKey::Helix(*id),
+            Self::Nucleotide {
                 helix,
                 position,
                 forward,
@@ -133,7 +116,7 @@ impl OrganizerElement for DesignElement {
                 position: *position,
                 forward: *forward,
             },
-            DesignElement::CrossOverElement { xover_id, .. } => DesignElementKey::CrossOver {
+            Self::CrossOver { xover_id, .. } => DesignElementKey::CrossOver {
                 xover_id: *xover_id,
             },
         }
@@ -141,15 +124,15 @@ impl OrganizerElement for DesignElement {
 
     fn display_name(&self) -> String {
         match self {
-            DesignElement::GridElement { id, .. } => format!("Grid {}", id),
-            DesignElement::StrandElement { id, .. } => format!("Strand {}", id),
-            DesignElement::HelixElement { id, .. } => format!("Helix {}", id),
-            DesignElement::NucleotideElement {
+            Self::Grid { id, .. } => format!("Grid {id}"),
+            Self::Strand { id, .. } => format!("Strand {id}"),
+            Self::Helix { id, .. } => format!("Helix {id}"),
+            Self::Nucleotide {
                 helix,
                 position,
                 forward,
-            } => format!("Nucl {}:{}:{}", helix, position, forward),
-            DesignElement::CrossOverElement {
+            } => format!("Nucl {helix}:{position}:{forward}"),
+            Self::CrossOver {
                 helix5prime,
                 position5prime,
                 forward5prime,
@@ -158,20 +141,14 @@ impl OrganizerElement for DesignElement {
                 forward3prime,
                 ..
             } => format!(
-                "Xover ({}:{}:{}) -> ({}:{}:{})",
-                helix5prime,
-                position5prime,
-                forward5prime,
-                helix3prime,
-                position3prime,
-                forward3prime
+                "Xover ({helix5prime}:{position5prime}:{forward5prime}) -> ({helix3prime}:{position3prime}:{forward3prime})"
             ),
         }
     }
 
     fn attributes(&self) -> Vec<DnaAttribute> {
         match self {
-            DesignElement::HelixElement {
+            Self::Helix {
                 group,
                 locked_for_simulations: locked,
                 ..
@@ -179,18 +156,18 @@ impl OrganizerElement for DesignElement {
                 DnaAttribute::XoverGroup(*group),
                 DnaAttribute::LockedForSimulations(*locked),
             ],
-            DesignElement::GridElement { visible, .. } => vec![DnaAttribute::Visible(*visible)],
+            Self::Grid { visible, .. } => vec![DnaAttribute::Visible(*visible)],
             _ => vec![],
         }
     }
 
     fn min_max_domain_length_if_strand(&self) -> Option<(usize, usize)> {
         match self {
-            DesignElement::StrandElement { domain_lengths, .. } => match (
+            Self::Strand { domain_lengths, .. } => match (
                 domain_lengths.clone().iter().min().copied(),
                 domain_lengths.clone().iter().max().copied(),
             ) {
-                (Some(nmin), Some(nmax)) => Some((nmin, nmax)),
+                (Some(n_min), Some(n_max)) => Some((n_min, n_max)),
                 _ => None,
             },
 
@@ -200,7 +177,7 @@ impl OrganizerElement for DesignElement {
 
     fn auto_groups(&self, last_domain_length_bounds: (usize, usize)) -> Vec<Self::AutoGroup> {
         match self {
-            DesignElement::StrandElement {
+            Self::Strand {
                 length,
                 domain_lengths,
                 ..
@@ -214,7 +191,7 @@ impl OrganizerElement for DesignElement {
                 for len in lengths {
                     ret.push(DnaAutoGroup::StrandWithDomainOfLength(
                         (len, last_domain_length_bounds).into(),
-                    ))
+                    ));
                 }
                 ret
             }
@@ -308,42 +285,38 @@ impl OrganizerAttribute for DnaAttribute {
 
     fn discriminant(&self) -> DnaAttributeDiscriminant {
         match self {
-            DnaAttribute::Visible(_) => DnaAttributeDiscriminant::Visible,
-            DnaAttribute::XoverGroup(_) => DnaAttributeDiscriminant::XoverGroup,
-            DnaAttribute::LockedForSimulations(_) => DnaAttributeDiscriminant::LockedForSimulations,
+            Self::Visible(_) => DnaAttributeDiscriminant::Visible,
+            Self::XoverGroup(_) => DnaAttributeDiscriminant::XoverGroup,
+            Self::LockedForSimulations(_) => DnaAttributeDiscriminant::LockedForSimulations,
         }
     }
 
-    fn widget(&self) -> AttributeWidget<DnaAttribute> {
+    fn widget(&self) -> AttributeWidget<Self> {
         match self {
-            DnaAttribute::Visible(b) => AttributeWidget::new(DnaAttribute::Visible(!b)),
-            DnaAttribute::LockedForSimulations(b) => {
-                AttributeWidget::new(DnaAttribute::LockedForSimulations(!b))
-            }
-            DnaAttribute::XoverGroup(None) => {
-                AttributeWidget::new(DnaAttribute::XoverGroup(Some(false)))
-            }
-            DnaAttribute::XoverGroup(Some(b)) => AttributeWidget::new(if *b {
-                DnaAttribute::XoverGroup(None)
+            Self::Visible(b) => AttributeWidget::new(Self::Visible(!b)),
+            Self::LockedForSimulations(b) => AttributeWidget::new(Self::LockedForSimulations(!b)),
+            Self::XoverGroup(None) => AttributeWidget::new(Self::XoverGroup(Some(false))),
+            Self::XoverGroup(Some(b)) => AttributeWidget::new(if *b {
+                Self::XoverGroup(None)
             } else {
-                DnaAttribute::XoverGroup(Some(true))
+                Self::XoverGroup(Some(true))
             }),
         }
     }
 
     fn char_repr(&self) -> AttributeDisplay {
         match self {
-            DnaAttribute::Visible(b) => AttributeDisplay::Icon(if *b {
+            Self::Visible(b) => AttributeDisplay::Icon(if *b {
                 icondata::BsEyeFill
             } else {
                 icondata::BsEyeSlash
             }),
-            DnaAttribute::XoverGroup(group) => match group {
+            Self::XoverGroup(group) => match group {
                 None => AttributeDisplay::Text("\u{2205}".to_owned()),
                 Some(false) => AttributeDisplay::Text("G".to_owned()),
                 Some(true) => AttributeDisplay::Text("R".to_owned()),
             },
-            DnaAttribute::LockedForSimulations(b) => AttributeDisplay::Icon(if *b {
+            Self::LockedForSimulations(b) => AttributeDisplay::Icon(if *b {
                 icondata::BsLock
             } else {
                 icondata::BsUnlock

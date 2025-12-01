@@ -1,34 +1,14 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use std::path::Path;
-
-use super::Selection;
-use super::graphics::*;
+use crate::{
+    graphics::{DrawArea, FogParameters},
+    selection::Selection,
+};
 use ensnano_design::group_attributes::GroupPivot;
-use ensnano_iced::{iced_wgpu::wgpu, iced_winit::winit};
-use std::sync::Arc;
-use std::time::Duration;
+use std::{path::Path, sync::Arc, time::Duration};
 use ultraviolet::{Rotor3, Vec3};
-use winit::window::CursorIcon;
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
     event::{Modifiers, WindowEvent},
+    window::CursorIcon,
 };
 
 #[derive(Clone, Debug)]
@@ -58,7 +38,7 @@ pub trait Application {
     fn on_event(
         &mut self,
         event: &WindowEvent,
-        position: PhysicalPosition<f64>,
+        cursor_position: PhysicalPosition<f64>,
         app_state: &Self::AppState,
     ) -> Option<CursorIcon>;
     /// The method is used to forwards redraw_requests to applications

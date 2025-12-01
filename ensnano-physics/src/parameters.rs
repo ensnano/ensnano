@@ -62,16 +62,16 @@ pub enum RapierSimulationType {
 impl std::fmt::Display for RapierSimulationType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(match self {
-            RapierSimulationType::Full => "Full",
-            RapierSimulationType::Rigid => "Rigid",
-            RapierSimulationType::Cut => "Cut",
-            RapierSimulationType::KCut => "KCut",
+            Self::Full => "Full",
+            Self::Rigid => "Rigid",
+            Self::Cut => "Cut",
+            Self::KCut => "KCut",
         })
     }
 }
 
 impl RapierParameters {
-    const DEFAULT: RapierParameters = RapierParameters {
+    const DEFAULT: Self = Self {
         is_simulation_running: false,
         simulation_type: RapierSimulationType::Cut,
         k_cut_threshold: 10,

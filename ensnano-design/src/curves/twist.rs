@@ -1,30 +1,12 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::Curved;
 use crate::{
-    HelixParameters,
+    curves::{CurveBounds, Curved},
+    parameters::HelixParameters,
     utils::{rotor_to_drotor, vec_to_dvec},
 };
 use serde::{Deserialize, Serialize};
+use std::f64::consts::TAU;
 use ultraviolet::{DVec3, Rotor3, Vec3};
 
-#[allow(non_snake_case)]
 pub fn nb_turn_per_100_nt_to_omega(
     nb_turn_per_100_nt: f64,
     helix_parameters: &HelixParameters,
@@ -32,9 +14,8 @@ pub fn nb_turn_per_100_nt_to_omega(
     if nb_turn_per_100_nt.abs() < 1e-3 {
         return Some(0.0);
     }
-    let Z: f64 = 100.0 * helix_parameters.rise as f64;
-    use std::f64::consts::TAU;
-    Some(TAU * nb_turn_per_100_nt / Z)
+    let z: f64 = 100.0 * helix_parameters.rise as f64;
+    Some(TAU * nb_turn_per_100_nt / z)
 }
 
 pub fn twist_to_omega(twist: f64, helix_parameters: &HelixParameters) -> Option<f64> {
@@ -62,8 +43,8 @@ pub struct Twist {
 
 impl Curved for Twist {
     fn t_max(&self) -> f64 {
-        if let Some(tmax) = self.t_max {
-            tmax.max(1.0)
+        if let Some(t_max) = self.t_max {
+            t_max.max(1.0)
         } else {
             1.0
         }
@@ -117,8 +98,8 @@ impl Curved for Twist {
         orientation * pos_0
     }
 
-    fn bounds(&self) -> super::CurveBounds {
-        super::CurveBounds::BiInfinite
+    fn bounds(&self) -> CurveBounds {
+        CurveBounds::BiInfinite
     }
 
     fn curvilinear_abscissa(&self, t: f64) -> Option<f64> {
@@ -128,7 +109,7 @@ impl Curved for Twist {
             // https://mathcurve.com/courbes3d.gb/helicecirculaire/helicecirculaire.shtml
             let a = self.radius;
             let b = 1. / self.omega;
-            Some((a * a + b * b).sqrt() * t * self.omega.abs())
+            Some(f64::hypot(a, b) * t * self.omega.abs())
         }
     }
 
@@ -139,19 +120,12 @@ impl Curved for Twist {
             // https://mathcurve.com/courbes3d.gb/helicecirculaire/helicecirculaire.shtml
             let a = self.radius;
             let b = 1. / self.omega;
-            let s = (a * a + b * b).sqrt();
+            let s = f64::hypot(a, b);
             Some(x / self.omega.abs() / s)
         }
     }
 
     fn rise_ratio(&self) -> Option<f64> {
-        /*
-        if self.omega.abs() < 1e-5 {
-            None
-        } else {
-            self.curvilinear_abscissa(1.0)
-        }
-        */
         None
     }
 }
@@ -159,6 +133,7 @@ impl Curved for Twist {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{curves::InstantiatedCurveDescriptor_, helices::Helix};
 
     impl Twist {
         fn with_omega(omega: f64) -> Self {
@@ -190,58 +165,55 @@ mod tests {
             p = q;
         }
         let expected = twist.curvilinear_abscissa(1.0).unwrap();
-        println!("s = {}", s);
-        println!("expected = {}", expected);
+        println!("s = {s}");
+        println!("expected = {expected}");
         assert!((s - expected).abs() < 1e-3);
     }
 
-    #[allow(non_snake_case)]
     #[test]
     fn nb_turn_per_100_nt_is_correct() {
         let p = HelixParameters::DEFAULT;
         let nb_turn = 0.1234;
         let omega = nb_turn_per_100_nt_to_omega(nb_turn, &p).unwrap();
-        let Z = 100. * p.rise as f64;
-        assert!(((omega * Z) - (std::f64::consts::TAU * nb_turn)).abs() < 1e-5)
+        let z = 100. * p.rise as f64;
+        assert!(((omega * z) - (TAU * nb_turn)).abs() < 1e-5);
     }
 
     #[ignore = "need fix"]
-    #[allow(non_snake_case)]
     #[test]
     fn rise_ratio_is_correct() {
         let p = HelixParameters::DEFAULT;
-        let Z = 100.0 * p.rise as f64;
+        let z = 100.0 * p.rise as f64;
         let nb_turn = 0.1234;
         let omega = nb_turn_per_100_nt_to_omega(nb_turn, &p).unwrap();
         let mut twist = Twist::with_omega(omega);
-        twist.t_max = Some(Z);
-        let descriptor = super::super::InstantiatedCurveDescriptor_::Twist(twist);
+        twist.t_max = Some(z);
+        let descriptor = InstantiatedCurveDescriptor_::Twist(twist);
         let curve = descriptor.try_into_curve(&p).unwrap();
-        let flat_helix = crate::Helix::new(Vec3::zero(), Rotor3::identity());
+        let flat_helix = Helix::new(Vec3::zero(), Rotor3::identity());
         let theta = flat_helix.theta(99, true, &p);
         let nucl_curved = curve.nucl_pos(99, true, theta as f64, &p).unwrap();
-        let nucl_flat = crate::utils::vec_to_dvec(flat_helix.space_pos(&p, 99, true));
+        let nucl_flat = vec_to_dvec(flat_helix.space_pos(&p, 99, true));
 
-        println!("curved {:?} \n flat {:?}", nucl_curved, nucl_flat);
+        println!("curved {nucl_curved:?} \n flat {nucl_flat:?}");
         // The two nucleotides are not in the same position
         assert!((nucl_curved - nucl_flat).mag() > 0.5);
         // But have almost the same x coordinate
         assert!((nucl_curved.x - nucl_flat.x).abs() < 1e-2);
     }
 
-    #[allow(non_snake_case)]
     fn roll_adjustment_is_correct(nb_turn: f64) {
         let p = HelixParameters::DEFAULT;
-        let Z = 100.0 * p.rise as f64;
+        let z = 100.0 * p.rise as f64;
         let omega = nb_turn_per_100_nt_to_omega(nb_turn, &p).unwrap();
         let mut twist = Twist::with_omega(omega);
-        twist.t_max = Some(Z);
-        let descriptor = super::super::InstantiatedCurveDescriptor_::Twist(twist.clone());
+        twist.t_max = Some(z);
+        let descriptor = InstantiatedCurveDescriptor_::Twist(twist.clone());
         let curve = descriptor.try_into_curve(&p).unwrap();
-        println!("abscissa {:?}", twist.curvilinear_abscissa(Z));
+        println!("abscissa {:?}", twist.curvilinear_abscissa(z));
         println!("z ratio {:?}", twist.rise_ratio());
         assert!(twist.theta_shift(&p).is_some());
-        let flat_helix = crate::Helix::new(Vec3::zero(), Rotor3::identity());
+        let flat_helix = Helix::new(Vec3::zero(), Rotor3::identity());
         let theta_99 = flat_helix.theta(99, true, &p);
         let theta_98 = flat_helix.theta(98, true, &p);
         let nucl_98 = curve.nucl_pos(98, true, theta_98 as f64, &p).unwrap();

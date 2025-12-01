@@ -1,27 +1,15 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 //! A good description of the cadnano file format can be found at
 //! <https://github.com/UC-Davis-molecular-computing/scadnano-python-package/blob/main/misc/cadnano-format-specs/v2.txt>
 
 mod parity_graph;
 
-use ensnano_design::{Collection, Design, Domain, Nucl, grid::GridData};
+use ensnano_design::{
+    Design, Nucl,
+    collection::Collection as _,
+    grid::{GridData, GridTypeDescr},
+    strands::Domain,
+};
+use serde::Serialize;
 use std::collections::HashMap;
 
 pub fn cadnano_export(design: &Design) -> Result<String, CadnanoError> {
@@ -29,7 +17,7 @@ pub fn cadnano_export(design: &Design) -> Result<String, CadnanoError> {
 
     for s in design.strands.values() {
         let mut strand = exporter.new_strand();
-        for d in s.domains.iter() {
+        for d in &s.domains {
             if let Domain::HelixDomain(d) = d {
                 for pos in d.iter() {
                     let nucl = Nucl {
@@ -45,14 +33,14 @@ pub fn cadnano_export(design: &Design) -> Result<String, CadnanoError> {
         strand.finish(s.is_cyclic, s.color)?;
     }
 
-    let mut helices: Vec<_> = exporter.helices.values().map(|h| h.clone()).collect();
+    let mut helices: Vec<_> = exporter.helices.values().cloned().collect();
     helices.sort_by_key(|h| h.num);
 
     serde_json::to_string(&ExportedCadnano {
         name: String::from("ENSnano exported design"),
         helices,
     })
-    .map_err(|e| CadnanoError::SerdeError(e))
+    .map_err(CadnanoError::SerdeError)
 }
 
 fn get_ensnano_bonds(design: &Design) -> EnsnanoBonds {
@@ -61,7 +49,7 @@ fn get_ensnano_bonds(design: &Design) -> EnsnanoBonds {
     let mut max_helix_idx = 0;
 
     for s in design.strands.values() {
-        for d in s.domains.iter() {
+        for d in &s.domains {
             if let Domain::HelixDomain(d) = d {
                 min_nt_pos = min_nt_pos.min(d.start);
                 max_nt_pos = max_nt_pos.max(d.end - 1);
@@ -82,21 +70,21 @@ fn get_grid_type(grids: &GridData) -> Result<GridType, CadnanoError> {
 
     for g in grids.source_free_grids.values() {
         match g.grid_type {
-            ensnano_design::grid::GridTypeDescr::Square { .. } => {
+            GridTypeDescr::Square { .. } => {
                 if ret == Some(GridType::HoneyComb) {
                     return Err(CadnanoError::NonHomogeneousGridTypes);
-                } else {
-                    ret = Some(GridType::Square)
                 }
+                ret = Some(GridType::Square);
             }
-            ensnano_design::grid::GridTypeDescr::Honeycomb { .. } => {
+            GridTypeDescr::Honeycomb { .. } => {
                 if ret == Some(GridType::Square) {
                     return Err(CadnanoError::NonHomogeneousGridTypes);
-                } else {
-                    ret = Some(GridType::HoneyComb)
                 }
+                ret = Some(GridType::HoneyComb);
             }
-            t => return Err(CadnanoError::UnhandledGridType(t)),
+            t @ GridTypeDescr::Hyperboloid { .. } => {
+                return Err(CadnanoError::UnhandledGridType(t));
+            }
         }
     }
 
@@ -106,14 +94,14 @@ fn get_grid_type(grids: &GridData) -> Result<GridType, CadnanoError> {
 fn get_cadnano_bonds(design: &Design, grids: &GridData) -> Result<CadnanoBonds, CadnanoError> {
     let ensnano_bonds = get_ensnano_bonds(design);
     let grid_type = get_grid_type(grids)?;
-    Ok(ensnano_bonds.convert_to_cadnanobonds(grid_type))
+    Ok(ensnano_bonds.convert_to_cadnano_bonds(grid_type))
 }
 
 fn init_cadnano_exporter(design: &Design) -> Result<CadnanoExporter, CadnanoError> {
     let mut design_clone = design.clone();
     let grids = design_clone.get_updated_grid_data();
-    let bonds = get_cadnano_bonds(&design, &grids)?;
-    let parity_helix = parity_graph::get_parity(&design, bonds.max_helix_idx)?;
+    let bonds = get_cadnano_bonds(design, grids)?;
+    let parity_helix = parity_graph::get_parity(design, bonds.max_helix_idx)?;
 
     let mut shift_x = 0;
 
@@ -130,13 +118,13 @@ fn init_cadnano_exporter(design: &Design) -> Result<CadnanoExporter, CadnanoErro
         let max_x = used_coordinates.iter().map(|(x, _)| *x).max().unwrap_or(0);
         let min_y = used_coordinates.iter().map(|(_, y)| *y).min().unwrap_or(0);
 
-        let coordinates_with_helice = {
+        let coordinates_with_helices = {
             let mut v = grids.get_helices_grid_key_coord(*g_id);
             v.sort_unstable(); // sorted by lexicographic order on (x, y)
             v
         };
 
-        for ((x, y), h) in coordinates_with_helice.iter() {
+        for ((x, y), h) in &coordinates_with_helices {
             let mut candidate = (shift_x - min_x + x, shift_y - min_y + y);
             if parity(candidate) != parity_helix[*h] {
                 shift_y += 1;
@@ -156,7 +144,7 @@ fn init_cadnano_exporter(design: &Design) -> Result<CadnanoExporter, CadnanoErro
             let cadnano_helix = CadnanoHelix::new(num, candidate, bonds.max_nt_pos);
             cadnano_helices.insert(*h, cadnano_helix);
         }
-        shift_x += max_x + 1
+        shift_x += max_x + 1;
     }
 
     Ok(CadnanoExporter {
@@ -182,12 +170,12 @@ struct CadnanoBonds {
 }
 
 impl EnsnanoBonds {
-    fn convert_to_cadnanobonds(self, grid_type: GridType) -> CadnanoBonds {
+    fn convert_to_cadnano_bonds(self, grid_type: GridType) -> CadnanoBonds {
         let max_nt_pos = {
             let value = self.max_nt_pos - self.min_nt_pos;
             match grid_type {
                 GridType::Square => ((1 + value / 21) * 21) as usize,
-                _ => ((1 + value / 32) * 32) as usize,
+                GridType::HoneyComb => ((1 + value / 32) * 32) as usize,
             }
         };
 
@@ -203,10 +191,10 @@ impl EnsnanoBonds {
 pub enum CadnanoError {
     Not2Colorable,
     NonHomogeneousGridTypes,
-    UnhandledGridType(#[allow(unused)] ensnano_design::grid::GridTypeDescr),
+    UnhandledGridType(GridTypeDescr),
     ImpossibleBond,
-    HelixNotFound(#[allow(unused)] usize),
-    SerdeError(#[allow(unused)] serde_json::Error),
+    HelixNotFound(usize),
+    SerdeError(serde_json::Error),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -236,33 +224,34 @@ impl CadnanoExporter {
 
         if (num_prime5 % 2 == num_prime3 % 2) != (prime5.forward == prime3.forward) {
             return Err(CadnanoError::ImpossibleBond);
-        } else {
-            let helix_prime5 = self
-                .helices
-                .get_mut(&prime5.helix)
-                .ok_or(CadnanoError::HelixNotFound(prime5.helix))?;
-
-            let cadnano_prime5_nucl = if (helix_prime5.num % 2 == 0) == prime5.forward {
-                &mut helix_prime5.scaf[(prime5.position - self.bonds.shift) as usize]
-            } else {
-                &mut helix_prime5.stap[(prime5.position - self.bonds.shift) as usize]
-            };
-            cadnano_prime5_nucl.2 = num_prime3;
-            cadnano_prime5_nucl.3 = prime3.position - self.bonds.shift;
-
-            let helix_prime3 = self
-                .helices
-                .get_mut(&prime3.helix)
-                .ok_or(CadnanoError::HelixNotFound(prime3.helix))?;
-
-            let cadnano_prime3_nucl = if (helix_prime3.num % 2 == 0) == prime3.forward {
-                &mut helix_prime3.scaf[(prime3.position - self.bonds.shift) as usize]
-            } else {
-                &mut helix_prime3.stap[(prime3.position - self.bonds.shift) as usize]
-            };
-            cadnano_prime3_nucl.0 = num_prime5;
-            cadnano_prime3_nucl.1 = prime5.position - self.bonds.shift;
         }
+
+        let helix_prime5 = self
+            .helices
+            .get_mut(&prime5.helix)
+            .ok_or(CadnanoError::HelixNotFound(prime5.helix))?;
+
+        let cadnano_prime5_nucl = if (helix_prime5.num % 2 == 0) == prime5.forward {
+            &mut helix_prime5.scaf[(prime5.position - self.bonds.shift) as usize]
+        } else {
+            &mut helix_prime5.stap[(prime5.position - self.bonds.shift) as usize]
+        };
+        cadnano_prime5_nucl.2 = num_prime3;
+        cadnano_prime5_nucl.3 = prime3.position - self.bonds.shift;
+
+        let helix_prime3 = self
+            .helices
+            .get_mut(&prime3.helix)
+            .ok_or(CadnanoError::HelixNotFound(prime3.helix))?;
+
+        let cadnano_prime3_nucl = if (helix_prime3.num % 2 == 0) == prime3.forward {
+            &mut helix_prime3.scaf[(prime3.position - self.bonds.shift) as usize]
+        } else {
+            &mut helix_prime3.stap[(prime3.position - self.bonds.shift) as usize]
+        };
+        cadnano_prime3_nucl.0 = num_prime5;
+        cadnano_prime3_nucl.1 = prime5.position - self.bonds.shift;
+
         Ok(())
     }
 
@@ -274,11 +263,11 @@ impl CadnanoExporter {
             helix.stap_colors.push((
                 prime5_nucl.position - self.bonds.shift,
                 color % 0x01_00_00_00,
-            ))
+            ));
         }
     }
 
-    fn new_strand<'a>(&'a mut self) -> CadnanoStrand<'a> {
+    fn new_strand(&mut self) -> CadnanoStrand<'_> {
         CadnanoStrand {
             exporter: self,
             previous_nucl: None,
@@ -313,14 +302,12 @@ impl CadnanoStrand<'_> {
         }
 
         if let Some(nucl) = self.first_nucl {
-            self.exporter.set_staple_color(nucl, color)
+            self.exporter.set_staple_color(nucl, color);
         }
 
         Ok(())
     }
 }
-
-use serde::Serialize;
 
 const NO_CADNANO_NUCL: (isize, isize, isize, isize) = (-1, -1, -1, -1);
 

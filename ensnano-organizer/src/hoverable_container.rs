@@ -10,7 +10,7 @@
 //!
 //!    <https://docs.rs/iced_widget/0.12.1/src/iced_widget/container.rs.html>
 
-use ensnano_iced::iced::{
+use iced::{
     Element, Length, Padding, Point, Rectangle, Size, Vector,
     advanced::{
         Clipboard, Shell,
@@ -22,16 +22,16 @@ use ensnano_iced::iced::{
 };
 
 /// A widget that emits a message when hovered.
-pub struct HoverableContainer<'a, Message, Theme = super::Theme, Renderer = super::Renderer> {
+pub struct HoverableContainer<'a, Message> {
     padding: Padding,
-    content: Element<'a, Message, Theme, Renderer>,
+    content: Element<'a, Message>,
     on_hover: Option<Message>,
     on_unhover: Option<Message>,
 }
 
-impl<'a, Message, Theme, Renderer> HoverableContainer<'a, Message, Theme, Renderer> {
+impl<'a, Message> HoverableContainer<'a, Message> {
     /// Creates a new [HoverableContainer] with the given content.
-    pub fn new(content: impl Into<Element<'a, Message, Theme, Renderer>>) -> Self {
+    pub fn new(content: impl Into<Element<'a, Message>>) -> Self {
         HoverableContainer {
             padding: Padding::ZERO,
             content: content.into(),
@@ -41,18 +41,21 @@ impl<'a, Message, Theme, Renderer> HoverableContainer<'a, Message, Theme, Render
     }
 
     /// Sets the [`Padding`] of the content.
+    #[must_use]
     pub fn padding<P: Into<Padding>>(mut self, padding: P) -> Self {
         self.padding = padding.into();
         self
     }
 
     /// Sets the message that will be produced when the content is hovered.
+    #[must_use]
     pub fn on_hover(mut self, message: Message) -> Self {
         self.on_hover = Some(message);
         self
     }
 
     /// Sets the message that will be produced when the content is unhovered.
+    #[must_use]
     pub fn on_unhover(mut self, message: Message) -> Self {
         self.on_unhover = Some(message);
         self
@@ -65,11 +68,9 @@ pub struct State {
     is_hovered: bool,
 }
 
-impl<'a, Message, Theme, Renderer> Widget<Message, Theme, Renderer>
-    for HoverableContainer<'a, Message, Theme, Renderer>
+impl<'a, Message> Widget<Message, iced::Theme, iced::Renderer> for HoverableContainer<'a, Message>
 where
     Message: 'a + Clone,
-    Renderer: renderer::Renderer,
 {
     fn tag(&self) -> widget::tree::Tag {
         widget::tree::Tag::of::<State>()
@@ -91,12 +92,12 @@ where
         event: event::Event,
         layout: Layout,
         cursor_position: mouse::Cursor,
-        renderer: &Renderer,
+        renderer: &iced::Renderer,
         clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
         viewport: &Rectangle,
     ) -> event::Status {
-        if let event::Status::Captured = self.content.as_widget_mut().on_event(
+        if self.content.as_widget_mut().on_event(
             &mut tree.children[0],
             event,
             layout.children().next().unwrap(),
@@ -105,15 +106,16 @@ where
             clipboard,
             shell,
             viewport,
-        ) {
+        ) == event::Status::Captured
+        {
             return event::Status::Captured;
         }
+
         let state = tree.state.downcast_mut::<State>();
         let was_hovered = state.is_hovered;
         let now_hovered = cursor_position.is_over(layout.bounds());
         match (was_hovered, now_hovered) {
-            (true, true) => {}
-            (false, false) => {}
+            (true, true) | (false, false) => {}
             (true, false) => {
                 // exited hover
                 state.is_hovered = now_hovered;
@@ -135,7 +137,7 @@ where
     fn layout(
         &self,
         tree: &mut widget::Tree,
-        renderer: &Renderer,
+        renderer: &iced::Renderer,
         limits: &layout::Limits,
     ) -> layout::Node {
         let Size { width, height } = self.size();
@@ -145,10 +147,7 @@ where
             .content
             .as_widget()
             .layout(&mut tree.children[0], renderer, &limits)
-            .move_to(Point::new(
-                self.padding.left.into(),
-                self.padding.top.into(),
-            ));
+            .move_to(Point::new(self.padding.left, self.padding.top));
 
         let size = limits
             .resolve(width, height, content_layout.size())
@@ -167,11 +166,11 @@ where
     fn draw(
         &self,
         tree: &widget::Tree,
-        renderer: &mut Renderer,
-        theme: &Theme,
+        renderer: &mut iced::Renderer,
+        theme: &iced::Theme,
         style: &renderer::Style,
         layout: Layout,
-        cursor_position: mouse::Cursor,
+        cursor: mouse::Cursor,
         _viewport: &Rectangle,
     ) {
         let bounds = layout.bounds();
@@ -183,7 +182,7 @@ where
             theme,
             style,
             content_layout,
-            cursor_position,
+            cursor,
             &bounds,
         );
     }
@@ -194,7 +193,7 @@ where
         layout: Layout,
         cursor_position: mouse::Cursor,
         viewport: &Rectangle,
-        renderer: &Renderer,
+        renderer: &iced::Renderer,
     ) -> mouse::Interaction {
         self.content.as_widget().mouse_interaction(
             &tree.children[0],
@@ -209,9 +208,9 @@ where
         &'b mut self,
         tree: &'b mut widget::Tree,
         layout: Layout,
-        renderer: &Renderer,
+        renderer: &iced::Renderer,
         translation: Vector,
-    ) -> Option<overlay::Element<'b, Message, Theme, Renderer>> {
+    ) -> Option<overlay::Element<'b, Message, iced::Theme, iced::Renderer>> {
         self.content.as_widget_mut().overlay(
             &mut tree.children[0],
             layout.children().next().unwrap(),
@@ -221,16 +220,11 @@ where
     }
 }
 
-impl<'a, Message, Theme, Renderer> From<HoverableContainer<'a, Message, Theme, Renderer>>
-    for Element<'a, Message, Theme, Renderer>
+impl<'a, Message> From<HoverableContainer<'a, Message>> for Element<'a, Message>
 where
     Message: 'a + Clone,
-    Theme: 'a,
-    Renderer: 'a + renderer::Renderer,
 {
-    fn from(
-        value: HoverableContainer<'a, Message, Theme, Renderer>,
-    ) -> Element<'a, Message, Theme, Renderer> {
+    fn from(value: HoverableContainer<'a, Message>) -> Self {
         Element::new(value)
     }
 }

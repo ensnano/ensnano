@@ -1,7 +1,3 @@
-// use super::import::*;
-use ahash::HashMap;
-use ensnano_interactor::ObjectType;
-
 use crate::{
     full_simulation::{
         CutHelicesSetup, FullSimulationSetup, KCutHelicesSetup, RigidHelicesSetup, build_simulation,
@@ -9,7 +5,9 @@ use crate::{
     helices::build_helices,
     parameters::RapierParameters,
 };
-use ensnano_design::{Helices, HelixParameters, Nucl};
+use ahash::HashMap;
+use ensnano_design::{Nucl, helices::Helices, parameters::HelixParameters};
+use ensnano_interactor::ObjectType;
 use rapier3d::{na::Vector3, prelude::*};
 
 #[derive(Default)]

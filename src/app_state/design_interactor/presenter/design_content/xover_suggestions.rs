@@ -1,23 +1,6 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::{Design, Nucl, SuggestionParameters};
 use ahash::RandomState;
+use ensnano_design::{Design, Nucl};
+use ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use ultraviolet::Vec3;
 
@@ -40,7 +23,7 @@ impl XoverSuggestions {
         self.helices_groups
             .entry(nucl.helix)
             .or_default()
-            .push(nucl.clone());
+            .push(nucl);
         self.helices_cubes
             .entry(nucl.helix)
             .or_default()
@@ -53,10 +36,7 @@ impl XoverSuggestions {
                 self.blue_nucl.push(nucl);
             }
             Some(false) => {
-                self.red_cubes
-                    .entry(cube)
-                    .or_insert(vec![])
-                    .push(nucl.clone());
+                self.red_cubes.entry(cube).or_default().push(nucl);
             }
             None => (),
         }
@@ -85,12 +65,12 @@ impl XoverSuggestions {
         design: &Design,
         suggestion_parameters: &SuggestionParameters,
     ) {
-        for blue_nucl in self.blue_nucl.iter() {
+        for blue_nucl in &self.blue_nucl {
             let neighbor = self
                 .get_possible_cross_over_groups(design, blue_nucl, suggestion_parameters)
                 .unwrap_or_default();
             for (red_nucl, dist) in neighbor {
-                ret.push((*blue_nucl, red_nucl, dist))
+                ret.push((*blue_nucl, red_nucl, dist));
             }
         }
     }
@@ -130,12 +110,12 @@ impl XoverSuggestions {
         suggestion_parameters: &SuggestionParameters,
     ) {
         for nucls in self.helices_groups.values() {
-            for n in nucls.iter() {
+            for n in nucls {
                 let neighbor = self
                     .get_possible_cross_over_all_helices(design, n, suggestion_parameters)
                     .unwrap_or_default();
                 for (red_nucl, dist) in neighbor {
-                    ret.push((*n, red_nucl, dist))
+                    ret.push((*n, red_nucl, dist));
                 }
             }
         }
@@ -150,9 +130,9 @@ impl XoverSuggestions {
         let mut ret = Vec::new();
         let positions = design.get_nucl_position(*nucl)?;
         let cube0 = space_to_cube(positions[0], positions[1], positions[2]);
-        for i in vec![-1, 0, 1].iter() {
-            for j in vec![-1, 0, 1].iter() {
-                for k in vec![-1, 0, 1].iter() {
+        for i in &[-1, 0, 1] {
+            for j in &[-1, 0, 1] {
+                for k in &[-1, 0, 1] {
                     let cube = (cube0.0 + i, cube0.1 + j, cube0.2 + k);
 
                     for (_, cubes) in self.helices_cubes.iter().filter(|(h, _)| **h > nucl.helix) {
@@ -200,9 +180,9 @@ impl XoverSuggestions {
         let positions = design.get_nucl_position(*nucl)?;
         let cube0 = space_to_cube(positions[0], positions[1], positions[2]);
 
-        for i in vec![-1, 0, 1].iter() {
-            for j in vec![-1, 0, 1].iter() {
-                for k in vec![-1, 0, 1].iter() {
+        for i in [-1, 0, 1] {
+            for j in [-1, 0, 1] {
+                for k in [-1, 0, 1] {
                     let cube = (cube0.0 + i, cube0.1 + j, cube0.2 + k);
 
                     if let Some(v) = self.red_cubes.get(&cube) {

@@ -1,23 +1,8 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::*;
+use crate::chars2d::{CharDrawer, CharInstance};
 use fontdue::layout::Layout;
-use ultraviolet::Rotor2;
+use std::{collections::HashMap, rc::Rc};
+use ultraviolet::{Mat2, Rotor2, Vec2, Vec4};
+use wgpu::{BindGroupLayout, Device, Queue, RenderPass};
 
 pub struct TextDrawer {
     char_drawers: HashMap<char, CharDrawer>,
@@ -69,11 +54,11 @@ impl TextDrawer {
     }
 
     pub fn draw<'a>(&'a mut self, render_pass: &mut RenderPass<'a>) {
-        for (c, v) in self.char_map.iter() {
+        for (c, v) in &self.char_map {
             if let Some(drawer_mut) = self.char_drawers.get_mut(c) {
-                drawer_mut.new_instances(Rc::new(v.clone()))
+                drawer_mut.new_instances(Rc::new(v.clone()));
             } else {
-                eprintln!("Unprintable char {}", c);
+                log::warn!("Unprintable char: '{c}'");
             }
         }
         for d in self.char_drawers.values_mut() {
@@ -86,8 +71,7 @@ impl TextDrawer {
             .text
             .chars()
             .next()
-            .map(|c| c.is_ascii_uppercase())
-            .unwrap_or_default()
+            .is_some_and(|c| c.is_ascii_uppercase())
         {
             [&self.char_drawers[&'A'].letter.font]
         } else {
@@ -107,7 +91,7 @@ impl TextDrawer {
         );
         let shift = rectangle.shift(bound, center_position);
 
-        for g in rectangle.glyphs.iter() {
+        for g in rectangle.glyphs {
             let c = g.parent;
             let pos = (Vec2 {
                 x: g.x / PX_PER_SQUARE * sentence.size,
@@ -121,7 +105,7 @@ impl TextDrawer {
                 z_index: sentence.z_index,
                 color: sentence.color,
                 size: sentence.size,
-            })
+            });
         }
     }
 }
@@ -202,7 +186,7 @@ impl<'a> SentenceRectangle<'a> {
         let mut ret = Vec2::zero();
         let mut mag = 0.0;
 
-        for c in self.corners().iter() {
+        for c in &self.corners() {
             let point_no_shift =
                 center + ((*c - self.center()) * self.symmetry).rotated_by(self.rotation);
             let shift = line.shift(point_no_shift);

@@ -1,27 +1,15 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::*;
-use crate::{curves::torus::PointOnSurface_, utils::dvec_to_vec};
+use crate::{
+    curves::{
+        CurveBounds, Curved, EPSILON_DERIVATIVE, SurfaceInfo, SurfacePoint,
+        torus::{CurveDescriptor2D, PointOnSurface_},
+    },
+    utils::dvec_to_vec,
+};
 use chebyshev_polynomials::ChebyshevPolynomial;
+use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::f64::consts::{PI, TAU};
-use ultraviolet::{DRotor2, DVec2, Mat3, Rotor2};
+use ultraviolet::{DRotor2, DVec2, DVec3, Isometry2, Mat3, Rotor2, Vec2};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct InterpolatedCurveDescriptor {
@@ -32,7 +20,7 @@ pub struct InterpolatedCurveDescriptor {
     /// Scale factor of the section
     pub curve_scale_factor: f64,
     pub interpolation: Vec<InterpolationDescriptor>,
-    pub chevyshev_smoothening: f64,
+    pub chebyshev_smoothening: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub revolution_angle_init: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -59,7 +47,7 @@ impl InterpolatedCurveDescriptor {
         let curve = SmoothInterpolatedCurve::from_curve_interpolation(
             curve,
             self.interpolation,
-            self.chevyshev_smoothening,
+            self.chebyshev_smoothening,
             self.half_turns_count,
         );
         let mut ret = Revolution {
@@ -121,13 +109,11 @@ impl SmoothInterpolatedCurve {
         if curve.is_open() {
             let interpolator = match interpolations.swap_remove(0) {
                 InterpolationDescriptor::PointsValues { points, values } => {
-                    let points_values = points.into_iter().zip(values.into_iter()).collect();
+                    let points_values = points.into_iter().zip(values).collect();
                     chebyshev_polynomials::interpolate_points(points_values, 1e-4)
                 }
                 InterpolationDescriptor::Chebyshev { coeffs, interval } => {
-                    chebyshev_polynomials::ChebyshevPolynomial::from_coeffs_interval(
-                        coeffs, interval,
-                    )
+                    ChebyshevPolynomial::from_coeffs_interval(coeffs, interval)
                 }
             };
             Self::Open {
@@ -137,16 +123,14 @@ impl SmoothInterpolatedCurve {
             }
         } else {
             let mut interpolators = Vec::with_capacity(interpolations.len());
-            for interpolation in interpolations.into_iter() {
+            for interpolation in interpolations {
                 let interpolator = match interpolation {
                     InterpolationDescriptor::PointsValues { points, values } => {
                         let points_values = points.into_iter().zip(values.into_iter()).collect();
                         chebyshev_polynomials::interpolate_points(points_values, 1e-4)
                     }
                     InterpolationDescriptor::Chebyshev { coeffs, interval } => {
-                        chebyshev_polynomials::ChebyshevPolynomial::from_coeffs_interval(
-                            coeffs, interval,
-                        )
+                        ChebyshevPolynomial::from_coeffs_interval(coeffs, interval)
                     }
                 };
                 interpolators.push(interpolator);
@@ -193,10 +177,10 @@ impl SmoothInterpolatedCurve {
                     let v2 = (interpolators[helix_idx].evaluate(v * a)).rem_euclid(1.);
 
                     while v1 > v2 + 0.5 {
-                        v1 -= 1.
+                        v1 -= 1.;
                     }
                     while v1 < v2 - 0.5 {
-                        v1 += 1.
+                        v1 += 1.;
                     }
                     (1. - v) * v1 + v * v2
                 } else if u > 1. - a {
@@ -206,10 +190,10 @@ impl SmoothInterpolatedCurve {
                     let mut v2 = (interpolators[next_idx].evaluate(v * a) - shift).rem_euclid(1.);
 
                     while v2 > v1 + 0.5 {
-                        v2 -= 1.
+                        v2 -= 1.;
                     }
                     while v2 < v1 - 0.5 {
-                        v2 += 1.
+                        v2 += 1.;
                     }
 
                     (1. - v) * v1 + v * v2
@@ -303,8 +287,8 @@ impl Revolution {
             log::info!("Interpolating inverse...");
             let abscissa_t: Vec<_> = abscissas
                 .iter()
-                .cloned()
-                .zip(ts.iter().cloned())
+                .copied()
+                .zip(ts.iter().copied())
                 .step_by(10) // (1)
                 .collect();
 
@@ -324,7 +308,6 @@ impl Revolution {
             t0 += 1.;
         }
 
-        use rayon::prelude::*;
         self.curvilinear_abscissa = curvilinear_abscissa_interpolation_points
             .into_par_iter()
             .map(|v| chebyshev_polynomials::interpolate_points(v, 10. * INTERPOLATION_ERROR))
@@ -332,18 +315,18 @@ impl Revolution {
         self.inverse_curvilinear_abscissa = inverse_ca_interpolation_points
             .into_par_iter()
             .map(|v| chebyshev_polynomials::interpolate_points(v, INTERPOLATION_ERROR))
-            .collect()
+            .collect();
     }
 
     fn get_surface_info(&self, point: SurfacePoint) -> Option<SurfaceInfo> {
-        log::info!("Info point point {:?}", point);
+        log::info!("Info point point {point:?}");
         let section_rotation = point.section_rotation_angle;
 
         let section_tangent = self
             .curve
             .normalized_tangent_at_s(point.abscissa_along_section)
             .rotated_by(DRotor2::from_angle(section_rotation));
-        log::info!("section tangent {:?}", section_tangent);
+        log::info!("section tangent {section_tangent:?}");
 
         let right = dvec_to_vec(DVec3 {
             x: -point.revolution_angle.sin(),
@@ -447,6 +430,7 @@ impl Curved for Revolution {
     }
 
     fn curvilinear_abscissa(&self, t: f64) -> Option<f64> {
+        #[expect(clippy::float_cmp)]
         if t == self.t_max() {
             self.curvilinear_abscissa.last().map(|p| p.evaluate(t))
         } else {
@@ -480,7 +464,7 @@ impl Curved for Revolution {
     }
 
     fn surface_info_time(&self, t: f64, helix_id: usize) -> Option<SurfaceInfo> {
-        let point = super::SurfacePoint {
+        let point = SurfacePoint {
             revolution_angle: self.t_to_revolution_angle(t),
             abscissa_along_section: self.curve.curvilinear_abscissa(t),
             helix_id,

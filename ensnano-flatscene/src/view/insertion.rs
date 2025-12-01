@@ -1,30 +1,18 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::*;
-use lyon::math::Point;
-use lyon::path::Path;
-use lyon::tessellation;
-use lyon::tessellation::{StrokeVertex, StrokeVertexConstructor};
+use ensnano_consts::SAMPLE_COUNT;
+use ensnano_utils::{bindgroup_manager::DynamicBindGroup, instance::Instance};
+use lyon::{
+    math::Point,
+    path::Path,
+    tessellation::{self, StrokeVertex, StrokeVertexConstructor},
+};
+use std::rc::Rc;
 use ultraviolet::{Mat2, Rotor2, Vec2};
-use wgpu::util::DeviceExt;
-use wgpu::{BindGroupLayout, Buffer, DepthStencilState, RenderPass, RenderPipeline};
+use wgpu::{
+    BindGroupLayout, Buffer, DepthStencilState, Device, Queue, RenderPass, RenderPipeline,
+    util::DeviceExt as _,
+};
 
-pub struct InsertionDrawer {
+pub(crate) struct InsertionDrawer {
     new_instances: Option<Vec<InsertionInstance>>,
     vertex_buffer: Buffer,
     index_buffer: Buffer,
@@ -35,13 +23,13 @@ pub struct InsertionDrawer {
 }
 
 impl InsertionDrawer {
-    pub fn new(
+    pub(crate) fn new(
         device: Rc<Device>,
         queue: Rc<Queue>,
         globals: &BindGroupLayout,
         depth_stencil_state: Option<DepthStencilState>,
     ) -> Self {
-        let instances = DynamicBindGroup::new(device.clone(), queue.clone(), "insertion instances");
+        let instances = DynamicBindGroup::new(device.clone(), queue, "insertion instances");
         let pipeline = insertion_pipeline(
             device.as_ref(),
             globals,
@@ -65,7 +53,7 @@ impl InsertionDrawer {
         let new_instances = Some(vec![InsertionInstance {
             position: Vec2::zero(),
             orientation: Mat2::identity(),
-            _pading: 0,
+            _padding: 0,
             depth: 500.,
             color: [0., 0., 0., 1.],
         }]);
@@ -80,7 +68,7 @@ impl InsertionDrawer {
         }
     }
 
-    pub fn draw<'a>(&'a mut self, render_pass: &mut RenderPass<'a>) {
+    pub(crate) fn draw<'a>(&'a mut self, render_pass: &mut RenderPass<'a>) {
         self.update_instances();
         render_pass.set_pipeline(&self.pipeline);
         render_pass.set_bind_group(1, self.instances.get_bindgroup(), &[]);
@@ -93,14 +81,14 @@ impl InsertionDrawer {
         );
     }
 
-    pub fn new_instances(&mut self, instances: Vec<InsertionInstance>) {
-        self.new_instances = Some(instances)
+    pub(crate) fn new_instances(&mut self, instances: Vec<InsertionInstance>) {
+        self.new_instances = Some(instances);
     }
 
     fn update_instances(&mut self) {
-        if let Some(ref instances) = self.new_instances {
+        if let Some(instances) = &self.new_instances {
             self.number_instances = instances.len();
-            let instances_data: Vec<_> = instances.iter().cloned().collect();
+            let instances_data: Vec<_> = instances.clone();
             self.instances.update(instances_data.as_slice());
         }
     }
@@ -108,7 +96,7 @@ impl InsertionDrawer {
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct InsertionVertex {
+pub(crate) struct InsertionVertex {
     pub position: [f32; 2],
     pub normal: [f32; 2],
 }
@@ -118,7 +106,7 @@ pub struct InsertionVertex {
 pub struct InsertionInstance {
     pub position: Vec2,
     pub depth: f32,
-    pub _pading: u32,
+    _padding: u32,
     pub orientation: Mat2,
     pub color: [f32; 4],
 }
@@ -140,14 +128,14 @@ impl InsertionInstance {
         Self {
             position: desc.position,
             depth: desc.depth,
-            _pading: 0,
+            _padding: 0,
             orientation: desc.orientation.into_matrix() * symmetry_matrix,
-            color: ensnano_utils::instance::Instance::color_from_u32(desc.color).into(),
+            color: Instance::color_from_u32(desc.color).into(),
         }
     }
 }
 
-type Vertices = lyon::tessellation::VertexBuffers<InsertionVertex, u16>;
+type Vertices = tessellation::VertexBuffers<InsertionVertex, u16>;
 
 fn make_vertices() -> Vertices {
     let mut vertices = Vertices::new();
@@ -158,7 +146,7 @@ fn make_vertices() -> Vertices {
 
     builder.begin(origin);
     builder.cubic_bezier_to(left, right, origin);
-    let mut stroke_tess = lyon::tessellation::StrokeTessellator::new();
+    let mut stroke_tess = tessellation::StrokeTessellator::new();
 
     builder.end(false);
     let path = builder.build();
@@ -172,16 +160,16 @@ fn make_vertices() -> Vertices {
                 .with_line_join(tessellation::LineJoin::Round),
             &mut tessellation::BuffersBuilder::new(&mut vertices, InsertionVertexBuilder),
         )
-        .expect("Error durring tessellation");
+        .expect("Error during tessellation");
     vertices
 }
 
 fn insertion_pipeline(
     device: &Device,
-    globals: &wgpu::BindGroupLayout,
-    insertions: &wgpu::BindGroupLayout,
-    depth_stencil: Option<wgpu::DepthStencilState>,
-) -> wgpu::RenderPipeline {
+    globals: &BindGroupLayout,
+    insertions: &BindGroupLayout,
+    depth_stencil: Option<DepthStencilState>,
+) -> RenderPipeline {
     let vs_module = &device.create_shader_module(wgpu::include_spirv!("insertion.vert.spv"));
     let fs_module = &device.create_shader_module(wgpu::include_spirv!("strand.frag.spv"));
 
@@ -206,16 +194,16 @@ fn insertion_pipeline(
     let desc = wgpu::RenderPipelineDescriptor {
         layout: Some(&pipeline_layout),
         vertex: wgpu::VertexState {
-            module: &vs_module,
+            module: vs_module,
             entry_point: "main",
             buffers: &[wgpu::VertexBufferLayout {
-                array_stride: std::mem::size_of::<InsertionVertex>() as u64,
+                array_stride: size_of::<InsertionVertex>() as u64,
                 step_mode: wgpu::VertexStepMode::Vertex,
                 attributes: &wgpu::vertex_attr_array![0 => Float32x2, 1 => Float32x2],
             }],
         },
         fragment: Some(wgpu::FragmentState {
-            module: &fs_module,
+            module: fs_module,
             entry_point: "main",
             targets,
         }),

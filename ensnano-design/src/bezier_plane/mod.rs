@@ -1,34 +1,21 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+pub mod import_from_svg;
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::Collection;
-use super::HelixParameters;
-use super::PieceWiseBezierInstantiator;
-use super::collection::HasMap;
-use super::curves::{BezierEndCoordinates, Curve, InstantiatedPiecewiseBezier};
-use super::grid::*;
-use super::utils::rotor_to_drotor;
+use crate::{
+    collection::{Collection as _, HasMap},
+    curves::{
+        Curve,
+        bezier::{
+            BezierEndCoordinates, InstantiatedPiecewiseBezier,
+            instantiator::PieceWiseBezierInstantiator,
+        },
+    },
+    grid::{GridDescriptor, GridId, GridTypeDescr},
+    parameters::HelixParameters,
+    utils::rotor_to_drotor,
+};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
-use std::sync::Arc;
+use std::{collections::BTreeMap, sync::Arc};
 use ultraviolet::{DMat3, DVec3, Mat3, Rotor3, Vec2, Vec3};
-
-mod import_from_svg;
-pub use import_from_svg::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BezierPlaneDescriptor {
@@ -146,7 +133,7 @@ pub struct BezierPlanesMut<'a> {
     new_map: BTreeMap<BezierPlaneId, Arc<BezierPlaneDescriptor>>,
 }
 
-impl<'a> BezierPlanesMut<'a> {
+impl BezierPlanesMut<'_> {
     pub fn push(&mut self, desc: BezierPlaneDescriptor) {
         let new_key = self
             .new_map
@@ -158,9 +145,9 @@ impl<'a> BezierPlanesMut<'a> {
     }
 }
 
-impl<'a> Drop for BezierPlanesMut<'a> {
+impl Drop for BezierPlanesMut<'_> {
     fn drop(&mut self) {
-        *self.source = BezierPlanes(Arc::new(std::mem::take(&mut self.new_map)))
+        *self.source = BezierPlanes(Arc::new(std::mem::take(&mut self.new_map)));
     }
 }
 
@@ -194,7 +181,7 @@ impl BezierPaths {
     }
 }
 
-impl<'a> BezierPathsMut<'a> {
+impl BezierPathsMut<'_> {
     pub fn create_path(&mut self, first_vertex: BezierVertex) -> BezierPathId {
         let new_key = self
             .new_map
@@ -224,25 +211,21 @@ impl<'a> BezierPathsMut<'a> {
             .new_map
             .keys()
             .max()
-            .map(|BezierPathId(n)| BezierPathId(n + 1))
-            .unwrap_or(BezierPathId(0));
+            .map_or(BezierPathId(0), |BezierPathId(n)| BezierPathId(n + 1));
         self.new_map.insert(id, Arc::new(path));
     }
 
     #[must_use]
     pub fn remove_path(&mut self, path_id: &BezierPathId) -> Option<()> {
-        if self.new_map.contains_key(path_id) {
+        self.new_map.contains_key(path_id).then(|| {
             self.new_map.remove(path_id);
-            Some(())
-        } else {
-            None
-        }
+        })
     }
 }
 
-impl<'a> Drop for BezierPathsMut<'a> {
+impl Drop for BezierPathsMut<'_> {
     fn drop(&mut self) {
-        *self.source = BezierPaths(Arc::new(std::mem::take(&mut self.new_map)))
+        *self.source = BezierPaths(Arc::new(std::mem::take(&mut self.new_map)));
     }
 }
 
@@ -275,17 +258,14 @@ impl BezierPath {
 
     #[must_use]
     pub fn remove_vertex(&mut self, v_id: usize) -> Option<()> {
-        if self.vertices.len() > v_id {
+        (self.vertices.len() > v_id).then(|| {
             self.vertices.remove(v_id);
-            Some(())
-        } else {
-            None
-        }
+        })
     }
 
     pub fn set_vector_out(&mut self, i: usize, vector_out: Vec3, planes: &BezierPlanes) {
         if let Some(v) = self.vertices_mut().get_mut(i) {
-            v.set_vector_out(vector_out, planes)
+            v.set_vector_out(vector_out, planes);
         }
     }
 
@@ -352,7 +332,7 @@ impl BezierVertex {
     }
 
     pub fn add_translation(&mut self, translation: Vec3) {
-        self.grid_translation += translation
+        self.grid_translation += translation;
     }
 
     pub fn new(plane_id: BezierPlaneId, position: Vec2) -> Self {
@@ -523,11 +503,8 @@ impl InstantiatedPath {
         source_path: Arc<BezierPath>,
         helix_parameters: &HelixParameters,
     ) -> Option<Self> {
-        if self.need_update(&source_planes, &source_path) {
-            Some(Self::new(source_planes, source_path, helix_parameters))
-        } else {
-            None
-        }
+        self.need_update(&source_planes, &source_path)
+            .then(|| Self::new(source_planes, source_path, helix_parameters))
     }
 
     fn need_update(&self, source_planes: &BezierPlanes, source_path: &Arc<BezierPath>) -> bool {
@@ -538,21 +515,19 @@ impl InstantiatedPath {
     pub fn bezier_controls(&self) -> &[BezierEndCoordinates] {
         self.curve_descriptor_2d
             .as_ref()
-            .map(|c| c.ends.as_slice())
-            .unwrap_or(&[])
+            .map_or(&[], |c| c.ends.as_slice())
     }
 
     pub fn get_curve_points(&self) -> &[DVec3] {
         self.curve_2d
             .as_ref()
-            .map(|c| c.positions_forward.as_slice())
-            .unwrap_or(&[])
+            .map_or(&[], |c| c.positions_forward.as_slice())
     }
 
     pub fn initial_frame(&self) -> Option<DMat3> {
         self.frames
             .as_ref()
-            .and_then(|fs| fs.get(0))
+            .and_then(|fs| fs.first())
             .as_ref()
             .map(|f| rotor_to_drotor(f.1).into_matrix())
             .map(|m| DMat3::new(m.cols[2], m.cols[1], m.cols[0]))
@@ -615,15 +590,14 @@ impl BezierPathData {
         source_paths: BezierPaths,
         helix_parameters: &HelixParameters,
     ) -> Option<Self> {
-        if self.need_update(&source_planes, &source_paths) {
+        self.need_update(&source_planes, &source_paths).then(|| {
             let instantiated_paths: BTreeMap<_, _> = source_paths
                 .0
                 .iter()
                 .map(|(id, source_path)| {
                     let path = if let Some(path) = self.instantiated_paths.get(id) {
                         path.updated(source_planes.clone(), source_path.clone(), helix_parameters)
-                            .map(Arc::new)
-                            .unwrap_or_else(|| path.clone())
+                            .map_or_else(|| path.clone(), Arc::new)
                     } else {
                         Arc::new(InstantiatedPath::new(
                             source_planes.clone(),
@@ -634,14 +608,12 @@ impl BezierPathData {
                     (*id, path)
                 })
                 .collect();
-            Some(Self {
+            Self {
                 instantiated_paths: Arc::new(instantiated_paths),
                 source_planes,
                 source_paths,
-            })
-        } else {
-            None
-        }
+            }
+        })
     }
 
     pub fn ptr_eq(a: &Self, b: &Self) -> bool {

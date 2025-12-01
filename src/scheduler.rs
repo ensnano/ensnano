@@ -1,28 +1,10 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::{AppState, Multiplexer};
-use ensnano_iced::iced_wgpu::wgpu;
-use ensnano_interactor::application::Application;
-use ensnano_interactor::graphics::GuiComponentType;
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
-use std::time::Duration;
+use crate::{app_state::AppState, multiplexer::Multiplexer};
+use ensnano_interactor::{application::Application, graphics::GuiComponentType};
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+    time::Duration,
+};
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
     event::WindowEvent,
@@ -30,20 +12,20 @@ use winit::{
 };
 
 /// The scheduler is responsible for running the different applications
-pub struct Scheduler {
+pub(crate) struct Scheduler {
     applications: HashMap<GuiComponentType, Arc<Mutex<dyn Application<AppState = AppState>>>>,
     needs_redraw: Vec<GuiComponentType>,
 }
 
 impl Scheduler {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             applications: HashMap::new(),
             needs_redraw: Vec::new(),
         }
     }
 
-    pub fn add_application(
+    pub(crate) fn add_application(
         &mut self,
         application: Arc<Mutex<dyn Application<AppState = AppState>>>,
         element_type: GuiComponentType,
@@ -52,23 +34,20 @@ impl Scheduler {
     }
 
     /// Forwards an event to the appropriate application
-    pub fn forward_event(
+    pub(crate) fn forward_event(
         &mut self,
         event: &WindowEvent,
         area: GuiComponentType,
         cursor_position: PhysicalPosition<f64>,
         app_state: AppState,
     ) -> Option<CursorIcon> {
-        if let Some(app) = self.applications.get_mut(&area) {
-            app.lock()
-                .unwrap()
-                .on_event(event, cursor_position, &app_state)
-        } else {
-            None
-        }
+        let app = self.applications.get_mut(&area)?;
+        app.lock()
+            .unwrap()
+            .on_event(event, cursor_position, &app_state)
     }
 
-    pub fn check_redraw(
+    pub(crate) fn check_redraw(
         &mut self,
         multiplexer: &Multiplexer,
         dt: Duration,
@@ -76,19 +55,23 @@ impl Scheduler {
     ) -> bool {
         log::debug!("Scheduler checking redraw");
         self.needs_redraw.clear();
-        for (area, app) in self.applications.iter_mut() {
+        for (area, app) in &mut self.applications {
             if multiplexer.is_showing(area)
                 && app.lock().unwrap().needs_redraw(dt, app_state.clone())
             {
-                self.needs_redraw.push(*area)
+                self.needs_redraw.push(*area);
             }
         }
-        self.needs_redraw.len() > 0
+        !self.needs_redraw.is_empty()
     }
 
     /// Request an application to draw on a texture
-    pub fn draw_apps(&mut self, encoder: &mut wgpu::CommandEncoder, multiplexer: &Multiplexer) {
-        for area in self.needs_redraw.iter() {
+    pub(crate) fn draw_apps(
+        &mut self,
+        encoder: &mut wgpu::CommandEncoder,
+        multiplexer: &Multiplexer,
+    ) {
+        for area in &self.needs_redraw {
             let app = self.applications.get_mut(area).unwrap();
             if let Some(target) = multiplexer.get_texture_view(*area) {
                 app.lock().unwrap().on_redraw_request(encoder, target);
@@ -97,9 +80,13 @@ impl Scheduler {
     }
 
     /// Notify all applications that the size of the window has been modified
-    pub fn forward_new_size(&mut self, window_size: PhysicalSize<u32>, multiplexer: &Multiplexer) {
+    pub(crate) fn forward_new_size(
+        &mut self,
+        window_size: PhysicalSize<u32>,
+        multiplexer: &Multiplexer,
+    ) {
         if window_size.height > 0 && window_size.width > 0 {
-            for (area, app) in self.applications.iter_mut() {
+            for (area, app) in &mut self.applications {
                 if let Some(draw_area) = multiplexer.get_draw_area(*area) {
                     app.lock().unwrap().on_resize(window_size, draw_area);
                     self.needs_redraw.push(*area);

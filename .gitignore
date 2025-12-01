@@ -1,6 +1,5 @@
 target/
 .vscode/
-/ensnano-scene/*.stl
 *.stl
 *.dot
 NOTES.md

@@ -1,11 +1,11 @@
-use ensnano_design::{Helix, HelixParameters};
+use crate::vec_to_vector;
+use ensnano_design::{helices::Helix, parameters::HelixParameters};
 use rapier3d::{
     na::{Const, OVector, Rotation2, Unit, UnitQuaternion},
     prelude::*,
 };
+use std::f32::consts::FRAC_PI_2;
 use ultraviolet::{Rotor3, Vec3};
-
-use crate::vec_to_vector;
 
 /// An internal structure, which is made from an Helix
 /// and computes the ideal spring anchor points to enforce
@@ -40,8 +40,7 @@ fn turn_points(
     let c_forward = forward - center;
     let c_backward = backward - center;
 
-    let rotation =
-        UnitQuaternion::from_axis_angle(&Unit::new_normalize(axis), std::f32::consts::FRAC_PI_2);
+    let rotation = UnitQuaternion::from_axis_angle(&Unit::new_normalize(axis), FRAC_PI_2);
 
     (
         rotation * c_forward + center,
@@ -68,7 +67,7 @@ impl SpringAnchorsReference {
     /// Initializes a new reference with the given Helix's parameters,
     /// and to a provided distance. Higher distance means
     pub(crate) fn new(helix: &Helix, distance: u32, default_parameters: &HelixParameters) -> Self {
-        let helix_parameters = helix.helix_parameters.clone();
+        let helix_parameters = helix.helix_parameters;
         let mut helix = Helix::new(Vec3::default(), Rotor3::default());
         helix.helix_parameters = helix_parameters;
 
@@ -91,7 +90,7 @@ impl SpringAnchorsReference {
         // down's up direction
         let down_up = (next_down_center - down_center).normalize();
 
-        // we compute the left and right anchors by rotating each nucletide pair in its
+        // we compute the left and right anchors by rotating each nucleotide pair in its
         // local up axis
 
         let (left, right) = turn_points(nucleotide_forward, nucleotide_backward, up);
@@ -139,7 +138,7 @@ impl SpringAnchorsReference {
         target_forward: OVector<f32, Const<3>>,
         target_up: OVector<f32, Const<3>>,
     ) -> UnitQuaternion<f32> {
-        // we define a plane orign at 0,
+        // we define a plane origin at 0,
         // normal being the first nucleotide
         // (thanks to the first rotation,
         // current_forward and target_forward are
@@ -243,9 +242,8 @@ impl SpringAnchorsReference {
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
-    use ensnano_design::HelixParameters;
+    use std::f32::consts::PI;
 
     #[test]
     fn anchors() {
@@ -255,7 +253,7 @@ mod tests {
             rise: 1.0,
             helix_radius: 1.0,
             bases_per_turn: 4.0,
-            groove_angle: std::f32::consts::PI,
+            groove_angle: PI,
             inter_helix_gap: 1.0,
             inclination: 0.0,
         };

@@ -1,23 +1,6 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::*;
-use ultraviolet::Vec2;
+use crate::curves::bezier::{BezierEndCoordinates, InstantiatedPiecewiseBezier};
+use rand::Rng as _;
+use ultraviolet::{Vec2, Vec3};
 
 const DEFAULT_BEZIER_TANGENT_NORM: f32 = 1. / 3.;
 
@@ -57,7 +40,7 @@ impl BezierEndCoordinateUnit for Vec3 {
     }
 
     fn one() -> Self {
-        Vec3::one()
+        Self::one()
     }
 }
 
@@ -67,7 +50,7 @@ impl BezierEndCoordinateUnit for Vec2 {
         vector_in: Self,
         vector_out: Self,
     ) -> BezierEndCoordinates {
-        let to_vec3 = |v: Vec2| Vec3 {
+        let to_vec3 = |v: Self| Vec3 {
             x: v.x,
             y: v.y,
             z: 0.0,
@@ -97,7 +80,6 @@ pub(crate) trait PieceWiseBezierInstantiator<T: BezierEndCoordinateUnit> {
     fn is_cyclic(&self) -> bool;
 
     fn instantiate(&self) -> Option<InstantiatedPiecewiseBezier> {
-        use rand::prelude::*;
         let descriptor = if self.nb_vertices() > 2 {
             let n = self.nb_vertices();
             let idx_iterator: Box<dyn Iterator<Item = ((usize, usize), usize)>> =
@@ -132,7 +114,7 @@ pub(crate) trait PieceWiseBezierInstantiator<T: BezierEndCoordinateUnit> {
             if !self.is_cyclic() {
                 // Add manually the first and last vertices
                 let first_point = {
-                    let second_point = bezier_points.get(0)?;
+                    let second_point = bezier_points.first()?;
                     let pos = self.position(0)?;
                     let control =
                         T::from_projection(second_point.position - second_point.vector_in);

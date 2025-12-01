@@ -1,33 +1,20 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 //! Test suite for the `MainState` structure
+
+use crate::app_state::{
+    AppState,
+    design_interactor::controller::clipboard::{CopyOperation, PastePosition},
+};
 
 use super::*;
 use ensnano_design::Nucl;
-use winit::window::CursorIcon;
+use ensnano_interactor::graphics::DrawArea;
+use winit::dpi::PhysicalPosition;
 
-struct DummyScene {}
+struct DummyScene;
+
 impl Application for DummyScene {
     type AppState = AppState;
-    fn on_notify(&mut self, _notification: Notification) {
-        ()
-    }
+    fn on_notify(&mut self, _notification: Notification) {}
 
     fn needs_redraw(&mut self, _dt: Duration, _app_state: Self::AppState) -> bool {
         false
@@ -38,7 +25,6 @@ impl Application for DummyScene {
         _encoder: &mut wgpu::CommandEncoder,
         _target: &wgpu::TextureView,
     ) {
-        ()
     }
 
     fn is_split(&self) -> bool {
@@ -54,16 +40,9 @@ impl Application for DummyScene {
         None
     }
 
-    fn on_resize(
-        &mut self,
-        _window_size: PhysicalSize<u32>,
-        _area: ensnano_interactor::graphics::DrawArea,
-    ) {
-        ()
-    }
+    fn on_resize(&mut self, _window_size: PhysicalSize<u32>, _area: DrawArea) {}
 
-    fn get_camera(&self) -> Option<Arc<(ensnano_interactor::application::Camera3D, f32)>> {
-        use ensnano_interactor::application::Camera3D;
+    fn get_camera(&self) -> Option<Arc<(Camera3D, f32)>> {
         Some(Arc::new((
             Camera3D {
                 position: Vec3::zero(),
@@ -119,7 +98,7 @@ fn empty_selections_dont_pollute_undo_stack() {
 fn recolor_staple_undoable() {
     let mut state = new_state();
     state.apply_operation(DesignOperation::RecolorStaples);
-    assert!(!state.undo_stack.is_empty())
+    assert!(!state.undo_stack.is_empty());
 }
 
 /// A design with one strand h1: -1 -> 7 ; h2: -1 <- 7 ; h3: 0 -> 9 that can be pasted on
@@ -168,7 +147,6 @@ fn duplication_via_requests_correct_status() {
 
 #[test]
 fn duplication_via_requests_strands_are_duplicated() {
-    use ensnano_scene::data::SceneDesignReaderExt as _;
     let mut main_state = new_state();
     let app_state = pastable_design();
     main_state.clear_app_state(app_state);
@@ -255,12 +233,12 @@ fn position_paste_via_requests() {
         forward: true,
     };
     assert!(
-        !main_state
+        main_state
             .app_state
             .get_design_interactor()
             .is_xover_end(&nucl)
             .to_opt()
-            .is_some()
+            .is_none()
     );
     main_state.apply_copy_operation(CopyOperation::PositionPastingPoint(None));
     main_state.apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
@@ -314,12 +292,12 @@ fn undo_redo_copy_paste_xover() {
     main_state.undo();
     main_state.update();
     assert!(
-        !main_state
+        main_state
             .app_state
             .get_design_interactor()
             .is_xover_end(&nucl)
             .to_opt()
-            .is_some()
+            .is_none()
     );
     main_state.redo();
     main_state.update();

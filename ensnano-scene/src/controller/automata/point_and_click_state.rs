@@ -1,21 +1,3 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 //! Defines the state in which the user is clicking on an object.
 //!
 //! Such a state is entered when a mouse button is pressed while the cursor is on some specific
@@ -26,9 +8,23 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! If the cursor moves away form this position this causes a transition to either the normal
 //! state, or a specific DraggingState.
 
-use super::dragging_state::ClickInfo;
-use super::*;
-use std::time::Instant;
+use crate::{
+    AppState,
+    controller::{
+        Consequence, Controller, Transition,
+        automata::{
+            BuildingHelix, ClickInfo, ControllerState, MovingBezierVertex, NormalState,
+            XoverOrigin, dragging_state, event_context::EventContext,
+        },
+    },
+    element_selector::SceneElement,
+};
+use ensnano_design::Nucl;
+use std::{borrow::Cow, time::Instant};
+use winit::{
+    dpi::PhysicalPosition,
+    event::{ElementState, MouseButton, WindowEvent},
+};
 
 /// The limit between "near" and "far" distances.
 const FAR_AWAY: f64 = 5.0;
@@ -41,14 +37,14 @@ const LONG_HOLDING_TIME: std::time::Duration = std::time::Duration::from_millis(
 ///
 /// If `None`, the controller's automata will transition to `NormalState` when the event occur.
 ///
-/// The state is produced in a function and not stored by the object because Box<dyn> cannot be
+/// The state is produced in a function and not stored by the object because `Box<dyn>` cannot be
 /// cloned.
 trait OptionalTransition<S: AppState>:
     Fn(ClickInfo) -> Option<Box<dyn ControllerState<S>>> + 'static
 {
 }
-impl<S: AppState, F: 'static> OptionalTransition<S> for F where
-    F: Fn(ClickInfo) -> Option<Box<dyn ControllerState<S>>>
+impl<S: AppState, F: Fn(ClickInfo) -> Option<Box<dyn ControllerState<S>>> + 'static>
+    OptionalTransition<S> for F
 {
 }
 
@@ -111,8 +107,11 @@ impl<S: AppState> std::ops::Deref for ContextDependentTransitionPtr<S> {
     }
 }
 
-impl<S: AppState, F: 'static> ContextDependentTransition<S> for F where
+impl<
+    S: AppState,
     F: for<'a, 'b> Fn(&'b mut EventContext<'a, S>, ClickInfo) -> Box<dyn OptionalTransition<S>>
+        + 'static,
+> ContextDependentTransition<S> for F
 {
 }
 
@@ -144,7 +143,7 @@ pub(super) struct PointAndClicking<S: AppState> {
     long_hold_state_maker: Option<ContextDependentTransitionPtr<S>>,
     /// A description of the current state of the controller's automata
     description: &'static str,
-    clicked_date: std::time::Instant,
+    clicked_date: Instant,
 }
 
 impl<S: AppState> PointAndClicking<S> {
@@ -158,11 +157,7 @@ impl<S: AppState> PointAndClicking<S> {
 }
 
 impl<S: AppState> ControllerState<S> for PointAndClicking<S> {
-    fn input<'a>(
-        &mut self,
-        event: &WindowEvent,
-        mut context: EventContext<'a, S>,
-    ) -> Transition<S> {
+    fn input(&mut self, event: &WindowEvent, mut context: EventContext<'_, S>) -> Transition<S> {
         let position = context.cursor_position;
         match event {
             WindowEvent::CursorMoved { .. } => {
@@ -170,7 +165,7 @@ impl<S: AppState> ControllerState<S> for PointAndClicking<S> {
                     self.away_state = OptionalTransitionPtr::Owned(transition_maker(
                         &mut context,
                         self.get_click_info(position),
-                    ))
+                    ));
                 }
                 if position_difference(position, self.clicked_position) > FAR_AWAY {
                     let new_state =
@@ -185,10 +180,9 @@ impl<S: AppState> ControllerState<S> for PointAndClicking<S> {
                     }
                 } else {
                     if let Some(transition_maker) = self.long_hold_state_maker.as_ref() {
-                        self.long_hold_state = Some(OptionalTransitionPtr::Owned(transition_maker(
-                            &mut context,
-                            self.get_click_info(position),
-                        )))
+                        self.long_hold_state = Some(OptionalTransitionPtr::Owned(
+                            transition_maker(&mut context, self.get_click_info(position)),
+                        ));
                     }
                     Transition::nothing()
                 }
@@ -223,7 +217,7 @@ impl<S: AppState> ControllerState<S> for PointAndClicking<S> {
             log::info!("Some long hold state");
             let now = Instant::now();
             if (now - self.clicked_date) > LONG_HOLDING_TIME
-                || other_ctrl(&controller.current_modifiers_state)
+                || super::other_ctrl(&controller.current_modifiers_state)
             {
                 if let Some(new_state) = transition(self.get_click_info(self.clicked_position)) {
                     return Transition {
@@ -238,13 +232,13 @@ impl<S: AppState> ControllerState<S> for PointAndClicking<S> {
         Transition::nothing()
     }
 
-    fn give_context<'a>(&mut self, mut context: EventContext<'a, S>) {
+    fn give_context(&mut self, mut context: EventContext<'_, S>) {
         if let Some(transition_maker) = self.long_hold_state_maker.as_ref() {
             let position = context.cursor_position;
             self.long_hold_state = Some(OptionalTransitionPtr::Owned(transition_maker(
                 &mut context,
                 self.get_click_info(position),
-            )))
+            )));
         }
     }
 }
@@ -274,7 +268,7 @@ impl<S: AppState> PointAndClicking<S> {
             release_consequences: Consequence::PivotElement(pivot_element),
             long_hold_state: None,
             long_hold_state_maker: None,
-            clicked_date: std::time::Instant::now(),
+            clicked_date: Instant::now(),
         }
     }
 }
@@ -388,7 +382,7 @@ impl<S: AppState> PointAndClicking<S> {
         }
     }
 
-    pub(super) fn building_helix(state: super::BuildingHelix) -> Self {
+    pub(super) fn building_helix(state: BuildingHelix) -> Self {
         Self {
             away_state: Default::default(),
             away_state_maker: None,
@@ -411,17 +405,17 @@ impl<S: AppState> PointAndClicking<S> {
     }
 }
 
-fn making_xover_maker<'a, S: AppState>(
-    context: &mut EventContext<'a, S>,
+fn making_xover_maker<S: AppState>(
+    context: &mut EventContext<'_, S>,
     _click: ClickInfo,
 ) -> Box<dyn OptionalTransition<S>> {
     let origin = context.get_xover_origin_under_cursor();
-    Box::new(move |click: ClickInfo| making_xover(click, &origin))
+    Box::new(move |click: ClickInfo| making_xover(click, origin.as_ref()))
 }
 
 fn making_xover<S: AppState>(
     click: ClickInfo,
-    origin: &Option<XoverOrigin>,
+    origin: Option<&XoverOrigin>,
 ) -> Option<Box<dyn ControllerState<S>>> {
     if let Some(source) = origin {
         Some(Box::new(dragging_state::making_xover(

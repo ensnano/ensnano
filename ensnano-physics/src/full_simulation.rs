@@ -1,15 +1,19 @@
-use ahash::HashMap;
-use ensnano_design::{Helices, HelixCollection, HelixParameters, Nucl};
-use ensnano_interactor::ObjectType;
-use rapier3d::prelude::*;
-
 use crate::{
-    RapierPhysicsSystem,
     anchors::SpringAnchorsReference,
     helices::{IntermediaryHelix, IntermediaryPair},
     parameters::RapierParameters,
     point_from_parts,
+    simulation::RapierPhysicsSystem,
 };
+use ahash::HashMap;
+use ensnano_design::{
+    Nucl,
+    helices::{Helices, HelixCollection as _},
+    parameters::HelixParameters,
+};
+use ensnano_interactor::ObjectType;
+use itertools::Itertools as _;
+use rapier3d::prelude::*;
 
 const NUCLEOTIDE_RADIUS: f32 = 0.05;
 const PAIR_CAPSULE_RADIUS: f32 = 0.1;
@@ -33,13 +37,13 @@ const STRONG_SPRING_RANGES: [u32; 4] = [1, 2, 4, 8];
 
 /// A trait to represent a strategy of how to attach
 /// colliders to rigid bodies in the simulation.
-/// This is meant to differenciate between
+/// This is meant to differentiate between
 /// full simulation (all bases are simulated),
 /// rigid helices (helices are one rigid body),
 /// or sliced rigid helices (helices are rigid bodies
 /// separated at crossovers)
-pub trait SimulationSetup {
-    // creates rigib bodes and assigns the provided
+pub(crate) trait SimulationSetup {
+    // creates rigid bodes and assigns the provided
     // colliders to them
     fn build_bodies(
         &self,
@@ -65,7 +69,7 @@ impl SimulationSetup for FullSimulationSetup {
         intermediary_representation: &HashMap<usize, IntermediaryHelix>,
         rapier_parameters: &RapierParameters,
     ) {
-        for (helix_index, helix) in intermediary_representation.iter() {
+        for (helix_index, helix) in intermediary_representation {
             for pair_position in helix.pairs.keys() {
                 let rigid_body = RigidBodyBuilder::dynamic()
                     .linear_damping(rapier_parameters.linear_damping)
@@ -100,7 +104,7 @@ impl SimulationSetup for RigidHelicesSetup {
         intermediary_representation: &HashMap<usize, IntermediaryHelix>,
         rapier_parameters: &RapierParameters,
     ) {
-        for (helix_index, helix) in intermediary_representation.iter() {
+        for (helix_index, helix) in intermediary_representation {
             let rigid_body = RigidBodyBuilder::dynamic()
                 .linear_damping(rapier_parameters.linear_damping)
                 .angular_damping(rapier_parameters.angular_damping);
@@ -138,7 +142,7 @@ impl SimulationSetup for CutHelicesSetup {
             .angular_damping(rapier_parameters.angular_damping);
 
         // for each helix
-        for (helix_index, helix) in intermediary_representation.iter() {
+        for (helix_index, helix) in intermediary_representation {
             let mut current_rigid_body_handle = rigid_body_set.insert(rigid_body.clone());
             // iterate through the positions, from bottom to top
             let mut positions = helix.pairs.keys().copied().collect::<Vec<_>>();
@@ -324,7 +328,7 @@ fn build_colliders(
     for helix in intermediary_representation.values() {
         for pair in helix.pairs.values() {
             match pair {
-                crate::helices::IntermediaryPair::Pair(i, n, j) => {
+                IntermediaryPair::Pair(i, n, j) => {
                     let i_p = space_position
                         .get(i)
                         .expect("Couldn't get position of nucl");
@@ -342,8 +346,8 @@ fn build_colliders(
                         .collision_groups(InteractionGroups::new(Group::GROUP_2, Group::empty()));
 
                     let capsule = ColliderBuilder::capsule_from_endpoints(
-                        point_from_parts(&i_p),
-                        point_from_parts(&j_p),
+                        point_from_parts(i_p),
+                        point_from_parts(j_p),
                         PAIR_CAPSULE_RADIUS,
                     );
 
@@ -363,8 +367,7 @@ fn build_colliders(
                         vec![i_collider_handle, j_collider_handle, capsule_handle],
                     );
                 }
-                crate::helices::IntermediaryPair::OnlyForward(id, n)
-                | crate::helices::IntermediaryPair::OnlyBackward(id, n) => {
+                IntermediaryPair::OnlyForward(id, n) | IntermediaryPair::OnlyBackward(id, n) => {
                     let position = space_position
                         .get(id)
                         .expect("Couldn't get position of nucl");
@@ -396,10 +399,10 @@ fn up_vector(
         panic!("Incoherent double ranges");
     };
 
-    let up_i = collider_set.get(nucleotide_body_map[&up_i]).unwrap();
-    let up_j = collider_set.get(nucleotide_body_map[&up_j]).unwrap();
-    let down_i = collider_set.get(nucleotide_body_map[&down_i]).unwrap();
-    let down_j = collider_set.get(nucleotide_body_map[&down_j]).unwrap();
+    let up_i = collider_set.get(nucleotide_body_map[up_i]).unwrap();
+    let up_j = collider_set.get(nucleotide_body_map[up_j]).unwrap();
+    let down_i = collider_set.get(nucleotide_body_map[down_i]).unwrap();
+    let down_j = collider_set.get(nucleotide_body_map[down_j]).unwrap();
 
     let up_center = (up_i.translation() + up_j.translation()) / 2.0;
     let down_center = (down_i.translation() + down_j.translation()) / 2.0;
@@ -438,17 +441,17 @@ fn build_strong_springs(
             // instead
             // (we could do an average here between up and -down when both exist)
 
-            for window in range.windows(2) {
-                let down_pair = intermediary.pairs[&window[0]];
-                let up_pair = intermediary.pairs[&window[1]];
+            for (&a, &b) in range.iter().tuple_windows() {
+                let down_pair = intermediary.pairs[&a];
+                let up_pair = intermediary.pairs[&b];
 
                 let result = up_vector(&down_pair, &up_pair, nucleotide_body_map, collider_set);
 
-                up_vectors.insert(window[0], result);
+                up_vectors.insert(a, result);
                 // we always insert a copy up
                 // so that the last pair also gets
                 // an up vector
-                up_vectors.insert(window[0] + 1, result);
+                up_vectors.insert(a + 1, result);
             }
 
             for distance in STRONG_SPRING_RANGES {
@@ -463,7 +466,7 @@ fn build_strong_springs(
                     let down_index = window.first().unwrap();
 
                     let down_pair = intermediary.pairs[down_index];
-                    let down_up = up_vectors.get(down_index).unwrap();
+                    let down_up = &up_vectors[down_index];
 
                     let IntermediaryPair::Pair(down_i, _, down_j) = down_pair else {
                         panic!("Incoherent double ranges");
@@ -489,7 +492,7 @@ fn build_strong_springs(
                     let up_index = window.last().unwrap();
 
                     let up_pair = intermediary.pairs[up_index];
-                    let up_up = up_vectors.get(up_index).unwrap();
+                    let up_up = &up_vectors[up_index];
 
                     let IntermediaryPair::Pair(up_i, _, up_j) = up_pair else {
                         panic!("Incoherent double ranges");
@@ -667,7 +670,7 @@ fn build_free_springs(
     }
 }
 
-pub fn add_crossover_springs(
+pub(crate) fn add_crossover_springs(
     object_type: &HashMap<u32, ObjectType>,
     nucleotide: &HashMap<u32, Nucl>,
     nucleotide_body_map: &HashMap<u32, ColliderHandle>,
@@ -677,7 +680,7 @@ pub fn add_crossover_springs(
 ) -> Vec<(ColliderHandle, ColliderHandle)> {
     let mut bonds: Vec<(u32, u32)> = Default::default();
 
-    for (_, ty) in object_type.iter() {
+    for ty in object_type.values() {
         match ty {
             ObjectType::Bond(a, b) | ObjectType::SlicedBond(_, a, b, _) => {
                 if nucleotide[a].helix == nucleotide[b].helix {

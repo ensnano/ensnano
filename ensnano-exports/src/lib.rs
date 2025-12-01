@@ -1,21 +1,3 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 //! Exports utilities from ENSnano to other file formats used in DNA nanotechnologies
 
 pub mod cadnano;
@@ -25,8 +7,7 @@ pub mod pdb;
 use cadnano::CadnanoError;
 use ensnano_design::{Design, Nucl};
 use pdb::PdbError;
-use std::collections::HashMap;
-use std::path::PathBuf;
+use std::{collections::HashMap, io::Write as _, path::PathBuf};
 
 /// The file formats to which an export is implemented
 #[derive(Debug, Clone, strum::Display)]
@@ -55,8 +36,9 @@ impl ExportSuccess {
     /// the export was made
     pub fn message(&self) -> String {
         match self {
-            Self::Cadnano(p) => format!("{SUCCESSFUL_EXPORT_MSG_PREFIX}\n{}", p.to_string_lossy()),
-            Self::Pdb(p) => format!("{SUCCESSFUL_EXPORT_MSG_PREFIX}\n{}", p.to_string_lossy()),
+            Self::Cadnano(p) | Self::Pdb(p) => {
+                format!("{SUCCESSFUL_EXPORT_MSG_PREFIX}\n{}", p.to_string_lossy())
+            }
             Self::Oxdna {
                 topology,
                 configuration,
@@ -71,9 +53,9 @@ impl ExportSuccess {
 
 #[derive(Debug)]
 pub enum ExportError {
-    CadnanoConversion(#[allow(unused)] CadnanoError),
-    PdbConversion(#[allow(unused)] PdbError),
-    IOError(#[allow(unused)] std::io::Error),
+    CadnanoConversion(CadnanoError),
+    PdbConversion(PdbError),
+    IOError(std::io::Error),
 }
 
 impl From<CadnanoError> for ExportError {
@@ -121,7 +103,7 @@ impl<'a> BasisMapper<'a> {
         } else {
             // assign random letters for export to oxdna or pdb if none
             let base = rand_base();
-            self.alternative.insert(nucl.clone(), base);
+            self.alternative.insert(*nucl, base);
             self.alternative.insert(nucl.compl(), compl(base, compl_a));
             base
         }
@@ -139,8 +121,7 @@ fn compl(c: char, compl_a: char) -> char {
     match c {
         'A' => compl_a,
         'G' => 'C',
-        'T' => 'A',
-        'U' => 'A',
+        'T' | 'U' => 'A',
         _ => 'G',
     }
 }
@@ -192,15 +173,15 @@ pub fn export(
     let basis_mapper = BasisMapper::new(basis_map);
     match export_type {
         ExportType::Oxdna => {
-            let configuration = export_path.clone();
-            let mut topology = export_path.clone();
-            topology.set_extension("top");
-            let (config, topo) = oxdna::to_oxdna(design, basis_mapper);
-            config.write(&configuration)?;
-            topo.write(&topology)?;
+            let configuration_path = export_path.clone();
+            let mut topology_path = export_path.clone();
+            topology_path.set_extension("top");
+            let (config, topology) = oxdna::to_oxdna(design, basis_mapper);
+            config.write(&configuration_path)?;
+            topology.write(&topology_path)?;
             Ok(ExportSuccess::Oxdna {
-                topology,
-                configuration,
+                topology: topology_path,
+                configuration: configuration_path,
             })
         }
         ExportType::Pdb => {
@@ -210,7 +191,6 @@ pub fn export(
         ExportType::Cadnano => {
             let cadnano_content = cadnano::cadnano_export(design)?;
             let mut out_file = std::fs::File::create(export_path)?;
-            use std::io::Write;
             writeln!(&mut out_file, "{cadnano_content}")?;
             Ok(ExportSuccess::Cadnano(export_path.clone()))
         }

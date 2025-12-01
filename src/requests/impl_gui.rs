@@ -1,37 +1,35 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 //! Implements the [Requests](`ensnano_gui::Requests`) trait for [Requests](`super::Requests`).
 
-use super::*;
-use ensnano_design::grid::GridId;
-use ensnano_exports::ExportType;
-use ensnano_gui::{OverlayType, RigidBodyParametersRequest};
-use ensnano_iced::widgets::keyboard_priority::PriorityRequest;
-use ensnano_interactor::{
-    DesignOperation, InsertionPoint, RevolutionSurfaceSystemDescriptor, RigidBodyConstants,
-    RollRequest, application::Notification, graphics::SplitMode,
+use crate::controller::normal_state::Action;
+use crate::requests::Requests;
+use ensnano_design::{
+    CameraId,
+    bezier_plane::{BezierPathId, BezierVertexId},
+    elements::{DesignElementKey, DnaAttribute},
+    grid::{GridId, GridTypeDescr},
+    parameters::HelixParameters,
 };
+use ensnano_exports::ExportType;
+use ensnano_gui::{OverlayType, Requests as GuiRequests, left_panel::RigidBodyParametersRequest};
+use ensnano_iced::{ui_size::UiSize, widgets::keyboard_priority::PriorityRequest};
+use ensnano_interactor::{
+    DesignOperation, HyperboloidRequest, InsertionPoint, RapierSimulationRequest,
+    RigidBodyConstants, RollRequest,
+    app_state_parameters::{
+        check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
+    },
+    application::Notification,
+    graphics::{Background3D, FogParameters, HBondDisplay, RenderingMode, SplitMode},
+    operation::Operation,
+    selection::{ActionMode, SelectionMode},
+    surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
+};
+use ensnano_organizer::tree::{GroupId, OrganizerTree};
 use ensnano_physics::parameters::RapierParameters;
-use std::collections::BTreeSet;
-use ultraviolet::{Rotor3, Vec2};
+use std::{collections::BTreeSet, sync::Arc};
+use ultraviolet::{Rotor3, Vec2, Vec3};
 
-impl ensnano_gui::Requests for Requests {
+impl GuiRequests for Requests {
     fn close_overlay(&mut self, overlay_type: OverlayType) {
         self.keep_proceed
             .push_back(Action::CloseOverlay(overlay_type));
@@ -45,20 +43,20 @@ impl ensnano_gui::Requests for Requests {
         self.background3d = Some(bg);
     }
 
-    fn change_3d_rendering_mode(&mut self, mode: RenderingMode) {
-        self.rendering_mode = Some(mode);
+    fn change_3d_rendering_mode(&mut self, rendering_mode: RenderingMode) {
+        self.rendering_mode = Some(rendering_mode);
     }
 
     fn set_scaffold_from_selection(&mut self) {
-        self.select_scaffold = Some(())
+        self.select_scaffold = Some(());
     }
 
     fn cancel_hyperboloid(&mut self) {
-        self.cancel_hyperboloid = Some(())
+        self.cancel_hyperboloid = Some(());
     }
 
-    fn invert_scroll(&mut self, inverted: bool) {
-        self.set_invert_y_scroll = Some(inverted)
+    fn invert_scroll(&mut self, invert: bool) {
+        self.set_invert_y_scroll = Some(invert);
     }
 
     fn resize_2d_helices(&mut self, all: bool) {
@@ -69,8 +67,8 @@ impl ensnano_gui::Requests for Requests {
         self.all_visible = Some(());
     }
 
-    fn toggle_visibility(&mut self, compl: bool) {
-        self.toggle_visibility = Some(compl);
+    fn toggle_visibility(&mut self, visible: bool) {
+        self.toggle_visibility = Some(visible);
     }
 
     fn change_action_mode(&mut self, action_mode: ActionMode) {
@@ -82,7 +80,7 @@ impl ensnano_gui::Requests for Requests {
     }
 
     fn toggle_widget_basis(&mut self) {
-        self.toggle_widget_basis = Some(())
+        self.toggle_widget_basis = Some(());
     }
 
     fn set_dna_sequences_visibility(&mut self, visible: bool) {
@@ -90,7 +88,7 @@ impl ensnano_gui::Requests for Requests {
     }
 
     fn download_staples(&mut self) {
-        self.keep_proceed.push_back(Action::DownloadStaplesRequest)
+        self.keep_proceed.push_back(Action::DownloadStaplesRequest);
     }
 
     fn set_scaffold_sequence(&mut self, shift: usize) {
@@ -107,15 +105,15 @@ impl ensnano_gui::Requests for Requests {
     }
 
     fn finalize_hyperboloid(&mut self) {
-        self.finalize_hyperboloid = Some(())
+        self.finalize_hyperboloid = Some(());
     }
 
     fn stop_roll_simulation(&mut self) {
-        self.stop_roll = Some(())
+        self.stop_roll = Some(());
     }
 
-    fn start_roll_simulation(&mut self, request: RollRequest) {
-        self.roll_request = Some(request);
+    fn start_roll_simulation(&mut self, roll_request: RollRequest) {
+        self.roll_request = Some(roll_request);
     }
 
     fn request_rapier_simulation(&mut self, parameters: RapierParameters) {
@@ -174,7 +172,7 @@ impl ensnano_gui::Requests for Requests {
     }
 
     fn create_bezier_plane(&mut self) {
-        self.new_bezier_plane = Some(())
+        self.new_bezier_plane = Some(());
     }
 
     fn set_candidates_keys(&mut self, candidates: Vec<DesignElementKey>) {
@@ -184,7 +182,7 @@ impl ensnano_gui::Requests for Requests {
     fn set_selected_keys(
         &mut self,
         selection: Vec<DesignElementKey>,
-        group_id: Option<ensnano_organizer::GroupId>,
+        group_id: Option<GroupId>,
         new_group: bool,
     ) {
         self.organizer_selection = Some((selection, group_id, new_group));
@@ -199,15 +197,15 @@ impl ensnano_gui::Requests for Requests {
         attribute: DnaAttribute,
         keys: BTreeSet<DesignElementKey>,
     ) {
-        self.new_attribute = Some((attribute, keys.iter().cloned().collect()));
+        self.new_attribute = Some((attribute, keys.iter().copied().collect()));
     }
 
     fn change_split_mode(&mut self, split_mode: SplitMode) {
-        self.keep_proceed.push_back(Action::ToggleSplit(split_mode))
+        self.keep_proceed.push_back(Action::ToggleSplit(split_mode));
     }
 
     fn export(&mut self, export_type: ExportType) {
-        self.keep_proceed.push_back(Action::Export(export_type))
+        self.keep_proceed.push_back(Action::Export(export_type));
     }
 
     fn toggle_2d_view_split(&mut self) {
@@ -231,7 +229,7 @@ impl ensnano_gui::Requests for Requests {
     }
 
     fn new_design(&mut self) {
-        self.keep_proceed.push_back(Action::NewDesign)
+        self.keep_proceed.push_back(Action::NewDesign);
     }
 
     fn save_as(&mut self) {
@@ -272,15 +270,15 @@ impl ensnano_gui::Requests for Requests {
     }
 
     fn stop_simulations(&mut self) {
-        self.keep_proceed.push_back(Action::StopSimulation)
+        self.keep_proceed.push_back(Action::StopSimulation);
     }
 
     fn reset_simulations(&mut self) {
-        self.keep_proceed.push_back(Action::ResetSimulation)
+        self.keep_proceed.push_back(Action::ResetSimulation);
     }
 
     fn reload_file(&mut self) {
-        self.keep_proceed.push_back(Action::ReloadFile)
+        self.keep_proceed.push_back(Action::ReloadFile);
     }
 
     fn add_double_strand_on_new_helix(&mut self, parameters: Option<(isize, usize)>) {
@@ -299,23 +297,23 @@ impl ensnano_gui::Requests for Requests {
         self.keep_proceed.push_back(Action::NewCamera);
     }
 
-    fn delete_camera(&mut self, cam_id: ensnano_design::CameraId) {
+    fn delete_camera(&mut self, camera_id: CameraId) {
         self.keep_proceed
             .push_back(Action::DesignOperation(DesignOperation::DeleteCamera(
-                cam_id,
-            )))
+                camera_id,
+            )));
     }
 
-    fn select_camera(&mut self, cam_id: ensnano_design::CameraId) {
-        self.keep_proceed.push_back(Action::SelectCamera(cam_id))
+    fn select_camera(&mut self, camera_id: CameraId) {
+        self.keep_proceed.push_back(Action::SelectCamera(camera_id));
     }
 
-    fn set_camera_name(&mut self, camera_id: ensnano_design::CameraId, name: String) {
+    fn set_camera_name(&mut self, camera_id: CameraId, name: String) {
         self.keep_proceed
             .push_back(Action::DesignOperation(DesignOperation::SetCameraName {
                 camera_id,
                 name,
-            }))
+            }));
     }
 
     fn set_suggestion_parameters(&mut self, param: SuggestionParameters) {
@@ -327,7 +325,7 @@ impl ensnano_gui::Requests for Requests {
             .push_back(Action::DesignOperation(DesignOperation::SetGridPosition {
                 grid_id,
                 position,
-            }))
+            }));
     }
 
     fn set_grid_orientation(&mut self, grid_id: GridId, orientation: Rotor3) {
@@ -336,11 +334,11 @@ impl ensnano_gui::Requests for Requests {
                 grid_id,
                 orientation,
             },
-        ))
+        ));
     }
 
     fn toggle_2d(&mut self) {
-        self.keep_proceed.push_back(Action::Toggle2D)
+        self.keep_proceed.push_back(Action::Toggle2D);
     }
 
     fn set_nb_turn(&mut self, grid_id: GridId, nb_turn: f32) {
@@ -348,7 +346,7 @@ impl ensnano_gui::Requests for Requests {
             .push_back(Action::DesignOperation(DesignOperation::SetGridNbTurn {
                 grid_id,
                 nb_turn,
-            }))
+            }));
     }
 
     fn set_check_xover_parameters(&mut self, parameters: CheckXoversParameter) {
@@ -366,7 +364,7 @@ impl ensnano_gui::Requests for Requests {
     fn set_rainbow_scaffold(&mut self, rainbow: bool) {
         self.keep_proceed.push_back(Action::DesignOperation(
             DesignOperation::SetRainbowScaffold(rainbow),
-        ))
+        ));
     }
 
     fn set_show_stereographic_camera(&mut self, show: bool) {
@@ -383,7 +381,7 @@ impl ensnano_gui::Requests for Requests {
 
     fn set_all_helices_on_axis(&mut self, off_axis: bool) {
         // thick helices = normal helices; thin helices = only axis
-        self.set_all_helices_on_axis = Some(off_axis)
+        self.set_all_helices_on_axis = Some(off_axis);
     }
 
     fn start_twist_simulation(&mut self, grid_id: GridId) {
@@ -398,13 +396,13 @@ impl ensnano_gui::Requests for Requests {
         self.keep_proceed.push_back(Action::DownloadOrigamiRequest);
     }
 
-    fn set_dna_parameters(&mut self, param: ensnano_design::HelixParameters) {
+    fn set_dna_parameters(&mut self, param: HelixParameters) {
         self.keep_proceed.push_back(Action::SetDnaParameters(param));
     }
 
     fn set_expand_insertions(&mut self, expand: bool) {
         self.keep_proceed
-            .push_back(Action::SetExpandInsertions(expand))
+            .push_back(Action::SetExpandInsertions(expand));
     }
 
     fn set_insertion_length(&mut self, insertion_point: InsertionPoint, length: usize) {
@@ -413,62 +411,54 @@ impl ensnano_gui::Requests for Requests {
                 length,
                 insertion_point,
             },
-        ))
+        ));
     }
 
-    fn turn_path_into_grid(
-        &mut self,
-        path_id: ensnano_design::BezierPathId,
-        grid_type: GridTypeDescr,
-    ) {
+    fn turn_path_into_grid(&mut self, path_id: BezierPathId, grid_type: GridTypeDescr) {
         self.keep_proceed.push_back(Action::DesignOperation(
             DesignOperation::TurnPathVerticesIntoGrid { path_id, grid_type },
-        ))
+        ));
     }
 
-    fn make_bezier_path_cyclic(&mut self, path_id: ensnano_design::BezierPathId, cyclic: bool) {
+    fn make_bezier_path_cyclic(&mut self, path_id: BezierPathId, cyclic: bool) {
         self.keep_proceed.push_back(Action::DesignOperation(
             DesignOperation::MakeBezierPathCyclic { path_id, cyclic },
-        ))
+        ));
     }
 
     fn set_exporting(&mut self, exporting: bool) {
-        self.keep_proceed.push_back(Action::SetExporting(exporting))
+        self.keep_proceed.push_back(Action::SetExporting(exporting));
     }
 
     fn import_3d_object(&mut self) {
-        self.keep_proceed.push_back(Action::Import3DObject)
+        self.keep_proceed.push_back(Action::Import3DObject);
     }
 
-    fn set_position_of_bezier_vertex(
-        &mut self,
-        vertex_id: ensnano_design::BezierVertexId,
-        position: Vec2,
-    ) {
+    fn set_position_of_bezier_vertex(&mut self, vertex_id: BezierVertexId, position: Vec2) {
         self.keep_proceed.push_back(Action::DesignOperation(
             DesignOperation::SetBezierVertexPosition {
                 vertex_id,
                 position,
             },
-        ))
+        ));
     }
 
     fn optimize_scaffold_shift(&mut self) {
-        self.keep_proceed.push_back(Action::OptimizeShift)
+        self.keep_proceed.push_back(Action::OptimizeShift);
     }
 
     fn start_revolution_relaxation(&mut self, desc: RevolutionSurfaceSystemDescriptor) {
         self.keep_proceed
-            .push_back(Action::RevolutionSimulation { desc })
+            .push_back(Action::RevolutionSimulation { desc });
     }
 
     fn finish_revolution_relaxation(&mut self) {
         self.keep_proceed
-            .push_back(Action::FinishRelaxationSimulation)
+            .push_back(Action::FinishRelaxationSimulation);
     }
 
     fn load_svg(&mut self) {
-        self.keep_proceed.push_back(Action::ImportSvg)
+        self.keep_proceed.push_back(Action::ImportSvg);
     }
 
     fn set_bezier_revolution_id(&mut self, id: Option<usize>) {
@@ -514,6 +504,7 @@ impl ensnano_gui::Requests for Requests {
                 Notification::StlExport(path)
             }));
     }
+
     fn set_keyboard_priority(&mut self, priority: PriorityRequest) {
         self.set_keyboard_priority
             .get_or_insert_default()
@@ -531,6 +522,6 @@ fn rigid_parameters(parameters: RigidBodyParametersRequest) -> RigidBodyConstant
         brownian_rate: 10f32.powf(parameters.brownian_rate),
         brownian_amplitude: parameters.brownian_amplitude,
     };
-    log::info!("rigid parameters {:?}", ret);
+    log::info!("rigid parameters {ret:?}");
     ret
 }

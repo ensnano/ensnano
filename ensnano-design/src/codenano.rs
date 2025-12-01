@@ -1,22 +1,11 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+use crate::utils::is_false;
 use serde::{Deserialize, Serialize};
-use std::{borrow::Cow, f64::consts::PI, fmt};
+use std::{
+    borrow::Cow,
+    convert::TryFrom as _,
+    f64::consts::{PI, TAU},
+    fmt,
+};
 use ultraviolet::DVec3;
 
 /// The main type of this crate, describing a DNA design.
@@ -36,14 +25,17 @@ pub struct Design<StrandLabel, DomainLabel> {
     pub parameters: Option<Parameters>,
 }
 
-impl<StrandLabel: serde::Serialize, DomainLabel: serde::Serialize>
-    Design<StrandLabel, DomainLabel>
-{
+impl<StrandLabel: Serialize, DomainLabel: Serialize> Default for Design<StrandLabel, DomainLabel> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<StrandLabel: Serialize, DomainLabel: Serialize> Design<StrandLabel, DomainLabel> {
     /// Initiates a design.
-    #[allow(dead_code)]
     pub fn new() -> Self {
-        Design {
-            version: env!("CARGO_PKG_VERSION").to_string(),
+        Self {
+            version: env!("CARGO_PKG_VERSION").to_owned(),
             helices: Vec::new(),
             strands: Vec::new(),
             parameters: Some(Parameters::DEFAULT),
@@ -76,10 +68,6 @@ pub struct Strand<Label, DomainLabel> {
     pub label: Option<Label>,
 }
 
-fn is_false(x: &bool) -> bool {
-    !*x
-}
-
 fn none<Label>() -> Option<Label> {
     None
 }
@@ -87,13 +75,13 @@ fn none<Label>() -> Option<Label> {
 impl<StrandLabel, DomainLabel> Strand<StrandLabel, DomainLabel> {
     /// Provide a default color to the strand.
     pub fn default_color(&self) -> Color {
-        if let Some(domain) = self.domains.get(0) {
+        if let Some(domain) = self.domains.first() {
             let x1 = if domain.forward {
                 domain.end - 1
             } else {
                 domain.start
             };
-            let h = domain.helix as isize;
+            let h = domain.helix;
             let x = x1 + (x1 % 11) + 5 * h;
             let n = KELLY.len() as isize;
             return KELLY[(((x % n) + n) % n) as usize].clone();
@@ -124,18 +112,17 @@ pub enum Color {
 impl Color {
     /// Returns the u32 encoding this color.
     pub fn as_int(&self) -> u32 {
-        match *self {
-            Color::Int(n) => n,
-            Color::Hex(ref s) => {
+        match self {
+            Self::Int(n) => *n,
+            Self::Hex(s) => {
                 let s = s.trim_start_matches("0x");
                 let s = s.trim_start_matches('#');
                 u32::from_str_radix(s, 16).unwrap()
             }
-            Color::Rgb { r, g, b } => ((r as u32) << 16) | ((g as u32) << 8) | (b as u32),
+            Self::Rgb { r, g, b } => ((*r as u32) << 16) | ((*g as u32) << 8) | (*b as u32),
         }
     }
 
-    #[allow(dead_code)]
     /// Kelly color number `n`.
     pub fn kelly(n: usize) -> Self {
         KELLY[n % KELLY.len()].clone()
@@ -174,7 +161,6 @@ impl<Label> Domain<Label> {
     /// Iterate through the positions of this domain, in 5' to 3'
     /// order (meaning that the values produced by this iterator might
     /// be increasing or decreasing).
-    #[allow(dead_code)]
     pub fn iter(&self) -> DomainIter {
         DomainIter {
             start: self.start,
@@ -182,49 +168,50 @@ impl<Label> Domain<Label> {
             forward: self.forward,
         }
     }
-    #[allow(dead_code)]
+
     /// Translate this domain. The first parameter is the translation
     /// along the helix, the second one is a translation across
     /// helices (probably most meaningful for a flat design).
+    #[must_use]
     pub fn translate(self, dx: isize, dy: isize) -> Self {
-        use std::convert::TryFrom;
-        Domain {
+        Self {
             start: self.start + dx,
             end: self.end + dx,
-            helix: usize::try_from(self.helix as isize + dy).unwrap() as isize,
-            ..self
-        }
-    }
-    #[allow(dead_code)]
-    /// Translate this domain along its helix.
-    pub fn shift_x(self, dx: isize) -> Self {
-        Domain {
-            start: self.start + dx,
-            end: self.end + dx,
-            ..self
-        }
-    }
-    #[allow(dead_code)]
-    /// Translate this domain to a different helix (probably most
-    /// meaningful for a flat design).
-    pub fn shift_y(self, dy: isize) -> Self {
-        use std::convert::TryFrom;
-        Domain {
-            helix: usize::try_from(self.helix as isize + dy).unwrap() as isize,
+            helix: usize::try_from(self.helix + dy).unwrap() as isize,
             ..self
         }
     }
 
-    #[allow(dead_code)]
+    /// Translate this domain along its helix.
+    #[must_use]
+    pub fn shift_x(self, dx: isize) -> Self {
+        Self {
+            start: self.start + dx,
+            end: self.end + dx,
+            ..self
+        }
+    }
+
+    /// Translate this domain to a different helix (probably most
+    /// meaningful for a flat design).
+    #[must_use]
+    pub fn shift_y(self, dy: isize) -> Self {
+        Self {
+            helix: usize::try_from(self.helix + dy).unwrap() as isize,
+            ..self
+        }
+    }
+
     /// Number of Nucleotides on the domain
+    #[must_use]
     pub fn length(&self) -> isize {
         self.end - self.start
     }
 
-    #[allow(dead_code)]
     /// Return a domain that has the same bounds as self
+    #[must_use]
     pub fn pseudo_copy(&self) -> Self {
-        Domain {
+        Self {
             helix: self.helix,
             start: self.start,
             end: self.end,
@@ -234,13 +221,11 @@ impl<Label> Domain<Label> {
         }
     }
 
-    #[allow(dead_code)]
     /// Return true iff `self` contains the nucleotide (h, x, b)
     pub fn contains(&self, h: isize, x: isize, b: bool) -> bool {
         self.helix == h && self.forward == b && self.start <= x && self.end > x
     }
 
-    #[allow(dead_code)]
     /// Return the first nucl of `self` or `None` if `self` is empty
     pub fn first_nucl(&self) -> Option<(isize, isize, bool)> {
         if self.start >= self.end {
@@ -252,7 +237,6 @@ impl<Label> Domain<Label> {
         }
     }
 
-    #[allow(dead_code)]
     /// Return the last nucl of `self` or `None` if `self` is empty
     pub fn last_nucl(&self) -> Option<(isize, isize, bool)> {
         if self.start >= self.end {
@@ -317,7 +301,7 @@ pub struct Parameters {
 
 impl Parameters {
     /// Default values for the parameters of DNA, taken from the literature.
-    pub const DEFAULT: Parameters = Parameters {
+    pub const DEFAULT: Self = Self {
         // z-step and helix radius from:
         //
         // Single-molecule portrait of DNA and RNA double helices,
@@ -348,14 +332,14 @@ pub struct Point {
 impl Point {
     /// Convert an array of 3 floats into a Point
     pub fn from_coord(coord: [f64; 3]) -> Self {
-        Point {
+        Self {
             x: coord[0],
             y: coord[1],
             z: coord[2],
         }
     }
 
-    pub fn to_vec3(&self) -> DVec3 {
+    pub fn to_vec3(self) -> DVec3 {
         DVec3 {
             x: self.x,
             y: self.y,
@@ -413,14 +397,12 @@ impl fmt::Debug for Helix {
 
 impl Helix {
     /// Angle of base number `n` around this helix.
-    #[allow(dead_code)]
     pub fn theta(&self, n: isize, forward: bool, cst: &Parameters) -> f64 {
         let shift = if forward { cst.groove_angle } else { 0. };
-        n as f64 * 2. * PI / cst.bases_per_turn + shift + self.roll + PI
+        n as f64 * TAU / cst.bases_per_turn + shift + self.roll + PI
     }
 
     /// 3D position of a nucleotide on this helix. `n` is the position along the axis, and `forward` is true iff the 5' to 3' direction of the strand containing that nucleotide runs in the same direction as the axis of the helix.
-    #[allow(dead_code)]
     pub fn space_pos(&self, p: &Parameters, n: isize, forward: bool) -> [f64; 3] {
         let theta = self.theta(n, forward, p);
         let mut ret = [
@@ -430,17 +412,13 @@ impl Helix {
         ];
 
         ret = self.rotate_point(ret);
-        /*
-        ret = Helix::ry(&ret, self.yaw);
-        ret = Helix::rz(&ret, self.pitch);
-        */
         ret[0] += self.position.x;
         ret[1] += self.position.y;
         ret[2] += self.position.z;
         ret
     }
 
-    pub(crate) fn rotate_point(&self, ret: [f64; 3]) -> [f64; 3] {
+    pub fn rotate_point(&self, ret: [f64; 3]) -> [f64; 3] {
         let forward = [
             self.yaw.cos() * self.pitch.cos(),
             self.pitch.sin(),
@@ -460,7 +438,6 @@ impl Helix {
         ]
     }
 
-    #[allow(dead_code)]
     /// Return a basis of the Helix PoV
     pub fn basis(&self) -> [[f64; 3]; 3] {
         [
@@ -470,7 +447,6 @@ impl Helix {
         ]
     }
 
-    #[allow(dead_code)]
     /// 3D position of the projection of the nucleotide on its helix.
     /// `n` is the position along the axis.
     pub fn axis_pos(&self, p: &Parameters, n: isize) -> DVec3 {
@@ -484,9 +460,8 @@ impl Helix {
         ret.into()
     }
 
-    #[allow(dead_code)]
     /// Test if two helices overlap.
-    pub fn overlap(&self, other: &Helix, p: &Parameters) -> bool {
+    pub fn overlap(&self, other: &Self, p: &Parameters) -> bool {
         let dir_vec = self.axis_pos(p, 1) - self.position.to_vec3();
         let vec1 = other.axis_pos(p, 30) - self.position.to_vec3();
         if vec1.cross(dir_vec).mag() / dir_vec.mag() > p.helix_radius {
@@ -497,63 +472,62 @@ impl Helix {
         }
     }
 
-    #[allow(dead_code)]
     /// A clone of `self` translated by one step along the y vector
+    #[must_use]
     pub fn clone_up(&self, p: &Parameters) -> Self {
         let mut new_position = [0., p.helix_radius * 2. + p.inter_helix_gap, 0.];
         new_position = self.rotate_point(new_position);
         new_position[0] += self.position.x;
         new_position[1] += self.position.y;
         new_position[2] += self.position.z;
-        Helix {
+        Self {
             position: Point::from_coord(new_position),
             ..self.clone()
         }
     }
 
-    #[allow(dead_code)]
     /// A clone of `self` translated by minus one step along the y vector
+    #[must_use]
     pub fn clone_down(&self, p: &Parameters) -> Self {
         let mut new_position = [0., -p.helix_radius * 2. - p.inter_helix_gap, 0.];
         new_position = self.rotate_point(new_position);
         new_position[0] += self.position.x;
         new_position[1] += self.position.y;
         new_position[2] += self.position.z;
-        Helix {
+        Self {
             position: Point::from_coord(new_position),
             ..self.clone()
         }
     }
 
-    #[allow(dead_code)]
     /// A clone of `self` translated by minus one step along the z vector
+    #[must_use]
     pub fn clone_left(&self, p: &Parameters) -> Self {
         let mut new_position = [0., 0., -p.helix_radius * 2. - p.inter_helix_gap];
         new_position = self.rotate_point(new_position);
         new_position[0] += self.position.x;
         new_position[1] += self.position.y;
         new_position[2] += self.position.z;
-        Helix {
+        Self {
             position: Point::from_coord(new_position),
             ..self.clone()
         }
     }
 
-    #[allow(dead_code)]
     /// A clone of `self` translated by one step along the z vector
+    #[must_use]
     pub fn clone_forward(&self, p: &Parameters) -> Self {
         let mut new_position = [0., 0., p.helix_radius * 2. + p.inter_helix_gap];
         new_position = self.rotate_point(new_position);
         new_position[0] += self.position.x;
         new_position[1] += self.position.y;
         new_position[2] += self.position.z;
-        Helix {
+        Self {
             position: Point::from_coord(new_position),
             ..self.clone()
         }
     }
 
-    #[allow(dead_code)]
     /// Return the position on axis that is the closest to the point given in argument
     pub fn closest_nucl(&self, point: [f64; 3], p: &Parameters) -> isize {
         let point: DVec3 = point.into();

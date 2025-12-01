@@ -1,28 +1,19 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
 //! This modules defines the meshes that are used to draw DNA.
 
-use super::instances_drawer::{Instantiable, Vertexable};
-use ensnano_consts::*;
-use std::f32::consts::PI;
+use crate::view::{
+    Mesh,
+    instances_drawer::{Instantiable, Vertexable},
+};
+use ensnano_consts::{
+    NB_RAY_TUBE, NB_SECTOR_SPHERE, NB_STACK_SPHERE, SPHERE_RADIUS, STEREOGRAPHIC_SPHERE_COLOR,
+    STEREOGRAPHIC_SPHERE_RADIUS,
+};
+use ensnano_utils::instance::Instance;
+use std::{
+    f32::consts::{FRAC_1_SQRT_2, PI, TAU},
+    iter::zip,
+};
 use ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
-
-use std::iter::zip;
 
 /// The vertex type for the meshes used to draw DNA.
 #[repr(C)]
@@ -34,16 +25,17 @@ pub struct DnaVertex {
 
 const VERTEX_ATTR_ARRAY: [wgpu::VertexAttribute; 2] =
     wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3];
+
 impl Vertexable for DnaVertex {
-    type RawType = DnaVertex;
-    fn to_raw(&self) -> DnaVertex {
+    type RawType = Self;
+
+    fn to_raw(&self) -> Self {
         *self
     }
 
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        use std::mem;
         wgpu::VertexBufferLayout {
-            array_stride: mem::size_of::<DnaVertex>() as wgpu::BufferAddress,
+            array_stride: size_of::<Self>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &VERTEX_ATTR_ARRAY,
         }
@@ -131,7 +123,7 @@ impl Instantiable for PlainRectangleInstance {
             scale: Vec3::new(self.width, self.height, 1.),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::PlainRectangle as u32,
+            mesh: Mesh::PlainRectangle as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),
@@ -176,7 +168,7 @@ impl Instantiable for SphereInstance {
         let mut vertices = Vec::new();
 
         let stack_step = PI / NB_STACK_SPHERE as f32;
-        let sector_step = 2. * PI / NB_SECTOR_SPHERE as f32;
+        let sector_step = TAU / NB_SECTOR_SPHERE as f32;
         for i in 0..=NB_STACK_SPHERE {
             // 0..=x means that x is included
             let stack_angle = PI / 2. - (i as f32) * stack_step;
@@ -192,7 +184,7 @@ impl Instantiable for SphereInstance {
                 let position = [x, y, z];
                 let normal = [x, y, z];
 
-                vertices.push(DnaVertex { position, normal })
+                vertices.push(DnaVertex { position, normal });
             }
         }
         vertices
@@ -236,7 +228,7 @@ impl Instantiable for SphereInstance {
             scale: Vec3::new(self.radius, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::Sphere as u32,
+            mesh: Mesh::Sphere as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),
@@ -330,19 +322,17 @@ impl Instantiable for StereographicSphereAndPlane {
     }
 
     fn to_raw_instance(&self) -> Self::RawInstance {
-        use ensnano_utils::instance::Instance;
-        let color = Instance::color_from_au32(ensnano_consts::STEREOGRAPHIC_SPHERE_COLOR);
+        let color = Instance::color_from_au32(STEREOGRAPHIC_SPHERE_COLOR);
         let model = Mat4::from_translation(self.position)
             * self.orientation.into_matrix().into_homogeneous();
-        let scale = ensnano_consts::STEREOGRAPHIC_SPHERE_RADIUS / ensnano_consts::SPHERE_RADIUS
-            * Vec3::new(self.ratio, 1., 1.);
+        let scale = STEREOGRAPHIC_SPHERE_RADIUS / SPHERE_RADIUS * Vec3::new(self.ratio, 1., 1.);
         RawDnaInstance {
             model,
             color,
             scale,
             id: 0,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::StereographicSphere as u32,
+            mesh: Mesh::StereographicSphere as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),
@@ -360,6 +350,7 @@ pub struct TubeInstance {
 }
 
 impl TubeInstance {
+    #[must_use]
     pub fn with_radius(self, radius: f32) -> Self {
         Self { radius, ..self }
     }
@@ -375,7 +366,7 @@ impl Instantiable for TubeInstance {
             .map(|i| {
                 let point = i / 2;
                 let side = if i % 2 == 0 { -0.5 } else { 0.5 };
-                let theta = (point as f32) * 2. * PI / NB_RAY_TUBE as f32;
+                let theta = (point as f32) * TAU / NB_RAY_TUBE as f32;
                 let position = [side, theta.sin(), theta.cos()];
 
                 let normal = [0., theta.sin(), theta.cos()];
@@ -426,7 +417,7 @@ impl Instantiable for TubeInstance {
             scale: Vec3::new(self.length, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::Tube as u32,
+            mesh: Mesh::Tube as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),
@@ -435,7 +426,6 @@ impl Instantiable for TubeInstance {
 }
 
 /// TUBE TIP INSTANCE
-
 pub struct TubeLidInstance {
     pub position: Vec3,
     pub rotor: Rotor3,
@@ -451,7 +441,7 @@ impl Instantiable for TubeLidInstance {
 
     fn vertices() -> Vec<DnaVertex> {
         let normal = [1., 0., 0.];
-        (-1..(NB_RAY_TUBE as isize + 1))
+        ((-1)..=(NB_RAY_TUBE as isize))
             .map(|i| {
                 if i < 0 {
                     DnaVertex {
@@ -459,7 +449,7 @@ impl Instantiable for TubeLidInstance {
                         normal,
                     }
                 } else {
-                    let phi = i as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
+                    let phi = i as f32 / NB_RAY_TUBE as f32 * TAU;
                     let position = [0., phi.sin(), phi.cos()];
                     DnaVertex { position, normal }
                 }
@@ -469,8 +459,7 @@ impl Instantiable for TubeLidInstance {
 
     fn indices() -> Vec<u16> {
         (0..NB_RAY_TUBE)
-            .map(|i| [0, i as u16 + 2, i as u16 + 1])
-            .flatten()
+            .flat_map(|i| [0, i as u16 + 2, i as u16 + 1])
             .collect()
     }
 
@@ -507,7 +496,7 @@ impl Instantiable for TubeLidInstance {
             scale: Vec3::new(1.0, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::TubeLid as u32,
+            mesh: Mesh::TubeLid as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),
@@ -516,7 +505,6 @@ impl Instantiable for TubeLidInstance {
 }
 
 /// SLICED TUBE INSTANCE
-
 pub struct SlicedTubeInstance {
     pub position: Vec3,
     pub rotor: Rotor3,
@@ -537,7 +525,7 @@ impl Instantiable for SlicedTubeInstance {
         // Precomputation of the cos and sin
         let circle: Vec<[f32; 3]> = (0..3 * NB_RAY_TUBE)
             .map(|i| {
-                let phi = (i % NB_RAY_TUBE) as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
+                let phi = (i % NB_RAY_TUBE) as f32 / NB_RAY_TUBE as f32 * TAU;
                 let x = match i / NB_RAY_TUBE {
                     0 => -0.5,
                     1 => 0.,
@@ -549,7 +537,7 @@ impl Instantiable for SlicedTubeInstance {
 
         let circle_normal: Vec<[f32; 3]> = (0..3 * NB_RAY_TUBE)
             .map(|i| {
-                let phi = (i % NB_RAY_TUBE) as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
+                let phi = (i % NB_RAY_TUBE) as f32 / NB_RAY_TUBE as f32 * TAU;
                 [0., phi.sin(), phi.cos()]
             })
             .collect();
@@ -571,12 +559,10 @@ impl Instantiable for SlicedTubeInstance {
     fn indices() -> Vec<u16> {
         let nb_ray_tube = NB_RAY_TUBE as u16;
         let left = (0..nb_ray_tube)
-            .map(|i| [i, i + nb_ray_tube])
-            .flatten()
+            .flat_map(|i| [i, i + nb_ray_tube])
             .collect::<Vec<u16>>();
         let right = (nb_ray_tube..2 * nb_ray_tube)
-            .map(|i| [i, i + nb_ray_tube])
-            .flatten()
+            .flat_map(|i| [i, i + nb_ray_tube])
             .collect::<Vec<u16>>();
         [
             left,
@@ -620,7 +606,7 @@ impl Instantiable for SlicedTubeInstance {
             scale: Vec3::new(self.length, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::SlicedTube as u32,
+            mesh: Mesh::SlicedTube as u32,
             prev: self.prev,
             next: self.next,
             _padding: Default::default(),
@@ -650,9 +636,8 @@ impl Instantiable for ConeInstance {
                 let point = i / 2 + i % 2;
                 let side = if i % 2 == 0 { 0. } else { 1. };
                 let height = if i % 2 == 0 { radius } else { 0. };
-                let theta = (point as f32) * 2. * PI / NB_RAY_TUBE as f32;
+                let theta = (point as f32) * TAU / NB_RAY_TUBE as f32;
                 let position = [side, theta.sin() * height, theta.cos() * height];
-                use std::f32::consts::FRAC_1_SQRT_2;
 
                 let normal = [
                     FRAC_1_SQRT_2,
@@ -666,7 +651,7 @@ impl Instantiable for ConeInstance {
         for i in 0..(2 * NB_RAY_TUBE) {
             let point = i / 2 + i % 2;
             let height = if i % 2 == 0 { radius } else { 0. };
-            let theta = (point as f32) * 2. * PI / NB_RAY_TUBE as f32;
+            let theta = (point as f32) * TAU / NB_RAY_TUBE as f32;
             let position = [0., theta.sin() * height, theta.cos() * height];
             let normal = [1., 0., 0.];
             ret.push(DnaVertex { position, normal });
@@ -722,7 +707,7 @@ impl Instantiable for ConeInstance {
             scale: Vec3::new(self.length, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::Prime3Cone as u32,
+            mesh: Mesh::Prime3Cone as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),

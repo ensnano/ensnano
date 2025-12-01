@@ -1,32 +1,19 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::{
-    AddressPointer, Controller, ControllerState, Design, Domain, ErrOperation, HelixGridPosition,
-    HelixInterval, Nucl, Strand,
+use crate::app_state::{
+    address_pointer::AddressPointer,
+    design_interactor::controller::{Controller, ControllerState, DuplicationEdge, ErrOperation},
 };
 use ensnano_design::{
-    Helices, HelixCollection, HelixParameters, MutStrandAndData, Strands, UpToDateDesign,
-    grid::{Edge, FreeGridId, GridData, GridId, GridPosition},
+    Design, MutStrandAndData, Nucl, UpToDateDesign,
+    grid::{Edge, GridData, GridId, GridPosition, HelixGridPosition, grid_collection::FreeGridId},
+    helices::{Helices, HelixCollection as _},
+    parameters::HelixParameters,
+    strands::{Domain, HelixInterval, Strand, Strands, read_junctions},
 };
 use ultraviolet::{Rotor3, Vec3};
 
+#[derive(Default)]
 pub(super) enum Clipboard {
+    #[default]
     Empty,
     Strands(StrandClipboard),
     Xovers(Vec<(Nucl, Nucl)>),
@@ -35,13 +22,13 @@ pub(super) enum Clipboard {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Copy)]
-pub enum PastePosition {
+pub(crate) enum PastePosition {
     Nucl(Nucl),
     GridPosition(GridPosition),
 }
 
 impl PastePosition {
-    pub fn to_nucl(self) -> Option<Nucl> {
+    pub(crate) fn to_nucl(self) -> Option<Nucl> {
         if let Self::Nucl(n) = self {
             Some(n)
         } else {
@@ -49,7 +36,7 @@ impl PastePosition {
         }
     }
 
-    pub fn to_grid_position(self) -> Option<GridPosition> {
+    pub(crate) fn to_grid_position(self) -> Option<GridPosition> {
         if let Self::GridPosition(gp) = self {
             Some(gp)
         } else {
@@ -59,8 +46,7 @@ impl PastePosition {
 }
 
 impl Clipboard {
-    #[allow(dead_code)]
-    pub fn size(&self) -> usize {
+    pub(super) fn size(&self) -> usize {
         match self {
             Self::Empty => 0,
             Self::Strands(strand_clipboard) => strand_clipboard.templates.len(),
@@ -70,34 +56,28 @@ impl Clipboard {
         }
     }
 
-    pub fn get_strand_clipboard(&self) -> Result<StrandClipboard, ErrOperation> {
+    pub(super) fn get_strand_clipboard(&self) -> Result<StrandClipboard, ErrOperation> {
         match self {
             Self::Empty => Err(ErrOperation::EmptyClipboard),
             Self::Strands(strand_clipboard) => Ok(strand_clipboard.clone()),
-            Self::Xovers(_) => Err(ErrOperation::WrongClipboard),
-            Self::Grids(_) => Err(ErrOperation::WrongClipboard),
-            Self::Helices(_) => Err(ErrOperation::WrongClipboard),
+            Self::Xovers(_) | Self::Grids(_) | Self::Helices(_) => {
+                Err(ErrOperation::WrongClipboard)
+            }
         }
     }
 
     fn get_leading_xover_nucl(&self) -> Option<Nucl> {
         match self {
-            Self::Xovers(v) => v.get(0).map(|t| t.0),
+            Self::Xovers(v) => v.first().map(|t| t.0),
             _ => None,
         }
-    }
-}
-
-impl Default for Clipboard {
-    fn default() -> Self {
-        Self::Empty
     }
 }
 
 #[derive(Clone, Debug)]
 pub(super) struct StrandClipboard {
     templates: Vec<StrandTemplate>,
-    template_edges: Vec<(Edge, isize)>,
+    template_edges: Vec<DuplicationEdge>,
 }
 
 #[derive(Debug, Clone)]
@@ -139,12 +119,12 @@ enum DomainTemplate {
 }
 
 impl Controller {
-    pub fn copy_grids(
+    pub(crate) fn copy_grids(
         &mut self,
         design: &Design,
         grid_ids: Vec<GridId>,
     ) -> Result<(), ErrOperation> {
-        for grid_id in grid_ids.iter() {
+        for grid_id in &grid_ids {
             if design.free_grids.get_from_g_id(grid_id).is_none() {
                 return Err(ErrOperation::GridDoesNotExist(*grid_id));
             }
@@ -153,26 +133,26 @@ impl Controller {
         Ok(())
     }
 
-    pub fn set_templates(
+    pub(crate) fn set_templates(
         &mut self,
         data: &UpToDateDesign,
         strand_ids: Vec<usize>,
     ) -> Result<(), ErrOperation> {
         let mut templates = Vec::with_capacity(strand_ids.len());
-        for id in strand_ids.iter() {
+        for id in &strand_ids {
             let strand = data
                 .design
                 .strands
-                .get(&id)
+                .get(id)
                 .ok_or(ErrOperation::StrandDoesNotExist(*id))?;
             let template = self.strand_to_template(strand, &data.design.helices, data.grid_data)?;
             templates.push(template);
         }
         let mut edges = vec![];
-        if templates.len() == 0 {
+        if templates.is_empty() {
             self.clipboard = Default::default();
         } else {
-            if let Some(s_id1) = strand_ids.get(0) {
+            if let Some(s_id1) = strand_ids.first() {
                 for s_id2 in strand_ids.iter().skip(1) {
                     edges.push(Self::edge_between_strands(
                         *s_id1,
@@ -183,7 +163,7 @@ impl Controller {
                     ));
                 }
             }
-            let edges = edges.into_iter().collect::<Option<Vec<(Edge, isize)>>>();
+            let edges = edges.into_iter().collect::<Option<Vec<DuplicationEdge>>>();
             if let Some(edges) = edges {
                 self.clipboard = AddressPointer::new(Clipboard::Strands(StrandClipboard {
                     templates,
@@ -206,16 +186,16 @@ impl Controller {
         let mut domains = Vec::with_capacity(strand.domains.len());
         let mut edges = Vec::with_capacity(strand.domains.len());
         let mut previous_position = None;
-        for domain in strand.domains.iter() {
+        for domain in &strand.domains {
             match domain {
                 Domain::Insertion { nb_nucl, .. } => {
-                    domains.push(DomainTemplate::Insertion(*nb_nucl))
+                    domains.push(DomainTemplate::Insertion(*nb_nucl));
                 }
                 Domain::HelixDomain(dom) => {
-                    if let Some(ref pos1) = previous_position {
-                        let helix = helices
-                            .get(&dom.helix)
-                            .ok_or(ErrOperation::HelixDoesNotExists(dom.helix))?;
+                    let helix = helices
+                        .get(&dom.helix)
+                        .ok_or(ErrOperation::HelixDoesNotExists(dom.helix))?;
+                    if let Some(pos1) = &previous_position {
                         let pos2 = helix
                             .grid_position
                             .ok_or(ErrOperation::HelixHasNoGridPosition(dom.helix))?;
@@ -224,15 +204,7 @@ impl Controller {
                             .ok_or(ErrOperation::CouldNotMakeEdge(*pos1, pos2))?;
                         edges.push(edge);
                         previous_position = Some(pos2);
-                        domains.push(DomainTemplate::HelixInterval {
-                            start: dom.start,
-                            end: dom.end,
-                            forward: dom.forward,
-                        });
                     } else {
-                        let helix = helices
-                            .get(&dom.helix)
-                            .ok_or(ErrOperation::HelixDoesNotExists(dom.helix))?;
                         let grid_position = helix
                             .grid_position
                             .ok_or(ErrOperation::HelixHasNoGridPosition(dom.helix))?;
@@ -243,12 +215,12 @@ impl Controller {
                             forward: dom.forward,
                         });
                         previous_position = Some(grid_position);
-                        domains.push(DomainTemplate::HelixInterval {
-                            start: dom.start,
-                            end: dom.end,
-                            forward: dom.forward,
-                        });
                     }
+                    domains.push(DomainTemplate::HelixInterval {
+                        start: dom.start,
+                        end: dom.end,
+                        forward: dom.forward,
+                    });
                 }
             }
         }
@@ -267,7 +239,7 @@ impl Controller {
         helices: &Helices,
         strands: &Strands,
         grid_manager: &GridData,
-    ) -> Option<(Edge, isize)> {
+    ) -> Option<DuplicationEdge> {
         let strand1 = strands.get(&s_id1)?;
         let strand2 = strands.get(&s_id2)?;
         let nucl1 = strand1.get_5prime()?;
@@ -284,7 +256,7 @@ impl Controller {
         grid_manager: &GridData,
         n1: &Nucl,
         n2: &Nucl,
-    ) -> Option<(Edge, isize)> {
+    ) -> Option<DuplicationEdge> {
         let pos1 = helices.get(&n1.helix).and_then(|h| h.grid_position)?;
         let pos2 = helices.get(&n2.helix).and_then(|h| h.grid_position)?;
         grid_manager
@@ -314,7 +286,7 @@ impl Controller {
                     .collect();
                 design
                     .copy_grids(&grid_ids, Vec3::zero(), Rotor3::identity())
-                    .map_err(|e| ErrOperation::GridCopyError(e))?;
+                    .map_err(ErrOperation::GridCopyError)?;
                 Ok(design)
             }
             Clipboard::Empty => Err(ErrOperation::EmptyClipboard),
@@ -339,7 +311,7 @@ impl Controller {
         }?;
         if let Some(nucl) = nucl {
             let (pasted_strands, duplication_edge) =
-                self.paste_clipboard(&strand_clipboard, nucl, data)?;
+                self.paste_clipboard(strand_clipboard, nucl, data)?;
             self.state.update_pasting_position(
                 Some(PastePosition::Nucl(nucl)),
                 pasted_strands,
@@ -355,11 +327,11 @@ impl Controller {
         clipboard: &StrandClipboard,
         nucl: Nucl,
         data: &mut MutStrandAndData,
-    ) -> Result<(Vec<PastedStrand>, Option<(Edge, isize)>), ErrOperation> {
+    ) -> Result<(Vec<PastedStrand>, Option<DuplicationEdge>), ErrOperation> {
         let mut duplication_edge = None;
         let template_0 = clipboard
             .templates
-            .get(0)
+            .first()
             .ok_or(ErrOperation::EmptyClipboard)?;
         let domains_0 = self.template_to_domains(
             template_0,
@@ -371,7 +343,7 @@ impl Controller {
         let mut domains_vec = vec![domains_0];
         for n in 1..clipboard.templates.len() {
             let t = clipboard.templates.get(n);
-            log::info!("updated template {:?}", t);
+            log::info!("updated template {t:?}");
             let domains = t.as_ref().and_then(|t| {
                 clipboard
                     .template_edges
@@ -403,7 +375,7 @@ impl Controller {
         &self,
         template: &StrandTemplate,
         start_nucl: Nucl,
-        duplication_info: &mut Option<(Edge, isize)>,
+        duplication_edge: &mut Option<DuplicationEdge>,
         helices: &Helices,
         grid_manager: &GridData,
     ) -> Result<Vec<Domain>, ErrOperation> {
@@ -416,7 +388,7 @@ impl Controller {
         } else {
             start_nucl.position - template.origin.start + 1
         };
-        for domain in template.domains.iter() {
+        for domain in &template.domains {
             match domain {
                 DomainTemplate::Insertion(n) => ret.push(Domain::new_insertion(*n)),
                 DomainTemplate::HelixInterval {
@@ -424,7 +396,7 @@ impl Controller {
                     end,
                     forward,
                 } => {
-                    if let Some(ref pos1) = previous_position {
+                    if let Some(pos1) = &previous_position {
                         let edge = edge_iter.next().ok_or(ErrOperation::CannotPasteHere)?;
                         let pos2 = grid_manager
                             .translate_by_edge(pos1, edge)
@@ -469,7 +441,7 @@ impl Controller {
                 }
             }
         }
-        *duplication_info = edge_opt.zip(Some(shift));
+        *duplication_edge = edge_opt.zip(Some(shift));
         Ok(ret)
     }
 
@@ -501,9 +473,9 @@ impl Controller {
         helix_parameters: &HelixParameters,
     ) -> Vec<PastedStrand> {
         let mut pasted_strands = vec![];
-        for domains in domains_vec.into_iter() {
+        for domains in domains_vec {
             let mut nucl_position = Vec::with_capacity(domains.len() * 15);
-            for dom in domains.iter() {
+            for dom in &domains {
                 if let Domain::HelixDomain(dom) = dom {
                     let helix = helices.get(&dom.helix).unwrap();
                     for position in dom.iter() {
@@ -567,10 +539,8 @@ impl Controller {
 
     fn apply_paste_strands(&mut self, mut design: Design) -> Result<Design, ErrOperation> {
         let pasted_strands = match &self.state {
-            ControllerState::PositioningStrandPastingPoint { pasted_strands, .. } => {
-                Ok(pasted_strands)
-            }
-            ControllerState::PositioningStrandDuplicationPoint { pasted_strands, .. } => {
+            ControllerState::PositioningStrandPastingPoint { pasted_strands, .. }
+            | ControllerState::PositioningStrandDuplicationPoint { pasted_strands, .. } => {
                 Ok(pasted_strands)
             }
             _ => Err(ErrOperation::IncompatibleState(format!(
@@ -588,14 +558,13 @@ impl Controller {
         design: &mut Design,
         pasted_strands: &[PastedStrand],
     ) -> Result<(), ErrOperation> {
-        if pasted_strands.get(0).map(|s| s.pastable) == Some(false) {
+        if pasted_strands.first().is_some_and(|s| !s.pastable) {
             return Err(ErrOperation::CannotPasteHere);
         }
-        for pasted_strand in pasted_strands.iter() {
+        for pasted_strand in pasted_strands {
             let color = Self::new_color(color_idx);
             if pasted_strand.pastable {
-                let junctions =
-                    ensnano_design::read_junctions(pasted_strand.domains.as_slice(), false);
+                let junctions = read_junctions(pasted_strand.domains.as_slice(), false);
                 let strand = Strand {
                     domains: pasted_strand.domains.clone(),
                     color,
@@ -638,7 +607,7 @@ impl Controller {
                     };
                 } else {
                     // If it is not possible to duplicate here, cancel the duplication
-                    self.state = ControllerState::Normal
+                    self.state = ControllerState::Normal;
                 }
                 Ok(design)
             }
@@ -685,7 +654,7 @@ impl Controller {
                         xovers,
                     };
                 } else {
-                    self.state = ControllerState::Normal
+                    self.state = ControllerState::Normal;
                 }
                 Ok(design)
             }
@@ -705,7 +674,7 @@ impl Controller {
                     )
                     .ok_or(ErrOperation::CannotPasteHere)?;
                 let n1 = xovers
-                    .get(0)
+                    .first()
                     .map(|n| n.0)
                     .ok_or(ErrOperation::EmptyClipboard)?;
                 let edge = Self::edge_between_nucls(
@@ -738,18 +707,18 @@ impl Controller {
                 let new_duplication_point = data
                     .translate_by_edge(&last_pasting_point.to_helix_pos(), &duplication_edge)
                     .ok_or(ErrOperation::CannotPasteHere)?;
-                let h_id0 = helices.get(0).ok_or(ErrOperation::EmptyClipboard)?;
+                let h_id0 = helices.first().ok_or(ErrOperation::EmptyClipboard)?;
                 let edge = data
                     .get_helix_grid_position(*h_id0)
                     .as_ref()
                     .zip(Some(new_duplication_point))
                     .and_then(|(source, dest)| {
-                        log::info!("source {:?}, dest {:?}", source, dest);
+                        log::info!("source {source:?}, dest {dest:?}");
                         data.get_edge(source, &dest)
                     })
                     .ok_or(ErrOperation::CannotPasteHere)?;
                 let mut helices_mut = design.helices.make_mut();
-                for h_id in helices.iter() {
+                for h_id in &helices {
                     let h = helices_mut
                         .get(h_id)
                         .ok_or(ErrOperation::HelixDoesNotExists(*h_id))?;
@@ -779,7 +748,7 @@ impl Controller {
                         helices,
                     };
                 } else {
-                    self.state = ControllerState::Normal
+                    self.state = ControllerState::Normal;
                 }
                 Ok(design)
             }
@@ -790,39 +759,35 @@ impl Controller {
         }
     }
 
-    pub fn get_pasted_position(&self) -> Vec<(Vec<Vec3>, bool)> {
-        match self.state {
-            ControllerState::PositioningStrandPastingPoint {
-                ref pasted_strands, ..
-            } => pasted_strands
+    pub(crate) fn get_pasted_position(&self) -> Vec<(Vec<Vec3>, bool)> {
+        match &self.state {
+            ControllerState::PositioningStrandPastingPoint { pasted_strands, .. } => pasted_strands
                 .iter()
                 .map(|s| (s.nucl_position.clone(), s.pastable))
                 .collect(),
-            ControllerState::PositioningStrandDuplicationPoint {
-                ref pasted_strands, ..
-            } => pasted_strands
-                .iter()
-                .map(|s| (s.nucl_position.clone(), s.pastable))
-                .collect(),
+            ControllerState::PositioningStrandDuplicationPoint { pasted_strands, .. } => {
+                pasted_strands
+                    .iter()
+                    .map(|s| (s.nucl_position.clone(), s.pastable))
+                    .collect()
+            }
             _ => vec![],
         }
     }
 
-    pub fn get_copy_points(&self) -> Vec<Vec<Nucl>> {
-        let pasted_strands = match self.state {
-            ControllerState::PositioningStrandPastingPoint {
-                ref pasted_strands, ..
-            } => pasted_strands,
-            ControllerState::PositioningStrandDuplicationPoint {
-                ref pasted_strands, ..
-            } => pasted_strands,
+    pub(crate) fn get_copy_points(&self) -> Vec<Vec<Nucl>> {
+        let pasted_strands = match &self.state {
+            ControllerState::PositioningStrandPastingPoint { pasted_strands, .. } => pasted_strands,
+            ControllerState::PositioningStrandDuplicationPoint { pasted_strands, .. } => {
+                pasted_strands
+            }
             _ => return vec![],
         };
 
         let mut ret = Vec::new();
-        for strand in pasted_strands.iter() {
+        for strand in pasted_strands {
             let mut points = Vec::new();
-            for domain in strand.domains.iter() {
+            for domain in &strand.domains {
                 if let Domain::HelixDomain(domain) = domain {
                     if domain.forward {
                         points.push(Nucl::new(domain.helix, domain.start, domain.forward));
@@ -833,60 +798,50 @@ impl Controller {
                     }
                 }
             }
-            ret.push(points)
+            ret.push(points);
         }
         ret
     }
 
     pub(super) fn get_pasting_point(&self) -> Option<Option<PastePosition>> {
         match self.state {
-            ControllerState::PositioningStrandPastingPoint { pasting_point, .. } => {
-                Some(pasting_point.map(|p| PastePosition::Nucl(p.clone())))
-            }
-            ControllerState::PositioningStrandDuplicationPoint { pasting_point, .. } => {
-                Some(pasting_point.map(|p| PastePosition::Nucl(p.clone())))
-            }
-            ControllerState::DoingFirstXoversDuplication { pasting_point, .. } => {
-                Some(pasting_point.map(|p| PastePosition::Nucl(p.clone())))
-            }
-            ControllerState::PastingXovers { pasting_point, .. } => {
-                Some(pasting_point.map(|p| PastePosition::Nucl(p.clone())))
+            ControllerState::PositioningStrandPastingPoint { pasting_point, .. }
+            | ControllerState::PositioningStrandDuplicationPoint { pasting_point, .. }
+            | ControllerState::DoingFirstXoversDuplication { pasting_point, .. }
+            | ControllerState::PastingXovers { pasting_point, .. } => {
+                Some(pasting_point.map(PastePosition::Nucl))
             }
             ControllerState::PositioningHelicesPastingPoint { pasting_point, .. } => {
-                Some(pasting_point.map(|p| PastePosition::GridPosition(p.clone())))
+                Some(pasting_point.map(PastePosition::GridPosition))
             }
             _ => None,
         }
     }
 
     pub(super) fn copy_xovers(&mut self, xovers: Vec<(Nucl, Nucl)>) -> Result<(), ErrOperation> {
-        if xovers.len() > 0 {
-            self.clipboard = AddressPointer::new(Clipboard::Xovers(xovers))
+        self.clipboard = if !xovers.is_empty() {
+            AddressPointer::new(Clipboard::Xovers(xovers))
         } else {
-            self.clipboard = Default::default()
-        }
+            Default::default()
+        };
         Ok(())
     }
 
     pub(super) fn copy_helices(&mut self, helices: Vec<usize>) -> Result<(), ErrOperation> {
-        if helices.len() > 0 {
-            self.clipboard = AddressPointer::new(Clipboard::Helices(helices))
+        self.clipboard = if !helices.is_empty() {
+            AddressPointer::new(Clipboard::Helices(helices))
         } else {
-            self.clipboard = Default::default()
-        }
+            Default::default()
+        };
         Ok(())
     }
 
     pub(super) fn get_design_being_pasted_on(&self) -> Option<&AddressPointer<Design>> {
         match &self.state {
             ControllerState::PastingXovers { initial_design, .. } => Some(initial_design),
-            ControllerState::DoingFirstXoversDuplication { initial_design, .. } => {
-                Some(initial_design)
-            }
-            ControllerState::PositioningHelicesPastingPoint { initial_design, .. } => {
-                Some(initial_design)
-            }
-            ControllerState::PositioningHelicesDuplicationPoint { initial_design, .. } => {
+            ControllerState::DoingFirstXoversDuplication { initial_design, .. }
+            | ControllerState::PositioningHelicesPastingPoint { initial_design, .. }
+            | ControllerState::PositioningHelicesDuplicationPoint { initial_design, .. } => {
                 Some(initial_design)
             }
             _ => None,
@@ -900,8 +855,8 @@ impl Controller {
         position: Option<PastePosition>,
     ) -> Result<(), ErrOperation> {
         let data = design.get_updated_grid_data();
-        let h_id0 = helices.get(0).ok_or(ErrOperation::EmptyClipboard)?;
-        log::info!("position = {:?}", position);
+        let h_id0 = helices.first().ok_or(ErrOperation::EmptyClipboard)?;
+        log::info!("position = {position:?}");
         log::info!(
             "source position = {:?}",
             data.get_helix_grid_position(*h_id0)
@@ -911,10 +866,10 @@ impl Controller {
             .as_ref()
             .zip(position.and_then(PastePosition::to_grid_position).as_ref())
             .and_then(|(source, dest)| {
-                log::info!("source {:?}, dest {:?}", source, dest);
+                log::info!("source {source:?}, dest {dest:?}");
                 data.get_edge(source, &dest.to_helix_pos())
             });
-        log::info!("edge = {:?}", edge);
+        log::info!("edge = {edge:?}");
         let grid_data = data.clone();
         self.state
             .update_helices_pasting_position(position, edge, design)?;
@@ -950,10 +905,8 @@ impl Controller {
         self.state
             .update_xover_pasting_position(nucl, edge, design)?;
         let data = design.mut_strand_and_data();
-        if cfg!(test) {
-            if edge.is_none() {
-                println!("EDGE IS NONE");
-            }
+        if cfg!(test) && edge.is_none() {
+            println!("EDGE IS NONE");
         }
         if let Some(edge) = edge {
             let clipboard = self.clipboard.clone();
@@ -972,14 +925,13 @@ impl Controller {
         strands: &mut Strands,
         helices: &Helices,
         xovers: &[(Nucl, Nucl)],
-        copy_edge: (Edge, isize),
+        (edge, shift): DuplicationEdge,
     ) -> Result<(), ErrOperation> {
-        let (edge, shift) = copy_edge;
-        for (n1, n2) in xovers.iter() {
+        for (n1, n2) in xovers {
             let copy_1 = self.translate_nucl_by_edge(n1, &edge, shift, helices, grid_manager);
-            log::debug!("copy 1 {:?}", copy_1);
+            log::debug!("copy 1 {copy_1:?}");
             let copy_2 = self.translate_nucl_by_edge(n2, &edge, shift, helices, grid_manager);
-            log::debug!("copy 2 {:?}", copy_2);
+            log::debug!("copy 2 {copy_2:?}");
             if let Some(copy_1) = copy_1
                 && let Some(copy_2) = copy_2
                 && !strands.is_true_xover_end(&copy_1)
@@ -994,7 +946,7 @@ impl Controller {
     }
 }
 
-pub enum CopyOperation {
+pub(crate) enum CopyOperation {
     CopyGrids(Vec<GridId>),
     CopyStrands(Vec<usize>),
     CopyXovers(Vec<(Nucl, Nucl)>),

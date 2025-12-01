@@ -1,20 +1,3 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
 //! This modules defines a 2D camera for the FlatScene.
 //!
 //! The [Globals] struct contains the value that must be send to the GPU to compute the view
@@ -22,8 +5,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! coordinate conversion.
 
 use ensnano_consts::MAX_ZOOM_2D;
-use ensnano_iced::iced_winit::winit::{dpi::PhysicalPosition, event::MouseScrollDelta};
+use std::f32::consts::PI;
 use ultraviolet::{Rotor2, Vec2};
+use winit::{dpi::PhysicalPosition, event::MouseScrollDelta};
 
 /// A 2D camera for the FlatScene.
 pub struct Camera2D {
@@ -43,13 +27,7 @@ impl Camera2D {
             bottom,
         }
     }
-}
 
-/// Movement mechanism.
-///
-/// The movement can be decomposed in multiple steps.
-///
-impl Camera2D {
     /// Return true if the globals have been modified since the last time `self.get_update()` was
     /// called.
     pub fn was_updated(&self) -> bool {
@@ -57,7 +35,7 @@ impl Camera2D {
     }
 
     fn rotation_sign(&self) -> f32 {
-        self.globals.symmetry.x * self.globals.symmetry.y * -1.0
+        -(self.globals.symmetry.x * self.globals.symmetry.y)
     }
 
     pub fn apply_symmetry_x(&mut self) {
@@ -71,12 +49,12 @@ impl Camera2D {
     }
 
     pub fn tilt_right(&mut self) {
-        self.globals.tilt -= std::f32::consts::PI / 12. * self.rotation_sign();
+        self.globals.tilt -= PI / 12. * self.rotation_sign();
         self.end_movement();
     }
 
     pub fn tilt_left(&mut self) {
-        self.globals.tilt += std::f32::consts::PI / 12. * self.rotation_sign();
+        self.globals.tilt += PI / 12. * self.rotation_sign();
         self.end_movement();
     }
 
@@ -87,12 +65,10 @@ impl Camera2D {
 
     /// Return the globals if self was updated,
     pub fn update(&mut self) -> Option<&Globals> {
-        if self.was_updated {
+        self.was_updated.then(|| {
             self.was_updated = false;
-            Some(&self.globals)
-        } else {
-            None
-        }
+            &self.globals
+        })
     }
 
     /// Moves the camera, according to a mouse movement expressed in *normalized screen
@@ -116,17 +92,16 @@ impl Camera2D {
         delta: &MouseScrollDelta,
         cursor_position: PhysicalPosition<f64>,
     ) {
-        let scroll = match delta {
+        let scroll = (match delta {
             MouseScrollDelta::LineDelta(_, scroll) => *scroll,
             MouseScrollDelta::PixelDelta(PhysicalPosition { y: scroll, .. }) => {
                 (*scroll as f32) / 100.
             }
-        }
-        .min(1.)
-        .max(-1.);
+        })
+        .clamp(-1., 1.);
         let fixed_point =
             Vec2::from(self.screen_to_world(cursor_position.x as f32, cursor_position.y as f32));
-        self.globals.zoom *= 1.25_f32.powf(scroll);
+        self.globals.zoom *= 1.25f32.powf(scroll);
         self.globals.zoom = self.globals.zoom.min(MAX_ZOOM_2D);
         let delta = fixed_point
             - Vec2::from(self.screen_to_world(cursor_position.x as f32, cursor_position.y as f32));
@@ -139,20 +114,6 @@ impl Camera2D {
 
     pub fn zoom_closer(&mut self) {
         self.globals.zoom = self.globals.zoom.max(MAX_ZOOM_2D / 2.);
-    }
-
-    /// Discrete zoom on the scene
-    #[allow(dead_code)]
-    pub fn zoom_in(&mut self) {
-        self.globals.zoom *= 1.25;
-        self.was_updated = true;
-    }
-
-    /// Discrete zoom out of the scene
-    #[allow(dead_code)]
-    pub fn zoom_out(&mut self) {
-        self.globals.zoom *= 0.8;
-        self.was_updated = true;
     }
 
     /// Notify the camera that the current movement is over.
@@ -195,7 +156,7 @@ impl Camera2D {
         Rotor2::from_angle(self.globals.tilt)
     }
 
-    /// Convert a *point* in screen ([0, x_res] * [0, y_res]) coordinate to a point in world coordiantes.
+    /// Convert a *point* in screen ([0, x_res] * [0, y_res]) coordinate to a point in world coordinates.
     pub fn screen_to_world(&self, x_screen: f32, mut y_screen: f32) -> (f32, f32) {
         if self.bottom {
             y_screen -= self.globals.resolution[1];
@@ -208,7 +169,6 @@ impl Camera2D {
             (self.globals.scroll_offset[0] + x),
             (self.globals.scroll_offset[1] + y),
         )
-            .into()
     }
 
     pub fn norm_screen_to_world(&self, x_normed: f32, y_normed: f32) -> (f32, f32) {
@@ -278,15 +238,16 @@ impl Camera2D {
             .adjust_height(1.1, 0.5);
         let zoom_x = self.globals.resolution[0] / rectangle.width();
         let zoom_y = self.globals.resolution[1] / rectangle.height();
-        let mut excess_height = 0.;
-        if zoom_x < zoom_y {
-            self.globals.zoom = zoom_x;
 
+        let excess_height = if zoom_x < zoom_y {
+            self.globals.zoom = zoom_x;
             let seen_height = self.globals.resolution[1] / zoom_x;
-            excess_height = seen_height - rectangle.height();
+            seen_height - rectangle.height()
         } else {
             self.globals.zoom = zoom_y;
-        }
+            0.0
+        };
+
         let [center_x, center_y] = rectangle.center();
         self.globals.scroll_offset[0] = center_x;
         self.globals.scroll_offset[1] = center_y + excess_height / 2.;
@@ -367,7 +328,7 @@ impl Globals {
     where
         F: Fn([f32; 2]) -> [f32; 2],
     {
-        log::debug!("Corners: {:?}, {:?}", top_left, bottom_right);
+        log::debug!("Corners: {top_left:?}, {bottom_right:?}");
         let size = [
             (bottom_right.x - top_left.x).abs(),
             (bottom_right.y - top_left.y).abs(),
@@ -376,7 +337,7 @@ impl Globals {
     }
 }
 
-/// A structure to compute appropriate vews of the flat scene.
+/// A structure to compute appropriate views of the flat scene.
 #[derive(Debug, Clone, Copy)]
 pub struct FitRectangle {
     x_min: f32,
@@ -385,8 +346,9 @@ pub struct FitRectangle {
     y_max: f32,
 }
 
-/// Creation and basic fitting methods.
 impl FitRectangle {
+    // === CREATION AND BASIC FITTING METHODS ===
+
     /// Create a new [FitRectangle] that fits only `point`.
     ///
     /// Use as a starting point, to add new points.
@@ -399,15 +361,16 @@ impl FitRectangle {
             y_max: y,
         }
     }
+
     /// Add a new point to include into the [FitRectangle].
-    pub fn add_point(&mut self, point: impl Into<[f32; 2]>) -> Self {
+    fn add_point(&mut self, point: impl Into<[f32; 2]>) {
         let [x, y] = point.into();
         self.x_min = f32::min(self.x_min, x);
         self.x_max = f32::max(self.x_max, x);
         self.y_min = f32::min(self.y_min, y);
         self.y_max = f32::max(self.y_max, y);
-        *self
     }
+
     pub fn from_points(points: impl IntoIterator<Item = [f32; 2]>) -> Option<Self> {
         let mut points = points.into_iter();
         if let Some(point) = points.next() {
@@ -420,29 +383,30 @@ impl FitRectangle {
             None
         }
     }
-}
 
-/// Introspection.
-impl FitRectangle {
+    // === INTROSPECTION ===
+
     pub fn width(&self) -> f32 {
         self.x_max - self.x_min
     }
+
     pub fn height(&self) -> f32 {
         self.y_max - self.y_min
     }
+
     pub fn center(&self) -> [f32; 2] {
         [
             (self.x_min + self.x_max) / 2.,
             (self.y_min + self.y_max) / 2.,
         ]
     }
+
     pub fn top_left(&self) -> [f32; 2] {
         [self.x_min, self.y_max]
     }
-}
 
-/// Special methods.
-impl FitRectangle {
+    // === SPECIAL METHODS ===
+
     /// Ensure a minimal rectangle size.
     ///
     /// If the width or height must be increased, use the given center of mass.
@@ -470,10 +434,9 @@ impl FitRectangle {
         self.y_max += factor * (1.0 - y_center);
         self
     }
-}
 
-/// Needed by controller.
-impl FitRectangle {
+    // === NEEDED BY CONTROLLER ===
+
     pub fn split_vertically(self) -> (Self, Self) {
         self.ensure_min_size([20., 35.], [0.25, 0.14285715]);
         let Self {
@@ -499,14 +462,13 @@ impl FitRectangle {
         )
     }
 
+    #[must_use]
     pub fn double_height(mut self) -> Self {
         self.ensure_min_size([20., 35.], [0.25, 0.14285715]);
         self.y_max += 2.0 * self.height();
         self
     }
-}
 
-impl FitRectangle {
     /// An initial rectangle to give to the software at startup.
     pub const INITIAL_RECTANGLE: Self = Self {
         x_min: -7.,

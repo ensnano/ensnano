@@ -1,27 +1,9 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use std::path::Path as StdPath;
-
-use svg::node::element::path::{Command, Data, Position};
-use svg::parser::Event;
-
-use super::*;
+use crate::bezier_plane::{BezierPath, BezierPlaneId, BezierVertex};
+use svg::{
+    node::element::path::{Command, Data, Position},
+    parser::Event,
+};
+use ultraviolet::{Vec2, Vec3};
 
 const SCALE: Vec2 = Vec2 { x: 0.1, y: 0.1 };
 const ORIGIN: Vec2 = Vec2 {
@@ -29,7 +11,7 @@ const ORIGIN: Vec2 = Vec2 {
     y: 13.5557,
 };
 
-pub fn read_first_svg_path(file_path: &StdPath) -> Result<BezierPath, SvgImportError> {
+pub fn read_first_svg_path(file_path: &std::path::Path) -> Result<BezierPath, SvgImportError> {
     let mut content = String::new();
     let events = svg::open(file_path, &mut content)?;
 
@@ -42,20 +24,18 @@ pub fn read_first_svg_path(file_path: &StdPath) -> Result<BezierPath, SvgImportE
 
             let mut ret = PathBuilder::default();
             for command in data.iter() {
-                // println!("{:?}",command); // ADD MISSING SVG COMMANDS HERE
                 match command {
                     Command::Close => return Ok(ret.close()),
-                    Command::Move(Position::Absolute, parameters) => {
-                        if parameters.len() != 2 {
-                            return Err(SvgImportError::BadParameters);
-                        } else {
-                            let at = Vec2::new(parameters[0], parameters[1]);
+                    Command::Move(Position::Absolute, parameters) => match parameters.as_ref() {
+                        [x, y] => {
+                            let at = Vec2::new(*x, *y);
                             ret.start(at)?;
                         }
-                    }
+                        _ => return Err(SvgImportError::BadParameters),
+                    },
                     Command::CubicCurve(Position::Absolute, parameters) => {
-                        let arg = MoveToParameter::from_svg_paramter(parameters)?;
-                        ret.move_to(arg)?
+                        let arg = MoveToParameter::from_svg_parameter(parameters)?;
+                        ret.move_to(arg)?;
                     }
                     _ => (),
                 }
@@ -81,7 +61,7 @@ impl PathBuilder {
                 position_out: None,
                 grid_translation: Vec3::zero(),
                 angle_with_plane: 0.,
-            }]
+            }];
         } else {
             return Err(SvgImportError::UnexpectedCommand(String::from("Move")));
         }
@@ -133,26 +113,25 @@ struct MoveToParameter {
 }
 
 impl MoveToParameter {
-    fn from_svg_paramter(parameters: &[f32]) -> Result<Self, SvgImportError> {
-        if parameters.len() != 6 {
-            Err(SvgImportError::BadParameters)
-        } else {
-            Ok(Self {
-                control_1: Vec2::new(parameters[0], parameters[1]),
-                control_2: Vec2::new(parameters[2], parameters[3]),
-                position: Vec2::new(parameters[4], parameters[5]),
-            })
+    fn from_svg_parameter(parameters: &[f32]) -> Result<Self, SvgImportError> {
+        match parameters {
+            [c1x, c1y, c2x, c2y, px, py] => Ok(Self {
+                control_1: Vec2::new(*c1x, *c1y),
+                control_2: Vec2::new(*c2x, *c2y),
+                position: Vec2::new(*px, *py),
+            }),
+            _ => Err(SvgImportError::BadParameters),
         }
     }
 }
 
 #[derive(Debug)]
 pub enum SvgImportError {
-    IOError(#[allow(unused)] std::io::Error),
-    SvgParserError(#[allow(unused)] svg::parser::Error),
+    IOError(std::io::Error),
+    SvgParserError(svg::parser::Error),
     NoPathFound,
-    AttributeNotFound(#[allow(unused)] String),
-    UnexpectedCommand(#[allow(unused)] String),
+    AttributeNotFound(String),
+    UnexpectedCommand(String),
     BadParameters,
 }
 

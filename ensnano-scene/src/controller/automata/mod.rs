@@ -1,39 +1,38 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::*;
-use crate::controller::automata::dragging_state::translating_grid_object;
-use ensnano_design::{
-    BezierPlaneId,
-    grid::{GridId, GridObject},
-};
-use ensnano_interactor::ActionMode;
-use std::borrow::Cow;
-use std::cell::RefCell;
-use ultraviolet::Vec2;
-use winit::event::{ElementState, MouseButton};
-
 mod dragging_state;
-use dragging_state::*;
+pub(crate) mod event_context;
 mod point_and_click_state;
+
+use crate::{
+    AppState,
+    controller::{Consequence, Controller, TransitionConsequence},
+    element_selector::SceneElement,
+    view::{
+        handle_drawer::{HandleColors, HandleDir},
+        rotation_widget::RotationMode,
+    },
+};
+use dragging_state::{
+    ClickInfo, MovingBezierCorner, MovingBezierTangent, MovingBezierVertex, MovingRevolutionRadius,
+    translating_grid_object,
+};
+use ensnano_consts::{
+    DIR_HANDLE_ID, FRONT_CIRCLE_ID, RIGHT_CIRCLE_ID, RIGHT_HANDLE_ID, UP_CIRCLE_ID, UP_HANDLE_ID,
+};
+use ensnano_design::{
+    bezier_plane::{BezierVertex, BezierVertexId},
+    grid::GridId,
+};
+use ensnano_interactor::selection::ActionMode;
+use event_context::{EventContext, XoverOrigin};
 use point_and_click_state::PointAndClicking;
-mod event_context;
-pub use event_context::EventContext;
-use event_context::*;
+use std::{borrow::Cow, cell::RefCell};
+use ultraviolet::Vec2;
+use winit::{
+    dpi::PhysicalPosition,
+    event::{ElementState, MouseButton, WindowEvent},
+    keyboard::ModifiersState,
+    window::CursorIcon,
+};
 
 pub(super) type State<S> = RefCell<Box<dyn ControllerState<S>>>;
 
@@ -49,14 +48,14 @@ pub(super) struct Transition<S: AppState> {
 }
 
 impl<S: AppState> Transition<S> {
-    pub fn nothing() -> Self {
+    pub(super) fn nothing() -> Self {
         Self {
             new_state: None,
             consequences: Consequence::Nothing,
         }
     }
 
-    pub fn consequence(consequences: Consequence) -> Self {
+    pub(super) fn consequence(consequences: Consequence) -> Self {
         Self {
             new_state: None,
             consequences,
@@ -65,7 +64,7 @@ impl<S: AppState> Transition<S> {
 }
 
 pub(super) trait ControllerState<S: AppState> {
-    fn input<'a>(&mut self, event: &WindowEvent, context: EventContext<'a, S>) -> Transition<S>;
+    fn input(&mut self, event: &WindowEvent, context: EventContext<'_, S>) -> Transition<S>;
 
     fn display(&self) -> Cow<'static, str>;
 
@@ -89,21 +88,15 @@ pub(super) trait ControllerState<S: AppState> {
         None
     }
 
-    fn give_context<'a>(&mut self, _context: EventContext<'a, S>) {
-        ()
-    }
+    fn give_context(&mut self, _context: EventContext<'_, S>) {}
 }
 
-pub struct NormalState {
+pub(crate) struct NormalState {
     pub mouse_position: PhysicalPosition<f64>,
 }
 
 impl<S: AppState> ControllerState<S> for NormalState {
-    fn input<'a>(
-        &mut self,
-        event: &WindowEvent,
-        mut context: EventContext<'a, S>,
-    ) -> Transition<S> {
+    fn input(&mut self, event: &WindowEvent, mut context: EventContext<'_, S>) -> Transition<S> {
         match event {
             WindowEvent::CursorMoved { .. } if context.is_pasting() => {
                 self.mouse_position = context.cursor_position;
@@ -125,7 +118,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                 let click_info = ClickInfo::new(MouseButton::Left, context.cursor_position);
                 let clicked_nucl = context
                     .get_element_under_cursor()
-                    .and_then(|elt| context.element_to_nucl(&Some(elt), true));
+                    .and_then(|elt| context.element_to_nucl(Some(&elt), true));
                 Transition {
                     new_state: Some(Box::new(dragging_state::translating_camera(
                         click_info,
@@ -157,7 +150,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                 ..
             } => {
                 let element = context.get_element_under_cursor();
-                log::info!("Clicked on {:?}", element);
+                log::info!("Clicked on {element:?}");
                 if let Some(SceneElement::PlaneCorner {
                     plane_id,
                     corner_type,
@@ -184,16 +177,17 @@ impl<S: AppState> ControllerState<S> for NormalState {
                 {
                     if let Some(vertex) = context.get_bezier_vertex(path_id, vertex_id) {
                         let click_info = ClickInfo::new(MouseButton::Left, context.cursor_position);
-                        let current_tangent_position = context
+                        let current_tangent_position = if let Some(i) = context
                             .get_current_cursor_intersection_with_bezier_plane(vertex.plane_id)
-                            .map(|i| i.position())
-                            .unwrap_or_else(|| {
-                                log::error!(
-                                    "Could not get cursor intersection with plane {:?}",
-                                    vertex.plane_id
-                                );
-                                Vec2::unit_x()
-                            });
+                        {
+                            i.position()
+                        } else {
+                            log::error!(
+                                "Could not get cursor intersection with plane {:?}",
+                                vertex.plane_id
+                            );
+                            Vec2::unit_x()
+                        };
                         let new_state = dragging_state::moving_bezier_tangent(
                             click_info,
                             MovingBezierTangent {
@@ -209,7 +203,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                             consequences: Consequence::Nothing,
                         };
                     }
-                    log::error!("Could not get vertex {:?}, {vertex_id}", path_id)
+                    log::error!("Could not get vertex {path_id:?}, {vertex_id}");
                 }
                 match element {
                     Some(SceneElement::GridCircle(d_id, grid_position)) => {
@@ -302,19 +296,19 @@ impl<S: AppState> ControllerState<S> for NormalState {
                                 }
                             }
                         } else {
-                            let clicked_element;
-                            let object;
-                            if let Some(intersection) = grid_intersection.as_ref() {
-                                clicked_element = Some(SceneElement::GridCircle(
-                                    d_id,
-                                    intersection.grid_position(),
-                                ));
-                                object =
-                                    context.get_object_at_grid_pos(intersection.grid_position());
-                            } else {
-                                clicked_element = element;
-                                object = None;
-                            };
+                            let (clicked_element, object) =
+                                if let Some(intersection) = grid_intersection.as_ref() {
+                                    let clicked_element = Some(SceneElement::GridCircle(
+                                        d_id,
+                                        intersection.grid_position(),
+                                    ));
+                                    let object = context
+                                        .get_object_at_grid_pos(intersection.grid_position());
+                                    (clicked_element, object)
+                                } else {
+                                    (element, None)
+                                };
+
                             if let Some(obj) = object {
                                 // if helix is Some, intersection is also Some
                                 let intersection = grid_intersection.unwrap();
@@ -404,9 +398,9 @@ impl<S: AppState> ControllerState<S> for NormalState {
                     }
                     Some(SceneElement::DesignElement(_, _))
                         if ctrl(context.get_modifiers())
-                            && context.element_to_nucl(&element, true).is_some() =>
+                            && context.element_to_nucl(element.as_ref(), true).is_some() =>
                     {
-                        if let Some(nucl) = context.element_to_nucl(&element, true) {
+                        if let Some(nucl) = context.element_to_nucl(element.as_ref(), true) {
                             Transition::consequence(Consequence::QuickXoverAttempt {
                                 nucl,
                                 doubled: context.get_modifiers().shift_key(),
@@ -423,7 +417,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                         let path_id = context.get_bezier_vertex_being_edited().map(|v| v.path_id);
 
                         if let Some((plane_id, intersection)) = context.get_plane_under_cursor() {
-                            println!("{:?}", intersection);
+                            println!("{intersection:?}");
                             let click_info =
                                 ClickInfo::new(MouseButton::Left, context.cursor_position);
 
@@ -499,7 +493,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                 let click_info = ClickInfo::new(MouseButton::Middle, context.cursor_position);
                 let clicked_nucl = context
                     .get_element_under_cursor()
-                    .and_then(|elt| context.element_to_nucl(&Some(elt), true));
+                    .and_then(|elt| context.element_to_nucl(Some(&elt), true));
                 Transition {
                     new_state: Some(Box::new(dragging_state::translating_camera(
                         click_info,
@@ -534,7 +528,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
 
 /// What is being affected by the translation
 #[derive(Clone, Debug, Copy, Eq, PartialEq)]
-pub enum WidgetTarget {
+pub(crate) enum WidgetTarget {
     /// The selected elements
     Object,
     /// The selection's pivot

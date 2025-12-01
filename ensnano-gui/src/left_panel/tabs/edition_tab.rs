@@ -1,34 +1,25 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+use crate::{
+    AppState,
+    left_panel::{
+        HelixRoll, Message, color_to_u32,
+        discrete_value::{FactoryId, RequestFactory, ValueId},
+        tabs::GuiTab,
+    },
+};
+use ensnano_design::elements::DesignElementKey;
 use ensnano_iced::{
     color_picker::{ColorPicker, ColorPickerMessage},
-    fonts::{MaterialIcon, icon_to_char},
-    helpers::*,
-    iced::Command,
-    iced_aw::TabLabel,
+    fonts::material_icons::{MaterialIcon, icon_to_char},
+    helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
+    ui_size::UiSize,
 };
+use ensnano_interactor::{RollRequest, selection::extract_strands_from_selection};
+use iced::{
+    Command,
+    widget::{column, row, scrollable},
+};
+use iced_aw::TabLabel;
 use std::marker::PhantomData;
-
-use super::tabs::GuiTab;
-use super::{
-    AppState, DesignElementKey, FactoryId, HelixRoll, Message, RequestFactory, RollRequest, UiSize,
-    ValueId,
-};
 
 pub struct EditionTab<State: AppState> {
     helix_roll_factory: RequestFactory<HelixRoll>,
@@ -43,20 +34,15 @@ impl<State: AppState> EditionTab<State> {
         Self {
             helix_roll_factory: RequestFactory::new(FactoryId::HelixRoll, HelixRoll {}),
             color_picker: ColorPicker::new(),
-            //_sequence_input: SequenceInput::new(),
-            //roll_target_btn: GoStop::new(
-            //    "Autoroll selected helices".to_owned(),
-            //    Message::RollTargeted,
-            //),
             _state_type: PhantomData,
         }
     }
 
     fn get_roll_target_helices(&self, selection: &[DesignElementKey]) -> Vec<usize> {
         let mut ret = vec![];
-        for s in selection.iter() {
+        for s in selection {
             if let DesignElementKey::Helix(h) = s {
-                ret.push(*h)
+                ret.push(*h);
             }
         }
         ret
@@ -72,24 +58,20 @@ impl<State: AppState> EditionTab<State> {
             .update_request(value_id, value, request);
     }
 
-    pub fn get_roll_request(&mut self, selection: &[DesignElementKey]) -> Option<RollRequest> {
+    pub fn get_roll_request(&self, selection: &[DesignElementKey]) -> Option<RollRequest> {
         let roll_target_helices = self.get_roll_target_helices(selection);
-        if roll_target_helices.len() > 0 {
-            Some(RollRequest {
-                target_helices: Some(roll_target_helices.clone()),
-            })
-        } else {
-            None
-        }
+        (!roll_target_helices.is_empty()).then(|| RollRequest {
+            target_helices: Some(roll_target_helices.clone()),
+        })
     }
 
-    pub fn current_strand_color(&mut self) -> u32 {
+    pub fn current_strand_color(&self) -> u32 {
         let color = self.color_picker.current_color();
-        super::color_to_u32(color)
+        color_to_u32(color)
     }
 
     pub fn update_color_picker(&mut self, message: ColorPickerMessage) {
-        self.color_picker.update(message)
+        self.color_picker.update(message);
     }
 }
 
@@ -104,18 +86,14 @@ impl<State: AppState> GuiTab<State> for EditionTab<State> {
         Command::none()
     }
 
-    fn content(
-        &self,
-        ui_size: UiSize,
-        app_state: &State,
-    ) -> ensnano_iced::Element<'_, Self::Message> {
+    fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {
         let roll_target_helices =
             self.get_roll_target_helices(&app_state.get_selection_as_design_element());
         let sim_state = &app_state.get_simulation_state();
-        let autoroll_is_active = sim_state.is_rolling() || roll_target_helices.len() > 0;
+        let autoroll_is_active = sim_state.is_rolling() || !roll_target_helices.is_empty();
         let selection_contains_strand =
-            ensnano_interactor::extract_strands_from_selection(app_state.get_selection()).len() > 0;
-        let suggestion_parameters = app_state.get_suggestion_parameters().clone();
+            !extract_strands_from_selection(app_state.get_selection()).is_empty();
+        let suggestion_parameters = *app_state.get_suggestion_parameters();
         let mut tighten_helices_button = text_button("Selected", ui_size);
         if !roll_target_helices.is_empty() {
             tighten_helices_button =
@@ -127,17 +105,13 @@ impl<State: AppState> GuiTab<State> for EditionTab<State> {
             // add_roll_slider!
             column(
                 self.helix_roll_factory
-                    .view(roll_target_helices.len() >= 1, ui_size.intermediate_text())
+                    .view(!roll_target_helices.is_empty(), ui_size.intermediate_text())
             ),
             // add_autoroll_button!
             start_stop_button(
                 "Autoroll selected helices",
                 ui_size,
-                if autoroll_is_active {
-                    Some(Message::RollTargeted)
-                } else {
-                    None
-                },
+                autoroll_is_active.then_some(Message::RollTargeted),
                 sim_state.is_rolling()
             ),
             // add_color_square!

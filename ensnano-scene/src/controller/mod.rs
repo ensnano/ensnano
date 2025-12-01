@@ -1,49 +1,36 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+pub(crate) mod automata;
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::AppState;
-use super::view::HandleColors;
-use super::{
-    Duration, ElementSelector, HandleDir, SceneElement, Stereography, ViewPtr,
-    WidgetRotationMode as RotationMode, camera,
+use crate::{
+    AppState, PhysicalPosition, ViewPtr, WindowEvent,
+    camera::CameraController,
+    controller::automata::event_context::EventContext,
+    element_selector::{ElementSelector, SceneElement},
+    maths_3d::FiniteVec3,
+    view::{
+        ViewUpdate,
+        handle_drawer::{HandleColors, HandleDir},
+        rotation_widget::RotationMode,
+        uniforms::Stereography,
+    },
 };
-use crate::maths_3d::FiniteVec3;
-use crate::{PhySize, PhysicalPosition, WindowEvent};
-use camera::CameraController;
-use ensnano_consts::*;
-use ensnano_design::grid::{GridId, GridObject, GridPosition, HelixGridPosition};
+use automata::{NormalState, State, Transition, WidgetTarget};
 use ensnano_design::{
-    BezierPathId, BezierPlaneId, BezierVertex, BezierVertexId, Nucl, SurfaceInfo, SurfacePoint,
+    Nucl,
+    bezier_plane::{BezierPathId, BezierPlaneId, BezierVertex, BezierVertexId},
+    curves::{SurfaceInfo, SurfacePoint},
+    grid::{GridId, GridObject, GridPosition, HelixGridPosition},
 };
-use std::cell::RefCell;
-use std::ops::Deref;
-use std::rc::Rc;
+use ensnano_interactor::graphics::PhySize;
+use std::{cell::RefCell, ops::Deref as _, rc::Rc, time::Duration};
 use ultraviolet::{Rotor3, Vec2, Vec3};
-use winit::event::{ElementState, KeyEvent, Modifiers};
-use winit::keyboard::{Key, ModifiersState, NamedKey, PhysicalKey};
-use winit::window::CursorIcon;
-
-mod automata;
-pub use automata::WidgetTarget;
-use automata::{EventContext, NormalState, State, Transition};
+use winit::{
+    event::{ElementState, KeyEvent, Modifiers},
+    keyboard::{Key, ModifiersState, NamedKey, PhysicalKey},
+    window::CursorIcon,
+};
 
 /// An object handling input and notification for the scene.
-pub struct Controller<S: AppState> {
+pub(crate) struct Controller<S: AppState> {
     /// A pointer to the View
     view: ViewPtr,
     /// A pointer to the data
@@ -63,7 +50,7 @@ pub struct Controller<S: AppState> {
 }
 
 #[derive(Clone, Debug)]
-pub enum Consequence {
+pub(crate) enum Consequence {
     CameraMoved,
     CameraTranslated(f64, f64),
     XoverAttempt(Nucl, Nucl, usize, bool),
@@ -84,10 +71,10 @@ pub enum Consequence {
     Building(isize),
     Undo,
     Redo,
-    Candidate(Option<super::SceneElement>),
-    PivotElement(Option<super::SceneElement>),
-    ElementSelected(Option<super::SceneElement>, bool),
-    MoveFreeXover(Option<super::SceneElement>, Vec3),
+    Candidate(Option<SceneElement>),
+    PivotElement(Option<SceneElement>),
+    ElementSelected(Option<SceneElement>, bool),
+    MoveFreeXover(Option<SceneElement>, Vec3),
     EndFreeXover,
     BuildHelix {
         design_id: u32,
@@ -97,9 +84,9 @@ pub enum Consequence {
         x: isize,
         y: isize,
     },
-    PasteCandidate(Option<super::SceneElement>),
-    Paste(Option<super::SceneElement>),
-    DoubleClick(Option<super::SceneElement>),
+    PasteCandidate(Option<SceneElement>),
+    Paste(Option<SceneElement>),
+    DoubleClick(Option<SceneElement>),
     InitBuild(Vec<Nucl>),
     ObjectTranslated {
         object: GridObject,
@@ -180,12 +167,12 @@ impl<S: AppState> Controller<S> {
         }
     }
 
-    pub fn set_stereography(&mut self, stereography: Option<Stereography>) {
+    pub(crate) fn set_stereography(&mut self, stereography: Option<Stereography>) {
         self.stereography = stereography;
     }
 
-    pub fn update_modifiers(&mut self, modifiers: Modifiers) {
-        log::info!("New modifiers {:?}", modifiers);
+    pub(crate) fn update_modifiers(&mut self, modifiers: Modifiers) {
+        log::info!("New modifiers {modifiers:?}");
         self.current_modifiers_state = modifiers.state();
         if !self.current_modifiers_state.shift_key() {
             self.bezier_curve_origin = None;
@@ -193,38 +180,38 @@ impl<S: AppState> Controller<S> {
     }
 
     /// Replace the camera by a new one.
-    pub fn teleport_camera(&mut self, position: Vec3, rotation: Rotor3) {
+    pub(crate) fn teleport_camera(&mut self, position: Vec3, rotation: Rotor3) {
         self.camera_controller.teleport_camera(position, rotation);
         self.end_movement();
     }
 
-    pub fn set_surface_point(&mut self, info: SurfaceInfo) {
+    pub(crate) fn set_surface_point(&mut self, info: SurfaceInfo) {
         self.camera_controller.set_surface_point(info);
         self.end_movement();
     }
 
-    pub fn reverse_surface_direction(&mut self) {
+    pub(crate) fn reverse_surface_direction(&mut self) {
         self.camera_controller
             .reverse_surface_direction(self.data.borrow().deref());
         self.end_movement();
     }
 
-    pub fn align_horizon(&mut self) {
+    pub(crate) fn align_horizon(&mut self) {
         let angle = self.camera_controller.horizon_angle();
         self.camera_controller.tilt_camera(angle);
     }
 
-    pub fn set_camera_position(&mut self, position: Vec3) {
+    pub(crate) fn set_camera_position(&mut self, position: Vec3) {
         self.camera_controller.set_camera_position(position);
         self.end_movement();
     }
 
     /// Keep the camera orientation and make it face a given point.
-    pub fn center_camera(&mut self, center: Vec3) {
-        self.camera_controller.center_camera(center)
+    pub(crate) fn center_camera(&mut self, center: Vec3) {
+        self.camera_controller.center_camera(center);
     }
 
-    pub fn check_timers(&mut self) -> Consequence {
+    pub(crate) fn check_timers(&mut self) -> Consequence {
         log::debug!("Checking timers");
         let transition = self.state.borrow_mut().check_timers(self);
         if let Some(state) = transition.new_state {
@@ -239,96 +226,104 @@ impl<S: AppState> Controller<S> {
     }
 
     fn handles_color_system(&self) -> HandleColors {
-        self.state.borrow().handles_color_system().unwrap_or(
-            if self.current_modifiers_state.shift_key() {
-                HandleColors::Cym
-            } else {
-                HandleColors::Rgb
-            },
-        )
+        self.state
+            .borrow()
+            .handles_color_system()
+            .unwrap_or_else(|| {
+                if self.current_modifiers_state.shift_key() {
+                    HandleColors::Cym
+                } else {
+                    HandleColors::Rgb
+                }
+            })
     }
 
-    pub fn input(
+    pub(crate) fn input(
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         pixel_reader: &mut ElementSelector,
         app_state: &S,
     ) -> Consequence {
-        let transition = if let WindowEvent::Focused(false) = event {
-            self.camera_controller.stop_camera_movement();
-            Transition {
-                new_state: Some(Box::new(NormalState {
-                    mouse_position: PhysicalPosition::new(-1., -1.),
-                })),
-                consequences: Consequence::Nothing,
+        let transition = match event {
+            WindowEvent::Focused(false) => {
+                self.camera_controller.stop_camera_movement();
+                Transition {
+                    new_state: Some(Box::new(NormalState {
+                        mouse_position: PhysicalPosition::new(-1., -1.),
+                    })),
+                    consequences: Consequence::Nothing,
+                }
             }
-        } else if let WindowEvent::MouseWheel { delta, .. } = event {
-            let mouse_x = position.x / self.area_size.width as f64;
-            let mouse_y = position.y / self.area_size.height as f64;
-            if ctrl(&self.current_modifiers_state) {
-                self.camera_controller.update_stereographic_zoom(delta);
-                Transition::consequence(Consequence::CameraMoved)
-            } else {
-                self.camera_controller.process_scroll(
-                    delta,
-                    mouse_x as f32,
-                    mouse_y as f32,
-                    app_state.get_scroll_sensitivity(),
-                );
+            WindowEvent::MouseWheel { delta, .. } => {
+                let mouse_x = position.x / self.area_size.width as f64;
+                let mouse_y = position.y / self.area_size.height as f64;
+                if ctrl(&self.current_modifiers_state) {
+                    self.camera_controller.update_stereographic_zoom(delta);
+                } else {
+                    self.camera_controller.process_scroll(
+                        delta,
+                        mouse_x as f32,
+                        mouse_y as f32,
+                        app_state.get_scroll_sensitivity(),
+                    );
+                }
                 Transition::consequence(Consequence::CameraMoved)
             }
-        } else if let WindowEvent::KeyboardInput {
-            event:
-                KeyEvent {
-                    physical_key,
-                    logical_key,
-                    state,
-                    ..
-                },
-            ..
-        } = event
-        {
-            let csq = match logical_key.as_ref() {
-                Key::Character("a") if *state == ElementState::Pressed => {
-                    Consequence::AlignWithStereo
-                }
-                Key::Character("c") if *state == ElementState::Pressed => Consequence::CheckXovers,
-                Key::Character("z")
-                    if ctrl(&self.current_modifiers_state) && *state == ElementState::Pressed =>
-                {
-                    Consequence::Undo
-                }
-                Key::Character("r")
-                    if ctrl(&self.current_modifiers_state) && *state == ElementState::Pressed =>
-                {
-                    Consequence::Redo
-                }
-                Key::Character("q") => Consequence::PivotCenter,
-                Key::Character("w") if *state == ElementState::Pressed => {
-                    Consequence::ReverseSurfaceDirection
-                }
-                Key::Named(NamedKey::Space) if *state == ElementState::Pressed => {
-                    Consequence::ToggleWidget
-                }
-                _ => {
-                    if let PhysicalKey::Code(key_code) = physical_key
-                        && self
-                            .camera_controller
-                            .process_keyboard(key_code.to_owned(), *state)
-                    {
-                        Consequence::CameraMoved
-                    } else {
-                        Consequence::Nothing
+            WindowEvent::KeyboardInput {
+                event:
+                    KeyEvent {
+                        physical_key,
+                        logical_key,
+                        state,
+                        ..
+                    },
+                ..
+            } => {
+                let csq = match logical_key.as_ref() {
+                    Key::Character("a") if *state == ElementState::Pressed => {
+                        Consequence::AlignWithStereo
                     }
-                }
-            };
-            Transition::consequence(csq)
-        } else {
-            self.state.borrow_mut().input(
+                    Key::Character("c") if *state == ElementState::Pressed => {
+                        Consequence::CheckXovers
+                    }
+                    Key::Character("z")
+                        if ctrl(&self.current_modifiers_state)
+                            && *state == ElementState::Pressed =>
+                    {
+                        Consequence::Undo
+                    }
+                    Key::Character("r")
+                        if ctrl(&self.current_modifiers_state)
+                            && *state == ElementState::Pressed =>
+                    {
+                        Consequence::Redo
+                    }
+                    Key::Character("q") => Consequence::PivotCenter,
+                    Key::Character("w") if *state == ElementState::Pressed => {
+                        Consequence::ReverseSurfaceDirection
+                    }
+                    Key::Named(NamedKey::Space) if *state == ElementState::Pressed => {
+                        Consequence::ToggleWidget
+                    }
+                    _ => {
+                        if let PhysicalKey::Code(key_code) = physical_key
+                            && self
+                                .camera_controller
+                                .process_keyboard(key_code.to_owned(), *state)
+                        {
+                            Consequence::CameraMoved
+                        } else {
+                            Consequence::Nothing
+                        }
+                    }
+                };
+                Transition::consequence(csq)
+            }
+            _ => self.state.borrow_mut().input(
                 event,
                 EventContext::new(self, app_state, pixel_reader, position),
-            )
+            ),
         };
 
         if let Some(mut state) = transition.new_state {
@@ -353,38 +348,38 @@ impl<S: AppState> Controller<S> {
                 {
                     self.camera_controller.set_surface_point_if_unset(info);
                 }
-                self.init_movement(translation && self.current_modifiers_state.shift_key())
+                self.init_movement(translation && self.current_modifiers_state.shift_key());
             }
             TransitionConsequence::EndCameraMovement => self.end_movement(),
             TransitionConsequence::InitFreeXover(nucl, d_id, position) => {
-                self.data.borrow_mut().init_free_xover(nucl, position, d_id)
+                self.data.borrow_mut().init_free_xover(nucl, position, d_id);
             }
             TransitionConsequence::StartRotatingPivot => {
-                self.data.borrow_mut().notify_rotating_pivot()
+                self.data.borrow_mut().notify_rotating_pivot();
             }
             TransitionConsequence::StopRotatingPivot => {
-                self.data.borrow_mut().stop_rotating_pivot()
+                self.data.borrow_mut().stop_rotating_pivot();
             }
         }
     }
 
     /// True if the camera is moving and its position must be updated before next frame
-    pub fn camera_is_moving(&self) -> bool {
+    pub(crate) fn camera_is_moving(&self) -> bool {
         self.camera_controller.is_moving()
     }
 
     /// Set the pivot point of the camera
-    pub fn set_pivot_point(&mut self, point: Option<FiniteVec3>) {
-        self.camera_controller.set_pivot_point(point)
+    pub(crate) fn set_pivot_point(&mut self, point: Option<FiniteVec3>) {
+        self.camera_controller.set_pivot_point(point);
     }
 
     /// Swing the camera around its pivot point
-    pub fn swing(&mut self, x: f64, y: f64) {
+    pub(crate) fn swing(&mut self, x: f64, y: f64) {
         self.camera_controller.swing(x, y);
     }
 
     /// Moves the camera according to its speed and the time elapsed since previous frame
-    pub fn update_camera(&mut self, dt: Duration) {
+    pub(crate) fn update_camera(&mut self, dt: Duration) {
         self.camera_controller.update_camera(
             dt,
             &self.current_modifiers_state,
@@ -396,17 +391,15 @@ impl<S: AppState> Controller<S> {
     }
 
     /// Handles a resizing of the window and/or drawing area
-    pub fn resize(&mut self, window_size: PhySize, area_size: PhySize) {
+    pub(crate) fn resize(&mut self, window_size: PhySize, area_size: PhySize) {
         self.window_size = window_size;
         self.area_size = area_size;
         self.camera_controller.resize(area_size);
         // the view needs the window size to build a depth texture
-        self.view
-            .borrow_mut()
-            .update(super::view::ViewUpdate::Size(window_size));
+        self.view.borrow_mut().update(ViewUpdate::Size(window_size));
     }
 
-    pub fn get_window_size(&self) -> PhySize {
+    pub(crate) fn get_window_size(&self) -> PhySize {
         self.window_size
     }
 
@@ -414,7 +407,7 @@ impl<S: AppState> Controller<S> {
         self.camera_controller.init_movement(along_surface);
         if !ctrl(&self.current_modifiers_state) {
             self.camera_controller
-                .init_constrained_rotation(!self.current_modifiers_state.alt_key())
+                .init_constrained_rotation(!self.current_modifiers_state.alt_key());
         }
     }
 
@@ -422,37 +415,37 @@ impl<S: AppState> Controller<S> {
         self.camera_controller.end_movement();
     }
 
-    pub fn set_camera_target(&mut self, target: Vec3, up: Vec3, pivot: Option<Vec3>) {
+    pub(crate) fn set_camera_target(&mut self, target: Vec3, up: Vec3, pivot: Option<Vec3>) {
         self.camera_controller.init_movement(false);
         self.camera_controller
             .look_at_orientation(target, up, pivot);
         self.shift_cam();
     }
 
-    pub fn translate_camera(&mut self, dx: f64, dy: f64) {
-        self.camera_controller.process_mouse(dx, dy)
+    pub(crate) fn translate_camera(&mut self, dx: f64, dy: f64) {
+        self.camera_controller.process_mouse(dx, dy);
     }
 
-    pub fn rotate_camera(&mut self, xz: f32, yz: f32, xy: f32, pivot: Option<Vec3>) {
+    pub(crate) fn rotate_camera(&mut self, xz: f32, yz: f32, xy: f32, pivot: Option<Vec3>) {
         self.camera_controller.init_movement(false);
         self.camera_controller.rotate_camera(xz, yz, pivot);
         self.camera_controller.tilt_camera(xy);
         self.shift_cam();
     }
 
-    pub fn continuous_tilt(&mut self, angle: f32) {
+    pub(crate) fn continuous_tilt(&self, angle: f32) {
         self.camera_controller.continuous_tilt(angle);
     }
 
     fn shift_cam(&mut self) {
-        self.camera_controller.shift()
+        self.camera_controller.shift();
     }
 
-    pub fn stop_camera_movement(&mut self) {
-        self.camera_controller.stop_camera_movement()
+    pub(crate) fn stop_camera_movement(&mut self) {
+        self.camera_controller.stop_camera_movement();
     }
 
-    pub fn update_data(&mut self) {
+    pub(crate) fn update_data(&self) {
         self.update_handle_colors();
     }
 
@@ -462,7 +455,7 @@ impl<S: AppState> Controller<S> {
             .update_handle_colors(self.handles_color_system());
     }
 
-    pub fn is_building_bezier_curve(&self) -> bool {
+    pub(crate) fn is_building_bezier_curve(&self) -> bool {
         self.current_modifiers_state.shift_key()
     }
 
@@ -471,7 +464,7 @@ impl<S: AppState> Controller<S> {
     /// If an origin was set, `point` is treated as a destination and the pair
     /// `(origin, destination)` is returned. Otherwise, `point` is treated as an origin and `None`
     /// is returned.
-    pub fn add_bezier_point(
+    pub(crate) fn add_bezier_point(
         &mut self,
         point: HelixGridPosition,
     ) -> Option<(HelixGridPosition, HelixGridPosition)> {
@@ -483,7 +476,7 @@ impl<S: AppState> Controller<S> {
         }
     }
 
-    pub fn get_icon(&self) -> Option<CursorIcon> {
+    pub(crate) fn get_icon(&self) -> Option<CursorIcon> {
         self.state.borrow().cursor()
     }
 }
@@ -496,17 +489,17 @@ fn ctrl(modifiers: &ModifiersState) -> bool {
     }
 }
 
-pub(super) trait Data {
+pub(crate) trait Data {
     fn element_to_nucl(
         &self,
-        element: &Option<SceneElement>,
+        element: Option<&SceneElement>,
         non_phantom: bool,
     ) -> Option<(Nucl, usize)>;
-    fn get_nucl_position(&self, nucl: Nucl, d_id: usize) -> Option<Vec3>;
+    fn get_nucl_position(&self, nucl: Nucl, design_id: usize) -> Option<Vec3>;
     fn attempt_xover(
         &self,
-        source: &Option<SceneElement>,
-        dest: &Option<SceneElement>,
+        source: Option<&SceneElement>,
+        target: Option<&SceneElement>,
     ) -> Option<(Nucl, Nucl, usize)>;
     fn can_start_builder(&self, element: Option<SceneElement>) -> Option<Nucl>;
     fn get_grid_object(&self, position: GridPosition) -> Option<GridObject>;

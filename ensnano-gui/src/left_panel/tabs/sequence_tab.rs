@@ -1,27 +1,21 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::tabs::GuiTab;
-use super::{AppState, DesignElementKey, Message, UiSize};
+use crate::{
+    AppState,
+    left_panel::{Message, tabs::GuiTab},
+};
 use ensnano_consts::ICON_ATGC;
-use ensnano_iced::iced;
-use ensnano_iced::{helpers::*, iced::Length, iced_aw::TabLabel, theme};
+use ensnano_design::elements::DesignElementKey;
+use ensnano_iced::{
+    helpers::{extra_jump, right_checkbox, section, text_button},
+    theme,
+    ui_size::UiSize,
+    widgets::keyboard_priority::keyboard_priority,
+};
 use ensnano_interactor::StandardSequence;
+use iced::{
+    Length,
+    widget::{column, row, scrollable, text, text_input},
+};
+use iced_aw::TabLabel;
 use std::marker::PhantomData;
 
 pub struct SequenceTab<State: AppState> {
@@ -57,7 +51,7 @@ impl<State: AppState> SequenceTab<State> {
     pub fn new() -> Self {
         Self {
             toggle_text_value: false,
-            scaffold_position_str: "0".to_string(),
+            scaffold_position_str: "0".to_owned(),
             scaffold_position: 0,
             _state_type: PhantomData,
         }
@@ -116,12 +110,11 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
             extra_jump(),
             // add_show_sequence_button!
             {
-                let button_show_sequence = if self.toggle_text_value {
+                if self.toggle_text_value {
                     text_button("Hide Sequences", ui_size).on_press(Message::ToggleText(false))
                 } else {
                     text_button("Show Sequences", ui_size).on_press(Message::ToggleText(true))
-                };
-                button_show_sequence
+                }
             },
             extra_jump(),
             section("Scaffold", ui_size),
@@ -152,14 +145,11 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
                         format!(scaffold_length_fmt!(), info.length),
                     )
                 } else {
-                    (
-                        "NOT SET".to_owned(),
-                        format!(scaffold_length_fmt!(), "—").to_owned(),
-                    )
+                    ("NOT SET".to_owned(), format!(scaffold_length_fmt!(), "—"))
                 };
                 let mut length_text = text(length_text);
                 if app_state.get_scaffold_info().is_none() {
-                    length_text = length_text.style(theme::DISABLED_TEXT)
+                    length_text = length_text.style(theme::DISABLED_TEXT);
                 }
                 self::column![text(scaffold_text).size(ui_size.main_text()), length_text,]
             },
@@ -180,8 +170,7 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
                 let name = app_state
                     .get_reader()
                     .get_scaffold_sequence()
-                    .map(get_sequence_name)
-                    .unwrap_or("None");
+                    .map_or("None", get_sequence_name);
                 text(format!("current sequence: {name}"))
             },
             extra_jump(),
@@ -224,7 +213,7 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
                 };
                 let mut nucl_text = text(nucl_text).size(ui_size.main_text());
                 if starting_nucl.is_none() {
-                    nucl_text = nucl_text.style(theme::DISABLED_TEXT)
+                    nucl_text = nucl_text.style(theme::DISABLED_TEXT);
                 }
                 nucl_text
             },

@@ -1,28 +1,10 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 //! This modules contains structure that manipulate bind groups and their associated buffers.
 
 use crate::create_buffer_with_data;
 use std::rc::Rc;
 use wgpu::{BindGroup, BindGroupLayout, Buffer, BufferDescriptor, Device, Queue};
 
-/// A bind group with an associated buffer whose size may varry
+/// A bind group with an associated buffer whose size may vary
 pub struct DynamicBindGroup {
     layout: BindGroupLayout,
     buffer: Buffer,
@@ -76,13 +58,13 @@ impl DynamicBindGroup {
         });
 
         Self {
-            device,
-            queue,
-            bind_group,
             layout,
             buffer,
             capacity,
             length,
+            bind_group,
+            device,
+            queue,
         }
     }
 
@@ -91,7 +73,7 @@ impl DynamicBindGroup {
         let bytes = bytemuck::cast_slice(data);
         if self.capacity < bytes.len() {
             self.length = bytes.len() as u64;
-            self.buffer = self.device.create_buffer(&wgpu::BufferDescriptor {
+            self.buffer = self.device.create_buffer(&BufferDescriptor {
                 label: Some(&format!("capacity = {}", 2 * bytes.len())),
                 size: 2 * bytes.len() as u64,
                 usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
@@ -128,13 +110,6 @@ impl DynamicBindGroup {
         self.queue.write_buffer(&self.buffer, 0, bytes);
     }
 
-    #[allow(dead_code)]
-    /// Write in the self.buffer with an offset
-    pub fn update_offset(&mut self, offset: usize, bytes: &[u8]) {
-        debug_assert!(self.length as usize >= offset + bytes.len());
-        self.queue.write_buffer(&self.buffer, offset as u64, bytes);
-    }
-
     pub fn get_bindgroup(&self) -> &BindGroup {
         &self.bind_group
     }
@@ -152,7 +127,7 @@ pub struct UniformBindGroup {
     queue: Rc<Queue>,
 }
 
-static UNIFORM_BG_ENTRY: &'static [wgpu::BindGroupLayoutEntry] = &[wgpu::BindGroupLayoutEntry {
+static UNIFORM_BG_ENTRY: &[wgpu::BindGroupLayoutEntry] = &[wgpu::BindGroupLayoutEntry {
     binding: 0,
     visibility: wgpu::ShaderStages::from_bits_truncate(
         wgpu::ShaderStages::VERTEX.bits() | wgpu::ShaderStages::FRAGMENT.bits(),
@@ -200,14 +175,14 @@ impl UniformBindGroup {
         });
 
         Self {
-            queue,
-            bind_group,
             layout,
             buffer,
+            bind_group,
+            queue,
         }
     }
 
-    pub fn update<I: bytemuck::Pod>(&mut self, new_data: &I) {
+    pub fn update<I: bytemuck::Pod>(&self, new_data: &I) {
         self.queue
             .write_buffer(&self.buffer, 0, bytemuck::cast_slice(&[*new_data]));
     }

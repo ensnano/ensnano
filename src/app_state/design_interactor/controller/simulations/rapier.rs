@@ -1,9 +1,3 @@
-use std::collections::HashMap;
-use std::{
-    sync::{Arc, Mutex, Weak},
-    time::Duration,
-};
-
 use crate::{
     app_state::design_interactor::{
         controller::simulations::SimulationInterface,
@@ -11,31 +5,27 @@ use crate::{
     },
     controller::channel_reader::ChannelReader,
 };
-use ensnano_design::{Design, HelixParameters, NuclCollection};
-use ensnano_physics::RapierPhysicsSystem;
+use ensnano_design::{Design, helices::NuclCollection, parameters::HelixParameters};
 use ensnano_physics::parameters::RapierParameters;
+use ensnano_physics::simulation::RapierPhysicsSystem;
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex, Weak},
+    time::Duration,
+};
 
 #[derive(Default)]
-pub struct RapierPhysicalSystem {
+pub(crate) struct RapierPhysicalSystem {
     system: RapierPhysicsSystem,
     interface: Weak<Mutex<RapierInterface>>,
 }
 
 impl RapierPhysicalSystem {
-    pub fn start_new(
+    pub(crate) fn start_new(
         presenter: &Presenter,
         reader: &mut ChannelReader,
         parameters: RapierParameters,
     ) -> Arc<Mutex<RapierInterface>> {
-        // first prototype simulation
-        // let system = RapierPhysicsSystem::new(
-        //     &presenter.content.object_type,
-        //     &presenter.content.nucleotide,
-        //     &presenter.content.space_position,
-        //     &presenter.content.helix_map,
-        //     &presenter.get_design().helices,
-        // );
-
         let system = RapierPhysicsSystem::full_simulation(
             presenter
                 .get_design()
@@ -53,7 +43,7 @@ impl RapierPhysicalSystem {
             force_stop: false,
         }));
 
-        let result = RapierPhysicalSystem {
+        let result = Self {
             system,
             interface: Arc::downgrade(&interface),
         };
@@ -65,7 +55,7 @@ impl RapierPhysicalSystem {
         interface
     }
 
-    pub fn run(mut self) {
+    pub(crate) fn run(mut self) {
         std::thread::spawn(move || {
             while let Some(interface) = self.interface.upgrade() {
                 // we update the physics
@@ -81,13 +71,13 @@ impl RapierPhysicalSystem {
 }
 
 #[derive(Default, Clone)]
-pub struct RapierInterface {
+pub(crate) struct RapierInterface {
     space_position: Vec<(u32, [f32; 3])>,
     pub force_stop: bool,
 }
 
 impl RapierInterface {
-    pub fn kill(&mut self) {
+    pub(crate) fn kill(&mut self) {
         self.force_stop = true;
     }
 }

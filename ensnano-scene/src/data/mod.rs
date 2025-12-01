@@ -1,47 +1,47 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 //! This modules handles internal information about the scene, such as the selected objects etc..
 //! It also communicates with the designs to get the position of the objects to draw on the scene.
 
-mod design3d;
+pub mod design3d;
 
-use super::{
-    AppState, Camera3D, HandlesDescriptor, LetterInstance, RotationWidgetDescriptor,
-    RotationWidgetOrientation, SceneElement, View, ViewUpdate,
+use crate::{
+    AppState,
+    camera::CameraController,
+    controller::Data as ControllerData,
+    element_selector::{SceneElement, bezier_vertex_id},
     view::{
-        AvailableRotationAxes, GridDisc, HandleColors, Instantiable, Mesh, RawDnaInstance,
-        StereographicSphereAndPlane,
+        Mesh, View, ViewUpdate,
+        dna_obj::{RawDnaInstance, StereographicSphereAndPlane},
+        gltf_drawer::ExternalObjects,
+        grid_disc::GridDisc,
+        handle_drawer::{HandleColors, HandlesDescriptor},
+        instances_drawer::Instantiable as _,
+        letter::LetterInstance,
+        rotation_widget::{
+            AvailableRotationAxes, RotationWidgetDescriptor, RotationWidgetOrientation,
+        },
     },
 };
-use design3d::Design3D;
-pub use design3d::{HBond, HalfHBond, SceneDesignReaderExt};
+use design3d::{Design3D, SceneDesignReaderExt};
 use ensnano_consts::{
     BOND_RADIUS, CANDIDATE_COLOR, CANDIDATE_SCALE_FACTOR, SELECT_SCALE_FACTOR, SELECTED_COLOR,
     SPHERE_RADIUS,
 };
 use ensnano_design::{
-    BezierVertexId, Collection, External3DObjectsStamp, Nucl, SurfaceInfo, SurfacePoint,
+    Nucl,
+    bezier_plane::BezierVertexId,
+    collection::Collection as _,
+    curves::{SurfaceInfo, SurfacePoint},
+    external_3d_objects::External3DObjectsStamp,
     grid::{GridId, GridObject, GridPosition},
 };
 use ensnano_interactor::{
-    ActionMode, CenterOfSelection, ObjectType, PhantomElement, Referential, Selection,
-    SelectionMode, graphics::HBondDisplay,
+    ObjectType, Referential,
+    application::Camera3D,
+    graphics::HBondDisplay,
+    selection::{
+        ActionMode, CenterOfSelection, PhantomElement, Selection, SelectionMode,
+        extract_helices_with_controls,
+    },
 };
 use ensnano_utils::StrandNucleotidesPositions;
 use std::{
@@ -143,7 +143,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
             || app_state.selection_was_updated(older_app_state)
             || app_state.revolution_bezier_updated(older_app_state)
         {
-            for d in self.designs.iter_mut() {
+            for d in &mut self.designs {
                 d.all_helices_on_axis = app_state.get_draw_options().all_helices_on_axis;
             }
             self.update_instances(app_state);
@@ -156,7 +156,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
 
         // If the color of a strand is being modified, we tell the view to highlight nothing.
         if app_state.is_changing_color() {
-            self.update_selection(&[], app_state)
+            self.update_selection(&[], app_state);
         } else if app_state.selection_was_updated(older_app_state)
             || app_state.design_was_modified(older_app_state)
             || app_state.get_check_xover_parameters()
@@ -207,25 +207,22 @@ impl<R: SceneDesignReaderExt> Data<R> {
     }
 
     fn update_external_3d_objects<S: AppState>(&mut self, app_state: &S) {
-        use super::view::ExternalObjects;
         let reader = app_state.get_design_reader();
         let external_objects = reader.get_external_objects();
-        if let Some(new_stamp) =
-            external_objects.was_updated(self.external_3d_objects_stamps.clone())
-        {
+        if let Some(new_stamp) = external_objects.was_updated(self.external_3d_objects_stamps) {
             self.external_3d_objects_stamps = Some(new_stamp);
             let objects: Vec<_> = external_objects
                 .iter()
-                .map(|(id, obj)| (id.clone(), obj.clone()))
+                .map(|(id, obj)| (*id, obj.clone()))
                 .collect();
             if let Some(mut path_base) = app_state.get_design_path() {
                 path_base.pop();
                 self.view
                     .borrow_mut()
                     .update(ViewUpdate::External3DObjects(ExternalObjects {
-                        objects,
                         path_base,
-                    }))
+                        objects,
+                    }));
             }
         }
         let unrooted_surface = app_state.get_current_unrooted_surface();
@@ -245,14 +242,13 @@ impl<R: SceneDesignReaderExt> Data<R> {
             || app_state.selection_was_updated(older_app_state)
             || app_state.candidates_set_was_updated(older_app_state)
             || self.last_candidate_disc != self.candidate_element;
-        self.last_candidate_disc = self.candidate_element.clone();
+        self.last_candidate_disc = self.candidate_element;
         ret
     }
 
-    fn update_bezier<S: AppState>(&mut self, app_state: &S) {
-        let selected_helices =
-            ensnano_interactor::extract_helices_with_controls(app_state.get_selection());
-        log::debug!("selected helices {:?}", selected_helices);
+    fn update_bezier<S: AppState>(&self, app_state: &S) {
+        let selected_helices = extract_helices_with_controls(app_state.get_selection());
+        log::debug!("selected helices {selected_helices:?}");
         let mut spheres = Vec::new();
         let mut tubes = Vec::new();
         for h_id in selected_helices {
@@ -291,8 +287,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
                     self.handle_colors
                 };
                 origin
-                    .clone()
-                    .zip(orientation.clone())
+                    .zip(orientation)
                     .map(|(origin, orientation)| HandlesDescriptor {
                         origin,
                         orientation,
@@ -302,7 +297,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
             } else {
                 None
             };
-        log::debug!("{:?}", handle_descr);
+        log::debug!("{handle_descr:?}");
         self.view
             .borrow_mut()
             .update(ViewUpdate::Handles(handle_descr));
@@ -313,8 +308,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         };
         let rotation_widget_descr = if app_state.get_action_mode().0 == ActionMode::Rotate {
             origin
-                .clone()
-                .zip(orientation.clone())
+                .zip(orientation)
                 .map(|(origin, orientation)| RotationWidgetDescriptor {
                     origin,
                     orientation: RotationWidgetOrientation::Rotor(orientation),
@@ -356,7 +350,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         if let Selection::Nucleotide(d_id, nucl) = selection {
             if !object_type.is_bond() {
                 if let Some(n_id) = self.designs[*d_id as usize].get_identifier_nucl(nucl) {
-                    ret.push(SceneElement::DesignElement(*d_id, n_id))
+                    ret.push(SceneElement::DesignElement(*d_id, n_id));
                 } else {
                     ret.push(SceneElement::PhantomElement(PhantomElement {
                         design_id: *d_id,
@@ -370,7 +364,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         } else if let Selection::Bond(d_id, n1, n2) = selection {
             if object_type.is_bond() {
                 if let Some(b_id) = self.designs[*d_id as usize].get_identifier_bond(*n1, *n2) {
-                    ret.push(SceneElement::DesignElement(*d_id, b_id))
+                    ret.push(SceneElement::DesignElement(*d_id, b_id));
                 } else {
                     ret.push(SceneElement::PhantomElement(PhantomElement {
                         design_id: *d_id,
@@ -382,20 +376,18 @@ impl<R: SceneDesignReaderExt> Data<R> {
                 }
             }
         } else if let Selection::Xover(d_id, xover_id) = selection {
-            if object_type.is_bond() {
-                if let Some(b_id) =
+            if object_type.is_bond()
+                && let Some(b_id) =
                     self.designs[*d_id as usize].get_element_identifier_from_xover_id(*xover_id)
-                {
-                    ret.push(SceneElement::DesignElement(*d_id, b_id))
-                }
+            {
+                ret.push(SceneElement::DesignElement(*d_id, b_id));
             }
         } else {
             let group = self.get_group_member(selection);
-            for elt in group.iter() {
+            for elt in &group {
                 if self.designs[d_id]
                     .get_element_type(*elt)
-                    .map(|elt| elt.same_type(&object_type))
-                    .unwrap_or(false)
+                    .is_some_and(|elt| elt.same_type(&object_type))
                 {
                     ret.push(SceneElement::DesignElement(d_id as u32, *elt));
                 }
@@ -411,11 +403,8 @@ impl<R: SceneDesignReaderExt> Data<R> {
         app_state: &S,
     ) -> Vec<RawDnaInstance> {
         let mut ret = Vec::new();
-        for selection in selection.iter() {
-            for element in self
-                .expand_selection(ObjectType::Nucleotide(0), selection)
-                .iter()
-            {
+        for selection in selection {
+            for element in &self.expand_selection(ObjectType::Nucleotide(0), selection) {
                 match element {
                     SceneElement::DesignElement(d_id, id) => {
                         let instances = self.designs[*d_id as usize].make_instance(
@@ -429,7 +418,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
                             Some(design3d::ExpandWith::Spheres)
                                 .filter(|_| !app_state.show_insertion_discriminants()),
                         );
-                        ret.extend(instances.iter())
+                        ret.extend(instances.iter());
                     }
                     SceneElement::PhantomElement(phantom_element) => {
                         if let Some(instance) = self
@@ -460,11 +449,8 @@ impl<R: SceneDesignReaderExt> Data<R> {
         app_state: &S,
     ) -> Rc<Vec<RawDnaInstance>> {
         let mut ret = Vec::new();
-        for selection in selection.iter() {
-            for element in self
-                .expand_selection(ObjectType::Bond(0, 0), selection)
-                .iter()
-            {
+        for selection in selection {
+            for element in &self.expand_selection(ObjectType::Bond(0, 0), selection) {
                 match element {
                     SceneElement::DesignElement(d_id, id) => {
                         let instance = self.designs[*d_id as usize].make_instance(
@@ -478,7 +464,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
                             Some(design3d::ExpandWith::Tubes)
                                 .filter(|_| !app_state.show_insertion_discriminants()),
                         );
-                        ret.extend(instance)
+                        ret.extend(instance);
                     }
                     SceneElement::PhantomElement(phantom_element) => {
                         if let Some(instance) = self
@@ -509,11 +495,8 @@ impl<R: SceneDesignReaderExt> Data<R> {
         app_state: &S,
     ) -> Rc<Vec<RawDnaInstance>> {
         let mut ret = Vec::new();
-        for candidate in candidates.iter() {
-            for element in self
-                .expand_selection(ObjectType::Nucleotide(0), candidate)
-                .iter()
-            {
+        for candidate in candidates {
+            for element in &self.expand_selection(ObjectType::Nucleotide(0), candidate) {
                 match element {
                     SceneElement::DesignElement(d_id, id) => {
                         let instances = self.designs[*d_id as usize].make_instance(
@@ -558,11 +541,8 @@ impl<R: SceneDesignReaderExt> Data<R> {
         app_state: &S,
     ) -> Rc<Vec<RawDnaInstance>> {
         let mut ret = Vec::new();
-        for candidate in candidates.iter() {
-            for element in self
-                .expand_selection(ObjectType::Bond(0, 0), candidate)
-                .iter()
-            {
+        for candidate in candidates {
+            for element in &self.expand_selection(ObjectType::Bond(0, 0), candidate) {
                 match element {
                     SceneElement::DesignElement(d_id, id) => {
                         let instances = self.designs[*d_id as usize].make_instance(
@@ -576,7 +556,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
                             Some(design3d::ExpandWith::Tubes)
                                 .filter(|_| !app_state.show_insertion_discriminants()),
                         );
-                        ret.extend(instances)
+                        ret.extend(instances);
                     }
                     SceneElement::PhantomElement(phantom_element) => {
                         if let Some(instance) = self
@@ -606,13 +586,12 @@ impl<R: SceneDesignReaderExt> Data<R> {
             Some(SceneElement::DesignElement(design_id, element_id)) => {
                 let selection_mode = self.get_sub_selection_mode(app_state);
                 self.get_group_identifier(design_id, element_id, selection_mode)
-                    .map(|x| x as u32)
             }
             Some(SceneElement::PhantomElement(phantom_element)) => Some(phantom_element.helix_id),
             Some(SceneElement::Grid(_, GridId::FreeGrid(g_id))) => Some(g_id as u32),
-            Some(SceneElement::Grid(_, GridId::BezierPathGrid(vertex))) => Some(
-                super::element_selector::bezier_vertex_id(vertex.path_id, vertex.vertex_id),
-            ),
+            Some(SceneElement::Grid(_, GridId::BezierPathGrid(vertex))) => {
+                Some(bezier_vertex_id(vertex.path_id, vertex.vertex_id))
+            }
             _ => None,
         }
     }
@@ -648,32 +627,33 @@ impl<R: SceneDesignReaderExt> Data<R> {
             Selection::Nucleotide(d_id, nucl) => self.designs[*d_id as usize]
                 .get_identifier_nucl(nucl)
                 .iter()
-                .cloned()
+                .copied()
                 .collect(),
             Selection::Bond(d_id, n1, n2) => self.designs[*d_id as usize]
                 .get_identifier_bond(*n1, *n2)
                 .iter()
-                .cloned()
+                .copied()
                 .collect(),
             Selection::Xover(d_id, xover_id) => self.designs[*d_id as usize]
                 .get_element_identifier_from_xover_id(*xover_id)
                 .iter()
-                .cloned()
+                .copied()
                 .collect(),
             Selection::Helix {
                 design_id,
                 helix_id,
                 ..
             } => self.designs[*design_id as usize].get_helix_elements(*helix_id as u32),
-            Selection::BezierControlPoint { .. } => HashSet::new(),
             Selection::Strand(d_id, s_id) => {
                 self.designs[*d_id as usize].get_strand_elements(*s_id)
             }
-            Selection::Grid(_, _) => HashSet::new(), // A grid is not made of atomic elements
-            Selection::Phantom(_) => HashSet::new(),
-            Selection::BezierVertex(_) => HashSet::new(),
-            Selection::Nothing => HashSet::new(),
+            // A grid is not made of atomic elements
             Selection::Design(d_id) => self.designs[*d_id as usize].get_all_elements(),
+            Selection::BezierControlPoint { .. }
+            | Selection::Grid(_, _)
+            | Selection::Phantom(_)
+            | Selection::BezierVertex(_)
+            | Selection::Nothing => HashSet::new(),
         }
     }
 
@@ -690,7 +670,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         } = element
         {
             self.designs
-                .get(0)
+                .first()
                 .and_then(|d| d.get_control_point(*helix_id, *bezier_control))
         } else {
             let design_id = element.get_design()?;
@@ -698,7 +678,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
             match selection_mode {
                 SelectionMode::Helix => design
                     .get_element_axis_position(element, referential)
-                    .or(design.get_element_position(element, referential)),
+                    .or_else(|| design.get_element_position(element, referential)),
                 SelectionMode::Nucleotide | SelectionMode::Strand | SelectionMode::Design => {
                     design.get_element_position(element, referential)
                 }
@@ -733,8 +713,8 @@ impl<R: SceneDesignReaderExt> Data<R> {
         if let Some(SceneElement::WidgetElement(_)) = element {
             return (None, None);
         }
-        log::debug!("selected {:?}", element);
-        let future_selection = element.clone();
+        log::debug!("selected {element:?}");
+        let future_selection = element;
         let new_center_of_selection =
             element.and_then(|element| self.scene_element_to_center_of_selection(element));
         if self.selected_element(app_state) == future_selection {
@@ -789,7 +769,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         } else {
             Selection::Nothing
         };
-        if let Some(element) = element.clone() {
+        if let Some(element) = element {
             center_of_selection = self.scene_element_to_center_of_selection(element);
         }
         if selected == Selection::Nothing {
@@ -809,8 +789,8 @@ impl<R: SceneDesignReaderExt> Data<R> {
     /// on the same design, return the pair of nucleotides. Otherwise return None
     pub fn attempt_xover(
         &self,
-        source: &Option<SceneElement>,
-        target: &Option<SceneElement>,
+        source: Option<&SceneElement>,
+        target: Option<&SceneElement>,
     ) -> Option<(Nucl, Nucl, usize)> {
         let design_id;
         let source_nucl = if let Some(SceneElement::DesignElement(d_id, e_id)) = source {
@@ -868,7 +848,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         // selected
         let mut selection_: Vec<_> = selection
             .iter()
-            .cloned()
+            .copied()
             .map(|s| {
                 if let Selection::Helix {
                     design_id,
@@ -890,7 +870,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         selection_.dedup();
         let selection = selection_.as_slice();
 
-        log::trace!("Update selection {:?}", selection);
+        log::trace!("Update selection {selection:?}");
         let mut sphere = self.get_selected_spheres(selection, app_state);
         let tubes = self.get_selected_tubes(selection, app_state);
         let pos: Vec3 = sphere
@@ -911,7 +891,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         if app_state.get_check_xover_parameters().wants_checked() {
             sphere.extend(
                 self.designs
-                    .get(0)
+                    .first()
                     .map(|d| d.get_all_checked_xover_instance(true))
                     .unwrap_or_default(),
             );
@@ -919,7 +899,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         if app_state.get_check_xover_parameters().wants_unchecked() {
             sphere.extend(
                 self.designs
-                    .get(0)
+                    .first()
                     .map(|d| d.get_all_checked_xover_instance(false))
                     .unwrap_or_default(),
             );
@@ -944,7 +924,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
             } else {
                 vec![]
             };
-        for s in selection.iter() {
+        for s in selection {
             if let Selection::Grid(d_id, g_id) = s {
                 grids.push((*d_id as usize, *g_id));
             }
@@ -960,13 +940,13 @@ impl<R: SceneDesignReaderExt> Data<R> {
         let phantom_map = self.get_phantom_helices_set(app_state);
         let mut ret_sphere = Vec::new();
         let mut ret_tube = Vec::new();
-        for (d_id, set) in phantom_map.iter() {
+        for (d_id, set) in &phantom_map {
             let (spheres, tubes) =
                 self.designs[*d_id as usize].make_phantom_helix_instances_raw(set);
-            for sphere in spheres.iter().cloned() {
+            for sphere in spheres.iter().copied() {
                 ret_sphere.push(sphere);
             }
-            for tube in tubes.iter().cloned() {
+            for tube in tubes.iter().copied() {
                 ret_tube.push(tube);
             }
         }
@@ -984,49 +964,50 @@ impl<R: SceneDesignReaderExt> Data<R> {
         for (d_id, design) in self.designs.iter().enumerate() {
             let new_helices = design.get_persistent_phantom_helices();
             let set = ret.entry(d_id as u32).or_insert_with(HashMap::new);
-            for h_id in new_helices.iter() {
+            for h_id in &new_helices {
                 set.insert(*h_id, true);
             }
         }
         if self.must_draw_phantom(app_state) {
-            for element in self.selected_element(app_state).into_iter() {
-                match element {
-                    SceneElement::DesignElement(d_id, elt_id) => {
-                        let set = ret.entry(d_id).or_insert_with(HashMap::new);
-                        if let Some(h_id) = self.get_helix_identifier(d_id, elt_id) {
-                            set.insert(h_id, false);
-                        }
+            match self.selected_element(app_state) {
+                Some(SceneElement::DesignElement(d_id, elt_id)) => {
+                    let set = ret.entry(d_id).or_insert_with(HashMap::new);
+                    if let Some(h_id) = self.get_helix_identifier(d_id, elt_id) {
+                        set.insert(h_id, false);
                     }
-                    SceneElement::PhantomElement(phantom_element) => {
-                        let set = ret
-                            .entry(phantom_element.design_id)
-                            .or_insert_with(HashMap::new);
-                        set.insert(phantom_element.helix_id, false);
-                    }
-                    SceneElement::Grid(d_id, g_id) => {
-                        let new_helices = self.designs[d_id as usize]
-                            .get_helices_grid(g_id)
-                            .unwrap_or_default();
-                        let set = ret.entry(d_id).or_insert_with(HashMap::new);
-                        for h_id in new_helices.iter() {
-                            set.insert(*h_id as u32, true);
-                        }
-                    }
-                    SceneElement::GridCircle(d_id, position) => {
-                        if let Some(h_id) = self.designs[d_id as usize].get_helix_grid(position) {
-                            let set = ret.entry(d_id).or_insert_with(HashMap::new);
-                            set.insert(h_id, false);
-                        }
-                    }
-                    SceneElement::WidgetElement(_) => unreachable!(),
-                    SceneElement::BezierControl { helix_id, .. } => {
-                        let set = ret.entry(0).or_insert_with(HashMap::new);
-                        set.insert(helix_id as u32, false);
-                    }
-                    SceneElement::BezierVertex { .. } => (),
-                    SceneElement::BezierTangent { .. } => (),
-                    SceneElement::PlaneCorner { .. } => (),
                 }
+                Some(SceneElement::PhantomElement(phantom_element)) => {
+                    let set = ret
+                        .entry(phantom_element.design_id)
+                        .or_insert_with(HashMap::new);
+                    set.insert(phantom_element.helix_id, false);
+                }
+                Some(SceneElement::Grid(d_id, g_id)) => {
+                    let new_helices = self.designs[d_id as usize]
+                        .get_helices_grid(g_id)
+                        .unwrap_or_default();
+                    let set = ret.entry(d_id).or_insert_with(HashMap::new);
+                    for h_id in &new_helices {
+                        set.insert(*h_id as u32, true);
+                    }
+                }
+                Some(SceneElement::GridCircle(d_id, position)) => {
+                    if let Some(h_id) = self.designs[d_id as usize].get_helix_grid(position) {
+                        let set = ret.entry(d_id).or_insert_with(HashMap::new);
+                        set.insert(h_id, false);
+                    }
+                }
+                Some(SceneElement::BezierControl { helix_id, .. }) => {
+                    let set = ret.entry(0).or_insert_with(HashMap::new);
+                    set.insert(helix_id as u32, false);
+                }
+                Some(SceneElement::WidgetElement(_)) => unreachable!(),
+                Some(
+                    SceneElement::BezierVertex { .. }
+                    | SceneElement::BezierTangent { .. }
+                    | SceneElement::PlaneCorner { .. },
+                )
+                | None => {}
             }
         }
         ret
@@ -1115,14 +1096,13 @@ impl<R: SceneDesignReaderExt> Data<R> {
                 bezier_control: *bezier_control,
                 helix_id: *helix_id,
             },
-            SceneElement::PlaneCorner { .. } => Selection::Nothing,
+            SceneElement::PlaneCorner { .. } | SceneElement::WidgetElement(_) => Selection::Nothing,
             SceneElement::BezierVertex { path_id, vertex_id } => {
                 Selection::BezierVertex(BezierVertexId {
                     path_id: *path_id,
                     vertex_id: *vertex_id,
                 })
             }
-            SceneElement::WidgetElement(_) => Selection::Nothing,
             SceneElement::BezierTangent {
                 path_id, vertex_id, ..
             } => Selection::BezierVertex(BezierVertexId {
@@ -1157,10 +1137,8 @@ impl<R: SceneDesignReaderExt> Data<R> {
         element: Option<SceneElement>,
         app_state: &S,
     ) -> Option<Selection> {
-        if log::log_enabled!(log::Level::Info) {
-            if element.is_some() {
-                log::debug!("candidate {:?}", element);
-            }
+        if log::log_enabled!(log::Level::Info) && element.is_some() {
+            log::debug!("candidate {element:?}");
         }
         self.candidate_element = element;
         if let Some(element) = element.as_ref() {
@@ -1197,8 +1175,8 @@ impl<R: SceneDesignReaderExt> Data<R> {
                 } => {
                     self.selected_position = self
                         .designs
-                        .get(0)
-                        .and_then(|d| d.get_control_point(helix_id, bezier_control))
+                        .first()
+                        .and_then(|d| d.get_control_point(helix_id, bezier_control));
                 }
                 _ => (),
             }
@@ -1213,7 +1191,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
     pub fn get_all_raw_instances<S: AppState>(&self, app_state: &S) -> Vec<RawDnaInstance> {
         let mut instances = vec![];
         let show_insertion_discriminants = app_state.show_insertion_discriminants();
-        for design in self.designs.iter() {
+        for design in &self.designs {
             for sphere in design.get_spheres_raw(show_insertion_discriminants).iter() {
                 instances.push(*sphere);
             }
@@ -1243,16 +1221,16 @@ impl<R: SceneDesignReaderExt> Data<R> {
     pub fn get_nucleotides_positions_by_strands(
         &self,
     ) -> Option<HashMap<usize, StrandNucleotidesPositions>> {
-        return Some(
+        Some(
             self.designs
-                .get(0)?
+                .first()?
                 .design_reader
                 .get_nucleotides_positions_by_strands(),
-        );
+        )
     }
 
     /// Notify the view that the instances of candidates have changed
-    fn update_candidate<S: AppState>(&mut self, candidates: &[Selection], app_state: &S) {
+    fn update_candidate<S: AppState>(&self, candidates: &[Selection], app_state: &S) {
         self.view.borrow_mut().update(ViewUpdate::RawDna(
             Mesh::CandidateTube,
             self.get_candidate_tubes(candidates, app_state),
@@ -1267,7 +1245,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
             } else {
                 vec![]
             };
-        for c in candidates.iter() {
+        for c in candidates {
             if let Selection::Grid(d_id, g_id) = c {
                 grids.push((*d_id as usize, *g_id));
             }
@@ -1275,23 +1253,19 @@ impl<R: SceneDesignReaderExt> Data<R> {
         self.view.borrow_mut().set_candidate_grid(grids);
     }
 
-    fn update_pivot(&mut self) {
+    fn update_pivot(&self) {
         let mut spheres = vec![];
         if let Some(pivot) = self.pivot_position {
-            let radius = {
-                if let Some(element) = self.pivot_element {
-                    if let SceneElement::DesignElement(d_id, e_id) = element {
-                        self.designs[d_id as usize]
-                            .design_reader
-                            .get_radius(e_id)
-                            .unwrap_or(SPHERE_RADIUS)
-                            .max(SPHERE_RADIUS)
-                    } else {
-                        SPHERE_RADIUS
-                    }
-                } else {
-                    SPHERE_RADIUS
-                }
+            let radius = if let Some(element) = self.pivot_element
+                && let SceneElement::DesignElement(d_id, e_id) = element
+            {
+                self.designs[d_id as usize]
+                    .design_reader
+                    .get_radius(e_id)
+                    .unwrap_or(SPHERE_RADIUS)
+                    .max(SPHERE_RADIUS)
+            } else {
+                SPHERE_RADIUS
             };
             spheres.push(Design3D::<R>::pivot_sphere(pivot, radius));
         }
@@ -1308,7 +1282,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         self.pivot_update = true;
     }
 
-    fn update_free_xover(&mut self, candidates: &[Selection]) {
+    fn update_free_xover(&self, candidates: &[Selection]) {
         let mut spheres = vec![];
         let mut tubes = vec![];
         let mut pos1 = None;
@@ -1332,7 +1306,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
                 }
             }
             if let Some((pos1, pos2)) = pos1.zip(pos2) {
-                tubes.push(Design3D::<R>::free_xover_tube(pos1, pos2))
+                tubes.push(Design3D::<R>::free_xover_tube(pos1, pos2));
             }
         }
         self.view
@@ -1358,7 +1332,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
     }
 
     /// Notify the view that the set of instances have been modified.
-    fn update_instances<S: AppState>(&mut self, app_state: &S) {
+    fn update_instances<S: AppState>(&self, app_state: &S) {
         let mut spheres = Vec::with_capacity(10_000);
         let mut tubes = Vec::with_capacity(10_000);
         let mut tube_lids = Vec::with_capacity(10_000);
@@ -1372,7 +1346,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         let mut letters = Vec::new();
         let mut grids = BTreeMap::new();
         let mut cones = Vec::new();
-        for design in self.designs.iter() {
+        for design in &self.designs {
             for sphere in design
                 .get_spheres_raw(app_state.show_insertion_discriminants())
                 .iter()
@@ -1405,10 +1379,10 @@ impl<R: SceneDesignReaderExt> Data<R> {
                 grids.insert(*grid_id, grid.clone());
             }
             for sphere in design.get_suggested_spheres() {
-                suggested_spheres.push(sphere)
+                suggested_spheres.push(sphere);
             }
             for tube in design.get_suggested_tubes() {
-                suggested_tubes.push(tube)
+                suggested_tubes.push(tube);
             }
             let (spheres, tubes) = design.get_pasted_strand();
             for sphere in spheres {
@@ -1484,7 +1458,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         ));
     }
 
-    fn update_discs<S: AppState>(&mut self, app_state: &S) {
+    fn update_discs<S: AppState>(&self, app_state: &S) {
         let mut discs = Vec::new();
         let mut letters: Vec<Vec<LetterInstance>> = vec![vec![]; 10];
         let right = self.view.borrow().get_camera().borrow().right_vec();
@@ -1505,17 +1479,17 @@ impl<R: SceneDesignReaderExt> Data<R> {
 
         // If we are building helices, we want to show candidates grid circle even when they do not
         // correspond to an existing helix
-        if app_state.get_action_mode().0.is_build() {
-            if let Some(SceneElement::GridCircle(0, position)) = self.candidate_element.as_ref() {
-                add_discs(*position, discs!(), DiscLevel::Candidate);
-            }
+        if app_state.get_action_mode().0.is_build()
+            && let Some(SceneElement::GridCircle(0, position)) = self.candidate_element.as_ref()
+        {
+            add_discs(*position, discs!(), DiscLevel::Candidate);
         }
 
         for c in app_state.get_candidates() {
             if let Selection::Helix { helix_id, .. } = c
                 && let Some(pos) = design.get_helix_grid_position(*helix_id as u32)
             {
-                add_discs(pos.light(), discs!(), DiscLevel::Candidate)
+                add_discs(pos.light(), discs!(), DiscLevel::Candidate);
             }
         }
 
@@ -1523,10 +1497,10 @@ impl<R: SceneDesignReaderExt> Data<R> {
             if let Selection::Helix { helix_id, .. } = s
                 && let Some(pos) = design.get_helix_grid_position(*helix_id as u32)
             {
-                add_discs(pos.light(), discs!(), DiscLevel::Selection)
+                add_discs(pos.light(), discs!(), DiscLevel::Selection);
             }
         }
-        for design in self.designs.iter() {
+        for design in &self.designs {
             for grid in design.get_grid().values().filter(|g| g.visible) {
                 for (x, y) in design.get_helices_grid_coord(grid.id) {
                     add_discs(
@@ -1561,9 +1535,9 @@ impl<R: SceneDesignReaderExt> Data<R> {
     }
 
     /// Notify the view of an update of the model matrices
-    fn update_matrices(&mut self) {
+    fn update_matrices(&self) {
         let mut matrices = Vec::new();
-        for design in self.designs.iter() {
+        for design in &self.designs {
             matrices.push(design.get_model_matrix());
         }
         self.view
@@ -1577,7 +1551,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         let fovy = view.get_projection().borrow().get_fovy();
         let ratio = view.get_projection().borrow().get_ratio();
         self.designs
-            .get(0)
+            .first()
             .and_then(|d| d.get_fitting_camera_position(basis, fovy, ratio))
     }
 
@@ -1600,7 +1574,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         (app_state.get_widget_basis().is_axis_aligned()
             && !(self.handle_colors == HandleColors::Cym
                 && app_state.get_action_mode().0 == ActionMode::Rotate))
-            .then(|| Rotor3::identity())
+            .then(Rotor3::identity)
     }
 
     fn get_selected_basis<S: AppState>(&self, app_state: &S) -> Option<Rotor3> {
@@ -1644,7 +1618,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
             }) => self.designs[0].get_bezier_control_basis(helix_id, bezier_control),
             _ => None,
         };
-        let from_selection = match app_state.get_selection().get(0) {
+        let from_selection = match app_state.get_selection().first() {
             Some(Selection::Grid(d_id, g_id)) => self
                 .designs
                 .get(*d_id as usize)
@@ -1677,7 +1651,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
 
     pub fn element_to_nucl(
         &self,
-        element: &Option<SceneElement>,
+        element: Option<&SceneElement>,
         non_phantom: bool,
     ) -> Option<(Nucl, usize)> {
         match element {
@@ -1713,7 +1687,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
 
     pub fn update_free_xover_target(&mut self, element: Option<SceneElement>, position: Vec3) {
         self.free_xover_update = true;
-        let nucl = self.element_to_nucl(&element, true);
+        let nucl = self.element_to_nucl(element.as_ref(), true);
         if let Some(free_xover) = self.free_xover.as_mut() {
             free_xover.target = FreeXoverEnd::Free(position);
             if let FreeXoverEnd::Nucl(origin_nucl) = free_xover.source
@@ -1801,7 +1775,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
     /// Return a default selected element when no center of selection was provided
     fn default_element<S: AppState>(&self, app_state: &S) -> Option<SceneElement> {
         log::trace!("Using default element");
-        let selected_object = app_state.get_selection().get(0)?;
+        let selected_object = app_state.get_selection().first()?;
         let design = selected_object
             .get_design()
             .and_then(|d_id| self.designs.get(d_id as usize))?;
@@ -1885,7 +1859,6 @@ impl<R: SceneDesignReaderExt> Data<R> {
                         })
                 })
             }
-            SceneElement::WidgetElement(_) => None,
             SceneElement::BezierControl {
                 helix_id,
                 bezier_control,
@@ -1896,8 +1869,9 @@ impl<R: SceneDesignReaderExt> Data<R> {
             SceneElement::BezierVertex { vertex_id, path_id } => {
                 Some(CenterOfSelection::BezierVertex { path_id, vertex_id })
             }
-            SceneElement::BezierTangent { .. } => None,
-            SceneElement::PlaneCorner { .. } => None,
+            SceneElement::WidgetElement(_)
+            | SceneElement::BezierTangent { .. }
+            | SceneElement::PlaneCorner { .. } => None,
         }
     }
 
@@ -1907,7 +1881,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
 
     pub(super) fn get_surface_info_nucl(&self, nucl: Nucl) -> Option<SurfaceInfo> {
         self.designs
-            .get(0)
+            .first()
             .and_then(|d| d.get_surface_info_nucl(nucl))
     }
 }
@@ -1934,10 +1908,10 @@ fn toggle_selection(mode: SelectionMode) -> SelectionMode {
     }
 }
 
-impl<R: SceneDesignReaderExt> super::controller::Data for Data<R> {
+impl<R: SceneDesignReaderExt> ControllerData for Data<R> {
     fn element_to_nucl(
         &self,
-        element: &Option<SceneElement>,
+        element: Option<&SceneElement>,
         non_phantom: bool,
     ) -> Option<(Nucl, usize)> {
         self.element_to_nucl(element, non_phantom)
@@ -1949,8 +1923,8 @@ impl<R: SceneDesignReaderExt> super::controller::Data for Data<R> {
 
     fn attempt_xover(
         &self,
-        source: &Option<SceneElement>,
-        target: &Option<SceneElement>,
+        source: Option<&SceneElement>,
+        target: Option<&SceneElement>,
     ) -> Option<(Nucl, Nucl, usize)> {
         self.attempt_xover(source, target)
     }
@@ -1961,7 +1935,7 @@ impl<R: SceneDesignReaderExt> super::controller::Data for Data<R> {
 
     fn get_grid_object(&self, position: GridPosition) -> Option<GridObject> {
         self.designs
-            .get(0)
+            .first()
             .and_then(|d| d.get_grid_object(position))
     }
 
@@ -1981,19 +1955,19 @@ impl<R: SceneDesignReaderExt> super::controller::Data for Data<R> {
     }
 
     fn init_free_xover(&mut self, nucl: Nucl, position: Vec3, design_id: usize) {
-        self.init_free_xover(nucl, position, design_id)
+        self.init_free_xover(nucl, position, design_id);
     }
 
     fn get_surface_info(&self, point: SurfacePoint) -> Option<SurfaceInfo> {
-        self.designs.get(0).and_then(|d| d.get_surface_info(point))
+        self.designs.first().and_then(|d| d.get_surface_info(point))
     }
 
     fn get_surface_info_nucl(&self, nucl: Nucl) -> Option<SurfaceInfo> {
         self.get_surface_info_nucl(nucl)
     }
 
-    fn notify_camera_movement(&mut self, camera: &super::camera::CameraController) {
-        self.update_surface_pivot(camera.get_current_surface_pivot())
+    fn notify_camera_movement(&mut self, camera: &CameraController) {
+        self.update_surface_pivot(camera.get_current_surface_pivot());
     }
 }
 
@@ -2028,21 +2002,13 @@ fn add_discs<R: SceneDesignReaderExt>(pos: GridPosition, discs: Discs<R>, level:
                 discs.candidates.push(pos);
                 Some(grid.disc(pos.x, pos.y, level.color(), 0))
             }
-            DiscLevel::Selection => {
-                if !discs.candidates.contains(&pos) {
-                    discs.selection.push(pos);
-                    Some(grid.disc(pos.x, pos.y, level.color(), 0))
-                } else {
-                    None
-                }
-            }
-            DiscLevel::Scene => {
-                if !discs.candidates.contains(&pos) && !discs.selection.contains(&pos) {
-                    Some(grid.disc(pos.x, pos.y, level.color(), 0))
-                } else {
-                    None
-                }
-            }
+            DiscLevel::Selection => (!discs.candidates.contains(&pos)).then(|| {
+                discs.selection.push(pos);
+                grid.disc(pos.x, pos.y, level.color(), 0)
+            }),
+            DiscLevel::Scene => (!discs.candidates.contains(&pos)
+                && !discs.selection.contains(&pos))
+            .then(|| grid.disc(pos.x, pos.y, level.color(), 0)),
         };
         if let Some((d1, d2)) = new_disc_instances {
             discs.discs.push(d1);
@@ -2054,19 +2020,12 @@ fn add_discs<R: SceneDesignReaderExt>(pos: GridPosition, discs: Discs<R>, level:
 }
 
 fn candidate_xover(candidates: &[Selection]) -> Option<FreeXover> {
-    if candidates.len() == 2 {
-        if let (Selection::Nucleotide(_, n1), Selection::Nucleotide(_, n2)) =
-            (candidates[0], candidates[1])
-        {
-            Some(FreeXover {
-                source: FreeXoverEnd::Nucl(n1),
-                target: FreeXoverEnd::Nucl(n2),
-                design_id: 0,
-            })
-        } else {
-            None
-        }
-    } else {
-        None
+    match candidates {
+        [Selection::Nucleotide(_, n1), Selection::Nucleotide(_, n2)] => Some(FreeXover {
+            source: FreeXoverEnd::Nucl(*n1),
+            target: FreeXoverEnd::Nucl(*n2),
+            design_id: 0,
+        }),
+        _ => None,
     }
 }

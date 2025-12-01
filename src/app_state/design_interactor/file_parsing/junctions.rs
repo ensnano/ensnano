@@ -1,24 +1,10 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+use ensnano_design::{
+    Nucl,
+    strands::{Domain, DomainJunction, HelixInterval, Strand, sanitize_domains},
+};
+use ensnano_utils::id_generator::IdGenerator;
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::IdGenerator;
-use ensnano_design::*;
-pub trait StrandJunction {
+pub(crate) trait StrandJunction {
     /// Read the junctions for self when loading the design.
     /// If `identified` is true (i.e. during the first pass), read the IdentifiedXover
     /// and insert them in the xover_ids.
@@ -74,7 +60,7 @@ impl StrandJunction for Strand {
                         } else if let Domain::Insertion { .. } = next {
                             panic!("UnidentifiedXover before an insertion");
                         } else if let Domain::Insertion { .. } = previous_domain {
-                            panic!("Invariant violated: [SaneDomains]");
+                            panic!("Invariant violated: SaneDomains");
                         } else {
                             unreachable!("Non-exhaustive match");
                         }
@@ -96,7 +82,7 @@ impl StrandJunction for Strand {
                         } else if let Domain::Insertion { .. } = next {
                             panic!("IdentifiedXover before an insertion");
                         } else if let Domain::Insertion { .. } = previous_domain {
-                            panic!("Invariant violated: [SaneDomains]");
+                            panic!("Invariant violated: SaneDomains");
                         } else {
                             unreachable!("Non-exhaustive match");
                         }
@@ -125,14 +111,14 @@ pub(super) fn junction(prime5: &HelixInterval, prime3: &HelixInterval) -> Domain
 
 /// Add the correct junction between current and next to junctions.
 /// Assumes and preserve the following invariant
-/// Invariant [read_junctions::PrevDomain]: One of the following is true
+/// Invariant read_junctions::PrevDomain: One of the following is true
 /// * the strand is not cyclic
 /// * the strand is cyclic and its first domain is NOT and insertion.
 /// * previous domain points to some Domain::HelixDomain.
 ///
 /// Moreover at the end of each iteration of the loop, previous_domain points to some
 /// Domain::HelixDomain. The loop is responsible for preserving the invariant. The invariant is
-/// true at initialization if `[SaneDomains]` is true.
+/// true at initialization if SaneDomains is true.
 fn add_junction<'b, 'a: 'b>(
     junctions: &'b mut Vec<DomainJunction>,
     current: &'a Domain,
@@ -159,13 +145,11 @@ fn add_junction<'b, 'a: 'b>(
                     } else {
                         // previous domain MUST point to some Domain::HelixDomain.
                         if let Domain::HelixDomain(prime5) = *previous_domain {
-                            junctions.push(junction(prime5, prime3))
+                            junctions.push(junction(prime5, prime3));
+                        } else if i == 0 {
+                            panic!("Invariant violated: SaneDomains");
                         } else {
-                            if i == 0 {
-                                panic!("Invariant violated: SaneDomains");
-                            } else {
-                                panic!("Invariant violated: read_junctions::PrevDomain");
-                            }
+                            panic!("Invariant violated: read_junctions::PrevDomain");
                         }
                     }
                 }
@@ -180,7 +164,7 @@ fn add_junction<'b, 'a: 'b>(
 
 /// Infer junctions from a succession of domains.
 pub(super) fn read_junctions(domains: &[Domain], cyclic: bool) -> Vec<DomainJunction> {
-    if domains.len() == 0 {
+    if domains.is_empty() {
         return vec![];
     }
 
@@ -205,7 +189,7 @@ pub(super) fn read_junctions(domains: &[Domain], cyclic: bool) -> Vec<DomainJunc
             domains.len() - 1,
         );
     } else {
-        ret.push(DomainJunction::Prime3)
+        ret.push(DomainJunction::Prime3);
     }
 
     ret

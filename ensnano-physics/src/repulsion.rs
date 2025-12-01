@@ -1,10 +1,9 @@
+use crate::simulation::RapierPhysicsSystem;
 use rapier3d::{
     parry::query::DefaultQueryDispatcher,
     prelude::*,
-    rayon::iter::{IntoParallelIterator, ParallelIterator},
+    rayon::iter::{IntoParallelIterator as _, ParallelIterator as _},
 };
-
-use crate::simulation::RapierPhysicsSystem;
 
 // const FORCE_RANGE: f32 = 5.0;
 // const FORCE_STRENGTH: f32 = 0.1;
@@ -15,10 +14,9 @@ impl RapierPhysicsSystem {
     }
 }
 
-// Following three functions from the "Particle based Viscoelastic Fluid Simulation"
+// Following three functions from the "Particle-based Viscoelastic Fluid Simulation"
 fn simple_kernel_1(r: f32, h: f32) -> f32 {
-    let v = 1.0 - r / h;
-    v
+    1.0 - r / h
 }
 
 /// Operates a repulsion between all rigid bodies
@@ -33,7 +31,7 @@ fn repulsion_step(system: &mut RapierPhysicsSystem, delta: f32) {
         .into_par_iter()
         .map(|handle| {
             let body = system.collider_set.get(handle).unwrap();
-            let position = body.position().clone();
+            let position = *body.position();
 
             let force_range = system.rapier_parameters.repulsion_range;
             let force_strength = system.rapier_parameters.repulsion_strength;

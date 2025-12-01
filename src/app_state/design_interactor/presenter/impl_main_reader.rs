@@ -1,28 +1,22 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::*;
+use crate::app_state::design_interactor::DesignInteractor;
 use crate::controller::download_staples::{
     DownloadStapleError, DownloadStapleOk, StaplesDownloader,
 };
+use ensnano_design::{
+    Nucl,
+    grid::{GridId, HelixGridPosition},
+    helices::HelixCollection as _,
+    strands::Strand,
+};
+use ensnano_interactor::selection::InteractorDesignReaderExt as MainReader;
+use itertools::Itertools as _;
 use rust_xlsxwriter::{Color, Format, Workbook};
 use serde::Serialize;
-use std::{io::Write, path::PathBuf};
+use std::{
+    collections::{BTreeMap, HashMap},
+    io::Write as _,
+    path::Path,
+};
 
 impl StaplesDownloader for DesignInteractor {
     fn download_staples(&self) -> Result<DownloadStapleOk, DownloadStapleError> {
@@ -52,7 +46,7 @@ impl StaplesDownloader for DesignInteractor {
                     .current_design
                     .strands
                     .get(s_id)
-                    .map(|s| s.length())
+                    .map(Strand::length)
             })
             .unwrap();
         let sequence_length = self
@@ -60,7 +54,7 @@ impl StaplesDownloader for DesignInteractor {
             .current_design
             .scaffold_sequence
             .as_ref()
-            .map(|s| s.len())
+            .map(String::len)
             .unwrap();
         if scaffold_length != sequence_length {
             warnings.push(warn_scaffold_seq_mismatch(scaffold_length, sequence_length));
@@ -68,7 +62,7 @@ impl StaplesDownloader for DesignInteractor {
         Ok(DownloadStapleOk { warnings })
     }
 
-    fn write_staples_xlsx(&self, xlsx_path: &PathBuf) {
+    fn write_staples_xlsx(&self, xlsx_path: &Path) {
         // use simple_excel_writer::{row, Row, Workbook};
 
         let all_group_names: Vec<String> = self.presenter.get_names_of_all_groups();
@@ -113,10 +107,10 @@ impl StaplesDownloader for DesignInteractor {
             let sheet = sheets
                 .entry(staple.plate)
                 .or_insert_with(|| vec![first_row_content.clone()]);
-            let mut group_vec = Vec::from_iter(all_group_names.iter().map(|_| ""));
-            for group_name in staple.group_names.iter() {
+            let mut group_vec = all_group_names.iter().map(|_| "").collect_vec();
+            for group_name in &staple.group_names {
                 if let Some(index) = group_map.get(&group_name) {
-                    group_vec[*index] = &group_name.as_str();
+                    group_vec[*index] = group_name.as_str();
                 }
             }
             let mut row: Vec<&str> = vec![
@@ -130,24 +124,24 @@ impl StaplesDownloader for DesignInteractor {
                 &staple.group_names_string,
             ];
             row.extend(group_vec.iter());
-            sheet.push(row)
+            sheet.push(row);
         }
 
         let threshold_black_white_font_color = (5 * 255) / 2;
 
         // Add one sheet per plate
-        for (sheet_id, rows) in sheets.iter() {
+        for (sheet_id, rows) in &sheets {
             let sheet: &mut rust_xlsxwriter::Worksheet = wb
                 .add_worksheet()
-                .set_name(&format!("Plate {sheet_id}"))
+                .set_name(format!("Plate {sheet_id}"))
                 .expect("Excel error: cannot create worksheet");
 
             for (i, row) in rows.iter().enumerate() {
                 if i == 0 {
-                    for (j, data) in row.iter().enumerate() {
+                    for (j, &data) in row.iter().enumerate() {
                         let bold = Format::new().set_bold();
                         sheet
-                            .write_with_format(0, j as u16, data.to_string(), &bold)
+                            .write_with_format(0, j as u16, data.to_owned(), &bold)
                             .expect("error write cell");
                     }
                     continue;
@@ -169,7 +163,6 @@ impl StaplesDownloader for DesignInteractor {
                             let (r, g, b) =
                                 ((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF);
                             let luminance = r + b + 3 * g;
-                            // println!("{color:06X} {luminance} {r:0X} {g:0X} {b:0X} {:06X}", (r<<16) + (g<<8) + b);
                             let font_color = if luminance >= threshold_black_white_font_color {
                                 Color::Black
                             } else {
@@ -179,13 +172,13 @@ impl StaplesDownloader for DesignInteractor {
                                 .set_background_color(Color::RGB(color))
                                 .set_font_color(font_color);
                             sheet
-                                .write_with_format(i as u32, j as u16, row[j].to_string(), &format)
+                                .write_with_format(i as u32, j as u16, row[j].to_owned(), &format)
                                 .expect("error write cell");
                             continue;
                         }
                     }
                     sheet
-                        .write(i as u32, j as u16, row[j].to_string())
+                        .write(i as u32, j as u16, row[j].to_owned())
                         .expect("error write cell");
                 }
             }
@@ -195,18 +188,18 @@ impl StaplesDownloader for DesignInteractor {
 
         let sheet: &mut rust_xlsxwriter::Worksheet = wb
             .add_worksheet()
-            .set_name(&format!("All staples"))
+            .set_name("All staples".to_owned())
             .expect("Excel error: cannot create worksheet");
         let mut write_once = true;
         let mut all_i = 0;
-        for (_, rows) in sheets.iter() {
+        for rows in sheets.values() {
             for (i, row) in rows.iter().enumerate() {
                 if i == 0 {
                     if write_once {
-                        for (j, data) in row.iter().enumerate() {
+                        for (j, &data) in row.iter().enumerate() {
                             let bold = Format::new().set_bold();
                             sheet
-                                .write_with_format(0, j as u16, data.to_string(), &bold)
+                                .write_with_format(0, j as u16, data.to_owned(), &bold)
                                 .expect("error write cell");
                         }
                         write_once = false;
@@ -240,13 +233,13 @@ impl StaplesDownloader for DesignInteractor {
                                 .set_background_color(Color::RGB(color))
                                 .set_font_color(font_color);
                             sheet
-                                .write_with_format(all_i, j as u16, row[j].to_string(), &format)
+                                .write_with_format(all_i, j as u16, row[j].to_owned(), &format)
                                 .expect("error write cell");
                             continue;
                         }
                     }
                     sheet
-                        .write(all_i as u32, j as u16, row[j].to_string())
+                        .write(all_i, j as u16, row[j].to_owned())
                         .expect("error write cell");
                 }
                 all_i += 1;
@@ -260,7 +253,7 @@ impl StaplesDownloader for DesignInteractor {
         // wb.close().expect("close excel error!");
     }
 
-    fn write_intervals(&self, origami_path: &PathBuf) {
+    fn write_intervals(&self, origami_path: &Path) {
         let staples = self
             .presenter
             .content
@@ -271,7 +264,7 @@ impl StaplesDownloader for DesignInteractor {
                 .current_design
                 .scaffold_sequence
                 .clone()
-                .unwrap_or("NO SEQUENCE".to_string()),
+                .unwrap_or_else(|| "NO SEQUENCE".to_owned()),
             intervals: staples
                 .iter()
                 .map(|s| (s.intervals.staple_id, s.intervals.intervals.clone()))
@@ -282,7 +275,7 @@ impl StaplesDownloader for DesignInteractor {
         if let Ok(json_content) = serde_json::to_string_pretty(&origamis) {
             if let Ok(mut f) = std::fs::File::create(origami_path) {
                 if let Err(e) = f.write_all(json_content.as_bytes()) {
-                    log::error!("Could not write to file {}", e);
+                    log::error!("Could not write to file {e}");
                 }
             } else {
                 log::error!("Could not open file");
@@ -298,23 +291,16 @@ impl StaplesDownloader for DesignInteractor {
 }
 
 fn warn_all_staples_not_paired(first_unpaired: Nucl) -> String {
-    format!(
-        "All staples are not paired. First unpaired nucleotide: {}",
-        first_unpaired
-    )
+    format!("All staples are not paired. First unpaired nucleotide: {first_unpaired}")
 }
 
 fn warn_scaffold_seq_mismatch(scaffold_length: usize, sequence_length: usize) -> String {
     format!(
         "The length of the scaffold is not equal to the length of the sequence.\n
-        length of the scaffold: {}\n
-        length of the sequence: {}",
-        scaffold_length, sequence_length
+        length of the scaffold: {scaffold_length}\n
+        length of the sequence: {sequence_length}",
     )
 }
-
-use ensnano_design::grid::HelixGridPosition;
-use ensnano_interactor::InteractorDesignReaderExt as MainReader;
 
 impl MainReader for DesignInteractor {
     fn get_xover_id(&self, pair: &(Nucl, Nucl)) -> Option<usize> {
@@ -333,7 +319,7 @@ impl MainReader for DesignInteractor {
             .and_then(|h| h.grid_position)
     }
 
-    fn get_strand_with_id(&self, id: usize) -> Option<&ensnano_design::Strand> {
+    fn get_strand_with_id(&self, id: usize) -> Option<&Strand> {
         self.presenter.current_design.strands.get(&id)
     }
 
@@ -350,11 +336,10 @@ impl MainReader for DesignInteractor {
             .current_design
             .strands
             .get(&s_id)
-            .map(|s| s.domain_ends())
+            .map(Strand::domain_ends)
     }
 }
 
-use std::collections::BTreeMap;
 #[derive(Serialize)]
 struct Origamis(BTreeMap<usize, Origami>);
 

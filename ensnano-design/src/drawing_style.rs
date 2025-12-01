@@ -1,37 +1,27 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::MaterialColor;
+use crate::material_colors::MaterialColor;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
 #[derive(Serialize, PartialEq, Deserialize, Clone, Debug, Copy)]
 pub enum ColorType {
-    Color(u32),
-    Rainbow, // IGNORED FOR NOW -> Later you can add an argument to tell which kind of rainbow you want
+    Plain(u32),
+    // TODO: Rainbow,
+}
+
+impl ColorType {
+    pub fn to_u32(self) -> u32 {
+        match self {
+            Self::Plain(color) => color,
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum DrawingAttribute {
     SphereRadius(f32),
     BondRadius(f32),
-    SphereColor(u32), // with alpha -> to be replaced with ColorType
-    BondColor(u32),   // with alpha -> to be replaced with ColorType
+    SphereColor(ColorType),
+    BondColor(ColorType),
     DoubleHelixAsCylinderRadius(f32),
     DoubleHelixAsCylinderColor(ColorType), // with alpha
     RainbowStrand(bool),
@@ -58,7 +48,6 @@ impl FromStr for DrawingAttribute {
     /// - %bc(HHHHHHHH) for BondColor(0xHHHHHHHH)
     /// - %hr(r) for DoubleHelixAsCylinderRadius(r)
     /// - %hc(HHHHHHHH) for DoubleHelixAsCylinderColor(0xHHHHHHHH)
-    /// - %rh(HHHHHHHH) for DoubleHelixAsCylinderColor(Rainbow)
     /// - %wc / %noc for WithCones(true / false) - default = true
     /// - %onaxis / %offaxis for OnAxis(true / false) - default = false
     /// - %cv(r_min, r_max) - show the curvature radius using Purple to Blue gradient the helix cylinder for radius within the range r_min..r_max
@@ -66,11 +55,11 @@ impl FromStr for DrawingAttribute {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let parsed = s
             .split(&['%', ' ', ',', ')', '('])
-            .filter(|x| x.len() > 0)
+            .filter(|x| !x.is_empty())
             .collect::<Vec<&str>>();
 
         let len = parsed.len();
-        if len <= 0 {
+        if len == 0 {
             return Err(ParsePointError);
         }
 
@@ -81,7 +70,6 @@ impl FromStr for DrawingAttribute {
             "wc" => return Ok(Self::WithCones(true)),
             "noc" => return Ok(Self::WithCones(false)),
             "xc" => return Ok(Self::XoverColoring(true)),
-            "rh" => return Ok(Self::DoubleHelixAsCylinderColor(ColorType::Rainbow)), // IGNORED FOR NOW
             "onaxis" => return Ok(Self::OnAxis(true)),
             "offaxis" => return Ok(Self::OnAxis(false)),
             "sr" | "br" | "hr" if len == 2 => {
@@ -94,7 +82,7 @@ impl FromStr for DrawingAttribute {
                     }
                 }
             }
-            "sc" | "bc" | "hc" | "cs" if len >= 2 && len <= 4 => {
+            "sc" | "bc" | "hc" | "cs" if (2..=4).contains(&len) => {
                 let mut color = 0xFF_FF_FF_FF;
                 let mut hue_range = None;
                 if let Ok(value) = MaterialColor::from_str(parsed[1]) {
@@ -103,22 +91,22 @@ impl FromStr for DrawingAttribute {
                     color = value;
                 }
 
-                if len > 2 {
-                    if let Ok(alpha) = f32::from_str(parsed[2]) {
-                        let alpha = (alpha * 255.).min(255.).max(0.).round() as u32;
-                        color = (color & 0xFF_FF_FF) | (alpha << 24);
-                        if parsed.len() > 3 {
-                            if let Ok(h_range) = f64::from_str(parsed[3]) {
-                                hue_range = Some(h_range);
-                            }
-                        }
+                if len > 2
+                    && let Ok(alpha) = f32::from_str(parsed[2])
+                {
+                    let alpha = (alpha * 255.).clamp(0., 255.).round() as u32;
+                    color = (color & 0xFF_FF_FF) | (alpha << 24);
+                    if parsed.len() > 3
+                        && let Ok(h_range) = f64::from_str(parsed[3])
+                    {
+                        hue_range = Some(h_range);
                     }
                 }
 
                 match parsed[0] {
-                    "sc" => return Ok(Self::SphereColor(color)),
-                    "bc" => return Ok(Self::BondColor(color)),
-                    "hc" => return Ok(Self::DoubleHelixAsCylinderColor(ColorType::Color(color))),
+                    "sc" => return Ok(Self::SphereColor(ColorType::Plain(color))),
+                    "bc" => return Ok(Self::BondColor(ColorType::Plain(color))),
+                    "hc" => return Ok(Self::DoubleHelixAsCylinderColor(ColorType::Plain(color))),
                     "cs" => return Ok(Self::ColorShade(color, hue_range)),
                     _ => (),
                 }
@@ -140,11 +128,11 @@ impl FromStr for DrawingAttribute {
             _ => (),
         }
 
-        return Err(ParsePointError);
+        Err(ParsePointError)
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Copy)]
+#[derive(Serialize, Deserialize, Clone, Debug, Copy, Default)]
 pub struct DrawingStyle {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub sphere_radius: Option<f32>,
@@ -178,49 +166,32 @@ pub struct DrawingStyle {
     pub torsion: Option<(f32, f32)>,
 }
 
-impl std::default::Default for DrawingStyle {
-    fn default() -> Self {
-        DrawingStyle {
-            sphere_radius: None,
-            bond_radius: None,
-            helix_as_cylinder_radius: None,
-            sphere_color: None,
-            bond_color: None,
-            helix_as_cylinder_color: None,
-            rainbow_strand: None,
-            xover_coloring: None,
-            color_shade: None,
-            hue_range: None,
-            with_cones: None,
-            on_axis: None,
-            curvature: None,
-            torsion: None,
-        }
-    }
-}
-
 impl From<Vec<DrawingAttribute>> for DrawingStyle {
     fn from(attributes: Vec<DrawingAttribute>) -> Self {
-        let mut ret = DrawingStyle::default();
+        let mut ret = Self::default();
         for att in attributes {
             match att {
                 DrawingAttribute::SphereRadius(r) => {
-                    ret.sphere_radius = ret.sphere_radius.or(Some(r))
+                    ret.sphere_radius = ret.sphere_radius.or(Some(r));
                 }
                 DrawingAttribute::BondRadius(r) => ret.bond_radius = ret.bond_radius.or(Some(r)),
                 DrawingAttribute::DoubleHelixAsCylinderRadius(r) => {
-                    ret.helix_as_cylinder_radius = ret.helix_as_cylinder_radius.or(Some(r))
+                    ret.helix_as_cylinder_radius = ret.helix_as_cylinder_radius.or(Some(r));
                 }
-                DrawingAttribute::SphereColor(c) => ret.sphere_color = ret.sphere_color.or(Some(c)),
-                DrawingAttribute::BondColor(c) => ret.bond_color = ret.bond_color.or(Some(c)),
+                DrawingAttribute::SphereColor(c) => {
+                    ret.sphere_color = ret.sphere_color.or_else(|| Some(c.to_u32()));
+                }
+                DrawingAttribute::BondColor(c) => {
+                    ret.bond_color = ret.bond_color.or_else(|| Some(c.to_u32()));
+                }
                 DrawingAttribute::DoubleHelixAsCylinderColor(c) => {
-                    ret.helix_as_cylinder_color = ret.helix_as_cylinder_color.or(Some(c))
+                    ret.helix_as_cylinder_color = ret.helix_as_cylinder_color.or(Some(c));
                 }
                 DrawingAttribute::RainbowStrand(b) => {
-                    ret.rainbow_strand = ret.rainbow_strand.or(Some(b))
+                    ret.rainbow_strand = ret.rainbow_strand.or(Some(b));
                 }
                 DrawingAttribute::XoverColoring(b) => {
-                    ret.xover_coloring = ret.xover_coloring.or(Some(b))
+                    ret.xover_coloring = ret.xover_coloring.or(Some(b));
                 }
                 DrawingAttribute::WithCones(b) => ret.with_cones = ret.with_cones.or(Some(b)),
                 DrawingAttribute::ColorShade(c, hue_range) => {
@@ -229,86 +200,89 @@ impl From<Vec<DrawingAttribute>> for DrawingStyle {
                 }
                 DrawingAttribute::OnAxis(b) => ret.on_axis = ret.on_axis.or(Some(b)),
                 DrawingAttribute::Curvature(r_min, r_max) => {
-                    ret.curvature = ret.curvature.or(Some((r_min, r_max)))
+                    ret.curvature = ret.curvature.or(Some((r_min, r_max)));
                 }
                 DrawingAttribute::Torsion(t_min, t_max) => {
-                    ret.torsion = ret.torsion.or(Some((t_min, t_max)))
+                    ret.torsion = ret.torsion.or(Some((t_min, t_max)));
                 }
             }
         }
-        return ret;
+        ret
     }
 }
 
 impl DrawingStyle {
+    #[must_use]
     pub fn complete_with_attribute(&self, att: DrawingAttribute) -> Self {
         match att {
-            DrawingAttribute::SphereRadius(r) => DrawingStyle {
+            DrawingAttribute::SphereRadius(r) => Self {
                 sphere_radius: self.sphere_radius.or(Some(r)),
                 ..*self
             },
-            DrawingAttribute::BondRadius(r) => DrawingStyle {
+            DrawingAttribute::BondRadius(r) => Self {
                 bond_radius: self.bond_radius.or(Some(r)),
                 ..*self
             },
-            DrawingAttribute::DoubleHelixAsCylinderRadius(r) => DrawingStyle {
+            DrawingAttribute::DoubleHelixAsCylinderRadius(r) => Self {
                 helix_as_cylinder_radius: self.helix_as_cylinder_radius.or(Some(r)),
                 ..*self
             },
-            DrawingAttribute::SphereColor(c) => DrawingStyle {
-                sphere_color: self.sphere_color.or(Some(c)),
+            DrawingAttribute::SphereColor(c) => Self {
+                sphere_color: self.sphere_color.or_else(|| Some(c.to_u32())),
                 ..*self
             },
-            DrawingAttribute::BondColor(c) => DrawingStyle {
-                bond_color: self.bond_color.or(Some(c)),
+            DrawingAttribute::BondColor(c) => Self {
+                bond_color: self.bond_color.or_else(|| Some(c.to_u32())),
                 ..*self
             },
-            DrawingAttribute::DoubleHelixAsCylinderColor(c) => DrawingStyle {
+            DrawingAttribute::DoubleHelixAsCylinderColor(c) => Self {
                 helix_as_cylinder_color: self.helix_as_cylinder_color.or(Some(c)),
                 ..*self
             },
-            DrawingAttribute::RainbowStrand(b) => DrawingStyle {
+            DrawingAttribute::RainbowStrand(b) => Self {
                 rainbow_strand: self.rainbow_strand.or(Some(b)),
                 ..*self
             },
-            DrawingAttribute::XoverColoring(b) => DrawingStyle {
+            DrawingAttribute::XoverColoring(b) => Self {
                 xover_coloring: self.xover_coloring.or(Some(b)),
                 ..*self
             },
-            DrawingAttribute::WithCones(b) => DrawingStyle {
+            DrawingAttribute::WithCones(b) => Self {
                 with_cones: self.with_cones.or(Some(b)),
                 ..*self
             },
-            DrawingAttribute::ColorShade(c, hue_range) => DrawingStyle {
+            DrawingAttribute::ColorShade(c, hue_range) => Self {
                 color_shade: self.color_shade.or(Some(c)),
                 hue_range,
                 ..*self
             },
-            DrawingAttribute::OnAxis(b) => DrawingStyle {
+            DrawingAttribute::OnAxis(b) => Self {
                 on_axis: self.on_axis.or(Some(b)),
                 ..*self
             },
-            DrawingAttribute::Curvature(r_min, r_max) => DrawingStyle {
+            DrawingAttribute::Curvature(r_min, r_max) => Self {
                 curvature: self.curvature.or(Some((r_min, r_max))),
                 ..*self
             },
-            DrawingAttribute::Torsion(t_min, t_max) => DrawingStyle {
+            DrawingAttribute::Torsion(t_min, t_max) => Self {
                 torsion: self.torsion.or(Some((t_min, t_max))),
                 ..*self
             },
         }
     }
 
+    #[must_use]
     pub fn complete_with_attributes(&self, attributes: Vec<DrawingAttribute>) -> Self {
         let mut style = *self;
         for att in attributes {
             style = style.complete_with_attribute(att);
         }
-        return style.clone();
+        style
     }
 
+    #[must_use]
     pub fn complete_with(&self, other: &Self) -> Self {
-        return DrawingStyle {
+        Self {
             sphere_radius: self.sphere_radius.or(other.sphere_radius),
             bond_radius: self.bond_radius.or(other.bond_radius),
             helix_as_cylinder_radius: self
@@ -327,6 +301,6 @@ impl DrawingStyle {
             on_axis: self.on_axis.or(other.on_axis),
             curvature: self.curvature.or(other.curvature),
             torsion: self.torsion.or(other.torsion),
-        };
+        }
     }
 }

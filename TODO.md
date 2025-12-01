@@ -6,6 +6,7 @@
 - Fix text fields in revolution surface tab
 - Click on organizer tree should select and reciprocally (select should highlight in red in organizer tree)
 - Double on organizer tree click should teleport in 2d and 3d scenes
+- Add serialization/deserialization tests to detect regressions based on typo fixes
 
 ## Bugs
 
@@ -78,6 +79,8 @@
 
 ## Long-term
 
+- Check and accept nix merge request
+- Fix all GitLab issues
 - Update `iced` to 0.13
 - Port to the web with WASM
 - Distribution of strand lengths (analysis tab)
@@ -85,18 +88,20 @@
 - Local crossover optimization
 - Animation timeline
 - Publish `ensnano` on crates.io?
+- README for collaborators (dependencies, crates graph, clippy rules...)
 
 ## Refactor
 
-- Rename structs with the same name in different crates
-- Remove as many `pub use` as possible
-- Remove as many `use *` as possible
-- Remove as many `#[allow(...)]` as possible
-- Remove copyright from every file? `LICENSE` at the root should be enough
-- Use `mod.rs` everywhere instead of `module.rs` and `<module>/`
+- Remove in-file modules:
+  - `abscissa_converter`
+  - `input_color`
+  - `hue_column`
+  - `light_sat_square`
+  - `color_square`
+  - `gostop`
+  - `fog_kind`
+- Rename structs with the same name in different crates, then remove all use aliases (`use ... as ...`)
 - kebab-case -> snake_case for the crate directories
-- Fix all typos using `cspell`
-  - Add serialization/deserialization tests to detect regressions based on typo fixes
 - More consistent styling:
   - Create some `rustfmt.toml` rules?
   - Merge imports?
@@ -108,11 +113,14 @@
   - `ScaffoldSetter`
   - `Multiplexer`
 - Remove enums with one variant -> struct or raw value:
-  - `OverlayType`
   - `AppOperation`
+  - `GridPositionBuilder`
+  - `OverlayType`
   - `RotationWidgetOrientation`
-- Replace `ensnano_iced/fonts/material_icons` by SVG icons from `icondata` lib
-- `cargo clippy --workspace --all-targets --all-features`
+- Replace `ensnano_iced/fonts/material_icons.rs` by SVG icons from `icondata` lib
 - `build.rs` for shaders instead of manual compilation
 - Merge `ensnano_organizer` and `ensnano_gui`
 - Merge `ensnano_interactor` and `ensnano_utils`?
+- Share more code between `ensnano_scene` and `ensnano_flatscene`:
+  - e.g. `export_2d_png` and `export_3d_png` are pretty much the same
+- Split `src/controller/quit.rs` in multiple file

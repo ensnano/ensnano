@@ -1,25 +1,9 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 // TODO: check all unused fields (starting with _)
 
-use super::Curved;
-use crate::HelixParameters;
+use crate::{
+    curves::{CurveBounds, Curved, time_nucl_map::AbscissaConverter},
+    parameters::HelixParameters,
+};
 use serde::{Deserialize, Serialize};
 use std::f64::consts::{PI, TAU};
 use ultraviolet::DVec3;
@@ -45,7 +29,7 @@ impl SphereConcentricCircleDescriptor {
         let inter_helix_center_gap = self
             .inter_helix_center_gap
             .unwrap_or(HelixParameters::INTER_CENTER_GAP as f64);
-        let phi = PI / 2.0 - helix_index * inter_helix_center_gap as f64 / self.radius;
+        let phi = PI / 2.0 - helix_index * inter_helix_center_gap / self.radius;
         let z_radius = self.radius * phi.sin();
         let z = self.radius * phi.cos();
         let perimeter = TAU * z_radius;
@@ -134,16 +118,16 @@ impl Curved for SphereConcentricCircle {
         DVec3 { x, y, z }
     }
 
-    fn curvilinear_abscissa(&self, _t: f64) -> Option<f64> {
-        Some(self.z_radius * TAU * _t)
+    fn curvilinear_abscissa(&self, t: f64) -> Option<f64> {
+        Some(self.z_radius * TAU * t)
     }
 
-    fn inverse_curvilinear_abscissa(&self, _x: f64) -> Option<f64> {
-        Some(_x / TAU / self.z_radius)
+    fn inverse_curvilinear_abscissa(&self, x: f64) -> Option<f64> {
+        Some(x / TAU / self.z_radius)
     }
 
-    fn bounds(&self) -> super::CurveBounds {
-        super::CurveBounds::Finite
+    fn bounds(&self) -> CurveBounds {
+        CurveBounds::Finite
     }
 
     fn full_turn_at_t(&self) -> Option<f64> {
@@ -154,7 +138,7 @@ impl Curved for SphereConcentricCircle {
     }
 
     fn objective_nb_nt(&self) -> Option<usize> {
-        return self.target_nb_nt;
+        self.target_nb_nt
     }
 
     fn t_max(&self) -> f64 {
@@ -165,10 +149,10 @@ impl Curved for SphereConcentricCircle {
         self.t_min
     }
 
-    fn abscissa_converter(&self) -> Option<crate::AbscissaConverter> {
-        return Some(crate::AbscissaConverter::linear(
+    fn abscissa_converter(&self) -> Option<AbscissaConverter> {
+        Some(AbscissaConverter::linear(
             self.abscissa_converter_factor.unwrap_or(1.),
-        ));
+        ))
     }
 }
 
@@ -255,11 +239,11 @@ impl Curved for SphereTennisBallSeam {
             };
         }
         let t = (t - self.t3) / self.z;
-        return DVec3 {
+        DVec3 {
             x: self.z_radius,
             y: -self.z * t.sin(),
             z: -self.z * t.cos(),
-        };
+        }
     }
 
     fn speed(&self, t: f64) -> DVec3 {
@@ -289,11 +273,11 @@ impl Curved for SphereTennisBallSeam {
             };
         }
         let t = (t - self.t3) / self.z;
-        return DVec3 {
+        DVec3 {
             x: 0.,
             y: -self.z * t.cos(),
             z: self.z * t.sin(),
-        };
+        }
     }
 
     fn acceleration(&self, t: f64) -> DVec3 {
@@ -323,39 +307,31 @@ impl Curved for SphereTennisBallSeam {
             };
         }
         let t = (t - self.t3) / self.z;
-        return DVec3 {
+        DVec3 {
             x: 0.,
             y: self.z * t.sin(),
             z: self.z * t.cos(),
-        };
+        }
     }
 
-    fn curvilinear_abscissa(&self, _t: f64) -> Option<f64> {
-        Some(_t)
+    fn curvilinear_abscissa(&self, t: f64) -> Option<f64> {
+        Some(t)
     }
 
-    fn inverse_curvilinear_abscissa(&self, _x: f64) -> Option<f64> {
-        Some(_x)
+    fn inverse_curvilinear_abscissa(&self, x: f64) -> Option<f64> {
+        Some(x)
     }
 
-    fn bounds(&self) -> super::CurveBounds {
-        super::CurveBounds::Finite
+    fn bounds(&self) -> CurveBounds {
+        CurveBounds::Finite
     }
-
-    // fn subdivision_for_t(&self, t: f64) -> Option<usize> {
-    //     None
-    // }
-
-    // fn is_time_maps_singleton(&self) -> bool {
-    //     true
-    // }
 
     fn full_turn_at_t(&self) -> Option<f64> {
         Some(self.t_max())
     }
 
     fn objective_nb_nt(&self) -> Option<usize> {
-        return self.target_nb_nt;
+        self.target_nb_nt
     }
 
     fn t_max(&self) -> f64 {
@@ -492,11 +468,11 @@ impl Curved for PillTennisBallSeam {
             };
         }
         let t = (t - self.t3b) / self.z;
-        return DVec3 {
+        DVec3 {
             x: self.z_radius,
             y: -self.length / 2.0 - self.z * t.sin(),
             z: -self.z * t.cos(),
-        };
+        }
     }
 
     fn speed(&self, t: f64) -> DVec3 {
@@ -554,11 +530,11 @@ impl Curved for PillTennisBallSeam {
             };
         }
         let t = (t - self.t3b) / self.z;
-        return DVec3 {
+        DVec3 {
             x: 0.0,
             y: -self.z * t.cos(),
             z: self.z * t.sin(),
-        };
+        }
     }
 
     fn acceleration(&self, t: f64) -> DVec3 {
@@ -600,39 +576,31 @@ impl Curved for PillTennisBallSeam {
             return DVec3::zero();
         }
         let t = (t - self.t3b) / self.z;
-        return DVec3 {
+        DVec3 {
             x: 0.0,
             y: self.z * t.sin(),
             z: self.z * t.cos(),
-        };
+        }
     }
 
-    fn curvilinear_abscissa(&self, _t: f64) -> Option<f64> {
-        Some(_t * self.perimeter)
+    fn curvilinear_abscissa(&self, t: f64) -> Option<f64> {
+        Some(t * self.perimeter)
     }
 
-    fn inverse_curvilinear_abscissa(&self, _x: f64) -> Option<f64> {
-        Some(_x / self.perimeter)
+    fn inverse_curvilinear_abscissa(&self, x: f64) -> Option<f64> {
+        Some(x / self.perimeter)
     }
 
-    fn bounds(&self) -> super::CurveBounds {
-        super::CurveBounds::Finite
+    fn bounds(&self) -> CurveBounds {
+        CurveBounds::Finite
     }
-
-    // fn subdivision_for_t(&self, t: f64) -> Option<usize> {
-    //     None
-    // }
-
-    // fn is_time_maps_singleton(&self) -> bool {
-    //     true
-    // }
 
     fn full_turn_at_t(&self) -> Option<f64> {
         Some(self.t_max())
     }
 
     fn objective_nb_nt(&self) -> Option<usize> {
-        return self.target_nb_nt;
+        self.target_nb_nt
     }
 
     fn t_max(&self) -> f64 {
@@ -665,7 +633,7 @@ impl PillConcentricStadiumDescriptor {
         let inter_helix_center_gap = self
             .inter_helix_center_gap
             .unwrap_or(HelixParameters::INTER_CENTER_GAP as f64);
-        let phi = PI / 2.0 - helix_index * inter_helix_center_gap as f64 / self.radius;
+        let phi = PI / 2.0 - helix_index * inter_helix_center_gap / self.radius;
         let z_radius = self.radius * phi.sin();
         let z = self.radius * phi.cos();
         let t1 = self.length;
@@ -719,16 +687,9 @@ pub(super) struct PillConcentricStadium {
     pub abscissa_converter_factor: Option<f64>,
 }
 
-impl PillConcentricStadium {
-    pub(super) fn t_max(&self) -> f64 {
-        self.perimeter
-    }
-}
-
 impl Curved for PillConcentricStadium {
     fn position(&self, t: f64) -> DVec3 {
         let t = (t * self.perimeter).rem_euclid(self.perimeter);
-        // println!("{}, {}, {}, {}", t, self.t1, self.t2, self.t3);
         if t < self.t1 {
             return DVec3 {
                 x: self.z_radius,
@@ -752,11 +713,11 @@ impl Curved for PillConcentricStadium {
             };
         }
         let t = (t - self.t3) / self.z_radius;
-        return DVec3 {
+        DVec3 {
             x: -self.z_radius * t.cos(),
             y: -self.length / 2.0 - self.z_radius * t.sin(),
             z: self.z,
-        };
+        }
     }
 
     fn speed(&self, t: f64) -> DVec3 {
@@ -784,11 +745,11 @@ impl Curved for PillConcentricStadium {
             };
         }
         let t = (t - self.t3) / self.z_radius;
-        return DVec3 {
+        DVec3 {
             x: self.z_radius * t.sin(),
             y: -self.z_radius * t.cos(),
             z: self.z,
-        };
+        }
     }
 
     fn acceleration(&self, t: f64) -> DVec3 {
@@ -808,40 +769,24 @@ impl Curved for PillConcentricStadium {
             return DVec3::zero();
         }
         let t = (t - self.t3) / self.z_radius;
-        return DVec3 {
+        DVec3 {
             x: self.z_radius * t.cos(),
             y: self.z_radius * t.sin(),
             z: self.z,
-        };
+        }
     }
 
-    fn curvilinear_abscissa(&self, _t: f64) -> Option<f64> {
-        Some(_t * self.perimeter)
+    fn curvilinear_abscissa(&self, t: f64) -> Option<f64> {
+        Some(t * self.perimeter)
     }
 
-    fn inverse_curvilinear_abscissa(&self, _x: f64) -> Option<f64> {
-        Some(_x / self.perimeter)
+    fn inverse_curvilinear_abscissa(&self, x: f64) -> Option<f64> {
+        Some(x / self.perimeter)
     }
 
-    fn bounds(&self) -> super::CurveBounds {
-        super::CurveBounds::Finite
+    fn bounds(&self) -> CurveBounds {
+        CurveBounds::Finite
     }
-
-    // fn subdivision_for_t(&self, t: f64) -> Option<usize> {
-    //     None
-    // }
-
-    // fn is_time_maps_singleton(&self) -> bool {
-    //     true
-    // }
-
-    // fn first_theta(&self) -> Option<f64> {
-    //     Some(self.theta_0)
-    // }
-
-    // fn last_theta(&self) -> Option<f64> {
-    //     Some(self.last_theta())
-    // }
 
     fn full_turn_at_t(&self) -> Option<f64> {
         match self.is_closed {
@@ -851,7 +796,7 @@ impl Curved for PillConcentricStadium {
     }
 
     fn objective_nb_nt(&self) -> Option<usize> {
-        return self.target_nb_nt;
+        self.target_nb_nt
     }
 
     fn t_max(&self) -> f64 {
@@ -862,9 +807,9 @@ impl Curved for PillConcentricStadium {
         self.t_min
     }
 
-    fn abscissa_converter(&self) -> Option<crate::AbscissaConverter> {
-        return Some(crate::AbscissaConverter::linear(
+    fn abscissa_converter(&self) -> Option<AbscissaConverter> {
+        Some(AbscissaConverter::linear(
             self.abscissa_converter_factor.unwrap_or(1.),
-        ));
+        ))
     }
 }

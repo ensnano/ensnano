@@ -1,33 +1,29 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::*;
-use ensnano_design::{HelixParameters, elements::DesignElementKey};
-use ensnano_gui::AppState as GuiState;
-use ensnano_gui::ClipboardContent;
-use ensnano_interactor::PastingStatus;
-use ensnano_interactor::{ScaffoldInfo, SelectionConversion, SimulationState};
-
 mod curve_builders;
-use curve_builders::*;
+
+use crate::app_state::{AppState, NewHelixStrand};
+use curve_builders::{BEZIER_CURVE_BUILDER, ELLIPSE_BUILDER, TWO_SPHERES_BUILDER};
+use ensnano_design::{
+    bezier_plane::BezierPathId, elements::DesignElementKey, parameters::HelixParameters,
+};
+use ensnano_gui::{
+    AppState as GuiState, GuiDesignReaderExt,
+    left_panel::tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
+    status_bar::{ClipboardContent, CurrentOpState},
+};
+use ensnano_interactor::{
+    PastingStatus, ScaffoldInfo, SimulationState, StrandBuildingStatus, WidgetBasis,
+    app_state_parameters::{
+        check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
+    },
+    graphics::HBondDisplay,
+    selection::{
+        ActionMode, Selection, SelectionConversion as _, SelectionMode, all_helices_no_grid,
+    },
+};
+use ensnano_organizer::tree::GroupId;
 
 impl GuiState for AppState {
-    const POSSIBLE_CURVES: &'static [ensnano_gui::CurveDescriptorBuilder<AppState>] =
+    const POSSIBLE_CURVES: &'static [CurveDescriptorBuilder<Self>] =
         &[ELLIPSE_BUILDER, TWO_SPHERES_BUILDER, BEZIER_CURVE_BUILDER];
 
     fn get_selection_mode(&self) -> SelectionMode {
@@ -71,13 +67,10 @@ impl GuiState for AppState {
 
     fn can_make_grid(&self) -> bool {
         self.selection_content().len() > 4
-            && ensnano_interactor::all_helices_no_grid(
-                self.selection_content(),
-                &self.get_design_interactor(),
-            )
+            && all_helices_no_grid(self.selection_content(), &self.get_design_interactor())
     }
 
-    fn get_reader(&self) -> Box<dyn ensnano_gui::GuiDesignReaderExt> {
+    fn get_reader(&self) -> Box<dyn GuiDesignReaderExt> {
         Box::new(self.get_design_interactor())
     }
 
@@ -103,7 +96,7 @@ impl GuiState for AppState {
         }
     }
 
-    fn get_current_operation_state(&self) -> Option<ensnano_gui::CurrentOpState> {
+    fn get_current_operation_state(&self) -> Option<CurrentOpState> {
         self.0.design.get_current_operation_state()
     }
 
@@ -112,7 +105,7 @@ impl GuiState for AppState {
     }
 
     fn get_selected_group(&self) -> Option<GroupId> {
-        self.0.selection.selected_group.clone()
+        self.0.selection.selected_group
     }
 
     fn get_suggestion_parameters(&self) -> &SuggestionParameters {
@@ -155,8 +148,8 @@ impl GuiState for AppState {
         self.0.parameters.show_bezier_paths
     }
 
-    fn get_selected_bezier_path(&self) -> Option<ensnano_design::BezierPathId> {
-        if let Some(Selection::BezierVertex(vertex)) = self.0.selection.selection.get(0) {
+    fn get_selected_bezier_path(&self) -> Option<BezierPathId> {
+        if let Some(Selection::BezierVertex(vertex)) = self.0.selection.selection.first() {
             Some(vertex.path_id)
         } else {
             None
@@ -183,7 +176,7 @@ impl GuiState for AppState {
     fn get_recommended_scaling_revolution_surface(
         &self,
         scaffold_len: usize,
-    ) -> Option<ensnano_gui::RevolutionScaling> {
+    ) -> Option<RevolutionScaling> {
         let area_surface = self.0.unrooted_surface.area?;
         let perimeter_surface = self
             .0
@@ -202,7 +195,7 @@ impl GuiState for AppState {
         let half_number_helix =
             (scaled_perimeter / 2. / HelixParameters::INTER_CENTER_GAP as f64).floor() as usize;
 
-        Some(ensnano_gui::RevolutionScaling {
+        Some(RevolutionScaling {
             nb_helix: half_number_helix * 2,
         })
     }

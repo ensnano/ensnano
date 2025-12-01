@@ -1,8 +1,7 @@
-use std::ops::Range;
-
 use ahash::HashMap;
 use ensnano_design::Nucl;
 use ensnano_interactor::ObjectType;
+use std::ops::Range;
 
 /// Holds the intermediary representation
 /// of a nucleotide pair.
@@ -12,44 +11,31 @@ pub(crate) enum IntermediaryPair {
     OnlyForward(u32, Nucl),
     OnlyBackward(u32, Nucl),
     // always forward, backward
-    // the second nucleotide is redondant
+    // the second nucleotide is redundant
     Pair(u32, Nucl, u32),
 }
 
 impl IntermediaryPair {
-    pub fn is_a_pair(&self) -> bool {
-        match self {
-            IntermediaryPair::Pair(..) => true,
-            _ => false,
-        }
+    pub(crate) fn is_a_pair(&self) -> bool {
+        matches!(self, Self::Pair(..))
     }
 
-    pub fn is_only_forward(&self) -> bool {
-        match self {
-            IntermediaryPair::OnlyForward(..) => true,
-            _ => false,
-        }
+    pub(crate) fn is_only_forward(&self) -> bool {
+        matches!(self, Self::OnlyForward(..))
     }
 
-    pub fn is_only_backward(&self) -> bool {
-        match self {
-            IntermediaryPair::OnlyBackward(..) => true,
-            _ => false,
-        }
+    pub(crate) fn is_only_backward(&self) -> bool {
+        matches!(self, Self::OnlyBackward(..))
     }
 
     /// Matches two pairs to find the way to link them.
-    /// If both are double, or they missmatch, None is returned instead.
-    pub fn match_single(&self, other: &Self) -> Option<(u32, Nucl, u32, Nucl)> {
+    /// If both are double, or they mismatch, None is returned instead.
+    pub(crate) fn match_single(&self, other: &Self) -> Option<(u32, Nucl, u32, Nucl)> {
         match (self, other) {
-            (IntermediaryPair::OnlyForward(i, n), IntermediaryPair::OnlyForward(j, m))
-            | (IntermediaryPair::OnlyBackward(i, n), IntermediaryPair::OnlyBackward(j, m))
-            | (IntermediaryPair::Pair(i, n, _), IntermediaryPair::OnlyForward(j, m))
-            | (IntermediaryPair::Pair(_, n, i), IntermediaryPair::OnlyBackward(j, m))
-            | (IntermediaryPair::OnlyForward(i, n), IntermediaryPair::Pair(j, m, _))
-            | (IntermediaryPair::OnlyBackward(i, n), IntermediaryPair::Pair(_, m, j)) => {
-                Some((*i, *n, *j, *m))
-            }
+            (Self::OnlyForward(i, n) | Self::Pair(i, n, _), Self::OnlyForward(j, m))
+            | (Self::OnlyBackward(i, n) | Self::Pair(_, n, i), Self::OnlyBackward(j, m))
+            | (Self::OnlyForward(i, n), Self::Pair(j, m, _))
+            | (Self::OnlyBackward(i, n), Self::Pair(_, m, j)) => Some((*i, *n, *j, *m)),
             _ => None,
         }
     }
@@ -59,7 +45,7 @@ impl IntermediaryPair {
 /// of an helix.
 /// Contains a copy of its parameters, a map
 /// of pairs, and a vector of ranges of indices
-/// that correspond to the continous ranges
+/// that correspond to the continuous ranges
 /// of double pairs within the helix. This
 /// information is computed so that the structure
 /// of those continuous segments can be better
@@ -73,7 +59,7 @@ pub(crate) struct IntermediaryHelix {
     pub crossover_cuts: Vec<isize>,
 }
 
-pub fn build_helices(
+pub(crate) fn build_helices(
     object_type: &HashMap<u32, ObjectType>,
     nucleotide: &HashMap<u32, Nucl>,
 ) -> HashMap<usize, IntermediaryHelix> {
@@ -143,17 +129,19 @@ pub fn build_helices(
         }
     }
 
-    result.values_mut().for_each(|helix| helix.compute_ranges());
+    for helix in result.values_mut() {
+        helix.compute_ranges();
+    }
 
-    result
-        .values_mut()
-        .for_each(|helix| helix.crossover_cuts.sort_unstable());
+    for helix in result.values_mut() {
+        helix.crossover_cuts.sort_unstable();
+    }
 
     result
 }
 
 impl IntermediaryHelix {
-    pub fn compute_ranges(&mut self) {
+    pub(crate) fn compute_ranges(&mut self) {
         self.double_ranges = self.compute_ranges_only(IntermediaryPair::is_a_pair);
         self.single_ranges = self.compute_ranges_only(IntermediaryPair::is_only_forward);
         self.single_ranges
@@ -186,11 +174,9 @@ impl IntermediaryHelix {
                 } else {
                     current_range = Some(*position..position + 1);
                 }
-            } else {
-                if let Some(range) = current_range {
-                    result.push(range);
-                    current_range = None;
-                }
+            } else if let Some(range) = current_range {
+                result.push(range);
+                current_range = None;
             }
         }
 
@@ -201,7 +187,7 @@ impl IntermediaryHelix {
         result
     }
 
-    pub fn push_nucleotide(&mut self, id: u32, nucl: Nucl) -> Option<()> {
+    pub(crate) fn push_nucleotide(&mut self, id: u32, nucl: Nucl) -> Option<()> {
         if let Some(pair) = self.pairs.get_mut(&nucl.position) {
             match pair {
                 IntermediaryPair::OnlyForward(i, n) => {
@@ -220,7 +206,7 @@ impl IntermediaryHelix {
                     *pair = IntermediaryPair::Pair(id, nucl, *i);
                     return Some(());
                 }
-                _ => {
+                IntermediaryPair::Pair(..) => {
                     return None;
                 }
             }
@@ -241,6 +227,7 @@ impl IntermediaryHelix {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn helix_ranges() {
         let mut helix = IntermediaryHelix::default();

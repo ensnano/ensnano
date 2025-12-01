@@ -1,23 +1,4 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::circle_curve::CircleCurve;
-use crate::HelixParameters;
+use crate::{curves::circle_curve::CircleCurve, parameters::HelixParameters};
 use serde::{Deserialize, Serialize};
 use std::f64::consts::TAU;
 
@@ -36,7 +17,7 @@ impl TorusConcentricCircleDescriptor {
     pub(super) fn with_helix_parameters(self, helix_parameters: &HelixParameters) -> CircleCurve {
         let inter_helix_center_gap = self
             .inter_helix_center_gap
-            .unwrap_or(helix_parameters.inter_helix_axis_gap() as f64);
+            .unwrap_or_else(|| helix_parameters.inter_helix_axis_gap() as f64);
         let inter_helix_angle = TAU / (self.number_of_helices as f64);
         let section_radius = inter_helix_center_gap / 2. / (inter_helix_angle / 2.).sin();
         let phi =
@@ -50,7 +31,7 @@ impl TorusConcentricCircleDescriptor {
                 / helix_parameters.rise as f64,
         ); // better <= 1
 
-        let mut circle_helix_parameters = helix_parameters.clone();
+        let mut circle_helix_parameters = *helix_parameters;
         circle_helix_parameters.inter_helix_gap = inter_helix_center_gap as f32;
 
         CircleCurve {
@@ -90,7 +71,7 @@ impl EllipticTorusConcentricCircleDescriptor {
                 / helix_parameters.rise as f64,
         ); // better <= 1
 
-        let circle_helix_parameters = helix_parameters.clone();
+        let circle_helix_parameters = *helix_parameters;
 
         CircleCurve {
             _parameters: circle_helix_parameters,

@@ -1,25 +1,28 @@
 //! Export the 3D scene to  binary stl file format
 //! The description of binary stl format:
 
-//! UINT8[80]    – Header                 -     80 bytes
-//! UINT32       – Number of triangles    -      4 bytes
-
+//! [u8; 80]     – Header                 - 80 bytes
+//! u32          – Number of triangles    -  4 bytes
 //! foreach triangle                      - 50 bytes:
-//!     REAL32[3] – Normal vector             - 12 bytes
-//!     REAL32[3] – Vertex 1                  - 12 bytes
-//!     REAL32[3] – Vertex 2                  - 12 bytes
-//!     REAL32[3] – Vertex 3                  - 12 bytes
-//!     UINT16    – Attribute byte count      -  2 bytes
+//!     [f32; 3] – Normal vector          - 12 bytes
+//!     [f32; 3] – Vertex 1               - 12 bytes
+//!     [f32; 3] – Vertex 2               - 12 bytes
+//!     [f32; 3] – Vertex 3               - 12 bytes
+//!     u16      – Attribute byte count   -  2 bytes
 
-use super::view::{
-    ConeInstance, Ellipsoid, Instantiable, Mesh, Mesh::*, RawDnaInstance, SlicedTubeInstance,
-    SphereInstance, TubeInstance, TubeLidInstance,
+use crate::view::{
+    Mesh,
+    dna_obj::{
+        ConeInstance, Ellipsoid, RawDnaInstance, SlicedTubeInstance, SphereInstance, TubeInstance,
+        TubeLidInstance,
+    },
+    instances_drawer::Instantiable as _,
 };
 use ensnano_consts::NB_RAY_TUBE;
 use ultraviolet::{Mat3, Vec3};
 
 impl RawDnaInstance {
-    fn to_stl_triangles(&self) -> Vec<StlTriangle> {
+    fn to_stl_triangles(self) -> Vec<StlTriangle> {
         if self.scale.z.abs() < 1e-6 {
             vec![]
         } else {
@@ -30,15 +33,16 @@ impl RawDnaInstance {
         }
     }
 
+    #[expect(clippy::needless_range_loop)]
     fn transformed_vertices_normal(&self) -> Vec<([f32; 3], [f32; 3])> {
         let mesh = Mesh::try_from(self.mesh).unwrap();
         let vertices_normal = match mesh {
-            Sphere => SphereInstance::vertices(),
-            Tube => TubeInstance::vertices(),
-            SlicedTube => SlicedTubeInstance::vertices(),
-            TubeLid => TubeLidInstance::vertices(),
-            Prime3Cone => ConeInstance::vertices(),
-            BaseEllipsoid => Ellipsoid::vertices(),
+            Mesh::Sphere => SphereInstance::vertices(),
+            Mesh::Tube => TubeInstance::vertices(),
+            Mesh::SlicedTube => SlicedTubeInstance::vertices(),
+            Mesh::TubeLid => TubeLidInstance::vertices(),
+            Mesh::Prime3Cone => ConeInstance::vertices(),
+            Mesh::BaseEllipsoid => Ellipsoid::vertices(),
             _ => vec![],
         };
         let model = self.model;
@@ -48,7 +52,7 @@ impl RawDnaInstance {
             m4[0][0], m4[0][1], m4[0][2], m4[1][0], m4[1][1], m4[1][2], m4[2][0], m4[2][1],
             m4[2][2],
         ]);
-        if mesh != SlicedTube {
+        if mesh != Mesh::SlicedTube {
             vertices_normal
                 .iter()
                 .map(|v| (Vec3::from(v.position) * scale, Vec3::from(v.normal)))
@@ -140,12 +144,12 @@ impl RawDnaInstance {
     fn triangle_list_indices(&self) -> Vec<usize> {
         let mesh = Mesh::try_from(self.mesh).unwrap();
         match mesh {
-            Sphere => SphereInstance::indices(),
-            Tube => triangle_indices_from_strip(TubeInstance::indices()),
-            SlicedTube => triangle_indices_from_strip(SlicedTubeInstance::indices()),
-            TubeLid => TubeLidInstance::indices(),
-            Prime3Cone => ConeInstance::indices(),
-            BaseEllipsoid => Ellipsoid::indices(),
+            Mesh::Sphere => SphereInstance::indices(),
+            Mesh::Tube => triangle_indices_from_strip(TubeInstance::indices()),
+            Mesh::SlicedTube => triangle_indices_from_strip(SlicedTubeInstance::indices()),
+            Mesh::TubeLid => TubeLidInstance::indices(),
+            Mesh::Prime3Cone => ConeInstance::indices(),
+            Mesh::BaseEllipsoid => Ellipsoid::indices(),
             _ => vec![],
         }
         .iter()
@@ -161,17 +165,16 @@ fn triangle_indices_from_strip(indices: Vec<u16>) -> Vec<u16> {
         if i % 2 == 0 {
             triangle_from_strip_indices.push(indices[i]);
             triangle_from_strip_indices.push(indices[i + 1]);
-            triangle_from_strip_indices.push(indices[i + 2]);
         } else {
             triangle_from_strip_indices.push(indices[i + 1]);
             triangle_from_strip_indices.push(indices[i]);
-            triangle_from_strip_indices.push(indices[i + 2]);
-        };
+        }
+        triangle_from_strip_indices.push(indices[i + 2]);
     }
     triangle_from_strip_indices
 }
 
-pub fn stl_bytes_export(raw_instances: Vec<RawDnaInstance>) -> Vec<u8> {
+pub(crate) fn stl_bytes_export(raw_instances: Vec<RawDnaInstance>) -> Vec<u8> {
     let triangles: Vec<StlTriangle> = raw_instances
         .iter()
         .flat_map(|raw_inst| raw_inst.to_stl_triangles())
@@ -200,7 +203,7 @@ impl StlTriangle {
         result.extend(self.v1.to_vec());
         result.extend(self.v2.to_vec());
         result.extend(self.v3.to_vec());
-        let mut result: Vec<u8> = result.iter().map(|x| x.to_le_bytes()).flatten().collect();
+        let mut result: Vec<u8> = result.iter().flat_map(|x| x.to_le_bytes()).collect();
         result.push(0); // attribute bytes
         result.push(0);
         result
@@ -232,10 +235,8 @@ fn vertices_indices_to_stl_triangles(
 
 #[cfg(test)]
 mod tests {
-    use {
-        super::*,
-        std::io::{self, Write as _},
-    };
+    use super::*;
+    use std::io::{self, Write as _};
 
     fn stl_file_from_triangles(path: &str, triangles: Vec<StlTriangle>) -> Result<(), io::Error> {
         let mut out_file = std::fs::File::create(path)?;
@@ -249,6 +250,7 @@ mod tests {
         out_file.write_all(&bytes)?;
         Ok(())
     }
+
     #[test]
     fn empty_stl_test() {
         assert!(stl_file_from_triangles("blop.stl", vec![]).is_ok()); // cspell: disable-line

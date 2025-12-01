@@ -1,28 +1,27 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::tabs::GuiTab;
-use super::*;
+use crate::{
+    AppState, Requests,
+    left_panel::{
+        BrownianParametersFactory, Message, RigidBodyFactory, RigidBodyParametersRequest,
+        discrete_value::{FactoryId, RequestFactory, ValueId},
+        tabs::{GuiTab, gostop::GoStop},
+    },
+};
 use ensnano_consts::ICON_PHYSICAL_ENGINE;
 use ensnano_iced::{
-    helpers::*, iced::Alignment, iced_aw::TabLabel, theme::BadValue, widgets::keyboard_priority,
+    helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
+    theme::BadValue,
+    ui_size::UiSize,
+    widgets::keyboard_priority::keyboard_priority,
 };
+use ensnano_interactor::{RollRequest, SimulationState};
 use ensnano_physics::parameters::{RapierParameters, RapierSimulationType};
+use iced::{
+    Alignment,
+    widget::{Column, Space, column, pick_list, row, scrollable, text, text_input},
+};
+use iced_aw::TabLabel;
 use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 
 pub struct SimulationTab<State: AppState> {
     rigid_body_factory: RequestFactory<RigidBodyFactory>,
@@ -69,8 +68,8 @@ impl<State: AppState> SimulationTab<State> {
         self.rigid_body_factory.requestable.brownian_motion = brownian_motion;
     }
 
-    pub fn make_rigid_body_request(&mut self, request: &mut Option<RigidBodyParametersRequest>) {
-        self.rigid_body_factory.make_request(request)
+    pub fn make_rigid_body_request(&self, request: &mut Option<RigidBodyParametersRequest>) {
+        self.rigid_body_factory.make_request(request);
     }
 
     pub fn update_request(
@@ -80,7 +79,7 @@ impl<State: AppState> SimulationTab<State> {
         request: &mut Option<RigidBodyParametersRequest>,
     ) {
         self.rigid_body_factory
-            .update_request(value_id, value, request)
+            .update_request(value_id, value, request);
     }
 
     pub fn update_brownian(
@@ -91,31 +90,31 @@ impl<State: AppState> SimulationTab<State> {
     ) {
         let new_brownian = self.brownian_factory.update_value(value_id, value);
         self.rigid_body_factory.requestable.brownian_parameters = new_brownian;
-        self.rigid_body_factory.make_request(request)
+        self.rigid_body_factory.make_request(request);
     }
 
     pub fn get_physical_simulation_request(&self) -> RollRequest {
         self.physical_simulation.request()
     }
 
-    pub fn leave_tab<R: Requests>(&mut self, requests: Arc<Mutex<R>>, app_state: &State) {
-        if app_state.get_simulation_state() == SimulationState::RigidGrid {
+    pub fn leave_tab<R: Requests>(&self, requests: Arc<Mutex<R>>, app_state: &State) {
+        if SimulationState::RigidGrid == app_state.get_simulation_state() {
             self.request_stop_rigid_body_simulation(requests);
             println!("stop grids");
-        } else if app_state.get_simulation_state() == SimulationState::RigidHelices {
+        } else if SimulationState::RigidHelices == app_state.get_simulation_state() {
             self.request_stop_rigid_body_simulation(requests);
             println!("stop helices");
         }
     }
 
-    fn request_stop_rigid_body_simulation<R: Requests>(&mut self, requests: Arc<Mutex<R>>) {
+    fn request_stop_rigid_body_simulation<R: Requests>(&self, requests: Arc<Mutex<R>>) {
         let mut request = None;
         self.make_rigid_body_request(&mut request);
         if let Some(request) = request {
             requests
                 .lock()
                 .unwrap()
-                .update_rigid_body_simulation_parameters(request)
+                .update_rigid_body_simulation_parameters(request);
         }
     }
 
@@ -123,7 +122,7 @@ impl<State: AppState> SimulationTab<State> {
         go_stop: &'a GoStop<State>,
         app_state: &State,
         ui_size: UiSize,
-    ) -> ensnano_iced::Element<'a, Message<State>> {
+    ) -> iced::Element<'a, Message<State>> {
         let sim_state = app_state.get_simulation_state();
         if sim_state.is_paused() {
             row![
@@ -134,9 +133,7 @@ impl<State: AppState> SimulationTab<State> {
             .into()
         } else {
             let helices_active = sim_state.is_none() || sim_state.simulating_helices();
-            go_stop
-                .view(helices_active, sim_state.simulating_helices())
-                .into()
+            go_stop.view(helices_active, sim_state.simulating_helices())
         }
     }
 }
@@ -148,11 +145,7 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
         TabLabel::Icon(ICON_PHYSICAL_ENGINE)
     }
 
-    fn content(
-        &self,
-        ui_size: UiSize,
-        app_state: &State,
-    ) -> ensnano_iced::Element<'_, Self::Message> {
+    fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {
         let sim_state = &app_state.get_simulation_state();
         let rigid_grid_is_active = sim_state.is_none() || sim_state.simulating_grid();
         let roll_active = sim_state.is_none() || sim_state.is_rolling();
@@ -168,11 +161,7 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
                 start_stop_button(
                     "Rigid Grids",
                     ui_size,
-                    if rigid_grid_is_active {
-                        Some(Message::RigidGridSimulation)
-                    } else {
-                        None
-                    },
+                    rigid_grid_is_active.then_some(Message::RigidGridSimulation),
                     sim_state.simulating_grid()
                 ),
                 Self::helix_btns(&self.rigid_helices_button, app_state, ui_size,),
@@ -263,7 +252,7 @@ fn kcut_threshold_editor<State: AppState>(
     parameters: &RapierParameters,
     fields: &HashMap<String, String>,
     ui_size: UiSize,
-) -> ensnano_iced::Element<'static, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
+) -> iced::Element<'static, Message<State>> {
     row![
         text("KCut threshold"),
         Space::with_width(ui_size.checkbox_spacing()),
@@ -349,7 +338,7 @@ fn rapier_parameters_field_editor<State: AppState>(
     ui_size: UiSize,
     fields: &HashMap<String, String>,
     parameters: &RapierParameters,
-) -> ensnano_iced::Element<'static, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
+) -> iced::Element<'static, Message<State>> {
     let description = description.to_string();
     let default_field_value = default_value.to_string();
     let current_value = fields.get(&description).unwrap_or(&default_field_value);
@@ -383,10 +372,9 @@ fn view_rapier_parameters<State: AppState>(
     parameters: RapierParameters,
     fields: &HashMap<String, String>,
     ui_size: UiSize,
-) -> ensnano_iced::Element<'static, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
-    let mut elements: Vec<
-        ensnano_iced::Element<'static, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer>,
-    > = vec![subsection("Rapier parameters", ui_size).into()];
+) -> iced::Element<'static, Message<State>> {
+    let mut elements: Vec<iced::Element<'static, Message<State>>> =
+        vec![subsection("Rapier parameters", ui_size).into()];
 
     let values = parameters.parameters_array();
 
@@ -406,23 +394,22 @@ fn view_rapier_parameters<State: AppState>(
 }
 
 #[derive(Default)]
-struct PhysicalSimulation {}
+struct PhysicalSimulation;
 
 impl PhysicalSimulation {
-    fn view<'b, State: AppState>(
+    fn view<State: AppState>(
         &self,
         ui_size: UiSize,
         name: &'static str,
         active: bool,
         running: bool,
-    ) -> ensnano_iced::Element<'_, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer>
-    {
+    ) -> iced::Element<'_, Message<State>> {
         let button_str = if running { "Stop" } else { name };
         let mut button = text_button(button_str, ui_size);
         button = if running {
-            button.style(theme::Button::Destructive)
+            button.style(iced::theme::Button::Destructive)
         } else {
-            button.style(theme::Button::Positive)
+            button.style(iced::theme::Button::Positive)
         };
         if active {
             button = button.on_press(Message::RollSimulationRequest);

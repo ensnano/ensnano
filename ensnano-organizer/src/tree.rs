@@ -1,21 +1,3 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 use rand::{
     Rng,
     distributions::{Distribution, Standard},
@@ -32,7 +14,7 @@ pub enum OrganizerTree<K> {
     Leaf(K),
     Node {
         name: String,
-        #[serde(alias = "childrens")] // cspell:disable-line
+        #[serde(alias = "childrens")] // cspell: disable-line
         children: Vec<OrganizerTree<K>>,
         expanded: bool,
         #[serde(default)]
@@ -51,7 +33,9 @@ impl<K: PartialEq> OrganizerTree<K> {
                     match c {
                         Self::Leaf(k) if k == element => ret.push(rename.clone()),
                         Self::Leaf(_) => (),
-                        node => ret.extend(node.get_names_of_groups_having(element)),
+                        node @ Self::Node { .. } => {
+                            ret.extend(node.get_names_of_groups_having(element));
+                        }
                     }
                 }
             }
@@ -66,7 +50,7 @@ impl<K: PartialEq> OrganizerTree<K> {
         match self {
             Self::Leaf(_) => (),
             Self::Node { children, .. } => {
-                let _ = ret.push(self.get_name_copy_with_id());
+                ret.push(self.get_name_copy_with_id());
                 for c in children {
                     ret.extend(c.get_names_of_all_groups());
                 }
@@ -102,10 +86,10 @@ impl<K: PartialEq> OrganizerTree<K> {
 
     pub fn get_name_copy_with_id(&self) -> String {
         match self {
-            Self::Leaf(_) => "".to_string(),
+            Self::Leaf(_) => String::new(),
             Self::Node { name, id, .. } => {
                 if let Some(GroupId(x)) = id {
-                    format!("{name}_{:0X}", x & 0xFFFF).to_string()
+                    format!("{name}_{:0X}", x & 0xFFFF)
                 } else {
                     name.clone()
                 }
@@ -130,22 +114,18 @@ impl<K: Eq + Hash + Copy> OrganizerTree<K> {
                 for c in children {
                     match c {
                         Self::Leaf(e) => {
-                            let mut e_names: Vec<&str> = hashmap
-                                .get(e)
-                                .map(|x: &Vec<&str>| x.clone())
-                                .unwrap_or(Vec::new());
+                            let mut e_names: Vec<&str> =
+                                hashmap.get(e).cloned().unwrap_or(Vec::new());
                             if has_prefix {
                                 e_names.push(trimmed_name);
                             }
                             hashmap.insert(*e, e_names);
                         }
-                        _ => {
+                        Self::Node { .. } => {
                             let c_hashmap = c.get_hashmap_to_all_group_names_with_prefix(prefix);
                             for (e, e_names) in c_hashmap {
-                                let mut new_e_names: Vec<&str> = hashmap
-                                    .get(&e)
-                                    .map(|x: &Vec<&str>| x.clone())
-                                    .unwrap_or(Vec::new());
+                                let mut new_e_names: Vec<&str> =
+                                    hashmap.get(&e).cloned().unwrap_or(Vec::new());
                                 new_e_names.extend(e_names);
                                 if has_prefix {
                                     new_e_names.push(trimmed_name);
@@ -157,7 +137,7 @@ impl<K: Eq + Hash + Copy> OrganizerTree<K> {
                 }
             }
         }
-        return hashmap;
+        hashmap
     }
 }
 
@@ -175,7 +155,7 @@ enum NewOrganizerTree<K> {
     Leaf(K),
     Node {
         name: String,
-        #[serde(alias = "childrens")] // cspell:disable-line
+        #[serde(alias = "childrens")] // cspell: disable-line
         children: Vec<OrganizerTree<K>>,
         expanded: bool,
         #[serde(default)]
@@ -184,7 +164,7 @@ enum NewOrganizerTree<K> {
 }
 
 impl<K> OldOrganizerTree<K> {
-    fn to_new(self) -> OrganizerTree<K> {
+    fn to_real(self) -> OrganizerTree<K> {
         match self {
             Self::Leaf(k) => OrganizerTree::Leaf(k),
             Self::Node(name, children) => OrganizerTree::Node {
@@ -230,7 +210,7 @@ impl<'de, K: Deserialize<'de>> Deserialize<'de> for OrganizerTree<K> {
     {
         match NewOrOld::deserialize(deserializer) {
             Ok(NewOrOld::New(new_tree)) => Ok(new_tree.to_real()),
-            Ok(NewOrOld::Old(old_tree)) => Ok(old_tree.to_new()),
+            Ok(NewOrOld::Old(old_tree)) => Ok(old_tree.to_real()),
             Err(e) => Err(e),
         }
     }

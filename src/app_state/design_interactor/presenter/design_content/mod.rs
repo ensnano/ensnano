@@ -1,46 +1,32 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 mod xover_suggestions;
 
-use super::*;
+use crate::app_state::design_interactor::presenter::{JunctionsIds, Presenter, SimulationUpdate};
 use ahash::RandomState;
 use ensnano_consts::{
     BOND_RADIUS, CLONE_OPACITY, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, SPHERE_RADIUS,
 };
 use ensnano_design::{
+    Design, Nucl,
     drawing_style::{ColorType, DrawingAttribute, DrawingStyle},
     elements::{DesignElement, DesignElementKey},
     grid::{GridData, GridId, GridObject, GridPosition, HelixGridPosition},
-    isometry3_descriptor::Isometry3MissingMethods,
-    *,
+    helices::{HelixCollection as _, NuclCollection},
+    isometry3_descriptor::Isometry3MissingMethods as _,
+    strands::{Domain, DomainJunction},
 };
 use ensnano_interactor::{
     ObjectType,
+    app_state_parameters::suggestion_parameters::SuggestionParameters,
     graphics::{LoopoutBond, LoopoutNucl},
 };
-use ensnano_scene::view::GridInstance;
+use ensnano_scene::{data::design3d::Scalebar, view::grid::GridInstance};
 use ensnano_utils::{click_counter::ClickCounter, colors, instance::Instance};
 use serde::Serialize;
 use std::{
     borrow::Cow,
     collections::{BTreeMap, HashMap, HashSet},
-    str::FromStr,
+    fmt::Write as _,
+    str::FromStr as _,
     sync::Arc,
 };
 use ultraviolet::{Isometry3, Vec3};
@@ -49,7 +35,7 @@ use xover_suggestions::XoverSuggestions;
 const PRINTOUT_NUCL_POSITIONS: bool = false; // true;
 
 #[derive(Default, Clone)]
-pub struct DesignContent {
+pub(crate) struct DesignContent {
     /// Maps identifier of elements to their object type
     pub object_type: HashMap<u32, ObjectType, RandomState>,
     /// Maps identifier of nucleotide to Nucleotide objects
@@ -84,8 +70,8 @@ pub struct DesignContent {
     pub insertion_length: HashMap<u32, usize, RandomState>,
     pub xover_coloring_map: HashMap<u32, bool, RandomState>,
     pub with_cones_map: HashMap<u32, bool, RandomState>,
-    // min value, max value and rainbow function(t, min, max)->color
-    pub scalebar: Option<(f32, f32, fn(f32, f32, f32) -> u32)>,
+    // min value, max value and rainbow fn(t, min, max) -> color
+    pub scalebar: Option<Scalebar>,
 }
 
 impl DesignContent {
@@ -103,7 +89,7 @@ impl DesignContent {
     pub(super) fn get_element_position(&self, id: u32) -> Option<Vec3> {
         if let Some(object_type) = self.object_type.get(&id) {
             match object_type {
-                ObjectType::Nucleotide(id) => self.space_position.get(&id).map(|x| x.into()),
+                ObjectType::Nucleotide(id) => self.space_position.get(id).map(Into::into),
                 ObjectType::Bond(e1, e2) | ObjectType::SlicedBond(_, e1, e2, _) => {
                     let a = self.space_position.get(e1)?;
                     let b = self.space_position.get(e2)?;
@@ -121,17 +107,17 @@ impl DesignContent {
     }
 
     pub(super) fn get_element_graphic_position(&self, id: u32) -> Option<Vec3> {
-        if let Some(true) = self.on_axis.get(&id) {
-            // println!("{id} on axis");
-            return self.get_element_axis_position(id);
+        if matches!(self.on_axis.get(&id), Some(true)) {
+            self.get_element_axis_position(id)
+        } else {
+            self.get_element_position(id)
         }
-        return self.get_element_position(id);
     }
 
     pub(super) fn get_element_axis_position(&self, id: u32) -> Option<Vec3> {
         if let Some(object_type) = self.object_type.get(&id) {
             match object_type {
-                ObjectType::Nucleotide(id) => self.axis_space_position.get(&id).map(|x| x.into()),
+                ObjectType::Nucleotide(id) => self.axis_space_position.get(id).map(Into::into),
                 ObjectType::Bond(e1, e2)
                 | ObjectType::HelixCylinder(e1, e2)
                 | ObjectType::ColoredHelixCylinder(e1, e2, _)
@@ -292,10 +278,10 @@ impl DesignContent {
                     }
                 } else if let Domain::Insertion { nb_nucl, .. } = domain {
                     // Number of nucleotides inserted added
-                    sequence.push_str(&format!("**INSERTION {nb_nucl}**"))
+                    let _ = write!(sequence, "**INSERTION {nb_nucl}**");
                 }
                 if let Some(d) = staple_domain {
-                    intervals.intervals.push(d.finish())
+                    intervals.intervals.push(d.finish());
                 }
             }
             let group_names = presenter.get_name_of_group_having_strand(*s_id);
@@ -341,7 +327,7 @@ impl DesignContent {
             };
             ret.push(Staple {
                 plate,
-                well: format!("{}{}", column, row.to_string()),
+                well: format!("{column}{row}"),
                 sequence: staple_info.sequence.clone(),
                 name: (if let Some(name) = &staple_info.strand_name {
                     format!("{name} #{}", staple_info.s_id).into()
@@ -354,33 +340,27 @@ impl DesignContent {
                 }),
                 color_str: format!("{:#08X}", staple_info.color)
                     .trim_start_matches("0x")
-                    .to_string(),
+                    .to_owned(),
                 group_names: staple_info.group_names.clone(),
                 group_names_string: staple_info.group_names.join(" ; "),
                 length_str: staple_info.length.to_string(),
-                domain_decomposition: staple_info
-                    .domain_decomposition
-                    .split_once("=")
-                    .map(|split| split.1.to_string())
-                    .unwrap_or(staple_info.domain_decomposition.clone()),
+                domain_decomposition: match staple_info.domain_decomposition.split_once('=') {
+                    Some(split) => split.1.to_owned(),
+                    None => staple_info.domain_decomposition.clone(),
+                },
                 intervals: staple_info.intervals.clone(),
             });
         }
         ret
     }
 
-    pub fn get_all_visible_nucl_ids(
+    pub(crate) fn get_all_visible_nucl_ids(
         &self,
         design: &Design,
         invisible_nucls: &HashSet<Nucl>,
     ) -> Vec<u32> {
         let check_visibility = |&(_, v): &(&u32, &Nucl)| {
-            !invisible_nucls.contains(v)
-                && design
-                    .helices
-                    .get(&v.helix)
-                    .map(|h| h.visible)
-                    .unwrap_or_default()
+            !invisible_nucls.contains(v) && design.helices.get(&v.helix).is_some_and(|h| h.visible)
         };
         self.nucleotide
             .iter()
@@ -389,14 +369,14 @@ impl DesignContent {
             .collect()
     }
 
-    pub fn get_all_visible_bonds(
+    pub(crate) fn get_all_visible_bonds(
         &self,
         design: &Design,
         invisible_nucls: &HashSet<Nucl>,
     ) -> Vec<u32> {
         let check_visibility = |&(id, bond): &(&u32, &(Nucl, Nucl))| {
-            if self.object_type.get(id).unwrap().is_helix_cylinder() {
-                return true;
+            if self.object_type[id].is_helix_cylinder() {
+                true
                 // !(invisible_nucls.contains(&bond.0)
                 // && invisible_nucls.contains(&bond.0.compl())
                 // && invisible_nucls.contains(&bond.1)
@@ -405,16 +385,8 @@ impl DesignContent {
                 // visible // Apparently this return always true has the field .visible of an helix is never used...
             } else {
                 !(invisible_nucls.contains(&bond.0) && invisible_nucls.contains(&bond.1))
-                    && (design
-                        .helices
-                        .get(&bond.0.helix)
-                        .map(|h| h.visible)
-                        .unwrap_or_default()
-                        || design
-                            .helices
-                            .get(&bond.1.helix)
-                            .map(|h| h.visible)
-                            .unwrap_or_default())
+                    && (design.helices.get(&bond.0.helix).is_some_and(|h| h.visible)
+                        || design.helices.get(&bond.1.helix).is_some_and(|h| h.visible))
             }
         };
         self.nucleotides_involved
@@ -423,40 +395,7 @@ impl DesignContent {
             .map(|t| *t.0)
             .collect()
     }
-}
 
-#[derive(Debug)]
-pub struct Staple {
-    pub well: String,
-    pub name: Cow<'static, str>,
-    pub sequence: String,
-    pub plate: usize,
-    pub color_str: String,
-    pub group_names: Vec<String>,
-    pub group_names_string: String,
-    pub domain_decomposition: String,
-    pub length_str: String,
-    pub intervals: StapleIntervals,
-}
-
-#[derive(Debug, Serialize, Clone)]
-pub struct StapleIntervals {
-    pub staple_id: usize,
-    pub intervals: Vec<(isize, isize)>,
-}
-
-struct StapleInfo {
-    s_id: usize,
-    sequence: String,
-    strand_name: Option<Cow<'static, str>>,
-    color: u32,
-    group_names: Vec<String>,
-    domain_decomposition: String,
-    length: usize,
-    intervals: StapleIntervals,
-}
-
-impl DesignContent {
     /// Update all the hash maps - called after every edit operation
     pub(super) fn make_hash_maps(
         mut design: Design,
@@ -491,7 +430,7 @@ impl DesignContent {
         let mut insertion_length = HashMap::default();
         let mut xover_coloring_map = HashMap::default();
         let mut clone_variables: HashMap<String, f32> = HashMap::new();
-        let mut scalebar: Option<(f32, f32, fn(f32, f32, f32) -> u32)> = None;
+        let mut scalebar: Option<Scalebar> = None;
 
         // Maps identifiers to drawing styles
         let mut drawing_styles = HashMap::<DesignElementKey, DrawingStyle, RandomState>::default();
@@ -502,21 +441,18 @@ impl DesignContent {
         let grid_manager = design.get_updated_grid_data().clone();
 
         // Build drawing style map from organizer tree
-        if let Some(ref t) = design.organizer_tree {
+        if let Some(t) = &design.organizer_tree {
             // Read drawing style
             let prefix = "style:"; // PREFIX SHOULD BELONG TO CONST.RS
             let h = t.get_hashmap_to_all_group_names_with_prefix(prefix);
             for (e, names) in h {
                 let drawing_attributes = names
                     .iter()
-                    .map(|x| {
+                    .flat_map(|x| {
                         x.split(&[' ', ':'])
-                            .map(|x| DrawingAttribute::from_str(x))
-                            .filter(|x| x.is_ok())
-                            .map(|x| x.unwrap())
+                            .flat_map(DrawingAttribute::from_str)
                             .collect::<Vec<DrawingAttribute>>()
                     })
-                    .flatten()
                     .collect::<Vec<DrawingAttribute>>();
                 let style = DrawingStyle::from(drawing_attributes);
                 drawing_styles.insert(e, style);
@@ -527,16 +463,18 @@ impl DesignContent {
             let clone_variables_declaration = &all_group_names
                 .iter()
                 .filter(|g| g.starts_with("vars:"))
-                .map(|x| x[5..].split(&[' ', ',']).filter(|y| *y != ""))
-                .flatten()
+                .flat_map(|x| x[5..].split(&[' ', ',']).filter(|y| !y.is_empty()))
                 .collect::<Vec<&str>>();
-            println!("{:?}", clone_variables_declaration);
+            println!("{clone_variables_declaration:?}");
             for x in clone_variables_declaration {
-                let _s = x.split('=').filter(|y| *y != "").collect::<Vec<&str>>();
-                if _s.len() == 2 {
-                    if let Ok(value) = f32::from_str(_s[1]) {
-                        clone_variables.insert(_s[0].to_string(), value);
-                    }
+                let s = x
+                    .split('=')
+                    .filter(|y| !y.is_empty())
+                    .collect::<Vec<&str>>();
+                if s.len() == 2
+                    && let Ok(value) = f32::from_str(s[1])
+                {
+                    clone_variables.insert(s[0].to_owned(), value);
                 }
             }
 
@@ -550,7 +488,7 @@ impl DesignContent {
 
         // Scanning strands
         for (s_id, strand) in design.strands.iter_mut() {
-            elements.push(elements::DesignElement::StrandElement {
+            elements.push(DesignElement::Strand {
                 id: *s_id, // the key in design.strands btreemap
                 length: strand.length(),
                 domain_lengths: strand.domain_lengths(),
@@ -564,11 +502,11 @@ impl DesignContent {
             // Compute strand drawing style
             let strand_style = drawing_styles
                 .get(&DesignElementKey::Strand(*s_id))
-                .unwrap_or(&DrawingStyle::default())
-                .clone()
+                .copied()
+                .unwrap_or_default()
                 .complete_with_attributes(vec![
-                    DrawingAttribute::SphereColor(strand_color), // strand color gets after color in strand style
-                    DrawingAttribute::BondColor(strand_color), // strand color gets after color in strand style
+                    DrawingAttribute::SphereColor(ColorType::Plain(strand_color)), // strand color gets after color in strand style
+                    DrawingAttribute::BondColor(ColorType::Plain(strand_color)), // strand color gets after color in strand style
                 ]);
 
             // Compute the length for rainbow coloring
@@ -599,17 +537,17 @@ impl DesignContent {
             let strand_on_axis = strand_style.on_axis.unwrap_or(false);
             for (i, domain) in strand.domains.iter().enumerate() {
                 // Update junctions if xover or not
-                if let Some((prime5, prime3)) = prev_nucl.clone().zip(domain.prime5_end()) {
+                if let Some((prime5, prime3)) = prev_nucl.zip(domain.prime5_end()) {
                     Self::update_junction(
                         &mut new_junctions,
-                        *last_xover_junction
+                        last_xover_junction
                             .as_mut()
-                            .expect("Broke Invariant [LastXoverJunction]"),
+                            .expect("Broke Invariant LastXoverJunction"),
                         (prime5, prime3),
                     );
                     if let Some(id) = xover_ids.get_id(&(prime5, prime3)) {
                         // THIS IS A XOVER INTERNAL -> take action
-                        elements.push(DesignElement::CrossOverElement {
+                        elements.push(DesignElement::CrossOver {
                             xover_id: id,
                             helix5prime: prime5.helix,
                             position5prime: prime5.position,
@@ -654,7 +592,7 @@ impl DesignContent {
                                 nucl_position,
                                 domain.forward,
                             );
-                            [p.x as f32, p.y as f32, p.z as f32]
+                            [p.x, p.y, p.z]
                         };
                         let position = design.helices.get(&domain.helix).unwrap().space_pos(
                             design.helix_parameters.as_ref().unwrap(),
@@ -671,36 +609,34 @@ impl DesignContent {
                             let previous = nucl_collection.insert_virtual(v_nucl, nucl);
                             if previous.is_some() && previous != Some(nucl) {
                                 log::error!(
-                                    "NUCLEOTIDE CONFLICTS: nucls {:?} and {:?} are mapped to the same virtual position {:?}",
-                                    previous,
-                                    nucl,
-                                    v_nucl
+                                    "NUCLEOTIDE CONFLICTS: nucls {previous:?} and {nucl:?} are mapped to the same virtual position {v_nucl:?}",
                                 );
                             }
                         } else {
-                            log::error!("Could not get virtual nucl corresponding to {:?}", nucl);
+                            log::error!("Could not get virtual nucl corresponding to {nucl:?}");
                         }
 
-                        elements.push(DesignElement::NucleotideElement {
+                        elements.push(DesignElement::Nucleotide {
                             helix: nucl.helix,
                             position: nucl.position,
                             forward: nucl.forward,
                         });
 
                         let rainbow_color = rainbow_iterator.next();
-                        let bond_color = rainbow_color.unwrap_or(domain_style.bond_color.unwrap());
+                        let bond_color =
+                            rainbow_color.unwrap_or_else(|| domain_style.bond_color.unwrap());
 
                         let nucl_color =
-                            rainbow_color.unwrap_or(domain_style.sphere_color.unwrap());
+                            rainbow_color.unwrap_or_else(|| domain_style.sphere_color.unwrap());
                         if let Some(prev_pos) = prev_loopout_pos.take() {
                             loopout_bonds.push(LoopoutBond {
                                 position_prime5: prev_pos,
-                                position_prime3: position.into(),
+                                position_prime3: position,
                                 color: bond_color,
                                 repr_bond_identifier: id_tmp,
                             });
                         }
-                        nucl_id = if let Some(prev_nucl) = prev_nucl {
+                        if let Some(prev_nucl) = prev_nucl {
                             let bond_id = id_tmp;
                             id_tmp += 1;
                             let bond = (prev_nucl, nucl);
@@ -717,10 +653,8 @@ impl DesignContent {
                             if Some(false) == strand_style.with_cones {
                                 with_cones_map.insert(bond_id, false);
                             }
-                            id_tmp
-                        } else {
-                            id_tmp
-                        };
+                        }
+                        nucl_id = id_tmp;
                         id_tmp += 1;
                         object_type.insert(nucl_id, ObjectType::Nucleotide(nucl_id));
                         nucleotide.insert(nucl_id, nucl);
@@ -745,7 +679,7 @@ impl DesignContent {
                         }
                         strand_position += 1;
                         suggestion_maker.add_nucl(nucl, position, groups.as_ref());
-                        let position = [position[0] as f32, position[1] as f32, position[2] as f32];
+                        let position = [position[0], position[1], position[2]];
                         space_position.insert(nucl_id, position);
                         axis_space_position.insert(nucl_id, axis_position);
                         if strand_on_axis {
@@ -780,12 +714,11 @@ impl DesignContent {
                                 position: *pos,
                                 color,
                                 repr_bond_identifier: id_tmp,
-                                basis: basis.and_then(|b| b.clone().try_into().ok()),
+                                basis: basis.map(|&b| b.into()),
                             });
-                            if let Some(prev_pos) =
-                                prev_loopout_pos.take().or(prev_nucl_id
-                                    .and_then(|id| space_position.get(&id).map(Vec3::from)))
-                            {
+                            if let Some(prev_pos) = prev_loopout_pos.take().or_else(|| {
+                                prev_nucl_id.and_then(|id| space_position.get(&id).map(Vec3::from))
+                            }) {
                                 loopout_bonds.push(LoopoutBond {
                                     position_prime5: prev_pos,
                                     position_prime3: *pos,
@@ -806,7 +739,7 @@ impl DesignContent {
                 let prime5_id = nucl_collection.get_identifier(&nucl).unwrap();
                 let bond_id = id_tmp;
                 if let Some((prev_pos, position)) =
-                    prev_loopout_pos.take().zip(space_position.get(&prime5_id))
+                    prev_loopout_pos.take().zip(space_position.get(prime5_id))
                 {
                     loopout_bonds.push(LoopoutBond {
                         position_prime5: prev_pos,
@@ -836,13 +769,13 @@ impl DesignContent {
                     strand
                         .junctions
                         .last_mut()
-                        .expect("Broke Invariant [LastXoverJunction]"),
+                        .expect("Broke Invariant LastXoverJunction"),
                     (bond.0, bond.1),
                 );
                 let (prime5, prime3) = bond;
                 if let Some(id) = new_junctions.get_id(&(prime5, prime3)) {
                     // Final XOVER DE strand cyclic
-                    elements.push(DesignElement::CrossOverElement {
+                    elements.push(DesignElement::CrossOver {
                         xover_id: id,
                         helix5prime: prime5.helix,
                         position5prime: prime5.position,
@@ -852,18 +785,16 @@ impl DesignContent {
                         forward3prime: prime3.forward,
                     });
                 }
-            } else {
-                if let Some(len) = insertion_length.remove(&id_tmp) {
-                    insertion_length.insert(id_tmp - 1, len);
-                    for loopout_nucl in loopout_nucls.iter_mut() {
-                        if loopout_nucl.repr_bond_identifier == id_tmp {
-                            loopout_nucl.repr_bond_identifier = id_tmp - 1;
-                        }
+            } else if let Some(len) = insertion_length.remove(&id_tmp) {
+                insertion_length.insert(id_tmp - 1, len);
+                for loopout_nucl in &mut loopout_nucls {
+                    if loopout_nucl.repr_bond_identifier == id_tmp {
+                        loopout_nucl.repr_bond_identifier = id_tmp - 1;
                     }
-                    for loopout_bond in loopout_bonds.iter_mut() {
-                        if loopout_bond.repr_bond_identifier == id_tmp {
-                            loopout_bond.repr_bond_identifier = id_tmp - 1;
-                        }
+                }
+                for loopout_bond in &mut loopout_bonds {
+                    if loopout_bond.repr_bond_identifier == id_tmp {
+                        loopout_bond.repr_bond_identifier = id_tmp - 1;
                     }
                 }
             }
@@ -872,7 +803,7 @@ impl DesignContent {
             let nucl1_ids = bond_ids_sequence
                 .iter()
                 .map(|x| {
-                    let ObjectType::Bond(id1, _) = object_type.get(x).unwrap() else {
+                    let ObjectType::Bond(id1, _) = &object_type[x] else {
                         panic!("The bond is not a bond");
                     };
                     *id1
@@ -881,13 +812,13 @@ impl DesignContent {
             let nucl2_ids = bond_ids_sequence
                 .iter()
                 .map(|x| {
-                    let ObjectType::Bond(_, id2) = object_type.get(x).unwrap() else {
+                    let ObjectType::Bond(_, id2) = &object_type[x] else {
                         panic!("The bond is not a bond");
                     };
                     *id2
                 })
                 .collect::<Vec<u32>>();
-            if bond_ids_sequence.len() > 0 {
+            if !bond_ids_sequence.is_empty() {
                 let n = bond_ids_sequence.len();
                 for ((prev_id, bond_id), next_id) in nucl1_ids
                     .iter()
@@ -896,7 +827,7 @@ impl DesignContent {
                     .zip(bond_ids_sequence.clone())
                     .zip(nucl2_ids.iter().cycle().skip(1))
                 {
-                    let ObjectType::Bond(id1, id2) = object_type.get(&bond_id).unwrap() else {
+                    let ObjectType::Bond(id1, id2) = &object_type[&bond_id] else {
                         panic!("The bond is not a bond");
                     };
 
@@ -908,8 +839,7 @@ impl DesignContent {
                 if !strand.is_cyclic {
                     // modify the first bond to repeat the first nucl_id
                     let first_id = bond_ids_sequence[0];
-                    let ObjectType::SlicedBond(_, id1, id2, next_id) =
-                        object_type.get(&first_id).unwrap()
+                    let ObjectType::SlicedBond(_, id1, id2, next_id) = &object_type[&first_id]
                     else {
                         unreachable!("The sliced bond is not a sliced bond");
                     };
@@ -917,8 +847,7 @@ impl DesignContent {
                         .insert(first_id, ObjectType::SlicedBond(*id1, *id1, *id2, *next_id));
                     // modify the last bond to repeat the second nucl_id
                     let last_id = bond_ids_sequence[n - 1];
-                    let ObjectType::SlicedBond(prev_id, id1, id2, _) =
-                        object_type.get(&last_id).unwrap()
+                    let ObjectType::SlicedBond(prev_id, id1, id2, _) = &object_type[&last_id]
                     else {
                         unreachable!("The sliced bond is not a sliced bond");
                     };
@@ -933,17 +862,17 @@ impl DesignContent {
         // Scanning grids
         for g_id in grid_manager.grids.keys() {
             if let GridId::FreeGrid(id) = g_id {
-                elements.push(DesignElement::GridElement {
+                elements.push(DesignElement::Grid {
                     id: *id,
                     visible: grid_manager.get_visibility(*g_id),
-                })
+                });
             }
         }
 
         for (h_id, h) in design.helices.iter() {
-            elements.push(DesignElement::HelixElement {
+            elements.push(DesignElement::Helix {
                 id: *h_id,
-                group: groups.get(h_id).cloned(),
+                group: groups.get(h_id).copied(),
                 locked_for_simulations: h.locked_for_simulations,
             });
         }
@@ -953,7 +882,7 @@ impl DesignContent {
             let all_nt = nucl_collection
                 .identifier
                 .keys()
-                .map(|x| x.clone())
+                .copied()
                 .collect::<Vec<Nucl>>();
 
             let all_forward_nt = all_nt
@@ -970,13 +899,13 @@ impl DesignContent {
                 .collect::<Vec<(usize, isize)>>();
 
             let mut hash_f = BTreeMap::new();
-            for (h, i) in all_forward_nt.into_iter() {
+            for (h, i) in all_forward_nt {
                 let mut a = hash_f.get(&h).unwrap_or(&Vec::<isize>::new()).clone();
                 a.push(i);
                 hash_f.insert(h, a);
             }
             let mut hash_b = BTreeMap::new();
-            for (h, i) in all_backward_nt.into_iter() {
+            for (h, i) in all_backward_nt {
                 let mut a = hash_b.get(&h).unwrap_or(&Vec::<isize>::new()).clone();
                 a.push(i);
                 hash_b.insert(h, a);
@@ -986,10 +915,10 @@ impl DesignContent {
                 if let Some(b) = hash_b.get(&h) {
                     let mut inter = Vec::new();
                     let mut i_f = f.into_iter();
-                    let mut i_b = b.into_iter();
+                    let mut i_b = b.iter();
                     let mut last_f = i_f.next();
                     let mut last_b = i_b.next();
-                    while !last_b.is_none() && !last_f.is_none() {
+                    while last_b.is_some() && last_f.is_some() {
                         while let (Some(l_f), Some(l_b)) = (last_f, last_b) {
                             if l_f >= *l_b {
                                 break;
@@ -1011,7 +940,7 @@ impl DesignContent {
                             last_b = i_b.next();
                         }
                     }
-                    if inter.len() > 0 {
+                    if !inter.is_empty() {
                         hash_intersection.insert(h, inter);
                     }
                 }
@@ -1022,7 +951,7 @@ impl DesignContent {
                 let mut b = Vec::new();
                 let mut last_i = None;
                 let mut current_start = None;
-                for i in a.into_iter() {
+                for i in a {
                     match last_i {
                         Some(l_i) if l_i + 1 < i => {
                             b.push((current_start.unwrap(), l_i + 1));
@@ -1049,8 +978,8 @@ impl DesignContent {
             for (h, a) in hash_intervals {
                 let mut helix_style = drawing_styles
                     .get(&DesignElementKey::Helix(h))
-                    .unwrap_or(&DrawingStyle::default())
-                    .clone();
+                    .copied()
+                    .unwrap_or_default();
                 if let Some(grid_position) = grid_manager.get_helix_grid_position(h)
                     && let GridId::FreeGrid(h) = grid_position.grid
                     && let Some(grid_style) = drawing_styles.get(&DesignElementKey::Grid(h))
@@ -1060,18 +989,11 @@ impl DesignContent {
                 let radius = helix_style
                     .helix_as_cylinder_radius
                     .unwrap_or(HELIX_CYLINDER_RADIUS);
-                let color =
-                    helix_style
-                        .helix_as_cylinder_color
-                        .map_or(HELIX_CYLINDER_COLOR, |ct| {
-                            if let ColorType::Color(c) = ct {
-                                c
-                            } else {
-                                HELIX_CYLINDER_COLOR
-                            }
-                        });
+                let color = helix_style
+                    .helix_as_cylinder_color
+                    .map_or(HELIX_CYLINDER_COLOR, ColorType::to_u32);
                 for (i, j) in a {
-                    let bond_id = id_click_counter.next();
+                    let bond_id = id_click_counter.inc();
                     let n_i = Nucl {
                         helix: h,
                         position: i,
@@ -1102,7 +1024,7 @@ impl DesignContent {
                         let colors = (i..=j)
                             .map(|n| {
                                 let n = if n == j { i } else { n };
-                                if !helix_style.curvature.is_none() {
+                                if helix_style.curvature.is_some() {
                                     if let Some(curvature) = helix.curvature_at_pos(n) {
                                         let radius = 1. / curvature;
                                         colors::purple_to_blue_gradient_color_in_range(
@@ -1113,16 +1035,14 @@ impl DesignContent {
                                     } else {
                                         color
                                     }
+                                } else if let Some(torsion) = helix.torsion_at_pos(n) {
+                                    colors::purple_to_blue_gradient_color_in_range(
+                                        torsion as f32,
+                                        r_max,
+                                        r_min,
+                                    )
                                 } else {
-                                    if let Some(torsion) = helix.torsion_at_pos(n) {
-                                        colors::purple_to_blue_gradient_color_in_range(
-                                            torsion as f32,
-                                            r_max,
-                                            r_min,
-                                        )
-                                    } else {
-                                        color
-                                    }
+                                    color
                                 }
                             })
                             .collect::<Vec<u32>>();
@@ -1141,20 +1061,19 @@ impl DesignContent {
 
             // Clone - hacked version
             // Get the clone transformations from the file
-            if let Some(ref clone_isometries_descriptors) = design.clone_isometries {
+            if let Some(clone_isometries_descriptors) = &design.clone_isometries {
                 clone_transformations.extend(
                     clone_isometries_descriptors
                         .iter()
-                        .map(|d| Isometry3::from_descriptor(d))
-                        .collect::<Vec<Isometry3>>(),
+                        .map(Isometry3::from_descriptor),
                 );
             }
 
             // Cloned Nucleotide
             for isometry3 in &clone_transformations {
                 let mut nucleotides_clones = HashMap::new();
-                for (nucl, nucl_id) in nucl_collection.identifier.iter() {
-                    let clone_nucl_id = id_click_counter.next();
+                for (nucl, nucl_id) in &nucl_collection.identifier {
+                    let clone_nucl_id = id_click_counter.inc();
                     nucleotides_clones.insert(nucl, clone_nucl_id);
                     let nucl_color = color_map.get(nucl_id).unwrap_or(&0);
                     let nucl_radius = radius_map.get(nucl_id).unwrap_or(&0.);
@@ -1162,8 +1081,8 @@ impl DesignContent {
                     let position = space_position.get(nucl_id).unwrap_or(&[0f32; 3]);
                     let axis_position = axis_space_position.get(nucl_id).unwrap_or(&[0f32; 3]);
                     object_type.insert(clone_nucl_id, ObjectType::Nucleotide(clone_nucl_id));
-                    nucleotide.insert(clone_nucl_id, nucl.clone());
-                    strand_map.insert(clone_nucl_id, s_id.clone()); // get the strand_id from the nucl_id
+                    nucleotide.insert(clone_nucl_id, *nucl);
+                    strand_map.insert(clone_nucl_id, *s_id); // get the strand_id from the nucl_id
                     color_map.insert(
                         clone_nucl_id,
                         Instance::color_au32_with_alpha_scaled_by(*nucl_color, CLONE_OPACITY),
@@ -1172,37 +1091,36 @@ impl DesignContent {
                     helix_map.insert(clone_nucl_id, nucl.helix); // get helix_id from bond_id
 
                     let nucl_pos = Vec3::new(position[0], position[1], position[2]);
-                    let clone_pos =
-                        isometry3.translation.clone() + nucl_pos.rotated_by(isometry3.rotation);
+                    let clone_pos = isometry3.translation + nucl_pos.rotated_by(isometry3.rotation);
                     space_position
                         .insert(clone_nucl_id, [clone_pos[0], clone_pos[1], clone_pos[2]]);
 
                     let nucl_axis_pos =
                         Vec3::new(axis_position[0], axis_position[1], axis_position[2]);
-                    let clone_axis_pos = isometry3.translation.clone()
-                        + nucl_axis_pos.rotated_by(isometry3.rotation);
+                    let clone_axis_pos =
+                        isometry3.translation + nucl_axis_pos.rotated_by(isometry3.rotation);
                     axis_space_position.insert(
                         clone_nucl_id,
                         [clone_axis_pos[0], clone_axis_pos[1], clone_axis_pos[2]],
                     );
-                    if let Some(o) = on_axis.get(&nucl_id) {
+                    if let Some(o) = on_axis.get(nucl_id) {
                         on_axis.insert(clone_nucl_id, *o);
                     }
                 }
                 // Cloned bonds
                 for (bond, bond_id) in &identifier_bond {
-                    let clone_bond_id = id_click_counter.next();
-                    let nucl_1_id = nucleotides_clones.get(&bond.0).unwrap();
-                    let nucl_1 = nucleotide.get(nucl_1_id).unwrap();
-                    let nucl_2_id = nucleotides_clones.get(&bond.1).unwrap();
-                    let nucl_2 = nucleotide.get(nucl_2_id).unwrap();
-                    let bond_color = color_map.get(&bond_id).unwrap();
+                    let clone_bond_id = id_click_counter.inc();
+                    let nucl_1_id = &nucleotides_clones[&bond.0];
+                    let nucl_1 = &nucleotide[nucl_1_id];
+                    let nucl_2_id = &nucleotides_clones[&bond.1];
+                    let nucl_2 = &nucleotide[nucl_2_id];
+                    let bond_color = &color_map[bond_id];
                     let clone_bond_color =
                         Instance::color_au32_with_alpha_scaled_by(*bond_color, CLONE_OPACITY);
-                    let bond_radius = radius_map.get(&bond_id).unwrap();
-                    let strand_id = strand_map.get(&bond_id).unwrap();
-                    let helix_id = helix_map.get(&bond_id).unwrap();
-                    let xover_coloring = xover_coloring_map.get(&bond_id).unwrap();
+                    let bond_radius = &radius_map[bond_id];
+                    let strand_id = &strand_map[bond_id];
+                    let helix_id = &helix_map[bond_id];
+                    let xover_coloring = &xover_coloring_map[bond_id];
                     object_type.insert(clone_bond_id, ObjectType::Bond(*nucl_1_id, *nucl_2_id));
                     nucleotides_involved.insert(clone_bond_id, (*nucl_1, *nucl_2));
                     color_map.insert(clone_bond_id, clone_bond_color);
@@ -1210,24 +1128,24 @@ impl DesignContent {
                     strand_map.insert(clone_bond_id, *strand_id); // match bond_id to strand_id
                     helix_map.insert(clone_bond_id, *helix_id);
                     xover_coloring_map.insert(clone_bond_id, *xover_coloring);
-                    if let Some(o) = on_axis.get(&bond_id) {
+                    if let Some(o) = on_axis.get(bond_id) {
                         on_axis.insert(clone_bond_id, *o);
                     }
-                    if let Some(wc) = with_cones_map.get(&bond_id) {
+                    if let Some(wc) = with_cones_map.get(bond_id) {
                         with_cones_map.insert(clone_bond_id, *wc);
                     }
                 }
                 // Cloned cylinders
                 for bond_id in &helix_cylinders {
-                    let clone_bond_id = id_click_counter.next();
-                    let (nucl_1, nucl_2) = nucleotides_involved.get(bond_id).unwrap();
-                    let clone_nucl_1_id = nucleotides_clones.get(nucl_1).unwrap();
-                    let clone_nucl_2_id = nucleotides_clones.get(nucl_2).unwrap();
-                    let bond_color = color_map.get(&bond_id).unwrap();
+                    let clone_bond_id = id_click_counter.inc();
+                    let (nucl_1, nucl_2) = &nucleotides_involved[bond_id];
+                    let clone_nucl_1_id = &nucleotides_clones[nucl_1];
+                    let clone_nucl_2_id = &nucleotides_clones[nucl_2];
+                    let bond_color = &color_map[bond_id];
                     let clone_bond_color =
                         Instance::color_au32_with_alpha_scaled_by(*bond_color, CLONE_OPACITY);
-                    let bond_radius = radius_map.get(bond_id).unwrap();
-                    let helix_id = helix_map.get(bond_id).unwrap();
+                    let bond_radius = &radius_map[bond_id];
+                    let helix_id = &helix_map[bond_id];
                     object_type.insert(
                         clone_bond_id,
                         ObjectType::HelixCylinder(*clone_nucl_1_id, *clone_nucl_2_id), // SHOULD REMEMBER THE CLONING NUMBER -> have a map that maps a nucl to the array of its clones and use it when displaying the helix cylinder for real
@@ -1240,39 +1158,29 @@ impl DesignContent {
             }
         }
 
-        if PRINTOUT_NUCL_POSITIONS && nucleotide.len() > 0 {
-            let mut s1 = "{\n\t".to_string();
-            let mut s2 = "{\n\t".to_string();
-            for (i, n) in nucleotide.iter() {
-                let p = axis_space_position.get(i).unwrap();
+        if PRINTOUT_NUCL_POSITIONS && !nucleotide.is_empty() {
+            let mut s1 = "{\n\t".to_owned();
+            let mut s2 = "{\n\t".to_owned();
+            for (i, n) in &nucleotide {
+                let p = &axis_space_position[i];
                 s1.push_str(
                     format!(
                         "({},{},{}):({},{},{}),",
-                        n.helix,
-                        n.position,
-                        if n.forward { 1 } else { 0 },
-                        p[0],
-                        p[1],
-                        p[2]
+                        n.helix, n.position, n.forward as u32, p[0], p[1], p[2]
                     )
                     .as_str(),
                 );
-                let p = space_position.get(i).unwrap();
+                let p = &space_position[i];
                 s2.push_str(
                     format!(
                         "({},{},{}):({},{},{}),",
-                        n.helix,
-                        n.position,
-                        if n.forward { 1 } else { 0 },
-                        p[0],
-                        p[1],
-                        p[2]
+                        n.helix, n.position, n.forward as u32, p[0], p[1], p[2]
                     )
                     .as_str(),
                 );
             }
-            println!("axis_points = {s1}\n{}", "}");
-            println!("points = {s2}\n{}", "}");
+            println!("axis_points = {s1}\n}}");
+            println!("points = {s2}\n}}");
         }
 
         // Output
@@ -1305,23 +1213,22 @@ impl DesignContent {
 
         drop(groups);
 
-        if log::log_enabled!(log::Level::Warn) {
-            if let Some(s) = design
+        if log::log_enabled!(log::Level::Warn)
+            && let Some(s) = design
                 .scaffold_id
                 .as_ref()
                 .and_then(|s_id| design.strands.get(s_id))
-            {
-                for d in s.domains.iter() {
-                    if let Domain::HelixDomain(interval) = d {
-                        for n in interval.iter() {
-                            let nucl = Nucl {
-                                helix: interval.helix,
-                                position: n,
-                                forward: !interval.forward,
-                            };
-                            if !ret.nucl_collection.contains_nucl(&nucl) {
-                                log::warn!("Missing {nucl}");
-                            }
+        {
+            for d in &s.domains {
+                if let Domain::HelixDomain(interval) = d {
+                    for n in interval.iter() {
+                        let nucl = Nucl {
+                            helix: interval.helix,
+                            position: n,
+                            forward: !interval.forward,
+                        };
+                        if !ret.nucl_collection.contains_nucl(&nucl) {
+                            log::warn!("Missing {nucl}");
                         }
                     }
                 }
@@ -1330,7 +1237,7 @@ impl DesignContent {
 
         #[cfg(test)]
         {
-            ret.test_named_junction(&design, &mut new_junctions, "TEST AFTER MAKE HASH MAP");
+            ret.test_named_junction(&design, &new_junctions, "TEST AFTER MAKE HASH MAP");
         }
         (ret, design, new_junctions)
     }
@@ -1360,22 +1267,46 @@ impl DesignContent {
         }
     }
 
-    #[allow(dead_code)]
-    pub fn get_shift(&self, g_id: GridId) -> Option<f32> {
-        self.grid_manager
-            .grids
-            .get(&g_id)
-            .and_then(|g| g.grid_type.get_shift())
+    pub(crate) fn read_simulation_update(&mut self, update: &dyn SimulationUpdate) {
+        update.update_positions(self.nucl_collection.as_ref(), &mut self.space_position);
     }
+}
 
-    pub fn read_simulation_update(&mut self, update: &dyn SimulationUpdate) {
-        update.update_positions(self.nucl_collection.as_ref(), &mut self.space_position)
-    }
+#[derive(Debug)]
+pub(crate) struct Staple {
+    pub well: String,
+    pub name: Cow<'static, str>,
+    pub sequence: String,
+    pub plate: usize,
+    pub color_str: String,
+    pub group_names: Vec<String>,
+    pub group_names_string: String,
+    pub domain_decomposition: String,
+    pub length_str: String,
+    pub intervals: StapleIntervals,
+}
+
+#[derive(Debug, Serialize, Clone)]
+pub(crate) struct StapleIntervals {
+    pub staple_id: usize,
+    pub intervals: Vec<(isize, isize)>,
+}
+
+struct StapleInfo {
+    s_id: usize,
+    sequence: String,
+    strand_name: Option<Cow<'static, str>>,
+    color: u32,
+    group_names: Vec<String>,
+    domain_decomposition: String,
+    length: usize,
+    intervals: StapleIntervals,
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
     impl DesignContent {
         pub(super) fn test_named_junction(
             &self,
@@ -1467,7 +1398,7 @@ trait GridInstancesMaker {
 impl GridInstancesMaker for GridData {
     fn grid_instances(&self, design_id: usize) -> BTreeMap<GridId, GridInstance> {
         let mut ret = BTreeMap::new();
-        for (g_id, g) in self.grids.iter() {
+        for (g_id, g) in &self.grids {
             let grid = GridInstance {
                 grid: g.clone(),
                 min_x: -2,

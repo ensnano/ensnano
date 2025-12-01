@@ -1,26 +1,9 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+pub(crate) mod controller;
+pub(crate) mod file_parsing;
+pub(crate) mod presenter;
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-pub mod controller;
-pub mod file_parsing;
-pub mod presenter;
-
-use super::AddressPointer;
+use crate::app_state::address_pointer::AddressPointer;
+use crate::controller::SaveDesignError;
 use crate::{
     app_state::design_interactor::controller::{
         OkOperation, clipboard::CopyOperation, simulations::SimulationOperation,
@@ -30,23 +13,30 @@ use crate::{
 use controller::{Controller, ErrOperation, InteractorNotification};
 use ensnano_consts::UPDATE_VISIBILITY_SIEVE_LABEL;
 use ensnano_design::{
-    BezierPathId, BezierPlaneDescriptor, Design, HelixCollection, HelixParameters,
-    InstantiatedPiecewiseBezier, grid::GridId, group_attributes::GroupAttribute,
+    Design, SavingInformation,
+    bezier_plane::{BezierPathId, BezierPlaneDescriptor},
+    collection::Collection as _,
+    curves::bezier::InstantiatedPiecewiseBezier,
+    group_attributes::GroupAttribute,
+    helices::HelixCollection as _,
+    parameters::HelixParameters,
+    strands::Domain,
 };
 use ensnano_exports::{ExportResult, ExportType};
-use ensnano_gui::CurrentOpState;
+use ensnano_gui::status_bar::{ClipboardContent, CurrentOpState};
 use ensnano_interactor::{
-    DesignOperation, PastingStatus, Selection, SimulationState, StrandBuilder,
-    app_state_parameters::SuggestionParameters, operation::Operation,
+    DesignOperation, PastingStatus, SimulationState,
+    app_state_parameters::suggestion_parameters::SuggestionParameters, operation::Operation,
+    selection::Selection, strand_builder::StrandBuilder,
 };
-use ensnano_organizer::GroupId;
+use ensnano_organizer::tree::GroupId;
 use presenter::{Presenter, SimulationUpdate, apply_simulation_update, update_presenter};
-use std::sync::Arc;
+use std::{io::Write as _, path::PathBuf, sync::Arc};
 
 /// The `DesignInteractor` handles all read/write operations on the design. It is a stateful struct
 /// so it is meant to be cheap to clone.
 #[derive(Clone, Default)]
-pub struct DesignInteractor {
+pub(crate) struct DesignInteractor {
     /// The current design
     pub design: AddressPointer<Design>,
     /// The structure that handles "read" operations. The graphic components of EnsNano access the
@@ -111,7 +101,7 @@ impl DesignInteractor {
             .update_pending_operation(self.design.as_ref(), operation.clone());
         let mut ret = self.handle_operation_result(result);
         if let Ok(ret) = ret.as_mut() {
-            ret.set_operation_state(operation, op_is_new)
+            ret.set_operation_state(operation, op_is_new);
         }
         ret
     }
@@ -202,7 +192,7 @@ impl DesignInteractor {
             print!("New design: ");
             new_design.show_address();
         }
-        log::trace!("Interactor design <- {:p}", new_design);
+        log::trace!("Interactor design <- {new_design:p}");
         self.design = new_design;
         if let Some(update) = self.simulation_update.take() {
             if !self.controller.get_simulation_state().is_running() {
@@ -234,7 +224,7 @@ impl DesignInteractor {
             suggestion_parameters,
         );
         self.presenter = new_presenter;
-        log::trace!("Interactor design <- {:p}", new_design);
+        log::trace!("Interactor design <- {new_design:p}");
         self.design = new_design;
         self
     }
@@ -309,12 +299,76 @@ impl DesignInteractor {
         self.controller.get_new_selection()
     }
 
-    pub fn get_next_selection(&mut self) -> Option<Vec<Selection>> {
+    pub(crate) fn get_next_selection(&mut self) -> Option<Vec<Selection>> {
         self.new_selection.take()
     }
 
-    pub fn get_clipboard_content(&self) -> ensnano_gui::ClipboardContent {
+    pub(crate) fn get_clipboard_content(&self) -> ClipboardContent {
         self.controller.get_clipboard_content()
+    }
+
+    pub(super) fn save_design(
+        &self,
+        path: &PathBuf,
+        saving_info: SavingInformation,
+    ) -> Result<(), SaveDesignError> {
+        let mut design = self.presenter.current_design.clone_inner();
+        design.prepare_for_save(saving_info);
+        let json_content = serde_json::to_string_pretty(&design)?;
+        let mut f = std::fs::File::create(path)?;
+        f.write_all(json_content.as_bytes())?;
+        Ok(())
+    }
+
+    pub(crate) fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
+        self.presenter.export(export_path, export_type)
+    }
+
+    pub(crate) fn get_strand_domain(&self, s_id: usize, d_id: usize) -> Option<&Domain> {
+        self.presenter.get_strand_domain(s_id, d_id)
+    }
+
+    pub(crate) fn get_group_attributes(&self, group_id: GroupId) -> Option<&GroupAttribute> {
+        self.presenter
+            .current_design
+            .as_ref()
+            .group_attributes
+            .get(&group_id)
+    }
+
+    pub(crate) fn get_bezier_path_2d(
+        &self,
+        path_id: BezierPathId,
+    ) -> Option<InstantiatedPiecewiseBezier> {
+        self.presenter.get_bezier_path_2d(path_id)
+    }
+
+    pub(crate) fn get_default_bezier(&self) -> Option<&BezierPlaneDescriptor> {
+        self.presenter
+            .current_design
+            .as_ref()
+            .bezier_planes
+            .values()
+            .next()
+    }
+
+    pub(crate) fn get_first_bezier_plane(
+        &self,
+        path_id: BezierPathId,
+    ) -> Option<&BezierPlaneDescriptor> {
+        let path = self
+            .presenter
+            .current_design
+            .as_ref()
+            .bezier_paths
+            .get(&path_id)?;
+        let vertex_0 = path.vertices().first()?;
+        let plane_id = vertex_0.plane_id;
+        self.presenter
+            .current_design
+            .as_ref()
+            .bezier_planes
+            .get(&plane_id)
     }
 }
 
@@ -330,11 +384,8 @@ pub(super) enum InteractorResult {
 }
 
 impl InteractorResult {
-    pub fn set_operation_state(&mut self, operation: Arc<dyn Operation>, new_op: bool) {
-        let interactor = match self {
-            Self::Push { interactor, .. } => interactor,
-            Self::Replace(interactor) => interactor,
-        };
+    pub(super) fn set_operation_state(&mut self, operation: Arc<dyn Operation>, new_op: bool) {
+        let (Self::Push { interactor, .. } | Self::Replace(interactor)) = self;
         if new_op {
             interactor.current_operation_id += 1;
             log::info!("New operation id {}", interactor.current_operation_id);
@@ -343,87 +394,27 @@ impl InteractorResult {
     }
 }
 
-use crate::controller::SaveDesignError;
-use std::path::PathBuf;
-impl DesignInteractor {
-    pub(super) fn save_design(
-        &self,
-        path: &PathBuf,
-        saving_info: ensnano_design::SavingInformation,
-    ) -> Result<(), SaveDesignError> {
-        use std::io::Write;
-        let mut design = self.presenter.current_design.clone_inner();
-        design.prepare_for_save(saving_info);
-        let json_content = serde_json::to_string_pretty(&design)?;
-        let mut f = std::fs::File::create(path)?;
-        f.write_all(json_content.as_bytes())?;
-        Ok(())
-    }
-
-    pub fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
-        self.presenter.export(export_path, export_type)
-    }
-
-    pub fn get_strand_domain(&self, s_id: usize, d_id: usize) -> Option<&ensnano_design::Domain> {
-        self.presenter.get_strand_domain(s_id, d_id)
-    }
-
-    pub fn get_group_attributes(&self, group_id: GroupId) -> Option<&GroupAttribute> {
-        self.presenter
-            .current_design
-            .as_ref()
-            .group_attributes
-            .get(&group_id)
-    }
-
-    pub fn get_bezier_path_2d(&self, path_id: BezierPathId) -> Option<InstantiatedPiecewiseBezier> {
-        self.presenter.get_bezier_path_2d(path_id)
-    }
-
-    pub fn get_default_bezier(&self) -> Option<&BezierPlaneDescriptor> {
-        use ensnano_design::Collection;
-        self.presenter
-            .current_design
-            .as_ref()
-            .bezier_planes
-            .values()
-            .next()
-    }
-
-    pub fn get_first_bezier_plane(&self, path_id: BezierPathId) -> Option<&BezierPlaneDescriptor> {
-        use ensnano_design::Collection;
-        let path = self
-            .presenter
-            .current_design
-            .as_ref()
-            .bezier_paths
-            .get(&path_id)?;
-        let vertex_0 = path.vertices().get(0)?;
-        let plane_id = vertex_0.plane_id;
-        self.presenter
-            .current_design
-            .as_ref()
-            .bezier_planes
-            .get(&plane_id)
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::super::OkOperation as TopOkOperation;
-    use super::super::*;
     use super::*;
-    use crate::app_state::design_interactor::controller::clipboard::{
-        CopyOperation, PastePosition,
+    use crate::app_state::{
+        AppState,
+        design_interactor::{
+            controller::clipboard::PastePosition, file_parsing::junctions::StrandJunction as _,
+        },
+        transitions::OkOperation as TopOkOperation,
     };
-    use crate::app_state::design_interactor::file_parsing::junctions::StrandJunction as _;
-    use ensnano_design::HelixCollection;
-    use ensnano_design::grid::HelixGridPosition;
-    use ensnano_design::{Collection, DomainJunction, Nucl, Strand, grid::GridDescriptor};
-    use ensnano_interactor::operation::GridHelixCreation;
-    use ensnano_interactor::{InsertionPoint, InteractorDesignReaderExt};
-    use ensnano_scene::data::SceneDesignReaderExt as Reader3d;
-    use std::path::PathBuf;
+    use ensnano_design::{
+        Nucl,
+        grid::{GridDescriptor, GridId, GridTypeDescr, HelixGridPosition},
+        strands::{DomainJunction, Strand},
+    };
+    use ensnano_interactor::{
+        InsertionPoint, operation::GridHelixCreation, selection::InteractorDesignReaderExt as _,
+    };
+    use ensnano_scene::data::design3d::SceneDesignReaderExt as _;
+    use ensnano_utils::id_generator::IdGenerator;
+    use regex::Regex;
     use ultraviolet::{Rotor3, Vec3};
 
     fn test_path(design_name: &'static str) -> PathBuf {
@@ -444,9 +435,8 @@ mod tests {
 
     fn assert_good_strand<S: std::ops::Deref<Target = str>>(strand: &Strand, objective: S) {
         println!("self {:?}", strand.formatted_domains());
-        println!("objective {}", objective.deref());
-        use regex::Regex;
-        let re = Regex::new(r#"\[[^\]]*\]"#).unwrap();
+        println!("objective {}", &*objective);
+        let re = Regex::new(r"\[[^\]]*\]").unwrap();
         let formatted_strand = strand.formatted_domains();
         let left = re.find_iter(&formatted_strand);
         let right = re.find_iter(&objective);
@@ -458,9 +448,8 @@ mod tests {
 
     fn assert_good_junctions<S: std::ops::Deref<Target = str>>(strand: &Strand, objective: S) {
         println!("self {:?}", strand.formatted_anonymous_junctions());
-        println!("objective {}", objective.deref());
-        use regex::Regex;
-        let re = Regex::new(r#"\[[^\]]*\]"#).unwrap();
+        println!("objective {}", &*objective);
+        let re = Regex::new(r"\[[^\]]*\]").unwrap();
         let formatted_strand = strand.formatted_anonymous_junctions();
         let left = re.find_iter(&formatted_strand);
         let right = re.find_iter(&objective);
@@ -502,7 +491,7 @@ mod tests {
         let interactor = DesignInteractor::new_with_path(&path).ok().unwrap();
         let suggestion_parameters = Default::default();
         let interactor = interactor.with_updated_design_reader(&suggestion_parameters);
-        assert_eq!(interactor.get_all_visible_nucl_ids().len(), 24)
+        assert_eq!(interactor.get_all_visible_nucl_ids().len(), 24);
     }
 
     #[test]
@@ -578,7 +567,7 @@ mod tests {
         assert_eq!(
             strand.junctions,
             vec![DomainJunction::IdentifiedXover(0), DomainJunction::Prime3]
-        )
+        );
     }
 
     const INSERTION_LEN_0: usize = 3;
@@ -701,7 +690,7 @@ mod tests {
 
         let strands = &mut app_state.0.design.presenter.current_design.strands.clone();
 
-        let s_id_prime5 = controller::Controller::split_strand(
+        let s_id_prime5 = Controller::split_strand(
             strands,
             &Nucl {
                 helix: 3,
@@ -723,12 +712,12 @@ mod tests {
             .unwrap();
 
         let strand = strands.get(&s_id_prime5).expect("No strand 5'");
-        let expected_result = "[->] [x] [3']".to_string();
+        let expected_result = "[->] [x] [3']".to_owned();
         assert_good_junctions(strand, expected_result);
         println!("OK for 5' end");
 
         let strand = strands.get(&s_id_prime3).expect("No strand 3'");
-        let expected_result = "[3']".to_string();
+        let expected_result = "[3']".to_owned();
         assert_good_junctions(strand, expected_result);
     }
 
@@ -782,7 +771,7 @@ mod tests {
             .strands
             .get(&0)
             .expect("No strand 0");
-        let expected_result = "[->] [x] [->] [x] [3']".to_string();
+        let expected_result = "[->] [x] [->] [x] [3']".to_owned();
         assert_good_junctions(strand, expected_result);
     }
 
@@ -848,7 +837,7 @@ mod tests {
             .strands
             .get(&0)
             .expect("No strand 0");
-        let expected_result = "[->] [x] [->] [x] [->] [3']".to_string();
+        let expected_result = "[->] [x] [->] [x] [->] [3']".to_owned();
         assert_good_junctions(strand, expected_result);
     }
 
@@ -864,8 +853,7 @@ mod tests {
             .get(&0)
             .expect("No strand 0");
         let expected_result = format!(
-            "[@{}] [H1: -1 -> 3] [@{}] [H1: 4 -> 7] [@{}] [H2: -1 <- 7] [@{}] [H3: 0 -> 9] [@{}]",
-            INSERTION_LEN_0, INSERTION_LEN_1, INSERTION_LEN_2, INSERTION_LEN_3, INSERTION_LEN_4
+            "[@{INSERTION_LEN_0}] [H1: -1 -> 3] [@{INSERTION_LEN_1}] [H1: 4 -> 7] [@{INSERTION_LEN_2}] [H2: -1 <- 7] [@{INSERTION_LEN_3}] [H3: 0 -> 9] [@{INSERTION_LEN_4}]",
         );
         assert_good_strand(strand, expected_result);
     }
@@ -889,10 +877,7 @@ mod tests {
             .get(&0)
             .expect("No strand 0");
         let expected_result = format!(
-            "[H1: -1 -> 3] [@{}] [H1: 4 -> 7] [@{}] [H2: -1 <- 7] [@{}] [H3: 0 -> 9] [@{}] [cycle]",
-            INSERTION_LEN_1,
-            INSERTION_LEN_2,
-            INSERTION_LEN_3,
+            "[H1: -1 -> 3] [@{INSERTION_LEN_1}] [H1: 4 -> 7] [@{INSERTION_LEN_2}] [H2: -1 <- 7] [@{INSERTION_LEN_3}] [H3: 0 -> 9] [@{}] [cycle]",
             INSERTION_LEN_4 + INSERTION_LEN_0
         );
         assert_good_strand(strand, expected_result);
@@ -930,8 +915,7 @@ mod tests {
             .get(&0)
             .expect("No strand 0");
         let expected_result = format!(
-            "[H1: -1 -> 3] [@{}] [H1: 4 -> 7] [@{}] [H2: -1 <- 7] [@{}] [H3: 0 -> 9] [@{}] [cycle]",
-            INSERTION_LEN_1, INSERTION_LEN_2, INSERTION_LEN_3, INSERTION_LEN_0
+            "[H1: -1 -> 3] [@{INSERTION_LEN_1}] [H1: 4 -> 7] [@{INSERTION_LEN_2}] [H2: -1 <- 7] [@{INSERTION_LEN_3}] [H3: 0 -> 9] [@{INSERTION_LEN_0}] [cycle]",
         );
         assert_good_strand(strand, expected_result);
     }
@@ -968,8 +952,7 @@ mod tests {
             .get(&0)
             .expect("No strand 0");
         let expected_result = format!(
-            "[H1: -1 -> 3] [@{}] [H1: 4 -> 7] [@{}] [H2: -1 <- 7] [@{}] [H3: 0 -> 9] [@{}] [cycle]",
-            INSERTION_LEN_1, INSERTION_LEN_2, INSERTION_LEN_3, INSERTION_LEN_4
+            "[H1: -1 -> 3] [@{INSERTION_LEN_1}] [H1: 4 -> 7] [@{INSERTION_LEN_2}] [H2: -1 <- 7] [@{INSERTION_LEN_3}] [H3: 0 -> 9] [@{INSERTION_LEN_4}] [cycle]",
         );
         assert_good_strand(strand, expected_result);
     }
@@ -1010,10 +993,8 @@ mod tests {
             .strands
             .get(&0)
             .expect("No strand 0");
-        let expected_result = format!(
-            "[H1: -1 -> 7] [H2: -1 <- 7] [H3: 0 -> 9] [@{}] [cycle]",
-            insertion_len_0
-        );
+        let expected_result =
+            format!("[H1: -1 -> 7] [H2: -1 <- 7] [H3: 0 -> 9] [@{insertion_len_0}] [cycle]",);
         assert_good_strand(strand, expected_result);
 
         // middle of domain
@@ -1040,8 +1021,7 @@ mod tests {
             .get(&0)
             .expect("No strand 0");
         let expected_result = format!(
-            "[H1: -1 -> 3] [@{}] [H1: 4 -> 7] [H2: -1 <- 7] [H3: 0 -> 9] [@{}] [cycle]",
-            insertion_len_1, insertion_len_0
+            "[H1: -1 -> 3] [@{insertion_len_1}] [H1: 4 -> 7] [H2: -1 <- 7] [H3: 0 -> 9] [@{insertion_len_0}] [cycle]",
         );
         assert_good_strand(strand, expected_result);
 
@@ -1069,8 +1049,7 @@ mod tests {
             .get(&0)
             .expect("No strand 0");
         let expected_result = format!(
-            "[H1: -1 -> 3] [@{}] [H1: 4 -> 7] [@{}] [H2: -1 <- 7] [H3: 0 -> 9] [@{}] [cycle]",
-            insertion_len_1, insertion_len_2, insertion_len_0
+            "[H1: -1 -> 3] [@{insertion_len_1}] [H1: 4 -> 7] [@{insertion_len_2}] [H2: -1 <- 7] [H3: 0 -> 9] [@{insertion_len_0}] [cycle]",
         );
         assert_good_strand(strand, expected_result);
 
@@ -1099,8 +1078,7 @@ mod tests {
             .get(&0)
             .expect("No strand 0");
         let expected_result = format!(
-            "[H1: -1 -> 3] [@{}] [H1: 4 -> 7] [@{}] [H2: -1 <- 7] [@{}] [H3: 0 -> 9] [@{}] [cycle]",
-            insertion_len_1, insertion_len_2, insertion_len_3, insertion_len_0
+            "[H1: -1 -> 3] [@{insertion_len_1}] [H1: 4 -> 7] [@{insertion_len_2}] [H2: -1 <- 7] [@{insertion_len_3}] [H3: 0 -> 9] [@{insertion_len_0}] [cycle]",
         );
         assert_good_strand(strand, expected_result);
 
@@ -1129,10 +1107,7 @@ mod tests {
             .get(&0)
             .expect("No strand 0");
         let expected_result = format!(
-            "[H1: -1 -> 3] [@{}] [H1: 4 -> 7] [@{}] [H2: -1 <- 7] [@{}] [H3: 0 -> 9] [@{}] [cycle]",
-            insertion_len_1,
-            insertion_len_2,
-            insertion_len_3,
+            "[H1: -1 -> 3] [@{insertion_len_1}] [H1: 4 -> 7] [@{insertion_len_2}] [H2: -1 <- 7] [@{insertion_len_3}] [H3: 0 -> 9] [@{}] [cycle]",
             insertion_len_4 + insertion_len_0
         );
         assert_good_strand(strand, expected_result);
@@ -1140,7 +1115,7 @@ mod tests {
 
     fn test_sane_strand(strand: &Strand) {
         let mut strand = Strand::clone(strand);
-        let mut xover_ids = ensnano_utils::id_generator::IdGenerator::default();
+        let mut xover_ids = IdGenerator::default();
         strand.read_junctions(&mut xover_ids, true);
         strand.read_junctions(&mut xover_ids, false);
     }
@@ -1190,7 +1165,7 @@ mod tests {
                 position: Vec3::zero(),
                 orientation: Rotor3::identity(),
                 helix_parameters: None,
-                grid_type: ensnano_design::grid::GridTypeDescr::Square { twist: None },
+                grid_type: GridTypeDescr::Square { twist: None },
                 invisible: false,
                 bezier_vertex: None,
             }))
@@ -1199,7 +1174,7 @@ mod tests {
         assert_eq!(
             app_state.0.design.presenter.current_design.free_grids.len(),
             1
-        )
+        );
     }
 
     #[test]
@@ -1210,7 +1185,7 @@ mod tests {
                 position: Vec3::zero(),
                 orientation: Rotor3::identity(),
                 helix_parameters: None,
-                grid_type: ensnano_design::grid::GridTypeDescr::Square { twist: None },
+                grid_type: GridTypeDescr::Square { twist: None },
                 invisible: false,
                 bezier_vertex: None,
             }))
@@ -1227,7 +1202,7 @@ mod tests {
             }))
             .unwrap();
         app_state.update();
-        assert_eq!(app_state.0.design.presenter.current_design.helices.len(), 1)
+        assert_eq!(app_state.0.design.presenter.current_design.helices.len(), 1);
     }
 
     #[test]
@@ -1238,7 +1213,7 @@ mod tests {
                 position: Vec3::zero(),
                 orientation: Rotor3::identity(),
                 helix_parameters: None,
-                grid_type: ensnano_design::grid::GridTypeDescr::Square { twist: None },
+                grid_type: GridTypeDescr::Square { twist: None },
                 invisible: false,
                 bezier_vertex: None,
             }))
@@ -1252,18 +1227,18 @@ mod tests {
             })
             .unwrap();
         app_state.update();
-        assert_eq!(app_state.0.design.presenter.current_design.helices.len(), 1)
+        assert_eq!(app_state.0.design.presenter.current_design.helices.len(), 1);
     }
 
-    #[ignore]
+    #[ignore = "need fix"]
     #[test]
     fn copy_creates_clipboard() {
         let mut app_state = pastable_design();
         app_state
             .apply_copy_operation(CopyOperation::CopyStrands(vec![0]))
             .unwrap();
-        //Fix this path
-        //assert_eq!(app_state.0.design.controller.clipboard.size(), 1)
+        // Fix this path
+        // assert_eq!(app_state.0.design.controller.clipboard.size(), 1)
     }
 
     #[test]
@@ -1274,14 +1249,13 @@ mod tests {
             .apply_copy_operation(CopyOperation::CopyStrands(vec![0]))
             .unwrap();
         app_state
-            .apply_copy_operation(CopyOperation::PositionPastingPoint(
-                Some(Nucl {
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
+                PastePosition::Nucl(Nucl {
                     helix: 4,
                     position: 5,
                     forward: true,
-                })
-                .map(PastePosition::Nucl),
-            ))
+                }),
+            )))
             .unwrap();
         app_state
             .apply_copy_operation(CopyOperation::Paste)
@@ -1298,14 +1272,13 @@ mod tests {
             .apply_copy_operation(CopyOperation::CopyStrands(vec![0]))
             .unwrap();
         app_state
-            .apply_copy_operation(CopyOperation::PositionPastingPoint(
-                Some(Nucl {
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
+                PastePosition::Nucl(Nucl {
                     helix: 4,
                     position: 5,
                     forward: true,
-                })
-                .map(PastePosition::Nucl),
-            ))
+                }),
+            )))
             .unwrap();
         assert!(matches!(
             app_state
@@ -1323,14 +1296,13 @@ mod tests {
             .apply_copy_operation(CopyOperation::CopyStrands(vec![0]))
             .unwrap();
         app_state
-            .apply_copy_operation(CopyOperation::PositionPastingPoint(
-                Some(Nucl {
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
+                PastePosition::Nucl(Nucl {
                     helix: 1,
                     position: 10,
                     forward: true,
-                })
-                .map(PastePosition::Nucl),
-            ))
+                }),
+            )))
             .unwrap();
         app_state
             .apply_copy_operation(CopyOperation::Paste)
@@ -1347,18 +1319,17 @@ mod tests {
             .apply_copy_operation(CopyOperation::CopyStrands(vec![0]))
             .unwrap();
         app_state
-            .apply_copy_operation(CopyOperation::PositionPastingPoint(
-                Some(Nucl {
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
+                PastePosition::Nucl(Nucl {
                     helix: 1,
                     position: 5,
                     forward: true,
-                })
-                .map(PastePosition::Nucl),
-            ))
+                }),
+            )))
             .unwrap();
         match app_state.apply_copy_operation(CopyOperation::Paste) {
             Err(ErrOperation::CannotPasteHere) => (),
-            x => panic!("expected CannotPasteHere, got {:?}", x),
+            x => panic!("expected CannotPasteHere, got {x:?}"),
         }
     }
 
@@ -1368,7 +1339,7 @@ mod tests {
         app_state
             .apply_copy_operation(CopyOperation::CopyStrands(vec![0]))
             .unwrap();
-        assert_eq!(app_state.get_pasting_status(), PastingStatus::None)
+        assert_eq!(app_state.get_pasting_status(), PastingStatus::None);
     }
 
     #[test]
@@ -1380,7 +1351,7 @@ mod tests {
         app_state
             .apply_copy_operation(CopyOperation::PositionPastingPoint(None))
             .unwrap();
-        assert_eq!(app_state.get_pasting_status(), PastingStatus::Copy)
+        assert_eq!(app_state.get_pasting_status(), PastingStatus::Copy);
     }
 
     #[test]
@@ -1390,20 +1361,19 @@ mod tests {
             .apply_copy_operation(CopyOperation::CopyStrands(vec![0]))
             .unwrap();
         app_state
-            .apply_copy_operation(CopyOperation::PositionPastingPoint(
-                Some(Nucl {
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
+                PastePosition::Nucl(Nucl {
                     helix: 4,
                     position: 5,
                     forward: true,
-                })
-                .map(PastePosition::Nucl),
-            ))
+                }),
+            )))
             .unwrap();
         app_state
             .apply_copy_operation(CopyOperation::Paste)
             .unwrap();
         app_state.update();
-        assert_eq!(app_state.get_pasting_status(), PastingStatus::None)
+        assert_eq!(app_state.get_pasting_status(), PastingStatus::None);
     }
 
     #[test]
@@ -1412,7 +1382,7 @@ mod tests {
         app_state
             .apply_copy_operation(CopyOperation::InitStrandsDuplication(vec![0]))
             .unwrap();
-        assert_eq!(app_state.get_pasting_status(), PastingStatus::Duplication)
+        assert_eq!(app_state.get_pasting_status(), PastingStatus::Duplication);
     }
 
     #[test]
@@ -1422,14 +1392,13 @@ mod tests {
             .apply_copy_operation(CopyOperation::InitStrandsDuplication(vec![0]))
             .unwrap();
         app_state
-            .apply_copy_operation(CopyOperation::PositionPastingPoint(
-                Some(Nucl {
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
+                PastePosition::Nucl(Nucl {
                     helix: 1,
                     position: 10,
                     forward: true,
-                })
-                .map(PastePosition::Nucl),
-            ))
+                }),
+            )))
             .unwrap();
         app_state
             .apply_copy_operation(CopyOperation::Duplicate)
@@ -1449,14 +1418,13 @@ mod tests {
             .apply_copy_operation(CopyOperation::CopyStrands(vec![0]))
             .unwrap();
         app_state
-            .apply_copy_operation(CopyOperation::PositionPastingPoint(
-                Some(Nucl {
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
+                PastePosition::Nucl(Nucl {
                     helix: 1,
                     position: 5,
                     forward: true,
-                })
-                .map(PastePosition::Nucl),
-            ))
+                }),
+            )))
             .unwrap();
         assert!(
             !app_state
@@ -1478,16 +1446,15 @@ mod tests {
             .apply_copy_operation(CopyOperation::CopyStrands(vec![0]))
             .unwrap();
         let ret = app_state
-            .apply_copy_operation(CopyOperation::PositionPastingPoint(
-                Some(Nucl {
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
+                PastePosition::Nucl(Nucl {
                     helix: 1,
                     position: 10,
                     forward: true,
-                })
-                .map(PastePosition::Nucl),
-            ))
+                }),
+            )))
             .unwrap();
-        println!("{:?}", ret);
+        println!("{ret:?}");
         app_state.update();
         assert!(app_state.design_was_modified(&old_app_state));
     }
@@ -1507,25 +1474,23 @@ mod tests {
             .unwrap();
         assert_eq!(app_state.0.design.design.strands.len(), 1);
         app_state
-            .apply_copy_operation(CopyOperation::PositionPastingPoint(
-                Some(Nucl {
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
+                PastePosition::Nucl(Nucl {
                     helix: 1,
                     position: 5,
                     forward: true,
-                })
-                .map(PastePosition::Nucl),
-            ))
+                }),
+            )))
             .unwrap();
         assert_eq!(app_state.0.design.design.strands.len(), 2);
         app_state
-            .apply_copy_operation(CopyOperation::PositionPastingPoint(
-                Some(Nucl {
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
+                PastePosition::Nucl(Nucl {
                     helix: 1,
                     position: 3,
                     forward: true,
-                })
-                .map(PastePosition::Nucl),
-            ))
+                }),
+            )))
             .unwrap();
         assert_eq!(app_state.0.design.design.strands.len(), 2);
         app_state
@@ -1565,14 +1530,13 @@ mod tests {
             .unwrap();
         assert_eq!(app_state.0.design.design.strands.len(), 1);
         app_state
-            .apply_copy_operation(CopyOperation::PositionPastingPoint(
-                Some(Nucl {
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
+                PastePosition::Nucl(Nucl {
                     helix: 1,
                     position: 5,
                     forward: true,
-                })
-                .map(PastePosition::Nucl),
-            ))
+                }),
+            )))
             .unwrap();
         app_state.update();
         assert_eq!(app_state.0.design.design.strands.len(), 2);
@@ -1605,14 +1569,13 @@ mod tests {
             .unwrap();
         assert_eq!(app_state.get_pasting_status(), PastingStatus::Duplication);
         app_state
-            .apply_copy_operation(CopyOperation::PositionPastingPoint(
-                Some(Nucl {
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
+                PastePosition::Nucl(Nucl {
                     helix: 1,
                     position: 5,
                     forward: true,
-                })
-                .map(PastePosition::Nucl),
-            ))
+                }),
+            )))
             .unwrap();
         assert_eq!(app_state.get_pasting_status(), PastingStatus::Duplication);
         app_state
@@ -1646,11 +1609,11 @@ mod tests {
             .unwrap();
         app_state.update();
         let staples = app_state.get_design_interactor().presenter.get_staples();
-        for s in staples.iter() {
+        for s in staples {
             if s.name.contains("5':h1:nt7") {
-                assert_eq!(s.sequence, "CCAA TTTT") // cspell: disable-line
+                assert_eq!(s.sequence, "CCAA TTTT"); // cspell: disable-line
             } else if s.name.contains("5':h2:nt0") {
-                assert_eq!(s.sequence, "AAAA GGTT") // cspell: disable-line
+                assert_eq!(s.sequence, "AAAA GGTT"); // cspell: disable-line
             } else {
                 panic!("Incorrect staple name {:?}", s.name);
             }
@@ -1678,11 +1641,11 @@ mod tests {
             .unwrap();
         app_state.update();
         let staples = app_state.get_design_interactor().presenter.get_staples();
-        for s in staples.iter() {
+        for s in staples {
             if s.name.contains("5':h1:nt7") {
-                assert_eq!(s.sequence, "AGGT TCCA") // cspell: disable-line
+                assert_eq!(s.sequence, "AGGT TCCA"); // cspell: disable-line
             } else if s.name.contains("5':h2:nt0") {
-                assert_eq!(s.sequence, "ATTT TAAA") // cspell: disable-line
+                assert_eq!(s.sequence, "ATTT TAAA"); // cspell: disable-line
             } else {
                 panic!("Incorrect staple name {:?}", s.name);
             }
@@ -1718,7 +1681,7 @@ mod tests {
         let s_id = app_state
             .get_design_interactor()
             .get_id_of_strand_containing_nucl(&first_nucl)
-            .unwrap_or_else(|| panic!("no strand containing {:?}", first_nucl));
+            .unwrap_or_else(|| panic!("no strand containing {first_nucl:?}"));
         let strand = app_state
             .0
             .design
@@ -1746,11 +1709,11 @@ mod tests {
         let s_id_first = app_state
             .get_design_interactor()
             .get_id_of_strand_containing_nucl(&first_nucl)
-            .unwrap_or_else(|| panic!("no strand containing {:?}", first_nucl));
+            .unwrap_or_else(|| panic!("no strand containing {first_nucl:?}"));
         let s_id_last = app_state
             .get_design_interactor()
             .get_id_of_strand_containing_nucl(&last_nucl)
-            .unwrap_or_else(|| panic!("no strand containing {:?}", last_nucl));
+            .unwrap_or_else(|| panic!("no strand containing {last_nucl:?}"));
         app_state
             .apply_design_op(DesignOperation::Xover {
                 prime5_id: s_id_last,
@@ -1762,7 +1725,7 @@ mod tests {
         let s_id = app_state
             .get_design_interactor()
             .get_id_of_strand_containing_nucl(&first_nucl)
-            .unwrap_or_else(|| panic!("no strand containing {:?}", first_nucl));
+            .unwrap_or_else(|| panic!("no strand containing {first_nucl:?}"));
         let strand = app_state
             .0
             .design
@@ -1801,12 +1764,12 @@ mod tests {
             })
             .unwrap();
         app_state.update();
-        let mut xover_ids = ensnano_utils::id_generator::IdGenerator::default();
+        let mut xover_ids = IdGenerator::default();
 
         let s_id = app_state
             .get_design_interactor()
             .get_id_of_strand_containing_nucl(&source_nucl)
-            .unwrap_or_else(|| panic!("no strand containing {:?}", source_nucl));
+            .unwrap_or_else(|| panic!("no strand containing {source_nucl:?}"));
         let strand = app_state
             .0
             .design
@@ -1846,7 +1809,7 @@ mod tests {
         let s_id = app_state
             .get_design_interactor()
             .get_id_of_strand_containing_nucl(&source_nucl)
-            .unwrap_or_else(|| panic!("no strand containing {:?}", source_nucl));
+            .unwrap_or_else(|| panic!("no strand containing {source_nucl:?}"));
         let strand = app_state
             .0
             .design

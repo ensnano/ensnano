@@ -1,28 +1,19 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::{AppState, Message, Vec3};
-use crate::CameraId;
+use crate::{AppState, CameraId, left_panel::Message};
 use ensnano_iced::{
-    UiSize,
-    fonts::{MaterialIcon, MaterialIconStyle},
-    helpers::*,
-    iced::{Alignment, Command, Length, alignment::Horizontal},
+    fonts::material_icons::{MaterialIcon, MaterialIconStyle},
+    helpers::{
+        extra_jump, fixed_text_button, material_icon, material_icon_button, rotation_icon_button,
+        section, subsection,
+    },
+    ui_size::UiSize,
+    widgets::keyboard_priority::keyboard_priority,
 };
+use iced::{
+    Alignment, Command, Length,
+    alignment::Horizontal,
+    widget::{Column, Space, column, row, scrollable, text, text_input},
+};
+use ultraviolet::Vec3;
 
 /// A named camera orientation.
 ///
@@ -82,7 +73,7 @@ const PREDEFINED_CAMERA_ORIENTATION: [NamedCameraPosition; 6] = [
 fn named_camera_to_button<State: AppState>(
     position: &NamedCameraPosition,
     ui_size: UiSize,
-) -> ensnano_iced::Element<'_, Message<State>> {
+) -> iced::Element<'_, Message<State>> {
     fixed_text_button(position.name, 2.0, ui_size)
         .on_press(position.message())
         .into()
@@ -124,8 +115,8 @@ struct CameraWidget {
 }
 
 impl CameraWidget {
-    fn view<State: AppState>(&self, ui_size: UiSize) -> ensnano_iced::Element<'_, Message<State>> {
-        let name_field: ensnano_iced::Element<'_, _> = if self.being_edited {
+    fn view<State: AppState>(&self, ui_size: UiSize) -> iced::Element<'_, Message<State>> {
+        let name_field: iced::Element<'_, _> = if self.being_edited {
             keyboard_priority(
                 "Camera name",
                 Message::SetKeyboardPriority,
@@ -190,7 +181,7 @@ impl CameraShortcutPanel {
     pub fn reset_angles(&mut self) {
         self.xz = 0;
         self.yz = 0;
-        self.xy = 0
+        self.xy = 0;
     }
 
     pub fn set_angles(&mut self, xz: isize, yz: isize, xy: isize) {
@@ -210,7 +201,7 @@ impl CameraShortcutPanel {
     }
 
     pub fn start_editing(&mut self, id: CameraId) {
-        for cam in self.camera_widgets.iter() {
+        for cam in &self.camera_widgets {
             if cam.camera_id == id {
                 self.camera_being_edited = Some(id);
             }
@@ -225,15 +216,12 @@ impl CameraShortcutPanel {
             .map(|(id, name)| {
                 let being_edited = self.camera_being_edited == Some(id);
                 let name = if being_edited {
-                    self.camera_input_name
-                        .as_ref()
-                        .map(|s| s.as_str())
-                        .unwrap_or(name)
+                    self.camera_input_name.as_deref().unwrap_or(name)
                 } else {
                     name
                 };
                 CameraWidget {
-                    name: name.to_string(),
+                    name: name.to_owned(),
                     being_edited,
                     camera_id: id,
                 }
@@ -244,10 +232,8 @@ impl CameraShortcutPanel {
     pub fn scroll_down(&mut self) {
         self.scroll_state.snap_to(scrollable::RelativeOffset::END);
     }
-}
 
-impl CameraShortcutPanel {
-    pub fn update<State: AppState>(&mut self, app_state: &mut State) -> Command<Message<State>> {
+    pub fn update<State: AppState>(&mut self, app_state: &State) -> Command<Message<State>> {
         self.set_camera_widget(app_state);
         Command::none()
     }
@@ -256,7 +242,7 @@ impl CameraShortcutPanel {
         &self,
         ui_size: UiSize,
         _state: &State,
-    ) -> ensnano_iced::Element<'_, Message<State>> {
+    ) -> iced::Element<'_, Message<State>> {
         //let (ui_size, _) = state;
         //let ui_size = ui_size.to_owned();
 

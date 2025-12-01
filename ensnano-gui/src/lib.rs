@@ -1,20 +1,3 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
 //! The [GUI Manager](Gui) handles redraw request on textures that corresponds to regions
 //! attributed to GUI components and events happening on these regions.
 //!
@@ -28,50 +11,58 @@ pub mod left_panel;
 pub mod status_bar;
 pub mod top_bar;
 
+use crate::left_panel::{
+    LeftPanel, RigidBodyParametersRequest,
+    tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
+};
 use ensnano_design::{
-    self, BezierPathId, BezierVertexId, CameraId, HelixParameters, Nucl,
+    CameraId, Nucl,
+    bezier_plane::{BezierPathId, BezierVertexId},
     elements::{DesignElement, DesignElementKey, DnaAttribute},
     grid::{GridId, GridTypeDescr},
+    parameters::HelixParameters,
 };
+use ensnano_exports::ExportType;
 use ensnano_iced::{
-    self, fonts,
-    iced::{
-        self, Renderer, Size,
-        advanced::{clipboard, mouse},
-        event::{self, Event},
-        keyboard,
-    },
-    iced_graphics,
-    iced_runtime::{Debug, program},
-    iced_wgpu::{self, Backend, wgpu},
-    iced_winit::{conversion, winit},
+    fonts::{INTER_REGULAR_FONT, load_fonts},
+    ui_size::UiSize,
     widgets::keyboard_priority::PriorityRequest,
 };
 use ensnano_interactor::{
-    ActionMode, HyperboloidRequest, InsertionPoint, Multiplexer, PastingStatus,
-    RevolutionSurfaceSystemDescriptor, RollRequest, ScaffoldInfo, Selection, SelectionMode,
-    SimulationState, StrandBuildingStatus, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
-    app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
+    HyperboloidRequest, InsertionPoint, PastingStatus, RollRequest, ScaffoldInfo, SimulationState,
+    StrandBuildingStatus, WidgetBasis,
+    app_state_parameters::{
+        AppStateParameters, check_xovers_parameter::CheckXoversParameter,
+        suggestion_parameters::SuggestionParameters,
+    },
     graphics::{
         Background3D, DrawArea, FogParameters, GuiComponentType, HBondDisplay, RenderingMode,
         SplitMode,
     },
+    multiplexer::Multiplexer,
     operation::Operation,
+    selection::{ActionMode, Selection, SelectionMode},
+    surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
 };
-use ensnano_organizer::{GroupId, OrganizerTree};
+use ensnano_organizer::tree::{GroupId, OrganizerTree};
 use ensnano_physics::parameters::RapierParameters;
-pub use left_panel::{
-    ColorOverlay, CurveDescriptorBuilder, CurveDescriptorParameter, InstantiatedParameter,
-    LeftPanel, RevolutionScaling, RigidBodyParametersRequest,
+use ensnano_utils::TEXTURE_FORMAT;
+use iced::{
+    Size,
+    advanced::{clipboard, mouse, renderer},
+    event::Event,
+    keyboard,
+    mouse::Cursor,
 };
-use status_bar::StatusBar;
-pub use status_bar::{ClipboardContent, CurrentOpState};
+use iced_runtime::{Debug, program};
+use iced_wgpu::Backend;
+use status_bar::{ClipboardContent, CurrentOpState, StatusBar};
 use std::{
-    collections::{BTreeSet, HashMap},
+    collections::{BTreeSet, HashMap, VecDeque},
     rc::Rc,
     sync::{Arc, Mutex},
 };
-pub use top_bar::TopBar;
+use top_bar::TopBar;
 use ultraviolet::{Rotor3, Vec2, Vec3};
 use wgpu::{Device, Queue};
 use winit::{dpi::PhysicalSize, event::Modifiers, window::Window};
@@ -109,7 +100,7 @@ pub trait Requests: 'static + Send {
     fn set_scaffold_sequence(&mut self, shift: usize);
     fn set_scaffold_shift(&mut self, shift: usize);
     /// Change the size of the UI components
-    fn set_ui_size(&mut self, size: ensnano_iced::UiSize);
+    fn set_ui_size(&mut self, size: UiSize);
     /// Finalize the currently edited hyperboloid grid
     fn finalize_hyperboloid(&mut self);
     fn stop_roll_simulation(&mut self);
@@ -140,7 +131,7 @@ pub trait Requests: 'static + Send {
     fn set_selected_keys(
         &mut self,
         selection: Vec<DesignElementKey>,
-        group_id: Option<ensnano_organizer::GroupId>,
+        group_id: Option<GroupId>,
         new_group: bool,
     );
     fn update_organizer_tree(&mut self, tree: OrganizerTree<DesignElementKey>);
@@ -151,7 +142,7 @@ pub trait Requests: 'static + Send {
         keys: BTreeSet<DesignElementKey>,
     );
     fn change_split_mode(&mut self, split_mode: SplitMode);
-    fn export(&mut self, export_type: ensnano_exports::ExportType);
+    fn export(&mut self, export_type: ExportType);
     /// Split/Unsplit the 2D view
     fn toggle_2d_view_split(&mut self);
     fn undo(&mut self);
@@ -181,21 +172,21 @@ pub trait Requests: 'static + Send {
     fn add_double_strand_on_new_helix(&mut self, parameters: Option<(isize, usize)>);
     fn set_strand_name(&mut self, s_id: usize, name: String);
     fn create_new_camera(&mut self);
-    fn delete_camera(&mut self, cam_id: CameraId);
-    fn select_camera(&mut self, cam_id: CameraId);
-    fn set_camera_name(&mut self, cam_id: CameraId, name: String);
+    fn delete_camera(&mut self, camera_id: CameraId);
+    fn select_camera(&mut self, camera_id: CameraId);
+    fn set_camera_name(&mut self, camera_id: CameraId, name: String);
     fn set_suggestion_parameters(&mut self, param: SuggestionParameters);
     fn set_grid_position(&mut self, grid_id: GridId, position: Vec3);
     fn set_grid_orientation(&mut self, grid_id: GridId, orientation: Rotor3);
     fn toggle_2d(&mut self);
     fn set_nb_turn(&mut self, grid_id: GridId, nb_turn: f32);
-    fn set_check_xover_parameters(&mut self, paramters: CheckXoversParameter);
+    fn set_check_xover_parameters(&mut self, parameters: CheckXoversParameter);
     fn follow_stereographic_camera(&mut self, follow: bool);
     fn set_show_stereographic_camera(&mut self, show: bool);
     fn set_show_h_bonds(&mut self, show: HBondDisplay);
     fn flip_split_views(&mut self);
     fn set_rainbow_scaffold(&mut self, rainbow: bool);
-    fn set_all_helices_on_axis(&mut self, thick: bool);
+    fn set_all_helices_on_axis(&mut self, off_axis: bool);
     fn align_horizon(&mut self);
     fn download_origamis(&mut self);
     fn set_dna_parameters(&mut self, param: HelixParameters);
@@ -231,7 +222,7 @@ pub enum OverlayType {
     Color,
 }
 
-// The state of each Gui Elements.
+#[expect(clippy::large_enum_variant)]
 enum GuiState<R: Requests, S: AppState> {
     TopBar(program::State<TopBar<R, S>>),
     LeftPanel(program::State<LeftPanel<R, S>>),
@@ -240,49 +231,48 @@ enum GuiState<R: Requests, S: AppState> {
 
 impl<R: Requests, S: AppState> GuiState<R, S> {
     fn queue_event(&mut self, event: Event) {
-        if let Event::Keyboard(iced::keyboard::Event::KeyPressed {
+        if let Event::Keyboard(keyboard::Event::KeyPressed {
             key: keyboard::Key::Named(keyboard::key::Named::Tab),
             ..
         }) = event
         {
             match self {
-                GuiState::StatusBar(_) => {
-                    self.queue_status_bar_message(status_bar::Message::TabPressed)
+                Self::StatusBar(_) => {
+                    self.queue_status_bar_message(status_bar::Message::TabPressed);
                 }
-                GuiState::TopBar(_) => (),
-                GuiState::LeftPanel(_) => (),
+                Self::TopBar(_) | Self::LeftPanel(_) => (),
             }
         } else {
             match self {
-                GuiState::TopBar(state) => state.queue_event(event),
-                GuiState::LeftPanel(state) => state.queue_event(event),
-                GuiState::StatusBar(state) => state.queue_event(event),
+                Self::TopBar(state) => state.queue_event(event),
+                Self::LeftPanel(state) => state.queue_event(event),
+                Self::StatusBar(state) => state.queue_event(event),
             }
         }
     }
 
     fn queue_top_bar_message(&mut self, message: top_bar::Message<S>) {
-        log::trace!("Queue top bar {:?}", message);
-        if let GuiState::TopBar(state) = self {
-            state.queue_message(message)
+        log::trace!("Queue top bar {message:?}");
+        if let Self::TopBar(state) = self {
+            state.queue_message(message);
         } else {
             panic!("wrong message type")
         }
     }
 
     fn queue_left_panel_message(&mut self, message: left_panel::Message<S>) {
-        log::trace!("Queue left panel {:?}", message);
-        if let GuiState::LeftPanel(state) = self {
-            state.queue_message(message)
+        log::trace!("Queue left panel {message:?}");
+        if let Self::LeftPanel(state) = self {
+            state.queue_message(message);
         } else {
             panic!("wrong message type")
         }
     }
 
     fn queue_status_bar_message(&mut self, message: status_bar::Message<S>) {
-        log::trace!("Queue status_bar {:?}", message);
-        if let GuiState::StatusBar(state) = self {
-            state.queue_message(message)
+        log::trace!("Queue status_bar {message:?}");
+        if let Self::StatusBar(state) = self {
+            state.queue_message(message);
         } else {
             panic!("wrong message type")
         }
@@ -290,14 +280,14 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
 
     fn resize(&mut self, area: DrawArea, window: &Window) {
         match self {
-            GuiState::TopBar(state) => state.queue_message(top_bar::Message::Resize(
+            Self::TopBar(state) => state.queue_message(top_bar::Message::Resize(
                 area.size.to_logical(window.scale_factor()),
             )),
-            GuiState::LeftPanel(state) => state.queue_message(left_panel::Message::Resized(
+            Self::LeftPanel(state) => state.queue_message(left_panel::Message::Resized(
                 area.size.to_logical(window.scale_factor()),
                 area.position.to_logical(window.scale_factor()),
             )),
-            GuiState::StatusBar(state) => state.queue_message(status_bar::Message::Resize(
+            Self::StatusBar(state) => state.queue_message(status_bar::Message::Resize(
                 area.size.to_logical(window.scale_factor()),
             )),
         }
@@ -305,30 +295,30 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
 
     fn is_queue_empty(&self) -> bool {
         match self {
-            GuiState::TopBar(state) => state.is_queue_empty(),
-            GuiState::LeftPanel(state) => state.is_queue_empty(),
-            GuiState::StatusBar(state) => state.is_queue_empty(),
+            Self::TopBar(state) => state.is_queue_empty(),
+            Self::LeftPanel(state) => state.is_queue_empty(),
+            Self::StatusBar(state) => state.is_queue_empty(),
         }
     }
 
     fn update(
         &mut self,
-        size: iced::Size,
-        cursor: iced::mouse::Cursor,
-        renderer: &mut Renderer,
+        size: Size,
+        cursor: Cursor,
+        renderer: &mut iced::Renderer,
         theme: &iced::Theme,
-        style: &iced::advanced::renderer::Style,
+        style: &renderer::Style,
         debug: &mut Debug,
     ) {
         let mut clipboard = clipboard::Null;
         match self {
-            GuiState::TopBar(state) => {
+            Self::TopBar(state) => {
                 let _ = state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
             }
-            GuiState::LeftPanel(state) => {
+            Self::LeftPanel(state) => {
                 let _ = state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
             }
-            GuiState::StatusBar(state) => {
+            Self::StatusBar(state) => {
                 let _ = state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
             }
         }
@@ -336,7 +326,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
 
     fn render(
         &mut self,
-        renderer: &mut Renderer,
+        renderer: &mut iced::Renderer,
         device: &Device,
         queue: &Queue,
         encoder: &mut wgpu::CommandEncoder,
@@ -348,7 +338,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
         mouse_interaction: &mut mouse::Interaction,
     ) {
         match renderer {
-            Renderer::Wgpu(wgpu_renderer) => {
+            iced::Renderer::Wgpu(wgpu_renderer) => {
                 wgpu_renderer.with_primitives(|backend, primitives| {
                     backend.present(
                         device,
@@ -360,20 +350,21 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
                         primitives,
                         viewport,
                         &debug.overlay(),
-                    )
-                })
+                    );
+                });
             }
-            _ => panic!("Unhandled renderer"),
-        };
+            iced::Renderer::TinySkia(_) => panic!("Unhandled renderer"),
+        }
+
         match self {
-            GuiState::TopBar(state) => *mouse_interaction = state.mouse_interaction(),
-            GuiState::LeftPanel(state) => {
+            Self::TopBar(state) => *mouse_interaction = state.mouse_interaction(),
+            Self::LeftPanel(state) => {
                 let icon = state.mouse_interaction();
                 if icon > *mouse_interaction {
                     *mouse_interaction = icon;
                 }
             }
-            GuiState::StatusBar(state) => {
+            Self::StatusBar(state) => {
                 let icon = state.mouse_interaction();
                 if icon > *mouse_interaction {
                     *mouse_interaction = icon;
@@ -389,19 +380,19 @@ struct GuiComponent<R: Requests, S: AppState> {
     debug: Debug,
     redraw: bool,
     element_type: GuiComponentType,
-    renderer: Renderer,
+    renderer: iced::Renderer,
 }
 
 impl<R: Requests, S: AppState> GuiComponent<R, S> {
     /// Initialize the top bar gui component
     fn top_bar(
-        mut renderer: Renderer,
+        mut renderer: iced::Renderer,
         window: &Window,
         multiplexer: &dyn Multiplexer,
         requests: Arc<Mutex<R>>,
         app_state: S,
         top_bar_state: TopBarState,
-        ui_size: ensnano_iced::UiSize,
+        ui_size: UiSize,
     ) -> Self {
         let top_bar_area = multiplexer.get_draw_area(GuiComponentType::TopBar).unwrap();
         let top_bar = TopBar::new(
@@ -429,7 +420,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
 
     /// Initialize the left panel gui component
     fn left_panel(
-        mut renderer: Renderer,
+        mut renderer: iced::Renderer,
         window: &Window,
         multiplexer: &dyn Multiplexer,
         requests: Arc<Mutex<R>>,
@@ -465,12 +456,12 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
     }
 
     fn status_bar(
-        mut renderer: Renderer,
+        mut renderer: iced::Renderer,
         window: &Window,
         multiplexer: &dyn Multiplexer,
         requests: Arc<Mutex<R>>,
         state: &S,
-        ui_size: ensnano_iced::UiSize,
+        ui_size: UiSize,
     ) -> Self {
         let status_bar_area = multiplexer
             .get_draw_area(GuiComponentType::StatusBar)
@@ -498,7 +489,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
     }
 
     fn forward_event(&mut self, event: Event) {
-        self.state.queue_event(event)
+        self.state.queue_event(event);
     }
 
     fn get_state(&mut self) -> &mut GuiState<R, S> {
@@ -508,7 +499,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
     fn resize(&mut self, window: &Window, multiplexer: &dyn Multiplexer) {
         let area = multiplexer.get_draw_area(self.element_type).unwrap();
         self.state.resize(area, window);
-        log::debug!("resizing {:?}", area);
+        log::debug!("resizing {area:?}");
         self.redraw = true;
     }
 
@@ -516,19 +507,19 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
         &mut self,
         window: &Window,
         theme: &iced::Theme,
-        style: &iced::advanced::renderer::Style,
+        style: &renderer::Style,
         multiplexer: &dyn Multiplexer,
         resized: bool,
     ) -> bool {
         let area = multiplexer.get_draw_area(self.element_type).unwrap();
         let cursor = if multiplexer.focused_element() == Some(self.element_type) {
-            let point = conversion::cursor_position(
+            let point = iced_winit::conversion::cursor_position(
                 multiplexer.get_cursor_position(),
                 window.scale_factor(),
             );
-            iced::mouse::Cursor::Available(point)
+            Cursor::Available(point)
         } else {
-            iced::mouse::Cursor::Unavailable
+            Cursor::Unavailable
         };
         if !self.state.is_queue_empty() || resized {
             // We update iced
@@ -547,7 +538,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
         }
     }
 
-    pub fn render(
+    pub(crate) fn render(
         &mut self,
         device: &Device,
         queue: &Queue,
@@ -569,7 +560,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
                 queue,
                 encoder,
                 clear_color,
-                ensnano_utils::TEXTURE_FORMAT,
+                TEXTURE_FORMAT,
                 // NOTE: Maybe we should put the format above.
                 frame,
                 &viewport,
@@ -611,7 +602,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
     ) -> Self {
         let wgpu_settings = iced_wgpu::Settings {
             antialiasing: Some(iced_graphics::Antialiasing::MSAAx4),
-            default_font: crate::fonts::INTER_REGULAR_FONT,
+            default_font: INTER_REGULAR_FONT,
             default_text_size: iced::Pixels(parameters.ui_size.main_text()),
             ..Default::default()
         };
@@ -651,17 +642,17 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         //       Type of 'state' is a parameter implementing 'AppState', while top_bar_state
         //       is another type.
         //
-        let mut top_bar_renderer = Renderer::Wgpu(iced_wgpu::Renderer::new(
+        let mut top_bar_renderer = iced::Renderer::Wgpu(iced_wgpu::Renderer::new(
             Backend::new(
                 self.device.as_ref(),
                 self.queue.as_ref(),
                 self.wgpu_settings,
-                ensnano_utils::TEXTURE_FORMAT,
+                TEXTURE_FORMAT,
             ),
             self.wgpu_settings.default_font,
             self.wgpu_settings.default_text_size,
         ));
-        crate::fonts::load_fonts(&mut top_bar_renderer);
+        load_fonts(&mut top_bar_renderer);
         self.components.insert(
             GuiComponentType::TopBar,
             GuiComponent::top_bar(
@@ -675,17 +666,17 @@ impl<R: Requests, State: AppState> Gui<R, State> {
             ),
         );
 
-        let mut left_panel_renderer = Renderer::Wgpu(iced_wgpu::Renderer::new(
+        let mut left_panel_renderer = iced::Renderer::Wgpu(iced_wgpu::Renderer::new(
             Backend::new(
                 self.device.as_ref(),
                 self.queue.as_ref(),
                 self.wgpu_settings,
-                ensnano_utils::TEXTURE_FORMAT,
+                TEXTURE_FORMAT,
             ),
             self.wgpu_settings.default_font,
             self.wgpu_settings.default_text_size,
         ));
-        crate::fonts::load_fonts(&mut left_panel_renderer);
+        load_fonts(&mut left_panel_renderer);
         self.components.insert(
             GuiComponentType::LeftPanel,
             GuiComponent::left_panel(
@@ -701,12 +692,12 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         self.components.insert(
             GuiComponentType::StatusBar,
             GuiComponent::status_bar(
-                Renderer::Wgpu(iced_wgpu::Renderer::new(
+                iced::Renderer::Wgpu(iced_wgpu::Renderer::new(
                     Backend::new(
                         self.device.as_ref(),
                         self.queue.as_ref(),
                         self.wgpu_settings,
-                        ensnano_utils::TEXTURE_FORMAT,
+                        TEXTURE_FORMAT,
                     ),
                     self.wgpu_settings.default_font,
                     self.wgpu_settings.default_text_size,
@@ -721,26 +712,25 @@ impl<R: Requests, State: AppState> Gui<R, State> {
     }
 
     /// Forward an event to the appropriate gui component
-    pub fn forward_event(&mut self, area: GuiComponentType, event: event::Event) {
+    pub fn forward_event(&mut self, area: GuiComponentType, event: Event) {
         self.components.get_mut(&area).unwrap().forward_event(event);
     }
 
     /// Clear the focus of all components of the GUI
     pub fn clear_focus(&mut self) {
         for elt in self.components.values_mut() {
-            use iced::advanced::mouse::Event;
-            elt.forward_event(event::Event::Mouse(Event::CursorMoved {
+            elt.forward_event(Event::Mouse(mouse::Event::CursorMoved {
                 position: [-1., -1.].into(),
             }));
-            elt.forward_event(event::Event::Mouse(Event::ButtonPressed(
+            elt.forward_event(Event::Mouse(mouse::Event::ButtonPressed(
                 mouse::Button::Left,
-            )))
+            )));
         }
     }
 
-    pub fn forward_event_all(&mut self, event: event::Event) {
+    pub fn forward_event_all(&mut self, event: Event) {
         for e in self.components.values_mut() {
-            e.forward_event(event.clone())
+            e.forward_event(event.clone());
         }
     }
 
@@ -772,7 +762,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
     /// Get the new size of each gui component from the multiplexer and forwards them.
     pub fn resize(&mut self, multiplexer: &dyn Multiplexer, window: &Window) {
         for element in self.components.values_mut() {
-            element.resize(window, multiplexer)
+            element.resize(window, multiplexer);
         }
         self.resized = true;
     }
@@ -782,7 +772,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         &mut self,
         window: &Window,
         theme: &iced::Theme,
-        style: &iced::advanced::renderer::Style,
+        style: &renderer::Style,
         multiplexer: &dyn Multiplexer,
     ) -> bool {
         let mut ret = false;
@@ -797,7 +787,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         &mut self,
         multiplexer: &dyn Multiplexer,
         theme: &iced::Theme,
-        style: &iced::advanced::renderer::Style,
+        style: &renderer::Style,
         window: &Window,
     ) {
         for elements in self.components.values_mut() {
@@ -808,7 +798,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
 
     pub fn new_ui_size(
         &mut self,
-        ui_size: ensnano_iced::UiSize,
+        ui_size: UiSize,
         window: &Window,
         multiplexer: &dyn Multiplexer,
         app_state: &State,
@@ -848,8 +838,8 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         mouse_interaction: &mut iced::mouse::Interaction,
     ) {
         *mouse_interaction = Default::default();
-        for (element_key, element) in self.components.iter_mut() {
-            log::trace!("render {:?}", element_key);
+        for (element_key, element) in &mut self.components {
+            log::trace!("render {element_key:?}");
             element.render(
                 self.device.as_ref(),
                 self.queue.as_ref(),
@@ -858,7 +848,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
                 window,
                 multiplexer,
                 mouse_interaction,
-            )
+            );
         }
     }
 }
@@ -875,29 +865,24 @@ fn convert_size_u32(size: PhysicalSize<u32>) -> Size<u32> {
     Size::new(size.width, size.height)
 }
 
-use std::collections::VecDeque;
-
 /// Message sent to the gui component
 pub struct IcedMessages<S: AppState> {
     left_panel: VecDeque<left_panel::Message<S>>,
     top_bar: VecDeque<top_bar::Message<S>>,
-    _color_overlay: VecDeque<left_panel::ColorMessage>,
     status_bar: VecDeque<status_bar::Message<S>>,
     application_state: S,
-    last_topbar_state: TopBarState,
+    last_top_bar_state: TopBarState,
     redraw: bool,
 }
 
 impl<S: AppState> IcedMessages<S> {
-    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
             left_panel: VecDeque::new(),
             top_bar: VecDeque::new(),
-            _color_overlay: VecDeque::new(),
             status_bar: VecDeque::new(),
             application_state: Default::default(),
-            last_topbar_state: Default::default(),
+            last_top_bar_state: Default::default(),
             redraw: false,
         }
     }
@@ -907,31 +892,25 @@ impl<S: AppState> IcedMessages<S> {
             .push_back(status_bar::Message::Message(Some(message)));
     }
 
-    #[allow(dead_code)]
-    pub fn clear_message(&mut self) {
-        self.status_bar
-            .push_back(status_bar::Message::Message(None));
-    }
-
     pub fn push_progress(&mut self, progress_name: String, progress: f32) {
         self.status_bar
             .push_back(status_bar::Message::Progress(Some((
                 progress_name,
                 progress,
-            ))))
+            ))));
     }
 
     pub fn finish_progress(&mut self) {
         self.status_bar
-            .push_back(status_bar::Message::Progress(None))
+            .push_back(status_bar::Message::Progress(None));
     }
 
     pub fn update_modifiers(&mut self, modifiers: Modifiers) {
         self.left_panel
-            .push_back(left_panel::Message::ModifiersChanged(modifiers))
+            .push_back(left_panel::Message::ModifiersChanged(modifiers));
     }
 
-    pub fn new_ui_size(&mut self, ui_size: ensnano_iced::UiSize) {
+    pub fn new_ui_size(&mut self, ui_size: UiSize) {
         self.left_panel
             .push_back(left_panel::Message::UiSizeChanged(ui_size));
         self.top_bar
@@ -951,8 +930,8 @@ impl<S: AppState> IcedMessages<S> {
     pub fn push_application_state(&mut self, state: S, top_bar_state: TopBarState) {
         log::trace!("Old ptr {:p}, new ptr {:p}", state, self.application_state);
         self.application_state = state.clone();
-        self.redraw |= top_bar_state != self.last_topbar_state;
-        self.last_topbar_state = top_bar_state.clone();
+        self.redraw |= top_bar_state != self.last_top_bar_state;
+        self.last_top_bar_state = top_bar_state.clone();
         let must_update = self.application_state != state || self.redraw;
         if must_update {
             self.left_panel
@@ -972,6 +951,7 @@ pub trait AppState:
     Default + PartialEq + Clone + 'static + Send + std::fmt::Debug + std::fmt::Pointer
 {
     const POSSIBLE_CURVES: &'static [CurveDescriptorBuilder<Self>];
+
     fn get_selection_mode(&self) -> SelectionMode;
     fn get_action_mode(&self) -> ActionMode;
     fn get_build_helix_mode(&self) -> ActionMode;
