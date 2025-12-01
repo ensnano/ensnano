@@ -83,13 +83,13 @@ impl SpringAnchorsReference {
             pair(&helix, default_parameters, -(distance as isize));
         let (_, _, next_down_center) = pair(&helix, default_parameters, 1 - distance as isize);
 
-        let up = next_center - center;
+        let up = (next_center - center).normalize();
 
         // up's up direction
-        let up_up = next_up_center - up_center;
+        let up_up = (next_up_center - up_center).normalize();
 
         // down's up direction
-        let down_up = next_down_center - down_center;
+        let down_up = (next_down_center - down_center).normalize();
 
         // we compute the left and right anchors by rotating each nucletide pair in its
         // local up axis
