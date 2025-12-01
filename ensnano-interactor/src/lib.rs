@@ -1,49 +1,35 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 //! This modules defines types and operations used by the graphical component of ENSnano to
 //! interact with the design.
 
 pub mod app_state_parameters;
-pub mod graphics;
-mod selection;
-pub use selection::*;
 pub mod application;
 pub mod consts;
-mod multiplexer;
+pub mod graphics;
+pub mod multiplexer;
 pub mod operation;
-mod operation_labels;
-mod strand_builder;
-mod surfaces;
+pub mod selection;
+pub mod strand_builder;
+pub mod surfaces;
 pub mod torsion;
 
 use ensnano_design::{
-    self, BezierControlPoint, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex,
-    BezierVertexId, CurveDescriptor2D, HelixParameters, Nucl,
+    CameraId, Nucl,
+    bezier_plane::{
+        BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
+    },
+    curves::bezier::BezierControlPoint,
     elements::{DesignElementKey, DnaAttribute},
-    grid::{GridDescriptor, GridId, GridObject, GridTypeDescr, HelixGridPosition, Hyperboloid},
+    grid::{
+        GridDescriptor, GridId, GridObject, GridTypeDescr, HelixGridPosition,
+        hyperboloid::Hyperboloid,
+    },
     group_attributes::GroupPivot,
+    parameters::HelixParameters,
 };
-use ensnano_organizer::{GroupId, OrganizerTree};
-pub use multiplexer::Multiplexer;
+use ensnano_organizer::tree::{GroupId, OrganizerTree};
+use selection::Selection;
 use std::path::PathBuf;
-pub use strand_builder::*;
-pub use surfaces::*;
+use surfaces::RevolutionSimulationParameters;
 use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -62,11 +48,11 @@ pub enum ObjectType {
 
 impl ObjectType {
     pub fn is_bond(&self) -> bool {
-        matches!(self, ObjectType::Bond(_, _))
+        matches!(self, Self::Bond(_, _))
     }
 
     pub fn is_helix_cylinder(&self) -> bool {
-        matches!(self, ObjectType::HelixCylinder(_, _))
+        matches!(self, Self::HelixCylinder(_, _))
     }
 
     pub fn same_type(&self, other: &Self) -> bool {
@@ -81,8 +67,8 @@ pub enum Referential {
     Model,
 }
 
-#[derive(Debug, Clone)]
 /// An operation that can be performed on a design
+#[derive(Debug, Clone)]
 pub enum DesignOperation {
     /// Rotate an element of the design
     Rotation(DesignRotation),
@@ -181,7 +167,7 @@ pub enum DesignOperation {
     },
     SetIsometry {
         helix: usize,
-        segment: usize,
+        segment_idx: usize,
         isometry: Isometry2,
     },
     RequestStrandBuilders {
@@ -217,14 +203,14 @@ pub enum DesignOperation {
         group_id: GroupId,
         pivot: GroupPivot,
     },
-    DeleteCamera(ensnano_design::CameraId),
+    DeleteCamera(CameraId),
     CreateNewCamera {
         position: Vec3,
         orientation: Rotor3,
         pivot_position: Option<Vec3>,
     },
     SetCameraName {
-        camera_id: ensnano_design::CameraId,
+        camera_id: CameraId,
         name: String,
     },
     SetGridPosition {
@@ -300,6 +286,65 @@ pub enum DesignOperation {
     },
 }
 
+impl DesignOperation {
+    pub fn label(&self) -> std::borrow::Cow<'static, str> {
+        match self {
+            Self::Rotation(rotation) => format!("Rotation of {}", rotation.target).into(),
+            Self::Translation(translation) => {
+                format!("Translation of {}", translation.target).into()
+            }
+            Self::AddGridHelix { .. } => "Helix creation".into(),
+            Self::AddTwoPointsBezier { .. } => "Bezier curve creation".into(),
+            Self::RmHelices { .. } => "Helix deletion".into(),
+            Self::RmXovers { .. } => "Xover deletion".into(),
+            Self::Cut { nucl, .. } => format!("Cut on {nucl:?}").into(),
+            Self::GeneralXover { source, target } => {
+                format!("Xover between {source:?} and {target:?}").into()
+            }
+            Self::Xover { .. } => "Xover".into(),
+            Self::CrossCut { .. } => "Cut and crossover".into(),
+            Self::RmStrands { .. } => "Strand deletion".into(),
+            Self::AddGrid(_) => "Grid creation".into(),
+            Self::RecolorStaples => "Staple recoloring".into(),
+            Self::ChangeColor { .. } => "Color modification".into(),
+            Self::SetScaffoldId(_) => "Scaffold setting".into(),
+            Self::SetScaffoldSequence { .. } => "Scaffold sequence setting".into(),
+            Self::HyperboloidOperation(_) => "Nanotube operation".into(),
+            Self::CleanDesign => "Clean design".into(),
+            Self::HelicesToGrid(_) => "Grid creation from helices".into(),
+            Self::SetHelicesPersistence {
+                persistent: true, ..
+            } => "Show phantom helices".into(),
+            Self::SetHelicesPersistence {
+                persistent: false, ..
+            } => "Hide phantom helices".into(),
+            Self::UpdateAttribute { .. } => "Update attribute from organizer".into(),
+            Self::SetSmallSpheres { small: true, .. } => "Hide nucleotides".into(),
+            Self::SetSmallSpheres { small: false, .. } => "Show nucleotides".into(),
+            Self::SnapHelices { .. } => "Move 2D helices".into(),
+            Self::RotateHelices { .. } => "Translate 2D helices".into(),
+            Self::SetIsometry { .. } => "Set isometry of helices".into(),
+            Self::RequestStrandBuilders { nucls } => format!("Build on {nucls:?}").into(),
+            Self::MoveBuilders(_) => "Move builders".into(),
+            Self::SetRollHelices { .. } => "Set roll of helix".into(),
+            Self::SetVisibilityHelix { visible: true, .. } => "Make helices visible".into(),
+            Self::SetVisibilityHelix { visible: false, .. } => "Make helices invisible".into(),
+            Self::FlipHelixGroup { .. } => "Change xover group of helices".into(),
+            Self::FlipAnchors { .. } => "Set/Unset nucl anchor".into(),
+            Self::AttachObject { .. } => "Move grid object".into(),
+            Self::SetOrganizerTree(_) => "Update organizer tree".into(),
+            Self::SetStrandName { .. } => "Update name of strand".into(),
+            Self::SetGroupPivot { .. } => "Set group pivot".into(),
+            Self::DeleteCamera(_) => "Delete camera".into(),
+            Self::CreateNewCamera { .. } => "Create camera shortcut".into(),
+            Self::SetGridPosition { .. } => "Set grid position".into(),
+            Self::SetGridOrientation { .. } => "Set grid orientation".into(),
+            Self::MakeSeveralXovers { .. } => "Multiple xovers".into(),
+            _ => "Unnamed operation".into(),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Copy)]
 pub struct NewBezierTangentVector {
     pub vertex_id: BezierVertexId,
@@ -358,18 +403,18 @@ pub enum IsometryTarget {
     ControlPoint(Vec<(usize, BezierControlPoint)>),
 }
 
-impl ToString for IsometryTarget {
-    fn to_string(&self) -> String {
+impl std::fmt::Display for IsometryTarget {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Helices(hs, _) => format!("Helices {:?}", hs),
-            Self::Grids(gs) => format!("Grids {:?}", gs),
-            Self::GroupPivot(_) => "Group pivot".into(),
-            Self::ControlPoint(_) => "Bezier control point".into(),
+            Self::Helices(hs, _) => write!(f, "Helices {hs:?}"),
+            Self::Grids(gs) => write!(f, "Grids {gs:?}"),
+            Self::GroupPivot(_) => write!(f, "Group pivot"),
+            Self::ControlPoint(_) => write!(f, "Bezier control point"),
         }
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct HyperboloidRequest {
     pub radius: usize,
     pub length: f32,
@@ -433,14 +478,17 @@ pub struct ScaffoldInfo {
     pub starting_nucl: Option<Nucl>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum SimulationState {
+    #[default]
     None,
     Rolling,
     RigidGrid,
     RigidHelices,
     Paused,
-    Twisting { grid_id: GridId },
+    Twisting {
+        grid_id: GridId,
+    },
     Relaxing,
 }
 
@@ -470,38 +518,24 @@ impl SimulationState {
     }
 }
 
-impl Default for SimulationState {
-    fn default() -> Self {
-        Self::None
-    }
-}
-
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Default)]
 pub enum WidgetBasis {
+    #[default]
     World,
     Object,
 }
 
 impl WidgetBasis {
     pub fn toggle(&mut self) {
-        if self.is_axis_aligned() {
-            *self = WidgetBasis::Object
+        *self = if self.is_axis_aligned() {
+            Self::Object
         } else {
-            *self = WidgetBasis::World
+            Self::World
         };
     }
 
     pub fn is_axis_aligned(&self) -> bool {
-        match self {
-            Self::World => true,
-            Self::Object => false,
-        }
-    }
-}
-
-impl Default for WidgetBasis {
-    fn default() -> Self {
-        Self::World
+        matches!(self, Self::World)
     }
 }
 
@@ -541,8 +575,10 @@ pub struct BezierPlaneHomothethy {
 
 #[derive(Debug, Clone, Copy)]
 /// One of the standard scaffold sequence shipped with ENSnano
+#[derive(Default)]
 pub enum StandardSequence {
     P4844,
+    #[default]
     P7249,
     P7560,
     P8064,
@@ -579,11 +615,5 @@ impl StandardSequence {
             }
         }
         ret
-    }
-}
-
-impl Default for StandardSequence {
-    fn default() -> Self {
-        Self::P7249
     }
 }

@@ -1,22 +1,4 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::Collection;
+use crate::collection::Collection;
 use relative_path::RelativePathBuf;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -64,7 +46,7 @@ impl External3DObject {
             })
         } else {
             log::error!(
-                "Coud not compute path diff between {:?} and {:?}",
+                "Could not compute path diff between {:?} and {:?}",
                 desc.object_path.as_ref().to_string_lossy(),
                 desc.design_path.as_ref().to_string_lossy()
             );
@@ -102,6 +84,10 @@ impl Collection for External3DObjects {
         Box::new(self.0.keys())
     }
 
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
     fn len(&self) -> usize {
         self.0.len()
     }
@@ -127,8 +113,7 @@ impl External3DObjects {
             .0
             .keys()
             .min_by_key(|k| k.0)
-            .map(|k| External3DObjectId(k.0 + 1))
-            .unwrap_or(External3DObjectId(0));
+            .map_or(External3DObjectId(0), |k| External3DObjectId(k.0 + 1));
         Arc::make_mut(&mut self.0).insert(key, object);
     }
 }

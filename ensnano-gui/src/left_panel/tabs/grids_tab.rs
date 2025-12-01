@@ -1,34 +1,24 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::tabs::GuiTab;
-use super::{
-    AppState, FactoryId, GridTypeDescr, Hyperboloid_, HyperboloidRequest, Message, RequestFactory,
-    UiSize, ValueId,
+use crate::{
+    AppState,
+    left_panel::{
+        Hyperboloid_, Message,
+        discrete_value::{FactoryId, RequestFactory, ValueId},
+        tabs::GuiTab,
+    },
 };
+use ensnano_consts::{ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID};
+use ensnano_design::grid::GridTypeDescr;
 use ensnano_iced::{
-    fonts::{MaterialIcon, icon_to_char},
-    helpers::*,
-    iced::{self, Length},
-    iced_aw::TabLabel,
-    theme,
+    fonts::material_icons::{MaterialIcon, icon_to_char},
+    helpers::{extra_jump, icon_button, section, subsection, text_button},
+    ui_size::UiSize,
 };
-use ensnano_interactor::consts::{ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID};
+use ensnano_interactor::HyperboloidRequest;
+use iced::{
+    Length,
+    widget::{Column, column, row, scrollable, text, tooltip},
+};
+use iced_aw::TabLabel;
 use std::marker::PhantomData;
 
 pub struct GridTab<State: AppState> {
@@ -87,10 +77,10 @@ impl<State: AppState> GuiTab<State> for GridTab<State> {
                 row![
                     text_button("Cancel", ui_size)
                         .on_press(Message::CancelHyperboloid)
-                        .style(theme::Button::Destructive),
+                        .style(iced::theme::Button::Destructive),
                     text_button("Finish", ui_size)
                         .on_press(Message::FinalizeHyperboloid)
-                        .style(theme::Button::Positive),
+                        .style(iced::theme::Button::Positive),
                 ]
                 .spacing(ui_size.button_spacing())
             } else {
@@ -111,7 +101,7 @@ impl<State: AppState> GuiTab<State> for GridTab<State> {
                 text("Select ≥4 unattached helices").size(ui_size.main_text()),
                 tooltip::Position::FollowCursor,
             )
-            .style(theme::Container::Box),
+            .style(iced::theme::Container::Box),
         ]
         .spacing(5);
         scrollable(content).width(Length::Fill).into()

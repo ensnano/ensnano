@@ -1,26 +1,21 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum CheckXoversParameter {
+    #[default]
     None,
     Checked,
     Unchecked,
     Both,
 }
 
-impl Default for CheckXoversParameter {
-    fn default() -> Self {
-        Self::None
-    }
-}
-
-impl ToString for CheckXoversParameter {
-    fn to_string(&self) -> String {
+impl std::fmt::Display for CheckXoversParameter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::None => String::from("None"),
-            Self::Checked => String::from("Checked"),
-            Self::Unchecked => String::from("Unchecked"),
-            Self::Both => String::from("Both"),
+            Self::None => write!(f, "None"),
+            Self::Checked => write!(f, "Checked"),
+            Self::Unchecked => write!(f, "Unchecked"),
+            Self::Both => write!(f, "Both"),
         }
     }
 }

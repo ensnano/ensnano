@@ -1,41 +1,34 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
 //! Implementation of the top bar part of the GUI.
 //!
 //! The top bar consist of a row of buttons that covers various actions: load/save a model, change
 //! the selection mode, modify the layout of the window, etc.
 //!
 //! Drawing the top bar, and triggering events from it is handled here.
-use super::{AppState, TopBarState};
-// NOTE: I would like to rename AppState to ApplicationState, and name AppState the structures that
-//       implement it.
-use ensnano_iced::{
-    UiSize,
-    fonts::{MaterialIcon, MaterialIconStyle},
-    helpers::*,
-    iced::{self, Element, Length, Padding},
-    iced_runtime::{Command, Program},
-    iced_winit::winit::dpi::LogicalSize,
-};
-use ensnano_interactor::{ActionMode, SelectionMode};
-use std::sync::{Arc, Mutex};
 
-use super::{Requests, SplitMode};
+use crate::{
+    AppState, Requests, TopBarState,
+    icon::{HasIcon as _, HasIconDependentOnAxis as _},
+};
+use ensnano_iced::{
+    fonts::{
+        ENSNANO_FONT,
+        material_icons::{MaterialIcon, MaterialIconStyle},
+    },
+    helpers::{fixed_text_button, image_button, material_icon_button, text_button},
+    theme::GuiBackground,
+    ui_size::UiSize,
+};
+use ensnano_interactor::{
+    graphics::SplitMode,
+    selection::{ActionMode, SelectionMode},
+};
+use iced::{
+    Element, Length, Padding, theme,
+    widget::{Button, Row, container, image, row, text, tooltip},
+};
+use iced_runtime::{Command, Program};
+use std::sync::{Arc, Mutex};
+use winit::dpi::LogicalSize;
 
 /// Top bar object
 pub struct TopBar<R: Requests, S: AppState> {
@@ -110,8 +103,8 @@ impl<R: Requests, S: AppState> TopBar<R, S> {
 
 impl<R: Requests, S: AppState> Program for TopBar<R, S> {
     type Message = Message<S>;
-    type Theme = ensnano_iced::Theme;
-    type Renderer = super::Renderer;
+    type Theme = iced::Theme;
+    type Renderer = iced::Renderer;
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
@@ -155,7 +148,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
                     self.requests
                         .lock()
                         .unwrap()
-                        .change_action_mode(action_mode)
+                        .change_action_mode(action_mode);
                 } else {
                     match action_mode {
                         ActionMode::Rotate | ActionMode::Translate => {
@@ -173,11 +166,11 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             // TODO: Consider rename message ThickHelices → AllHelicesOnAxis
             Message::AlignHorizon => self.requests.lock().unwrap().align_horizon(),
             Message::Import3D => self.requests.lock().unwrap().import_3d_object(),
-        };
+        }
         Command::none()
     }
 
-    fn view(&self) -> Element<'_, Self::Message, Self::Theme, Self::Renderer> {
+    fn view(&self) -> Element<'_, Self::Message> {
         let build_helix_mode = self.get_build_helix_mode();
 
         let button_new_empty_design = tooltip(
@@ -394,7 +387,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             ActionMode::Normal,
             ActionMode::Translate,
             ActionMode::Rotate,
-            build_helix_mode.clone(),
+            build_helix_mode,
         ];
 
         let action_mode_buttons: Vec<Element<'_, _, _, _>> = action_modes_to_display
@@ -475,7 +468,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             row![button_help, button_tutorial,].spacing(self.ui_size.button_spacing()),
             // ENSnano logo, placed on the right.
             text("\u{e91c}")
-                .font(crate::fonts::ENSNANO_FONT)
+                .font(ENSNANO_FONT)
                 .width(Length::Fill)
                 .horizontal_alignment(iced::alignment::Horizontal::Right)
                 .vertical_alignment(iced::alignment::Vertical::Center),
@@ -485,7 +478,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
 
         container(bar)
             .width(self.logical_size.width as f32)
-            .style(ensnano_iced::theme::GuiBackground)
+            .style(GuiBackground)
             // HACK: A small padding allow tooltip messages to disappear properly.
             .padding(Padding::from([
                 self.ui_size.button_spacing(),
@@ -497,14 +490,13 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
     }
 }
 
-use super::icon::{HasIcon, HasIconDependentOnAxis};
 fn action_mode_btn<'a, State: AppState>(
     mode: &ActionMode,
     current_action_mode: ActionMode,
     _button_size: impl Into<Length>,
     axis_aligned: bool,
     ui_size: UiSize,
-) -> Button<'a, Message<State>, ensnano_iced::Theme, super::Renderer> {
+) -> Button<'a, Message<State>> {
     let icon_path = if current_action_mode == *mode {
         mode.icon_on(axis_aligned)
     } else {
@@ -512,7 +504,7 @@ fn action_mode_btn<'a, State: AppState>(
     };
 
     image_button(image(icon_path), ui_size)
-        .on_press(Message::ActionModeChanged(mode.clone()))
+        .on_press(Message::ActionModeChanged(*mode))
         .style(if current_action_mode == *mode {
             theme::Button::Positive
         } else {
@@ -525,7 +517,7 @@ fn selection_mode_btn<'a, State: AppState>(
     mode: &SelectionMode,
     current_mode: SelectionMode,
     ui_size: UiSize,
-) -> Button<'a, Message<State>, ensnano_iced::Theme, super::Renderer> {
+) -> Button<'a, Message<State>> {
     let icon_path = if current_mode == *mode {
         mode.icon_on()
     } else {
@@ -533,7 +525,7 @@ fn selection_mode_btn<'a, State: AppState>(
     };
 
     image_button(image(icon_path), ui_size)
-        .on_press(Message::SelectionModeChanged(mode.clone()))
+        .on_press(Message::SelectionModeChanged(*mode))
         .style(if current_mode == *mode {
             theme::Button::Positive
         } else {

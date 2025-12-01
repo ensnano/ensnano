@@ -1,51 +1,26 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::*;
-
-use rand::Rng;
+use crate::{
+    helices::HelixCollection,
+    parameters::HelixParameters,
+    strands::{Domain, Strand},
+};
+use rand::Rng as _;
 use rand_distr::StandardNormal;
-use std::f32::consts::{PI, TAU};
+use std::{
+    f32::consts::{PI, TAU},
+    sync::Arc,
+};
+use ultraviolet::Vec3;
 
 const EPSILON_DESC: f32 = 0.05;
+const NB_STEP: usize = 1_000;
+const DT_STEP: f32 = 1e-2;
+const K_SPRING: f32 = 1.0;
+const FRICTION: f32 = 0.1;
+const MASS_NUCL: f32 = 1.0;
 
 struct InsertionDescriptor {
     edge: InsertionEdge,
     nb_nucl: usize,
-}
-
-struct CircleArc {
-    center: Vec3,
-    up: Vec3,
-    right: Vec3,
-    radius: f32,
-    start_angle: f32,
-    bigger_than_half_circle: bool,
-}
-
-impl CircleArc {
-    fn position(&self, t: f32) -> Vec3 {
-        let angle = if self.bigger_than_half_circle {
-            (PI - self.start_angle) * (1. - t) + t * (-PI + self.start_angle)
-        } else {
-            (self.start_angle) * (1. - t) - t * self.start_angle
-        };
-        self.center + self.radius * (self.up * angle.cos() - self.right * angle.sin())
-    }
 }
 
 impl InsertionDescriptor {
@@ -58,6 +33,17 @@ impl InsertionDescriptor {
     }
 
     fn get_circle(&self, helix_parameters: &HelixParameters) -> Option<CircleArc> {
+        fn cord_length(d: f32, h: f32, increasing: bool, nb_nucl: usize) -> f32 {
+            let r = f32::hypot(d, h);
+            let total_angle = if increasing {
+                TAU - 2. * (d / h).atan()
+            } else {
+                2. * (d / h).atan()
+            };
+            let small_angle = total_angle / (nb_nucl as f32 + 1.);
+            2. * r * (small_angle / 2.).sin()
+        }
+
         let bisector_origin = (self.edge.prime_5.position + self.edge.prime_3.position) / 2.;
         let mean_of_up_vecs = (self.edge.prime_5.up_vec + self.edge.prime_3.up_vec) / 2.;
         if mean_of_up_vecs.mag() < 1e-3 {
@@ -75,16 +61,15 @@ impl InsertionDescriptor {
                 None
             } else {
                 let d = edge_direction.mag() / 2.;
+                let a = 0.0;
                 let (mut a, mut b, increasing) = if objective_len > PI * edge_direction.mag() {
-                    let a = 0.0;
                     let b = ((2. * objective_len).powi(2) - d.powi(2)).sqrt();
                     (a, 2. * b, true)
                 } else {
-                    let a = 0.0;
                     let b = 10. * d;
                     if cord_length(a, b, false, self.nb_nucl) > helix_parameters.dist_ac() {
-                        // the objective_len is very close to the length of the straight line
-                        // between the to exremities
+                        // objective_len is very close to the length of the straight line
+                        // between the two extremities
                         return None;
                     }
                     (a, b, false)
@@ -119,54 +104,13 @@ impl InsertionDescriptor {
             }
         }
     }
-}
 
-fn cord_length(d: f32, h: f32, increasing: bool, nb_nucl: usize) -> f32 {
-    let r = (d * d + h * h).sqrt();
-    let total_angle = if increasing {
-        TAU - 2. * (d / h).atan()
-    } else {
-        2. * (d / h).atan()
-    };
-    let small_angle = total_angle / (nb_nucl as f32 + 1.);
-    2. * r * (small_angle / 2.).sin()
-}
-struct InsertionEdge {
-    prime_5: InsertionEnd,
-    prime_3: InsertionEnd,
-}
-
-struct InsertionEnd {
-    position: Vec3,
-    up_vec: Vec3,
-}
-
-impl InsertionDescriptor {
     fn is_up_to_date(&self, other: &Self) -> bool {
         self.nb_nucl == other.nb_nucl
             && (self.edge.prime_5.position - other.edge.prime_5.position).mag() < EPSILON_DESC
             && (self.edge.prime_3.position - other.edge.prime_3.position).mag() < EPSILON_DESC
     }
-}
 
-pub struct InstantiatedInsertion {
-    descriptor: InsertionDescriptor,
-    instantiation: Vec<Vec3>,
-}
-
-impl InstantiatedInsertion {
-    pub fn pos(&self) -> &[Vec3] {
-        self.instantiation.as_slice()
-    }
-}
-
-const NB_STEP: usize = 1_000;
-const DT_STEP: f32 = 1e-2;
-const K_SPRING: f32 = 1.0;
-const FRICTION: f32 = 0.1;
-const MASS_NUCL: f32 = 1.0;
-
-impl InsertionDescriptor {
     fn instantiate(&self, helix_parameters: &HelixParameters) -> Vec<Vec3> {
         let mut rnd = rand::thread_rng();
         let mut ret = Vec::with_capacity(self.nb_nucl);
@@ -211,15 +155,56 @@ impl InsertionDescriptor {
             }
 
             for (a_id, speed_a) in speed.iter_mut().enumerate() {
-                *speed_a += DT_STEP * forces[a_id] / MASS_NUCL
+                *speed_a += DT_STEP * forces[a_id] / MASS_NUCL;
             }
 
             for (a_id, pos_a) in ret.iter_mut().enumerate() {
-                *pos_a += speed[a_id] * DT_STEP
+                *pos_a += speed[a_id] * DT_STEP;
             }
         }
 
         ret
+    }
+}
+
+struct CircleArc {
+    center: Vec3,
+    up: Vec3,
+    right: Vec3,
+    radius: f32,
+    start_angle: f32,
+    bigger_than_half_circle: bool,
+}
+
+impl CircleArc {
+    fn position(&self, t: f32) -> Vec3 {
+        let angle = if self.bigger_than_half_circle {
+            (PI - self.start_angle) * (1. - t) + t * (-PI + self.start_angle)
+        } else {
+            (self.start_angle) * (1. - t) - t * self.start_angle
+        };
+        self.center + self.radius * (self.up * angle.cos() - self.right * angle.sin())
+    }
+}
+
+struct InsertionEdge {
+    prime_5: InsertionEnd,
+    prime_3: InsertionEnd,
+}
+
+struct InsertionEnd {
+    position: Vec3,
+    up_vec: Vec3,
+}
+
+pub struct InstantiatedInsertion {
+    descriptor: InsertionDescriptor,
+    instantiation: Vec<Vec3>,
+}
+
+impl InstantiatedInsertion {
+    pub fn pos(&self) -> &[Vec3] {
+        self.instantiation.as_slice()
     }
 }
 
@@ -260,11 +245,11 @@ impl Strand {
                         log::error!("Could not get space pos for insertion");
                     }
                 } else {
-                    log::error!("two insertions next to eachother");
+                    log::error!("two insertions next to each other");
                 }
             }
         }
-        for (d_id, edge) in to_be_updated.into_iter() {
+        for (d_id, edge) in to_be_updated {
             self.update_insertion(d_id, edge, helix_parameters);
         }
     }
@@ -287,13 +272,12 @@ impl Strand {
             };
             let up_to_date = instantiation
                 .as_ref()
-                .map(|i| i.descriptor.is_up_to_date(&descriptor))
-                .unwrap_or(false);
+                .is_some_and(|i| i.descriptor.is_up_to_date(&descriptor));
             if !up_to_date {
                 *instantiation = Some(Arc::new(InstantiatedInsertion {
                     instantiation: descriptor.instantiate(helix_parameters),
                     descriptor,
-                }))
+                }));
             }
         } else {
             log::error!("Wrong domain id");

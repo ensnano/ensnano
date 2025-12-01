@@ -1,26 +1,7 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+use ensnano_interactor::selection::{ActionMode, SelectionMode};
+use iced::widget::image::Handle;
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use ensnano_iced::iced::widget::image::Handle;
-
-use ensnano_interactor::{ActionMode, SelectionMode};
-
-pub trait HasIcon {
+pub(crate) trait HasIcon {
     fn icon_on(&self) -> Handle;
     fn icon_off(&self) -> Handle;
 }
@@ -31,7 +12,7 @@ impl HasIcon for SelectionMode {
             Self::Helix => include_bytes!("../../icons/icons/Helix-on32.png").to_vec(),
             Self::Nucleotide => include_bytes!("../../icons/icons/Nucleotide-on32.png").to_vec(),
             Self::Strand => include_bytes!("../../icons/icons/Strand-on32.png").to_vec(),
-            _ => vec![],
+            Self::Design => vec![],
         };
         Handle::from_memory(bytes)
     }
@@ -41,15 +22,15 @@ impl HasIcon for SelectionMode {
             Self::Helix => include_bytes!("../../icons/icons/Helix-off32.png").to_vec(),
             Self::Nucleotide => include_bytes!("../../icons/icons/Nucleotide-off32.png").to_vec(),
             Self::Strand => include_bytes!("../../icons/icons/Strand-off32.png").to_vec(),
-            _ => vec![],
+            Self::Design => vec![],
         };
         Handle::from_memory(bytes)
     }
 }
 
-pub trait HasIconDependentOnAxis {
-    fn icon_on(&self, on_axis: bool) -> Handle;
-    fn icon_off(&self, on_axis: bool) -> Handle;
+pub(crate) trait HasIconDependentOnAxis {
+    fn icon_on(&self, axis_aligned: bool) -> Handle;
+    fn icon_off(&self, axis_aligned: bool) -> Handle;
 }
 
 impl HasIconDependentOnAxis for ActionMode {

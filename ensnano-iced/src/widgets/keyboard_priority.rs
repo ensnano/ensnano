@@ -1,107 +1,92 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
 //! Gives text_input widgets priority to handle keyboard event.
+
 use iced::{
     Element, Length, Rectangle, Size, Vector,
     advanced::{
+        Clipboard, Shell,
         layout::{self, Layout},
-        renderer,
-        widget::{self, Widget, operation::Focusable as _},
-        {Clipboard, Shell, mouse},
+        mouse, renderer,
+        widget::{self, Widget, operation::Focusable},
     },
     event, overlay,
-    widget::text_input,
+    widget::{container, text_input},
 };
 use iced_graphics::text::Paragraph;
+use std::borrow::Cow;
+
+/// Signals when a text input claims or releases keyboard focus priority.
+///
+/// This is sent through messages to indicate what keyboard priority widget is taking or giving
+/// the priority. Being specific about the id allows to prevent issues with race conditions in
+/// the order of events.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PriorityRequest {
+    pub id: KeyboardPriorityId,
+    pub taking: bool,
+}
 
 /// A container that should contain a [text_input::TextInput].
 ///
 /// Trigger `on_priority` and `on_unpriority` when the text_input is focused or unfocused.
-pub struct KeyboardPriority<'a, Message, Theme = iced::Theme, Renderer = iced::Renderer> {
-    id: Option<Id>,
+pub struct KeyboardPriority<'a, Message> {
+    id: KeyboardPriorityId,
     width: Length,
     height: Length,
-    content: iced::Element<'a, Message, Theme, Renderer>,
-    on_priority: Option<Message>,
-    on_unpriority: Option<Message>,
+    content: Element<'a, Message>,
+    on_priority: Message,
+    on_unpriority: Message,
 }
 
 /// A container that gives keyboard priority to it's [text_input::TextInput] content.
 pub fn keyboard_priority<'a, Message>(
+    id: impl Into<Cow<'static, str>>,
+    message: impl Fn(PriorityRequest) -> Message,
     content: impl Into<Element<'a, Message>>,
 ) -> KeyboardPriority<'a, Message> {
-    KeyboardPriority::new(content)
+    KeyboardPriority::new(id, message, content)
 }
 
-impl<'a, Message, Theme, Renderer> KeyboardPriority<'a, Message, Theme, Renderer>
-where
-    Renderer: renderer::Renderer,
-{
+impl<'a, Message> KeyboardPriority<'a, Message> {
     /// Creates a new [`KeyboardPriority`] with the given content.
-    pub fn new(content: impl Into<Element<'a, Message, Theme, Renderer>>) -> Self {
+    pub fn new(
+        id: impl Into<Cow<'static, str>>,
+        message: impl Fn(PriorityRequest) -> Message,
+        content: impl Into<Element<'a, Message>>,
+    ) -> Self {
+        let id = KeyboardPriorityId::new(id);
         let content = content.into();
         let size = content.as_widget().size_hint();
         KeyboardPriority {
-            id: None,
+            id: id.clone(),
             width: size.width.fluid(),
             height: size.height.fluid(),
             content,
-            on_priority: None,
-            on_unpriority: None,
+            on_priority: message(PriorityRequest {
+                id: id.clone(),
+                taking: true,
+            }),
+            on_unpriority: message(PriorityRequest { id, taking: false }),
         }
     }
 
-    /// Sets the [`Id`] of the [`KeyboardPriority`].
-    pub fn id(mut self, id: Id) -> Self {
-        self.id = Some(id);
-        self
-    }
-
     /// Sets the width of the [`KeyboardPriority`].
+    #[must_use]
     pub fn width(mut self, width: Length) -> Self {
         self.width = width;
         self
     }
 
     /// Sets the height of the [`KeyboardPriority`].
+    #[must_use]
     pub fn height(mut self, height: Length) -> Self {
         self.height = height;
         self
     }
-
-    /// Sets the message that will be produced when the content is hovered.
-    pub fn on_priority(mut self, message: Message) -> Self {
-        self.on_priority = Some(message);
-        self
-    }
-
-    /// Sets the message that will be produced when the content is unhovered.
-    pub fn on_unpriority(mut self, message: Message) -> Self {
-        self.on_unpriority = Some(message);
-        self
-    }
 }
 
-impl<'a, Message, Theme, Renderer> Widget<Message, Theme, Renderer>
-    for KeyboardPriority<'a, Message, Theme, Renderer>
+impl<'a, Message> Widget<Message, iced::Theme, iced::Renderer> for KeyboardPriority<'a, Message>
 where
     Message: 'a + Clone,
-    Renderer: renderer::Renderer,
 {
     fn tag(&self) -> widget::tree::Tag {
         widget::tree::Tag::of::<State>()
@@ -127,10 +112,10 @@ where
     fn layout(
         &self,
         tree: &mut widget::Tree,
-        renderer: &Renderer,
+        renderer: &iced::Renderer,
         limits: &layout::Limits,
     ) -> layout::Node {
-        iced::widget::container::layout(
+        container::layout(
             limits,
             self.width,
             self.height,
@@ -151,21 +136,17 @@ where
         &self,
         tree: &mut widget::Tree,
         layout: Layout<'_>,
-        renderer: &Renderer,
+        renderer: &iced::Renderer,
         operation: &mut dyn widget::Operation<Message>,
     ) {
-        operation.container(
-            self.id.as_ref().map(|id| &id.0),
-            layout.bounds(),
-            &mut |operation| {
-                self.content.as_widget().operate(
-                    &mut tree.children[0],
-                    layout.children().next().unwrap(),
-                    renderer,
-                    operation,
-                );
-            },
-        );
+        operation.container(Some(&self.id.0), layout.bounds(), &mut |operation| {
+            self.content.as_widget().operate(
+                &mut tree.children[0],
+                layout.children().next().unwrap(),
+                renderer,
+                operation,
+            );
+        });
     }
 
     fn on_event(
@@ -174,7 +155,7 @@ where
         event: event::Event,
         layout: Layout,
         cursor: mouse::Cursor,
-        renderer: &Renderer,
+        renderer: &iced::Renderer,
         clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
         viewport: &Rectangle,
@@ -194,21 +175,17 @@ where
         // Now, update self.
         let state = tree.state.downcast_mut::<State>();
         // Look if the underlying [`TextInput`] is focused.
-        if let Some(tree) = tree.children.get(0) {
+        if let Some(tree) = tree.children.first() {
             // TODO: Make the downcast more robust.
             let text_input_state = tree.state.downcast_ref::<text_input::State<Paragraph>>();
             // Send message if the state has changed.
             if text_input_state.is_focused() & !state.is_focused() {
                 state.focus();
-                if let Some(on_priority) = &self.on_priority {
-                    shell.publish(on_priority.clone())
-                }
+                shell.publish(self.on_priority.clone());
                 event::Status::Captured
             } else if !text_input_state.is_focused() & state.is_focused() {
                 state.unfocus();
-                if let Some(on_unpriority) = &self.on_unpriority {
-                    shell.publish(on_unpriority.clone())
-                }
+                shell.publish(self.on_unpriority.clone());
                 event::Status::Captured
             } else {
                 status
@@ -218,14 +195,14 @@ where
         }
     }
 
-    // NOTE: Needed to transmit mouse intercation to child [`TextInput`].
+    // NOTE: Needed to transmit mouse interaction to child [`TextInput`].
     fn mouse_interaction(
         &self,
         tree: &widget::Tree,
         layout: Layout,
         cursor_position: mouse::Cursor,
         viewport: &Rectangle,
-        renderer: &Renderer,
+        renderer: &iced::Renderer,
     ) -> mouse::Interaction {
         self.content.as_widget().mouse_interaction(
             &tree.children[0],
@@ -239,11 +216,11 @@ where
     fn draw(
         &self,
         tree: &widget::Tree,
-        renderer: &mut Renderer,
-        theme: &Theme,
+        renderer: &mut iced::Renderer,
+        theme: &iced::Theme,
         style: &renderer::Style,
         layout: Layout,
-        cursor_position: mouse::Cursor,
+        cursor: mouse::Cursor,
         _viewport: &Rectangle,
     ) {
         let bounds = layout.bounds();
@@ -255,7 +232,7 @@ where
             theme,
             style,
             content_layout,
-            cursor_position,
+            cursor,
             &bounds,
         );
     }
@@ -264,9 +241,9 @@ where
         &'b mut self,
         tree: &'b mut widget::Tree,
         layout: Layout,
-        renderer: &Renderer,
+        renderer: &iced::Renderer,
         translation: Vector,
-    ) -> Option<overlay::Element<'b, Message, Theme, Renderer>> {
+    ) -> Option<overlay::Element<'b, Message, iced::Theme, iced::Renderer>> {
         self.content.as_widget_mut().overlay(
             &mut tree.children[0],
             layout.children().next().unwrap(),
@@ -276,38 +253,35 @@ where
     }
 }
 
-impl<'a, Message, Theme, Renderer> From<KeyboardPriority<'a, Message, Theme, Renderer>>
-    for Element<'a, Message, Theme, Renderer>
+impl<'a, Message> From<KeyboardPriority<'a, Message>> for Element<'a, Message>
 where
     Message: 'a + Clone,
-    Theme: 'a,
-    Renderer: 'a + renderer::Renderer,
 {
-    fn from(value: KeyboardPriority<'a, Message, Theme, Renderer>) -> Self {
+    fn from(value: KeyboardPriority<'a, Message>) -> Self {
         Self::new(value)
     }
 }
 
 /// The identifier of a [`KeyboardPriority`].
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Id(widget::Id);
+pub struct KeyboardPriorityId(widget::Id);
 
-impl Id {
-    /// Creates a custom [`Id`].
-    pub fn new(id: impl Into<std::borrow::Cow<'static, str>>) -> Self {
+impl KeyboardPriorityId {
+    /// Creates a custom [`KeyboardPriorityId`].
+    pub fn new(id: impl Into<Cow<'static, str>>) -> Self {
         Self(widget::Id::new(id))
     }
 
-    /// Creates a unique [`Id`].
+    /// Creates a unique [`KeyboardPriorityId`].
     ///
-    /// This function produces a different [`Id`] every time it is called.
+    /// This function produces a different [`KeyboardPriorityId`] every time it is called.
     pub fn unique() -> Self {
         Self(widget::Id::unique())
     }
 }
 
-impl From<Id> for widget::Id {
-    fn from(id: Id) -> Self {
+impl From<KeyboardPriorityId> for widget::Id {
+    fn from(id: KeyboardPriorityId) -> Self {
         id.0
     }
 }
@@ -319,7 +293,7 @@ pub struct State {
     is_focused: bool,
 }
 
-impl widget::operation::Focusable for State {
+impl Focusable for State {
     fn is_focused(&self) -> bool {
         self.is_focused
     }

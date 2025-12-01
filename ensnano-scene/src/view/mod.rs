@@ -1,84 +1,59 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
 //! The view module handles the drawing of the scene on texture. The scene can be drawn on the next
 //! frame to be displayed, or on a "fake texture" that is used to map pixels to objects.
 
-use self::gltf_drawer::Object3DDrawer;
-use super::camera;
-use super::{DrawArea, PhySize};
-use camera::{Camera, CameraPtr, Projection, ProjectionPtr};
-use ensnano_design::{Axis, grid::GridId, group_attributes::GroupPivot};
-use ensnano_interactor::{UnrootedRevolutionSurfaceDescriptor, consts::*};
-use ensnano_utils::{bindgroup_manager, text, texture};
-use int_enum::IntEnum;
-use std::{cell::RefCell, collections::BTreeMap, rc::Rc, usize};
-use texture::Texture;
-use ultraviolet::{Mat4, Rotor3, Vec3};
-use wgpu::util::DeviceExt as _;
-use wgpu::{Device, Queue};
-
-/// A `Uniform` is a structure that manages view and projection matrices.
-mod uniforms;
-pub use uniforms::Stereography;
-use uniforms::Uniforms;
 mod direction_cube;
 pub mod dna_obj;
 /// This modules defines a trait for drawing widget made of several meshes.
 mod drawable;
-mod gltf_drawer;
-pub use gltf_drawer::ExternalObjects;
-mod grid;
-mod grid_disc;
+pub mod gltf_drawer;
+pub mod grid;
+pub mod grid_disc;
 /// A HandleDrawer draws the widget for translating objects
-mod handle_drawer;
+pub mod handle_drawer;
 pub mod instances_drawer;
-mod letter;
+pub mod letter;
 /// A RotationWidget draws the widget for rotating objects
-mod rotation_widget;
-mod sheet_2d;
+pub mod rotation_widget;
+pub mod sheet_2d;
+/// A `Uniform` is a structure that manages view and projection matrices.
+pub mod uniforms;
 
-use super::maths_3d::{self, distance_to_cursor_with_penalty};
+use crate::{
+    camera::{Camera, CameraPtr, Projection, ProjectionPtr},
+    maths_3d::{cast_ray, distance_to_cursor_with_penalty, unproject_point_on_line},
+};
 use bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
-use direction_cube::*;
-pub use dna_obj::{
-    ConeInstance, Ellipsoid, PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance,
-    SphereInstance, StereographicSphereAndPlane, TubeInstance, TubeLidInstance,
+use direction_cube::{DirectionCube, DirectionTexture, SkyBox};
+use dna_obj::{
+    PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance, SphereInstance,
+    StereographicSphereAndPlane, TubeInstance, TubeLidInstance,
 };
-use drawable::{Drawable, Drawer, Vertex};
-pub use grid::{GridInstance, GridIntersection};
-use grid::{GridManager, GridTextures};
-pub use grid_disc::GridDisc;
-use handle_drawer::HandlesDrawer;
-pub use handle_drawer::{HandleColors, HandleDir, HandlesDescriptor};
-pub use instances_drawer::Instantiable;
-use instances_drawer::{InstanceDrawer, RawDrawer};
-pub use letter::LetterInstance;
-use maths_3d::unproject_point_on_line;
-use rotation_widget::RotationWidget;
-pub use rotation_widget::{
-    AvailableRotationAxes, RotationMode, RotationWidgetDescriptor, RotationWidgetOrientation,
+use ensnano_consts::{
+    MIN_RADIUS_FOR_FAKE_UPSCALING, PRINTABLE_CHARS, SAMPLE_COUNT, SELECT_SCALE_FACTOR,
 };
-pub use sheet_2d::Sheet2D;
-use text::Letter;
-
+use ensnano_design::{
+    grid::GridId, group_attributes::GroupPivot, helices::Axis, utils::dvec_to_vec,
+};
 use ensnano_interactor::graphics::{
-    Background3D, CutPlaneParameters, FogParameters, HBondDisplay, RenderingMode,
+    Background3D, CutPlaneParameters, DrawArea, FogParameters, HBondDisplay, PhySize, RenderingMode,
 };
+use ensnano_interactor::surfaces::UnrootedRevolutionSurfaceDescriptor;
+use ensnano_utils::{bindgroup_manager, text, texture};
+use gltf_drawer::{ExternalObjects, Object3DDrawer};
+use grid::{GridInstance, GridIntersection, GridManager, GridTextures};
+use grid_disc::GridDisc;
+use handle_drawer::{HandleDir, HandlesDescriptor, HandlesDrawer};
+use instances_drawer::{InstanceDrawer, RawDrawer};
+use int_enum::IntEnum;
+use letter::LetterInstance;
+use rotation_widget::{RotationMode, RotationWidget, RotationWidgetDescriptor};
+use sheet_2d::Sheet2D;
+use std::{cell::RefCell, collections::BTreeMap, rc::Rc};
+use text::Letter;
+use texture::Texture;
+use ultraviolet::{Mat4, Rotor3, Vec3};
+use uniforms::{Stereography, Uniforms};
+use wgpu::{Device, Queue, util::DeviceExt as _};
 
 static MODEL_BG_ENTRY: &[wgpu::BindGroupLayoutEntry] = &[wgpu::BindGroupLayoutEntry {
     binding: 0,
@@ -138,7 +113,7 @@ pub struct View {
     /// Cutting plane. TODO: remove? I don't see where the value is ever not `None`
     cut_plane_parameters: Option<CutPlaneParameters>,
     // Post-processing shader parameters. TODO: bundle in InstanceDrawer or a new struct
-    queue: Rc<wgpu::Queue>,
+    queue: Rc<Queue>,
     post_processing_pipeline: wgpu::RenderPipeline,
     post_processing_bind_group_layout: wgpu::BindGroupLayout,
     post_processing_buffer: wgpu::Buffer,
@@ -195,7 +170,7 @@ impl View {
             label: None,
         };
         log::info!("Create letter drawer");
-        let letter_drawer = ensnano_interactor::consts::PRINTABLE_CHARS
+        let letter_drawer = PRINTABLE_CHARS
             .iter()
             .map(|c| {
                 let letter = Letter::new(*c, device.clone(), queue.clone());
@@ -438,13 +413,13 @@ impl View {
         }
     }
 
-    fn update_viewers(&mut self) {
+    fn update_viewers(&self) {
         self.viewer.update(&Uniforms::from_view_proj_fog(
             self.camera.clone(),
             self.projection.clone(),
             &self.fog_parameters,
             None,
-            &self.cut_plane_parameters,
+            self.cut_plane_parameters.as_ref(),
         ));
         self.stereographic_viewer
             .update(&Uniforms::from_view_proj_fog(
@@ -452,7 +427,7 @@ impl View {
                 self.projection.clone(),
                 &self.fog_parameters,
                 Some(&self.stereography),
-                &self.cut_plane_parameters,
+                self.cut_plane_parameters.as_ref(),
             ));
     }
 
@@ -496,8 +471,8 @@ impl View {
                     self.projection.clone(),
                 );
             }
-            ViewUpdate::ModelMatrices(ref matrices) => {
-                self.models.update(matrices.clone().as_slice());
+            ViewUpdate::ModelMatrices(matrices) => {
+                self.models.update(matrices.as_slice());
             }
             ViewUpdate::Letter(letter) => {
                 for (i, instance) in letter.into_iter().enumerate() {
@@ -515,20 +490,20 @@ impl View {
                 self.dna_drawers
                     .get_mut(mesh)
                     .new_instances_raw(instances.as_ref());
-                if let Some(_mesh) = mesh.to_fake() {
+                if let Some(mesh) = mesh.to_fake() {
                     let mut instances = instances.as_ref().clone();
-                    for i in instances.iter_mut() {
-                        if i.scale.z <= ensnano_interactor::consts::MIN_RADIUS_FOR_FAKE_UPSCALING {
-                            i.scale *= ensnano_interactor::consts::SELECT_SCALE_FACTOR;
+                    for i in &mut instances {
+                        if i.scale.z <= MIN_RADIUS_FOR_FAKE_UPSCALING {
+                            i.scale *= SELECT_SCALE_FACTOR;
                         }
                     }
                     self.dna_drawers
-                        .get_mut(_mesh)
+                        .get_mut(mesh)
                         .new_instances_raw(instances.as_ref());
                 }
-                if let Some(_mesh) = mesh.to_outline() {
+                if let Some(mesh) = mesh.to_outline() {
                     self.dna_drawers
-                        .get_mut(_mesh)
+                        .get_mut(mesh)
                         .new_instances_raw(instances.as_ref());
                 }
             }
@@ -579,16 +554,14 @@ impl View {
             self.depth_texture =
                 Texture::create_depth_texture(self.device.as_ref(), &area.size, SAMPLE_COUNT);
             self.fake_depth_texture = Texture::create_depth_texture(self.device.as_ref(), &size, 1);
-            self.msaa_texture = if SAMPLE_COUNT > 1 {
-                Some(Texture::create_msaa_texture(
+            self.msaa_texture = (SAMPLE_COUNT > 1).then(|| {
+                Texture::create_msaa_texture(
                     self.device.clone().as_ref(),
                     &area.size,
                     SAMPLE_COUNT,
                     wgpu::TextureFormat::Bgra8UnormSrgb,
-                ))
-            } else {
-                None
-            };
+                )
+            });
         }
 
         let fake_color = draw_type.is_fake();
@@ -613,24 +586,22 @@ impl View {
 
         let attachment = match draw_type {
             DrawType::Scene => {
-                if let Some(ref msaa) = self.msaa_texture {
+                if let Some(msaa) = &self.msaa_texture {
                     msaa
                 } else {
                     target
                 }
             }
             DrawType::Png { width, height } => {
-                png_msaa = if SAMPLE_COUNT > 1 {
+                png_msaa = (SAMPLE_COUNT > 1).then(|| {
                     let size = PhySize::new(width, height);
-                    Some(Texture::create_msaa_texture(
+                    Texture::create_msaa_texture(
                         self.device.clone().as_ref(),
                         &size,
                         SAMPLE_COUNT,
                         wgpu::TextureFormat::Bgra8UnormSrgb,
-                    ))
-                } else {
-                    None
-                };
+                    )
+                });
                 png_msaa.as_ref().unwrap_or(target)
             }
             DrawType::Design | DrawType::Widget | DrawType::Phantom | DrawType::Grid => target,
@@ -713,10 +684,7 @@ impl View {
                 DrawType::Design => self.dna_drawers.fakes(),
                 DrawType::Phantom => self.dna_drawers.phantoms(),
                 DrawType::Grid => self.dna_drawers.fakes_and_phantoms(), // to fill the depth buffer
-                DrawType::Widget => vec![
-                    &mut self.dna_drawers.fake_bezier_control
-                        as &mut dyn RawDrawer<RawInstance = RawDnaInstance>,
-                ],
+                DrawType::Widget => vec![&mut self.dna_drawers.fake_bezier_control as _],
             };
 
             for drawer in drawers {
@@ -728,12 +696,12 @@ impl View {
             }
 
             if !fake_color && !stereographic && self.draw_letter {
-                for drawer in self.letter_drawer.iter_mut() {
+                for drawer in &mut self.letter_drawer {
                     drawer.draw(
                         &mut render_pass,
                         viewer_bind_group,
                         self.models.get_bindgroup(),
-                    )
+                    );
                 }
             }
 
@@ -749,18 +717,18 @@ impl View {
                     viewer_bind_group,
                     self.models.get_bindgroup(),
                 );
-                for drawer in self.helix_letter_drawer.iter_mut() {
+                for drawer in &mut self.helix_letter_drawer {
                     drawer.draw(
                         &mut render_pass,
                         viewer_bind_group,
                         self.models.get_bindgroup(),
-                    )
+                    );
                 }
                 self.sheets_drawer.draw(
                     &mut render_pass,
                     viewer_bind_group,
                     self.models.get_bindgroup(),
-                )
+                );
             }
 
             if draw_type.wants_widget() && !stereographic {
@@ -879,7 +847,7 @@ impl View {
                     .max(100.)
                     .min(area.size.width as f32),
                 (area.size.height as f32 / 10. * 1.5)
-                    .max((100. * area.size.height as f32 / area.size.width as f32) as f32)
+                    .max(100. * area.size.height as f32 / area.size.width as f32)
                     .min(area.size.height as f32),
                 0.0,
                 1.0,
@@ -965,7 +933,7 @@ impl View {
     }
 
     pub fn end_movement(&mut self) {
-        self.handle_drawers.end_movement()
+        self.handle_drawers.end_movement();
     }
 
     pub fn get_stereography(&self) -> Stereography {
@@ -1013,13 +981,13 @@ impl View {
     /// Initialize the rotation that will be applied on objects affected by the rotation widget.
     pub fn init_rotation(&mut self, mode: RotationMode, x_coord: f32, y_coord: f32) {
         self.need_redraw = true;
-        self.rotation_widget.init_rotation(x_coord, y_coord, mode)
+        self.rotation_widget.init_rotation(x_coord, y_coord, mode);
     }
 
     /// Initialize the translation that will be applied on objects affected by the handle widget.
     pub fn init_translation(&mut self, x: f32, y: f32) {
         self.need_redraw = true;
-        self.handle_drawers.init_translation(x, y)
+        self.handle_drawers.init_translation(x, y);
     }
 
     /// Compute the rotation that needs to be applied to the objects affected by the rotation
@@ -1069,7 +1037,7 @@ impl View {
                 for (i, point) in points.iter().enumerate() {
                     let point = point.rotated_by(orientation) + position;
                     let d = distance_to_cursor_with_penalty(
-                        ensnano_design::utils::dvec_to_vec(point),
+                        dvec_to_vec(point),
                         self.camera.clone(),
                         self.projection.clone(),
                         mouse_x as f32,
@@ -1080,7 +1048,7 @@ impl View {
                     .unwrap_or(f32::INFINITY);
                     if d < opt {
                         opt = d;
-                        ret = i as isize - nucl_t0 as isize
+                        ret = i as isize - nucl_t0 as isize;
                     }
                 }
                 Some(ret - shift)
@@ -1089,7 +1057,7 @@ impl View {
     }
 
     pub fn grid_intersection(&self, x_ndc: f32, y_ndc: f32) -> Option<GridIntersection> {
-        let ray = maths_3d::cast_ray(
+        let ray = cast_ray(
             x_ndc,
             y_ndc,
             self.camera.clone(),
@@ -1105,7 +1073,7 @@ impl View {
         y_ndc: f32,
         g_id: GridId,
     ) -> Option<GridIntersection> {
-        let ray = maths_3d::cast_ray(
+        let ray = cast_ray(
             x_ndc,
             y_ndc,
             self.camera.clone(),
@@ -1116,11 +1084,11 @@ impl View {
     }
 
     pub fn set_candidate_grid(&mut self, grids: Vec<(usize, GridId)>) {
-        self.grid_manager.set_candidate_grid(grids)
+        self.grid_manager.set_candidate_grid(grids);
     }
 
     pub fn set_selected_grid(&mut self, grids: Vec<(usize, GridId)>) {
-        self.grid_manager.set_selected_grid(grids)
+        self.grid_manager.set_selected_grid(grids);
     }
 
     pub fn get_group_pivot(&self) -> Option<GroupPivot> {
@@ -1201,8 +1169,7 @@ impl Mesh {
     fn to_fake(self) -> Option<Self> {
         match self {
             Self::Sphere => Some(Self::FakeSphere),
-            Self::Tube => Some(Self::FakeTube),
-            Self::SlicedTube => Some(Self::FakeTube),
+            Self::Tube | Self::SlicedTube => Some(Self::FakeTube),
             Self::PhantomSphere => Some(Self::FakePhantomSphere),
             Self::PhantomTube => Some(Self::FakePhantomTube),
             Self::BezierControl => Some(Self::FakeBezierControl),
@@ -1263,18 +1230,21 @@ struct DnaDrawers {
     xover_tube: InstanceDrawer<TubeInstance>,
     prime3_cones: InstanceDrawer<dna_obj::ConeInstance>,
     outline_prime3_cones: InstanceDrawer<dna_obj::ConeInstance>,
-    bezier_control_points: InstanceDrawer<dna_obj::SphereInstance>,
-    bezier_skeleton: InstanceDrawer<dna_obj::TubeInstance>,
+    bezier_control_points: InstanceDrawer<SphereInstance>,
+    bezier_skeleton: InstanceDrawer<TubeInstance>,
     fake_bezier_control: InstanceDrawer<SphereInstance>,
     stereographic_sphere: InstanceDrawer<StereographicSphereAndPlane>,
     base_ellipsoid: InstanceDrawer<dna_obj::Ellipsoid>,
     outline_base_ellipsoid: InstanceDrawer<dna_obj::Ellipsoid>,
-    hbond: InstanceDrawer<dna_obj::TubeInstance>,
-    outline_hbond: InstanceDrawer<dna_obj::TubeInstance>,
+    hbond: InstanceDrawer<TubeInstance>,
+    outline_hbond: InstanceDrawer<TubeInstance>,
 }
 
 impl DnaDrawers {
-    pub fn get_mut(&mut self, key: Mesh) -> &mut dyn RawDrawer<RawInstance = RawDnaInstance> {
+    pub(crate) fn get_mut(
+        &mut self,
+        key: Mesh,
+    ) -> &mut dyn RawDrawer<RawInstance = RawDnaInstance> {
         match key {
             Mesh::Sphere => &mut self.sphere,
             Mesh::Tube => &mut self.tube,
@@ -1313,7 +1283,7 @@ impl DnaDrawers {
         }
     }
 
-    pub fn reals(
+    pub(crate) fn reals(
         &mut self,
         draw_options: &DrawOptions,
     ) -> Vec<&mut dyn RawDrawer<RawInstance = RawDnaInstance>> {
@@ -1369,20 +1339,22 @@ impl DnaDrawers {
             }
         }
         if draw_options.show_stereographic_camera {
-            ret.push(&mut self.stereographic_sphere)
+            ret.push(&mut self.stereographic_sphere);
         }
         ret
     }
 
-    pub fn fakes(&mut self) -> Vec<&mut dyn RawDrawer<RawInstance = RawDnaInstance>> {
+    pub(crate) fn fakes(&mut self) -> Vec<&mut dyn RawDrawer<RawInstance = RawDnaInstance>> {
         vec![&mut self.fake_sphere, &mut self.fake_tube]
     }
 
-    pub fn phantoms(&mut self) -> Vec<&mut dyn RawDrawer<RawInstance = RawDnaInstance>> {
+    pub(crate) fn phantoms(&mut self) -> Vec<&mut dyn RawDrawer<RawInstance = RawDnaInstance>> {
         vec![&mut self.fake_phantom_sphere, &mut self.fake_phantom_tube]
     }
 
-    pub fn fakes_and_phantoms(&mut self) -> Vec<&mut dyn RawDrawer<RawInstance = RawDnaInstance>> {
+    pub(crate) fn fakes_and_phantoms(
+        &mut self,
+    ) -> Vec<&mut dyn RawDrawer<RawInstance = RawDnaInstance>> {
         vec![
             &mut self.fake_sphere,
             &mut self.fake_tube,
@@ -1391,7 +1363,7 @@ impl DnaDrawers {
         ]
     }
 
-    pub fn new(
+    pub(crate) fn new(
         device: Rc<Device>,
         queue: Rc<Queue>,
         viewer_desc: &wgpu::BindGroupLayoutDescriptor<'static>,
@@ -1717,23 +1689,15 @@ pub enum DrawType {
 impl DrawType {
     fn is_fake(&self) -> bool {
         match self {
-            DrawType::Scene => false,
-            DrawType::Png { .. } => false,
-            DrawType::Design => true,
-            DrawType::Widget => true,
-            DrawType::Phantom => true,
-            DrawType::Grid => true,
+            Self::Design | Self::Widget | Self::Phantom | Self::Grid => true,
+            Self::Scene | Self::Png { .. } => false,
         }
     }
 
     fn wants_widget(&self) -> bool {
         match self {
-            DrawType::Scene => true,
-            DrawType::Design => false,
-            DrawType::Widget => true,
-            DrawType::Phantom => false,
-            DrawType::Grid => false,
-            DrawType::Png { .. } => false,
+            Self::Scene | Self::Widget => true,
+            Self::Design | Self::Phantom | Self::Grid | Self::Png { .. } => false,
         }
     }
 }
@@ -1750,11 +1714,7 @@ impl PostProcessingUniform {
     fn new(rendering_mode: RenderingMode) -> Self {
         Self {
             sample_count: SAMPLE_COUNT,
-            only_outline: if rendering_mode == RenderingMode::Outline {
-                1
-            } else {
-                0
-            },
+            only_outline: (rendering_mode == RenderingMode::Outline) as u32,
             camera_near: CAMERA_NEAR,
             camera_far: CAMERA_FAR,
         }

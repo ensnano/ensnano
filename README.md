@@ -1,5 +1,5 @@
-![ensnano-logo](img/ensnano_logo.png)
-<img src="img/made_with_iced_white.svg" width="300">
+![ensnano-logo](readme/ensnano_logo.png)
+<img src="readme/made_with_iced_white.svg" width="300">
 
 # About
 
@@ -28,7 +28,7 @@ the conference.
 
 # Installation
 
-We try to frequently release binaries for Windows and MacOS.
+We try to frequently release binaries for Windows and macOS.
 
 Alternatively you can clone this repository and build the software from source, following instructions below:
 
@@ -83,11 +83,11 @@ when importing a cadnano/scadnano file
 
 In this cadnano design, deleted nucleotides are removed and loops are replaced by single strands
 
-![cadnano_del_loop](img/cadnano_del_loop.png) ![ensnano_del_loop](img/ensnano_del_loop.png)
+![cadnano_del_loop](readme/cadnano_del_loop.png) ![ensnano_del_loop](readme/ensnano_del_loop.png)
 
 In this scadnano design, insertions and loopouts are replaced by single strands
 
-![scadnano_insert_loopout](img/scadnano_insert_loopout.png) ![ensnano_insert_loopout](img/ensnano_insert_loopout.png)
+![scadnano_insert_loopout](readme/scadnano_insert_loopout.png) ![ensnano_insert_loopout](readme/ensnano_insert_loopout.png)
 
 # Troubleshooting
 
@@ -128,6 +128,6 @@ The licenses of the dependencies are listed in `thirdparties/license.html`
 
 This software uses the following fonts which are distributed under the SIL OpenFont License
 * [Inconsolata-Regular](https://fonts.google.com/specimen/Inconsolata)
-* [Inter](https://fonts.google.com/specimen/Inter) (Glyphs from this font are used in the file `font/ensnano2.ttf`)
+* [Inter](https://fonts.google.com/specimen/Inter) (Glyphs from this font are used in the file `fonts/ensnano2.ttf`)
 
-The font `font/DejaVuSansMono.ttf` is in public domain.
+The font `fonts/DejaVuSansMono.ttf` is in public domain.

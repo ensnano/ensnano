@@ -1,32 +1,22 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+mod closed_curves;
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-const MAX_ACCEL: f64 = 100.;
-
-use super::{SimulationInterface, SimulationUpdate};
+use crate::app_state::design_interactor::{
+    controller::simulations::SimulationInterface, presenter::SimulationUpdate,
+};
 use crate::{app_state::ErrOperation, controller::channel_reader::ChannelReader};
+use closed_curves::CloseSurfaceTopology;
 use ensnano_design::{
-    self, CurveDescriptor, CurveDescriptor2D, HelixParameters, InterpolationDescriptor,
+    AdditionalStructure, Design,
+    curves::CurveDescriptor,
+    helices::Helix,
+    parameters::HelixParameters,
+    strands::{Domain, DomainJunction, HelixInterval, Strand},
+    utils::dvec_to_vec,
 };
-use ensnano_interactor::{
+use ensnano_interactor::surfaces::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceSystemDescriptor,
-    RootedRevolutionSurface,
 };
+use ensnano_utils::colors::new_color;
 use mathru::{
     algebra::linear::vector::vector::Vector,
     analysis::differential_equation::ordinary::{
@@ -35,15 +25,15 @@ use mathru::{
     },
 };
 use std::{
-    f64::consts::TAU,
+    f64::consts::FRAC_PI_2,
     sync::{Arc, Mutex, Weak},
+    time::{SystemTime, UNIX_EPOCH},
 };
 use ultraviolet::{DVec3, Isometry2, Isometry3, Rotor2, Similarity3, Vec2, Vec3};
 
-mod closed_curves;
-use closed_curves::CloseSurfaceTopology;
+const MAX_ACCEL: f64 = 100.;
 
-pub struct RevolutionSurfaceSystem {
+pub(crate) struct RevolutionSurfaceSystem {
     topology: CloseSurfaceTopology,
     helix_parameters: HelixParameters,
     last_thetas: Option<Vec<f64>>,
@@ -68,12 +58,11 @@ impl Clone for RevolutionSurfaceSystem {
 }
 
 impl RevolutionSurfaceSystem {
-    pub fn new(desc: RevolutionSurfaceSystemDescriptor) -> Self {
+    pub(crate) fn new(desc: RevolutionSurfaceSystemDescriptor) -> Self {
         let scaffold_len_target = desc.scaffold_len_target;
         let dna_parameters = desc.helix_parameters;
         let simulation_parameters = desc.simulation_parameters.clone();
         let topology = if desc.target.curve_is_open() {
-            //Box::new(OpenSurfaceTopology::new(desc))
             todo!("Refactor open curves")
         } else {
             CloseSurfaceTopology::new(desc)
@@ -124,7 +113,7 @@ impl RevolutionSurfaceSystem {
         let mut total_len = 0;
         for desc in curve_desc {
             let len = desc.compute_length().unwrap();
-            println!("length ~= {:?}", len);
+            println!("length ~= {len:?}");
             println!("length ~= {:?} nt", len / self.helix_parameters.rise as f64);
             total_len += (len / self.helix_parameters.rise as f64).floor() as usize;
         }
@@ -153,7 +142,7 @@ impl RevolutionSurfaceSystem {
                 second_derivative_thetas: vec![0.; total_nb_section],
             };
             self.apply_springs(&mut system, Some(&mut spring_relaxation_state));
-            println!("initial spring relax state: {:?}", spring_relaxation_state);
+            println!("initial spring relax state: {spring_relaxation_state:?}");
             let rescaling_factor = 1. / spring_relaxation_state.avg_ext;
             self.topology.rescale_section(rescaling_factor);
             *first = false;
@@ -174,22 +163,13 @@ impl RevolutionSurfaceSystem {
             self.last_dthetas = None;
         } else {
             log::error!("error while solving ODE");
-        };
-        /*self.target.curve_scale_factor /= (spring_relaxation_state.min_ext
-        + spring_relaxation_state.max_ext
-        + 2. * spring_relaxation_state.avg_ext)
-        / 4.;*/
+        }
 
-        /*
-        self.target.curve_scale_factor /=
-            (spring_relaxation_state.min_ext + spring_relaxation_state.max_ext) / 2.;
-        */
         let rescaling_factor =
             2. / (spring_relaxation_state.min_ext + spring_relaxation_state.max_ext);
         self.topology.rescale_section(rescaling_factor);
 
-        println!("spring_relax state {:?}", spring_relaxation_state);
-        //println!("curve scale {}", self.target.curve_scale_factor);
+        println!("spring_relax state {spring_relaxation_state:?}");
         spring_relaxation_state
             .max_ext
             .max(1. / spring_relaxation_state.min_ext)
@@ -206,7 +186,7 @@ impl RevolutionSurfaceSystem {
         for i in self.topology.balls_with_successor() {
             ret += (self.position_section(self.topology.successor(*i), thetas)
                 - self.position_section(*i, thetas))
-            .mag()
+            .mag();
         }
         ret
     }
@@ -225,7 +205,7 @@ impl RevolutionSurfaceSystem {
         let mut nb_spring = 0;
         if let Some(state) = spring_state.as_mut() {
             state.min_ext = f64::INFINITY;
-            state.max_ext = -f64::INFINITY;
+            state.max_ext = f64::NEG_INFINITY;
             state.avg_ext = 0.;
         }
         for i in self.topology.balls_involved_in_spring() {
@@ -316,14 +296,13 @@ impl RevolutionSurfaceSystem {
     }
 
     fn compute_accelerations(&self, system: &mut RelaxationSystem) {
-        /* Newton's second law of motion:
-         * F/m = d2pos / d2 t
-         * F / m = (d2 theta / dt2) * (dpos / d theta)  + (d theta / dt) ^ 2 * (d2pos / d theta2)
-         *
-         * apply < • | dpos/ dt> to both sides
-         * (d2 theta / dt2) ||dpos / d theta||^2
-         *      = <F/m - (d theta / dt) ^ 2 * (d2pos / d theta2) | dpos / d theta>
-         */
+        // Newton's second law of motion:
+        // F/m = d2pos / d2 t
+        // F / m = (d2 theta / dt2) * (dpos / d theta)  + (d theta / dt) ^ 2 * (d2pos / d theta2)
+        //
+        // apply < • | dpos/ dt> to both sides
+        // (d2 theta / dt2) ||dpos / d theta||^2
+        //      = <F/m - (d theta / dt) ^ 2 * (d2pos / d theta2) | dpos / d theta>
 
         let total_nb_segment = self.topology.nb_balls();
 
@@ -371,7 +350,7 @@ struct SpringRelaxationState {
 impl SpringRelaxationState {
     fn new() -> Self {
         Self {
-            min_ext: std::f64::INFINITY,
+            min_ext: f64::INFINITY,
             max_ext: 0.,
             avg_ext: 0.,
         }
@@ -430,13 +409,13 @@ impl ExplicitODE<f64> for RevolutionSurfaceSystem {
     }
 }
 
-pub struct RevolutionSystemThread {
+pub(crate) struct RevolutionSystemThread {
     interface: Weak<Mutex<RevolutionSystemInterface>>,
     system: RevolutionSurfaceSystem,
 }
 
 impl RevolutionSystemThread {
-    pub fn start_new(
+    pub(crate) fn start_new(
         system: RevolutionSurfaceSystemDescriptor,
         reader: &mut ChannelReader,
     ) -> Result<Arc<Mutex<RevolutionSystemInterface>>, ErrOperation> {
@@ -485,23 +464,21 @@ impl RevolutionSystemThread {
                         interface_ptr.lock().unwrap().helices_routing.set(routing);
                     }
                     break;
-                } else {
-                    self.system.current_scaffold_length = Some(current_len);
                 }
+                self.system.current_scaffold_length = Some(current_len);
             }
         });
     }
 }
 
 impl SimulationUpdate for RevolutionSurfaceSystem {
-    fn update_design(&self, design: &mut ensnano_design::Design) {
-        design.additional_structure = Some(Arc::new(self.clone()))
+    fn update_design(&self, design: &mut Design) {
+        design.additional_structure = Some(Arc::new(self.clone()));
     }
 }
 
-impl ensnano_design::AdditionalStructure for RevolutionSurfaceSystem {
+impl AdditionalStructure for RevolutionSurfaceSystem {
     fn position(&self) -> Vec<Vec3> {
-        use ensnano_design::utils::dvec_to_vec;
         let thetas = self
             .last_thetas
             .clone()
@@ -513,7 +490,7 @@ impl ensnano_design::AdditionalStructure for RevolutionSurfaceSystem {
     }
 
     fn number_of_sections(&self) -> usize {
-        return self.topology.number_of_sections_per_segment();
+        self.topology.number_of_sections_per_segment()
     }
 
     fn next(&self) -> Vec<(usize, usize)> {
@@ -537,11 +514,7 @@ impl ensnano_design::AdditionalStructure for RevolutionSurfaceSystem {
         let curve_desc = self.to_curve_desc(false)?;
         for desc in curve_desc {
             let nts = desc.path()?;
-            ret.push(
-                nts.into_iter()
-                    .map(ensnano_design::utils::dvec_to_vec)
-                    .collect(),
-            );
+            ret.push(nts.into_iter().map(dvec_to_vec).collect());
         }
 
         let number_of_steps = 1000;
@@ -549,11 +522,9 @@ impl ensnano_design::AdditionalStructure for RevolutionSurfaceSystem {
         // The section at -PI/2
         let mut section = Vec::new();
         for n in 0..number_of_steps {
-            section.push(ensnano_design::utils::dvec_to_vec(
-                self.topology.surface_position(
-                    -std::f64::consts::FRAC_PI_2,
-                    n as f64 / number_of_steps as f64,
-                ),
+            section.push(dvec_to_vec(
+                self.topology
+                    .surface_position(-FRAC_PI_2, n as f64 / number_of_steps as f64),
             ));
         }
         ret.push(section);
@@ -591,8 +562,7 @@ struct HelicesRouting {
 }
 
 impl SimulationUpdate for HelicesRouting {
-    fn update_design(&self, design: &mut ensnano_design::Design) {
-        use ensnano_design::{Domain, DomainJunction, Helix, HelixInterval, Strand};
+    fn update_design(&self, design: &mut Design) {
         let helix_parameters = design.helix_parameters.unwrap_or_default();
         let mut helices = design.helices.make_mut();
         let mut strand_to_be_added = Vec::new();
@@ -627,7 +597,6 @@ impl SimulationUpdate for HelicesRouting {
         let strands = design.mut_strand_and_data().strands;
 
         // Use "random" integer to determine new strands color
-        use std::time::{SystemTime, UNIX_EPOCH};
         let mut now_s = (SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default()
@@ -644,7 +613,7 @@ impl SimulationUpdate for HelicesRouting {
                     forward,
                     sequence: None,
                 });
-                let color = ensnano_utils::colors::new_color(&mut now_s);
+                let color = new_color(&mut now_s);
 
                 strands.push(Strand {
                     color,
@@ -662,19 +631,19 @@ impl SimulationUpdate for HelicesRouting {
 }
 
 #[derive(Default)]
-pub struct RevolutionSystemInterface {
+pub(crate) struct RevolutionSystemInterface {
     new_state: Option<RevolutionSurfaceSystem>,
     helices_routing: OptionOnce<HelicesRouting>,
     finished: bool,
 }
 
 impl RevolutionSystemInterface {
-    pub fn kill(&mut self) {
+    pub(crate) fn kill(&mut self) {
         self.helices_routing = OptionOnce::Taken;
     }
 
-    pub fn finish(&mut self) {
-        self.finished = true
+    pub(crate) fn finish(&mut self) {
+        self.finished = true;
     }
 }
 
@@ -692,7 +661,6 @@ impl<T> Default for OptionOnce<T> {
 impl<T> OptionOnce<T> {
     fn take(&mut self) -> Option<T> {
         match self {
-            Self::Taken => None,
             Self::NeverTaken(Some(_)) => {
                 if let Self::NeverTaken(ret) = std::mem::replace(self, Self::Taken) {
                     ret
@@ -700,13 +668,13 @@ impl<T> OptionOnce<T> {
                     unreachable!()
                 }
             }
-            Self::NeverTaken(None) => None,
+            Self::Taken | Self::NeverTaken(None) => None,
         }
     }
 
     fn set(&mut self, ret: T) {
         if let Self::NeverTaken(_) = self {
-            *self = Self::NeverTaken(Some(ret))
+            *self = Self::NeverTaken(Some(ret));
         }
     }
 }

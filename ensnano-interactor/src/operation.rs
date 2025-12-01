@@ -1,23 +1,13 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::{DesignOperation, DesignRotation, DesignTranslation, GroupId, IsometryTarget};
-use ensnano_design::{BezierControlPoint, BezierPlaneId, BezierVertexId, Nucl, grid::*};
+use crate::{
+    BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation, IsometryTarget,
+};
+use ensnano_design::{
+    Nucl,
+    bezier_plane::{BezierPlaneId, BezierVertexId},
+    curves::bezier::BezierControlPoint,
+    grid::{GridId, HelixGridPosition},
+};
+use ensnano_organizer::tree::GroupId;
 use std::sync::Arc;
 use ultraviolet::{Bivec3, Rotor3, Vec2, Vec3};
 
@@ -256,7 +246,7 @@ impl Operation for TranslateBezierSheetCorner {
 
     fn effect(&self) -> DesignOperation {
         DesignOperation::ApplyHomothethyOnBezierPlane {
-            homothethy: super::BezierPlaneHomothethy {
+            homothethy: BezierPlaneHomothethy {
                 plane_id: self.plane_id,
                 fixed_corner: self.fixed_corner,
                 origin_moving_corner: self.origin_moving_corner,
@@ -432,7 +422,7 @@ impl Operation for GridHelixCreation {
 
     fn effect(&self) -> DesignOperation {
         DesignOperation::AddGridHelix {
-            position: ensnano_design::grid::HelixGridPosition {
+            position: HelixGridPosition {
                 grid: self.grid_id,
                 x: self.x,
                 y: self.y,
@@ -513,9 +503,9 @@ impl Operation for Xover {
 
     fn description(&self) -> String {
         if self.undo {
-            "Undo Cut".to_string()
+            "Undo Cut".to_owned()
         } else {
-            "Do Cut".to_string()
+            "Do Cut".to_owned()
         }
     }
 }

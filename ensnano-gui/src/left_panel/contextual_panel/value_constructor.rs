@@ -1,25 +1,13 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::{Message, Selection, UiSize};
-use ensnano_iced::{
-    helpers::*,
-    iced::{self, Alignment, Length},
+use crate::{
+    AppState,
+    consts::{MAX_NB_TURN, MIN_NB_TURN, NB_TURN_SLIDER_SPACING, NB_TURN_STEP},
+    left_panel::Message,
+};
+use ensnano_iced::{ui_size::UiSize, widgets::keyboard_priority::keyboard_priority};
+use ensnano_interactor::selection::Selection;
+use iced::{
+    Alignment, Length,
+    widget::{Column, Space, column, row, slider, text, text_input},
 };
 use paste::paste;
 use ultraviolet::{Bivec3, Mat3, Rotor3, Vec2, Vec3};
@@ -27,8 +15,9 @@ use ultraviolet::{Bivec3, Mat3, Rotor3, Vec2, Vec3};
 macro_rules! type_builder {
     ($builder_name:ident, $initializer:tt, $internal:tt, $convert_in:path, $convert_out:path, $($param: ident: $param_type: tt %$formatter:path), *) => {
         paste! {
-            pub struct $builder_name {
+            pub(crate) struct $builder_name {
                 $(
+                    #[expect(clippy::allow_attributes)]
                     #[allow(dead_code)]
                     $param: $param_type,
                     [<$param _string>]: String,
@@ -38,7 +27,7 @@ macro_rules! type_builder {
 
             impl $builder_name {
                 const PARAMETER_NAMES: &'static [&'static str] = &[$(stringify!($param),)*];
-                pub fn new(value_to_modify: ValueKind, initial_value: $initializer) -> Self {
+                pub(crate) fn new(value_to_modify: ValueKind, initial_value: $initializer) -> Self {
                     let initial: $internal = $convert_in(initial_value);
                     Self {
                         value_to_modify,
@@ -56,7 +45,7 @@ macro_rules! type_builder {
                     }
                 }
 
-                fn view<'a, State: AppState>(&self) -> iced::Element<'_, Message<State>, Theme, Renderer> {
+                fn view<State: AppState>(&self) -> iced::Element<'_, Message<State>> {
                     let str_values = [$(& self.[<$param _string>],)*];
                     let mut ret = Column::new().width(Length::Fill).align_items(Alignment::End);
                     let value_to_modify = self.value_to_modify;
@@ -65,13 +54,13 @@ macro_rules! type_builder {
                             text(Self::PARAMETER_NAMES[i]),
                             Space::with_width(5),
                             keyboard_priority(
+                                "Contextual value change priority",
+                                Message::SetKeyboardPriority,
                                 text_input("", str_values[i])
                                     .on_input(move |string| Message::ContextualValueChanged(value_to_modify, i, string))
                                     .on_submit(Message::ContextualValueSubmitted(value_to_modify))
                                     .width(50)
                             )
-                            .on_priority(Message::SetKeyboardPriority(true))
-                            .on_unpriority(Message::SetKeyboardPriority(false)),
                         ].width(Length::Fill))
                     }
                     ret.into()
@@ -114,7 +103,7 @@ struct FloatFormatter;
 
 impl FloatFormatter {
     fn fmt(float: &f32) -> String {
-        format!("{:.2}", float)
+        format!("{float:.2}")
     }
 
     fn parse(float_str: &str) -> Option<f32> {
@@ -155,14 +144,6 @@ type_builder!(
     angle: f32 % DegreeAngleFormatter
 );
 
-/*type_builder!(
-NbTurnBuilder,
-f32,
-f32,
-std::convert::identity,
-std::convert::identity,
-nb_turn: f32 %*/
-
 #[derive(Clone, Copy, Debug)]
 pub enum ValueKind {
     HelixGridPosition,
@@ -178,16 +159,16 @@ pub enum InstantiatedValue {
     BezierVertexPosition(Vec2),
 }
 
-pub enum GridPositionBuilder {
+pub(crate) enum GridPositionBuilder {
     Cartesian(Vec3Builder),
 }
 
 impl GridPositionBuilder {
-    pub fn new_cartesian(position: Vec3) -> Self {
+    pub(crate) fn new_cartesian(position: Vec3) -> Self {
         Self::Cartesian(Vec3Builder::new(ValueKind::HelixGridPosition, position))
     }
 
-    fn view<'a, State: AppState>(&self) -> iced::Element<'_, Message<State>, Theme, Renderer> {
+    fn view<State: AppState>(&self) -> iced::Element<'_, Message<State>> {
         match self {
             Self::Cartesian(builder) => builder.view(),
         }
@@ -208,19 +189,19 @@ impl GridPositionBuilder {
     }
 }
 
-pub enum GridOrientationBuilder {
+pub(crate) enum GridOrientationBuilder {
     DirectionAngle(DirectionAngleBuilder),
 }
 
 impl GridOrientationBuilder {
-    pub fn new_direction_angle(orientation: Rotor3) -> Self {
+    pub(crate) fn new_direction_angle(orientation: Rotor3) -> Self {
         Self::DirectionAngle(DirectionAngleBuilder::new(
             ValueKind::GridOrientation,
             orientation,
         ))
     }
 
-    fn view<State: AppState>(&self) -> iced::Element<'_, Message<State>, Theme, Renderer> {
+    fn view<State: AppState>(&self) -> iced::Element<'_, Message<State>> {
         match self {
             Self::DirectionAngle(builder) => builder.view(),
         }
@@ -241,12 +222,12 @@ impl GridOrientationBuilder {
     }
 }
 
-pub struct BezierVertexBuilder {
+pub(crate) struct BezierVertexBuilder {
     position_builder: Vec2Builder,
 }
 
 impl BezierVertexBuilder {
-    pub fn new(position: Vec2) -> Self {
+    pub(crate) fn new(position: Vec2) -> Self {
         Self {
             position_builder: Vec2Builder::new(ValueKind::BezierVertexPosition, position),
         }
@@ -262,7 +243,7 @@ where
         ui_size: UiSize,
         _selection: &Selection,
         _app_state: &State,
-    ) -> iced::Element<'_, super::Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
+    ) -> iced::Element<'_, Message<State>> {
         self::column![
             text("Position").size(ui_size.intermediate_text()),
             self.position_builder.view(),
@@ -272,38 +253,32 @@ where
     }
 
     fn update_str_value(&mut self, value_kind: ValueKind, n: usize, value_str: String) {
-        if let ValueKind::BezierVertexPosition = value_kind {
-            self.position_builder.update_str_value(n, value_str)
+        if matches!(value_kind, ValueKind::BezierVertexPosition) {
+            self.position_builder.update_str_value(n, value_str);
         } else {
-            log::error!(
-                "Unexpected value kind {:?} for BezierVertexBuilder",
-                value_kind
-            )
+            log::error!("Unexpected value kind {value_kind:?} for BezierVertexBuilder",);
         }
     }
 
     fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstantiatedValue> {
-        if let ValueKind::BezierVertexPosition = value_kind {
+        if matches!(value_kind, ValueKind::BezierVertexPosition) {
             self.position_builder
                 .submit_value()
                 .map(InstantiatedValue::BezierVertexPosition)
         } else {
-            log::error!(
-                "Unexpected value kind {:?} for BezierVertexBuilder",
-                value_kind
-            );
+            log::error!("Unexpected value kind {value_kind:?} for BezierVertexBuilder",);
             None
         }
     }
 }
 
-pub struct GridBuilder {
+pub(crate) struct GridBuilder {
     position_builder: GridPositionBuilder,
     orientation_builder: GridOrientationBuilder,
 }
 
 impl GridBuilder {
-    pub fn new(position: Vec3, orientation: Rotor3) -> Self {
+    pub(crate) fn new(position: Vec3, orientation: Rotor3) -> Self {
         Self {
             position_builder: GridPositionBuilder::new_cartesian(position),
             orientation_builder: GridOrientationBuilder::new_direction_angle(orientation),
@@ -313,19 +288,17 @@ impl GridBuilder {
     fn nb_turn_row<'a, S: AppState>(
         app_state: &S,
         selection: &Selection,
-    ) -> Option<iced::Element<'a, super::Message<S>, ensnano_iced::Theme, ensnano_iced::Renderer>>
-    {
-        use crate::consts;
+    ) -> Option<iced::Element<'a, Message<S>>> {
         if let Selection::Grid(_, g_id) = selection {
             if let Some(nb_turn) = app_state.get_reader().get_grid_nb_turn(*g_id) {
                 let row = row![
-                    text(format!("{:.2}", nb_turn)),
-                    slider(consts::MIN_NB_TURN..=consts::MAX_NB_TURN, nb_turn, |x| {
-                        super::Message::InstantiatedValueSubmitted(InstantiatedValue::GridNbTurn(x))
+                    text(format!("{nb_turn:.2}")),
+                    slider(MIN_NB_TURN..=MAX_NB_TURN, nb_turn, |x| {
+                        Message::InstantiatedValueSubmitted(InstantiatedValue::GridNbTurn(x))
                     })
-                    .step(consts::NB_TURN_STEP),
+                    .step(NB_TURN_STEP),
                 ]
-                .spacing(consts::NB_TURN_SLIDER_SPACING);
+                .spacing(NB_TURN_SLIDER_SPACING);
                 Some(row.into())
             } else {
                 None
@@ -345,7 +318,7 @@ where
         ui_size: UiSize,
         selection: &Selection,
         app_state: &State,
-    ) -> iced::Element<'_, super::Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
+    ) -> iced::Element<'_, Message<State>> {
         self::column![
             text("Position").size(ui_size.intermediate_text()),
             self.position_builder.view(),
@@ -366,7 +339,9 @@ where
         match value_kind {
             ValueKind::HelixGridPosition => self.position_builder.update_str_value(n, value_str),
             ValueKind::GridOrientation => self.orientation_builder.update_str_value(n, value_str),
-            vk => log::error!("Unexpected value kind for GridBuilder {:?}", vk),
+            vk @ ValueKind::BezierVertexPosition => {
+                log::error!("Unexpected value kind for GridBuilder {vk:?}");
+            }
         }
     }
 
@@ -374,17 +349,15 @@ where
         match value_kind {
             ValueKind::HelixGridPosition => self.position_builder.submit_value(),
             ValueKind::GridOrientation => self.orientation_builder.submit_value(),
-            vk => {
-                log::error!("Unexpected value kind for GridBuilder {:?}", vk);
+            vk @ ValueKind::BezierVertexPosition => {
+                log::error!("Unexpected value kind for GridBuilder {vk:?}");
                 None
             }
         }
     }
 }
 
-use super::AppState;
-
-pub trait Builder<State>
+pub(crate) trait Builder<State>
 where
     State: AppState,
 {
@@ -393,7 +366,7 @@ where
         ui_size: UiSize,
         selection: &Selection,
         app_state: &State,
-    ) -> iced::Element<'a, super::Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer>;
+    ) -> iced::Element<'a, Message<State>>;
     fn update_str_value(&mut self, value_kind: ValueKind, n: usize, value_str: String);
     fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstantiatedValue>;
 }
@@ -407,20 +380,20 @@ struct DirectionAngle {
 }
 
 impl DirectionAngle {
-    const CONVERSION_ESPILON: f32 = 1e-6;
+    const CONVERSION_EPSILON: f32 = 1e-6;
 
     fn from_rotor(rotor: Rotor3) -> Self {
         let direction = Vec3::unit_x().rotated_by(rotor);
-        log::info!("direction {:?}", direction);
+        log::info!("direction {direction:?}");
 
         let real_z = Self::real_z(direction);
-        log::info!("real z {:?}", real_z);
+        log::info!("real z {real_z:?}");
         let real_y = real_z.cross(direction);
-        log::info!("real y {:?}", real_y);
+        log::info!("real y {real_y:?}");
 
         let cos_angle = Vec3::unit_z().rotated_by(rotor).dot(real_z);
         let sin_angle = -Vec3::unit_z().rotated_by(rotor).dot(real_y);
-        log::info!("cos = {}, sin = {}", cos_angle, sin_angle);
+        log::info!("cos = {cos_angle}, sin = {sin_angle}");
         let angle = sin_angle.atan2(cos_angle);
 
         Self {
@@ -441,15 +414,15 @@ impl DirectionAngle {
 
         let angle = self.angle;
         let real_z = Self::real_z(direction);
-        log::info!("real z {:?}", real_z);
+        log::info!("real z {real_z:?}");
         let z = real_z.rotated_by(Rotor3::from_angle_plane(
             angle,
             Bivec3::from_normalized_axis(direction),
         ));
         let y = z.cross(direction);
-        log::info!(" x {:?}", direction);
-        log::info!(" y {:?}", y);
-        log::info!(" z {:?}", real_z);
+        log::info!(" x {direction:?}");
+        log::info!(" y {y:?}");
+        log::info!(" z {real_z:?}");
 
         Mat3::new(direction, y, z).into_rotor3()
     }
@@ -458,14 +431,14 @@ impl DirectionAngle {
         let z_angle = direction.y.asin();
         log::info!("z angle {}", z_angle.to_degrees());
 
-        if direction.y.abs() < 1. - Self::CONVERSION_ESPILON {
+        if direction.y.abs() < 1. - Self::CONVERSION_EPSILON {
             let radius = z_angle.cos();
-            log::info!("radius {}", radius);
+            log::info!("radius {radius}");
             log::info!("direction.x / radius {}", direction.x / radius);
             let y_angle = if direction.z > 0. {
-                -(direction.x / radius).min(1.).max(-1.).acos()
+                -(direction.x / radius).clamp(-1., 1.).acos()
             } else {
-                (direction.x / radius).min(1.).max(-1.).acos()
+                (direction.x / radius).clamp(-1., 1.).acos()
             };
             log::info!("y angle {}", y_angle.to_degrees());
 

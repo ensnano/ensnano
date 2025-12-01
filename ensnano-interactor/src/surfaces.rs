@@ -1,24 +1,16 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::*;
-use ensnano_design::{InterpolatedCurveDescriptor, InterpolationDescriptor};
+use crate::consts::DEFAULT_REVOLUTION_SIMULATION_PARAMETERS;
+use ensnano_design::{
+    curves::{
+        revolution::{InterpolatedCurveDescriptor, InterpolationDescriptor},
+        torus::{CurveDescriptor2D, PointOnSurface},
+    },
+    parameters::HelixParameters,
+};
+use num::integer::gcd;
 use rayon::iter::{IntoParallelIterator as _, ParallelIterator as _};
-use ultraviolet::{DVec3, Isometry3, Similarity3};
+use std::f64::consts::TAU;
+use ultraviolet::{DVec3, Isometry3, Rotor3, Similarity3, Vec3};
+
 #[derive(Debug, Clone)]
 pub struct RevolutionSurfaceSystemDescriptor {
     pub scaffold_len_target: usize,
@@ -136,16 +128,15 @@ impl UnrootedRevolutionSurfaceDescriptor {
     ///
     /// Note that the revolution radius is *not* scaled.
     fn get_axis_position_when_scaled(&self, scale: f64) -> f64 {
-        use RevolutionSurfaceRadius::*;
         match self.revolution_radius {
-            Left(x) => self.curve.min_x() * scale - x,
-            Right(x) => x + self.curve.max_x() * scale,
-            Inside(x) => x,
+            RevolutionSurfaceRadius::Left(x) => self.curve.min_x() * scale - x,
+            RevolutionSurfaceRadius::Right(x) => x + self.curve.max_x() * scale,
+            RevolutionSurfaceRadius::Inside(x) => x,
         }
     }
 
     pub fn set_axis_position(&mut self, position: f64) {
-        self.set_axis_position_when_scaled(position, 1.)
+        self.set_axis_position_when_scaled(position, 1.);
     }
 
     /// Set the position of the axis of revolution, assuming that the section is scaled.
@@ -178,7 +169,7 @@ impl UnrootedRevolutionSurfaceDescriptor {
                 with_radius_0.revolution_radius = RevolutionSurfaceRadius::Right(0.);
                 with_radius_1.revolution_radius = RevolutionSurfaceRadius::Right(1.);
             }
-        };
+        }
 
         let area_0 = with_radius_0.approx_surface_area(1000, 1000)?;
         let area_1 = with_radius_1.approx_surface_area(1000, 1000)?;
@@ -201,13 +192,10 @@ impl UnrootedRevolutionSurfaceDescriptor {
                 let s_high = strip_idx as f64 / nb_strip as f64;
                 let s_low = s_high + 1. / nb_strip as f64;
 
-                let vertices = (0..(nb_section_per_strip + 1)).flat_map(|section_idx| {
+                let vertices = (0..=nb_section_per_strip).flat_map(|section_idx| {
                     [s_high, s_low].into_iter().map(move |section_parameter| {
-                        use std::f64::consts::TAU;
                         let revolution_fract = section_idx as f64 / nb_section_per_strip as f64;
-
                         let revolution_angle = TAU * revolution_fract;
-
                         self.position(section_parameter, revolution_angle)
                     })
                 });
@@ -228,7 +216,6 @@ impl UnrootedRevolutionSurfaceDescriptor {
         revolution_angle: f64,
         scale: f64,
     ) -> DVec3 {
-        use ensnano_design::PointOnSurface;
         let surface_point = PointOnSurface {
             revolution_angle,
             section_parameter,
@@ -249,7 +236,7 @@ impl UnrootedRevolutionSurfaceDescriptor {
         }
 
         let nb_helix = half_nb_helix * 2;
-        if nb_helix % nb_spirals == 0 {
+        nb_helix.is_multiple_of(nb_spirals).then(|| {
             let additional_shift = if self.half_turn_count % 2 == 1 {
                 half_nb_helix
             } else {
@@ -259,58 +246,37 @@ impl UnrootedRevolutionSurfaceDescriptor {
             let coprimes = (1..a)
                 .filter(|n| gcd(*n as isize, a as isize) == 1)
                 .collect();
-            Some(ShiftGenerator {
+            ShiftGenerator {
                 coprimes_with_a: coprimes,
                 nb_spirals,
                 additional_shift,
                 nb_section: nb_helix,
-            })
-        } else {
-            None
-        }
+            }
+        })
     }
-}
-
-fn gcd(a: isize, b: isize) -> usize {
-    let mut a = a.unsigned_abs();
-    let mut b = b.unsigned_abs();
-
-    if a < b {
-        std::mem::swap(&mut a, &mut b);
-    }
-
-    while b > 0 {
-        let b_ = b;
-        b = a % b;
-        a = b_;
-    }
-
-    a
 }
 
 impl RootingParameters {
     fn nb_spirals(&self, surface_half_turn_count: isize) -> usize {
-        /*
-         * let q be the total shift and n be the number of segments
-         * Spirals seen as set of segments are class of equivalence for the relation ~
-         * where a ~ b iff there exists k1, k2 st a = b  + k1 q + k2 n
-         *
-         * let d = gcd(q, n). If a ~ b then a = b (mod d)
-         *
-         * Recp. if a = b (mod d) there exists x y st xq + yn = d
-         *
-         * a = k (xq + yn) + b
-         * so a ~ b
-         *
-         * So ~ is the relation of equivalence modulo d and has d classes.
-         */
+        // let q be the total shift and n be the number of segments
+        // Spirals seen as set of segments are class of equivalence for the relation ~
+        // where a ~ b iff there exists k1, k2 st a = b  + k1 q + k2 n
+        //
+        // let d = gcd(q, n). If a ~ b then a = b (mod d)
+        //
+        // Reciprocal. if a = b (mod d) there exists x y st xq + yn = d
+        //
+        // a = k (xq + yn) + b
+        // so a ~ b
+        //
+        // So ~ is the relation of equivalence modulo d and has d classes.
         let additional_shift = if surface_half_turn_count % 2 == 1 {
             self.nb_helix_per_half_section
         } else {
             0
         };
         let total_shift = self.shift_per_turn + additional_shift as isize;
-        gcd(total_shift, self.nb_helix_per_half_section as isize * 2)
+        gcd(total_shift, self.nb_helix_per_half_section as isize * 2) as usize
     }
 }
 
@@ -333,17 +299,15 @@ impl ShiftGenerator {
     ) -> Option<isize> {
         self.still_valid(nb_spirals, surface, half_nb_helix)
             .then(|| {
-                /*
-                To get a rooting with `d` spirals within `k` segments. We must have
-                `gcd(total_shift, k) = d` (see the implementation of `Rooting::Parameters::nb_spirals`)
-                this means that
-                (1) `d` divides `k`, so `k = a·d` for an integer `a`.
-                (2) total_shift = b·d` where `a` and `b` are coprimes.
-
-                So if `a = k / d` and `ℤ_a*` is the set of all numbers <= `a` that are coprime with `a`,
-                the set of total_shift that give the desired amount of spirals is
-                `Shifts_d = {(n·a + p) * d | n ∈ ℤ, p ∈ ℤ_a* }`
-                */
+                // To get a rooting with `d` spirals within `k` segments. We must have
+                // `gcd(total_shift, k) = d` (see the implementation of `Rooting::Parameters::nb_spirals`)
+                // this means that
+                // (1) `d` divides `k`, so `k = a·d` for an integer `a`.
+                // (2) total_shift = b·d` where `a` and `b` are coprimes.
+                //
+                // So if `a = k / d` and `ℤ_a*` is the set of all numbers <= `a` that are coprime with `a`,
+                // the set of total_shift that give the desired amount of spirals is
+                // `Shifts_d = {(n·a + p) * d | n ∈ ℤ, p ∈ ℤ_a* }`
                 let nb_coprime = self.coprimes_with_a.len();
                 let p = {
                     let idx = i.rem_euclid(nb_coprime as isize) as usize;
@@ -394,7 +358,7 @@ pub struct RevolutionSimulationParameters {
 
 impl Default for RevolutionSimulationParameters {
     fn default() -> Self {
-        consts::DEFAULT_REVOLUTION_SIMULATION_PARAMETERS
+        DEFAULT_REVOLUTION_SIMULATION_PARAMETERS
     }
 }
 
@@ -408,11 +372,11 @@ impl EquadiffSolvingMethod {
     pub const ALL_METHODS: &'static [Self] = &[Self::Euler, Self::Ralston];
 }
 
-impl ToString for EquadiffSolvingMethod {
-    fn to_string(&self) -> String {
+impl std::fmt::Display for EquadiffSolvingMethod {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Euler => "Euler".to_string(),
-            Self::Ralston => "Ralston".to_string(),
+            Self::Euler => write!(f, "Euler"),
+            Self::Ralston => write!(f, "Ralston"),
         }
     }
 }
@@ -461,6 +425,7 @@ impl RevolutionSurfaceRadius {
         }
     }
 
+    #[must_use]
     pub fn scaled(self, scale: f64) -> Self {
         match self {
             Self::Left(x) => Self::Left(scale * x),
@@ -477,7 +442,6 @@ impl RootedRevolutionSurface {
     }
 
     pub fn dpos_dtheta(&self, revolution_angle: f64, section_parameter: f64) -> DVec3 {
-        use ensnano_design::PointOnSurface;
         let surface_point = PointOnSurface {
             revolution_angle,
             section_parameter,
@@ -493,7 +457,6 @@ impl RootedRevolutionSurface {
     }
 
     pub fn d2pos_dtheta2(&self, revolution_angle: f64, section_parameter: f64) -> DVec3 {
-        use ensnano_design::PointOnSurface;
         let surface_point = PointOnSurface {
             revolution_angle,
             section_parameter,
@@ -545,7 +508,7 @@ impl RootedRevolutionSurface {
         InterpolatedCurveDescriptor {
             curve: self.surface.curve.clone(),
             curve_scale_factor: self.scale,
-            chevyshev_smoothening: self.rooting_parameters.junction_smoothening,
+            chebyshev_smoothening: self.rooting_parameters.junction_smoothening,
             interpolation: interpolations,
             half_turns_count: self.surface.half_turn_count,
             revolution_radius: -self.surface.get_axis_position_when_scaled(self.scale),
@@ -574,9 +537,8 @@ impl RootedRevolutionSurface {
         let incr = (objective as f64 - actual as f64) / self.area_per_radius_unit;
 
         match &mut self.surface.revolution_radius {
-            RevolutionSurfaceRadius::Left(x) => *x += incr,
-            RevolutionSurfaceRadius::Right(x) => *x += incr,
-            _ => (),
+            RevolutionSurfaceRadius::Left(x) | RevolutionSurfaceRadius::Right(x) => *x += incr,
+            RevolutionSurfaceRadius::Inside(_) => (),
         }
     }
 
@@ -600,8 +562,10 @@ fn area_strip<I: Iterator<Item = DVec3> + Clone>(vertices: I, nb_section_per_str
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::f64::consts::PI;
+
     #[test]
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     fn surface_area() {
         let r = 1.0;
         let R = 3.0;
@@ -616,8 +580,7 @@ mod tests {
             curve_plane_orientation: Rotor3::identity(),
         };
 
-        let expected = 4. * std::f64::consts::PI * std::f64::consts::PI * r * R;
-
+        let expected = 4. * PI * PI * r * R;
         let actual = surface.approx_surface_area(1_000, 1_000).unwrap();
 
         assert!(

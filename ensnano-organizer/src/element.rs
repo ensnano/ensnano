@@ -1,7 +1,7 @@
-use core::convert::{Into, TryFrom};
-use ensnano_iced::{
-    helpers::{button, text},
-    iced::Element,
+use crate::icon::{ICON_SIZE, icon};
+use iced::{
+    Element,
+    widget::{button, text},
 };
 use icondata::Icon;
 use serde::{Deserialize, Serialize};
@@ -42,7 +42,7 @@ pub trait OrganizerElement: Clone + Debug + 'static {
         Self::Attribute::all_discriminants()
     }
     fn min_max_domain_length_if_strand(&self) -> Option<(usize, usize)>;
-    fn auto_groups(&self, upper_domain_length_bounds: (usize, usize)) -> Vec<Self::AutoGroup>;
+    fn auto_groups(&self, last_domain_length_bounds: (usize, usize)) -> Vec<Self::AutoGroup>;
 }
 
 pub trait OrganizerAttributeDiscriminant:
@@ -90,7 +90,7 @@ pub(crate) struct AttributeDisplayer<A: OrganizerAttribute> {
 }
 
 impl<Attrib: OrganizerAttribute> AttributeDisplayer<Attrib> {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             being_modified: false,
             widget: None,
@@ -98,21 +98,21 @@ impl<Attrib: OrganizerAttribute> AttributeDisplayer<Attrib> {
         }
     }
 
-    pub fn update_attribute(&mut self, attribute: Option<Attrib>) {
-        self.update_widget(attribute.as_ref().map(|a| a.widget()));
+    pub(crate) fn update_attribute(&mut self, attribute: Option<Attrib>) {
+        self.update_widget(attribute.as_ref().map(OrganizerAttribute::widget));
         self.attribute = attribute;
     }
 
-    pub fn update_widget(&mut self, widget: Option<AttributeWidget<Attrib>>) {
+    pub(crate) fn update_widget(&mut self, widget: Option<AttributeWidget<Attrib>>) {
         self.being_modified = false;
         self.widget = widget;
     }
 
-    pub fn view(&self) -> Option<Element<'_, Attrib, super::Theme, super::Renderer>> {
+    pub(crate) fn view(&self) -> Option<Element<'_, Attrib>> {
         self.widget.as_ref().map(|widget| {
-            match self.attribute.as_ref().map(|a| a.char_repr()) {
-                Some(AttributeDisplay::Icon(c)) => button(super::icon(c)),
-                Some(AttributeDisplay::Text(s)) => button(text(s.clone()).size(super::ICON_SIZE)),
+            match self.attribute.as_ref().map(OrganizerAttribute::char_repr) {
+                Some(AttributeDisplay::Icon(c)) => button(icon(c)),
+                Some(AttributeDisplay::Text(s)) => button(text(s).size(ICON_SIZE)),
                 _ => button(text("???")),
             }
             .on_press(widget.value_if_pressed.clone())

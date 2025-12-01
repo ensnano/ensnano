@@ -1,6 +1,6 @@
 //! A widget to select Lightness and Saturation values.
-use std::marker::PhantomData;
 
+use color_space::{Hsv, Rgb};
 use iced::{
     Length, Point, Rectangle, Size, Vector,
     advanced::{
@@ -14,9 +14,7 @@ use iced_graphics::{
     color::pack,
     mesh::{Indexed, Mesh, SolidVertex2D},
 };
-use iced_wgpu as wgpu;
-
-use color_space::{Hsv, Rgb};
+use iced_wgpu::primitive::Custom;
 
 const DEFAULT_SIZE: f32 = 360.0;
 
@@ -38,17 +36,15 @@ fn hsv_to_linear(hue: f64, sat: f64, light: f64) -> [f32; 4] {
 }
 
 /// A Lightness-Saturation square Widget.
-pub struct LightSatSquare<'a, Message, Theme = iced::Theme, Renderer = iced::Renderer> {
+pub struct LightSatSquare<'a, Message> {
     width: Length,
     height: Length,
     hue: f64,
     on_slide: Option<Box<dyn Fn(f64, f64) -> Message + 'a>>,
     on_finish: Option<Message>,
-    _theme: PhantomData<Theme>,
-    _renderer: PhantomData<Renderer>,
 }
 
-impl<'a, Message, Theme> LightSatSquare<'a, Message, Theme, iced::Renderer> {
+impl<'a, Message> LightSatSquare<'a, Message> {
     pub fn new(hue: f64) -> Self {
         Self {
             width: Length::Fixed(DEFAULT_SIZE),
@@ -56,11 +52,10 @@ impl<'a, Message, Theme> LightSatSquare<'a, Message, Theme, iced::Renderer> {
             hue,
             on_slide: None,
             on_finish: None,
-            _theme: Default::default(),
-            _renderer: Default::default(),
         }
     }
 
+    #[must_use]
     pub fn on_slide<F>(mut self, f: F) -> Self
     where
         F: 'a + Fn(f64, f64) -> Message,
@@ -69,30 +64,33 @@ impl<'a, Message, Theme> LightSatSquare<'a, Message, Theme, iced::Renderer> {
         self
     }
 
+    #[must_use]
     pub fn on_finish(mut self, message: Message) -> Self {
         self.on_finish = Some(message);
         self
     }
 
+    #[must_use]
     pub fn width(mut self, width: impl Into<Length>) -> Self {
         self.width = width.into();
         self
     }
 
+    #[must_use]
     pub fn height(mut self, height: impl Into<Length>) -> Self {
         self.height = height.into();
         self
     }
 }
 
-impl<'a, Message, Theme> Widget<Message, Theme, iced::Renderer>
-    for LightSatSquare<'a, Message, Theme, iced::Renderer>
+impl<Message> Widget<Message, iced::Theme, iced::Renderer> for LightSatSquare<'_, Message>
 where
     Message: Clone,
 {
     fn state(&self) -> widget::tree::State {
         widget::tree::State::Some(Box::new(LightSatState::default()))
     }
+
     fn size(&self) -> Size<Length> {
         Size {
             width: self.width,
@@ -113,7 +111,7 @@ where
         &self,
         _state: &widget::Tree,
         renderer: &mut iced::Renderer,
-        _theme: &Theme,
+        _theme: &iced::Theme,
         _style: &Style,
         layout: Layout,
         _cursor: Cursor,
@@ -152,18 +150,19 @@ where
             }
         }
 
-        let mesh = wgpu::primitive::Custom::Mesh(Mesh::Solid {
+        let mesh = Custom::Mesh(Mesh::Solid {
             size: b.size(),
             buffers: Indexed { vertices, indices },
         });
 
         match renderer {
-            iced::Renderer::Wgpu(wgpu_renderer) => wgpu_renderer
-                .with_translation(Vector::new(b.x, b.y), |renderer| {
-                    renderer.draw_primitive(Primitive::Custom(mesh))
-                }),
-            _ => panic!("Unhandled renderer"),
-        };
+            iced::Renderer::Wgpu(wgpu_renderer) => {
+                wgpu_renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
+                    renderer.draw_primitive(Primitive::Custom(mesh));
+                });
+            }
+            iced::Renderer::TinySkia(_) => unreachable!(),
+        }
     }
 
     fn on_event(
@@ -226,7 +225,7 @@ where
                     event::Status::Captured
                 }
                 mouse::Event::CursorMoved { .. } => {
-                    // NOTE: Using "position" attribute from mouse::Event::CursorMoved dosen't work because
+                    // NOTE: Using "position" attribute from mouse::Event::CursorMoved doesn't work because
                     //       it is not the good coordinates.
                     if state.is_dragging
                         && let Some(pos) = position
@@ -243,13 +242,11 @@ where
     }
 }
 
-impl<'a, Message, Theme> From<LightSatSquare<'a, Message, Theme, iced::Renderer>>
-    for iced::Element<'a, Message, Theme, iced::Renderer>
+impl<'a, Message> From<LightSatSquare<'a, Message>> for iced::Element<'a, Message>
 where
     Message: Clone + 'a,
-    Theme: 'a,
 {
-    fn from(value: LightSatSquare<'a, Message, Theme, iced::Renderer>) -> Self {
+    fn from(value: LightSatSquare<'a, Message>) -> Self {
         Self::new(value)
     }
 }

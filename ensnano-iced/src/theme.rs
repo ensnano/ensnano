@@ -1,16 +1,16 @@
 //! ENSnano theme.
 //!
 //! The theme of the GUI is defined here
-use std::rc::Rc;
 
-pub use iced::theme::*;
 use iced::{
     Background, Border, Color,
     advanced::renderer::Style,
     border::Radius,
+    theme::{Container, Palette, Slider, Text, TextInput},
     widget::{container, slider, text_input},
 };
 use iced_aw::widgets::tab_bar;
+use std::rc::Rc;
 
 /// Color palette
 pub const GUI_PALETTE: Palette = Palette {
@@ -21,11 +21,11 @@ pub const GUI_PALETTE: Palette = Palette {
     danger: Color::from_rgb(1.0, 0.5, 0.5),
 };
 
-pub fn gui_theme() -> Theme {
-    Theme::custom("ENSnano UI Theme".to_string(), GUI_PALETTE)
+pub fn gui_theme() -> iced::Theme {
+    iced::Theme::custom("ENSnano UI Theme".to_owned(), GUI_PALETTE)
 }
 
-pub fn gui_style(theme: &Theme) -> Style {
+pub fn gui_style(theme: &iced::Theme) -> Style {
     Style {
         text_color: theme.palette().text,
     }
@@ -42,13 +42,13 @@ pub const DISABLED_TEXT: Text = Text::Color(Color::from_rgb(
     0.6 * GUI_PALETTE.text.b,
 ));
 
-/// Custom StyleSheet for the background of top_bar, status_bar, and left_pannel.
+/// Custom StyleSheet for the background of top_bar, status_bar, and left_panel.
 #[derive(Default)]
 pub struct GuiBackground;
 
 // Implement the style sheet using GUI_PALETTE
 impl container::StyleSheet for GuiBackground {
-    type Style = Theme;
+    type Style = iced::Theme;
 
     fn appearance(&self, _: &Self::Style) -> container::Appearance {
         container::Appearance {
@@ -103,7 +103,7 @@ impl From<GuiBackground> for iced_aw::style::TabBarStyles {
 pub struct DeactivatedSlider;
 
 impl slider::StyleSheet for DeactivatedSlider {
-    type Style = Theme;
+    type Style = iced::Theme;
 
     fn active(&self, style: &Self::Style) -> slider::Appearance {
         let palette = style.extended_palette();
@@ -144,14 +144,14 @@ impl From<DeactivatedSlider> for Slider {
     }
 }
 
-// A TextInput that changes appareance when the contained value is bad.
+// A TextInput that changes appearance when the contained value is bad.
 //
 // A `true` value means bad.
 //
 pub struct BadValue(pub bool);
 
 impl text_input::StyleSheet for BadValue {
-    type Style = Theme;
+    type Style = iced::Theme;
 
     fn active(&self, _style: &Self::Style) -> text_input::Appearance {
         text_input::Appearance {

@@ -1,27 +1,21 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::{
-    CameraPtr, Drawable, Drawer, GroupPivot, HandleColors, ProjectionPtr, Vertex, maths_3d,
+use crate::{
+    camera::{CameraPtr, ProjectionPtr},
+    maths_3d::unproject_point_on_plane,
+    view::{
+        drawable::{Drawable, Drawer, Vertex},
+        handle_drawer::HandleColors,
+    },
 };
-
-use ensnano_interactor::consts::*;
-use std::f32::consts::PI;
-use std::rc::Rc;
+use ensnano_consts::{
+    CYM_HANDLE_COLORS, FRONT_CIRCLE_ID, NB_SECTOR_CIRCLE, NB_SECTOR_SPHERE, NB_STACK_SPHERE,
+    RGB_HANDLE_COLORS, RIGHT_CIRCLE_ID, SELECT_SCALE_FACTOR, SPHERE_RADIUS, SPHERE_WIDGET_ID,
+    UP_CIRCLE_ID,
+};
+use ensnano_design::group_attributes::GroupPivot;
+use std::{
+    f32::consts::{PI, TAU},
+    rc::Rc,
+};
 use ultraviolet::{Rotor3, Vec3};
 use wgpu::Device;
 
@@ -143,7 +137,7 @@ impl RotationWidget {
         viewer_bind_group_layout: &'a wgpu::BindGroupLayout,
         fake: bool,
     ) {
-        for drawer in self.circle_drawers.iter_mut() {
+        for drawer in &mut self.circle_drawers {
             drawer.draw(
                 render_pass,
                 viewer_bind_group,
@@ -163,7 +157,7 @@ impl RotationWidget {
                 viewer_bind_group,
                 viewer_bind_group_layout,
                 fake,
-            )
+            );
         }
     }
 
@@ -196,7 +190,7 @@ impl RotationWidget {
         let origin = self.rotation_origin?;
         let normal = self.rotation_normal?;
         log::debug!("rotation origin {:?}", self.rotation_origin);
-        let point_clicked = maths_3d::unproject_point_on_plane(
+        let point_clicked = unproject_point_on_plane(
             origin,
             normal,
             camera.clone(),
@@ -205,10 +199,9 @@ impl RotationWidget {
             y_init,
             None,
         )?;
-        log::debug!("Point clicked {:?}", point_clicked);
-        let point_moved =
-            maths_3d::unproject_point_on_plane(origin, normal, camera, projection, x, y, None)?;
-        log::debug!("Point moved {:?}", point_moved);
+        log::debug!("Point clicked {point_clicked:?}");
+        let point_moved = unproject_point_on_plane(origin, normal, camera, projection, x, y, None)?;
+        log::debug!("Point moved {point_moved:?}");
         let rotation = Rotor3::from_rotation_between(
             (point_clicked - origin).normalized(),
             (point_moved - origin).normalized(),
@@ -229,7 +222,7 @@ impl RotationWidget {
         if let Some(ref mut sphere) = self.sphere {
             sphere.translate(translation);
         }
-        self.update_drawers()
+        self.update_drawers();
     }
 
     pub fn get_pivot_position(&self) -> Option<GroupPivot> {
@@ -277,8 +270,8 @@ impl RotationWidgetDescriptor {
             AvailableRotationAxes::NoZ => (1., 0.),
         };
         let colors = match self.colors {
-            HandleColors::Cym => ensnano_interactor::consts::CYM_HANDLE_COLORS,
-            HandleColors::Rgb => ensnano_interactor::consts::RGB_HANDLE_COLORS,
+            HandleColors::Cym => CYM_HANDLE_COLORS,
+            HandleColors::Rgb => RGB_HANDLE_COLORS,
         };
         [
             Circle::new(
@@ -359,6 +352,7 @@ impl Circle {
         self.translation = translation;
     }
 
+    #[must_use]
     pub fn bigger_version(&self) -> Self {
         Self {
             thickness: 0.3,
@@ -373,7 +367,7 @@ impl Drawable for Circle {
         let color = if fake { self.id } else { self.color };
         let thickness = if fake { 0.3 } else { self.thickness };
         for i in 0..=NB_SECTOR_CIRCLE {
-            let theta = 2. * PI * i as f32 / NB_SECTOR_CIRCLE as f32;
+            let theta = TAU * i as f32 / NB_SECTOR_CIRCLE as f32;
             vertices.push(Vertex::new(
                 self.translation
                     + self.origin
@@ -434,7 +428,7 @@ impl Drawable for Sphere {
     fn vertices(&self, fake: bool) -> Vec<Vertex> {
         let mut vertices = Vec::new();
         let stack_step = PI / NB_STACK_SPHERE as f32;
-        let sector_step = 2. * PI / NB_SECTOR_SPHERE as f32;
+        let sector_step = TAU / NB_SECTOR_SPHERE as f32;
         let color = if fake { self.id } else { self.color };
         for i in 0..=NB_STACK_SPHERE {
             // 0..=x means that x is included
@@ -457,7 +451,7 @@ impl Drawable for Sphere {
                     self.translation + self.position + Vec3::new(x, y, z),
                     color,
                     fake,
-                ))
+                ));
             }
         }
         vertices

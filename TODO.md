@@ -1,18 +1,26 @@
 # TODO
 
-## Long-term
+## Stabilize `dev_iced`
 
-- Stabilize `dev_iced` and merge on `dev_private`
-- Update `iced` to 0.13
-- Port to the web with WASM
-- Distribution of strand lengths (analysis tab)
-- Triple-stranded DNA
-- Local crossover optimization
-- Animation timeline
-- Publish `ensnano` on crates.io?
-- Hide scientific WIP, either:
-  - Authentication once the app is ported to the web
-  - Possibility to inject an external private crate with more objects
+- Fix text fields in organizer tree
+- Fix text fields in revolution surface tab
+- Click on organizer tree should select and reciprocally (select should highlight in red in organizer tree)
+- Double on organizer tree click should teleport in 2d and 3d scenes
+- Add serialization/deserialization tests to detect regressions based on typo fixes
+
+## Bugs
+
+- Increasing the left panel too much crashes ENSnano
+- Crash when selection "Ellipse" or "Two spheres" in "Revolution Surfaces" tab 
+- Toggle split of flatscene
+- Zooms gets stuck (waiting for Nicolas explanation)
+
+## Hide scientific WIP
+
+- .ens file encryption
+- Naive solution based on system time, hidden files or something
+- Authentication once the app is ported to the web
+- Possibility to inject an external private crate with more objects
 
 ## Scene (3D)
 
@@ -31,6 +39,7 @@
 - Better implementation:
   - https://io7m.com/documents/outline-glsl/
   - https://gamedev.stackexchange.com/questions/68401/how-can-i-draw-outlines-around-3d-models
+  - Simply use the normal?
 - Give uniform instead of hardcoding
 - Fix on transparent objects (create a separate pass?)
 
@@ -42,13 +51,7 @@
 ## GUI
 
 - Better looking tabs (and show active)
-
-### Organizer Tree
-
-- Fix focus
-- Click (fix selection) (and inversely) (I don't remember what I meant but it seems important)
-- Double click on strand should teleport in 2d and 3d scenes
-- Merge `ensnano_organizer` and `ensnano_gui`
+- `3D`, `2D` and `3D+2D` should be "radio buttons" with the active one shown like the selection 
 
 ### Help
 
@@ -74,17 +77,31 @@
 - Maximized/fullscreen/normal on startup
 - GPU power preference (`wgpu::PowerPreference::HighPerformance`)
 
+## Long-term
+
+- Check and accept nix merge request
+- Fix all GitLab issues
+- Update `iced` to 0.13
+- Port to the web with WASM
+- Distribution of strand lengths (analysis tab)
+- Triple-stranded DNA
+- Local crossover optimization
+- Animation timeline
+- Publish `ensnano` on crates.io?
+- README for collaborators (dependencies, crates graph, clippy rules...)
+
 ## Refactor
 
-- Rename structs with the same name in different crates
-- Remove as many `pub use` as possible
-- Remove as many `use *` as possible
-- Remove as many `#[allow(...)]` as possible
-- Remove copyright from every file? `LICENSE` at the root should be enough
-- Use `mod.rs` everywhere instead of `module.rs` and `<module>/`
+- Remove in-file modules:
+  - `abscissa_converter`
+  - `input_color`
+  - `hue_column`
+  - `light_sat_square`
+  - `color_square`
+  - `gostop`
+  - `fog_kind`
+- Rename structs with the same name in different crates, then remove all use aliases (`use ... as ...`)
 - kebab-case -> snake_case for the crate directories
-- Fix all typos using `cspell`
-  - Add serialization/deserialization tests to detect regressions based on typo fixes
 - More consistent styling:
   - Create some `rustfmt.toml` rules?
   - Merge imports?
@@ -96,9 +113,14 @@
   - `ScaffoldSetter`
   - `Multiplexer`
 - Remove enums with one variant -> struct or raw value:
-  - `OverlayType`
   - `AppOperation`
+  - `GridPositionBuilder`
+  - `OverlayType`
   - `RotationWidgetOrientation`
-- Replace `ensnano_iced/fonts/material_icons` by SVG icons from `icondata` lib
-- `cargo clippy --workspace --all-targets --all-features`
+- Replace `ensnano_iced/fonts/material_icons.rs` by SVG icons from `icondata` lib
 - `build.rs` for shaders instead of manual compilation
+- Merge `ensnano_organizer` and `ensnano_gui`
+- Merge `ensnano_interactor` and `ensnano_utils`?
+- Share more code between `ensnano_scene` and `ensnano_flatscene`:
+  - e.g. `export_2d_png` and `export_3d_png` are pretty much the same
+- Split `src/controller/quit.rs` in multiple file

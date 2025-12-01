@@ -1,22 +1,9 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::*;
-use crate::HasMap;
+use crate::{
+    collection::{Collection as _, HasMap},
+    grid::{GridDescriptor, GridId},
+};
+use serde::{Deserialize, Serialize};
+use std::{collections::BTreeMap, sync::Arc};
 
 #[derive(
     Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Default, Hash,
@@ -82,7 +69,7 @@ pub struct FreeGridsMut<'a> {
     new_map: BTreeMap<FreeGridId, Arc<GridDescriptor>>,
 }
 
-impl<'a> FreeGridsMut<'a> {
+impl FreeGridsMut<'_> {
     pub fn push(&mut self, desc: GridDescriptor) -> GridId {
         let new_key = self
             .new_map
@@ -95,7 +82,7 @@ impl<'a> FreeGridsMut<'a> {
     }
 
     pub fn get_mut(&mut self, g_id: &FreeGridId) -> Option<&mut GridDescriptor> {
-        self.new_map.get_mut(&g_id).map(Arc::make_mut)
+        self.new_map.get_mut(g_id).map(Arc::make_mut)
     }
 
     pub fn get_mut_g_id(&mut self, g_id: &GridId) -> Option<&mut GridDescriptor> {
@@ -109,8 +96,8 @@ impl<'a> FreeGridsMut<'a> {
     }
 }
 
-impl<'a> Drop for FreeGridsMut<'a> {
+impl Drop for FreeGridsMut<'_> {
     fn drop(&mut self) {
-        *self.source = FreeGrids(Arc::new(std::mem::take(&mut self.new_map)))
+        *self.source = FreeGrids(Arc::new(std::mem::take(&mut self.new_map)));
     }
 }

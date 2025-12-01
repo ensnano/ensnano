@@ -1,25 +1,17 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 mod texture;
 
-use super::{LetterInstance, grid_disc::GridDisc, instances_drawer::*};
-use ensnano_design::grid::{Grid, GridDivision, GridId, GridPosition, GridType};
+use crate::{
+    element_selector::bezier_vertex_id,
+    view::{
+        grid_disc::GridDisc,
+        instances_drawer::{
+            InstanceDrawer, Instantiable, RawDrawer as _, ResourceProvider, Vertexable,
+        },
+        letter::LetterInstance,
+    },
+};
+use ensnano_design::grid::{Grid, GridDivision as _, GridId, GridPosition, GridType};
+use ensnano_utils::instance::Instance;
 use std::collections::BTreeMap;
 use ultraviolet::{Mat4, Vec2, Vec3, Vec4};
 use wgpu::{Device, RenderPass, include_spirv};
@@ -66,7 +58,7 @@ impl GridInstance {
         x: isize,
         y: isize,
         h_id: usize,
-        instances: &mut Vec<Vec<LetterInstance>>,
+        instances: &mut [Vec<LetterInstance>],
         right: Vec3,
         up: Vec3,
     ) {
@@ -88,9 +80,7 @@ impl GridInstance {
     fn to_fake(&self) -> Self {
         let color = match self.id {
             GridId::FreeGrid(id) => id as u32,
-            GridId::BezierPathGrid(vertex) => {
-                super::super::element_selector::bezier_vertex_id(vertex.path_id, vertex.vertex_id)
-            }
+            GridId::BezierPathGrid(vertex) => bezier_vertex_id(vertex.path_id, vertex.vertex_id),
         };
         Self {
             color,
@@ -100,9 +90,8 @@ impl GridInstance {
     }
 
     fn to_raw(&self) -> GridInstanceRaw {
-        use ensnano_utils::instance::Instance;
         let (min_x, min_y, max_x, max_y);
-        if let GridType::Hyperboloid(ref h) = self.grid.grid_type {
+        if let GridType::Hyperboloid(h) = &self.grid.grid_type {
             min_x = -h.grid_radius(&self.grid.helix_parameters);
             max_x = h.grid_radius(&self.grid.helix_parameters);
             min_y = -h.grid_radius(&self.grid.helix_parameters);
@@ -146,22 +135,19 @@ impl GridInstance {
             let y_dir = Vec3::unit_y().rotated_by(self.grid.orientation);
             (vec.dot(x_dir), vec.dot(y_dir))
         };
-        if self.contains_point(x, y) {
+        self.contains_point(x, y).then(|| {
             let (x, y) = self
                 .grid
                 .grid_type
                 .interpolate(&self.grid.helix_parameters, x, y);
-
-            Some(GridIntersection {
+            GridIntersection {
                 depth: ret,
                 grid_id: self.id,
                 design_id: self.design,
                 x,
                 y,
-            })
-        } else {
-            None
-        }
+            }
+        })
     }
 
     fn convert_coord(&self, x: f32, y: f32) -> (f32, f32) {
@@ -181,7 +167,7 @@ impl GridInstance {
     }
 
     fn contains_point(&self, x: f32, y: f32) -> bool {
-        if let GridType::Hyperboloid(ref h) = self.grid.grid_type {
+        if let GridType::Hyperboloid(h) = &self.grid.grid_type {
             h.contains_point(&self.grid.helix_parameters, x, y)
         } else {
             let (x, y) = self.convert_coord(x, y);
@@ -239,7 +225,7 @@ impl GridManager {
 
     /// Request an update of the set of instances to draw. This update take effects on the next frame
     pub fn new_instances(&mut self, instances: BTreeMap<GridId, GridInstance>) {
-        self.new_instances = Some(instances)
+        self.new_instances = Some(instances);
     }
 
     /// If one or several update of the set of instances were requested before the last call of
@@ -271,16 +257,16 @@ impl GridManager {
         }
         if fake {
             self.fake_drawer
-                .draw(render_pass, viewer_bind_group, model_bind_group)
+                .draw(render_pass, viewer_bind_group, model_bind_group);
         } else {
             self.drawer
-                .draw(render_pass, viewer_bind_group, model_bind_group)
+                .draw(render_pass, viewer_bind_group, model_bind_group);
         }
     }
 
     pub fn intersect(&self, origin: Vec3, direction: Vec3) -> Option<GridIntersection> {
         let mut ret = None;
-        let mut depth = std::f32::INFINITY;
+        let mut depth = f32::INFINITY;
         for g in self.instances.values() {
             if let Some(intersection) = g.ray_intersection(origin, direction)
                 && intersection.depth < depth
@@ -305,23 +291,23 @@ impl GridManager {
 
     pub fn set_candidate_grid(&mut self, grids: Vec<(usize, GridId)>) {
         self.need_new_colors = true;
-        self.candidate = grids
+        self.candidate = grids;
     }
 
     pub fn set_selected_grid(&mut self, grids: Vec<(usize, GridId)>) {
         self.need_new_colors = true;
-        self.selected = grids
+        self.selected = grids;
     }
 
     fn update_colors(&mut self) {
         for instance in self.instances.values_mut() {
-            if self.selected.contains(&(instance.design, instance.id)) {
-                instance.color = 0xFF_00_00
+            instance.color = if self.selected.contains(&(instance.design, instance.id)) {
+                0xFF_00_00
             } else if self.candidate.contains(&(instance.design, instance.id)) {
-                instance.color = 0x00_FF_00
+                0x00_FF_00
             } else {
-                instance.color = 0x00_00_FF
-            }
+                0x00_00_FF
+            };
         }
         self.drawer
             .new_instances(self.instances.values().cloned().collect());
@@ -355,7 +341,7 @@ pub struct GridVertex {
 }
 
 impl Vertexable for GridVertex {
-    type RawType = GridVertex;
+    type RawType = Self;
 
     fn to_raw(&self) -> Self {
         *self
@@ -363,7 +349,7 @@ impl Vertexable for GridVertex {
 
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         wgpu::VertexBufferLayout {
-            array_stride: std::mem::size_of::<GridVertex>() as wgpu::BufferAddress,
+            array_stride: size_of::<Self>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &wgpu::vertex_attr_array![0 => Float32x2],
         }

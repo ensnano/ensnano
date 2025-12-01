@@ -1,43 +1,27 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::instances_drawer::{Instantiable, ResourceProvider, Vertexable};
-use std::convert::TryInto;
+use crate::view::instances_drawer::{Instantiable, ResourceProvider, Vertexable};
+use ensnano_utils::TEXTURE_FORMAT;
+use image::GenericImageView as _;
 use std::rc::Rc;
 use ultraviolet::{Vec2, Vec3};
 use wgpu::{Device, Queue};
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct SkyBox {
+pub(super) struct SkyBox {
     size: f32,
 }
 impl SkyBox {
-    pub fn new(size: f32) -> Self {
+    pub(super) fn new(size: f32) -> Self {
         Self { size }
     }
 }
 
 impl Instantiable for SkyBox {
-    type RawInstance = SkyBox;
+    type RawInstance = Self;
     type Resource = ();
     type Vertex = CubeVertex;
 
-    fn to_raw_instance(&self) -> SkyBox {
+    fn to_raw_instance(&self) -> Self {
         *self
     }
 
@@ -64,22 +48,22 @@ impl Instantiable for SkyBox {
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Default, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct DirectionCube {
+pub(super) struct DirectionCube {
     dist: f32,
 }
 
 impl DirectionCube {
-    pub fn new(dist: f32) -> Self {
+    pub(super) fn new(dist: f32) -> Self {
         Self { dist }
     }
 }
 
 impl Instantiable for DirectionCube {
-    type RawInstance = DirectionCube;
+    type RawInstance = Self;
     type Resource = DirectionTexture;
     type Vertex = CubeVertex;
 
-    fn to_raw_instance(&self) -> DirectionCube {
+    fn to_raw_instance(&self) -> Self {
         *self
     }
 
@@ -212,31 +196,31 @@ impl Instantiable for DirectionCube {
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct CubeVertex {
+pub(super) struct CubeVertex {
     position: Vec3,
     texture_position: Vec2,
 }
 
 const CUBE_VERTEX_ARRAY: [wgpu::VertexAttribute; 2] =
     wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x2];
-impl Vertexable for CubeVertex {
-    type RawType = CubeVertex;
 
-    fn to_raw(&self) -> CubeVertex {
+impl Vertexable for CubeVertex {
+    type RawType = Self;
+
+    fn to_raw(&self) -> Self {
         *self
     }
 
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        use std::mem;
         wgpu::VertexBufferLayout {
-            array_stride: mem::size_of::<CubeVertex>() as wgpu::BufferAddress,
+            array_stride: size_of::<Self>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &CUBE_VERTEX_ARRAY,
         }
     }
 }
 
-pub struct DirectionTexture {
+pub(super) struct DirectionTexture {
     pub texture_view: wgpu::TextureView,
     pub sampler: wgpu::Sampler,
 }
@@ -278,13 +262,11 @@ impl ResourceProvider for DirectionTexture {
 }
 
 impl DirectionTexture {
-    pub fn new(device: Rc<Device>, queue: Rc<Queue>) -> Self {
+    pub(super) fn new(device: Rc<Device>, queue: Rc<Queue>) -> Self {
         let diffuse_bytes = include_bytes!("../../../icons/direction_cube.png");
         let diffuse_image = image::load_from_memory(diffuse_bytes).unwrap();
         let dimensions = diffuse_image.dimensions();
         let bgra = diffuse_image.into_bgra8();
-
-        use image::GenericImageView;
 
         let size = wgpu::Extent3d {
             width: dimensions.0,
@@ -297,7 +279,7 @@ impl DirectionTexture {
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
-            format: ensnano_utils::TEXTURE_FORMAT,
+            format: TEXTURE_FORMAT,
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
             view_formats: Default::default(),
         });
@@ -312,8 +294,8 @@ impl DirectionTexture {
             &bgra,
             wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: (4 * dimensions.0).try_into().ok(),
-                rows_per_image: dimensions.1.try_into().ok(),
+                bytes_per_row: Some(4 * dimensions.0),
+                rows_per_image: Some(dimensions.1),
             },
             size,
         );

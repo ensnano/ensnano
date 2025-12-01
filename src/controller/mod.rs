@@ -1,53 +1,27 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 //! Handles windows and dialog (Alert, and file pickers) interactions.
 
-pub mod channel_reader;
+pub(crate) mod channel_reader;
 mod download_intervals;
-pub mod download_staples;
+pub(crate) mod download_staples;
 mod messages;
-pub mod normal_state;
+pub(crate) mod normal_state;
 mod quit;
-pub mod set_scaffold_sequence;
+pub(crate) mod set_scaffold_sequence;
 
-use super::{OverlayType, SplitMode, dialog};
 use crate::MainStateView;
-use dialog::{MustAckMessage, YesNoQuestion};
-use ensnano_exports::ExportType;
-use ensnano_iced::UiSize;
-use ensnano_interactor::consts::CANNOT_OPEN_DEFAULT_DIR;
+use crate::dialog::{self, MustAckMessage, YesNoQuestion};
+use ensnano_consts::CANNOT_OPEN_DEFAULT_DIR;
+use ensnano_design::scadnano::ScadnanoImportError;
 use normal_state::NormalState;
-use quit::*;
-use set_scaffold_sequence::*;
-use std::{
-    borrow::Cow,
-    path::{Path, PathBuf},
-};
-use ultraviolet::{Rotor3, Vec3};
+use std::borrow::Cow;
 
-pub struct Controller {
+pub(crate) struct Controller {
     /// The sate of the windows
     state: Box<dyn State + 'static>,
 }
 
 impl Controller {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             state: Box::new(NormalState),
         }
@@ -59,7 +33,7 @@ impl Controller {
         main_state.check_backup();
         if main_state.need_backup() {
             if let Err(e) = main_state.save_backup() {
-                log::error!("{:?}", e);
+                log::error!("{e:?}");
             }
         } else {
             let old_state = std::mem::replace(&mut self.state, Box::new(OhNo));
@@ -172,9 +146,9 @@ impl State for YesNo {
     }
 }
 
-pub enum LoadDesignError {
+pub(crate) enum LoadDesignError {
     JsonError(serde_json::Error),
-    ScadnanoImportError(ensnano_design::scadnano::ScadnanoImportError),
+    ScadnanoImportError(ScadnanoImportError),
     IncompatibleVersion { current: String, required: String },
 }
 
@@ -186,8 +160,7 @@ impl std::fmt::Display for LoadDesignError {
                 write!(
                     f,
                     "Scadnano file detected but the following error was encountered:
-                {:?}",
-                    e
+                {e:?}",
                 )
             }
             Self::IncompatibleVersion { current, required } => {
@@ -203,16 +176,16 @@ impl std::fmt::Display for LoadDesignError {
 }
 
 #[derive(Debug)]
-pub struct SaveDesignError(String);
+pub(crate) struct SaveDesignError(String);
 
 impl<E: std::error::Error> From<E> for SaveDesignError {
     fn from(e: E) -> Self {
-        Self(format!("{}", e))
+        Self(format!("{e}"))
     }
 }
 
 impl SaveDesignError {
-    pub fn cannot_open_default_dir() -> Self {
-        Self(CANNOT_OPEN_DEFAULT_DIR.to_string())
+    pub(crate) fn cannot_open_default_dir() -> Self {
+        Self(CANNOT_OPEN_DEFAULT_DIR.to_owned())
     }
 }

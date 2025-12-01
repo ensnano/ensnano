@@ -1,22 +1,8 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use ensnano_design::{Axis, Domain, Nucl, OwnedAxis};
+use ensnano_design::{
+    Design, Nucl,
+    helices::{Axis, OwnedAxis},
+    strands::Domain,
+};
 use std::cmp::Ordering;
 
 #[derive(Clone, Debug)]
@@ -137,9 +123,9 @@ impl StrandBuilder {
                 Some(EditDirection::Negative)
             };
             if desc.initial_moving_end > initial_position {
-                max_pos = max_pos.or(Some(desc.fixed_end - 1))
+                max_pos = max_pos.or(Some(desc.fixed_end - 1));
             } else {
-                min_pos = min_pos.or(Some(desc.fixed_end + 1))
+                min_pos = min_pos.or(Some(desc.fixed_end + 1));
             }
         } else {
             neighbor_strand = None;
@@ -157,7 +143,7 @@ impl StrandBuilder {
             min_pos,
             detached_neighbor: None,
         };
-        log::info!("builder {:?}", ret);
+        log::info!("builder {ret:?}");
         ret
     }
 
@@ -210,7 +196,7 @@ impl StrandBuilder {
                     .any(|d| d.is_same_domain_than(&neighbor.identifier))
             })
             .filter(|neighbor| neighbor.identifier.start != self.identifier.start);
-        if let Some(ref desc) = desc
+        if let Some(desc) = &desc
             && self.attach_neighbor(desc)
         {
             self.max_pos = self.max_pos.or(Some(desc.fixed_end - 1));
@@ -238,7 +224,7 @@ impl StrandBuilder {
                     .any(|d| d.is_same_domain_than(&neighbor.identifier))
             })
             .filter(|neighbor| neighbor.identifier.start != self.identifier.start);
-        if let Some(ref desc) = desc
+        if let Some(desc) = &desc
             && self.attach_neighbor(desc)
         {
             self.min_pos = self.min_pos.or(Some(desc.fixed_end + 1));
@@ -253,8 +239,8 @@ impl StrandBuilder {
         design: &mut Design,
         ignored_domains: &[DomainIdentifier],
     ) {
-        log::info!("self {:?}", self);
-        log::info!("move to {}", objective);
+        log::info!("self {self:?}");
+        log::info!("move to {objective}");
         let mut need_update = true;
         match objective.cmp(&self.moving_end.position) {
             Ordering::Greater => {
@@ -269,10 +255,10 @@ impl StrandBuilder {
                     need_update = true;
                 }
             }
-            _ => (),
+            Ordering::Equal => (),
         }
         if need_update {
-            self.update(design)
+            self.update(design);
         }
     }
 
@@ -303,10 +289,10 @@ impl StrandBuilder {
             self.fixed_end.unwrap_or(self.initial_position),
         );
         if let Some(desc) = self.neighbor_strand {
-            Self::update_strand(design, desc.identifier, desc.moving_end, desc.fixed_end)
+            Self::update_strand(design, desc.identifier, desc.moving_end, desc.fixed_end);
         }
         if let Some(desc) = self.detached_neighbor.take() {
-            Self::update_strand(design, desc.identifier, desc.moving_end, desc.fixed_end)
+            Self::update_strand(design, desc.identifier, desc.moving_end, desc.fixed_end);
         }
     }
 
@@ -316,12 +302,7 @@ impl StrandBuilder {
         position: isize,
         fixed_position: isize,
     ) {
-        log::info!(
-            "updating {:?}, position {}, fixed_position {}",
-            identifier,
-            position,
-            fixed_position
-        );
+        log::info!("updating {identifier:?}, position {position}, fixed_position {fixed_position}",);
         let domain =
             &mut design.strands.get_mut(&identifier.strand).unwrap().domains[identifier.domain];
         if let Domain::HelixDomain(domain) = domain {
@@ -342,7 +323,7 @@ impl StrandBuilder {
         }
     }
 
-    pub fn get_axis<'a>(&'a self) -> Axis<'a> {
+    pub fn get_axis(&self) -> Axis<'_> {
         self.axis.borrow()
     }
 
@@ -400,7 +381,6 @@ impl DomainIdentifier {
     }
 }
 
-use ensnano_design::Design;
 pub trait NeighborDescriptorGiver {
     fn get_neighbor_nucl(&self, nucl: Nucl) -> Option<NeighborDescriptor>;
 }
@@ -412,7 +392,7 @@ impl NeighborDescriptorGiver for Design {
                 if let Some(other) = d.other_end(nucl) {
                     let start = if let Domain::HelixDomain(i) = d {
                         // if the domain has length one, we are not at a specific end
-                        (d.length() > 1).then(|| i.start)
+                        (d.length() > 1).then_some(i.start)
                     } else {
                         None
                     };

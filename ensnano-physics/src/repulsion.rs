@@ -1,14 +1,12 @@
+use crate::simulation::RapierPhysicsSystem;
 use rapier3d::{
     parry::query::DefaultQueryDispatcher,
     prelude::*,
-    rayon::iter::{IntoParallelIterator, ParallelIterator},
+    rayon::iter::{IntoParallelIterator as _, ParallelIterator as _},
 };
-
-use crate::simulation::RapierPhysicsSystem;
 
 const FORCE_RANGE: f32 = 5.0;
 const FORCE_STRENGTH: f32 = 0.1;
-const FORCE_RANGE_SQUARED: f32 = FORCE_RANGE * FORCE_RANGE;
 
 impl RapierPhysicsSystem {
     pub fn repulsion_step(&mut self, delta: f32) {
@@ -16,10 +14,9 @@ impl RapierPhysicsSystem {
     }
 }
 
-// Following three functions from the "Particle based Viscoelastic Fluid Simulation"
+// Following three functions from the "Particle-based Viscoelastic Fluid Simulation"
 fn simple_kernel_1(r: f32, h: f32) -> f32 {
-    let v = 1.0 - r / h;
-    v
+    1.0 - r / h
 }
 
 /// Operates a repulsion between all rigid bodies
@@ -34,7 +31,7 @@ fn repulsion_step(system: &mut RapierPhysicsSystem, delta: f32) {
         .into_par_iter()
         .map(|handle| {
             let body = system.collider_set.get(handle).unwrap();
-            let position = body.position().clone();
+            let position = *body.position();
 
             let query_pipeline = system.broad_phase.as_query_pipeline(
                 &DefaultQueryDispatcher,
@@ -55,7 +52,7 @@ fn repulsion_step(system: &mut RapierPhysicsSystem, delta: f32) {
                     position.translation.vector - collider.position().translation.vector
                 })
                 // which we then filter to only keep valid ranges
-                .filter(|v| v.norm_squared() > 0.0 && v.norm_squared() <= FORCE_RANGE_SQUARED)
+                .filter(|v| v.norm_squared() > 0.0 && v.norm_squared() <= FORCE_RANGE * FORCE_RANGE)
                 // which we then normalize while keeping its length
                 .map(|v| (v.normalize(), v.norm()))
                 // which we then multiply by that square, and some other constants

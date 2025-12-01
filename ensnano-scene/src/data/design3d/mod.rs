@@ -1,53 +1,60 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 //! This module handles the instantiation of designs as 3D geometric objects
 
 mod bezier_paths;
 
-use super::{LetterInstance, SceneElement};
 use crate::{
-    GridInstance,
     SceneElement::DesignElement,
+    element_selector::SceneElement,
     maths_3d::{Basis3D, UnalignedBoundaries},
     rotor_utils::SafeRotor as _,
     sausage_rosary::SausageRosary,
     view::{
-        ConeInstance, Ellipsoid, Instantiable, PlainRectangleInstance, RawDnaInstance, Sheet2D,
-        SlicedTubeInstance, SphereInstance, TubeInstance, TubeLidInstance,
+        dna_obj::{
+            ConeInstance, Ellipsoid, PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance,
+            SphereInstance, TubeInstance, TubeLidInstance,
+        },
+        grid::GridInstance,
+        instances_drawer::Instantiable as _,
+        letter::LetterInstance,
     },
 };
+use ensnano_consts::{
+    BASIS_SCALE, BOND_RADIUS, CANDIDATE_COLOR, CHECKED_XOVER_COLOR, FREE_XOVER_COLOR,
+    FREE_XOVER_SCALE_FACTOR, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, NB_PRINTABLE_CHARS,
+    PIVOT_SCALE_FACTOR, PIVOT_SPHERE_COLOR, PRINTABLE_CHARS, REGULAR_H_BOND_COLOR,
+    SELECT_SCALE_FACTOR, SELECTED_COLOR, SPHERE_RADIUS, SUGGESTION_COLOR,
+    SURFACE_PIVOT_SPHERE_COLOR, UNCHECKED_XOVER_COLOR, basis_color,
+};
 use ensnano_design::{
-    AdditionalStructure, BezierControlPoint, BezierPathId, BezierPlaneDescriptor, BezierPlaneId,
-    BezierVertex, Collection, CubicBezierConstructor, CurveDescriptor, External3DObjects,
-    HelixParameters, InstantiatedPath, Nucl, SurfaceInfo, SurfacePoint,
+    AdditionalStructure, Nucl,
+    bezier_plane::{
+        BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, InstantiatedPath,
+    },
+    collection::Collection,
+    curves::{
+        CurveDescriptor, SurfaceInfo, SurfacePoint,
+        bezier::{BezierControlPoint, CubicBezierConstructor},
+    },
+    external_3d_objects::External3DObjects,
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
+    parameters::HelixParameters,
 };
 use ensnano_interactor::{
-    ObjectType, PHANTOM_RANGE, PhantomElement, Referential,
-    consts::*,
+    ObjectType, Referential,
     graphics::{LoopoutBond, LoopoutNucl},
-    phantom_helix_encoder_bond, phantom_helix_encoder_nucl,
+    selection::{
+        InteractorDesignReaderExt, PHANTOM_RANGE, PhantomElement, phantom_helix_encoder_bond,
+        phantom_helix_encoder_nucl,
+    },
 };
-use ensnano_utils::{StrandNucleotidesPositions, colors, instance::Instance};
+use ensnano_utils::{
+    StrandNucleotidesPositions,
+    colors::{self, purple_to_blue_gradient_color_in_range},
+    instance::Instance,
+};
 use std::{
     collections::{BTreeMap, HashMap, HashSet, hash_map::RandomState},
-    f32::{INFINITY, NEG_INFINITY, consts::TAU},
+    f32::consts::TAU,
     rc::Rc,
     sync::Arc,
 };
@@ -79,9 +86,9 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
     /// Convert a list of ids into a list of instances
     pub fn id_to_raw_instances(&self, ids: Vec<u32>) -> Vec<RawDnaInstance> {
         let mut ret = Vec::new();
-        for id in ids.iter() {
+        for id in &ids {
             if let Some(instances) = self.make_raw_instances(*id) {
-                ret.extend(instances)
+                ret.extend(instances);
             }
         }
         ret
@@ -152,7 +159,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                 SELECTED_COLOR
             };
             let color_vec4 = Instance::color_from_au32(color);
-            for position in positions.iter() {
+            for position in &positions {
                 let sphere = SphereInstance {
                     position: *position,
                     color: color_vec4,
@@ -221,7 +228,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
         let filter = |_n: &Nucl| true;
         let vec: Vec<_> = ids
             .iter()
-            .flat_map(|id| self.make_cone_from_bond(*id, &filter))
+            .filter_map(|id| self.make_cone_from_bond(*id, &filter))
             .collect();
         vec
     }
@@ -234,7 +241,8 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
             } else {
                 (r_max, r_min)
             };
-            let vec = (0..n)
+
+            (0..n)
                 .map(|i| -> RawDnaInstance {
                     let r = v_min + i as f32 * (v_max - v_min) / n as f32;
                     PlainRectangleInstance {
@@ -246,14 +254,14 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                     }
                     .to_raw_instance()
                 })
-                .collect::<Vec<RawDnaInstance>>();
-            vec
+                .collect::<Vec<RawDnaInstance>>()
         } else {
             vec![]
         }
     }
 
     /// Return the list of tube instances to be displayed to represent the design
+    #[expect(clippy::items_after_statements)]
     pub fn get_tubes_raw(&self, show_insertion_discriminants: bool) -> Rc<Vec<RawDnaInstance>> {
         let mut visible_bonds_ids = self.design_reader.get_all_visible_bond_ids();
         if !show_insertion_discriminants {
@@ -271,7 +279,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                         false,
                     )
                     .to_raw_instance(),
-                )
+                );
             }
         }
 
@@ -306,7 +314,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
             // Draw grey bars between the masses defining for the broken lines corresponding to each helix
             // -> To be replaced by a SausageRosary passing through the nt_paths
             if draw_broken_lines {
-                for (me, next) in additional_structure.right().into_iter() {
+                for (me, next) in additional_structure.right() {
                     let pos_left = transformation.transform_vec(positions[me]);
                     let pos_right = transformation.transform_vec(positions[next]);
                     let mut color_idx = me / additional_structure.number_of_sections();
@@ -320,7 +328,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                         )
                         .with_radius(1.5 * SPHERE_RADIUS)
                         .to_raw_instance(),
-                    )
+                    );
                 }
             }
 
@@ -331,6 +339,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
             const SPRING_THICKNESS: f32 = SPRING_RADIUS / 4.;
             const MIN_SPRING_LENGTH: f32 = 2.65 / 1.5;
             const MAX_SPRING_LENGTH: f32 = 2.65 * 1.5;
+
             let alpha = NB_COILS as f32 * TAU / NB_STEPS as f32;
             let xx = (0..NB_COILS)
                 .map(|i| SPRING_RADIUS * (i as f32 * alpha).cos())
@@ -339,8 +348,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                 .map(|i| SPRING_RADIUS * (i as f32 * alpha).sin())
                 .collect::<Vec<f32>>();
             if draw_springs {
-                // println!("drawing springs...");
-                for (me, other) in additional_structure.next().into_iter() {
+                for (me, other) in additional_structure.next() {
                     let pos_left = transformation.transform_vec(positions[me]);
                     let pos_right = transformation.transform_vec(positions[other]);
 
@@ -363,7 +371,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                                 + yy[i % NB_COILS] * y_vec
                         })
                         .collect();
-                    let color = ensnano_utils::colors::purple_to_blue_gradient_color_in_range(
+                    let color = purple_to_blue_gradient_color_in_range(
                         uv.mag(),
                         MIN_SPRING_LENGTH,
                         MAX_SPRING_LENGTH,
@@ -379,7 +387,6 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                     );
                     ret.extend(sliced_tubes.into_iter().map(|s| s.to_raw_instance()));
                 }
-                // println!("drawing springs... Done");
             }
         }
 
@@ -413,11 +420,11 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
             let instantiables = match kind {
                 Some(ObjectType::Bond(id1, id2)) => {
                     let pos1 = self
-                        .get_graphic_element_position(&SceneElement::DesignElement(self.id, id1))
-                        .unwrap_or(f32::NAN * Vec3::unit_x());
+                        .get_graphic_element_position(&DesignElement(self.id, id1))
+                        .unwrap_or_else(|| f32::NAN * Vec3::unit_x());
                     let pos2 = self
-                        .get_graphic_element_position(&SceneElement::DesignElement(self.id, id2))
-                        .unwrap_or(f32::NAN * Vec3::unit_x());
+                        .get_graphic_element_position(&DesignElement(self.id, id2))
+                        .unwrap_or_else(|| f32::NAN * Vec3::unit_x());
                     let id = id | self.id << 24;
                     vec![
                         create_dna_bond(pos1, pos2, color, id, true)
@@ -427,19 +434,14 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                 }
                 Some(ObjectType::HelixCylinder(id1, id2)) => {
                     let pos1 = self
-                        .get_graphic_element_axis_position(&SceneElement::DesignElement(
-                            self.id, id1,
-                        ))
-                        .unwrap_or(f32::NAN * Vec3::unit_x());
+                        .get_graphic_element_axis_position(&DesignElement(self.id, id1))
+                        .unwrap_or_else(|| f32::NAN * Vec3::unit_x());
                     let pos2 = self
-                        .get_graphic_element_axis_position(&SceneElement::DesignElement(
-                            self.id, id2,
-                        ))
-                        .unwrap_or(f32::NAN * Vec3::unit_x());
+                        .get_graphic_element_axis_position(&DesignElement(self.id, id2))
+                        .unwrap_or_else(|| f32::NAN * Vec3::unit_x());
                     let id = id | self.id << 24;
                     let (lid1, tube, lid2) =
                         create_helix_cylinder(pos1, pos2, radius, color, id, true);
-                    // println!("Lid1: {:?}\nTube: {:?}\nLid2: {:?}", lid1.position, tube.position, lid2.position);
                     vec![
                         lid1.to_raw_instance(),
                         tube.to_raw_instance(),
@@ -448,21 +450,16 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                 }
                 Some(ObjectType::Nucleotide(id)) => {
                     let position = self
-                        .get_graphic_element_position(&SceneElement::DesignElement(self.id, id))
-                        .unwrap_or(f32::NAN * Vec3::unit_x());
+                        .get_graphic_element_position(&DesignElement(self.id, id))
+                        .unwrap_or_else(|| f32::NAN * Vec3::unit_x());
                     let id = id | self.id << 24;
                     let color = Instance::color_from_au32(color);
-                    // let small = self.design_reader.has_small_spheres_nucl_id(id);
-                    // if radius > 1.01 && small {
-                    //     radius *= 2.5;
-                    // }
-                    // radius = if small { radius / 3.5 } else { radius };
                     vec![
                         SphereInstance {
                             position,
-                            radius,
                             color,
                             id,
+                            radius,
                         }
                         .to_raw_instance(),
                     ]
@@ -471,44 +468,49 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
             };
             ret.extend(instantiables.iter());
         }
-        if let Some(ExpandWith::Tubes) = expand_with {
-            for loopout_bond in self
-                .design_reader
-                .get_all_loopout_bonds()
-                .iter()
-                .filter(|lb| lb.repr_bond_identifier == id)
-            {
-                ret.push(
-                    create_dna_bond(
-                        loopout_bond.position_prime5,
-                        loopout_bond.position_prime3,
-                        color,
-                        loopout_bond.repr_bond_identifier,
-                        true,
-                    )
-                    .with_radius(radius)
-                    .to_raw_instance(),
-                )
+
+        match expand_with {
+            Some(ExpandWith::Tubes) => {
+                for loopout_bond in self
+                    .design_reader
+                    .get_all_loopout_bonds()
+                    .iter()
+                    .filter(|lb| lb.repr_bond_identifier == id)
+                {
+                    ret.push(
+                        create_dna_bond(
+                            loopout_bond.position_prime5,
+                            loopout_bond.position_prime3,
+                            color,
+                            loopout_bond.repr_bond_identifier,
+                            true,
+                        )
+                        .with_radius(radius)
+                        .to_raw_instance(),
+                    );
+                }
             }
-        }
-        if let Some(ExpandWith::Spheres) = expand_with {
-            for loopout_nucl in self
-                .design_reader
-                .get_all_loopout_nucl()
-                .iter()
-                .filter(|ln| ln.repr_bond_identifier == id)
-            {
-                ret.push(
-                    SphereInstance {
-                        position: loopout_nucl.position,
-                        color: Instance::color_from_au32(color),
-                        id: loopout_nucl.repr_bond_identifier,
-                        radius,
-                    }
-                    .to_raw_instance(),
-                );
+            Some(ExpandWith::Spheres) => {
+                for loopout_nucl in self
+                    .design_reader
+                    .get_all_loopout_nucl()
+                    .iter()
+                    .filter(|ln| ln.repr_bond_identifier == id)
+                {
+                    ret.push(
+                        SphereInstance {
+                            position: loopout_nucl.position,
+                            color: Instance::color_from_au32(color),
+                            id: loopout_nucl.repr_bond_identifier,
+                            radius,
+                        }
+                        .to_raw_instance(),
+                    );
+                }
             }
+            None => {}
         }
+
         ret
     }
 
@@ -589,8 +591,8 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
             full_h_bonds.push(full_bond.to_raw_instance());
         }
         HBondsInstances {
-            partial_h_bonds,
             full_h_bonds,
+            partial_h_bonds,
             ellipsoids,
         }
     }
@@ -606,10 +608,8 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
             ObjectType::Bond(id1, id2) | ObjectType::SlicedBond(_, id1, id2, _)
                 if self.get_with_cones(id).unwrap_or(true) =>
             {
-                let pos1 =
-                    self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id1))?;
-                let pos2 =
-                    self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id2))?;
+                let pos1 = self.get_graphic_element_position(&DesignElement(self.id, id1))?;
+                let pos2 = self.get_graphic_element_position(&DesignElement(self.id, id2))?;
                 let radius = self.get_radius(id).unwrap_or(BOND_RADIUS);
                 let cone_radius = (1.5 * radius).max(0.75 * SPHERE_RADIUS);
                 self.design_reader.get_nucl_with_id(id1).filter(filter)?;
@@ -630,17 +630,11 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
         id2: u32,
     ) -> Option<(u32, f32)> {
         let real_pos1 = self
-            .get_element_position(
-                &SceneElement::DesignElement(self.id, id1),
-                Referential::World,
-            )
-            .unwrap_or(f32::NAN * Vec3::unit_x());
+            .get_element_position(&DesignElement(self.id, id1), Referential::World)
+            .unwrap_or_else(|| f32::NAN * Vec3::unit_x());
         let real_pos2 = self
-            .get_element_position(
-                &SceneElement::DesignElement(self.id, id2),
-                Referential::World,
-            )
-            .unwrap_or(f32::NAN * Vec3::unit_x());
+            .get_element_position(&DesignElement(self.id, id2), Referential::World)
+            .unwrap_or_else(|| f32::NAN * Vec3::unit_x());
         let length = (real_pos2 - real_pos1).mag();
         let expected_length = self.design_reader.get_expected_bond_length(); // SHOULD DEPEND ON THE HELIX_MODEL OF THE STRAND -> SHOULD BE MODIFIED LATER
         let critical_length_low = expected_length / 0.7; // TO BE MADE A CONSTANT IN CONST.RS
@@ -653,7 +647,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
             let grey = 0.25 - 0.25 * x;
             return Some((Instance::grey_u32_color_from_f32(grey), 1.0));
         }
-        return Some((0x_00_00_00, 1.0));
+        Some((0x_00_00_00, 1.0))
     }
 
     /// Convert return an instance representing the object with identifier `id`
@@ -661,10 +655,8 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
         let kind = self.get_object_type(id)?;
         let raw_instances = match kind {
             ObjectType::Bond(id1, id2) => {
-                let pos1 =
-                    self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id1))?;
-                let pos2 =
-                    self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id2))?;
+                let pos1 = self.get_graphic_element_position(&DesignElement(self.id, id1))?;
+                let pos2 = self.get_graphic_element_position(&DesignElement(self.id, id2))?;
                 let color = self.get_color(id).unwrap_or(0x00_00_00);
                 let id = id | self.id << 24;
                 // Adjust the color and radius of the bond according to the REAL length of the bond
@@ -680,27 +672,19 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                 vec![tube.to_raw_instance()]
             }
             ObjectType::SlicedBond(prev_nucl_id, nucl1_id, nucl2_id, next_nucl_id) => {
-                let pos1 = self.get_graphic_element_position(&SceneElement::DesignElement(
-                    self.id, nucl1_id,
-                ))?;
-                let pos2 = self.get_graphic_element_position(&SceneElement::DesignElement(
-                    self.id, nucl2_id,
-                ))?;
+                let pos1 = self.get_graphic_element_position(&DesignElement(self.id, nucl1_id))?;
+                let pos2 = self.get_graphic_element_position(&DesignElement(self.id, nucl2_id))?;
 
                 let prev = if prev_nucl_id != nucl1_id {
-                    let pos0 = self.get_graphic_element_position(&SceneElement::DesignElement(
-                        self.id,
-                        prev_nucl_id,
-                    ))?;
+                    let pos0 =
+                        self.get_graphic_element_position(&DesignElement(self.id, prev_nucl_id))?;
                     pos1 - pos0
                 } else {
                     Vec3::zero()
                 };
                 let next = if next_nucl_id != nucl2_id {
-                    let pos3 = self.get_graphic_element_position(&SceneElement::DesignElement(
-                        self.id,
-                        next_nucl_id,
-                    ))?;
+                    let pos3 =
+                        self.get_graphic_element_position(&DesignElement(self.id, next_nucl_id))?;
                     pos3 - pos2
                 } else {
                     Vec3::zero()
@@ -763,12 +747,10 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                 if self.design_reader.get_curve_descriptor(h_id).is_none() {
                     // straight helix
 
-                    let pos1 = self.get_graphic_element_axis_position(
-                        &SceneElement::DesignElement(self.id, id1),
-                    )?;
-                    let pos2 = self.get_graphic_element_axis_position(
-                        &SceneElement::DesignElement(self.id, id2),
-                    )?;
+                    let pos1 =
+                        self.get_graphic_element_axis_position(&DesignElement(self.id, id1))?;
+                    let pos2 =
+                        self.get_graphic_element_axis_position(&DesignElement(self.id, id2))?;
                     let color = self.get_color(id).unwrap_or(HELIX_CYLINDER_COLOR);
                     let color = Instance::add_alpha_to_clear_color_u32(color);
                     let id = id | self.id << 24;
@@ -776,7 +758,6 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                     let radius = self.get_radius(id).unwrap_or(HELIX_CYLINDER_RADIUS);
                     let (lid1, tube, lid2) =
                         create_helix_cylinder(pos1, pos2, radius, color, id, true);
-                    // println!("Lid1: {:?}\nTube: {:?}\nLid2: {:?}", lid1.position, tube.position, lid2.position);
                     vec![
                         lid1.to_raw_instance(),
                         tube.to_raw_instance(),
@@ -828,9 +809,8 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                             .unwrap()
                         })
                         .collect::<Vec<Vec3>>();
-                    // println!("{:?}", positions);
                     let colors = match kind {
-                        ObjectType::ColoredHelixCylinder(_, _, colors) => colors.clone(),
+                        ObjectType::ColoredHelixCylinder(_, _, colors) => colors,
                         _ => vec![],
                     };
                     let color = |i| -> u32 { *(colors.get(i).unwrap_or(&color)) };
@@ -851,8 +831,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                 }
             }
             ObjectType::Nucleotide(id) => {
-                let position =
-                    self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id))?;
+                let position = self.get_graphic_element_position(&DesignElement(self.id, id))?;
                 let color = self.get_color(id)?;
                 let color = Instance::unclear_color_from_u32(color);
                 let id = id | self.id << 24;
@@ -1018,13 +997,13 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
     ) -> (Rc<Vec<RawDnaInstance>>, Rc<Vec<RawDnaInstance>>) {
         let mut spheres = Vec::new();
         let mut tubes = Vec::new();
-        for (helix_id, short) in helix_ids.iter() {
+        for (helix_id, short) in helix_ids {
             let range_phantom = if *short {
                 PHANTOM_RANGE / 10
             } else {
                 PHANTOM_RANGE
             } as isize;
-            for forward in [false, true].iter() {
+            for forward in &[false, true] {
                 let mut previous_nucl = None;
                 let range = self
                     .design_reader
@@ -1089,9 +1068,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
         referential: Referential,
     ) -> Option<Vec3> {
         match element {
-            SceneElement::DesignElement(_, e_id) => {
-                self.get_design_element_position(*e_id, referential)
-            }
+            DesignElement(_, e_id) => self.get_design_element_position(*e_id, referential),
             SceneElement::PhantomElement(phantom) => {
                 self.get_phantom_element_position(phantom, referential, false)
             }
@@ -1124,9 +1101,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
         referential: Referential,
     ) -> Option<Vec3> {
         match element {
-            SceneElement::DesignElement(_, e_id) => {
-                self.get_design_element_axis_position(*e_id, referential)
-            }
+            DesignElement(_, e_id) => self.get_design_element_axis_position(*e_id, referential),
             SceneElement::PhantomElement(phantom) => {
                 self.get_phantom_element_position(phantom, referential, true)
             }
@@ -1146,9 +1121,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
         referential: Referential,
     ) -> Option<Vec3> {
         match element {
-            SceneElement::DesignElement(_, e_id) => {
-                self.get_design_element_graphic_position(*e_id, referential)
-            }
+            DesignElement(_, e_id) => self.get_design_element_graphic_position(*e_id, referential),
             SceneElement::PhantomElement(phantom) => {
                 self.get_phantom_element_position(phantom, referential, true)
             }
@@ -1208,8 +1181,8 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
     }
 
     fn boundaries(&self) -> (Vec3, Vec3) {
-        let mut min = Vec3::new(INFINITY, INFINITY, INFINITY);
-        let mut max = Vec3::new(NEG_INFINITY, NEG_INFINITY, NEG_INFINITY);
+        let mut min = Vec3::new(f32::INFINITY, f32::INFINITY, f32::INFINITY);
+        let mut max = Vec3::new(f32::NEG_INFINITY, f32::NEG_INFINITY, f32::NEG_INFINITY);
 
         let mut update_bounds = |v: Vec3| {
             min = min.min_by_component(v);
@@ -1241,12 +1214,11 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
     /// Return the list of corners of grid with no helices on them
     fn get_all_naked_grids_corners(&self) -> Vec<Vec3> {
         let mut ret = Vec::new();
-        for (grid_id, grid) in self.get_grid().iter() {
+        for (grid_id, grid) in &self.get_grid() {
             if self
                 .design_reader
                 .get_helices_on_grid(*grid_id)
-                .map(|s| s.is_empty())
-                .unwrap_or(false)
+                .is_some_and(|s| s.is_empty())
             {
                 ret.push(
                     grid.grid
@@ -1278,14 +1250,14 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                     .get_element_position(*id, Referential::World)
             })
             .collect();
-        ret.extend(self.get_all_naked_grids_corners().into_iter());
+        ret.extend(self.get_all_naked_grids_corners());
         ret
     }
 
     fn boundaries_unaligned(&self, basis: Basis3D) -> UnalignedBoundaries {
         let mut ret = UnalignedBoundaries::from_basis(basis);
-        for point in self.get_all_points().into_iter() {
-            ret.add_point(point)
+        for point in self.get_all_points() {
+            ret.add_point(point);
         }
         ret
     }
@@ -1302,10 +1274,10 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
 
     pub fn get_all_elements(&self) -> HashSet<u32> {
         let mut ret = HashSet::new();
-        for x in self.design_reader.get_all_nucl_ids().iter() {
+        for x in &self.design_reader.get_all_nucl_ids() {
             ret.insert(*x);
         }
-        for x in self.design_reader.get_all_bond_ids().iter() {
+        for x in &self.design_reader.get_all_bond_ids() {
             ret.insert(*x);
         }
         ret
@@ -1365,7 +1337,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
 
     pub fn can_start_builder(&self, element: &SceneElement) -> Option<Nucl> {
         match element {
-            SceneElement::DesignElement(_, e_id) => self.can_start_builder_on_element(*e_id),
+            DesignElement(_, e_id) => self.can_start_builder_on_element(*e_id),
             SceneElement::PhantomElement(phantom_element) => {
                 self.can_start_builder_on_phantom(phantom_element)
             }
@@ -1384,11 +1356,9 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
             position: phantom_element.position as isize,
             forward: phantom_element.forward,
         };
-        if self.design_reader.can_start_builder_at(&nucl) {
-            Some(nucl)
-        } else {
-            None
-        }
+        self.design_reader
+            .can_start_builder_at(&nucl)
+            .then_some(nucl)
     }
 
     pub fn get_grid(&self) -> BTreeMap<GridId, GridInstance> {
@@ -1590,9 +1560,9 @@ fn create_check_bond(source: Vec3, dest: Vec3, checked: bool) -> RawDnaInstance 
 fn create_prime3_cone(source: Vec3, dest: Vec3, color: u32, radius: f32) -> RawDnaInstance {
     let color = Instance::unclear_color_from_u32(color);
     let rotor = Rotor3::from_rotation_between(Vec3::unit_x(), (dest - source).normalized());
-    let radius = radius;
     let length = (2. * radius).max(1. / 3. * (dest - source).mag());
     let position = (3. * source + 2. * dest) / 5.;
+
     ConeInstance {
         position,
         length,
@@ -1623,9 +1593,9 @@ pub(super) enum ExpandWith {
     Tubes,
 }
 
-// Array of (strand number, array of 3D space position of the nucleotides)
+pub type Scalebar = (f32, f32, fn(f32, f32, f32) -> u32);
 
-pub trait SceneDesignReaderExt: 'static + ensnano_interactor::InteractorDesignReaderExt {
+pub trait SceneDesignReaderExt: 'static + InteractorDesignReaderExt {
     /// Return the identifier of all the visible nucleotides
     fn get_all_visible_nucl_ids(&self) -> Vec<u32>;
     /// Return the identifier of all the visible bounds
@@ -1640,7 +1610,7 @@ pub trait SceneDesignReaderExt: 'static + ensnano_interactor::InteractorDesignRe
     /// nucleotide.
     fn get_symbol(&self, e_id: u32) -> Option<char>;
     fn get_model_matrix(&self) -> Mat4;
-    fn get_scalebar(&self) -> Option<(f32, f32, fn(f32, f32, f32) -> u32)>;
+    fn get_scalebar(&self) -> Option<Scalebar>;
     /// Return the list of pairs of nucleotides that can be linked by a cross-over
     fn get_suggestions(&self) -> Vec<(Nucl, Nucl)>;
     fn get_position_of_nucl_on_helix(
@@ -1653,8 +1623,8 @@ pub trait SceneDesignReaderExt: 'static + ensnano_interactor::InteractorDesignRe
     fn get_grid_position(&self, g_id: GridId) -> Option<Vec3>;
     fn get_grid_lattice_position(&self, position: GridPosition) -> Option<Vec3>;
     fn get_element_position(&self, e_id: u32, referential: Referential) -> Option<Vec3>;
-    fn get_element_axis_position(&self, id: u32, referential: Referential) -> Option<Vec3>;
-    fn get_element_graphic_position(&self, id: u32, referential: Referential) -> Option<Vec3>;
+    fn get_element_axis_position(&self, e_id: u32, referential: Referential) -> Option<Vec3>;
+    fn get_element_graphic_position(&self, e_id: u32, referential: Referential) -> Option<Vec3>;
     fn get_color(&self, e_id: u32) -> Option<u32>;
     fn get_radius(&self, e_id: u32) -> Option<f32>;
     fn get_xover_coloring(&self, e_id: u32) -> Option<bool>;

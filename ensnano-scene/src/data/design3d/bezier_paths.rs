@@ -1,31 +1,37 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::super::AppState;
-use super::*;
-use crate::element_selector;
-use ensnano_design::{BezierEndCoordinates, BezierVertexId};
-use ensnano_interactor::Selection;
+use crate::{
+    AppState,
+    data::design3d::{Design3D, SceneDesignReaderExt, create_dna_bond},
+    element_selector,
+    view::{
+        dna_obj::{RawDnaInstance, SphereInstance, TubeInstance},
+        instances_drawer::Instantiable as _,
+        sheet_2d::Sheet2D,
+    },
+};
+use ensnano_consts::{
+    BEZIER_CONTROL_RADIUS, BEZIER_CONTROL1_COLOR, BEZIER_SHEET_CORNER_COLOR,
+    BEZIER_SHEET_CORNER_RADIUS, BEZIER_SKELETON_RADIUS, BOND_RADIUS, SPHERE_RADIUS,
+};
+use ensnano_design::{
+    bezier_plane::{BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertexId},
+    curves::{
+        CurveDescriptor,
+        bezier::{BezierControlPoint, BezierEndCoordinates},
+    },
+    parameters::HelixParameters,
+};
+use ensnano_interactor::{
+    consts::{bezier_control_color, bezier_widget_id},
+    selection::Selection,
+};
+use ensnano_utils::instance::Instance;
+use ultraviolet::{Rotor3, Vec2, Vec3};
 
 impl<R: SceneDesignReaderExt> Design3D<R> {
     pub fn get_bezier_elements(&self, h_id: usize) -> (Vec<RawDnaInstance>, Vec<RawDnaInstance>) {
         let mut spheres = Vec::new();
         let mut tubes = Vec::new();
+
         if let Some(constructor) = self.design_reader.get_cubic_bezier_controls(h_id) {
             log::info!("got control");
             for (control_point, position) in constructor.iter() {
@@ -44,7 +50,6 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                 constructor.control2,
             ));
             tubes.push(make_bezier_skeleton(constructor.control2, constructor.end));
-            (spheres, tubes)
         } else if let Some(controls) = self.design_reader.get_piecewise_bezier_controls(h_id) {
             let mut iter = controls.into_iter().enumerate();
             while let Some(((n1, c1), (n2, c2))) = iter.next().zip(iter.next()) {
@@ -60,10 +65,9 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                 ));
                 tubes.push(make_bezier_skeleton(c1, c2));
             }
-            (spheres, tubes)
-        } else {
-            (spheres, tubes)
         }
+
+        (spheres, tubes)
     }
 
     pub fn get_control_point(&self, helix_id: usize, control: BezierControlPoint) -> Option<Vec3> {
@@ -76,11 +80,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
         h_id: usize,
         bezier_control: BezierControlPoint,
     ) -> Option<Rotor3> {
-        log::info!(
-            "Getting bezier basis {:?} of helix {}",
-            bezier_control,
-            h_id
-        );
+        log::info!("Getting bezier basis {bezier_control:?} of helix {h_id}",);
         match bezier_control {
             BezierControlPoint::CubicBezier(_) => None,
             BezierControlPoint::PiecewiseBezier(n) => {
@@ -142,7 +142,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
         let mut tubes = Vec::new();
         let selection = app_state.get_selection();
         if let Some(paths) = self.design_reader.get_bezier_paths() {
-            for (path_id, path) in paths.iter() {
+            for (path_id, path) in paths {
                 for (vertex_id, coordinates) in path.bezier_controls().iter().enumerate() {
                     add_raw_instances_representing_bezier_vertex(
                         BezierVertex {
@@ -157,9 +157,9 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                             spheres: &mut spheres,
                         },
                         selection,
-                    )
+                    );
                 }
-                for point in path.get_curve_points().iter() {
+                for point in path.get_curve_points() {
                     spheres.push(
                         SphereInstance {
                             position: Vec3::new(point.x as f32, point.y as f32, point.z as f32),
@@ -296,15 +296,12 @@ struct RawDnaInstances<'a> {
 
 fn add_raw_instances_representing_bezier_vertex(
     vertex: BezierVertex,
-    mut instances: RawDnaInstances,
+    instances: RawDnaInstances,
     selection: &[Selection],
 ) {
-    let tubes = &mut instances.tubes;
-    let spheres = &mut instances.spheres;
-    let color = if selection
-        .iter()
-        .any(|s| *s == Selection::BezierVertex(vertex.id))
-    {
+    let tubes = instances.tubes;
+    let spheres = instances.spheres;
+    let color = if selection.contains(&Selection::BezierVertex(vertex.id)) {
         [0., 0., 1., 1.].into()
     } else {
         [1., 0., 0., 1.].into()

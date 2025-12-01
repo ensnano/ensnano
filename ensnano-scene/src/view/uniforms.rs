@@ -1,26 +1,6 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::camera::{CameraPtr, ProjectionPtr};
-use ensnano_interactor::{
-    consts::NB_RAY_TUBE,
-    graphics::{CutPlaneParameters, FogParameters},
-};
+use crate::camera::{CameraPtr, ProjectionPtr};
+use ensnano_consts::NB_RAY_TUBE;
+use ensnano_interactor::graphics::{CutPlaneParameters, FogParameters, fog_kind};
 use ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
 
 #[repr(C)] // We need this for Rust to store our data correctly for the shaders
@@ -29,7 +9,7 @@ use ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
 /// the camera position and the Projection and View matrices.
 pub struct Uniforms {
     //  name: type, // alignment of the next field
-    pub camera_position: Vec4,    //0
+    pub camera_position: Vec4,    // 0
     pub view: Mat4,               // 0
     pub proj: Mat4,               // 0
     pub inversed_view: Mat4,      // 0
@@ -46,7 +26,7 @@ pub struct Uniforms {
     pub is_cut: u32,              // 0
     pub cut_normal: Vec3,         // 3
     pub cut_dot_value: f32,       // 0
-    pub _padding: [f32; 4],
+    _padding: [f32; 4],
 }
 
 #[derive(Clone, Debug)]
@@ -91,7 +71,7 @@ impl Uniforms {
         } else {
             Mat4::identity()
         };
-        let stereography_radius = stereography.as_ref().map(|s| s.radius).unwrap_or(0.0);
+        let stereography_radius = stereography.as_ref().map_or(0.0, |s| s.radius);
         Self {
             camera_position: camera.borrow().position.into_homogeneous_point(),
             view: camera.borrow().calc_matrix(),
@@ -119,7 +99,7 @@ impl Uniforms {
         projection: ProjectionPtr,
         fog: &FogParameters,
         stereography: Option<&Stereography>,
-        cut: &Option<CutPlaneParameters>,
+        cut: Option<&CutPlaneParameters>,
     ) -> Self {
         let stereography_view = if let Some(s) = stereography {
             s.calc_matrix()
@@ -127,11 +107,12 @@ impl Uniforms {
         } else {
             Mat4::identity()
         };
-        let stereography_radius = stereography.as_ref().map(|s| s.radius).unwrap_or(0.0);
-        let mut make_fog = fog.fog_kind;
-        if !fog.from_camera && fog.alt_fog_center.is_none() {
-            make_fog = ensnano_interactor::graphics::fog_kind::NO_FOG;
-        }
+        let stereography_radius = stereography.as_ref().map_or(0.0, |s| s.radius);
+        let make_fog = if !fog.from_camera && fog.alt_fog_center.is_none() {
+            fog_kind::NO_FOG
+        } else {
+            fog.fog_kind
+        };
         let (_, cut_normal, cut_dot_value) = if let Some(cut_param) = cut {
             (1, cut_param.normal, cut_param.dot_value)
         } else {
@@ -147,7 +128,7 @@ impl Uniforms {
             fog_radius: fog.softness,
             make_fog,
             fog_from_camera: fog.from_camera as u32,
-            fog_alt_center: fog.alt_fog_center.unwrap_or(Vec3::zero()),
+            fog_alt_center: fog.alt_fog_center.unwrap_or_default(),
             stereography_view,
             stereography_radius,
             aspect_ratio: projection.borrow().get_ratio(),

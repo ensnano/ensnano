@@ -1,26 +1,11 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 //! DNA geometric parameters.
 
-use super::codenano;
+use crate::codenano;
 use serde::{Deserialize, Serialize};
-use std::f32::consts::{PI, SQRT_2, TAU};
+use std::{
+    f32::consts::{PI, SQRT_2, TAU},
+    fmt::Write as _,
+};
 
 /// DNA geometric parameters.
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
@@ -56,7 +41,7 @@ macro_rules! parameters_from_p_stick_model {
     ($p_stick_model: expr) => {
         HelixParameters {
             groove_angle: ($p_stick_model).groove_angle
-                - 2.0 * std::f32::consts::PI / ($p_stick_model).bases_per_turn,
+                - 2.0 * PI / ($p_stick_model).bases_per_turn,
             inclination: ($p_stick_model).inclination - ($p_stick_model).rise,
             ..($p_stick_model)
         }
@@ -68,14 +53,14 @@ macro_rules! parameters_from_p_stick_model_plus_or_minus {
         if ($p_stick_model).inclination >= 0.0 {
             HelixParameters {
                 groove_angle: ($p_stick_model).groove_angle
-                    - 2.0 * std::f32::consts::PI / ($p_stick_model).bases_per_turn,
+                    - 2.0 * PI / ($p_stick_model).bases_per_turn,
                 inclination: ($p_stick_model).inclination - ($p_stick_model).rise,
                 ..($p_stick_model)
             }
         } else {
             HelixParameters {
                 groove_angle: ($p_stick_model).groove_angle
-                    + 2.0 * std::f32::consts::PI / ($p_stick_model).bases_per_turn,
+                    + 2.0 * PI / ($p_stick_model).bases_per_turn,
                 inclination: ($p_stick_model).inclination + ($p_stick_model).rise,
                 ..($p_stick_model)
             }
@@ -84,19 +69,19 @@ macro_rules! parameters_from_p_stick_model_plus_or_minus {
 }
 
 impl HelixParameters {
-    pub const INTER_CENTER_GAP: f32 = HelixParameters::ENSNANO_2021.helix_radius * 2.
-        + HelixParameters::ENSNANO_2021.inter_helix_gap;
+    pub const INTER_CENTER_GAP: f32 =
+        Self::ENSNANO_2021.helix_radius * 2. + Self::ENSNANO_2021.inter_helix_gap;
 
     /// Value used for versions >= 0.4.1.
     /// Taken from "Design Principles for Single-Stranded RNA Origami Structures, Geary & Andersen
     /// 2014
-    pub const GEARY_2014_DNA_P_STICK: HelixParameters = {
+    pub const GEARY_2014_DNA_P_STICK: Self = {
         let helix_radius = 0.93;
-        HelixParameters {
+        Self {
             rise: 0.332,
             helix_radius,
             bases_per_turn: 10.44,
-            groove_angle: 170.4 / 180.0 * std::f32::consts::PI,
+            groove_angle: 170.4 / 180.0 * PI,
             inclination: 0.375,
             // From Paul's paper.
             inter_helix_gap: Self::INTER_CENTER_GAP - 2. * helix_radius,
@@ -104,60 +89,58 @@ impl HelixParameters {
     };
 
     pub fn inter_helix_axis_gap(&self) -> f32 {
-        return 2.0 * self.helix_radius + self.inter_helix_gap;
+        2.0 * self.helix_radius + self.inter_helix_gap
     }
 
-    pub const GEARY_2014_DNA: HelixParameters =
-        parameters_from_p_stick_model!(Self::GEARY_2014_DNA_P_STICK);
+    pub const GEARY_2014_DNA: Self = parameters_from_p_stick_model!(Self::GEARY_2014_DNA_P_STICK);
 
     /// Value used for RNA designs
     /// Taken from "Design Principles for Single-Stranded RNA Origami Structures, Geary & Andersen
     /// 2014
-    pub const GEARY_2014_RNA_P_STICK: HelixParameters = {
+    pub const GEARY_2014_RNA_P_STICK: Self = {
         let helix_radius = 0.87;
-        HelixParameters {
+        Self {
             helix_radius,
             rise: 0.281,
             inclination: -0.745,
-            groove_angle: 139.9 / 180.0 * std::f32::consts::PI,
+            groove_angle: 139.9 / 180.0 * PI,
             bases_per_turn: 11.0,
             inter_helix_gap: Self::INTER_CENTER_GAP - 2. * helix_radius,
         }
     };
 
-    pub const GEARY_2014_RNA: HelixParameters =
-        parameters_from_p_stick_model!(Self::GEARY_2014_RNA_P_STICK);
+    pub const GEARY_2014_RNA: Self = parameters_from_p_stick_model!(Self::GEARY_2014_RNA_P_STICK);
 
-    pub const GEARY_2014_RNA2: HelixParameters =
+    pub const GEARY_2014_RNA2: Self =
         parameters_from_p_stick_model_plus_or_minus!(Self::GEARY_2014_RNA_P_STICK);
 
     pub const DEFAULT: Self = Self::GEARY_2014_DNA;
 
     /// Values used in version prior to 0.4.1, taken from the literature (Wikipedia, Cargo
     /// sorting paper, Woo 2011).
-    pub const ENSNANO_2021: HelixParameters = HelixParameters {
+    pub const ENSNANO_2021: Self = Self {
         // z-step and helix radius from: Wikipedia
         rise: 0.332,
         helix_radius: 1.,
         // bases per turn from Woo Rothemund (Nature Chemistry).
         bases_per_turn: 10.44,
         // minor groove 12 Å, major groove 22 Å total 34 Å
-        groove_angle: 2. * PI * 12. / 34.,
+        groove_angle: TAU * 12. / 34.,
         // From Paul's paper.
         inter_helix_gap: 0.65,
         // Previous version of ENSnano did not have an inclination parameter
         inclination: 0.0,
     };
 
-    pub const TRIPLEX_DNA_TWO_HELICES: HelixParameters = {
+    pub const TRIPLEX_DNA_TWO_HELICES: Self = {
         let helix_diameter = 2.75; // nm
         let helix_radius = helix_diameter / 2.0; // nm
-        HelixParameters {
-            rise: 0.34,                                         // nm
-            helix_radius,                                       // nm
-            bases_per_turn: 11.9,                               // bp per turn
-            groove_angle: 120.0 / 180.0 * std::f32::consts::PI, // rad
-            inclination: 0.0,                                   // nm
+        Self {
+            rise: 0.34,                       // nm
+            helix_radius,                     // nm
+            bases_per_turn: 11.9,             // bp per turn
+            groove_angle: 120.0 / 180.0 * PI, // rad
+            inclination: 0.0,                 // nm
             // From Paul's paper.
             inter_helix_gap: 0.70, // nm
         }
@@ -175,7 +158,6 @@ impl HelixParameters {
     }
 
     pub fn formatted_string(&self) -> String {
-        use std::fmt::Write;
         let mut ret = String::new();
         writeln!(&mut ret, "  Radius: {:.3} nm", self.helix_radius).unwrap_or_default();
         writeln!(&mut ret, "  Rise: {:.3} nm", self.rise).unwrap_or_default();
@@ -196,15 +178,7 @@ impl HelixParameters {
         writeln!(&mut ret, " Expected xover length: {:.2} nm", self.dist_ac()).unwrap_or_default();
         ret
     }
-}
 
-impl std::default::Default for HelixParameters {
-    fn default() -> Self {
-        Self::DEFAULT
-    }
-}
-
-impl HelixParameters {
     /// The angle AOC_2 where
     ///
     /// * A is a base on the helix
@@ -238,7 +212,7 @@ impl HelixParameters {
     pub fn name(&self) -> &'static NamedParameter {
         let mut best_name = &NAMED_DNA_PARAMETERS[0];
         let mut best_delta = f32::INFINITY;
-        for p in NAMED_DNA_PARAMETERS.iter() {
+        for p in &NAMED_DNA_PARAMETERS {
             let delta = self.delta_model(&p.value);
             if delta < best_delta {
                 best_name = p;
@@ -258,15 +232,21 @@ impl HelixParameters {
     }
 }
 
+impl Default for HelixParameters {
+    fn default() -> Self {
+        Self::DEFAULT
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct NamedParameter {
     pub name: &'static str,
     pub value: HelixParameters,
 }
 
-impl ToString for NamedParameter {
-    fn to_string(&self) -> String {
-        self.name.to_string()
+impl std::fmt::Display for NamedParameter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.name)
     }
 }
 
@@ -312,7 +292,7 @@ impl Eq for NamedParameter {}
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Helix;
+    use crate::helices::Helix;
     use ultraviolet::{Rotor3, Vec3};
 
     #[test]

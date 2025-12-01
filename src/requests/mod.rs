@@ -1,21 +1,3 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 //! This module defines the `Request` structure, used by applications to express the user intent.
 //!
 //! The main event loop regularly calls `Request::poll` to see if there are pending requests.
@@ -23,7 +5,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 mod impl_flatscene;
 mod impl_gui;
 mod impl_scene;
-pub mod poll;
+pub(crate) mod poll;
 
 use crate::controller::normal_state::Action;
 use ensnano_design::{
@@ -31,16 +13,19 @@ use ensnano_design::{
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridPosition, GridTypeDescr},
 };
-use ensnano_iced::UiSize;
+use ensnano_iced::widgets::keyboard_priority::PriorityRequest;
 use ensnano_interactor::{
-    ActionMode, CenterOfSelection, HyperboloidRequest, RapierSimulationRequest, RigidBodyConstants,
-    RollRequest, Selection, SelectionMode, UnrootedRevolutionSurfaceDescriptor,
-    app_state_parameters::{CheckXoversParameter, SuggestionParameters},
+    HyperboloidRequest, RapierSimulationRequest, RigidBodyConstants, RollRequest,
+    app_state_parameters::{
+        check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
+    },
     application::AppId,
     graphics::{Background3D, FogParameters, HBondDisplay, RenderingMode},
     operation::Operation,
+    selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
+    surfaces::UnrootedRevolutionSurfaceDescriptor,
 };
-use ensnano_organizer::OrganizerTree;
+use ensnano_organizer::tree::{GroupId, OrganizerTree};
 use std::{collections::VecDeque, sync::Arc};
 use ultraviolet::Vec3;
 
@@ -50,7 +35,7 @@ use ultraviolet::Vec3;
 /// The GUI and the applications are given a pointer to a `Mutex<Requests>` to store the user
 /// requests.
 #[derive(Default)]
-pub struct Requests {
+pub(crate) struct Requests {
     /// A change of the rotation mode
     pub action_mode: Option<ActionMode>,
     /// A change of the selection mode
@@ -90,11 +75,7 @@ pub struct Requests {
     pub anchor: Option<()>,
     pub rigid_body_parameters: Option<RigidBodyConstants>,
     pub keep_proceed: VecDeque<Action>,
-    pub organizer_selection: Option<(
-        Vec<DesignElementKey>,
-        Option<ensnano_organizer::GroupId>,
-        bool,
-    )>,
+    pub organizer_selection: Option<(Vec<DesignElementKey>, Option<GroupId>, bool)>,
     pub organizer_candidates: Option<Vec<DesignElementKey>>,
     pub new_attribute: Option<(DnaAttribute, Vec<DesignElementKey>)>,
     pub new_tree: Option<OrganizerTree<DesignElementKey>>,
@@ -140,5 +121,5 @@ pub struct Requests {
     pub new_unrooted_surface: Option<Option<UnrootedRevolutionSurfaceDescriptor>>,
     pub switched_to_revolution_tab: Option<()>,
     /// A request to toggle the keyboard priority mode.
-    pub set_keyboard_priority: Option<bool>,
+    pub set_keyboard_priority: Option<Vec<PriorityRequest>>,
 }

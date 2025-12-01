@@ -1,43 +1,36 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+pub mod design;
+pub mod helix;
+pub mod strand;
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::{
-    AppState, Flat, HelixVec, PhantomElement, Requests, ViewPtr,
-    flat_types::{FlatPosition, FlatSelection, HelixSegment},
+use crate::{
+    AppState, CameraPtr, Requests, ViewPtr,
+    data::{
+        design::FlatSceneDesignReaderExt,
+        helix::{Helix, HelixHandle},
+        strand::FreeEnd,
+    },
+    flat_types::{
+        FlatHelix, FlatHelixMaps, FlatIdx, FlatNucl, FlatSelection, HelixSegment, HelixVec,
+    },
     view::EditionInfo,
 };
-use ensnano_design::Nucl;
-use ensnano_interactor::{Selection, SelectionMode};
-use std::sync::{Arc, Mutex};
-use ultraviolet::Vec2;
-
-pub(crate) mod helix;
-pub use helix::{GpuVertex, Helix, HelixHandle, HelixModel, Shift};
-mod strand;
-pub use strand::{FreeEnd, Strand, StrandVertex};
-mod design;
-use super::FlatHelixMaps;
-use super::{CameraPtr, FlatHelix, FlatIdx, FlatNucl};
 use ahash::RandomState;
-use design::{Design2d, Helix2d};
-pub use design::{FlatSceneDesignReaderExt, FlatTorsion};
-use ensnano_interactor::consts::*;
+use design::Design2d;
+use ensnano_consts::{
+    CANDIDATE_COLOR, CANDIDATE_STRAND_HIGHLIGHT_FACTOR_2D, SELECTED_COLOR, SELECTED_HELIX2D_COLOR,
+    SELECTED_STRAND_HIGHLIGHT_FACTOR_2D, SELECTION_2D_CYCLE_TIME_LIMIT_MS,
+};
+use ensnano_interactor::{
+    StrandBuildingStatus,
+    selection::{PhantomElement, Selection, SelectionMode},
+};
 use ensnano_utils::camera2d::FitRectangle;
-use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use std::{
+    collections::{BTreeMap, BTreeSet, HashMap, HashSet},
+    sync::{Arc, Mutex},
+    time::{Duration, Instant},
+};
+use ultraviolet::Vec2;
 
 pub struct Data<R: FlatSceneDesignReaderExt> {
     view: ViewPtr,
@@ -113,7 +106,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         self.design.id_map()
     }
 
-    pub fn update_highlight<S: AppState>(&mut self, new_state: &S) {
+    pub fn update_highlight<S: AppState>(&self, new_state: &S) {
         let mut selected_strands = HashSet::new();
         let mut candidate_strands = HashSet::new();
         let mut selected_xovers = HashSet::new();
@@ -123,7 +116,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         let mut candidate_nucls = Vec::new();
         let mut selected_nucls = Vec::new();
         let id_map = self.design.id_map();
-        for s in new_state.get_selection().iter() {
+        for s in new_state.get_selection() {
             match s {
                 Selection::Strand(_, s_id) if !new_state.is_changing_color() => {
                     selected_strands.insert(*s_id as usize);
@@ -160,7 +153,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
             }
         }
         let mut suggestions = Vec::new();
-        for c in new_state.get_candidates().iter() {
+        for c in new_state.get_candidates() {
             match c {
                 Selection::Strand(_, s_id) => {
                     candidate_strands.insert(*s_id as usize);
@@ -203,7 +196,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         }
         let mut selection_highlight = Vec::new();
         let mut candidate_highlight = Vec::new();
-        for s in self.design.get_strands().iter() {
+        for s in self.design.get_strands() {
             if selected_strands.contains(&s.id) {
                 selection_highlight
                     .push(s.highlighted(SELECTED_COLOR, SELECTED_STRAND_HIGHLIGHT_FACTOR_2D));
@@ -213,10 +206,10 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
                     .push(s.highlighted(CANDIDATE_COLOR, CANDIDATE_STRAND_HIGHLIGHT_FACTOR_2D));
             }
         }
-        for xover in selected_xovers.iter() {
+        for xover in &selected_xovers {
             selection_highlight.push(self.design.strand_from_xover(xover, SELECTED_COLOR, true));
         }
-        for xover in candidate_xovers.iter() {
+        for xover in &candidate_xovers {
             candidate_highlight.push(self.design.strand_from_xover(xover, CANDIDATE_COLOR, true));
         }
         self.view
@@ -239,7 +232,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         );
     }
 
-    fn update_strand_building_info(&self, info: Option<super::StrandBuildingStatus>) {
+    fn update_strand_building_info(&self, info: Option<StrandBuildingStatus>) {
         let flat_info = info.and_then(|info| info.to_flat(self.id_map()));
         self.view
             .borrow_mut()
@@ -258,7 +251,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         for (i, helix) in self.helices.iter_mut().enumerate() {
             helix.update(&new_helices[i], id_map);
         }
-        for h in new_helices[nb_helix..].iter() {
+        for h in &new_helices[nb_helix..] {
             let segment = HelixSegment {
                 helix_idx: h.id,
                 segment_idx: h.segment_idx,
@@ -293,7 +286,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
 
     fn update_suggestion(&mut self, suggestion: &[(FlatNucl, FlatNucl)]) {
         self.suggestions.clear();
-        for (n1, n2) in suggestion.iter() {
+        for (n1, n2) in suggestion {
             self.suggestions.entry(*n1).or_default().insert(*n2);
             self.suggestions.entry(*n2).or_default().insert(*n1);
         }
@@ -408,27 +401,13 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
     pub fn get_click_unbounded_helix(&self, x: f32, y: f32, helix: FlatHelix) -> FlatNucl {
         let (flat_position, forward) = self.helices[helix.flat].get_click_unbounded(x, y);
         FlatNucl {
+            helix,
             flat_position,
             forward,
-            helix,
         }
     }
 
-    #[allow(dead_code)]
-    pub fn get_pivot_position(&self, helix: FlatIdx, position: FlatPosition) -> Option<Vec2> {
-        self.helices.get(helix).map(|h| h.get_pivot(position))
-    }
-
-    pub fn set_selected_helices(&mut self, helices: Vec<FlatHelix>) {
-        /*
-        for h in self.helices.iter_mut() {
-            h.set_color(HELIX_BORDER_COLOR);
-        }
-        for h in helices {
-            self.helices[h.flat].set_color(SELECTED_HELIX2D_COLOR);
-        }
-        self.instance_update = true;
-        */
+    pub fn set_selected_helices(&self, helices: Vec<FlatHelix>) {
         let new_selection = helices
             .into_iter()
             .map(|flat| Selection::Helix {
@@ -439,12 +418,6 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
             .collect();
         self.requests.lock().unwrap().new_selection(new_selection);
     }
-
-    /*
-    pub fn snap_helix(&mut self, pivot: FlatNucl, translation: Vec2) {
-        self.helices[pivot.helix.flat].snap(pivot, translation);
-        self.instance_update = true;
-    }*/
 
     pub fn move_handle(&mut self, helix: FlatHelix, handle: HelixHandle, position: Vec2) {
         let (left, right) = self.helices[helix.flat].move_handle(handle, position);
@@ -461,7 +434,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
     pub fn redim_helices(&mut self, selection: Option<&[Selection]>) {
         if let Some(selection) = selection {
             let mut ids = Vec::new();
-            for s in selection.iter() {
+            for s in selection {
                 if let Selection::Helix {
                     helix_id,
                     segment_id,
@@ -473,11 +446,11 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
                         segment_idx: *segment_id,
                     };
                     if let Some(h) = self.design.id_map().get_segment_idx(segment) {
-                        ids.push(h)
+                        ids.push(h);
                     }
                 }
             }
-            for h_id in ids.iter() {
+            for h_id in &ids {
                 if let Some(h) = self.helices.get_mut(*h_id) {
                     let (left, right) = h.redim_zero();
                     self.design.update_helix(h.flat_id, left, right);
@@ -492,18 +465,8 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         self.notify_update();
     }
 
-    /*
-    pub fn rotate_helix(&mut self, helix: FlatHelix, pivot: Vec2, angle: f32) {
-        self.helices[helix.flat].rotate(pivot, angle);
-        self.instance_update = true;
-    }*/
-
-    pub fn end_movement(&mut self) {
-        /*
-        for h in self.helices.iter_mut() {
-            h.end_movement()
-        }*/
-        self.requests.lock().unwrap().suspend_op()
+    pub fn end_movement(&self) {
+        self.requests.lock().unwrap().suspend_op();
     }
 
     pub fn move_helix_forward(&mut self) {
@@ -614,13 +577,13 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         if let Some(s1) = self
             .design
             .prime5_of(nucl1)
-            .and(self.design.prime3_of(nucl1))
+            .and_then(|_| self.design.prime3_of(nucl1))
         {
-            if let Some(s2) = self.design.prime5_of(nucl2) {
-                return (s1, s2);
+            return if let Some(s2) = self.design.prime5_of(nucl2) {
+                (s1, s2)
             } else {
-                return (self.design.prime3_of(nucl2).unwrap(), s1);
-            }
+                (self.design.prime3_of(nucl2).unwrap(), s1)
+            };
         }
 
         // The 3 prime strand is the strand whose **5prime** end is in the xover
@@ -647,14 +610,13 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         FitRectangle::from_points(
             self.helices
                 .iter()
-                .map(|h| {
+                .flat_map(|h| {
                     [
                         h.get_pivot(h.get_flat_left()),
                         h.get_pivot(h.get_flat_right()),
                     ]
                 })
-                .flatten()
-                .map(|v| v.into()),
+                .map(Into::into),
         )
         .unwrap()
     }
@@ -664,22 +626,22 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
     }
 
     pub fn flip_visibility(&mut self, h_id: FlatHelix, apply_to_other: bool) {
-        self.design.flip_visibility(h_id, apply_to_other)
+        self.design.flip_visibility(h_id, apply_to_other);
     }
 
-    pub fn flip_group(&mut self, h_id: FlatHelix) {
-        self.design.flip_group(h_id)
+    pub fn flip_group(&self, h_id: FlatHelix) {
+        self.design.flip_group(h_id);
     }
 
     pub fn get_best_suggestion(&self, nucl: FlatNucl) -> Option<FlatNucl> {
         let mut ret = None;
-        let mut best_dist = std::f32::INFINITY;
+        let mut best_dist = f32::INFINITY;
         if let Some(set) = self.suggestions.get(&nucl) {
             for nucl2 in set {
                 let dist = self
                     .design
                     .get_dist(nucl.to_real(), nucl2.to_real())
-                    .unwrap_or(std::f32::INFINITY);
+                    .unwrap_or(f32::INFINITY);
                 if dist < best_dist {
                     ret = Some(*nucl2);
                     best_dist = dist;
@@ -712,13 +674,14 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
                 return GraphicalSelection::selection_only(new_selection);
             }
         }
-        log::debug!("rectangle selection: {:?} {:?}", c1, c2);
+
+        log::debug!("rectangle selection: {c1:?} {c2:?}");
         let mut translation_pivots = vec![];
         let mut rotation_pivots = vec![];
         let mut selection = Vec::new();
         for h in self.helices.iter_mut() {
             let c = h.get_circle(camera, &BTreeMap::new());
-            if c.map(|c| c.in_rectangle(&c1, &c2)).unwrap_or(false) {
+            if c.is_some_and(|c| c.in_rectangle(&c1, &c2)) {
                 let translation_pivot = h
                     .get_circle_pivot(camera)
                     .unwrap_or_else(|| h.default_pivot());
@@ -733,6 +696,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
                 });
             }
         }
+
         if adding {
             if let Some((mut old_translation_pivots, mut old_rotation_pivots)) =
                 self.get_pivot_of_selected_helices(camera, &new_selection)
@@ -747,10 +711,9 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
             }
             apply_symmetric_difference_to_selection(&mut selection, &mut new_selection);
             selection.append(&mut new_selection);
-            new_selection = selection;
-        } else {
-            new_selection = selection;
         }
+        new_selection = selection;
+
         GraphicalSelection {
             translation_pivots,
             rotation_pivots,
@@ -795,11 +758,11 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
                 _ => None,
             })
             .collect();
-        ret.map(|v| v.iter().cloned().unzip())
+        ret.map(|v| v.iter().copied().unzip())
     }
 
     fn select_xovers_rectangle(
-        &mut self,
+        &self,
         camera: &CameraPtr,
         c1: Vec2,
         c2: Vec2,
@@ -812,13 +775,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         let right = x1.max(x2);
         let top = y1.min(y2);
         let bottom = y1.max(y2);
-        log::debug!(
-            "rectangle corners: {}, {}, {}, {}",
-            left,
-            top,
-            right,
-            bottom
-        );
+        log::debug!("rectangle corners: {left}, {top}, {right}, {bottom}",);
         let mut selection = Vec::new();
         for (xover_id, (flat_1, flat_2)) in self.design.get_xovers_list() {
             let h1 = &self.helices[flat_1.helix.flat];
@@ -836,7 +793,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         for end in self.design.get_strand_ends() {
             let h1 = &self.helices[end.helix.flat];
             if h1.rectangle_has_nucl(end, left, top, right, bottom, camera) {
-                selection.push(Selection::Nucleotide(self.id, end.to_real()))
+                selection.push(Selection::Nucleotide(self.id, end.to_real()));
             }
         }
         selection.dedup();
@@ -844,7 +801,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
             self.add_long_xover_rectangle(&mut selection, c1, c2);
         }
         if adding {
-            for s in selection.iter() {
+            for s in &selection {
                 if !new_selection.contains(s) {
                     new_selection.push(*s);
                 }
@@ -852,7 +809,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         } else {
             *new_selection = selection;
         }
-        log::debug!("returned selection {:?}", new_selection);
+        log::debug!("returned selection {new_selection:?}");
     }
 
     fn add_long_xover_rectangle(&self, selection: &mut Vec<Selection>, c1: Vec2, c2: Vec2) {
@@ -866,13 +823,13 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
                 selection_set.insert(xover_id);
             }
         }
-        for xover_id in selection_set.into_iter() {
-            selection.push(Selection::Xover(self.id, xover_id))
+        for xover_id in selection_set {
+            selection.push(Selection::Xover(self.id, xover_id));
         }
     }
 
     fn select_strands_rectangle(
-        &mut self,
+        &self,
         camera: &CameraPtr,
         c1: Vec2,
         c2: Vec2,
@@ -885,10 +842,10 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         let right = x1.max(x2);
         let top = y1.min(y2);
         let bottom = y1.max(y2);
-        log::debug!("rectangle corner {}, {}, {}, {}", left, top, right, bottom);
+        log::debug!("rectangle corner {left}, {top}, {right}, {bottom}");
         let mut selection = BTreeSet::new();
-        for s in self.design.get_strands().iter() {
-            for n in s.points.iter() {
+        for s in self.design.get_strands() {
+            for n in &s.points {
                 let h = &self.helices[n.helix.flat];
                 if h.rectangle_has_nucl(*n, left, top, right, bottom, camera) {
                     selection.insert(s.id);
@@ -901,7 +858,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
             .map(|s_id| Selection::Strand(self.id, *s_id as u32))
             .collect();
         if adding {
-            for s in selection.iter() {
+            for s in &selection {
                 if !new_selection.contains(s) {
                     new_selection.push(*s);
                 }
@@ -913,7 +870,6 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
 
     pub fn double_click_to_selection(&self, click_result: ClickResult) -> Option<Selection> {
         match click_result {
-            ClickResult::CircleWidget { .. } => None,
             ClickResult::Nucl(nucl) => {
                 if let Some(xover) = self.xover_containing_nucl(&nucl) {
                     let selection = Selection::Xover(self.id, xover);
@@ -923,8 +879,9 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
                     Some(selection)
                 }
             }
-            ClickResult::HelixHandle { .. } => None,
-            ClickResult::Nothing => None,
+            ClickResult::CircleWidget { .. }
+            | ClickResult::HelixHandle { .. }
+            | ClickResult::Nothing => None,
         }
     }
 
@@ -936,7 +893,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         selection_mode: SelectionMode,
     ) {
         if !adding {
-            new_selection.clear()
+            new_selection.clear();
         }
         match click_result {
             ClickResult::CircleWidget { translation_pivot } => {
@@ -951,8 +908,8 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
                     new_selection.push(selection);
                 }
             }
-            ClickResult::Nucl(nucl) => match selection_mode {
-                SelectionMode::Strand => {
+            ClickResult::Nucl(nucl) => {
+                if selection_mode == SelectionMode::Strand {
                     if let Some(s_id) = self.design.get_strand_id(nucl.to_real()) {
                         let selection = Selection::Strand(self.id, s_id as u32);
                         if let Some(pos) = new_selection.iter().position(|x| *x == selection) {
@@ -961,8 +918,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
                             new_selection.push(selection);
                         }
                     }
-                }
-                _ => {
+                } else {
                     self.last_click.click_on(nucl);
                     let mut selection_pool = vec![Selection::Nucleotide(self.id, nucl.to_real())];
                     if let Some(xover) = self.xover_containing_nucl(&nucl) {
@@ -972,62 +928,29 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
                         selection_pool.push(Selection::Strand(self.id, s_id as u32));
                     }
                     selection_pool.push(Selection::Nothing);
-                    log::info!("selection pool {:?}", selection_pool);
+                    log::info!("selection pool {selection_pool:?}");
                     let selection = self.last_click.select(&mut selection_pool);
-                    log::info!(
-                        "selected {:?}, selection_pool {:?}",
-                        selection,
-                        selection_pool
-                    );
+                    log::info!("selected {selection:?}, selection_pool {selection_pool:?}",);
 
                     new_selection.push(selection);
                     new_selection.retain(|s| !selection_pool.contains(s));
                 }
-            },
-            ClickResult::HelixHandle { .. } => (),
-            ClickResult::Nothing => (),
+            }
+            ClickResult::HelixHandle { .. } | ClickResult::Nothing => (),
         }
     }
-
-    /*
-    pub fn set_selection(&mut self, mut selection: Vec<Selection>) {
-        self.selection = selection.clone();
-        if selection.len() == 1 {
-            let xover = if let Some(Selection::Xover(d_id, xover_id)) = selection.get(0) {
-                Some(*d_id).zip(self.design.get_xover_with_id(*xover_id))
-            } else {
-                None
-            };
-            if let Some((d_id, (n1, n2))) = xover {
-                selection[0] = Selection::Bound(d_id, n1, n2);
-            }
-            self.view
-                .borrow_mut()
-                .set_selection(super::FlatSelection::from_real(
-                    selection.get(0),
-                    self.id_map(),
-                ));
-        }
-        self.selection_updated = true;
-    }*/
-
-    /*
-    pub fn set_candidate(&mut self, candidates: Vec<Selection>) {
-        self.candidates = candidates;
-        self.selection_updated = true;
-    }*/
 
     pub(super) fn convert_to_flat(&self, selection: Selection) -> FlatSelection {
         FlatSelection::from_real(Some(&selection), self.id_map())
     }
 
-    pub(super) fn xover_to_nuclpair(&self, selection: FlatSelection) -> FlatSelection {
-        if let FlatSelection::Xover(d_id, xover_id) = selection {
+    pub(super) fn xover_to_nucl_pair(&self, selection: FlatSelection) -> FlatSelection {
+        if let FlatSelection::Xover(xover_id) = selection {
             if let Some((n1, n2)) = self.design.get_xover_with_id(xover_id) {
                 let flat_1 = FlatNucl::from_real(&n1, self.id_map());
                 let flat_2 = FlatNucl::from_real(&n2, self.id_map());
                 if let Some((flat_1, flat_2)) = flat_1.zip(flat_2) {
-                    FlatSelection::Bond(d_id, flat_1, flat_2)
+                    FlatSelection::Bond(flat_1, flat_2)
                 } else {
                     FlatSelection::Nothing
                 }
@@ -1041,13 +964,9 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
 
     fn xover_containing_nucl(&self, nucl: &FlatNucl) -> Option<usize> {
         let xovers_list = self.design.get_xovers_list();
-        xovers_list.iter().find_map(|(id, (n1, n2))| {
-            if *n1 == *nucl || *n2 == *nucl {
-                Some(*id)
-            } else {
-                None
-            }
-        })
+        xovers_list
+            .iter()
+            .find_map(|(id, (n1, n2))| (*n1 == *nucl || *n2 == *nucl).then_some(*id))
     }
 
     pub fn phantom_to_selection(
@@ -1207,11 +1126,11 @@ fn apply_symmetric_difference_to_selection(
 }
 
 trait ToFlatInfo {
-    fn to_flat(self, id_map: &FlatHelixMaps) -> Option<super::view::EditionInfo>;
+    fn to_flat(self, id_map: &FlatHelixMaps) -> Option<EditionInfo>;
 }
 
-impl ToFlatInfo for super::StrandBuildingStatus {
-    fn to_flat(self, id_map: &FlatHelixMaps) -> Option<super::view::EditionInfo> {
+impl ToFlatInfo for StrandBuildingStatus {
+    fn to_flat(self, id_map: &FlatHelixMaps) -> Option<EditionInfo> {
         let flat_nucl = FlatNucl::from_real(&self.dragged_nucl, id_map)?;
         Some(EditionInfo {
             nt_length: self.nt_length,
@@ -1223,7 +1142,7 @@ impl ToFlatInfo for super::StrandBuildingStatus {
 
 struct LastClick {
     counter: usize,
-    last_click_time: std::time::Instant,
+    last_click_time: Instant,
     nucl: Option<FlatNucl>,
 }
 
@@ -1231,18 +1150,18 @@ impl Default for LastClick {
     fn default() -> Self {
         Self {
             counter: 0,
-            last_click_time: std::time::Instant::now(),
+            last_click_time: Instant::now(),
             nucl: None,
         }
     }
 }
 
 impl LastClick {
-    pub fn click_on(&mut self, nucl: FlatNucl) {
-        let now = std::time::Instant::now();
+    pub(crate) fn click_on(&mut self, nucl: FlatNucl) {
+        let now = Instant::now();
         if self.nucl == Some(nucl)
             && (now - self.last_click_time)
-                < std::time::Duration::from_millis(SELECTION_2D_CYCLE_TIME_LIMIT_MS)
+                < Duration::from_millis(SELECTION_2D_CYCLE_TIME_LIMIT_MS)
         {
             self.counter += 1;
         } else {
@@ -1252,7 +1171,7 @@ impl LastClick {
         self.last_click_time = now;
     }
 
-    pub fn select(&self, pool: &mut Vec<Selection>) -> Selection {
+    pub(crate) fn select(&self, pool: &mut Vec<Selection>) -> Selection {
         if pool.is_empty() {
             Selection::Nothing
         } else {

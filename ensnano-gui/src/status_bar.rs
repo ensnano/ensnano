@@ -1,35 +1,22 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::{AppState, Requests};
+use crate::{AppState, Requests};
 use ensnano_iced::{
-    self, UiSize,
-    helpers::*,
-    iced::{self, Alignment, Color, Element, Length},
-    iced_graphics::text::Paragraph,
-    iced_runtime::{Command, Program},
-    iced_winit::winit::dpi::LogicalSize,
+    theme::GuiBackground,
+    ui_size::UiSize,
+    widgets::keyboard_priority::{PriorityRequest, keyboard_priority},
 };
-use ensnano_interactor::{StrandBuildingStatus, operation::Operation};
+use ensnano_interactor::{PastingStatus, StrandBuildingStatus, operation::Operation};
+use iced::{
+    Alignment, Color, Element, Length,
+    widget::{Row, Space, Text, column, container, horizontal_space, row, text, text_input},
+};
+use iced_graphics::text::Paragraph;
+use iced_runtime::{Command, Program};
+use input_color::InputValueState;
 use std::{
     collections::HashMap,
     sync::{Arc, Mutex},
 };
+use winit::dpi::LogicalSize;
 
 const GOLD_ORANGE: Color = Color::from_rgb(0.84, 0.57, 0.20);
 
@@ -54,8 +41,6 @@ pub struct StatusBar<R: Requests, S: AppState> {
     operation: Option<OperationInput>,
     requests: Arc<Mutex<R>>,
     progress: Option<(String, f32)>,
-    #[allow(dead_code)]
-    slider_state: slider::State,
     app_state: S,
     ui_size: UiSize,
     message: Option<String>,
@@ -73,7 +58,6 @@ impl<R: Requests, State: AppState> StatusBar<R, State> {
             operation: None,
             requests,
             progress: None,
-            slider_state: Default::default(),
             app_state: state.clone(),
             ui_size,
             message: None,
@@ -97,35 +81,13 @@ impl<R: Requests, State: AppState> StatusBar<R, State> {
         }
     }
 
-    fn view_progress(&self) -> Row<'_, Message<State>, iced::Theme, iced::Renderer> {
+    fn view_progress(&self) -> Row<'_, Message<State>> {
         let progress = self.progress.as_ref().unwrap();
         row![
             text(format!("{}, {:.1}%", progress.0, progress.1 * 100.))
                 .size(self.ui_size.main_text()),
         ]
     }
-
-    /* TODO
-    fn view_overed_strand(&self) -> Element<Message<S>, iced_wgpu::Renderer> {
-        let mut row = Row::new();
-        if let Some(strand) = self.app_state.get_overed_strand() {
-            row = row.push(Text::new(strand.info()).size(self.ui_size.status_font())
-        }
-        row.into()
-    }*/
-
-    // NOTE: process_tag seems useless without keyboard priority. Reactivate it if something
-    //       broken.
-
-    // pub fn process_tab(&mut self) {
-    //     let op = self.operation.as_mut().and_then(|op| op.process_tab());
-    //     // if !self.has_keyboard_priority() {
-    //     //     log::info!("Updating operation");
-    //     //     if let Some(op) = op {
-    //     //         self.requests.lock().unwrap().update_current_operation(op)
-    //     //     }
-    //     // }
-    // }
 }
 
 // List of Messages that can be send by the status bar.
@@ -139,33 +101,30 @@ pub enum Message<S: AppState> {
     TabPressed,
     Message(Option<String>),
     Resize(LogicalSize<f64>),
-    SetKeyboardPriority(bool),
+    SetKeyboardPriority(PriorityRequest),
 }
 
 impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
     type Message = Message<S>;
-    type Theme = ensnano_iced::Theme;
-    type Renderer = ensnano_iced::Renderer;
+    type Theme = iced::Theme;
+    type Renderer = iced::Renderer;
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         self.update_operation();
-        if self.progress.is_some() {
+        if self.progress.is_some() || self.app_state.get_strand_building_state().is_some() {
             self.operation = None;
             self.message = None;
-        } else if let Some(_) = self.app_state.get_strand_building_state() {
+        } else if self.message.is_some() {
             self.operation = None;
-            self.message = None;
-        } else if let Some(_) = self.message {
-            self.operation = None;
-        } else if let Some(_) = self.operation {
+        } else if self.operation.is_some() {
             log::trace!("operation is some");
         } else {
             log::trace!("operation is none");
-        };
+        }
         match message {
             Message::ValueStrChanged(n, s) => {
                 if let Some(operation) = self.operation.as_mut() {
-                    operation.update_input_str(n, s)
+                    operation.update_input_str(n, s);
                 }
             }
             Message::ValueSet(n, s) => {
@@ -194,19 +153,16 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
         Command::none()
     }
 
-    fn view(&self) -> Element<'_, Self::Message, Self::Theme, Self::Renderer> {
-        let clipboard_text = format!(
-            "Clipboard: {}",
-            self.app_state.get_clipboard_content().to_string()
-        );
+    fn view(&self) -> Element<'_, Self::Message> {
+        let clipboard_text = format!("Clipboard: {}", self.app_state.get_clipboard_content());
         let pasting_text = match self.app_state.get_pasting_status() {
-            ensnano_interactor::PastingStatus::Copy => "Pasting",
-            ensnano_interactor::PastingStatus::None => "",
-            ensnano_interactor::PastingStatus::Duplication => "Duplicating",
+            PastingStatus::Copy => "Pasting",
+            PastingStatus::None => "",
+            PastingStatus::Duplication => "Duplicating",
         }
-        .to_string();
+        .to_owned();
 
-        let size = self.logical_size.clone();
+        let size = self.logical_size;
         let mut content = if self.progress.is_some() {
             self.view_progress()
         } else if let Some(building_info) = self.app_state.get_strand_building_state() {
@@ -235,7 +191,7 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
         let content = self::column![Space::new(Length::Fill, 3), content, pasting_status_row,];
 
         container(content)
-            .style(ensnano_iced::theme::GuiBackground)
+            .style(GuiBackground)
             .width(size.width as f32)
             .height(Length::Fill)
             .into()
@@ -259,17 +215,17 @@ struct OperationInput {
 }
 
 impl OperationInput {
-    pub fn new(operation_state: CurrentOpState) -> Self {
+    pub(crate) fn new(operation_state: CurrentOpState) -> Self {
         let operation = operation_state.current_operation;
         let parameters = operation.parameters();
         let mut status_parameters = Vec::new();
 
         // This looks suspicious
-        for _ in parameters.iter() {
+        for _ in parameters {
             status_parameters.push(StatusParameter::new());
         }
 
-        let values = operation.values().clone();
+        let values = operation.values();
         let values_str = values.clone();
         let op_id = operation_state.operation_id;
         Self {
@@ -282,32 +238,10 @@ impl OperationInput {
         }
     }
 
-    // #[must_use = "Do not forget to apply the operation"]
-    // pub fn process_tab(&mut self) -> Option<Arc<dyn Operation>> {
-    //     let mut was_focus = false;
-    //     let mut old_foccussed_idx: Option<usize> = None;
-    //     for (i, p) in self.parameters.iter_mut().enumerate() {
-    //         if was_focus {
-    //             was_focus ^= p.focus()
-    //         } else {
-    //             // if p.has_keyboard_priority() {
-    //             //     p.unfocus();
-    //             //     old_foccussed_idx = Some(i);
-    //             //     was_focus = true;
-    //             // }
-    //         }
-    //     }
-    //
-    //     old_foccussed_idx.and_then(|i| {
-    //         self.inputed_values.insert(i, self.values_str[i].clone());
-    //         self.update_value(i, self.values_str[i].clone())
-    //     })
-    // }
-
-    pub fn update(&mut self, operation_state: CurrentOpState) {
+    pub(crate) fn update(&mut self, operation_state: CurrentOpState) {
         let op_is_new = self.op_id != operation_state.operation_id;
         let operation = operation_state.current_operation;
-        self.values = operation.values().clone();
+        self.values = operation.values();
         if op_is_new {
             self.values_str = self.values.clone();
             self.op_id = operation_state.operation_id;
@@ -327,17 +261,14 @@ impl OperationInput {
                         .inputted_values
                         .get(&v_id)
                         .cloned()
-                        .unwrap_or(v.clone())
+                        .unwrap_or_else(|| v.clone());
                 }
             }
         }
         self.operation = operation;
     }
 
-    fn view<S: AppState>(
-        &self,
-        ui_size: UiSize,
-    ) -> Row<'_, Message<S>, ensnano_iced::Theme, ensnano_iced::Renderer> {
+    fn view<S: AppState>(&self, ui_size: UiSize) -> Row<'_, Message<S>> {
         let mut row = Row::new();
         let op = self.operation.as_ref();
         row = row.push(text(op.description()).size(ui_size.main_text()));
@@ -355,7 +286,6 @@ impl OperationInput {
                     .width(40)
                     .on_submit(Message::ValueSet(i, str_values[i].clone()));
                 if active_input.get(i) == Some(&true) {
-                    use input_color::InputValueState;
                     let state = if values.get(i) == str_values.get(i) {
                         InputValueState::Normal
                     } else if op.with_new_value(i, str_values[i].clone()).is_some() {
@@ -369,11 +299,11 @@ impl OperationInput {
                 row = row
                     .spacing(20)
                     .push(text(param).size(ui_size.main_text()))
-                    .push(
-                        keyboard_priority(input)
-                            .on_priority(Message::SetKeyboardPriority(true))
-                            .on_unpriority(Message::SetKeyboardPriority(false)),
-                    )
+                    .push(keyboard_priority(
+                        "Status bar unnamed priority",
+                        Message::SetKeyboardPriority,
+                        input,
+                    ));
             }
         }
         if need_validation {
@@ -385,13 +315,12 @@ impl OperationInput {
     fn active_input(&self, i: usize) -> bool {
         self.parameters
             .get(i)
-            .map(|p| p.has_keyboard_priority())
-            .unwrap_or(false)
+            .is_some_and(StatusParameter::has_keyboard_priority)
     }
 
     fn update_input_str(&mut self, value_id: usize, new_str: String) {
         if let Some(s) = self.values_str.get_mut(value_id) {
-            *s = new_str.clone()
+            *s = new_str;
         } else {
             log::error!(
                 "Changing str of value_id {} but self has {} values",
@@ -413,7 +342,11 @@ impl OperationInput {
 
 mod input_color {
     // TODO: Move this in ensnano_iced.
-    use ensnano_iced::iced::{Background, Border, Color, theme, widget::text_input::*};
+    use crate::status_bar::GOLD_ORANGE;
+    use iced::{
+        Background, Border, Color, theme,
+        widget::text_input::{Appearance, StyleSheet},
+    };
 
     pub enum InputValueState {
         Normal,
@@ -453,7 +386,7 @@ mod input_color {
             match self {
                 Self::Normal => Color::from_rgb(0.3, 0.3, 0.3),
                 Self::Invalid => Color::from_rgb(1., 0.3, 0.3),
-                Self::BeingTyped => super::GOLD_ORANGE,
+                Self::BeingTyped => GOLD_ORANGE,
             }
         }
 
@@ -506,14 +439,14 @@ pub enum ClipboardContent {
     Helices(usize),
 }
 
-impl ToString for ClipboardContent {
-    fn to_string(&self) -> String {
+impl std::fmt::Display for ClipboardContent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Empty => "Empty".into(),
-            Self::Xovers(n) => format!("{n} xover(s)"),
-            Self::Strands(n) => format!("{n} strand(s)"),
-            Self::Grids(n) => format!("{n} grid(s)"),
-            Self::Helices(n) => format!("{n} helice(s)"),
+            Self::Empty => write!(f, "Empty"),
+            Self::Xovers(n) => write!(f, "{n} {}", if *n < 2 { "xover" } else { "xovers" }),
+            Self::Strands(n) => write!(f, "{n} {}", if *n < 2 { "strand" } else { "strands" }),
+            Self::Grids(n) => write!(f, "{n} {}", if *n < 2 { "grid" } else { "grids" }),
+            Self::Helices(n) => write!(f, "{n} {}", if *n < 2 { "helix" } else { "helices" }),
         }
     }
 }

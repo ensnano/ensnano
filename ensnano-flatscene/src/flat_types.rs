@@ -1,20 +1,3 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
 //! This modules introduces types that are used in the flatscene's data structures.
 //!
 //! The motivation behind these types is that flatscene's representation of helices are stored in a
@@ -22,11 +5,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! converted. For both the flatscene and the design, usize could be used but having distinct types
 //! reduces the confusion, since errors will be detected by the typechecker.
 
-use super::{HashMap, Nucl, Selection};
-use ensnano_design::grid::GridId;
-use ensnano_interactor::PhantomElement;
+use ensnano_design::Nucl;
+use ensnano_interactor::selection::Selection;
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, HashMap},
     hash::{Hash, Hasher},
 };
 
@@ -43,7 +25,7 @@ pub struct FlatHelix {
     pub segment_left: Option<isize>,
 }
 
-impl std::cmp::PartialEq for FlatHelix {
+impl PartialEq for FlatHelix {
     fn eq(&self, other: &Self) -> bool {
         self.flat == other.flat
     }
@@ -88,23 +70,23 @@ impl FlatHelixMaps {
     }
 
     pub fn get_segment_idx(&self, segment: HelixSegment) -> Option<FlatIdx> {
-        self.real_to_flat.get(&segment).cloned()
+        self.real_to_flat.get(&segment).copied()
     }
 
     pub fn get_segment(&self, idx: FlatIdx) -> Option<HelixSegment> {
-        self.flat_to_real.get(&idx).cloned()
+        self.flat_to_real.get(&idx).copied()
     }
 
     pub fn get_max_right(&self, segment: HelixSegment) -> Option<isize> {
         self.segments
             .get(&segment.helix_idx)
-            .and_then(|segments| segments.get(segment.segment_idx).cloned())
+            .and_then(|segments| segments.get(segment.segment_idx).copied())
     }
 
     pub fn get_min_left(&self, segment: HelixSegment) -> Option<isize> {
         self.segments.get(&segment.helix_idx).and_then(|segments| {
             if segment.segment_idx > 0 {
-                segments.get(segment.segment_idx - 1).cloned()
+                segments.get(segment.segment_idx - 1).copied()
             } else {
                 None
             }
@@ -133,7 +115,7 @@ impl FlatHelixMaps {
             self.segments
                 .get(&nucl.helix)
                 .and_then(|segments| segments.get(segment_idx - 1))
-                .cloned()
+                .copied()
         };
         let flat = self.get_segment_idx(HelixSegment {
             helix_idx: nucl.helix,
@@ -174,13 +156,13 @@ impl FlatHelixMaps {
 
 impl Eq for FlatHelix {}
 
-impl std::cmp::PartialOrd for FlatHelix {
+impl PartialOrd for FlatHelix {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.flat.partial_cmp(&other.flat)
+        Some(self.cmp(other))
     }
 }
 
-impl std::cmp::Ord for FlatHelix {
+impl Ord for FlatHelix {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.flat.cmp(&other.flat)
     }
@@ -197,7 +179,7 @@ impl FlatHelix {
                 .segments
                 .get(&segment.helix_idx)
                 .and_then(|segments| segments.get(segment.segment_idx - 1))
-                .cloned()
+                .copied()
         };
         Some(Self {
             flat,
@@ -207,34 +189,34 @@ impl FlatHelix {
     }
 }
 
-/// This trait is a marker, indicating that if T:Flat, then [T] can be indexed by a FlatHelix.
+/// This trait is a marker, indicating that if T:Flat, then `[T]` can be indexed by a FlatHelix.
 pub trait Flat {}
 
 impl<T: Flat> std::ops::Index<FlatHelix> for [T] {
     type Output = T;
-    fn index(&self, idx: FlatHelix) -> &Self::Output {
-        &self[idx.flat.0]
+    fn index(&self, index: FlatHelix) -> &Self::Output {
+        &self[index.flat.0]
     }
 }
 
 impl<T: Flat> std::ops::Index<FlatHelix> for Vec<T> {
     type Output = T;
-    fn index(&self, idx: FlatHelix) -> &Self::Output {
-        &self[idx.flat.0]
+    fn index(&self, index: FlatHelix) -> &Self::Output {
+        &self[index.flat.0]
     }
 }
 
 impl<T: Flat> std::ops::Index<FlatIdx> for [T] {
     type Output = T;
-    fn index(&self, idx: FlatIdx) -> &Self::Output {
-        &self[idx.0]
+    fn index(&self, index: FlatIdx) -> &Self::Output {
+        &self[index.0]
     }
 }
 
 impl<T: Flat> std::ops::Index<FlatIdx> for Vec<T> {
     type Output = T;
-    fn index(&self, idx: FlatIdx) -> &Self::Output {
-        &self[idx.0]
+    fn index(&self, index: FlatIdx) -> &Self::Output {
+        &self[index.0]
     }
 }
 
@@ -313,84 +295,81 @@ impl FlatNucl {
     }
 }
 
-#[allow(unused)] // TODO: remove and understand why so many fields are unused
 pub enum FlatSelection {
-    Nucleotide(usize, FlatNucl),
-    Bond(usize, FlatNucl, FlatNucl),
-    Xover(usize, usize),
-    Design(usize),
-    Strand(usize, usize),
-    Helix(usize, FlatHelix),
-    Grid(usize, GridId),
-    Phantom(PhantomElement),
+    Nucleotide(FlatNucl),
+    Bond(FlatNucl, FlatNucl),
+    Xover(usize),
+    Design,
+    Strand,
+    Helix,
+    Grid,
+    Phantom,
     Nothing,
 }
 
 impl FlatSelection {
-    pub fn from_real(selection: Option<&Selection>, id_map: &FlatHelixMaps) -> FlatSelection {
-        if let Some(selection) = selection {
-            match selection {
-                Selection::Nucleotide(d, nucl) => {
-                    if let Some(flat_nucl) = FlatNucl::from_real(nucl, id_map) {
-                        Self::Nucleotide(*d as usize, flat_nucl)
-                    } else {
-                        Self::Nothing
-                    }
+    pub fn from_real(selection: Option<&Selection>, id_map: &FlatHelixMaps) -> Self {
+        let Some(selection) = selection else {
+            return Self::Nothing;
+        };
+
+        match selection {
+            Selection::Nucleotide(_, nucl) => {
+                if let Some(flat_nucl) = FlatNucl::from_real(nucl, id_map) {
+                    Self::Nucleotide(flat_nucl)
+                } else {
+                    Self::Nothing
                 }
-                Selection::Bond(d, n1, n2) => {
-                    let n1 = FlatNucl::from_real(n1, id_map);
-                    let n2 = FlatNucl::from_real(n2, id_map);
-                    if let Some((n1, n2)) = n1.zip(n2) {
-                        Self::Bond(*d as usize, n1, n2)
-                    } else {
-                        Self::Nothing
-                    }
-                }
-                Selection::Xover(d, xover_id) => Self::Xover(*d as usize, *xover_id),
-                Selection::Design(d) => Self::Design(*d as usize),
-                Selection::Strand(d, s_id) => Self::Strand(*d as usize, *s_id as usize),
-                Selection::Helix {
-                    design_id,
-                    helix_id,
-                    ..
-                } => {
-                    if let Some(flat_helix) = FlatHelix::from_real(
-                        HelixSegment {
-                            helix_idx: *helix_id,
-                            segment_idx: 0,
-                        },
-                        id_map,
-                    ) {
-                        Self::Helix(*design_id as usize, flat_helix)
-                    } else {
-                        Self::Nothing
-                    }
-                }
-                Selection::Grid(d, g_id) => Self::Grid(*d as usize, *g_id),
-                Selection::Phantom(pe) => Self::Phantom(*pe),
-                Selection::Nothing => Self::Nothing,
-                Selection::BezierControlPoint { .. } => Self::Nothing,
-                Selection::BezierVertex(_) => Self::Nothing,
             }
-        } else {
-            Self::Nothing
+            Selection::Bond(_, n1, n2) => {
+                let n1 = FlatNucl::from_real(n1, id_map);
+                let n2 = FlatNucl::from_real(n2, id_map);
+                if let Some((n1, n2)) = n1.zip(n2) {
+                    Self::Bond(n1, n2)
+                } else {
+                    Self::Nothing
+                }
+            }
+            Selection::Xover(_, xover_id) => Self::Xover(*xover_id),
+            Selection::Design(..) => Self::Design,
+            Selection::Strand(..) => Self::Strand,
+            Selection::Helix { helix_id, .. } => {
+                if FlatHelix::from_real(
+                    HelixSegment {
+                        helix_idx: *helix_id,
+                        segment_idx: 0,
+                    },
+                    id_map,
+                )
+                .is_some()
+                {
+                    Self::Helix
+                } else {
+                    Self::Nothing
+                }
+            }
+            Selection::Grid(..) => Self::Grid,
+            Selection::Phantom(..) => Self::Phantom,
+            Selection::BezierControlPoint { .. }
+            | Selection::BezierVertex(_)
+            | Selection::Nothing => Self::Nothing,
         }
     }
 }
 
-pub struct HelixVec<T: Flat>(Vec<T>);
+pub(crate) struct HelixVec<T: Flat>(Vec<T>);
 
 impl<T: Flat> std::ops::Index<FlatIdx> for HelixVec<T> {
     type Output = T;
 
-    fn index(&self, idx: FlatIdx) -> &T {
-        &self.0[idx.0]
+    fn index(&self, index: FlatIdx) -> &T {
+        &self.0[index.0]
     }
 }
 
 impl<T: Flat> std::ops::IndexMut<FlatIdx> for HelixVec<T> {
-    fn index_mut(&mut self, idx: FlatIdx) -> &mut Self::Output {
-        &mut self.0[idx.0]
+    fn index_mut(&mut self, index: FlatIdx) -> &mut Self::Output {
+        &mut self.0[index.0]
     }
 }
 
@@ -409,23 +388,23 @@ impl<T: Flat> std::ops::DerefMut for HelixVec<T> {
 }
 
 impl<T: Flat> HelixVec<T> {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self(Vec::new())
     }
 
-    pub fn remove(&mut self, idx: FlatIdx) -> T {
+    pub(crate) fn remove(&mut self, idx: FlatIdx) -> T {
         self.0.remove(idx.0)
     }
 
-    pub fn push(&mut self, value: T) {
-        self.0.push(value)
+    pub(crate) fn push(&mut self, value: T) {
+        self.0.push(value);
     }
 
-    pub fn get(&self, idx: FlatIdx) -> Option<&T> {
+    pub(crate) fn get(&self, idx: FlatIdx) -> Option<&T> {
         self.0.get(idx.0)
     }
 
-    pub fn get_mut(&mut self, idx: FlatIdx) -> Option<&mut T> {
+    pub(crate) fn get_mut(&mut self, idx: FlatIdx) -> Option<&mut T> {
         self.0.get_mut(idx.0)
     }
 }

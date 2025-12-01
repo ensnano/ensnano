@@ -1,28 +1,14 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 //! Implements the [Requests](`ensnano_flatscene::Requests`) trait for [Requests](`super::Requests`).
 
 use crate::app_state::design_interactor::controller::clipboard::PastePosition;
-
-use super::*;
+use crate::controller::normal_state::Action;
+use crate::requests::Requests;
+use ensnano_design::Nucl;
 use ensnano_flatscene::Requests as FlatSceneRequests;
-use ensnano_interactor::DesignOperation;
+use ensnano_interactor::{
+    DesignOperation, application::AppId, operation::Operation, selection::Selection,
+};
+use std::sync::Arc;
 use ultraviolet::Isometry2;
 
 impl FlatSceneRequests for Requests {
@@ -31,7 +17,7 @@ impl FlatSceneRequests for Requests {
             .push_back(Action::DesignOperation(DesignOperation::GeneralXover {
                 source,
                 target,
-            }))
+            }));
     }
 
     fn request_center_selection(&mut self, selection: Selection, app_id: AppId) {
@@ -56,14 +42,14 @@ impl FlatSceneRequests for Requests {
         self.operation_update = Some(operation);
     }
 
-    fn set_isometry(&mut self, helix: usize, segment: usize, isometry: Isometry2) {
+    fn set_isometry(&mut self, helix: usize, segment_idx: usize, isometry: Isometry2) {
         self.keep_proceed.push_back(Action::SilentDesignOperation(
             DesignOperation::SetIsometry {
                 helix,
                 isometry,
-                segment,
+                segment_idx,
             },
-        ))
+        ));
     }
 
     fn set_visibility_helix(&mut self, helix: usize, visibility: bool) {
@@ -72,14 +58,14 @@ impl FlatSceneRequests for Requests {
                 helix,
                 visible: visibility,
             },
-        ))
+        ));
     }
 
     fn flip_group(&mut self, helix: usize) {
         self.keep_proceed
             .push_back(Action::DesignOperation(DesignOperation::FlipHelixGroup {
                 helix,
-            }))
+            }));
     }
 
     fn suspend_op(&mut self) {
@@ -87,7 +73,7 @@ impl FlatSceneRequests for Requests {
     }
 
     fn apply_design_operation(&mut self, op: DesignOperation) {
-        self.keep_proceed.push_back(Action::DesignOperation(op))
+        self.keep_proceed.push_back(Action::DesignOperation(op));
     }
 
     fn set_paste_candidate(&mut self, candidate: Option<Nucl>) {

@@ -1,24 +1,10 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 use ensnano_design::{
-    BezierControlPoint, BezierPathId, BezierVertexId, Nucl, Strand,
+    Nucl,
+    bezier_plane::{BezierPathId, BezierVertexId},
+    curves::bezier::BezierControlPoint,
+    elements::DesignElementKey,
     grid::{GridId, HelixGridPosition},
+    strands::{Domain, Strand},
 };
 use std::collections::BTreeSet;
 
@@ -70,34 +56,34 @@ pub enum CenterOfSelection {
 impl Selection {
     pub fn get_design(&self) -> Option<u32> {
         match self {
-            Selection::Design(d) => Some(*d),
-            Selection::Bond(d, _, _) => Some(*d),
-            Selection::Strand(d, _) => Some(*d),
-            Selection::Helix { design_id, .. } => Some(*design_id as u32),
-            Selection::Nucleotide(d, _) => Some(*d),
-            Selection::Grid(d, _) => Some(*d),
-            Selection::Phantom(pe) => Some(pe.design_id),
-            Selection::Nothing => None,
-            Selection::BezierControlPoint { .. } => Some(0),
-            Selection::Xover(d, _) => Some(*d),
-            Selection::BezierVertex(_) => Some(0),
+            Self::Helix { design_id, .. }
+            | Self::Phantom(PhantomElement { design_id, .. })
+            | Self::Design(design_id)
+            | Self::Bond(design_id, _, _)
+            | Self::Strand(design_id, _)
+            | Self::Nucleotide(design_id, _)
+            | Self::Grid(design_id, _)
+            | Self::Xover(design_id, _) => Some(*design_id),
+            Self::BezierControlPoint { .. } | Self::BezierVertex(_) => Some(0),
+            Self::Nothing => None,
         }
     }
 
     pub fn info(&self) -> String {
-        format!("{:?}", self)
+        format!("{self:?}")
     }
 
-    fn get_helices_containing_self(&self, reader: &dyn InteractorDesignReaderExt) -> Option<Vec<usize>> {
+    fn get_helices_containing_self(
+        &self,
+        reader: &dyn InteractorDesignReaderExt,
+    ) -> Option<Vec<usize>> {
         match self {
-            Self::Design(_) => None,
-            Self::Grid(_, _) => None,
-            Self::Helix { helix_id, .. } => Some(vec![*helix_id as usize]),
+            Self::Helix { helix_id, .. } => Some(vec![(*helix_id)]),
             Self::Nucleotide(_, nucl) => Some(vec![nucl.helix]),
             Self::Phantom(pe) => Some(vec![pe.to_nucl().helix]),
             Self::Strand(_, s_id) => {
                 let strand = reader.get_strand_with_id(*s_id as usize)?;
-                Some(strand.domains.iter().filter_map(|d| d.helix()).collect())
+                Some(strand.domains.iter().filter_map(Domain::helix).collect())
             }
             Self::Xover(_, xover_id) => {
                 let (n1, n2) = reader.get_xover_with_id(*xover_id)?;
@@ -105,12 +91,17 @@ impl Selection {
             }
             Self::Bond(_, n1, n2) => Some(vec![n1.helix, n2.helix]),
             Self::Nothing => Some(vec![]),
-            Self::BezierControlPoint { .. } => None,
-            Self::BezierVertex(_) => None,
+            Self::Design(_)
+            | Self::Grid(_, _)
+            | Self::BezierControlPoint { .. }
+            | Self::BezierVertex(_) => None,
         }
     }
 
-    fn get_grids_containing_self(&self, reader: &dyn InteractorDesignReaderExt) -> Option<Vec<GridId>> {
+    fn get_grids_containing_self(
+        &self,
+        reader: &dyn InteractorDesignReaderExt,
+    ) -> Option<Vec<GridId>> {
         if let Self::Grid(_, g_id) = self {
             Some(vec![*g_id])
         } else {
@@ -130,7 +121,7 @@ pub fn extract_nucls_and_xover_ends(
     reader: &dyn InteractorDesignReaderExt,
 ) -> Vec<Nucl> {
     let mut ret = Vec::with_capacity(2 * selection.len());
-    for s in selection.iter() {
+    for s in selection {
         match s {
             Selection::Nucleotide(_, n) => ret.push(*n),
             Selection::Bond(_, n1, n2) => {
@@ -142,14 +133,14 @@ pub fn extract_nucls_and_xover_ends(
                     ret.push(n1);
                     ret.push(n2);
                 } else {
-                    log::error!("No xover with id {}", xover_id);
+                    log::error!("No xover with id {xover_id}");
                 }
             }
             Selection::Strand(_, s_id) => {
                 if let Some(ends) = reader.get_domain_ends(*s_id as usize) {
                     ret.extend(ends);
                 } else {
-                    log::error!("No strand with id {}", s_id);
+                    log::error!("No strand with id {s_id}");
                 }
             }
             _ => (),
@@ -188,9 +179,9 @@ fn extract_one_grid(selection: &Selection) -> Option<GridId> {
 }
 
 pub fn list_of_strands(selection: &[Selection]) -> Option<(usize, Vec<usize>)> {
-    let design_id = selection.get(0).and_then(Selection::get_design)?;
+    let design_id = selection.first().and_then(Selection::get_design)?;
     let mut strands = BTreeSet::new();
-    for s in selection.iter() {
+    for s in selection {
         match s {
             Selection::Strand(d_id, s_id) => {
                 if *d_id != design_id {
@@ -210,9 +201,9 @@ pub fn list_of_xover_ids(
     selection: &[Selection],
     reader: &dyn InteractorDesignReaderExt,
 ) -> Option<(usize, Vec<usize>)> {
-    let design_id = selection.get(0).and_then(Selection::get_design)?;
+    let design_id = selection.first().and_then(Selection::get_design)?;
     let mut xovers = BTreeSet::new();
-    for s in selection.iter() {
+    for s in selection {
         match s {
             Selection::Bond(d_id, n1, n2) => {
                 if *d_id != design_id {
@@ -239,9 +230,9 @@ pub fn list_of_xover_as_nucl_pairs(
     selection: &[Selection],
     reader: &dyn InteractorDesignReaderExt,
 ) -> Option<(usize, Vec<(Nucl, Nucl)>)> {
-    let design_id = selection.get(0).and_then(Selection::get_design)?;
+    let design_id = selection.first().and_then(Selection::get_design)?;
     let mut xovers = BTreeSet::new();
-    for s in selection.iter() {
+    for s in selection {
         match s {
             Selection::Bond(d_id, n1, n2) => {
                 if *d_id != design_id {
@@ -271,9 +262,9 @@ pub fn list_of_xover_as_nucl_pairs(
 }
 
 pub fn list_of_helices(selection: &[Selection]) -> Option<(usize, Vec<usize>)> {
-    let design_id = selection.get(0).and_then(Selection::get_design)?;
+    let design_id = selection.first().and_then(Selection::get_design)?;
     let mut helices = BTreeSet::new();
-    for s in selection.iter() {
+    for s in selection {
         match s {
             Selection::Helix {
                 design_id: d_id,
@@ -293,7 +284,7 @@ pub fn list_of_helices(selection: &[Selection]) -> Option<(usize, Vec<usize>)> {
 
 pub fn list_of_free_grids(selection: &[Selection]) -> Option<Vec<usize>> {
     let mut ret = Vec::new();
-    for s in selection.iter() {
+    for s in selection {
         match s {
             Selection::Grid(_, GridId::FreeGrid(g_id)) => ret.push(*g_id),
             _ => return None,
@@ -317,7 +308,7 @@ pub fn list_of_bezier_vertices(selection: &[Selection]) -> Option<Vec<BezierVert
 
 pub fn extract_helices_with_controls(selection: &[Selection]) -> Vec<usize> {
     let mut ret = Vec::new();
-    for s in selection.iter() {
+    for s in selection {
         if let Selection::Helix { helix_id, .. } = s {
             ret.push(*helix_id);
         } else if let Selection::BezierControlPoint { helix_id, .. } = s {
@@ -330,7 +321,7 @@ pub fn extract_helices_with_controls(selection: &[Selection]) -> Vec<usize> {
 
 pub fn extract_control_points(selection: &[Selection]) -> Vec<(usize, BezierControlPoint)> {
     let mut ret = Vec::new();
-    for s in selection.iter() {
+    for s in selection {
         if let Selection::BezierControlPoint {
             helix_id,
             bezier_control,
@@ -372,15 +363,18 @@ pub fn set_of_grids_containing_selection(
 }
 
 /// Return true iff the selection is only made of helices that are not attached to a grid
-pub fn all_helices_no_grid(selection: &[Selection], reader: &dyn InteractorDesignReaderExt) -> bool {
-    let design_id = selection.get(0).and_then(Selection::get_design);
+pub fn all_helices_no_grid(
+    selection: &[Selection],
+    reader: &dyn InteractorDesignReaderExt,
+) -> bool {
+    let design_id = selection.first().and_then(Selection::get_design);
     let mut nb_helices = 0;
     if design_id.is_none() {
         return false;
     }
     let design_id = design_id.unwrap();
 
-    for s in selection.iter() {
+    for s in selection {
         match s {
             Selection::Helix {
                 design_id: d_id,
@@ -405,27 +399,22 @@ pub fn all_helices_no_grid(selection: &[Selection], reader: &dyn InteractorDesig
 /// Extract all the elements of the form Selection::Nucl(_) from a slice of selection
 pub fn extract_nucls_from_selection(selection: &[Selection]) -> Vec<Nucl> {
     let mut ret = vec![];
-    for s in selection.iter() {
+    for s in selection {
         if let Selection::Nucleotide(_, nucl) = s {
-            ret.push(*nucl)
+            ret.push(*nucl);
         }
     }
     ret
 }
 
 /// Selection modes that can be selected by buttons on the top bar.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub enum SelectionMode {
+    #[default]
     Nucleotide,
     Strand,
     Helix,
     Design,
-}
-
-impl Default for SelectionMode {
-    fn default() -> Self {
-        SelectionMode::Nucleotide
-    }
 }
 
 impl std::fmt::Display for SelectionMode {
@@ -434,38 +423,34 @@ impl std::fmt::Display for SelectionMode {
             f,
             "{}",
             match self {
-                SelectionMode::Design => "Design",
-                SelectionMode::Nucleotide => "Nucleotide",
-                SelectionMode::Strand => "Strand",
-                SelectionMode::Helix => "Helix",
+                Self::Design => "Design",
+                Self::Nucleotide => "Nucleotide",
+                Self::Strand => "Strand",
+                Self::Helix => "Helix",
             }
         )
     }
 }
 
 impl SelectionMode {
-    pub const ALL: [SelectionMode; 4] = [
-        SelectionMode::Nucleotide,
-        SelectionMode::Design,
-        SelectionMode::Strand,
-        SelectionMode::Helix,
-    ];
+    pub const ALL: [Self; 4] = [Self::Nucleotide, Self::Design, Self::Strand, Self::Helix];
 
     pub fn tooltip_description(&self) -> &'static str {
         // TODO: better descriptions
         match self {
-            SelectionMode::Nucleotide => "Nucleotide",
-            SelectionMode::Strand => "Strand",
-            SelectionMode::Helix => "Helix",
-            SelectionMode::Design => "Design",
+            Self::Nucleotide => "Nucleotide",
+            Self::Strand => "Strand",
+            Self::Helix => "Helix",
+            Self::Design => "Design",
         }
     }
 }
 
 /// Describe the action currently done by the user when they click left
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub enum ActionMode {
     /// User is moving the camera
+    #[default]
     Normal,
     /// User can translate objects and move the camera
     Translate,
@@ -480,24 +465,18 @@ pub enum ActionMode {
     EditBezierPath,
 }
 
-impl Default for ActionMode {
-    fn default() -> Self {
-        ActionMode::Normal
-    }
-}
-
 impl std::fmt::Display for ActionMode {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(
             f,
             "{}",
             match self {
-                ActionMode::Normal => "Select",
-                ActionMode::Translate => "Move",
-                ActionMode::Rotate => "Rotate",
-                ActionMode::BuildHelix { .. } => "Build",
-                ActionMode::Cut => "Cut",
-                ActionMode::EditBezierPath { .. } => "Edit path",
+                Self::Normal => "Select",
+                Self::Translate => "Move",
+                Self::Rotate => "Rotate",
+                Self::BuildHelix { .. } => "Build",
+                Self::Cut => "Cut",
+                Self::EditBezierPath => "Edit path",
             }
         )
     }
@@ -511,12 +490,12 @@ impl ActionMode {
     pub fn tooltip_description(&self) -> &'static str {
         // TODO: better descriptions
         match self {
-            ActionMode::Normal => "Normal",
-            ActionMode::Translate => "Translate",
-            ActionMode::Rotate => "Rotate",
-            ActionMode::BuildHelix { .. } => "BuildHelix",
-            ActionMode::Cut => "Cut",
-            ActionMode::EditBezierPath => "EditBezierPath",
+            Self::Normal => "Normal",
+            Self::Translate => "Translate",
+            Self::Rotate => "Rotate",
+            Self::BuildHelix { .. } => "BuildHelix",
+            Self::Cut => "Cut",
+            Self::EditBezierPath => "EditBezierPath",
         }
     }
 }
@@ -525,7 +504,7 @@ impl ActionMode {
 // Encoding of phantom element identifier.
 // The identifier is an integer of the form helix_id * max_pos_id + pos_id;
 //
-// helix_id is the identifer of the helix and pos_id is of the form
+// helix_id is the identifier of the helix and pos_id is of the form
 // position * nb_kind + element_kid
 // where element_kind is
 // 0 for forward nucl
@@ -543,7 +522,7 @@ pub fn phantom_helix_encoder_nucl(
     position: i32,
     forward: bool,
 ) -> u32 {
-    let pos_id = (position + PHANTOM_RANGE) as u32 * 4 + if forward { 0 } else { 1 };
+    let pos_id = (position + PHANTOM_RANGE) as u32 * 4 + !forward as u32;
     let max_pos_id = (2 * PHANTOM_RANGE) as u32 * 4 + 3;
     let helix = helix_id * max_pos_id;
     assert!(helix <= 0xFF_FF_FF);
@@ -571,7 +550,7 @@ pub fn phantom_helix_decoder(id: u32) -> PhantomElement {
     let helix_id = reminder / max_pos_id;
     let reminder = reminder % max_pos_id;
     let bond = reminder & 0b10 > 0;
-    let forward = reminder % 2 == 0;
+    let forward = reminder.is_multiple_of(2);
     let nucl_id = reminder / 4;
     let position = nucl_id as i32 - PHANTOM_RANGE;
     PhantomElement {
@@ -593,7 +572,7 @@ pub struct PhantomElement {
 }
 
 impl PhantomElement {
-    pub fn to_nucl(&self) -> Nucl {
+    pub fn to_nucl(self) -> Nucl {
         Nucl {
             helix: self.helix_id as usize,
             position: self.position as isize,
@@ -616,14 +595,14 @@ pub trait SelectionConversion: Sized {
     fn to_selection(&self, d_id: u32) -> Selection;
 }
 
-use ensnano_design::elements::*;
 impl SelectionConversion for DesignElementKey {
     fn from_selection(selection: &Selection, d_id: u32) -> Option<Self> {
-        if selection.get_design() == Some(d_id) {
-            match selection {
+        if selection.get_design() != Some(d_id) {
+            return None;
+        }
+
+        match selection {
                 Selection::Grid(_, GridId::FreeGrid(g_id)) => Some(Self::Grid(*g_id)),
-                Selection::Grid(_, _) => None,
-                Selection::Design(_) => None,
                 Selection::Helix { helix_id, .. } => Some(Self::Helix(*helix_id)),
                 Selection::Strand(_, s_id) => Some(Self::Strand(*s_id as usize)),
                 Selection::Nucleotide(_, nucl) => Some(Self::Nucleotide {
@@ -631,7 +610,6 @@ impl SelectionConversion for DesignElementKey {
                     position: nucl.position,
                     forward: nucl.forward,
                 }),
-                Selection::Bond(_, _, _) => None,
                 Selection::Xover(_, xover_id) => Some(Self::CrossOver {
                     xover_id: *xover_id,
                 }),
@@ -647,13 +625,13 @@ impl SelectionConversion for DesignElementKey {
                         })
                     }
                 }
-                Selection::Nothing => None,
-                Selection::BezierControlPoint { .. } => None, //TODO make DesignElement out of these
-                Selection::BezierVertex(_) => None,
+                Selection::Grid(_, _)
+                | Selection::Design(_)
+                | Selection::Bond(_, _, _)
+                | Selection::Nothing
+                | Selection::BezierControlPoint { .. } // TODO: make DesignElement out of these
+                | Selection::BezierVertex(_) => None,
             }
-        } else {
-            None
-        }
     }
 
     fn to_selection(&self, d_id: u32) -> Selection {

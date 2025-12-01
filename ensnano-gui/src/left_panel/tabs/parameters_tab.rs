@@ -1,27 +1,19 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::tabs::GuiTab;
-use super::{AppState, FactoryId, Message, RequestFactory, ScrollSensitivity, UiSize, ValueId};
-use ensnano_iced::{
-    fonts::{MaterialIcon, icon_to_char},
-    helpers::*,
-    iced_aw::TabLabel,
+use crate::{
+    AppState,
+    left_panel::{
+        Message, ScrollSensitivity,
+        discrete_value::{FactoryId, RequestFactory, ValueId},
+        tabs::GuiTab,
+    },
 };
+use ensnano_design::{ensnano_version, parameters::NAMED_DNA_PARAMETERS};
+use ensnano_iced::{
+    fonts::material_icons::{MaterialIcon, icon_to_char},
+    helpers::{extra_jump, jump_by, right_checkbox, section, subsection},
+    ui_size::{ALL_UI_SIZES, UiSize},
+};
+use iced::widget::{column, pick_list, scrollable, text};
+use iced_aw::TabLabel;
 use std::marker::PhantomData;
 
 pub struct ParametersTab<State: AppState> {
@@ -62,22 +54,14 @@ impl<State: AppState> GuiTab<State> for ParametersTab<State> {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Settings)))
     }
 
-    fn content(
-        &self,
-        ui_size: UiSize,
-        app_state: &State,
-    ) -> ensnano_iced::Element<'_, Self::Message> {
+    fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {
         let dna_params = &app_state.get_dna_parameters();
 
         let content = self::column![
             section("Parameters", ui_size),
             extra_jump(),
             subsection("Font size", ui_size),
-            pick_list(
-                &ensnano_iced::ALL_UI_SIZES[..],
-                Some(ui_size),
-                Message::UiSizePicked,
-            ),
+            pick_list(&ALL_UI_SIZES[..], Some(ui_size), Message::UiSizePicked,),
             extra_jump(),
             subsection("Scrolling", ui_size),
             column(
@@ -93,7 +77,7 @@ impl<State: AppState> GuiTab<State> for ParametersTab<State> {
             jump_by(10),
             section("DNA/RNA model", ui_size),
             pick_list(
-                &ensnano_design::NAMED_DNA_PARAMETERS[..],
+                &NAMED_DNA_PARAMETERS[..],
                 Some(app_state.get_dna_parameters().name().clone()),
                 Message::NewDnaParameters,
             ),
@@ -118,7 +102,7 @@ impl<State: AppState> GuiTab<State> for ParametersTab<State> {
             ],
             jump_by(10),
             section("About", ui_size),
-            text(format!("Version {}", ensnano_design::ensnano_version())),
+            text(format!("Version {}", ensnano_version())),
             subsection("Development:", ui_size),
             text("Nicolas Levy"),
             extra_jump(),

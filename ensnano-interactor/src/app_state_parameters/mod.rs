@@ -1,15 +1,11 @@
-mod check_xovers_parameter;
-mod suggestion_parameters;
+pub mod check_xovers_parameter;
+pub mod suggestion_parameters;
 
-pub use self::{
-    check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
-};
-
-use {
-    super::graphics::{Background3D, HBondDisplay, RenderingMode},
-    ensnano_iced::UiSize,
-    serde::{Deserialize, Serialize},
-};
+use crate::graphics::{Background3D, HBondDisplay, RenderingMode};
+use check_xovers_parameter::CheckXoversParameter;
+use ensnano_iced::ui_size::UiSize;
+use serde::{Deserialize, Serialize};
+use suggestion_parameters::SuggestionParameters;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)] // workaround for https://github.com/rust-cli/confy/issues/34

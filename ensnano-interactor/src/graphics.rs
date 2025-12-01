@@ -1,27 +1,10 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use ensnano_iced::iced_winit::winit::dpi::{PhysicalPosition, PhysicalSize};
 use serde::{Deserialize, Serialize};
 use ultraviolet::Vec3;
+use winit::dpi::{PhysicalPosition, PhysicalSize};
 
-#[derive(Clone, Debug, PartialEq, Eq, Copy, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Copy, Serialize, Deserialize, Default)]
 pub enum RenderingMode {
+    #[default]
     Normal,
     Cartoon,
     Outline,
@@ -40,12 +23,6 @@ pub const ALL_RENDERING_MODE: &[RenderingMode] = &[
     RenderingMode::BlackAndWhite,
 ];
 
-impl Default for RenderingMode {
-    fn default() -> Self {
-        Self::Normal
-    }
-}
-
 impl std::fmt::Display for RenderingMode {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let ret = match self {
@@ -54,23 +31,18 @@ impl std::fmt::Display for RenderingMode {
             Self::Outline => "Outline",
             Self::BlackAndWhite => "Black and white",
         };
-        write!(f, "{}", ret)
+        write!(f, "{ret}")
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Copy, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Copy, Serialize, Deserialize, Default)]
 pub enum Background3D {
+    #[default]
     Sky,
     White,
 }
 
 pub const ALL_BACKGROUND3D: &[Background3D] = &[Background3D::Sky, Background3D::White];
-
-impl Default for Background3D {
-    fn default() -> Self {
-        Self::Sky
-    }
-}
 
 impl std::fmt::Display for Background3D {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -78,21 +50,16 @@ impl std::fmt::Display for Background3D {
             Self::White => "White",
             Self::Sky => "Sky",
         };
-        write!(f, "{}", ret)
+        write!(f, "{ret}")
     }
 }
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub enum HBondDisplay {
+    #[default]
     No,
     Stick,
     Ellipsoid,
-}
-
-impl Default for HBondDisplay {
-    fn default() -> Self {
-        Self::No
-    }
 }
 
 impl std::fmt::Display for HBondDisplay {
@@ -102,7 +69,7 @@ impl std::fmt::Display for HBondDisplay {
             Self::Stick => "Sticks",
             Self::Ellipsoid => "Ellipsoid",
         };
-        write!(f, "{}", ret)
+        write!(f, "{ret}")
     }
 }
 
@@ -188,22 +155,15 @@ pub enum GuiComponentType {
 impl GuiComponentType {
     /// A panel is filled with buttons, menus, and other dialogs.
     pub fn is_panel(&self) -> bool {
-        match self {
-            GuiComponentType::TopBar
-            | GuiComponentType::LeftPanel
-            | GuiComponentType::StatusBar => true,
-            _ => false,
-        }
+        matches!(self, Self::TopBar | Self::LeftPanel | Self::StatusBar)
     }
 
     /// A scene represent a view to the DNA.
     pub fn is_scene(&self) -> bool {
-        match self {
-            GuiComponentType::StereographicScene
-            | GuiComponentType::Scene
-            | GuiComponentType::FlatScene => true,
-            _ => false,
-        }
+        matches!(
+            self,
+            Self::StereographicScene | Self::Scene | Self::FlatScene
+        )
     }
 }
 

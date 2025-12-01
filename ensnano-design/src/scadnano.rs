@@ -1,23 +1,7 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::HelixParameters;
-use super::grid::{GridDescriptor, GridTypeDescr};
+use crate::{
+    grid::{GridDescriptor, GridTypeDescr},
+    parameters::HelixParameters,
+};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use ultraviolet::{Rotor3, Vec3};
@@ -45,9 +29,9 @@ impl ScadnanoDesign {
             "square" => Ok(GridTypeDescr::Square { twist: None }),
             "honeycomb" => Ok(GridTypeDescr::Honeycomb { twist: None }),
             grid_type => {
-                println!("Unsported grid type: {}", grid_type);
-                Err(ScadnanoImportError::UnsuportedGridType(
-                    grid_type.to_string(),
+                println!("Unsupported grid type: {grid_type}");
+                Err(ScadnanoImportError::UnsupportedGridType(
+                    grid_type.to_owned(),
                 ))
             }
         }?;
@@ -80,9 +64,9 @@ impl ScadnanoGroup {
             "square" => Ok(GridTypeDescr::Square { twist: None }),
             "honeycomb" => Ok(GridTypeDescr::Honeycomb { twist: None }),
             grid_type => {
-                println!("Unsported grid type: {}", grid_type);
-                Err(ScadnanoImportError::UnsuportedGridType(
-                    grid_type.to_string(),
+                println!("Unsupported grid type: {grid_type}");
+                Err(ScadnanoImportError::UnsupportedGridType(
+                    grid_type.to_owned(),
                 ))
             }
         }?;
@@ -142,13 +126,13 @@ impl ScadnanoStrand {
         if let Ok(ret) = ret {
             Ok(ret)
         } else {
-            Err(ScadnanoImportError::InvalidColor(color_str.to_string()))
+            Err(ScadnanoImportError::InvalidColor(color_str.to_owned()))
         }
     }
 
     pub fn read_deletions(&self, deletions: &mut BTreeMap<usize, BTreeSet<isize>>) {
-        for d in self.domains.iter() {
-            d.read_deletions(deletions)
+        for d in &self.domains {
+            d.read_deletions(deletions);
         }
     }
 }
@@ -179,8 +163,8 @@ impl ScadnanoDomain {
                 deletions, helix, ..
             } => {
                 if let Some(vec) = deletions {
-                    let entry = deletions_map.entry(*helix).or_insert(BTreeSet::new());
-                    for d in vec.iter() {
+                    let entry = deletions_map.entry(*helix).or_default();
+                    for d in vec {
                         entry.insert(*d);
                     }
                 }
@@ -198,7 +182,7 @@ pub struct ScadnanoModification {
 
 #[derive(Debug)]
 pub enum ScadnanoImportError {
-    UnsuportedGridType(String),
+    UnsupportedGridType(String),
     InvalidColor(String),
     MissingField(String),
 }
@@ -209,7 +193,7 @@ pub(super) struct ScadnanoInsertionsDeletions {
 }
 
 impl ScadnanoInsertionsDeletions {
-    pub fn read_domain(&mut self, domain: &ScadnanoDomain) {
+    pub(crate) fn read_domain(&mut self, domain: &ScadnanoDomain) {
         match domain {
             ScadnanoDomain::Loopout { .. } => (),
             ScadnanoDomain::HelixDomain {
@@ -220,14 +204,14 @@ impl ScadnanoInsertionsDeletions {
             } => {
                 if let Some(vec) = deletions {
                     let entry = self.count.entry(*helix).or_default();
-                    for d in vec.iter() {
+                    for d in vec {
                         let count_entry = entry.entry(*d).or_default();
                         *count_entry -= 1;
                     }
                 }
                 if let Some(vec) = insertions {
                     let entry = self.count.entry(*helix).or_default();
-                    for insertion in vec.iter() {
+                    for insertion in vec {
                         let position = insertion[0];
                         let count = insertion[1];
                         let count_entry = entry.entry(position).or_default();
@@ -238,11 +222,11 @@ impl ScadnanoInsertionsDeletions {
         }
     }
 
-    pub fn adjust(&self, position: isize, helix: usize) -> isize {
+    pub(crate) fn adjust(&self, position: isize, helix: usize) -> isize {
         let mut ret = position;
         if let Some(counts) = self.count.get(&helix) {
             for (_, c) in counts.iter().take_while(|(y, _)| **y <= position) {
-                ret += *c / 2
+                ret += *c / 2;
             }
         }
         ret

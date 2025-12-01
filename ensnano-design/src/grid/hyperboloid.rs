@@ -1,25 +1,10 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::*;
-use crate::curves::Twist;
-use crate::{CurveDescriptor, Helix};
-use std::sync::Arc;
-
+use crate::{
+    curves::CurveDescriptor,
+    grid::{CurveInfo, Edge, GridDivision, GridTypeDescr},
+    helices::Helix,
+    parameters::HelixParameters,
+};
+use std::{f32::consts::PI, sync::Arc};
 use ultraviolet::{Isometry2, Rotor2, Rotor3, Vec2, Vec3};
 
 /// A structure made of helices arranged circularly on two planes.
@@ -66,7 +51,6 @@ impl GridDivision for Hyperboloid {
     }
 
     fn interpolate(&self, _helix_parameters: &HelixParameters, x: f32, y: f32) -> (isize, isize) {
-        use std::f32::consts::PI;
         let angle = PI / self.radius as f32;
         let plane_angle = y.atan2(x);
         let i = (plane_angle / angle / 2.).round();
@@ -110,7 +94,7 @@ impl Hyperboloid {
                     t_min: None,
                     t_max: None,
                     orientation,
-                    helix_parameters: helix_parameters.clone(),
+                    helix_parameters: *helix_parameters,
                     grid_center: origin,
                 },
             );
@@ -146,7 +130,6 @@ impl Hyperboloid {
     /// hyperboloid or at the extremity of the hyperboloid
     fn sheet_radii(&self, helix_parameters: &HelixParameters) -> (f32, f32) {
         // First determine the radius in the center of the hyperboloid.
-        use std::f32::consts::PI;
         let angle = PI / self.radius as f32;
         let center_radius =
             (helix_parameters.helix_radius + helix_parameters.inter_helix_gap / 2.) / angle.sin();
@@ -173,21 +156,6 @@ impl Hyperboloid {
         self.sheet_radii(helix_parameters).0
     }
 
-    #[allow(dead_code)] // TODO re-implement twisted structure
-    fn curve(&self, n: usize, helix_parameters: &HelixParameters, omega: f64) -> Twist {
-        let radius = self.sheet_radii(helix_parameters).1;
-        let angle = std::f64::consts::TAU / self.radius as f64;
-        Twist {
-            theta0: n as f64 * angle,
-            radius: radius as f64,
-            position: Vec3::zero(),
-            orientation: Rotor3::identity(),
-            omega,
-            t_min: None,
-            t_max: None,
-        }
-    }
-
     pub fn grid_radius(&self, helix_parameters: &HelixParameters) -> f32 {
         let grid_radius = self.radius(helix_parameters);
         let r = grid_radius / 2. * (2. + 2. * self.shift.cos()).sqrt();
@@ -197,7 +165,6 @@ impl Hyperboloid {
     }
 
     fn origin(&self, i: isize, helix_parameters: &HelixParameters) -> Vec3 {
-        use std::f32::consts::PI;
         let angle = PI / self.radius as f32;
         let grid_radius = self.radius(helix_parameters);
         let i = i % (self.radius as isize);
@@ -206,7 +173,6 @@ impl Hyperboloid {
     }
 
     fn destination(&self, i: isize, helix_parameters: &HelixParameters) -> Vec3 {
-        use std::f32::consts::PI;
         let angle = PI / self.radius as f32;
         let grid_radius = self.radius(helix_parameters);
         let i = i % (self.radius as isize);

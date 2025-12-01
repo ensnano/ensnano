@@ -1,20 +1,3 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
 //! Size handler for ENSnano's GUI.
 
 use serde::{Deserialize, Serialize};
@@ -23,17 +6,12 @@ use serde::{Deserialize, Serialize};
 pub const ALL_UI_SIZES: [UiSize; 3] = [UiSize::Small, UiSize::Medium, UiSize::Large];
 
 /// Size handler for ENSnano's GUI.
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum UiSize {
     Small,
+    #[default]
     Medium,
     Large,
-}
-
-impl Default for UiSize {
-    fn default() -> Self {
-        Self::Medium
-    }
 }
 
 impl UiSize {
@@ -73,11 +51,7 @@ impl UiSize {
     }
 
     pub fn checkbox(&self) -> u16 {
-        match self {
-            Self::Small => 15,
-            Self::Medium => 15,
-            Self::Large => 15,
-        }
+        15
     }
 
     pub fn checkbox_spacing(&self) -> u16 {
@@ -123,7 +97,7 @@ impl UiSize {
 
     /// The full height of the tab_bar
     pub fn tab_bar_height(&self) -> f32 {
-        (self.icon() + 25.0) as f32
+        self.icon() + 25.0
         // TODO: This 25.0 is not satisfying. Someday I should find some way to compute
         // the minimum value to fit all icons.
     }
@@ -132,10 +106,10 @@ impl UiSize {
 impl std::fmt::Display for UiSize {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let ret = match self {
-            UiSize::Small => "Small",
-            UiSize::Medium => "Medium",
-            UiSize::Large => "Large",
+            Self::Small => "Small",
+            Self::Medium => "Medium",
+            Self::Large => "Large",
         };
-        write!(f, "{}", ret)
+        write!(f, "{ret}")
     }
 }

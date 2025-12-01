@@ -1,37 +1,20 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+pub mod instantiator;
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::{CurveInstantiator, Edge};
-use crate::grid::GridPosition;
-use crate::utils::vec_to_dvec;
+use crate::{
+    curves::{CurveBounds, CurveInstantiator, Curved},
+    grid::{Edge, GridPosition},
+    utils::{is_false, vec_to_dvec},
+};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use ultraviolet::{DMat3, DVec3, Vec3};
 
-mod instantiator;
-pub(crate) use instantiator::PieceWiseBezierInstantiator;
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, IntoPrimitive, TryFromPrimitive, PartialOrd, Ord)]
 #[repr(usize)]
 /// A control point of a cubic bezier curve.
 ///
-/// This enum implements Into<usize>.
+/// This enum implements `Into<usize>`.
 pub enum CubicBezierControlPoint {
     Start,
     End,
@@ -49,7 +32,7 @@ pub enum BezierControlPoint {
 }
 
 pub struct CubicBezier {
-    polynomial: CubicBezierPolynom,
+    polynomial: CubicBezierPolynomial,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -79,7 +62,7 @@ impl CubicBezierConstructor {
 
 impl CubicBezier {
     pub fn new(constructor: CubicBezierConstructor) -> Self {
-        let polynomial = CubicBezierPolynom::new(
+        let polynomial = CubicBezierPolynomial::new(
             vec_to_dvec(constructor.start),
             vec_to_dvec(constructor.control1),
             vec_to_dvec(constructor.control2),
@@ -90,14 +73,14 @@ impl CubicBezier {
     }
 }
 
-struct CubicBezierPolynom {
+struct CubicBezierPolynomial {
     q0: DVec3,
     q1: DVec3,
     q2: DVec3,
     q3: DVec3,
 }
 
-impl CubicBezierPolynom {
+impl CubicBezierPolynomial {
     fn new(start: DVec3, control1: DVec3, control2: DVec3, end: DVec3) -> Self {
         let q0 = start;
         let q1 = 3. * (control1 - start);
@@ -124,7 +107,7 @@ impl CubicBezierPolynom {
         (6. * t) * self.q3 + 2. * self.q2
     }
 
-    pub fn max_x(&self) -> f64 {
+    pub(crate) fn max_x(&self) -> f64 {
         let a = 3. * self.q3.x;
         let b = 2. * self.q2.x;
         let c = self.q1.x;
@@ -145,7 +128,7 @@ impl CubicBezierPolynom {
         ret
     }
 
-    pub fn min_x(&self) -> f64 {
+    pub(crate) fn min_x(&self) -> f64 {
         let a = 3. * self.q3.x;
         let b = 2. * self.q2.x;
         let c = self.q1.x;
@@ -168,8 +151,11 @@ impl CubicBezierPolynom {
 
 #[cfg(test)]
 mod tests {
-    const EPSILON: f64 = 1e-6;
     use super::*;
+    use std::f64::consts::PI;
+
+    const EPSILON: f64 = 1e-6;
+
     #[test]
     fn correct_evaluation() {
         let start = DVec3::zero();
@@ -177,9 +163,7 @@ mod tests {
         let control2: DVec3 = [-1., 4., 5.].into();
         let end: DVec3 = [0., 0., 10.].into();
 
-        let poly = CubicBezierPolynom::new(start, control1, control2, end);
-
-        let x = std::f64::consts::PI / 10.;
+        let poly = CubicBezierPolynomial::new(start, control1, control2, end);
 
         let classical_evaluation = |t: f64| {
             start * (1. - t).powi(3)
@@ -187,7 +171,8 @@ mod tests {
                 + control2 * 3. * (1. - t) * t.powi(2)
                 + end * t.powi(3)
         };
-        assert!((poly.evaluate(x) - classical_evaluation(x)).mag() < EPSILON);
+
+        assert!((poly.evaluate(PI / 10.) - classical_evaluation(PI / 10.)).mag() < EPSILON);
         assert!((poly.evaluate(0.0) - classical_evaluation(0.0)).mag() < EPSILON);
         assert!((poly.evaluate(1.0) - classical_evaluation(1.0)).mag() < EPSILON);
     }
@@ -199,9 +184,7 @@ mod tests {
         let control2: DVec3 = [-1., 4., 5.].into();
         let end: DVec3 = [0., 0., 10.].into();
 
-        let poly = CubicBezierPolynom::new(start, control1, control2, end);
-
-        let x = std::f64::consts::PI / 10.;
+        let poly = CubicBezierPolynomial::new(start, control1, control2, end);
 
         let classical_evaluation = |t: f64| {
             -3. * start * (1. - t).powi(2)
@@ -209,7 +192,8 @@ mod tests {
                 + control2 * 3. * t * (2. - 3. * t)
                 + 3. * end * t.powi(2)
         };
-        assert!((poly.derivative(x) - classical_evaluation(x)).mag() < EPSILON);
+
+        assert!((poly.derivative(PI / 10.) - classical_evaluation(PI / 10.)).mag() < EPSILON);
         assert!((poly.derivative(0.0) - classical_evaluation(0.0)).mag() < EPSILON);
         assert!((poly.derivative(1.0) - classical_evaluation(1.0)).mag() < EPSILON);
     }
@@ -221,9 +205,7 @@ mod tests {
         let control2: DVec3 = [-1., 4., 5.].into();
         let end: DVec3 = [0., 0., 10.].into();
 
-        let poly = CubicBezierPolynom::new(start, control1, control2, end);
-
-        let x = std::f64::consts::PI / 10.;
+        let poly = CubicBezierPolynomial::new(start, control1, control2, end);
 
         let classical_evaluation = |t: f64| {
             6. * start * (1. - t)
@@ -231,15 +213,18 @@ mod tests {
                 + control2 * 6. * (1. - 3. * t)
                 + 6. * end * t
         };
+
+        let x = PI / 10.;
         println!("acc {:?}", poly.acceleration(x));
         println!("classical {:?}", classical_evaluation(x));
         assert!((poly.acceleration(x) - classical_evaluation(x)).mag_sq() < EPSILON);
+
         assert!((poly.acceleration(0.0) - classical_evaluation(0.0)).mag_sq() < EPSILON);
         assert!((poly.acceleration(1.0) - classical_evaluation(1.0)).mag_sq() < EPSILON);
     }
 }
 
-impl super::Curved for CubicBezier {
+impl Curved for CubicBezier {
     fn position(&self, t: f64) -> DVec3 {
         self.polynomial.evaluate(t)
     }
@@ -252,8 +237,8 @@ impl super::Curved for CubicBezier {
         self.polynomial.acceleration(t)
     }
 
-    fn bounds(&self) -> super::CurveBounds {
-        super::CurveBounds::BiInfinite
+    fn bounds(&self) -> CurveBounds {
+        CurveBounds::BiInfinite
     }
 }
 
@@ -274,10 +259,6 @@ pub struct InstantiatedPiecewiseBezier {
     pub discretize_quickly: bool,
 }
 
-fn is_false(b: &bool) -> bool {
-    !b
-}
-
 impl PartialEq for InstantiatedPiecewiseBezier {
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id
@@ -288,7 +269,7 @@ impl Eq for InstantiatedPiecewiseBezier {}
 
 impl std::hash::Hash for InstantiatedPiecewiseBezier {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.id.hash(state)
+        self.id.hash(state);
     }
 }
 
@@ -397,7 +378,7 @@ struct SegmentTime {
     time: f64,
 }
 
-impl super::Curved for InstantiatedPiecewiseBezier {
+impl Curved for InstantiatedPiecewiseBezier {
     fn t_max(&self) -> f64 {
         let n = if self.is_cyclic {
             self.ends.len() as f64
@@ -437,8 +418,8 @@ impl super::Curved for InstantiatedPiecewiseBezier {
         b_i.acceleration(s.time)
     }
 
-    fn bounds(&self) -> super::CurveBounds {
-        super::CurveBounds::BiInfinite
+    fn bounds(&self) -> CurveBounds {
+        CurveBounds::BiInfinite
     }
 
     fn discretize_quickly(&self) -> bool {
@@ -453,7 +434,7 @@ pub(super) struct TranslatedPiecewiseBezier {
     pub legacy: bool,
 }
 
-impl super::Curved for TranslatedPiecewiseBezier {
+impl Curved for TranslatedPiecewiseBezier {
     fn position(&self, t: f64) -> DVec3 {
         self.original_curve.position(t)
     }
@@ -466,7 +447,7 @@ impl super::Curved for TranslatedPiecewiseBezier {
         self.original_curve.acceleration(t)
     }
 
-    fn bounds(&self) -> super::CurveBounds {
+    fn bounds(&self) -> CurveBounds {
         self.original_curve.bounds()
     }
 

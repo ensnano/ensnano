@@ -1,23 +1,6 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::*;
-use std::collections::BTreeMap;
+use crate::{bezier_plane::BezierPathId, curves::torus::CurveDescriptor2D, helices::Helix};
+use ordered_float::OrderedFloat;
+use std::{collections::BTreeMap, sync::Arc};
 
 /// A structure that can map time points to nucleotide indices.
 #[derive(Clone, Debug)]
@@ -34,23 +17,6 @@ impl HelixTimeMap {
         if self.nucl_time.len() < 2 {
             x / self.square_per_time
         } else {
-            /*
-            let time_per_x = 1. / self.square_per_time;
-
-            let time = time_per_x * x;
-
-            if time < *self.nucl_time.first().unwrap() {
-                let remainder_time = time - *self.nucl_time.first().unwrap();
-                self.nb_negative_nucl as f64 + remainder_time / time_per_x
-            } else if time > *self.nucl_time.last().unwrap() {
-                let remainder_time = time - *self.nucl_time.last().unwrap();
-                (self.nucl_time.len() - self.nb_negative_nucl) as f64 + remainder_time / time_per_x
-            } else {
-                let n = self.find_time(time);
-                let remainder_time = time - self.nucl_time[n];
-                n as f64 - self.nb_negative_nucl as f64 + remainder_time / time_per_x
-            }
-            */
             let time = x / self.square_per_time;
             let nucl_idx = self.find_time(time);
             let t_left = self.time_nucl(nucl_idx);
@@ -112,7 +78,6 @@ impl HelixTimeMap {
     }
 
     fn square_per_time_for_time_map(nucl_time: &[f64]) -> f64 {
-        use ordered_float::OrderedFloat;
         if nucl_time.len() < 3 {
             1.
         } else {
@@ -160,21 +125,21 @@ impl AbscissaConverter {
     pub fn x_to_nucl_conversion(&self, x: f64) -> f64 {
         match &self.0 {
             AbscissaConverter_::TimeMap(time_map) => time_map.x_to_nucl_conversion(x),
-            AbscissaConverter_::Linear(normalisation_time) => x * normalisation_time,
+            AbscissaConverter_::Linear(normalization_time) => x * normalization_time,
         }
     }
 
     pub fn nucl_to_x_conversion(&self, n: isize) -> f64 {
         match &self.0 {
             AbscissaConverter_::TimeMap(time_map) => time_map.nucl_to_x_conversion(n),
-            AbscissaConverter_::Linear(normalisation_time) => n as f64 / normalisation_time,
+            AbscissaConverter_::Linear(normalization_time) => n as f64 / normalization_time,
         }
     }
 
     pub fn x_conversion(&self, x: f64) -> f64 {
         match &self.0 {
             AbscissaConverter_::TimeMap(time_map) => time_map.x_conversion(x),
-            AbscissaConverter_::Linear(normalisation_time) => x / normalisation_time,
+            AbscissaConverter_::Linear(normalization_time) => x / normalization_time,
         }
     }
 
@@ -196,17 +161,17 @@ impl AbscissaConverter {
 #[derive(Debug)]
 pub(crate) struct PathTimeMaps {
     time_maps: BTreeMap<usize, HelixTimeMap>,
-    length_normalisation: f64,
+    length_normalization: f64,
 }
 
 #[derive(Debug)]
 pub(crate) struct RevolutionCurveTimeMaps {
     time_maps: BTreeMap<usize, HelixTimeMap>,
-    length_normalisation: f64,
+    length_normalization: f64,
 }
 
 impl RevolutionCurveTimeMaps {
-    pub fn new(curve: &CurveDescriptor2D, helices: &[(usize, &Helix)]) -> Self {
+    pub(crate) fn new(curve: &CurveDescriptor2D, helices: &[(usize, &Helix)]) -> Self {
         let mut time_maps = BTreeMap::new();
 
         let mut square_per_time: f64 = 1.;
@@ -225,7 +190,7 @@ impl RevolutionCurveTimeMaps {
                 {
                     positions.push(next_left);
                 }
-                if positions.last().cloned() != Some(curve.curve.t_nucl.len() as isize) {
+                if positions.last().copied() != Some(curve.curve.t_nucl.len() as isize) {
                     positions.push(curve.curve.t_nucl.len() as isize);
                 }
                 for (a, b) in positions.iter().zip(positions.iter().skip(1)) {
@@ -239,7 +204,7 @@ impl RevolutionCurveTimeMaps {
 
         for (h_id, h) in helices
             .iter()
-            .filter(|(_, h)| h.get_revolution_curve_descriptor() == Some(&curve))
+            .filter(|(_, h)| h.get_revolution_curve_descriptor() == Some(curve))
         {
             if let Some(curve) = h.instantiated_curve.as_ref() {
                 let nucl_time = Vec::clone(curve.curve.t_nucl.as_ref());
@@ -255,21 +220,21 @@ impl RevolutionCurveTimeMaps {
         }
         Self {
             time_maps,
-            length_normalisation: square_per_time,
+            length_normalization: square_per_time,
         }
     }
 
-    pub fn get_abscissa_converter(&self, h_id: usize) -> AbscissaConverter {
+    pub(crate) fn get_abscissa_converter(&self, h_id: usize) -> AbscissaConverter {
         if let Some(map) = self.time_maps.get(&h_id) {
             AbscissaConverter(AbscissaConverter_::TimeMap(map.clone()))
         } else {
-            AbscissaConverter(AbscissaConverter_::Linear(self.length_normalisation))
+            AbscissaConverter(AbscissaConverter_::Linear(self.length_normalization))
         }
     }
 }
 
 impl PathTimeMaps {
-    pub fn new(path_id: BezierPathId, helices: &[(usize, &Helix)]) -> Self {
+    pub(crate) fn new(path_id: BezierPathId, helices: &[(usize, &Helix)]) -> Self {
         let mut time_maps = BTreeMap::new();
 
         let mut square_per_time: f64 = 1.;
@@ -295,15 +260,15 @@ impl PathTimeMaps {
         }
         Self {
             time_maps,
-            length_normalisation: square_per_time,
+            length_normalization: square_per_time,
         }
     }
 
-    pub fn get_abscissa_converter(&self, h_id: usize) -> AbscissaConverter {
+    pub(crate) fn get_abscissa_converter(&self, h_id: usize) -> AbscissaConverter {
         if let Some(map) = self.time_maps.get(&h_id) {
             AbscissaConverter(AbscissaConverter_::TimeMap(map.clone()))
         } else {
-            AbscissaConverter(AbscissaConverter_::Linear(self.length_normalisation))
+            AbscissaConverter(AbscissaConverter_::Linear(self.length_normalization))
         }
     }
 }

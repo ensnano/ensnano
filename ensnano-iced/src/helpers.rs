@@ -1,32 +1,20 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-pub use super::widgets::*;
-use crate::{UiSize, fonts::*};
-pub use iced::widget::*;
+use crate::{
+    fonts::{
+        ENSNANO_FONT, INTER_BOLD_FONT,
+        material_icons::{
+            MATERIAL_ICONS_DARK, MATERIAL_ICONS_LIGHT, MaterialIcon, MaterialIconStyle,
+            icon_to_char,
+        },
+    },
+    ui_size::UiSize,
+};
 use iced::{
-    Font, Length, advanced,
+    Length,
     alignment::{Alignment, Horizontal, Vertical},
+    widget::{Button, Image, Row, Space, Text, button, checkbox, image::Handle, row, text},
 };
 
-///
-/// SPACING FUNCTIONS.
-///
+// === SPACING FUNCTIONS ===
 
 const JUMP_SIZE: f32 = 4.0;
 
@@ -40,65 +28,35 @@ pub fn jump_by(amount: impl Into<Length>) -> Space {
     Space::with_height(amount)
 }
 
-///
-/// TEXT FUNCTIONS.
-///
+// === TEXT FUNCTIONS ===
 
 /// Section title widget
-pub fn section<'a, Theme, Renderer>(
-    title: impl ToString,
-    ui_size: UiSize,
-) -> Text<'a, Theme, Renderer>
-where
-    Theme: text::StyleSheet,
-    Renderer: advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
+pub fn section<'a>(title: impl ToString, ui_size: UiSize) -> Text<'a> {
     text(title).size(ui_size.head_text()).font(INTER_BOLD_FONT)
 }
 
 /// Section subtitle widget
-pub fn subsection<'a, Theme, Renderer>(
-    title: impl ToString,
-    ui_size: UiSize,
-) -> Text<'a, Theme, Renderer>
-where
-    Theme: text::StyleSheet,
-    Renderer: advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
+pub fn subsection<'a>(title: impl ToString, ui_size: UiSize) -> Text<'a> {
     text(title).size(ui_size.intermediate_text())
 }
 
-///
-/// ICON FUNCTIONS.
-///
+// === ICON FUNCTIONS ===
 
-pub fn material_icon<'a, Theme, Renderer>(
+pub fn material_icon<'a>(
     icon: MaterialIcon,
     style: MaterialIconStyle,
     ui_size: UiSize,
-) -> Text<'a, Theme, Renderer>
-where
-    Theme: text::StyleSheet,
-    Renderer: advanced::Renderer + advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
+) -> Text<'a> {
     text(icon_to_char(icon))
         .font(match style {
-            MaterialIconStyle::Light => material_icons::MATERIAL_ICONS_LIGHT,
-            MaterialIconStyle::Dark => material_icons::MATERIAL_ICONS_DARK,
+            MaterialIconStyle::Light => MATERIAL_ICONS_LIGHT,
+            MaterialIconStyle::Dark => MATERIAL_ICONS_DARK,
         })
         .size(ui_size.icon())
 }
 
 /// Return a text widget containing the rotation arrow.
-fn rotation_icon<'a, Theme, Renderer>(i: usize, ui_size: UiSize) -> Text<'a, Theme, Renderer>
-where
-    Theme: text::StyleSheet,
-    Renderer: advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
+fn rotation_icon<'a>(i: usize, ui_size: UiSize) -> Text<'a> {
     match i {
         0 => material_icon(MaterialIcon::ArrowBack, MaterialIconStyle::Dark, ui_size),
         1 => material_icon(MaterialIcon::ArrowForward, MaterialIconStyle::Dark, ui_size),
@@ -113,14 +71,12 @@ where
     }
 }
 
-///
-/// BUTTON FUNCTIONS.
-///
+// === BUTTON FUNCTIONS ===
 
 // NOTE: It seems since iced 0.12 that giving a size to a button make the (text) content disappear,
 //       therefore we give the size to the underlying text.
 
-// NOTE: This wrapper ensures that every button has a consisent shape.
+// NOTE: This wrapper ensures that every button has a consistent shape.
 macro_rules! button_text_wrapper {
     ($text:expr, $ui_size:ident) => {
         button(
@@ -133,27 +89,15 @@ macro_rules! button_text_wrapper {
 }
 
 /// Return a text button.
-pub fn text_button<'a, Message, Theme, Renderer>(
-    label: impl ToString,
-    ui_size: UiSize,
-) -> Button<'a, Message, Theme, Renderer>
-where
-    Theme: button::StyleSheet + text::StyleSheet + 'a,
-    Renderer: advanced::Renderer + advanced::text::Renderer + 'a,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
+pub fn text_button<'a, Message>(label: impl ToString, ui_size: UiSize) -> Button<'a, Message> {
     button_text_wrapper!(text(label).size(ui_size.main_text()), ui_size).height(ui_size.button())
 }
-pub fn fixed_text_button<'a, Message, Theme, Renderer>(
+
+pub fn fixed_text_button<'a, Message>(
     label: impl ToString,
     width_factor: f32,
     ui_size: UiSize,
-) -> Button<'a, Message, Theme, Renderer>
-where
-    Theme: button::StyleSheet + text::StyleSheet + 'a,
-    Renderer: advanced::Renderer + advanced::text::Renderer + 'a,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
+) -> Button<'a, Message> {
     button_text_wrapper!(
         text(label)
             .size(ui_size.main_text())
@@ -164,43 +108,24 @@ where
 }
 
 /// Return a button containing an icon in the light theme.
-pub fn material_icon_button<'a, Message, Theme, Renderer>(
+pub fn material_icon_button<'a, Message>(
     icon: MaterialIcon,
     style: MaterialIconStyle,
     ui_size: UiSize,
-) -> Button<'a, Message, Theme, Renderer>
-where
-    Theme: button::StyleSheet + text::StyleSheet + 'a,
-    Renderer: advanced::text::Renderer + 'a,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
+) -> Button<'a, Message> {
     button_text_wrapper!(material_icon(icon, style, ui_size), ui_size)
         .height(ui_size.button())
         .width(ui_size.button())
 }
 
-pub fn rotation_icon_button<'a, Message, Theme, Renderer>(
-    i: usize,
-    ui_size: UiSize,
-) -> Button<'a, Message, Theme, Renderer>
-where
-    Theme: button::StyleSheet + text::StyleSheet + 'a,
-    Renderer: advanced::text::Renderer + 'a,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
+pub fn rotation_icon_button<'a, Message>(i: usize, ui_size: UiSize) -> Button<'a, Message> {
     button_text_wrapper!(rotation_icon(i, ui_size).height(ui_size.button()), ui_size)
 }
 
 /// A button containing an icon from the ENSNANO font.
-pub fn icon_button<'a, Message, Theme, Renderer>(
-    icon_char: char,
-    ui_size: UiSize,
-) -> Button<'a, Message, Theme, Renderer>
+pub fn icon_button<'a, Message>(icon_char: char, ui_size: UiSize) -> Button<'a, Message>
 where
     Message: Clone,
-    Theme: button::StyleSheet + text::StyleSheet + 'a,
-    Renderer: advanced::Renderer + advanced::text::Renderer + 'a,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
 {
     button_text_wrapper!(
         text(icon_char).font(ENSNANO_FONT).size(ui_size.icon()),
@@ -211,19 +136,9 @@ where
 }
 
 /// A button containing an icon.
-pub fn image_button<'a, Message, Theme, Renderer, Handle>(
-    image: Image<Handle>,
-    ui_size: UiSize,
-) -> Button<'a, Message, Theme, Renderer>
+pub fn image_button<'a, Message>(image: Image<Handle>, ui_size: UiSize) -> Button<'a, Message>
 where
     Message: Clone + 'a,
-    Theme: button::StyleSheet + text::StyleSheet + 'a,
-    Renderer: advanced::Renderer
-        + advanced::text::Renderer
-        + advanced::image::Renderer<Handle = Handle>
-        + 'a,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-    Handle: std::hash::Hash + Clone + 'a,
 {
     button(row![image].align_items(Alignment::Center))
         .height(ui_size.button())
@@ -231,23 +146,19 @@ where
 }
 
 /// Return a button that starts, then stops something.
-pub fn start_stop_button<'a, F, Message, Theme, Renderer>(
+pub fn start_stop_button<'a, F, Message>(
     label: impl ToString,
     ui_size: UiSize,
     start_stop_switch: Option<F>,
     is_started: bool,
-) -> Button<'a, Message, Theme, Renderer>
+) -> Button<'a, Message>
 where
     F: 'static + Fn(bool) -> Message,
-    Theme: button::StyleSheet + text::StyleSheet + 'a,
-    <Theme as button::StyleSheet>::Style: From<theme::Button>,
-    Renderer: advanced::text::Renderer + 'a,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
 {
     let style = if is_started {
-        theme::Button::Destructive
+        iced::theme::Button::Destructive
     } else {
-        theme::Button::Positive
+        iced::theme::Button::Positive
     };
     let mut start_stop_button = text_button(label, ui_size).style(style);
     // NOTE: In the previous version of the start_stop_button (i.e. GoStop),
@@ -256,26 +167,21 @@ where
     //       logos such as: ⏵ ⏸ ⏺ ⏹
     if let Some(send_start_stop_message) = start_stop_switch {
         start_stop_button = start_stop_button.on_press(send_start_stop_message(!is_started));
-        // The action is to reverset the state.
     }
     start_stop_button
 }
 
-///
-/// CHECKBOXES
-///
+// === CHECKBOX FUNCTIONS ===
 
 /// Return a checkbox widget with its label placed on the left.
-pub fn right_checkbox<'a, Message, Theme, Renderer>(
+pub fn right_checkbox<'a, Message>(
     is_checked: bool,
     label: impl ToString,
     toggle_message: impl Fn(bool) -> Message + 'a,
     ui_size: UiSize,
-) -> Row<'a, Message, Theme, Renderer>
+) -> Row<'a, Message>
 where
     Message: 'a,
-    Theme: text::StyleSheet + checkbox::StyleSheet + 'a,
-    Renderer: advanced::text::Renderer + 'a,
 {
     row![
         text(label),

@@ -1,32 +1,14 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+pub mod text_drawer;
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use ensnano_iced::iced_wgpu::wgpu;
-use std::collections::HashMap;
+use crate::{
+    bindgroup_manager::DynamicBindGroup,
+    text::{Letter, Vertex as CharVertex},
+    texture::Texture,
+};
+use ensnano_consts::{SAMPLE_COUNT, TEXTURE_BINDING_ID};
 use std::rc::Rc;
 use ultraviolet::{Mat2, Vec2, Vec4};
 use wgpu::{BindGroupLayout, Device, Queue, RenderPass, RenderPipeline, include_spirv};
-
-use crate::bindgroup_manager::DynamicBindGroup;
-use crate::text::{Letter, Vertex as CharVertex};
-use crate::texture::Texture;
-use ensnano_interactor::consts::*;
-mod text_drawer;
-pub use text_drawer::{Line, Sentence, TextDrawer};
 
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
@@ -61,7 +43,7 @@ impl CharDrawer {
         character: char,
     ) -> Self {
         let instances_bg = DynamicBindGroup::new(device.clone(), queue.clone(), "chars instances");
-        let char_texture = Rc::new(Letter::new(character, device.clone(), queue.clone()));
+        let char_texture = Rc::new(Letter::new(character, device.clone(), queue));
 
         let new_instances = vec![CharInstance {
             top_left: Vec2::zero(),
@@ -76,7 +58,7 @@ impl CharDrawer {
             number_instances: 0,
             pipeline: None,
             instances_bg,
-            letter: char_texture.clone(),
+            letter: char_texture,
         };
         let pipeline = ret.create_pipeline(globals_layout);
         ret.pipeline = Some(pipeline);
@@ -93,13 +75,13 @@ impl CharDrawer {
     }
 
     pub fn new_instances(&mut self, instances: Rc<Vec<CharInstance>>) {
-        self.new_instances = Some(instances)
+        self.new_instances = Some(instances);
     }
 
     fn update_instances(&mut self) {
-        if let Some(ref instances) = self.new_instances {
+        if let Some(instances) = &self.new_instances {
             self.number_instances = instances.len();
-            let instances_data: Vec<_> = instances.iter().cloned().collect();
+            let instances_data: Vec<_> = instances.iter().copied().collect();
             self.instances_bg.update(instances_data.as_slice());
         }
     }
@@ -118,7 +100,7 @@ impl CharDrawer {
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                     bind_group_layouts: &[
                         globals_layout,
-                        &self.instances_bg.get_layout(),
+                        self.instances_bg.get_layout(),
                         &self.letter.bind_group_layout,
                     ],
                     push_constant_ranges: &[],

@@ -1,23 +1,10 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::*;
 use chebyshev_polynomials::ChebyshevPolynomial;
+use ensnano_design::curves::{
+    CurveDescriptor, revolution::InterpolationDescriptor, torus::CurveDescriptor2D,
+};
+use ensnano_interactor::surfaces::{RevolutionSurfaceSystemDescriptor, RootedRevolutionSurface};
+use std::f64::consts::TAU;
+use ultraviolet::{DVec3, Similarity3};
 
 const NB_POINT_INTERPOLATION: usize = 100_000;
 const INTERPOLATION_ERROR: f64 = 1e-4;
@@ -37,7 +24,7 @@ pub(super) struct CloseSurfaceTopology {
 }
 
 impl CloseSurfaceTopology {
-    pub fn new(desc: RevolutionSurfaceSystemDescriptor) -> Self {
+    pub(super) fn new(desc: RevolutionSurfaceSystemDescriptor) -> Self {
         let nb_segment = 2 * desc.target.rooting_parameters.nb_helix_per_half_section;
         let nb_section_per_segment = desc.simulation_parameters.nb_section_per_segment;
         let total_nb_section = nb_segment * nb_section_per_segment;
@@ -91,49 +78,47 @@ impl CloseSurfaceTopology {
             interpolator,
         }
     }
-}
 
-impl CloseSurfaceTopology {
-    pub fn nb_balls(&self) -> usize {
+    pub(super) fn nb_balls(&self) -> usize {
         self.nb_section_per_segment * self.nb_segment
     }
 
-    pub fn predecessor(&self, ball_id: usize) -> usize {
+    pub(super) fn predecessor(&self, ball_id: usize) -> usize {
         self.prev_section[ball_id]
     }
 
-    pub fn number_of_sections_per_segment(&self) -> usize {
-        return self.nb_section_per_segment;
+    pub(super) fn number_of_sections_per_segment(&self) -> usize {
+        self.nb_section_per_segment
     }
 
-    pub fn balls_with_successor(&self) -> &[usize] {
+    pub(super) fn balls_with_successor(&self) -> &[usize] {
         &self.idx_range
     }
-    pub fn successor(&self, ball_id: usize) -> usize {
+    pub(super) fn successor(&self, ball_id: usize) -> usize {
         self.next_section[ball_id]
     }
 
-    pub fn balls_with_predecessor_and_successor(&self) -> &[usize] {
+    pub(super) fn balls_with_predecessor_and_successor(&self) -> &[usize] {
         &self.idx_range
     }
 
-    pub fn balls_involved_in_spring(&self) -> &[usize] {
+    pub(super) fn balls_involved_in_spring(&self) -> &[usize] {
         &self.idx_range
     }
 
-    pub fn other_spring_end(&self, ball_id: usize) -> usize {
+    pub(super) fn other_spring_end(&self, ball_id: usize) -> usize {
         self.other_spring_end[ball_id]
     }
 
-    pub fn surface_position(&self, revolution_angle: f64, theta: f64) -> DVec3 {
+    pub(super) fn surface_position(&self, revolution_angle: f64, theta: f64) -> DVec3 {
         self.target.position(revolution_angle, theta)
     }
 
-    pub fn revolution_angle_ball(&self, ball_id: usize) -> f64 {
+    pub(super) fn revolution_angle_ball(&self, ball_id: usize) -> f64 {
         (ball_id % self.nb_section_per_segment) as f64 * TAU / (self.nb_section_per_segment as f64)
     }
 
-    pub fn theta_ball_init(&self) -> Vec<f64> {
+    pub(super) fn theta_ball_init(&self) -> Vec<f64> {
         let total_nb_segment = self.nb_segment * self.nb_section_per_segment;
         let mut ret = Vec::with_capacity(total_nb_segment);
 
@@ -155,28 +140,36 @@ impl CloseSurfaceTopology {
         ret
     }
 
-    pub fn dpos_dtheta(&self, revolution_angle: f64, section_t: f64) -> DVec3 {
+    pub(super) fn dpos_dtheta(&self, revolution_angle: f64, section_t: f64) -> DVec3 {
         self.target.dpos_dtheta(revolution_angle, section_t)
     }
 
-    pub fn d2pos_dtheta2(&self, revolution_angle: f64, section_t: f64) -> DVec3 {
+    pub(super) fn d2pos_dtheta2(&self, revolution_angle: f64, section_t: f64) -> DVec3 {
         self.target.d2pos_dtheta2(revolution_angle, section_t)
     }
 
-    pub fn rescale_radius(&mut self, objective_number_of_nts: usize, actual_number_of_nt: usize) {
+    pub(super) fn rescale_radius(
+        &mut self,
+        objective_number_of_nts: usize,
+        actual_number_of_nt: usize,
+    ) {
         self.target
             .rescale_radius(objective_number_of_nts, actual_number_of_nt);
     }
 
-    pub fn rescale_section(&mut self, scaling_factor: f64) {
-        self.target.rescale_section(scaling_factor)
+    pub(super) fn rescale_section(&mut self, scaling_factor: f64) {
+        self.target.rescale_section(scaling_factor);
     }
 
-    pub fn axis(&self, revolution_angle: f64) -> DVec3 {
+    pub(super) fn axis(&self, revolution_angle: f64) -> DVec3 {
         self.target.axis(revolution_angle)
     }
 
-    pub fn to_curve_descriptor(&self, thetas: Vec<f64>, finished: bool) -> Vec<CurveDescriptor> {
+    pub(super) fn to_curve_descriptor(
+        &self,
+        thetas: Vec<f64>,
+        finished: bool,
+    ) -> Vec<CurveDescriptor> {
         let mut ret = Vec::new();
 
         let nb_segment_per_helix = self.nb_segment / self.target.nb_spirals();
@@ -198,13 +191,12 @@ impl CloseSurfaceTopology {
                 }
                 let last_value = segment_thetas.last().unwrap();
                 while next_value >= 0.5 + last_value {
-                    next_value -= 1.
+                    next_value -= 1.;
                 }
                 while next_value <= last_value - 0.5 {
-                    next_value += 1.
+                    next_value += 1.;
                 }
                 segment_thetas.push(next_value);
-                //println!("thetas {:.2?}", segment_thetas);
                 let s = (0..=self.nb_section_per_segment)
                     .map(|x| x as f64 / self.nb_section_per_segment as f64);
                 let pv: Vec<_> = s.zip(segment_thetas.into_iter()).collect();
@@ -213,7 +205,7 @@ impl CloseSurfaceTopology {
                 interpolations.push(InterpolationDescriptor::Chebyshev {
                     coeffs: polynomials.coeffs,
                     interval,
-                })
+                });
             }
             let rem = self.target_scaffold_length % self.target.nb_spirals();
 
@@ -228,7 +220,7 @@ impl CloseSurfaceTopology {
                 self.target
                     .curve_descriptor(interpolations, objective_number_of_nts),
                 theta_0,
-            ))
+            ));
         }
         ret.sort_by_key(|(_, k)| ordered_float::OrderedFloat::from(*k));
 
@@ -241,11 +233,11 @@ impl CloseSurfaceTopology {
             .collect()
     }
 
-    pub fn fixed_points(&self) -> &[usize] {
+    pub(super) fn fixed_points(&self) -> &[usize] {
         &[]
     }
 
-    pub fn get_frame(&self) -> Similarity3 {
+    pub(super) fn get_frame(&self) -> Similarity3 {
         self.target.get_frame()
     }
 }
@@ -270,11 +262,11 @@ fn interpolator_inverse_curvilinear_abscissa(curve: &CurveDescriptor2D) -> Cheby
 
     let perimeter = *abscissas.last().unwrap();
 
-    for x in abscissas.iter_mut() {
+    for x in &mut abscissas {
         *x /= perimeter;
     }
 
     log::info!("Interpolating inverse...");
-    let abscissa_t = abscissas.iter().cloned().zip(ts.iter().cloned()).collect();
+    let abscissa_t = abscissas.iter().copied().zip(ts.iter().copied()).collect();
     chebyshev_polynomials::interpolate_points(abscissa_t, INTERPOLATION_ERROR)
 }

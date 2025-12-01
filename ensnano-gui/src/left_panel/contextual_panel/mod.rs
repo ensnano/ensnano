@@ -1,43 +1,31 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+pub(super) mod value_constructor;
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-mod value_constructor;
-
-use super::super::GuiDesignReaderExt;
-use super::*;
-use ensnano_design::{BezierVertexId, grid::GridId};
+use crate::{AppState, GuiDesignReaderExt, Requests, left_panel::Message};
+use ensnano_consts::{
+    ALT, BACKSPACE_CHAR, CTRL, HELIX_CHAR, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_UP, L_CLICK, M_CLICK,
+    MOVE_CHAR, NUCL_CHAR, R_CLICK, ROT_CHAR, SELECT_CHAR, SHIFT, STRAND_CHAR, SUPPR_CHAR,
+};
+use ensnano_design::{bezier_plane::BezierVertexId, grid::GridId};
 use ensnano_iced::{
-    helpers::*,
-    iced::{self, Alignment, alignment::Horizontal},
+    helpers::{extra_jump, right_checkbox, section, subsection, text_button},
     theme,
+    ui_size::UiSize,
+    widgets::keyboard_priority::keyboard_priority,
 };
 use ensnano_interactor::{
-    Selection, SimulationState,
-    consts::{
-        ALT, BACKSPACECHAR, CTRL, HELIXCHAR, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_UP, LCLICK, MCLICK,
-        MOVECHAR, NUCLCHAR, RCLICK, ROTCHAR, SELECTCHAR, SHIFT, STRANDCHAR, SUPPRCHAR,
-    },
+    SimulationState,
+    selection::{ActionMode, Selection},
 };
-use ultraviolet::{Rotor3, Vec2};
-use value_constructor::{BezierVertexBuilder, Builder, GridBuilder};
-pub use value_constructor::{InstantiatedValue, ValueKind};
+use iced::{
+    Alignment, Command, Length,
+    alignment::Horizontal,
+    widget::{Column, Space, checkbox, column, row, scrollable, text, text_input},
+};
+use std::sync::{Arc, Mutex};
+use ultraviolet::{Rotor3, Vec2, Vec3};
+use value_constructor::{BezierVertexBuilder, Builder, GridBuilder, InstantiatedValue, ValueKind};
 
-pub enum ValueRequest {
+pub(super) enum ValueRequest {
     HelixGridPosition {
         grid_id: GridId,
         position: Vec3,
@@ -66,7 +54,7 @@ impl ValueRequest {
                         position: v,
                     })
                 } else {
-                    log::error!("Received value {:?} with selection {:?}", value, selection);
+                    log::error!("Received value {value:?} with selection {selection:?}");
                     None
                 }
             }
@@ -77,7 +65,7 @@ impl ValueRequest {
                         orientation,
                     })
                 } else {
-                    log::error!("Received value {:?} with selection {:?}", value, selection);
+                    log::error!("Received value {value:?} with selection {selection:?}");
                     None
                 }
             }
@@ -88,7 +76,7 @@ impl ValueRequest {
                         nb_turn,
                     })
                 } else {
-                    log::error!("Received value {:?} with selection {:?}", value, selection);
+                    log::error!("Received value {value:?} with selection {selection:?}");
                     None
                 }
             }
@@ -99,7 +87,7 @@ impl ValueRequest {
                         position: pos,
                     })
                 } else {
-                    log::error!("Received value {:?} with selection {:?}", value, selection);
+                    log::error!("Received value {value:?} with selection {selection:?}");
                     None
                 }
             }
@@ -120,7 +108,7 @@ impl ValueRequest {
                 .unwrap()
                 .set_grid_orientation(*grid_id, *orientation),
             Self::GridNbTurn { grid_id, nb_turn } => {
-                request.lock().unwrap().set_nb_turn(*grid_id, *nb_turn)
+                request.lock().unwrap().set_nb_turn(*grid_id, *nb_turn);
             }
             Self::BezierVertexPosition {
                 vertex_id,
@@ -144,7 +132,6 @@ where
 impl<State> InstantiatedBuilder<State>
 where
     State: AppState,
-    //Renderer: iced::advanced::Renderer,
 {
     /// If a builder can be made from the selection, update the builder and return true. Otherwise,
     /// return false.
@@ -216,7 +203,7 @@ impl<State> ContextualPanel<State>
 where
     State: AppState,
 {
-    pub fn new(width: u16) -> Self {
+    pub(super) fn new(width: u16) -> Self {
         Self {
             width,
             force_help: false,
@@ -227,14 +214,14 @@ where
         }
     }
 
-    pub fn new_width(&mut self, width: u16) {
+    pub(super) fn new_width(&mut self, width: u16) {
         self.width = width;
     }
 
-    pub fn update(&mut self, app_state: &mut State) -> Command<Message<State>> {
+    pub(super) fn update(&mut self, app_state: &State) -> Command<Message<State>> {
         let selection = app_state
             .get_selection()
-            .get(0)
+            .first()
             .unwrap_or(&Selection::Nothing);
         let nb_selected = app_state
             .get_selection()
@@ -262,21 +249,21 @@ where
                     self.builder = None;
                 }
             } else {
-                self.builder = InstantiatedBuilder::new(s, reader)
+                self.builder = InstantiatedBuilder::new(s, reader);
             }
         } else {
             self.builder = None;
         }
     }
 
-    pub fn view(
+    pub(super) fn view(
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> ensnano_iced::Element<'_, Message<State>> {
+    ) -> iced::Element<'_, Message<State>> {
         let selection = app_state
             .get_selection()
-            .get(0)
+            .first()
             .unwrap_or(&Selection::Nothing);
 
         let nb_selected = app_state
@@ -289,14 +276,14 @@ where
             .get_strand_building_state()
             .map(|b| b.dragged_nucl)
             .and_then(|nucl| {
-                log::info!("dragged_nucl: {:?}", nucl);
+                log::info!("dragged_nucl: {nucl:?}");
                 app_state.get_reader().get_id_of_xover_involving_nucl(nucl)
             })
             .and_then(|id| app_state.get_reader().xover_length(id));
 
         let info_values = values_of_selection(selection, app_state.get_reader().as_ref());
 
-        // NOTE: The brancing below determines what is viewed in the contextual panel.
+        // NOTE: The branching below determines what is viewed in the contextual panel.
         //
         let mut content = if self.show_tutorial {
             let link = "http://ens-lyon.fr/ensnano";
@@ -319,9 +306,9 @@ where
         } else if *selection == Selection::Nothing && xover_len.is_none() {
             turn_into_help_column(ui_size)
         } else if nb_selected > 1 {
-            // NOTE: When the number of objects selectet is greater than one,
+            // NOTE: When the number of objects selected is greater than one,
             //       we only print the number of object selected.
-            self::column![text(format!("{} objects selected", nb_selected)),]
+            self::column![text(format!("{nb_selected} objects selected"))]
                 .width(Length::Fill)
                 .align_items(Alignment::Center)
         } else {
@@ -351,18 +338,18 @@ where
                         SimulationState::None => TwistStatus::CanTwist,
                         _ => TwistStatus::CannotTwist,
                     };
-                    column = column.push(add_grid_content(info_values.clone(), ui_size, twisting))
+                    column = column.push(add_grid_content(info_values.clone(), ui_size, twisting));
                 }
                 Selection::Strand(_, _) => {
-                    column = column.push(add_strand_content(info_values.clone(), ui_size))
+                    column = column.push(add_strand_content(info_values.clone(), ui_size));
                 }
                 Selection::Nucleotide(_, _) => {
                     let anchor = info_values[0].clone();
-                    column = column.push(text(format!("Anchor {}", anchor)));
+                    column = column.push(text(format!("Anchor {anchor}")));
                 }
                 Selection::Xover(_, _) => {
                     if xover_len.is_none() {
-                        if let Some(info) = info_values.get(0) {
+                        if let Some(info) = info_values.first() {
                             column = column.push(text(info));
                         }
                         if let Some(info) = info_values.get(1) {
@@ -373,13 +360,13 @@ where
                 _ => (),
             }
             if let Some(builder) = &self.builder {
-                column = column.push(builder.builder.view(ui_size, selection, app_state))
+                column = column.push(builder.builder.view(ui_size, selection, app_state));
             }
             column
         };
 
         if let Some(info_values) = xover_len.map(|v| fmt_xover_len(Some(v))) {
-            if let Some(info) = info_values.get(0) {
+            if let Some(info) = info_values.first() {
                 content = content.push(text(info));
             }
             if let Some(info) = info_values.get(1) {
@@ -397,12 +384,12 @@ where
             content = content.push(row![
                 text("Loopout"),
                 keyboard_priority(
+                    "Loopout",
+                    Message::SetKeyboardPriority,
                     text_input("", text_input_content)
                         .on_input(Message::InsertionLengthInput)
                         .on_submit(Message::InsertionLengthSubmitted)
                 )
-                .on_priority(Message::SetKeyboardPriority(true))
-                .on_unpriority(Message::SetKeyboardPriority(false)),
             ]);
         }
 
@@ -410,12 +397,7 @@ where
         // NOTE: I don't really understand why there is a “- 2” here.
     }
 
-    pub fn selection_value_changed<R: Requests>(
-        &mut self,
-        _n: usize,
-        s: String,
-        requests: Arc<Mutex<R>>,
-    ) {
+    pub(super) fn selection_value_changed<R: Requests>(&self, s: String, requests: Arc<Mutex<R>>) {
         if let Ok(g_id) = s.parse() {
             requests
                 .lock()
@@ -424,19 +406,19 @@ where
         }
     }
 
-    pub fn set_small_sphere<R: Requests>(&mut self, b: bool, requests: Arc<Mutex<R>>) {
+    pub(super) fn set_small_sphere<R: Requests>(&self, b: bool, requests: Arc<Mutex<R>>) {
         requests.lock().unwrap().set_small_sphere(b);
     }
 
-    pub fn scaffold_id_set<R: Requests>(&mut self, n: usize, b: bool, requests: Arc<Mutex<R>>) {
+    pub(super) fn scaffold_id_set<R: Requests>(&self, n: usize, b: bool, requests: Arc<Mutex<R>>) {
         if b {
-            requests.lock().unwrap().set_scaffold_id(Some(n))
+            requests.lock().unwrap().set_scaffold_id(Some(n));
         } else {
-            requests.lock().unwrap().set_scaffold_id(None)
+            requests.lock().unwrap().set_scaffold_id(None);
         }
     }
 
-    pub fn state_updated(&mut self) {
+    pub(super) fn state_updated(&mut self) {
         self.force_help = false;
         self.show_tutorial = false;
     }
@@ -449,27 +431,27 @@ where
         self.add_strand_menu.update_length_str(length_str)
     }
 
-    pub fn get_build_helix_mode(&self) -> ActionMode {
+    pub(super) fn get_build_helix_mode(&self) -> ActionMode {
         self.add_strand_menu.get_build_helix_mode()
     }
 
-    pub fn get_new_strand_parameters(&self) -> Option<(isize, usize)> {
+    pub(super) fn get_new_strand_parameters(&self) -> Option<(isize, usize)> {
         self.add_strand_menu.get_new_strand_parameters()
     }
 
-    pub fn set_show_strand(&mut self, show: bool) {
-        self.add_strand_menu.set_show_strand(show)
+    pub(super) fn set_show_strand(&mut self, show: bool) {
+        self.add_strand_menu.set_show_strand(show);
     }
 
-    pub fn update_builder_value(&mut self, kind: ValueKind, n: usize, value: String) {
+    pub(super) fn update_builder_value(&mut self, kind: ValueKind, n: usize, value: String) {
         if let Some(b) = &mut self.builder {
-            b.builder.update_str_value(kind, n, value)
+            b.builder.update_str_value(kind, n, value);
         } else {
             log::error!("Cannot update value: No instantiated builder");
         }
     }
 
-    pub fn submit_value(&mut self, kind: ValueKind) -> Option<ValueRequest> {
+    pub(super) fn submit_value(&mut self, kind: ValueKind) -> Option<ValueRequest> {
         if let Some(b) = &mut self.builder {
             if let Some(value) = b.builder.submit_value(kind) {
                 ValueRequest::from_value_and_selection(&b.selection, value)
@@ -482,7 +464,7 @@ where
         }
     }
 
-    pub fn request_from_value(&mut self, value: InstantiatedValue) -> Option<ValueRequest> {
+    pub(super) fn request_from_value(&mut self, value: InstantiatedValue) -> Option<ValueRequest> {
         if let Some(b) = &mut self.builder {
             ValueRequest::from_value_and_selection(&b.selection, value)
         } else {
@@ -491,11 +473,11 @@ where
         }
     }
 
-    pub fn update_insertion_length_input(&mut self, input: String) {
+    pub(super) fn update_insertion_length_input(&mut self, input: String) {
         self.insertion_length_state.input_str = Some(input);
     }
 
-    pub fn get_insertion_request(&self) -> Option<InsertionRequest> {
+    pub(super) fn get_insertion_request(&self) -> Option<InsertionRequest> {
         let length = self
             .insertion_length_state
             .input_str
@@ -518,7 +500,7 @@ fn add_grid_content<'a, State: AppState>(
     info_values: Vec<String>,
     ui_size: UiSize,
     twisting: TwistStatus,
-) -> ensnano_iced::Element<'a, Message<State>> {
+) -> iced::Element<'a, Message<State>> {
     self::column![
         // twist_button
         match twisting {
@@ -530,7 +512,7 @@ fn add_grid_content<'a, State: AppState>(
             "Persistent phantoms",
             info_values[0].parse::<bool>().unwrap()
         )
-        .on_toggle(|b| Message::SelectionValueChanged(0, bool_to_string(b)),)
+        .on_toggle(|b| Message::SelectionValueChanged(bool_to_string(b)),)
         .size(ui_size.checkbox())
         .text_size(ui_size.main_text()),
         checkbox("No sphere", info_values[1].parse::<bool>().unwrap())
@@ -544,18 +526,18 @@ fn add_grid_content<'a, State: AppState>(
 fn add_strand_content<'a, State: AppState>(
     info_values: Vec<String>,
     ui_size: UiSize,
-) -> ensnano_iced::Element<'a, Message<State>> {
+) -> iced::Element<'a, Message<State>> {
     let s_id = info_values[2].parse::<usize>().unwrap();
     self::column![
         row![
             text("Name").size(ui_size.main_text()),
             keyboard_priority(
+                "Name",
+                Message::SetKeyboardPriority,
                 text_input("Name", &info_values[4])
                     .on_input(move |new_name| { Message::StrandNameChanged(s_id, new_name) })
                     .size(ui_size.main_text())
             )
-            .on_priority(Message::SetKeyboardPriority(true))
-            .on_unpriority(Message::SetKeyboardPriority(false)),
         ],
         text(format!("length {}", info_values[0])).size(ui_size.main_text()),
         checkbox("Scaffold", info_values[1].parse().unwrap())
@@ -603,9 +585,7 @@ fn add_help_to_column<'a, State: AppState>(
     ]
 }
 
-fn turn_into_help_column<'a, State: AppState>(
-    ui_size: UiSize,
-) -> Column<'a, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
+fn turn_into_help_column<'a, State: AppState>(ui_size: UiSize) -> Column<'a, Message<State>> {
     self::column![
         section("Help", ui_size)
             .width(Length::Fill)
@@ -621,62 +601,56 @@ fn turn_into_help_column<'a, State: AppState>(
 fn view_3d_help() -> Vec<(String, String)> {
     vec![
         (
-            format!("{}", LCLICK),
+            format!("{L_CLICK}"),
             "Select\nnt → strand → helix".to_owned(),
         ),
-        (
-            format!("{}+{}", SHIFT, LCLICK),
-            "Multiple select".to_owned(),
-        ),
+        (format!("{SHIFT}+{L_CLICK}"), "Multiple select".to_owned()),
         (String::new(), String::new()),
         (
-            format!("2x{}", LCLICK),
+            format!("2x{L_CLICK}"),
             "Center selection in 2D view".to_owned(),
         ),
         (String::new(), String::new()),
-        (format!("{} Drag", MCLICK), "Translate camera".to_owned()),
+        (format!("{M_CLICK} Drag"), "Translate camera".to_owned()),
         (
-            format!("{}+{} Drag", ALT, LCLICK),
+            format!("{ALT}+{L_CLICK} Drag"),
             "Translate camera".to_owned(),
         ),
         (String::new(), String::new()),
-        (format!("{}", RCLICK), "Set pivot".to_owned()),
+        (format!("{R_CLICK}"), "Set pivot".to_owned()),
         (
-            format!("{} Drag", RCLICK),
+            format!("{R_CLICK} Drag"),
             "Rotate camera around pivot (preserve the XZ plane)".to_owned(),
         ),
         (
-            format!("{}+{} Drag", CTRL, RCLICK),
+            format!("{CTRL}+{R_CLICK} Drag"),
             "Rotate camera freely around pivot".to_owned(),
         ),
         (
-            format!("{}+{} Drag", ALT, RCLICK),
+            format!("{ALT}+{R_CLICK} Drag"),
             "Rotate camera around pivot (preserve the current horizon plane)".to_owned(),
         ),
-        (
-            format!("{}+{} Drag", SHIFT, RCLICK),
-            "Tilt camera".to_owned(),
-        ),
+        (format!("{SHIFT}+{R_CLICK} Drag"), "Tilt camera".to_owned()),
         (
             "⎵ (with cursor over the 3D scene)".to_owned(),
             "Export the current view in png format".to_owned(),
         ),
         (String::new(), String::new()),
-        (format!("{} Drag", LCLICK), "Edit strand".to_owned()),
+        (format!("{L_CLICK} Drag"), "Edit strand".to_owned()),
         (
-            format!("long {} Drag", LCLICK),
+            format!("long {L_CLICK} Drag"),
             "Make crossover (drop on nt)".to_owned(),
         ),
         (String::new(), String::new()),
-        (format!("When in 3D {} mode", MOVECHAR), String::new()),
+        (format!("When in 3D {MOVE_CHAR} mode"), String::new()),
         (
-            format!("{} on handle", LCLICK),
+            format!("{L_CLICK} on handle"),
             "Move selected object".to_owned(),
         ),
         (String::new(), String::new()),
-        (format!("When in 3D {} mode", ROTCHAR), String::new()),
+        (format!("When in 3D {ROT_CHAR} mode"), String::new()),
         (
-            format!("{} on handle", LCLICK),
+            format!("{L_CLICK} on handle"),
             "Rotate selected object".to_owned(),
         ),
     ]
@@ -684,91 +658,82 @@ fn view_3d_help() -> Vec<(String, String)> {
 
 fn view_2d_3d_help() -> Vec<(String, String)> {
     vec![
-        (format!("{} + C", CTRL), "Copy selection".to_owned()),
-        (format!("{} + V", CTRL), "Paste".to_owned()),
-        (format!("{} + J", CTRL), "Paste & repeat".to_owned()),
+        (format!("{CTRL} + C"), "Copy selection".to_owned()),
+        (format!("{CTRL} + V"), "Paste".to_owned()),
+        (format!("{CTRL} + J"), "Paste & repeat".to_owned()),
         (String::new(), String::new()),
         (
-            format!("{} or {}", SUPPRCHAR, BACKSPACECHAR),
+            format!("{SUPPR_CHAR} or {BACKSPACE_CHAR}"),
             "Delete selected strands".to_owned(),
         ),
         (String::new(), String::new()),
-        (format!("{} + S", CTRL), "Save design".to_owned()),
-        (format!("{} + O", CTRL), "Open design".to_owned()),
-        (format!("{} + Z", CTRL), "Undo".to_owned()),
-        (format!("{} + R", CTRL), "Redo".to_owned()),
+        (format!("{CTRL} + S"), "Save design".to_owned()),
+        (format!("{CTRL} + O"), "Open design".to_owned()),
+        (format!("{CTRL} + Z"), "Undo".to_owned()),
+        (format!("{CTRL} + R"), "Redo".to_owned()),
         (String::new(), String::new()),
-        ("Selection mode shortcuts".to_owned(), "".to_owned()),
-        ("'N' key".to_owned(), format!("Nucleotide, ({})", NUCLCHAR)),
-        ("'S' key".to_owned(), format!("Strand ({})", STRANDCHAR)),
-        ("'H' key".to_owned(), format!("Helix ({})", HELIXCHAR)),
+        ("Selection mode shortcuts".to_owned(), String::new()),
+        ("'N' key".to_owned(), format!("Nucleotide, ({NUCL_CHAR})")),
+        ("'S' key".to_owned(), format!("Strand ({STRAND_CHAR})")),
+        ("'H' key".to_owned(), format!("Helix ({HELIX_CHAR})")),
         (String::new(), String::new()),
-        ("Action mode shortcuts".to_owned(), "".to_owned()),
-        ("ESC".to_owned(), format!("Select ({})", SELECTCHAR)),
-        ("'T' key".to_owned(), format!("Translation ({})", MOVECHAR)),
-        ("'R' key".to_owned(), format!("Rotation ({})", ROTCHAR)),
+        ("Action mode shortcuts".to_owned(), String::new()),
+        ("ESC".to_owned(), format!("Select ({SELECT_CHAR})")),
+        ("'T' key".to_owned(), format!("Translation ({MOVE_CHAR})")),
+        ("'R' key".to_owned(), format!("Rotation ({ROT_CHAR})")),
     ]
 }
 
 fn view_2d_help() -> Vec<(String, String)> {
     vec![
-        (format!("{} Drag", MCLICK), "Translate camera".to_owned()),
+        (format!("{M_CLICK} Drag"), "Translate camera".to_owned()),
         (
-            format!("{} + {} Drag", ALT, LCLICK),
+            format!("{ALT} + {L_CLICK} Drag"),
             "Translate camera".to_owned(),
         ),
         (
-            format!("{} + {}/{}", ALT, KEY_LEFT, KEY_RIGHT),
+            format!("{ALT} + {KEY_LEFT}/{KEY_RIGHT}"),
             "Tilt camera".to_owned(),
         ),
         (
-            format!(
-                "{} + {}/{}/{}/{}",
-                CTRL, KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN
-            ),
+            format!("{CTRL} + {KEY_LEFT}/{KEY_RIGHT}/{KEY_UP}/{KEY_DOWN}",),
             "Apply symmetry to view".to_owned(),
         ),
         (String::new(), String::new()),
-        (format!("{}", LCLICK), "Select".to_owned()),
+        (format!("{L_CLICK}"), "Select".to_owned()),
+        (format!("{SHIFT} + {L_CLICK}"), "Multiple Select".to_owned()),
         (
-            format!("{} + {}", SHIFT, LCLICK),
-            "Multiple Select".to_owned(),
-        ),
-        (
-            format!("{} Drag", LCLICK),
+            format!("{L_CLICK} Drag"),
             "Rectangular selection".to_owned(),
         ),
         (
-            format!("{} Drag, followed by {ALT} before releasing", LCLICK),
+            format!("{L_CLICK} Drag, followed by {ALT} before releasing"),
             "PNG export of rectangular area".to_owned(),
         ),
         (String::new(), String::new()),
         ("On helix numbers".to_owned(), String::new()),
-        (format!("{}", LCLICK), "Select helix".to_owned()),
+        (format!("{L_CLICK}"), "Select helix".to_owned()),
+        (format!("{SHIFT} + {L_CLICK}"), "Multiple select".to_owned()),
         (
-            format!("{} + {}", SHIFT, LCLICK),
-            "Multiple select".to_owned(),
-        ),
-        (
-            format!("{} Drag", LCLICK),
+            format!("{L_CLICK} Drag",),
             "Translate selected helices".to_owned(),
         ),
         (
-            format!("{} Drag", RCLICK),
+            format!("{R_CLICK} Drag",),
             "Rotate selected helices".to_owned(),
         ),
         (String::new(), String::new()),
         ("On nucleotides".to_owned(), String::new()),
         (
-            format!("{}", RCLICK),
+            format!("{R_CLICK}",),
             "cut/glue strand or double xover".to_owned(),
         ),
         (
-            format!("{} Drag", LCLICK),
+            format!("{L_CLICK} Drag",),
             "edit strand/crossover".to_owned(),
         ),
         (
-            format!("{} + {}", CTRL, LCLICK),
+            format!("{CTRL} + {L_CLICK}"),
             "Make suggested crossover".to_owned(),
         ),
     ]
@@ -779,13 +744,13 @@ fn values_of_selection(selection: &Selection, reader: &dyn GuiDesignReaderExt) -
         Selection::Grid(_, g_id) => {
             let b1 = reader.grid_has_persistent_phantom(*g_id);
             let b2 = reader.grid_has_small_spheres(*g_id);
-            let mut ret: Vec<String> = vec![b1, b2]
+            let mut ret: Vec<String> = [b1, b2]
                 .iter()
                 .map(|b| {
                     if *b {
-                        "true".to_string()
+                        "true".to_owned()
                     } else {
-                        "false".to_string()
+                        "false".to_owned()
                     }
                 })
                 .collect();
@@ -855,7 +820,7 @@ impl AddStrandMenu {
 
     fn update_length_str(&mut self, length_str: String) -> (isize, usize) {
         if let Ok(length) = length_str.parse::<usize>() {
-            self.helix_length = length
+            self.helix_length = length;
         }
         self.length_str = length_str;
         self.set_show_strand(true);
@@ -872,24 +837,17 @@ impl AddStrandMenu {
     }
 
     fn get_new_strand_parameters(&self) -> Option<(isize, usize)> {
-        if self.text_inputs_are_active {
-            Some((self.helix_pos, self.helix_length))
-        } else {
-            None
-        }
+        self.text_inputs_are_active
+            .then_some((self.helix_pos, self.helix_length))
     }
 
     fn set_show_strand(&mut self, show: bool) {
         self.text_inputs_are_active = show;
     }
 
-    fn view<State: AppState>(
-        &self,
-        ui_size: UiSize,
-        width: u16,
-    ) -> iced::widget::Column<'_, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
+    fn view<State: AppState>(&self, ui_size: UiSize, width: u16) -> Column<'_, Message<State>> {
         let color_choose_strand_start_length = if self.text_inputs_are_active {
-            theme::Text::Color(theme::GUI_PALETTE.text)
+            iced::theme::Text::Color(theme::GUI_PALETTE.text)
         } else {
             theme::DISABLED_TEXT
         };
@@ -906,26 +864,26 @@ impl AddStrandMenu {
                     text("Starting nt").style(color_choose_strand_start_length),
                     // position_input
                     keyboard_priority(
+                        "Starting nt",
+                        Message::SetKeyboardPriority,
                         text_input("Position", &self.pos_str)
                             .on_input(Message::PositionHelicesChanged)
                             .style(theme::BadValue(self.pos_str == self.helix_pos.to_string()))
                     )
-                    .on_priority(Message::SetKeyboardPriority(true))
-                    .on_unpriority(Message::SetKeyboardPriority(false)),
                 ]
                 .width(width / 2),
                 self::column![
                     text("Length (nt)").style(color_choose_strand_start_length),
                     // length_input
                     keyboard_priority(
+                        "Length (nt)",
+                        Message::SetKeyboardPriority,
                         text_input("Length", &self.length_str)
                             .on_input(Message::LengthHelicesChanged)
                             .style(theme::BadValue(
                                 self.length_str == self.helix_length.to_string()
                             ))
                     )
-                    .on_priority(Message::SetKeyboardPriority(true))
-                    .on_unpriority(Message::SetKeyboardPriority(false)),
                 ],
             ]
         ]

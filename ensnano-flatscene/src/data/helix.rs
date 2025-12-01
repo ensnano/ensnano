@@ -1,35 +1,23 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::{FlatNucl, Helix2d};
 use crate::{
-    CameraPtr, Flat, FlatHelix,
-    flat_types::{FlatHelixMaps, FlatPosition, HelixSegment},
-    view::{EditionInfo, InsertionDescriptor, InsertionInstance},
+    CameraPtr,
+    data::design::Helix2d,
+    flat_types::{Flat, FlatHelix, FlatHelixMaps, FlatNucl, FlatPosition, HelixSegment},
+    view::{
+        EditionInfo,
+        insertion::{InsertionDescriptor, InsertionInstance},
+    },
 };
-use abscissa_converter::{AbscissaConverter, AbscissaConverter_};
+use abscissa_converter::AbscissaConverter;
 use ahash::RandomState;
-use ensnano_design::{Nucl, NuclCollection};
-use ensnano_interactor::consts::{
-    BLACK_VEC4, CIRCLE2D_GREY, GREY_UNKNOWN_NUCL_VEC4, HELIX_BORDER_COLOR,
+use ensnano_consts::{
+    BLACK_VEC4, CIRCLE2D_BLUE, CIRCLE2D_GREEN, CIRCLE2D_GREY, CIRCLE2D_RED, GREY_UNKNOWN_NUCL_VEC4,
+    HELIX_BORDER_COLOR,
+};
+use ensnano_design::{
+    Nucl, curves::time_nucl_map::AbscissaConverter as AbscissaConverter_, helices::NuclCollection,
 };
 use ensnano_utils::{
-    chars2d::{Line, Sentence, TextDrawer},
+    chars2d::text_drawer::{Line, Sentence, TextDrawer},
     circles2d::CircleInstance,
     full_isometry::FullIsometry,
     instance::Instance,
@@ -37,8 +25,8 @@ use ensnano_utils::{
 use lyon::{
     math::{Point, rect},
     path::{
-        Path,
-        builder::{BorderRadii, PathBuilder},
+        Path, Winding,
+        builder::{BorderRadii, PathBuilder as _},
     },
     tessellation::{
         self, FillVertex, FillVertexConstructor, StrokeVertex, StrokeVertexConstructor,
@@ -46,11 +34,12 @@ use lyon::{
 };
 use std::{
     collections::{BTreeMap, HashMap},
+    f32::consts::PI,
     sync::Arc,
 };
 use ultraviolet::{Mat2, Rotor2, Vec2, Vec4};
 
-type Vertices = lyon::tessellation::VertexBuffers<GpuVertex, u16>;
+type Vertices = tessellation::VertexBuffers<GpuVertex, u16>;
 
 const CIRCLE_WIDGET_RADIUS: f32 = 1.5;
 const ZOOM_THRESHOLD: f32 = 7.0;
@@ -125,7 +114,7 @@ impl Helix {
         };
         if let Some(flat_id) = FlatHelix::from_real(segment, id_map) {
             left = flat_id.segment_left;
-            self.flat_id = flat_id
+            self.flat_id = flat_id;
         } else {
             log::error!("real id does not exist {}", self.real_id);
             left = None;
@@ -134,7 +123,7 @@ impl Helix {
         self.abscissa_converter = Arc::new(AbscissaConverter {
             converter: helix2d.abscissa_converter.clone(),
             left,
-        })
+        });
     }
 
     pub fn background_vertices(&self) -> Vertices {
@@ -149,13 +138,13 @@ impl Helix {
         ) as f32;
         let top = 0.;
         let bottom = 2.;
-        let mut fill_tess = lyon::tessellation::FillTessellator::new();
+        let mut fill_tess = tessellation::FillTessellator::new();
 
         let mut builder = Path::builder();
         builder.add_rounded_rectangle(
             &rect(left, top, right - left, bottom - top),
             &BorderRadii::new(0.1),
-            lyon::tessellation::path::Winding::Positive,
+            Winding::Positive,
         );
         let path = builder.build();
         fill_tess
@@ -170,7 +159,7 @@ impl Helix {
                     }),
                 ),
             )
-            .expect("error durring tessellation");
+            .expect("error during tessellation");
         vertices
     }
 
@@ -187,14 +176,14 @@ impl Helix {
         let top = 0.;
         let bottom = 2.;
 
-        let mut stroke_tess = lyon::tessellation::StrokeTessellator::new();
+        let mut stroke_tess = tessellation::StrokeTessellator::new();
 
         let mut builder = Path::builder();
 
         builder.add_rounded_rectangle(
             &rect(left, top, right - left, bottom - top),
             &BorderRadii::new(0.1),
-            lyon::tessellation::path::Winding::Positive,
+            Winding::Positive,
         );
         for i in (self.left + 1)..=self.right {
             let x = self
@@ -220,7 +209,7 @@ impl Helix {
                     }),
                 ),
             )
-            .expect("error durring tessellation");
+            .expect("error during tessellation");
         vertices
     }
 
@@ -259,7 +248,7 @@ impl Helix {
                         Vec2::new(0.7, 1.4)
                     }
                 }
-                Shift::Prime5Outsided => {
+                Shift::Prime5Outside => {
                     if nucl.forward {
                         // on the left and below the center
                         Vec2::new(0.3, -0.2)
@@ -268,7 +257,7 @@ impl Helix {
                         Vec2::new(0.7, 2.2)
                     }
                 }
-                Shift::Prime3Outsided => {
+                Shift::Prime3Outside => {
                     if nucl.forward {
                         // on the right and below the center
                         Vec2::new(0.7, -0.2)
@@ -312,20 +301,6 @@ impl Helix {
             .transform_point2(self.scale * local_position)
     }
 
-    /*
-    fn get_old_pivot_position(&self, nucl: &FlatNucl) -> Vec2 {
-        let local_position = nucl.position as f32 * Vec2::unit_x()
-            + if nucl.forward {
-                Vec2::zero()
-            } else {
-                Vec2::unit_y()
-            };
-
-        self.old_isometry
-            .into_homogeneous_matrix()
-            .transform_point2(self.scale * local_position)
-    }*/
-
     /// Return the nucleotide displayed at position (x, y) or None if (x, y) is outside the helix
     pub fn get_click(&self, x: f32, y: f32, bounded: bool) -> Option<(FlatPosition, bool)> {
         let click = {
@@ -348,10 +323,10 @@ impl Helix {
         let (pos, _) = self.get_click_unbounded(position.x, position.y);
         match handle {
             HelixHandle::Left => {
-                self.left = (self.right - 2).min(pos.right().to_real(self.flat_id.segment_left))
+                self.left = (self.right - 2).min(pos.right().to_real(self.flat_id.segment_left));
             }
             HelixHandle::Right => {
-                self.right = (self.left + 2).max(pos.left().to_real(self.flat_id.segment_left))
+                self.right = (self.left + 2).max(pos.left().to_real(self.flat_id.segment_left));
             }
         }
         (self.left, self.right)
@@ -361,7 +336,7 @@ impl Helix {
         match handle {
             HelixHandle::Left => self.left = self.right - 1,
             HelixHandle::Right => self.right = self.left + 1,
-        };
+        }
         (self.left, self.right)
     }
 
@@ -434,7 +409,7 @@ impl Helix {
     }
 
     pub fn set_color(&mut self, color: u32) {
-        self.color = color
+        self.color = color;
     }
 
     pub fn get_depth(&self) -> f32 {
@@ -559,19 +534,19 @@ impl Helix {
         groups: &BTreeMap<usize, bool>,
     ) -> Option<CircleInstance> {
         let (left, right) = self.screen_intersection(camera)?;
-        let center = if self.leftmost_x() as f32 > right || (self.rightmost_x() as f32) < left {
+        let center = if self.leftmost_x() > right || self.rightmost_x() < left {
             // the helix is invisible
             None
-        } else if self.leftmost_x() as f32 - 1. - 2. * CIRCLE_WIDGET_RADIUS > left {
+        } else if self.leftmost_x() - 1. - 2. * CIRCLE_WIDGET_RADIUS > left {
             // There is room on the left of the helix
             Some(self.x_position(
-                self.leftmost_x() as f32 - 1. - CIRCLE_WIDGET_RADIUS,
+                self.leftmost_x() - 1. - CIRCLE_WIDGET_RADIUS,
                 HelixLine::Middle,
             ))
-        } else if self.rightmost_x() as f32 + 1. + 2. * CIRCLE_WIDGET_RADIUS < right {
+        } else if self.rightmost_x() + 1. + 2. * CIRCLE_WIDGET_RADIUS < right {
             // There is room on the right of the helix
             Some(self.x_position(
-                self.rightmost_x() as f32 + 1. + CIRCLE_WIDGET_RADIUS,
+                self.rightmost_x() + 1. + CIRCLE_WIDGET_RADIUS,
                 HelixLine::Middle,
             ))
         } else {
@@ -581,9 +556,9 @@ impl Helix {
             CIRCLE2D_GREY
         } else {
             match groups.get(&self.real_id) {
-                None => CIRCLE2D_GREY,
-                Some(true) => CIRCLE2D_GREY,
-                Some(false) => CIRCLE2D_GREY,
+                None => CIRCLE2D_BLUE,
+                Some(true) => CIRCLE2D_RED,
+                Some(false) => CIRCLE2D_GREEN,
             }
         };
         let radius = if camera.borrow().get_globals().zoom < ZOOM_THRESHOLD {
@@ -612,10 +587,10 @@ impl Helix {
     }
 
     /// Return the nucl under the center of the helix's circle widget.
-    /// See [get_circle](get_circle).
+    /// See [Self::get_circle].
     pub fn get_circle_pivot(&self, camera: &CameraPtr) -> Option<FlatNucl> {
         let (left, right) = self.screen_intersection(camera)?;
-        if self.leftmost_x() > right || (self.rightmost_x() as f32) < left {
+        if self.leftmost_x() > right || self.rightmost_x() < left {
             // the helix is invisible
             None
         } else if self.leftmost_x() - 1. - 2. * CIRCLE_WIDGET_RADIUS > left
@@ -680,7 +655,7 @@ impl Helix {
             true
         };
         if need_center {
-            camera.borrow_mut().set_center(self.get_pivot(position))
+            camera.borrow_mut().set_center(self.get_pivot(position));
         }
     }
 
@@ -688,7 +663,7 @@ impl Helix {
         let position = self.get_nucl_position(nucl, Shift::Prime3);
         let mut orientation = self.isometry.rotation;
         if nucl.forward {
-            orientation = Rotor2::from_angle(std::f32::consts::PI) * orientation;
+            orientation = Rotor2::from_angle(PI) * orientation;
         }
 
         InsertionInstance::new(InsertionDescriptor {
@@ -738,20 +713,7 @@ impl Helix {
                 .transform_vec2(-Vec2::unit_x()),
         }
     }
-}
 
-pub struct CharCollector<'a> {
-    pub camera: &'a CameraPtr,
-    pub text_drawer: &'a mut TextDrawer,
-    pub groups: &'a BTreeMap<usize, bool>,
-    pub basis_map: &'a HashMap<Nucl, char, RandomState>,
-    pub show_seq: bool,
-    pub edition_info: &'a Option<EditionInfo>,
-    pub hovered_nucl: &'a Option<FlatNucl>,
-    pub nucl_collection: &'a NuclCollection,
-}
-
-impl Helix {
     pub fn add_char_instances(&self, char_collector: CharCollector) {
         let candidate_pos: Option<isize> = char_collector
             .hovered_nucl
@@ -864,11 +826,10 @@ impl Helix {
             }
             .to_real();
             if char_collector.nucl_collection.contains_nucl(&nucl) {
-                let (c, color) = char_collector
-                    .basis_map
-                    .get(&nucl)
-                    .map(|c| (c.to_string(), BLACK_VEC4))
-                    .unwrap_or(('?'.to_string(), GREY_UNKNOWN_NUCL_VEC4));
+                let (c, color) = match char_collector.basis_map.get(&nucl) {
+                    Some(c) => (c.to_string(), BLACK_VEC4),
+                    None => ('?'.to_string(), GREY_UNKNOWN_NUCL_VEC4),
+                };
                 let sentence = Sentence {
                     text: &c,
                     size: size_pos * zoom_font,
@@ -966,11 +927,11 @@ impl Helix {
     ) -> Option<(f32, f32)> {
         let mut ret = Vec::new();
         let x0_screen = {
-            let world = self.x_position(0_f32, line);
+            let world = self.x_position(0f32, line);
             camera.borrow().world_to_norm_screen(world.x, world.y)
         };
         let x1_screen = {
-            let world = self.x_position(1_f32, line);
+            let world = self.x_position(1f32, line);
             camera.borrow().world_to_norm_screen(world.x, world.y)
         };
         let on_segment = |(_, t): &(f32, f32)| *t >= 0. && *t <= 1.;
@@ -1022,6 +983,17 @@ impl Helix {
             Some((ret[0].min(ret[1]), ret[0].max(ret[1])))
         }
     }
+}
+
+pub struct CharCollector<'a> {
+    pub camera: &'a CameraPtr,
+    pub text_drawer: &'a mut TextDrawer,
+    pub groups: &'a BTreeMap<usize, bool>,
+    pub basis_map: &'a HashMap<Nucl, char, RandomState>,
+    pub show_seq: bool,
+    pub edition_info: &'a Option<EditionInfo>,
+    pub hovered_nucl: &'a Option<FlatNucl>,
+    pub nucl_collection: &'a NuclCollection,
 }
 
 #[repr(C)]
@@ -1077,13 +1049,11 @@ fn line_intersect(u0: Vec2, v0: Vec2, u1: Vec2, v1: Vec2) -> Option<(f32, f32)> 
     let x11 = v1.x;
     let y11 = v1.y;
     let d = x11 * y01 - x01 * y11;
-    if d.abs() > 1e-5 {
+    (d.abs() > 1e-5).then(|| {
         let s = (1. / d) * ((x00 - x10) * y01 - (y00 - y10) * x01);
         let t = (1. / d) * -(-(x00 - x10) * y11 + (y00 - y10) * x11);
-        Some((t, s))
-    } else {
-        None
-    }
+        (t, s)
+    })
 }
 
 pub(super) fn rectangle_intersect(rect_0: Vec2, rect_1: Vec2, a: Vec2, b: Vec2) -> bool {
@@ -1111,9 +1081,9 @@ pub enum Shift {
     /// The returned point will be slightly shifted in the 3' direction
     Prime3,
     /// The returned point will be slightly shifted in the 5' direction outside the helix
-    Prime5Outsided,
+    Prime5Outside,
     /// The returned point will be slightly shifted in the 3' direction outside the helix
-    Prime3Outsided,
+    Prime3Outside,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -1140,8 +1110,9 @@ pub enum HelixHandle {
 }
 
 mod abscissa_converter {
-    use super::*;
-    pub(super) use ensnano_design::AbscissaConverter as AbscissaConverter_;
+    use crate::flat_types::FlatPosition;
+    use ensnano_design::curves::time_nucl_map::AbscissaConverter as AbscissaConverter_;
+    use std::sync::Arc;
 
     #[derive(Debug)]
     pub(super) struct AbscissaConverter {
@@ -1150,7 +1121,7 @@ mod abscissa_converter {
     }
 
     impl AbscissaConverter {
-        pub fn nucl_to_x_conversion(&self, n: FlatPosition) -> f64 {
+        pub(super) fn nucl_to_x_conversion(&self, n: FlatPosition) -> f64 {
             let adjust = if let Some(n) = self.left {
                 self.converter.nucl_to_x_conversion(n)
             } else {
@@ -1161,7 +1132,7 @@ mod abscissa_converter {
             self.converter.nucl_to_x_conversion(real) - adjust
         }
 
-        pub fn x_conversion(&self, x: f64) -> f64 {
+        pub(super) fn x_conversion(&self, x: f64) -> f64 {
             if let Some(n) = self.left {
                 // translate x to the right and back
                 let adjust = self.converter.nucl_to_x_conversion(n);
@@ -1171,7 +1142,7 @@ mod abscissa_converter {
             }
         }
 
-        pub fn x_to_nucl_conversion(&self, x: f64) -> f64 {
+        pub(super) fn x_to_nucl_conversion(&self, x: f64) -> f64 {
             if let Some(n) = self.left {
                 let shift = self.converter.nucl_to_x_conversion(n);
                 self.converter.x_to_nucl_conversion(x + shift) - n as f64

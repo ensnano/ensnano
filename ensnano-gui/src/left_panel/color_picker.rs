@@ -1,44 +1,26 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::ColorMessage;
-use ensnano_iced::{helpers::*, iced::Color};
+use crate::left_panel::ColorMessage;
 use hue_column::HueColumn;
+use iced::widget::row;
 use light_sat_square::LightSatSquare;
 
-pub struct ColorPicker {
+pub(super) struct ColorPicker {
     hue: f64,
 }
 
 impl ColorPicker {
-    pub fn new() -> Self {
+    pub(super) fn new() -> Self {
         Self { hue: 0. }
     }
 
-    pub fn change_hue(&mut self, hue: f64) {
-        self.hue = hue
+    pub(super) fn change_hue(&mut self, hue: f64) {
+        self.hue = hue;
     }
 
-    pub fn new_view(&self) -> ensnano_iced::Element<'_, ColorMessage> {
+    pub(super) fn new_view(&self) -> iced::Element<'_, ColorMessage> {
         row![
             HueColumn::new(ColorMessage::HueChanged,),
             LightSatSquare::new(
-                self.hue as f64,
+                self.hue,
                 ColorMessage::HsvSatValueChanged,
                 ColorMessage::FinishChangingColor,
             ),
@@ -50,30 +32,25 @@ impl ColorPicker {
 
 /// A Iced Widget to select Hue.
 mod hue_column {
-    use ensnano_iced::{
-        self,
-        iced::{
-            Length, Point, Rectangle, Renderer, Size, Vector,
-            advanced::{
-                Clipboard, Layout, Renderer as RendererTrait, Shell, Widget, layout, mouse,
-                renderer::Style, widget,
-            },
-            event,
-            mouse::Cursor,
-        },
-        iced_graphics::{
-            Primitive,
-            color::pack,
-            mesh::{Indexed, Mesh, SolidVertex2D},
-        },
-        iced_wgpu,
-    };
-
     use color_space::{Hsv, Rgb};
+    use iced::{
+        Length, Point, Rectangle, Size, Vector,
+        advanced::{
+            Clipboard, Layout, Renderer as _, Shell, Widget, layout, mouse, renderer::Style, widget,
+        },
+        event,
+        mouse::Cursor,
+    };
+    use iced_graphics::{
+        Primitive,
+        color::pack,
+        mesh::{Indexed, Mesh, SolidVertex2D},
+    };
+    use iced_wgpu::primitive::Custom;
 
     /// The internal state of a [HueColumnState].
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-    pub struct HueColumnState {
+    pub(super) struct HueColumnState {
         is_dragging: bool,
     }
 
@@ -84,7 +61,7 @@ mod hue_column {
         //       than None.
     }
 
-    impl<'a, Message> HueColumn<'a, Message> {
+    impl<Message> HueColumn<'_, Message> {
         pub fn new<F>(on_slide: F) -> Self
         where
             F: 'static + Fn(f64) -> Message,
@@ -95,9 +72,7 @@ mod hue_column {
         }
     }
 
-    impl<'a, Message> Widget<Message, ensnano_iced::Theme, ensnano_iced::Renderer>
-        for HueColumn<'a, Message>
-    {
+    impl<Message> Widget<Message, iced::Theme, iced::Renderer> for HueColumn<'_, Message> {
         fn state(&self) -> widget::tree::State {
             widget::tree::State::Some(Box::new(HueColumnState::default()))
         }
@@ -111,7 +86,7 @@ mod hue_column {
         fn layout(
             &self,
             _tree: &mut widget::Tree,
-            _renderer: &ensnano_iced::Renderer,
+            _renderer: &iced::Renderer,
             limits: &layout::Limits,
         ) -> layout::Node {
             let size = limits.resolve(Length::Fill, Length::Fill, Size::ZERO);
@@ -122,8 +97,8 @@ mod hue_column {
         fn draw(
             &self,
             _tree: &widget::Tree,
-            renderer: &mut ensnano_iced::Renderer,
-            _theme: &ensnano_iced::Theme,
+            renderer: &mut iced::Renderer,
+            _theme: &iced::Theme,
             _style: &Style,
             layout: Layout,
             _cursor: Cursor,
@@ -165,18 +140,19 @@ mod hue_column {
                 }
             }
 
-            let mesh = iced_wgpu::primitive::Custom::Mesh(Mesh::Solid {
+            let mesh = Custom::Mesh(Mesh::Solid {
                 buffers: Indexed { vertices, indices },
                 size: b.size(),
             });
 
             match renderer {
-                Renderer::Wgpu(wgpu_renderer) => wgpu_renderer
-                    .with_translation(Vector::new(b.x, b.y), |renderer| {
-                        renderer.draw_primitive(Primitive::Custom(mesh))
-                    }),
-                _ => panic!("Unhandled renderer"),
-            };
+                iced::Renderer::Wgpu(wgpu_renderer) => {
+                    wgpu_renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
+                        renderer.draw_primitive(Primitive::Custom(mesh));
+                    });
+                }
+                iced::Renderer::TinySkia(_) => panic!("Unhandled renderer"),
+            }
         }
 
         fn on_event(
@@ -185,12 +161,12 @@ mod hue_column {
             event: event::Event,
             layout: Layout,
             cursor: Cursor,
-            _renderer: &ensnano_iced::Renderer,
+            _renderer: &iced::Renderer,
             _clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
             _viewport: &Rectangle,
         ) -> event::Status {
-            let mut change = |Point { x: _, y }| {
+            let mut change = |Point { y, .. }| {
                 let bounds = layout.bounds();
                 if y <= bounds.y {
                     shell.publish((self.on_slide)(0.));
@@ -236,8 +212,7 @@ mod hue_column {
         }
     }
 
-    impl<'a, Message> From<HueColumn<'a, Message>>
-        for ensnano_iced::Element<'a, Message, ensnano_iced::Theme, ensnano_iced::Renderer>
+    impl<'a, Message> From<HueColumn<'a, Message>> for iced::Element<'a, Message>
     where
         Message: 'a + Clone,
     {
@@ -249,30 +224,25 @@ mod hue_column {
 
 /// A widget to select Lightness and Saturation values.
 mod light_sat_square {
-    use ensnano_iced::{
-        self,
-        iced::{
-            Length, Point, Rectangle, Renderer, Size, Vector,
-            advanced::{
-                Clipboard, Layout, Renderer as RendererTrait, Shell, Widget, layout, mouse,
-                renderer::Style, widget,
-            },
-            event,
-            mouse::Cursor,
-        },
-        iced_graphics::{
-            Primitive,
-            color::pack,
-            mesh::{Indexed, Mesh, SolidVertex2D},
-        },
-        iced_wgpu,
-    };
-
     use color_space::{Hsv, Rgb};
+    use iced::{
+        Length, Point, Rectangle, Size, Vector,
+        advanced::{
+            Clipboard, Layout, Renderer as _, Shell, Widget, layout, mouse, renderer::Style, widget,
+        },
+        event,
+        mouse::Cursor,
+    };
+    use iced_graphics::{
+        Primitive,
+        color::pack,
+        mesh::{Indexed, Mesh, SolidVertex2D},
+    };
+    use iced_wgpu::primitive::Custom;
 
     /// The internal state of a [LightSatSquare].
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-    pub struct LightSatState {
+    pub(super) struct LightSatState {
         is_dragging: bool,
     }
 
@@ -310,8 +280,7 @@ mod light_sat_square {
         }
     }
 
-    impl<'a, Message> Widget<Message, ensnano_iced::Theme, ensnano_iced::Renderer>
-        for LightSatSquare<'a, Message>
+    impl<'a, Message> Widget<Message, iced::Theme, iced::Renderer> for LightSatSquare<'a, Message>
     where
         Message: Clone + 'a,
     {
@@ -328,7 +297,7 @@ mod light_sat_square {
         fn layout(
             &self,
             _tree: &mut widget::Tree,
-            _renderer: &ensnano_iced::Renderer,
+            _renderer: &iced::Renderer,
             limits: &layout::Limits,
         ) -> layout::Node {
             let size = limits.resolve(Length::Fill, Length::Fill, Size::ZERO);
@@ -339,8 +308,8 @@ mod light_sat_square {
         fn draw(
             &self,
             _state: &widget::Tree,
-            renderer: &mut ensnano_iced::Renderer,
-            _theme: &ensnano_iced::Theme,
+            renderer: &mut iced::Renderer,
+            _theme: &iced::Theme,
             _style: &Style,
             layout: Layout,
             _cursor: Cursor,
@@ -379,18 +348,19 @@ mod light_sat_square {
                 }
             }
 
-            let mesh = iced_wgpu::primitive::Custom::Mesh(Mesh::Solid {
+            let mesh = Custom::Mesh(Mesh::Solid {
                 size: b.size(),
                 buffers: Indexed { vertices, indices },
             });
 
             match renderer {
-                Renderer::Wgpu(wgpu_renderer) => wgpu_renderer
-                    .with_translation(Vector::new(b.x, b.y), |renderer| {
-                        renderer.draw_primitive(Primitive::Custom(mesh))
-                    }),
-                _ => panic!("Unhandled renderer"),
-            };
+                iced::Renderer::Wgpu(wgpu_renderer) => {
+                    wgpu_renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
+                        renderer.draw_primitive(Primitive::Custom(mesh));
+                    });
+                }
+                iced::Renderer::TinySkia(_) => panic!("Unhandled renderer"),
+            }
         }
 
         fn on_event(
@@ -399,7 +369,7 @@ mod light_sat_square {
             event: event::Event,
             layout: Layout,
             cursor: Cursor,
-            _renderer: &ensnano_iced::Renderer,
+            _renderer: &iced::Renderer,
             _clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
             _viewport: &Rectangle,
@@ -460,8 +430,7 @@ mod light_sat_square {
         }
     }
 
-    impl<'a, Message> From<LightSatSquare<'a, Message>>
-        for ensnano_iced::Element<'a, Message, ensnano_iced::Theme, ensnano_iced::Renderer>
+    impl<'a, Message> From<LightSatSquare<'a, Message>> for iced::Element<'a, Message>
     where
         Message: Clone + 'a,
     {
@@ -473,29 +442,24 @@ mod light_sat_square {
 
 /// A widget to Visualize selected color.
 mod color_square {
-    use super::Color;
-    use ensnano_iced::{
-        self,
-        iced::{
-            Length, Rectangle, Size, Vector,
-            advanced::{
-                Clipboard, Layout, Renderer as RendererTrait, Shell, Widget, layout, mouse,
-                renderer::Style, widget,
-            },
-            event,
-            mouse::Cursor,
+    use iced::{
+        Length, Rectangle, Size, Vector,
+        advanced::{
+            Clipboard, Layout, Renderer as _, Shell, Widget, layout, mouse, renderer::Style, widget,
         },
-        iced_graphics::{
-            Primitive,
-            color::pack,
-            mesh::{Indexed, Mesh, SolidVertex2D},
-        },
-        iced_wgpu,
+        event,
+        mouse::Cursor,
     };
+    use iced_graphics::{
+        Primitive,
+        color::pack,
+        mesh::{Indexed, Mesh, SolidVertex2D},
+    };
+    use iced_wgpu::primitive::Custom;
 
     /// The State of a [ColorSquare]
     #[derive(Default, Clone, Eq, PartialEq)]
-    pub struct ColorSquareState {
+    pub(super) struct ColorSquareState {
         clicked: bool,
     }
 
@@ -505,8 +469,8 @@ mod color_square {
         Message: Clone,
     {
         //state: &'a mut State,
-        color: Color,
-        on_click: Box<dyn Fn(Color) -> Message + 'a>,
+        color: iced::Color,
+        on_click: Box<dyn Fn(iced::Color) -> Message + 'a>,
         // TODO: Mimic iced like in Checkbox: Option<Box<…>>, then a method to set something else
         //       than None.
         on_release: Message,
@@ -517,9 +481,9 @@ mod color_square {
     where
         Message: Clone,
     {
-        pub fn new<F>(color: Color, on_click: F, on_release: Message) -> Self
+        pub fn new<F>(color: iced::Color, on_click: F, on_release: Message) -> Self
         where
-            F: 'static + Fn(Color) -> Message + 'a,
+            F: 'static + Fn(iced::Color) -> Message + 'a,
         {
             Self {
                 //state,
@@ -530,8 +494,7 @@ mod color_square {
         }
     }
 
-    impl<'a, Message> Widget<Message, ensnano_iced::Theme, ensnano_iced::Renderer>
-        for ColorSquare<'a, Message>
+    impl<'a, Message> Widget<Message, iced::Theme, iced::Renderer> for ColorSquare<'a, Message>
     where
         Message: Clone + 'a,
     {
@@ -548,7 +511,7 @@ mod color_square {
         fn layout(
             &self,
             _tree: &mut widget::Tree,
-            _renderer: &ensnano_iced::Renderer,
+            _renderer: &iced::Renderer,
             limits: &layout::Limits,
         ) -> layout::Node {
             let size = limits.resolve(Length::Fill, Length::Fill, Size::ZERO);
@@ -559,8 +522,8 @@ mod color_square {
         fn draw(
             &self,
             _tree: &widget::Tree,
-            renderer: &mut ensnano_iced::Renderer,
-            _theme: &ensnano_iced::Theme,
+            renderer: &mut iced::Renderer,
+            _theme: &iced::Theme,
             _style: &Style,
             layout: Layout,
             _cursor: Cursor,
@@ -571,7 +534,7 @@ mod color_square {
             let y_max = b.height;
             let dummy_color = pack([1.0, 0.0, 0.0, 1.0]);
             // TODO: Find an appropriate color.
-            // The primitiver API changed. It now ask for
+            // The primitive API changed. It now ask for
             // some color. I do not now which one to choose now.
             let vertices = vec![
                 SolidVertex2D {
@@ -593,23 +556,19 @@ mod color_square {
             ];
             let indices = vec![0, 1, 2, 1, 2, 3];
 
-            let mesh = iced_wgpu::primitive::Custom::Mesh(Mesh::Solid {
+            let mesh = Custom::Mesh(Mesh::Solid {
                 buffers: Indexed { vertices, indices },
                 size: b.size(),
             });
 
             match renderer {
-                ensnano_iced::Renderer::Wgpu(wgpu_renderer) => {
+                iced::Renderer::Wgpu(wgpu_renderer) => {
                     wgpu_renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
-                        //renderer.draw_primitive(Primitive::SolidMesh {
-                        //    buffers: Indexed { vertices, indices },
-                        //    size: b.size(),
-                        //})
-                        renderer.draw_primitive(Primitive::Custom(mesh))
-                    })
+                        renderer.draw_primitive(Primitive::Custom(mesh));
+                    });
                 }
-                _ => panic!("Unhandled renderer."),
-            };
+                iced::Renderer::TinySkia(_) => unreachable!(),
+            }
         }
 
         fn on_event(
@@ -618,7 +577,7 @@ mod color_square {
             event: event::Event,
             layout: Layout,
             cursor: Cursor,
-            _renderer: &ensnano_iced::Renderer,
+            _renderer: &iced::Renderer,
             _clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
             _viewport: &Rectangle,
@@ -661,8 +620,7 @@ mod color_square {
         }
     }
 
-    impl<'a, Message> From<ColorSquare<'a, Message>>
-        for ensnano_iced::Element<'a, Message, ensnano_iced::Theme, ensnano_iced::Renderer>
+    impl<'a, Message> From<ColorSquare<'a, Message>> for iced::Element<'a, Message>
     where
         Message: Clone + 'a,
     {

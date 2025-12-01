@@ -1,20 +1,3 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
 //! This module defines the ensnano format.
 //! All other format supported by ensnano are converted into this format and run-time manipulation
 //! of designs are performed on an `ensnano::Design` structure
@@ -22,44 +5,47 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #[cfg(test)]
 mod tests;
 
-mod bezier_plane;
+pub mod bezier_plane;
 pub mod codenano;
-mod collection;
+pub mod collection;
 pub mod consts;
-mod curves;
+pub mod curves;
 pub mod design_operations;
 pub mod drawing_style;
 pub mod elements;
-mod external_3d_objects;
+pub mod external_3d_objects;
 pub mod grid;
 pub mod group_attributes;
-mod helices;
+pub mod helices;
 mod insertions;
 pub mod isometry3_descriptor;
 mod material_colors;
-mod parameters;
+pub mod parameters;
 pub mod scadnano;
-mod strands;
+pub mod strands;
 pub mod utils;
 
-pub use bezier_plane::*;
-pub use collection::{Collection, HasMap};
-pub use curves::*;
+use crate::{
+    bezier_plane::{BezierPathData, BezierPaths, BezierPlanes},
+    curves::CurveCache,
+    external_3d_objects::External3DObjects,
+    grid::grid_collection::FreeGrids,
+    helices::{Helices, Helix, HelixCollection as _},
+    isometry3_descriptor::Isometry3Descriptor,
+    parameters::HelixParameters,
+    scadnano::{ScadnanoDesign, ScadnanoGroup, ScadnanoImportError, ScadnanoInsertionsDeletions},
+    strands::{Domain, Strand, Strands},
+};
 use elements::DesignElementKey;
-use ensnano_organizer::OrganizerTree;
-pub use external_3d_objects::*;
-use grid::{FreeGrids, GridData, GridDescriptor, GridId};
+use ensnano_organizer::tree::{GroupId, OrganizerTree};
+use grid::{GridData, GridDescriptor, GridId};
 use group_attributes::GroupAttribute;
-pub use helices::*;
-pub use isometry3_descriptor::Isometry3Descriptor;
-use material_colors::MaterialColor;
-pub use parameters::*;
-use scadnano::*;
 use serde::{Deserialize, Serialize};
 use serde_with::{DefaultOnError, serde_as};
-use std::collections::{BTreeMap, HashMap, HashSet};
-use std::sync::Arc;
-pub use strands::*;
+use std::{
+    collections::{BTreeMap, HashMap, HashSet},
+    sync::Arc,
+};
 use ultraviolet::{Rotor3, Similarity3, Vec3};
 
 /// The `ensnano` Design structure.
@@ -112,7 +98,7 @@ pub struct Design {
     /// The set of identifiers of grids whose helices are displayed with smaller spheres for the
     /// nucleotides.
     #[serde(
-        alias = "small_shperes", // cspell:disable-line
+        alias = "small_shperes", // cspell: disable-line
         alias = "no_spheres",
         rename(serialize = "no_spheres"),
         skip_serializing_if = "HashSet::is_empty",
@@ -131,7 +117,7 @@ pub struct Design {
     pub ensnano_version: String,
 
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub group_attributes: HashMap<ensnano_organizer::GroupId, GroupAttribute>,
+    pub group_attributes: HashMap<GroupId, GroupAttribute>,
 
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     cameras: BTreeMap<CameraId, Camera>,
@@ -151,7 +137,7 @@ pub struct Design {
 
     #[serde(
         skip,
-        alias = "instanciated_grid_data", // cspell:disable-line
+        alias = "instanciated_grid_data", // cspell: disable-line
     )]
     instantiated_grid_data: Option<GridData>,
 
@@ -166,7 +152,7 @@ pub struct Design {
 
     #[serde(
         skip,
-        alias = "instanciated_paths", // cspell:disable-line
+        alias = "instanciated_paths", // cspell: disable-line
     )]
     instantiated_paths: Option<BezierPathData>,
 
@@ -180,24 +166,6 @@ pub struct Design {
     pub clone_isometries: Option<Vec<Isometry3Descriptor>>,
 }
 
-pub trait AdditionalStructure: Send + Sync {
-    fn frame(&self) -> Similarity3;
-    fn position(&self) -> Vec<Vec3>;
-    fn right(&self) -> Vec<(usize, usize)>;
-    fn next(&self) -> Vec<(usize, usize)>;
-    fn nt_paths(&self) -> Option<Vec<Vec<Vec3>>>;
-    fn current_length(&self) -> Option<usize>;
-    fn number_of_sections(&self) -> usize;
-}
-
-/// An immutable reference to a design whose helices paths and grid data are guaranteed to be up-to
-/// date.
-pub struct UpToDateDesign<'a> {
-    pub design: &'a Design,
-    pub grid_data: &'a GridData,
-    pub paths_data: &'a BezierPathData,
-}
-
 impl Design {
     /// If self is up-to-date return an `UpToDateDesign` reference to self.
     ///
@@ -205,28 +173,24 @@ impl Design {
     /// `UpToDateDesign` reference to the data.
     /// Having an option to not mutate the design is meant to prevent unnecessary run-time cloning
     /// of the design
-    pub fn try_get_up_to_date<'a>(&'a self) -> Option<UpToDateDesign<'a>> {
+    pub fn try_get_up_to_date(&self) -> Option<UpToDateDesign<'_>> {
         let paths_data = self
             .instantiated_paths
             .as_ref()
             .filter(|data| !data.need_update(&self.bezier_planes, &self.bezier_paths))?;
         if let Some(data) = self.instantiated_grid_data.as_ref() {
-            if data.is_up_to_date(self) {
-                Some(UpToDateDesign {
-                    design: self,
-                    grid_data: data,
-                    paths_data,
-                })
-            } else {
-                None
-            }
+            data.is_up_to_date(self).then_some(UpToDateDesign {
+                design: self,
+                grid_data: data,
+                paths_data,
+            })
         } else {
             None
         }
     }
 
     /// Update self if necessary and returns an up-to-date reference to self.
-    pub fn get_up_to_date<'a>(&'a mut self) -> UpToDateDesign<'a> {
+    pub fn get_up_to_date(&mut self) -> UpToDateDesign<'_> {
         let helix_parameters = self
             .helix_parameters
             .as_ref()
@@ -257,7 +221,7 @@ impl Design {
         }
     }
 
-    pub fn get_up_to_date_paths<'a>(&'a mut self) -> &'a BezierPathData {
+    pub fn get_up_to_date_paths(&mut self) -> &BezierPathData {
         let helix_parameters = self
             .helix_parameters
             .as_ref()
@@ -287,39 +251,7 @@ impl Design {
             true
         }
     }
-}
 
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub struct CameraId(u64);
-
-/// A saved camera position. This can be use to register interesting point of views of the design.
-#[serde_as]
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Camera {
-    pub position: Vec3,
-    pub orientation: Rotor3,
-    pub name: String,
-    pub id: CameraId,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[serde_as(deserialize_as = "DefaultOnError")]
-    pub pivot_position: Option<Vec3>,
-}
-
-pub fn ensnano_version() -> String {
-    std::env!("CARGO_PKG_VERSION").to_owned()
-}
-
-fn groups_is_empty<K, V>(groups: &Arc<BTreeMap<K, V>>) -> bool {
-    groups.as_ref().is_empty()
-}
-
-impl Default for Design {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl Design {
     pub fn from_codenano<Sl, Dl>(codenano_design: &codenano::Design<Sl, Dl>) -> Self {
         let mut helices = BTreeMap::new();
         for (i, helix) in codenano_design.helices.iter().enumerate() {
@@ -382,7 +314,7 @@ impl Design {
         // the version.
         let grids = std::mem::take(&mut self.old_grids);
         let mut grids_mut = self.free_grids.make_mut();
-        for g in grids.into_iter() {
+        for g in grids {
             grids_mut.push(g);
         }
         drop(grids_mut);
@@ -404,7 +336,7 @@ impl Design {
             if let Some(helix_parameters) = self.helix_parameters.as_mut() {
                 helix_parameters.groove_angle *= -1.;
             } else {
-                self.helix_parameters = Some(Default::default())
+                self.helix_parameters = Some(Default::default());
             }
             mutate_all_helices(self, |h| h.roll *= -1.);
             self.ensnano_version = ensnano_version();
@@ -419,7 +351,7 @@ impl Design {
         let mut nucls = Vec::new();
         let helix_parameters = self.helix_parameters.unwrap_or_default();
         for s in self.strands.values() {
-            for d in s.domains.iter() {
+            for d in &s.domains {
                 if let Domain::HelixDomain(interval) = d {
                     for i in interval.iter() {
                         let nucl = Nucl {
@@ -452,26 +384,25 @@ impl Design {
         orientation: Rotor3,
         pivot_position: Option<Vec3>,
     ) {
-        let cam_id = self
+        let camera_id = self
             .cameras
             .keys()
             .max()
-            .map(|id| CameraId(id.0 + 1))
-            .unwrap_or(CameraId(1));
+            .map_or(CameraId(1), |id| CameraId(id.0 + 1));
         let new_camera = Camera {
             position,
             orientation,
-            name: format!("Camera {}", cam_id.0),
-            id: cam_id,
+            name: format!("Camera {}", camera_id.0),
+            id: camera_id,
             pivot_position,
         };
-        self.cameras.insert(cam_id, new_camera);
+        self.cameras.insert(camera_id, new_camera);
     }
 
-    pub fn rm_camera(&mut self, cam_id: CameraId) -> bool {
-        if self.cameras.remove(&cam_id).is_some() {
-            if self.favorite_camera == Some(cam_id) {
-                self.favorite_camera = self.cameras.keys().min().cloned();
+    pub fn rm_camera(&mut self, camera_id: CameraId) -> bool {
+        if self.cameras.remove(&camera_id).is_some() {
+            if self.favorite_camera == Some(camera_id) {
+                self.favorite_camera = self.cameras.keys().min().copied();
             }
             true
         } else {
@@ -479,12 +410,12 @@ impl Design {
         }
     }
 
-    pub fn get_camera_mut(&mut self, cam_id: CameraId) -> Option<&mut Camera> {
-        self.cameras.get_mut(&cam_id)
+    pub fn get_camera_mut(&mut self, camera_id: CameraId) -> Option<&mut Camera> {
+        self.cameras.get_mut(&camera_id)
     }
 
-    pub fn get_camera(&self, cam_id: CameraId) -> Option<&Camera> {
-        self.cameras.get(&cam_id)
+    pub fn get_camera(&self, camera_id: CameraId) -> Option<&Camera> {
+        self.cameras.get(&camera_id)
     }
 
     pub fn get_favorite_camera(&self) -> Option<&Camera> {
@@ -498,10 +429,10 @@ impl Design {
         self.favorite_camera
     }
 
-    pub fn set_favorite_camera(&mut self, cam_id: CameraId) -> bool {
-        if self.cameras.contains_key(&cam_id) {
-            if self.favorite_camera != Some(cam_id) {
-                self.favorite_camera = Some(cam_id);
+    pub fn set_favorite_camera(&mut self, camera_id: CameraId) -> bool {
+        if self.cameras.contains_key(&camera_id) {
+            if self.favorite_camera != Some(camera_id) {
+                self.favorite_camera = Some(camera_id);
             } else {
                 self.favorite_camera = None;
             }
@@ -555,36 +486,34 @@ impl Design {
         let mut replace = false;
         let helix_parameters = self.helix_parameters.unwrap_or_default();
         for (h_id, h) in self.helices.iter() {
-            log::debug!("Helix {}", h_id);
+            log::debug!("Helix {h_id}");
             if let Some((n_min, n_max)) =
                 self.strands.get_used_bounds_for_helix(*h_id, &self.helices)
             {
-                log::debug!("bounds {} {}", n_min, n_max);
+                log::debug!("bounds {n_min} {n_max}");
                 if let Some(curve) = h.instantiated_curve.as_ref() {
                     if let Some(t_min) = curve
                         .curve
                         .left_extension_to_have_nucl(n_min, &helix_parameters)
                     {
-                        log::debug!("t_min {}", t_min);
+                        log::debug!("t_min {t_min}");
                         if let Some(h_mut) = new_helices_mut.get_mut(h_id) {
                             replace |= h_mut
                                 .curve
                                 .as_mut()
-                                .map(|c| Arc::make_mut(c).set_t_min(t_min))
-                                .unwrap_or(false);
+                                .is_some_and(|c| Arc::make_mut(c).set_t_min(t_min));
                         }
                     }
                     if let Some(t_max) = curve
                         .curve
                         .right_extension_to_have_nucl(n_max, &helix_parameters)
                     {
-                        log::debug!("t_max {}", t_max);
+                        log::debug!("t_max {t_max}");
                         if let Some(h_mut) = new_helices_mut.get_mut(h_id) {
                             replace |= h_mut
                                 .curve
                                 .as_mut()
-                                .map(|c| Arc::make_mut(c).set_t_max(t_max))
-                                .unwrap_or(false);
+                                .is_some_and(|c| Arc::make_mut(c).set_t_max(t_max));
                         }
                     }
                 }
@@ -608,22 +537,7 @@ impl Design {
             helix_parameters: self.helix_parameters.unwrap_or_default(),
         }
     }
-}
 
-/// A structure that wraps a mutable reference to the design's strands along with a read only
-/// access to the grid and helices.
-pub struct MutStrandAndData<'a> {
-    pub strands: &'a mut Strands,
-    pub grid_data: &'a GridData,
-    pub helices: &'a Helices,
-    pub helix_parameters: HelixParameters,
-}
-
-pub struct SavingInformation {
-    pub camera: Option<Camera>,
-}
-
-impl Design {
     pub fn from_scadnano(scad: &ScadnanoDesign) -> Result<Self, ScadnanoImportError> {
         let mut grids = Vec::new();
         let mut group_map = BTreeMap::new();
@@ -633,8 +547,8 @@ impl Design {
         grids.push(default_grid);
         let mut helices_per_group = vec![0];
         let mut groups: Vec<ScadnanoGroup> = vec![Default::default()];
-        if let Some(ref scad_groups) = scad.groups {
-            for (name, g) in scad_groups.iter() {
+        if let Some(scad_groups) = &scad.groups {
+            for (name, g) in scad_groups {
                 let group = g.to_grid_desc()?;
                 groups.push(g.clone());
                 group_map.insert(name.clone(), grids.len());
@@ -642,9 +556,9 @@ impl Design {
                 helices_per_group.push(0);
             }
         }
-        for s in scad.strands.iter() {
-            for d in s.domains.iter() {
-                insertion_deletions.read_domain(d)
+        for s in &scad.strands {
+            for d in &s.domains {
+                insertion_deletions.read_domain(d);
             }
         }
         let mut helices = BTreeMap::new();
@@ -657,8 +571,8 @@ impl Design {
             let strand = Strand::from_scadnano(s, &insertion_deletions)?;
             strands.insert(i, strand);
         }
-        println!("grids {:?}", grids);
-        println!("helices {:?}", helices);
+        println!("grids {grids:?}");
+        println!("helices {helices:?}");
         Ok(Self {
             free_grids: FreeGrids::from_vec(grids),
             helices: Helices(Arc::new(helices)),
@@ -679,12 +593,73 @@ impl Design {
         })
     }
 
-    pub fn _set_helices(&mut self, helices: BTreeMap<usize, Arc<Helix>>) {
+    pub fn set_helices(&mut self, helices: BTreeMap<usize, Arc<Helix>>) {
         self.helices = Helices(Arc::new(helices));
     }
 }
 
-/// Apply a mutating function to the value wrapped in an Arc<Helix>. This will make `helix_ptr`
+pub trait AdditionalStructure: Send + Sync {
+    fn frame(&self) -> Similarity3;
+    fn position(&self) -> Vec<Vec3>;
+    fn right(&self) -> Vec<(usize, usize)>;
+    fn next(&self) -> Vec<(usize, usize)>;
+    fn nt_paths(&self) -> Option<Vec<Vec<Vec3>>>;
+    fn current_length(&self) -> Option<usize>;
+    fn number_of_sections(&self) -> usize;
+}
+
+/// An immutable reference to a design whose helices paths and grid data are guaranteed to be up-to
+/// date.
+pub struct UpToDateDesign<'a> {
+    pub design: &'a Design,
+    pub grid_data: &'a GridData,
+    pub paths_data: &'a BezierPathData,
+}
+
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct CameraId(u64);
+
+/// A saved camera position. This can be use to register interesting point of views of the design.
+#[serde_as]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Camera {
+    pub position: Vec3,
+    pub orientation: Rotor3,
+    pub name: String,
+    pub id: CameraId,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde_as(deserialize_as = "DefaultOnError")]
+    pub pivot_position: Option<Vec3>,
+}
+
+pub fn ensnano_version() -> String {
+    std::env!("CARGO_PKG_VERSION").to_owned()
+}
+
+fn groups_is_empty<K, V>(groups: &Arc<BTreeMap<K, V>>) -> bool {
+    groups.as_ref().is_empty()
+}
+
+impl Default for Design {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// A structure that wraps a mutable reference to the design's strands along with a read only
+/// access to the grid and helices.
+pub struct MutStrandAndData<'a> {
+    pub strands: &'a mut Strands,
+    pub grid_data: &'a GridData,
+    pub helices: &'a Helices,
+    pub helix_parameters: HelixParameters,
+}
+
+pub struct SavingInformation {
+    pub camera: Option<Camera>,
+}
+
+/// Apply a mutating function to the value wrapped in an `Arc<Helix>`. This will make `helix_ptr`
 /// point to a new helix on which the update has been applied.
 pub fn mutate_in_arc<F, Obj: Clone>(obj_ptr: &mut Arc<Obj>, mut mutation: F)
 where
@@ -692,7 +667,7 @@ where
 {
     let mut new_obj = Obj::clone(obj_ptr);
     mutation(&mut new_obj);
-    *obj_ptr = Arc::new(new_obj)
+    *obj_ptr = Arc::new(new_obj);
 }
 
 /// Apply a mutating function to all the helices of a design.
@@ -702,7 +677,7 @@ where
 {
     let mut new_helices_map = BTreeMap::clone(design.helices.0.as_ref());
     for h in new_helices_map.values_mut() {
-        mutate_in_arc(h, mutation.clone())
+        mutate_in_arc(h, mutation.clone());
     }
     design.helices = Helices(Arc::new(new_helices_map));
 }
@@ -726,13 +701,13 @@ pub struct Nucl {
     pub forward: bool,
 }
 
-impl std::cmp::PartialOrd for Nucl {
+impl PartialOrd for Nucl {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl std::cmp::Ord for Nucl {
+impl Ord for Nucl {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         if self.helix != other.helix {
             self.helix.cmp(&other.helix)
@@ -755,6 +730,7 @@ impl Nucl {
         }
     }
 
+    #[must_use]
     pub fn left(&self) -> Self {
         Self {
             position: self.position - 1,
@@ -762,6 +738,7 @@ impl Nucl {
         }
     }
 
+    #[must_use]
     pub fn right(&self) -> Self {
         Self {
             position: self.position + 1,
@@ -769,6 +746,7 @@ impl Nucl {
         }
     }
 
+    #[must_use]
     pub fn prime3(&self) -> Self {
         Self {
             position: if self.forward {
@@ -780,6 +758,7 @@ impl Nucl {
         }
     }
 
+    #[must_use]
     pub fn prime5(&self) -> Self {
         Self {
             position: if self.forward {
@@ -791,6 +770,7 @@ impl Nucl {
         }
     }
 
+    #[must_use]
     pub fn compl(&self) -> Self {
         Self {
             forward: !self.forward,
@@ -798,7 +778,7 @@ impl Nucl {
         }
     }
 
-    pub fn is_neighbor(&self, other: &Nucl) -> bool {
+    pub fn is_neighbor(&self, other: &Self) -> bool {
         self.helix == other.helix
             && self.forward == other.forward
             && (self.position - other.position).abs() == 1
