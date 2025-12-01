@@ -58,7 +58,7 @@ pub(crate) trait SimulationSetup {
 // This is used for full simulations; not used right now, but will be
 // with a proper interface.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct FullSimulationSetup;
+pub(crate) struct FullSimulationSetup;
 
 impl SimulationSetup for FullSimulationSetup {
     fn build_bodies(
@@ -93,7 +93,7 @@ impl SimulationSetup for FullSimulationSetup {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct RigidHelicesSetup;
+pub(crate) struct RigidHelicesSetup;
 
 impl SimulationSetup for RigidHelicesSetup {
     fn build_bodies(
@@ -126,7 +126,7 @@ impl SimulationSetup for RigidHelicesSetup {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct CutHelicesSetup;
+pub(crate) struct CutHelicesSetup;
 
 impl SimulationSetup for CutHelicesSetup {
     fn build_bodies(
@@ -169,7 +169,7 @@ impl SimulationSetup for CutHelicesSetup {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct KCutHelicesSetup;
+pub(crate) struct KCutHelicesSetup;
 
 impl SimulationSetup for KCutHelicesSetup {
     fn build_bodies(
@@ -185,7 +185,7 @@ impl SimulationSetup for KCutHelicesSetup {
             .angular_damping(rapier_parameters.angular_damping);
 
         // for each helix
-        for (helix_index, helix) in intermediary_representation.iter() {
+        for (helix_index, helix) in intermediary_representation {
             let mut current_rigid_body_handle = rigid_body_set.insert(rigid_body.clone());
             // iterate through the positions, from bottom to top
             let mut positions = helix.pairs.keys().copied().collect::<Vec<_>>();
@@ -217,7 +217,7 @@ impl SimulationSetup for KCutHelicesSetup {
     }
 }
 
-pub fn build_simulation<S: SimulationSetup>(
+pub(crate) fn build_simulation<S: SimulationSetup>(
     setup: S,
     intermediary_representation: &HashMap<usize, IntermediaryHelix>,
     object_type: &HashMap<u32, ObjectType>,

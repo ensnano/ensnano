@@ -15,7 +15,7 @@ pub enum OrganizerTree<K> {
     Node {
         name: String,
         #[serde(alias = "childrens")] // cspell: disable-line
-        children: Vec<OrganizerTree<K>>,
+        children: Vec<Self>,
         expanded: bool,
         #[serde(default)]
         id: Option<GroupId>,

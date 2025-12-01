@@ -13,8 +13,7 @@ use ensnano_exports::ExportType;
 use ensnano_gui::{OverlayType, Requests as GuiRequests, left_panel::RigidBodyParametersRequest};
 use ensnano_iced::{ui_size::UiSize, widgets::keyboard_priority::PriorityRequest};
 use ensnano_interactor::{
-    DesignOperation, HyperboloidRequest, InsertionPoint, RapierSimulationRequest,
-    RigidBodyConstants, RollRequest,
+    DesignOperation, HyperboloidRequest, InsertionPoint, RigidBodyConstants, RollRequest,
     app_state_parameters::{
         check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
     },

@@ -1,10 +1,5 @@
 //! Test suite for the `MainState` structure
 
-use crate::app_state::{
-    AppState,
-    design_interactor::controller::clipboard::{CopyOperation, PastePosition},
-};
-
 use super::*;
 use ensnano_design::Nucl;
 use ensnano_interactor::graphics::DrawArea;

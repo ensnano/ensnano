@@ -36,6 +36,8 @@ impl RapierParameters {
     }
 
     pub fn set_parameters_array(&mut self, array: &[f32]) {
+        assert!(array.len() > 11);
+
         self.linear_damping = array[0];
         self.angular_damping = array[1];
         self.interbase_spring_stiffness = array[2];

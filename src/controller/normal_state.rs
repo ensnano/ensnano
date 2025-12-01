@@ -27,8 +27,7 @@ use ensnano_exports::ExportType;
 use ensnano_gui::OverlayType;
 use ensnano_iced::ui_size::UiSize;
 use ensnano_interactor::{
-    DesignOperation, HyperboloidOperation, HyperboloidRequest, RapierSimulationRequest,
-    RigidBodyConstants, RollRequest,
+    DesignOperation, HyperboloidOperation, HyperboloidRequest, RigidBodyConstants, RollRequest,
     application::Notification,
     graphics::{FogParameters, SplitMode},
     selection::{all_helices_no_grid, extract_grids, extract_strands_from_selection},

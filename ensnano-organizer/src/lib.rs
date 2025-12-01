@@ -1120,7 +1120,7 @@ enum GroupContent<E: OrganizerElement> {
         name: String,
         expanded: bool,
         view: NodeTitleBar<E>,
-        children: Vec<GroupContent<E>>,
+        children: Vec<Self>,
         attributes: Vec<Option<E::Attribute>>,
         elements_below: BTreeSet<E::Key>,
         group_id: GroupId,

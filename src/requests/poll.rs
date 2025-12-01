@@ -91,7 +91,7 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
     }
 
     if let Some(parameters) = requests.rapier_simulation_parameters.take() {
-        main_state.push_action(Action::UpdateRapierParameters(parameters))
+        main_state.push_action(Action::UpdateRapierParameters(parameters));
     }
 
     if let Some(b) = requests.show_torsion_request.take() {

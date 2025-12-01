@@ -13,10 +13,10 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pub mod rapier;
-pub mod revolutions;
-pub mod roller;
-pub mod twister;
+pub(crate) mod rapier;
+pub(crate) mod revolutions;
+pub(crate) mod roller;
+pub(crate) mod twister;
 
 use crate::app_state::design_interactor::{
     Presenter, controller::ErrOperation, presenter::SimulationUpdate,

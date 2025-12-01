@@ -223,11 +223,8 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
                         }
                     ),
                     Space::with_width(ui_size.button_spacing()),
-                    text_button("Reset", ui_size).on_press_maybe(if sim_state.is_paused() {
-                        Some(Message::ResetSimulation)
-                    } else {
-                        None
-                    }),
+                    text_button("Reset", ui_size)
+                        .on_press_maybe(sim_state.is_paused().then(|| Message::ResetSimulation)),
                 ],
             ]
             .spacing(ui_size.button_spacing()),
@@ -257,36 +254,32 @@ fn kcut_threshold_editor<State: AppState>(
         text("KCut threshold"),
         Space::with_width(ui_size.checkbox_spacing()),
         text_button("-", ui_size).on_press_maybe(
-            if parameters.simulation_type == RapierSimulationType::KCut {
+            (parameters.simulation_type == RapierSimulationType::KCut).then(|| {
                 let new_value = if parameters.k_cut_threshold <= 1 {
                     1
                 } else {
                     parameters.k_cut_threshold - 1
                 };
-                Some(Message::UpdateRapierParameters(apply_parameter_fields(
+                Message::UpdateRapierParameters(apply_parameter_fields(
                     fields,
                     &RapierParameters {
                         k_cut_threshold: new_value,
                         ..*parameters
                     },
-                )))
-            } else {
-                None
-            }
+                ))
+            })
         ),
         text_button("+", ui_size).on_press_maybe(
-            if parameters.simulation_type == RapierSimulationType::KCut {
+            (parameters.simulation_type == RapierSimulationType::KCut).then(|| {
                 let new_value = parameters.k_cut_threshold + 1;
-                Some(Message::UpdateRapierParameters(apply_parameter_fields(
+                Message::UpdateRapierParameters(apply_parameter_fields(
                     fields,
                     &RapierParameters {
                         k_cut_threshold: new_value,
                         ..*parameters
                     },
-                )))
-            } else {
-                None
-            }
+                ))
+            })
         ),
         Space::with_width(ui_size.checkbox_spacing()),
         text(parameters.k_cut_threshold)
@@ -295,7 +288,7 @@ fn kcut_threshold_editor<State: AppState>(
     .into()
 }
 
-const PARAMETER_FIELD_NAMES: [&'static str; 12] = [
+const PARAMETER_FIELD_NAMES: [&str; 12] = [
     "Linear damping",
     "Angular damping",
     "Interbase spring stiffness",
@@ -320,8 +313,7 @@ fn apply_parameter_fields(
         .map(|k| {
             fields
                 .get(PARAMETER_FIELD_NAMES[k])
-                .map(|str| str.parse::<f32>().ok())
-                .flatten()
+                .and_then(|str| str.parse::<f32>().ok())
                 .unwrap_or(default_array[k])
         })
         .collect::<Vec<_>>();
@@ -380,7 +372,7 @@ fn view_rapier_parameters<State: AppState>(
 
     for k in 0..12 {
         elements.push(rapier_parameters_field_editor(
-            &PARAMETER_FIELD_NAMES[k],
+            PARAMETER_FIELD_NAMES[k],
             values[k],
             ui_size,
             fields,

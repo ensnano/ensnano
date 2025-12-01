@@ -39,8 +39,8 @@ enum LayoutNode {
         right: f64,
         bottom: f64,
         left_proportion: f64,
-        left_child: Rc<RefCell<LayoutNode>>,
-        right_child: Rc<RefCell<LayoutNode>>,
+        left_child: Rc<RefCell<Self>>,
+        right_child: Rc<RefCell<Self>>,
         resizable: Option<usize>,
     },
 
@@ -51,8 +51,8 @@ enum LayoutNode {
         right: f64,
         bottom: f64,
         top_proportion: f64,
-        top_child: Rc<RefCell<LayoutNode>>,
-        bottom_child: Rc<RefCell<LayoutNode>>,
+        top_child: Rc<RefCell<Self>>,
+        bottom_child: Rc<RefCell<Self>>,
         resizable: Option<usize>,
     },
 }
