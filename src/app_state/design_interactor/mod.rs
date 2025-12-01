@@ -397,14 +397,12 @@ impl InteractorResult {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        OkOperation as TopOkOperation,
-        app_state::{
-            AppState,
-            design_interactor::{
-                controller::clipboard::PastePosition, file_parsing::junctions::StrandJunction as _,
-            },
+    use crate::app_state::{
+        AppState,
+        design_interactor::{
+            controller::clipboard::PastePosition, file_parsing::junctions::StrandJunction as _,
         },
+        transitions::OkOperation as TopOkOperation,
     };
     use ensnano_design::{
         Nucl,

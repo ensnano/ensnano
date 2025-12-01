@@ -6,6 +6,7 @@ use crate::{
     controller::channel_reader::ChannelReader,
 };
 use ensnano_design::{Design, helices::NuclCollection, parameters::HelixParameters};
+use ensnano_physics::parameters::RapierParameters;
 use ensnano_physics::simulation::RapierPhysicsSystem;
 use std::{
     collections::HashMap,
@@ -23,12 +24,14 @@ impl RapierPhysicalSystem {
     pub(crate) fn start_new(
         presenter: &Presenter,
         reader: &mut ChannelReader,
+        parameters: RapierParameters,
     ) -> Arc<Mutex<RapierInterface>> {
         let system = RapierPhysicsSystem::full_simulation(
             presenter
                 .get_design()
                 .helix_parameters
                 .unwrap_or(HelixParameters::GEARY_2014_DNA_P_STICK),
+            parameters,
             &presenter.content.object_type,
             &presenter.content.nucleotide,
             &presenter.content.space_position,

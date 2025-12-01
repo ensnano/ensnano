@@ -13,8 +13,7 @@ use ensnano_exports::ExportType;
 use ensnano_gui::{OverlayType, Requests as GuiRequests, left_panel::RigidBodyParametersRequest};
 use ensnano_iced::{ui_size::UiSize, widgets::keyboard_priority::PriorityRequest};
 use ensnano_interactor::{
-    DesignOperation, HyperboloidRequest, InsertionPoint, RapierSimulationRequest,
-    RigidBodyConstants, RollRequest,
+    DesignOperation, HyperboloidRequest, InsertionPoint, RigidBodyConstants, RollRequest,
     app_state_parameters::{
         check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
     },
@@ -25,6 +24,7 @@ use ensnano_interactor::{
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
 };
 use ensnano_organizer::tree::{GroupId, OrganizerTree};
+use ensnano_physics::parameters::RapierParameters;
 use std::{collections::BTreeSet, sync::Arc};
 use ultraviolet::{Rotor3, Vec2, Vec3};
 
@@ -115,8 +115,8 @@ impl GuiRequests for Requests {
         self.roll_request = Some(roll_request);
     }
 
-    fn request_rapier_simulation(&mut self, request: RapierSimulationRequest) {
-        self.rapier_simulation_request = Some(request);
+    fn request_rapier_simulation(&mut self, parameters: RapierParameters) {
+        self.rapier_simulation_parameters = Some(parameters);
     }
 
     fn make_grid_from_selection(&mut self) {

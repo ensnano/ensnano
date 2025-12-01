@@ -11,7 +11,10 @@ pub mod left_panel;
 pub mod status_bar;
 pub mod top_bar;
 
-use crate::left_panel::tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling};
+use crate::left_panel::{
+    LeftPanel, RigidBodyParametersRequest,
+    tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
+};
 use ensnano_design::{
     CameraId, Nucl,
     bezier_plane::{BezierPathId, BezierVertexId},
@@ -26,8 +29,8 @@ use ensnano_iced::{
     widgets::keyboard_priority::PriorityRequest,
 };
 use ensnano_interactor::{
-    HyperboloidRequest, InsertionPoint, PastingStatus, RapierSimulationRequest, RollRequest,
-    ScaffoldInfo, SimulationState, StrandBuildingStatus, WidgetBasis,
+    HyperboloidRequest, InsertionPoint, PastingStatus, RollRequest, ScaffoldInfo, SimulationState,
+    StrandBuildingStatus, WidgetBasis,
     app_state_parameters::{
         AppStateParameters, check_xovers_parameter::CheckXoversParameter,
         suggestion_parameters::SuggestionParameters,
@@ -42,6 +45,7 @@ use ensnano_interactor::{
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
 };
 use ensnano_organizer::tree::{GroupId, OrganizerTree};
+use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::TEXTURE_FORMAT;
 use iced::{
     Size,
@@ -52,7 +56,6 @@ use iced::{
 };
 use iced_runtime::{Debug, program};
 use iced_wgpu::Backend;
-use left_panel::{LeftPanel, RigidBodyParametersRequest};
 use status_bar::{ClipboardContent, CurrentOpState, StatusBar};
 use std::{
     collections::{BTreeSet, HashMap, VecDeque},
@@ -103,7 +106,7 @@ pub trait Requests: 'static + Send {
     fn stop_roll_simulation(&mut self);
     fn start_roll_simulation(&mut self, roll_request: RollRequest);
     /// Request a Rapier simulation of the current design
-    fn request_rapier_simulation(&mut self, request: RapierSimulationRequest);
+    fn request_rapier_simulation(&mut self, parameters: RapierParameters);
     /// Make a grid from the set of selected helices
     fn make_grid_from_selection(&mut self);
     /// Start of Update the rigid helices simulation

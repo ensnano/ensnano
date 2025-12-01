@@ -80,15 +80,6 @@ mod multiplexer;
 mod requests;
 mod scheduler;
 
-use app_state::{
-    AppState,
-    design_interactor::controller::{
-        ErrOperation, InteractorNotification,
-        clipboard::{CopyOperation, PastePosition},
-        simulations::SimulationOperation,
-    },
-    transitions::{AppStateTransition, OkOperation, TransitionLabel},
-};
 use controller::{
     Controller, LoadDesignError, SaveDesignError,
     channel_reader::{ChannelReader, ChannelReaderUpdate},
@@ -131,6 +122,7 @@ use ensnano_interactor::{
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
 };
 use ensnano_organizer::tree::GroupId;
+use ensnano_physics::parameters::RapierParameters;
 use ensnano_scene::{AppState as _, Scene, SceneKind, data::design3d::SceneDesignReaderExt as _};
 use ensnano_utils::TEXTURE_FORMAT;
 use iced::{
@@ -157,6 +149,16 @@ use winit::{
     event_loop::{ControlFlow, EventLoop, EventLoopWindowTarget},
     keyboard::{Key, ModifiersState, NamedKey},
     window::{CursorIcon, Window},
+};
+
+use crate::app_state::{
+    AppState,
+    design_interactor::controller::{
+        ErrOperation, InteractorNotification,
+        clipboard::{CopyOperation, PastePosition},
+        simulations::SimulationOperation,
+    },
+    transitions::{AppStateTransition, OkOperation, TransitionLabel},
 };
 
 const PROGRAM_NAME: &str = "ENSnano";
@@ -1246,13 +1248,14 @@ impl MainState {
         self.apply_operation_result(result);
     }
 
-    fn start_rapier_simulation(&mut self) {
+    fn update_rapier_parameters(&mut self, parameters: RapierParameters) {
         let presenter = self.app_state.0.design.presenter.clone();
         let result = self
             .app_state
-            .start_simulation(SimulationOperation::StartRapierSimulation {
+            .start_simulation(SimulationOperation::UpdateRapierParameters {
                 presenter: presenter.as_ref(),
                 reader: &mut self.channel_reader,
+                parameters,
             });
         self.apply_operation_result(result);
     }

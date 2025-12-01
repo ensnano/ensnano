@@ -1,5 +1,5 @@
 use crate::{
-    AppState, SimulationState,
+    AppState,
     left_panel::{Message, tabs::GuiTab},
 };
 use ensnano_design::curves::torus::CurveDescriptor2D;
@@ -10,10 +10,13 @@ use ensnano_iced::{
     ui_size::UiSize,
     widgets::keyboard_priority::keyboard_priority,
 };
-use ensnano_interactor::surfaces::{
-    EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceRadius,
-    RevolutionSurfaceSystemDescriptor, RootingParameters, ShiftGenerator,
-    UnrootedRevolutionSurfaceDescriptor,
+use ensnano_interactor::{
+    SimulationState,
+    surfaces::{
+        EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceRadius,
+        RevolutionSurfaceSystemDescriptor, RootingParameters, ShiftGenerator,
+        UnrootedRevolutionSurfaceDescriptor,
+    },
 };
 use iced::{
     Alignment, Command, Length,
@@ -560,7 +563,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
             }
         };
 
-        let simulation_buttons = if app_state.get_simulation_state() == SimulationState::Relaxing {
+        let simulation_buttons = if SimulationState::Relaxing == app_state.get_simulation_state() {
             self::column![
                 text_button("Abort", ui_size).on_press(Message::StopSimulation),
                 jump_by(2),
@@ -574,7 +577,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
             ]
         } else {
             let mut button = text_button("Start", ui_size);
-            if app_state.get_simulation_state() == SimulationState::None && desc.is_some() {
+            if SimulationState::None == app_state.get_simulation_state() && desc.is_some() {
                 button = button.on_press(Message::InitRevolutionRelaxation);
             }
             self::column![button]

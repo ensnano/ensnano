@@ -15,7 +15,7 @@ use ensnano_design::{
 };
 use ensnano_iced::widgets::keyboard_priority::PriorityRequest;
 use ensnano_interactor::{
-    HyperboloidRequest, RapierSimulationRequest, RigidBodyConstants, RollRequest,
+    HyperboloidRequest, RigidBodyConstants, RollRequest,
     app_state_parameters::{
         check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
     },
@@ -26,6 +26,7 @@ use ensnano_interactor::{
     surfaces::UnrootedRevolutionSurfaceDescriptor,
 };
 use ensnano_organizer::tree::{GroupId, OrganizerTree};
+use ensnano_physics::parameters::RapierParameters;
 use std::{collections::VecDeque, sync::Arc};
 use ultraviolet::Vec3;
 
@@ -59,7 +60,7 @@ pub(crate) struct Requests {
     pub set_scaffold_id: Option<Option<usize>>,
     pub recolor_staples: Option<()>,
     pub roll_request: Option<RollRequest>,
-    pub rapier_simulation_request: Option<RapierSimulationRequest>,
+    pub rapier_simulation_parameters: Option<RapierParameters>,
     pub show_torsion_request: Option<bool>,
     pub fog: Option<FogParameters>,
     pub hyperboloid_update: Option<HyperboloidRequest>,
