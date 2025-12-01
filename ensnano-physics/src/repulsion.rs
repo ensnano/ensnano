@@ -28,10 +28,11 @@ fn repulsion_step(system: &mut RapierPhysicsSystem, delta: f32) {
     //     .collider_set
     //     .iter()
     let forces = handles
+        .clone()
         .into_par_iter()
         .map(|handle| {
-            let body = system.collider_set.get(handle).unwrap();
-            let position = *body.position();
+            let collider = system.collider_set.get(handle).unwrap();
+            let position = *collider.position();
 
             let force_range = system.rapier_parameters.repulsion_range;
             let force_strength = system.rapier_parameters.repulsion_strength;
@@ -45,12 +46,20 @@ fn repulsion_step(system: &mut RapierPhysicsSystem, delta: f32) {
             // we query for all colliders within a volume
             query_pipeline
                 .intersect_shape(
-                    *body.position(),
+                    position,
                     &Ball {
                         radius: force_range,
                     },
                 )
-                // from that we get a list of relative vectors
+                // we only keep the objects registered in group 2, which should be the nucleotides
+                .filter(|(_, collider)| {
+                    collider.collision_groups().test(InteractionGroups::new(
+                        Group::GROUP_2,
+                        Group::GROUP_2,
+                        InteractionTestMode::Or,
+                    ))
+                })
+                // from that we get a list of relative vectorsosition.translation.vector - collider.position().translation.vector
                 .map(|(_, collider)| {
                     position.translation.vector - collider.position().translation.vector
                 })
@@ -63,16 +72,29 @@ fn repulsion_step(system: &mut RapierPhysicsSystem, delta: f32) {
                 // and we then sum all these forces
                 .sum()
         })
-        .collect::<Vec<_>>();
+        .collect::<Vec<Vector<Real>>>();
 
-    for (force, (_, collider)) in forces.iter().zip(system.collider_set.iter()) {
+    for (force, handle) in forces.into_iter().zip(handles.into_iter()) {
+        let Some(collider) = system.collider_set.get(handle) else {
+            continue;
+        };
+
         let Some(parent) = collider.parent() else {
             continue;
         };
+
         let Some(body) = system.rigid_body_set.get_mut(parent) else {
             continue;
         };
 
-        body.apply_impulse_at_point(*force, collider.position().translation.vector.into(), true);
+        // let Some(isometry) = collider.position() else {
+        //     continue;
+        // };
+
+        let isometry = collider.position();
+
+        let force: Vector<Real> = isometry.rotation.inverse() * force;
+
+        body.apply_impulse_at_point(force, isometry.translation.vector.into(), true);
     }
 }

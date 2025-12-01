@@ -18,7 +18,7 @@ use rapier3d::prelude::*;
 const NUCLEOTIDE_RADIUS: f32 = 0.05;
 const PAIR_CAPSULE_RADIUS: f32 = 0.1;
 
-const STRONG_SPRING_RANGES: [u32; 2] = [1, 2];
+const STRONG_SPRING_RANGES: [u32; 1] = [1];
 // const STRONG_SPRING_RANGES: [u32; 1] = [2];
 
 // const BASE_LINEAR_DAMPING: f32 = 0.06;
@@ -338,17 +338,19 @@ fn build_colliders(
 
                     let i_collider = ColliderBuilder::ball(NUCLEOTIDE_RADIUS)
                         .position(Isometry::translation(i_p[0], i_p[1], i_p[2]))
-                        // .active_collision_types(ActiveCollisionTypes::empty())
+                        //.active_collision_types(ActiveCollisionTypes::empty())
                         .collision_groups(InteractionGroups::new(
                             Group::GROUP_1 | Group::GROUP_2,
-                            Group::empty(),
+                            Group::GROUP_1 | Group::GROUP_2,
+                            InteractionTestMode::Or,
                         ));
                     let j_collider = ColliderBuilder::ball(NUCLEOTIDE_RADIUS)
                         .position(Isometry::translation(j_p[0], j_p[1], j_p[2]))
-                        // .active_collision_types(ActiveCollisionTypes::empty())
+                        //.active_collision_types(ActiveCollisionTypes::empty())
                         .collision_groups(InteractionGroups::new(
                             Group::GROUP_1 | Group::GROUP_2,
-                            Group::empty(),
+                            Group::GROUP_1 | Group::GROUP_2,
+                            InteractionTestMode::Or,
                         ));
 
                     let capsule = ColliderBuilder::capsule_from_endpoints(
