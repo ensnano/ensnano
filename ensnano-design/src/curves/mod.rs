@@ -43,6 +43,7 @@ use crate::{
 };
 use bezier::TranslatedPiecewiseBezier;
 use chebyshev::{PolynomialCoordinates, PolynomialCoordinates_};
+use chebyshev_polynomials::ChebyshevPolynomial;
 use rand::prelude::*;
 use revolution::InterpolationDescriptor;
 use serde::{Deserialize, Serialize};
@@ -1395,14 +1396,14 @@ impl Helix {
 }
 
 impl InterpolationDescriptor {
-    pub fn instantiated(self) -> chebyshev_polynomials::ChebyshevPolynomial {
+    pub fn instantiated(self) -> ChebyshevPolynomial {
         match self {
             Self::PointsValues { points, values } => {
                 let points_values = points.into_iter().zip(values).collect();
                 chebyshev_polynomials::interpolate_points(points_values, 1e-4)
             }
             Self::Chebyshev { coeffs, interval } => {
-                chebyshev_polynomials::ChebyshevPolynomial::from_coeffs_interval(coeffs, interval)
+                ChebyshevPolynomial::from_coeffs_interval(coeffs, interval)
             }
         }
     }
