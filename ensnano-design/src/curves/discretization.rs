@@ -65,7 +65,7 @@ impl Curve {
             .unwrap_or_else(|| {
                 self.length_by_discretisation(self.geometry.t_min(), self.geometry.t_max(), nb_step)
             });
-        let nb_points = (len / nucl_rise) as usize;
+        let nb_points = (len / nucl_rise) as usize; // NS: floor rather than round ?!?
         let small_step = 0.1 / (nb_step as f64);
         log::info!("small step = {small_step}");
         log::info!(
@@ -362,6 +362,7 @@ impl Curve {
         }
     }
 
+    /// NS: Should not be used to compute length of a translated curve because speed(t) outputs then a wrong value
     pub fn length_by_discretisation(&self, t0: f64, t1: f64, nb_step: usize) -> f64 {
         if t0 > t1 {
             log::error!(
@@ -395,6 +396,7 @@ impl Curve {
         len
     }
 
+    /// NS: Use UP as reference point which should be changed (it should use initial frame directly or a rotation of it)
     fn translation_axis(&self, t: f64, current_axis: &DMat3) -> DMat3 {
         let mut ret = *current_axis;
         if let Some(frame) = self.geometry.initial_frame() {
@@ -406,6 +408,7 @@ impl Curve {
         ret
     }
 
+    // NS: translates the point according to the translation and current axis. BEWARE: the translation is NOT applied to speed and acceleration!!!
     fn point_at_t(&self, t: f64, current_axis: &DMat3) -> DVec3 {
         let mut ret = self.geometry.position(t);
         if let Some(translation) = self.geometry.translation() {
@@ -548,6 +551,9 @@ impl Curve {
         }
     }
 
+    /// NS: compute chebyshev polynomials interpolating curvilinear abscissa and its inverse
+    /// NS: do not use .speed(t) which does NOT work with translated curve -- this function is used for translated curves
+    /// NS: it would be better to use a bezier interpolation to compute the chebyshev polynomial (it's smoother) and should reduce the degree
     fn compute_polynomials(&self) -> Option<PreComputedPolynomials> {
         self.geometry.pre_compute_polynomials().then(|| {
             let mut t = self.geometry.t_min();
