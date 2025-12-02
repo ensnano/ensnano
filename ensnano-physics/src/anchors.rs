@@ -14,8 +14,7 @@ use ultraviolet::{Rotor3, Vec3};
 pub(crate) struct SpringAnchorsReference {
     nucleotide_forward: OVector<f32, Const<3>>,
 
-    // from center of the pair to the center of
-    // the next pair
+    // the local forward vector of the curve
     up: OVector<f32, Const<3>>,
 
     up_forward_anchor: OVector<f32, Const<3>>,
@@ -72,23 +71,26 @@ impl SpringAnchorsReference {
         helix.helix_parameters = helix_parameters;
 
         let (nucleotide_forward, nucleotide_backward, center) = pair(&helix, default_parameters, 0);
-        let (_, _, next_center) = pair(&helix, default_parameters, 1);
+        // let (_, _, next_center) = pair(&helix, default_parameters, 1);
 
-        let (up_nucleotide_forward, up_nucleotide_backward, up_center) =
+        let (up_nucleotide_forward, up_nucleotide_backward, _) =
             pair(&helix, default_parameters, distance as isize);
-        let (_, _, next_up_center) = pair(&helix, default_parameters, distance as isize + 1);
+        // let (_, _, next_up_center) = pair(&helix, default_parameters, distance as isize + 1);
 
-        let (down_nucleotide_forward, down_nucleotide_backward, down_center) =
+        let (down_nucleotide_forward, down_nucleotide_backward, _) =
             pair(&helix, default_parameters, -(distance as isize));
-        let (_, _, next_down_center) = pair(&helix, default_parameters, 1 - distance as isize);
+        // let (_, _, next_down_center) = pair(&helix, default_parameters, 1 - distance as isize);
 
-        let up = (next_center - center).normalize();
+        // let up = (next_center - center).normalize();
+        let up = vec_to_vector(helix.normal_at_pos(0, true));
 
         // up's up direction
-        let up_up = (next_up_center - up_center).normalize();
+        //let up_up = (next_up_center - up_center).normalize();
+        let up_up = up;
 
         // down's up direction
-        let down_up = (next_down_center - down_center).normalize();
+        // let down_up = (next_down_center - down_center).normalize();
+        let down_up = up;
 
         // we compute the left and right anchors by rotating each nucleotide pair in its
         // local up axis

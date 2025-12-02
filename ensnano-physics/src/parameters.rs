@@ -75,20 +75,20 @@ impl std::fmt::Display for RapierSimulationType {
 impl RapierParameters {
     const DEFAULT: Self = Self {
         is_simulation_running: false,
-        simulation_type: RapierSimulationType::KCut,
+        simulation_type: RapierSimulationType::Full,
         k_cut_threshold: 8,
         linear_damping: 0.06,
         angular_damping: 0.6,
-        interbase_spring_stiffness: 10.0,
-        interbase_spring_damping: 1.0,
+        interbase_spring_stiffness: 100.0,
+        interbase_spring_damping: 10.0,
         crossover_stiffness: 100.0,
         crossover_damping: 50.0,
-        crossover_rest_length: 1.28,
-        free_nucleotide_stiffness: 40.0,
+        crossover_rest_length: 0.68,
+        free_nucleotide_stiffness: 80.0,
         free_nucleotide_damping: 40.0,
         free_nucleotide_rest_length: 0.7,
-        repulsion_strength: 2.0,
-        repulsion_range: 1.5,
+        repulsion_strength: 0.07,
+        repulsion_range: 2.0,
     };
 }
 

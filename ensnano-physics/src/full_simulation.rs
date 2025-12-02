@@ -2,8 +2,8 @@ use crate::{
     anchors::SpringAnchorsReference,
     helices::{IntermediaryHelix, IntermediaryPair},
     parameters::RapierParameters,
-    point_from_parts,
     simulation::RapierPhysicsSystem,
+    vec_to_vector,
 };
 use ahash::HashMap;
 use ensnano_design::{
@@ -12,28 +12,12 @@ use ensnano_design::{
     parameters::HelixParameters,
 };
 use ensnano_interactor::ObjectType;
-use itertools::Itertools as _;
 use rapier3d::prelude::*;
 
-const NUCLEOTIDE_RADIUS: f32 = 0.05;
-const PAIR_CAPSULE_RADIUS: f32 = 0.1;
+const NUCLEOTIDE_RADIUS: f32 = 0.32;
+// const PAIR_CAPSULE_RADIUS: f32 = 0.1;
 
 const STRONG_SPRING_RANGES: [u32; 1] = [1];
-// const STRONG_SPRING_RANGES: [u32; 1] = [2];
-
-// const BASE_LINEAR_DAMPING: f32 = 0.06;
-// const BASE_ANGULAR_DAMPING: f32 = 0.06;
-
-// const INTERBASE_SPRING_STIFFNESS: f32 = 10000.0;
-// const INTERBASE_SPRING_DAMPING: f32 = 1000.0;
-
-// const CROSSOVER_STIFFNESS: f32 = 100.0;
-// const CROSSOVER_DAMPING: f32 = 50.0;
-// const CROSSOVER_SIZE: f32 = 0.64;
-
-// const FREE_NUCLEOTIDE_STIFFNESS: f32 = 40000.0;
-// const FREE_NUCLEOTIDE_DAMPING: f32 = 4000.0;
-// const FREE_NUCLEOTIDE_DISTANCE: f32 = 0.332;
 
 /// A trait to represent a strategy of how to attach
 /// colliders to rigid bodies in the simulation.
@@ -258,6 +242,8 @@ pub(crate) fn build_simulation<S: SimulationSetup>(
         rapier_parameters,
     );
 
+    prevent_bodies_from_sleeping(&mut rigid_body_set);
+
     // create springs from double helix portions;
     // 1) for each helix, for each window size
     // create a reference of that size for that helix
@@ -305,6 +291,12 @@ pub(crate) fn build_simulation<S: SimulationSetup>(
     }
 }
 
+fn prevent_bodies_from_sleeping(bodies: &mut RigidBodySet) {
+    for (_, body) in bodies.iter_mut() {
+        *body.activation_mut() = RigidBodyActivation::cannot_sleep();
+    }
+}
+
 /// Builds the rigid bodies necessary for the simulation.
 /// Fills nucleotide body map and  by indicating the colliders that correspond
 /// to the nucleotides.
@@ -325,7 +317,7 @@ fn build_colliders(
     // doing it this way works...
     let dummy_body = rigid_body_set.insert(RigidBodyBuilder::dynamic());
 
-    for helix in intermediary_representation.values() {
+    for (helix_id, helix) in intermediary_representation {
         for pair in helix.pairs.values() {
             match pair {
                 IntermediaryPair::Pair(i, n, j) => {
@@ -338,41 +330,44 @@ fn build_colliders(
 
                     let i_collider = ColliderBuilder::ball(NUCLEOTIDE_RADIUS)
                         .position(Isometry::translation(i_p[0], i_p[1], i_p[2]))
-                        //.active_collision_types(ActiveCollisionTypes::empty())
                         .collision_groups(InteractionGroups::new(
                             Group::GROUP_1 | Group::GROUP_2,
                             Group::GROUP_1 | Group::GROUP_2,
                             InteractionTestMode::And,
-                        ));
+                        ))
+                        // we indicate the helix of the nucleotide in user data
+                        .user_data(*helix_id as u128);
                     let j_collider = ColliderBuilder::ball(NUCLEOTIDE_RADIUS)
                         .position(Isometry::translation(j_p[0], j_p[1], j_p[2]))
-                        //.active_collision_types(ActiveCollisionTypes::empty())
                         .collision_groups(InteractionGroups::new(
                             Group::GROUP_1 | Group::GROUP_2,
                             Group::GROUP_1 | Group::GROUP_2,
                             InteractionTestMode::And,
-                        ));
+                        ))
+                        // we indicate the helix of the nucleotide in user data
+                        .user_data(*helix_id as u128);
 
-                    let capsule = ColliderBuilder::capsule_from_endpoints(
-                        point_from_parts(i_p),
-                        point_from_parts(j_p),
-                        PAIR_CAPSULE_RADIUS,
-                    );
+                    // let capsule = ColliderBuilder::capsule_from_endpoints(
+                    //     point_from_parts(i_p),
+                    //     point_from_parts(j_p),
+                    //     PAIR_CAPSULE_RADIUS,
+                    // );
 
                     let i_collider_handle =
                         collider_set.insert_with_parent(i_collider, dummy_body, rigid_body_set);
                     let j_collider_handle =
                         collider_set.insert_with_parent(j_collider, dummy_body, rigid_body_set);
 
-                    let capsule_handle =
-                        collider_set.insert_with_parent(capsule, dummy_body, rigid_body_set);
+                    // let capsule_handle =
+                    //     collider_set.insert_with_parent(capsule, dummy_body, rigid_body_set);
 
                     nucleotide_body_map.insert(*i, i_collider_handle);
                     nucleotide_body_map.insert(*j, j_collider_handle);
 
                     collider_map.insert(
                         (n.helix, n.position),
-                        vec![i_collider_handle, j_collider_handle, capsule_handle],
+                        // vec![i_collider_handle, j_collider_handle, capsule_handle],
+                        vec![i_collider_handle, j_collider_handle],
                     );
                 }
                 IntermediaryPair::OnlyForward(id, n) | IntermediaryPair::OnlyBackward(id, n) => {
@@ -394,29 +389,29 @@ fn build_colliders(
     }
 }
 
-fn up_vector(
-    down_pair: &IntermediaryPair,
-    up_pair: &IntermediaryPair,
-    nucleotide_body_map: &HashMap<u32, ColliderHandle>,
-    collider_set: &ColliderSet,
-) -> Vector<Real> {
-    let IntermediaryPair::Pair(up_i, _, up_j) = up_pair else {
-        panic!("Incoherent double ranges");
-    };
-    let IntermediaryPair::Pair(down_i, _, down_j) = down_pair else {
-        panic!("Incoherent double ranges");
-    };
+// fn up_vector(
+//     down_pair: &IntermediaryPair,
+//     up_pair: &IntermediaryPair,
+//     nucleotide_body_map: &HashMap<u32, ColliderHandle>,
+//     collider_set: &ColliderSet,
+// ) -> Vector<Real> {
+//     let IntermediaryPair::Pair(up_i, _, up_j) = up_pair else {
+//         panic!("Incoherent double ranges");
+//     };
+//     let IntermediaryPair::Pair(down_i, _, down_j) = down_pair else {
+//         panic!("Incoherent double ranges");
+//     };
 
-    let up_i = collider_set.get(nucleotide_body_map[up_i]).unwrap();
-    let up_j = collider_set.get(nucleotide_body_map[up_j]).unwrap();
-    let down_i = collider_set.get(nucleotide_body_map[down_i]).unwrap();
-    let down_j = collider_set.get(nucleotide_body_map[down_j]).unwrap();
+//     let up_i = collider_set.get(nucleotide_body_map[up_i]).unwrap();
+//     let up_j = collider_set.get(nucleotide_body_map[up_j]).unwrap();
+//     let down_i = collider_set.get(nucleotide_body_map[down_i]).unwrap();
+//     let down_j = collider_set.get(nucleotide_body_map[down_j]).unwrap();
 
-    let up_center = (up_i.translation() + up_j.translation()) / 2.0;
-    let down_center = (down_i.translation() + down_j.translation()) / 2.0;
+//     let up_center = (up_i.translation() + up_j.translation()) / 2.0;
+//     let down_center = (down_i.translation() + down_j.translation()) / 2.0;
 
-    (up_center - down_center).normalize()
-}
+//     (up_center - down_center).normalize()
+// }
 
 fn build_strong_springs(
     intermediary_representation: &HashMap<usize, IntermediaryHelix>,
@@ -438,29 +433,13 @@ fn build_strong_springs(
                 continue;
             }
 
+            let up_vectors = range
+                .clone()
+                .map(|k| (k, vec_to_vector(helix.normal_at_pos(k, true))))
+                .collect::<HashMap<_, _>>();
+
             // we use a vec to use Slice::window
             let range = range.clone().collect::<Vec<_>>();
-
-            let mut up_vectors = HashMap::default();
-
-            // we extract the "up" vector for each pair in a double
-            // helix range
-            // -> top pairs in each range use the inverse of the down direction
-            // instead
-            // (we could do an average here between up and -down when both exist)
-
-            for (&a, &b) in range.iter().tuple_windows() {
-                let down_pair = intermediary.pairs[&a];
-                let up_pair = intermediary.pairs[&b];
-
-                let result = up_vector(&down_pair, &up_pair, nucleotide_body_map, collider_set);
-
-                up_vectors.insert(a, result);
-                // we always insert a copy up
-                // so that the last pair also gets
-                // an up vector
-                up_vectors.insert(a + 1, result);
-            }
 
             for distance in STRONG_SPRING_RANGES {
                 let reference = SpringAnchorsReference::new(helix, distance, global_parameters);

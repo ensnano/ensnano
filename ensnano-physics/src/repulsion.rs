@@ -12,8 +12,9 @@ impl RapierPhysicsSystem {
 }
 
 // Following three functions from the "Particle-based Viscoelastic Fluid Simulation"
-fn simple_kernel_1(r: f32, h: f32) -> f32 {
-    1.0 - r / h
+fn simple_kernel_2(r: f32, h: f32) -> f32 {
+    let v = 1.0 - r / h;
+    v * v
 }
 
 /// Operates a repulsion between all rigid bodies
@@ -29,6 +30,7 @@ fn repulsion_step(system: &mut RapierPhysicsSystem, delta: f32) {
         .par_iter()
         .map(|handle| {
             let collider = system.collider_set.get(**handle).unwrap();
+            let helix_id = collider.user_data;
             let position = *collider.position();
 
             let force_range = system.rapier_parameters.repulsion_range;
@@ -56,6 +58,9 @@ fn repulsion_step(system: &mut RapierPhysicsSystem, delta: f32) {
                         InteractionTestMode::And,
                     ))
                 })
+                // we only keep the objects that are from different helixes,
+                // filtering out our own helix
+                .filter(|(_, collider)| collider.user_data != helix_id)
                 // from that we get a list of relative vectorsosition.translation.vector - collider.position().translation.vector
                 .map(|(_, collider)| {
                     position.translation.vector - collider.position().translation.vector
@@ -65,7 +70,7 @@ fn repulsion_step(system: &mut RapierPhysicsSystem, delta: f32) {
                 // which we then normalize while keeping its length
                 .map(|v| (v.normalize(), v.norm()))
                 // which we then multiply by that square, and some other constants
-                .map(|(v, d)| v * simple_kernel_1(d, force_range) * delta * force_strength)
+                .map(|(v, d)| v * simple_kernel_2(d, force_range) * delta * force_strength)
                 // and we then sum all these forces
                 .sum()
         })
