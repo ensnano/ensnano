@@ -2,11 +2,8 @@ use crate::simulation::RapierPhysicsSystem;
 use rapier3d::{
     parry::query::DefaultQueryDispatcher,
     prelude::*,
-    rayon::iter::{IntoParallelIterator as _, ParallelIterator as _},
+    rayon::iter::{IntoParallelRefIterator as _, ParallelIterator as _},
 };
-
-// const FORCE_RANGE: f32 = 5.0;
-// const FORCE_STRENGTH: f32 = 0.1;
 
 impl RapierPhysicsSystem {
     pub fn repulsion_step(&mut self, delta: f32) {
@@ -22,16 +19,16 @@ fn simple_kernel_1(r: f32, h: f32) -> f32 {
 /// Operates a repulsion between all rigid bodies
 /// based on colliders at proximity.
 fn repulsion_step(system: &mut RapierPhysicsSystem, delta: f32) {
-    let handles = system.collider_set.iter().map(|p| p.0).collect::<Vec<_>>();
+    let handles = system.nucleotide_body_map.values().collect::<Vec<_>>();
 
     // let forces = system
     //     .collider_set
     //     .iter()
     let forces = handles
         .clone()
-        .into_par_iter()
+        .par_iter()
         .map(|handle| {
-            let collider = system.collider_set.get(handle).unwrap();
+            let collider = system.collider_set.get(**handle).unwrap();
             let position = *collider.position();
 
             let force_range = system.rapier_parameters.repulsion_range;
@@ -56,7 +53,7 @@ fn repulsion_step(system: &mut RapierPhysicsSystem, delta: f32) {
                     collider.collision_groups().test(InteractionGroups::new(
                         Group::GROUP_2,
                         Group::GROUP_2,
-                        InteractionTestMode::Or,
+                        InteractionTestMode::And,
                     ))
                 })
                 // from that we get a list of relative vectorsosition.translation.vector - collider.position().translation.vector
@@ -75,7 +72,7 @@ fn repulsion_step(system: &mut RapierPhysicsSystem, delta: f32) {
         .collect::<Vec<Vector<Real>>>();
 
     for (force, handle) in forces.into_iter().zip(handles.into_iter()) {
-        let Some(collider) = system.collider_set.get(handle) else {
+        let Some(collider) = system.collider_set.get(*handle) else {
             continue;
         };
 
@@ -87,14 +84,10 @@ fn repulsion_step(system: &mut RapierPhysicsSystem, delta: f32) {
             continue;
         };
 
-        // let Some(isometry) = collider.position() else {
-        //     continue;
-        // };
+        let collider_isometry = collider.position();
 
-        let isometry = collider.position();
+        let point = collider_isometry.translation.vector;
 
-        let force: Vector<Real> = isometry.rotation.inverse() * force;
-
-        body.apply_impulse_at_point(force, isometry.translation.vector.into(), true);
+        body.add_force_at_point(force, point.into(), true);
     }
 }

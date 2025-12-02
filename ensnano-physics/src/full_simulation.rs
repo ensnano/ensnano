@@ -342,7 +342,7 @@ fn build_colliders(
                         .collision_groups(InteractionGroups::new(
                             Group::GROUP_1 | Group::GROUP_2,
                             Group::GROUP_1 | Group::GROUP_2,
-                            InteractionTestMode::Or,
+                            InteractionTestMode::And,
                         ));
                     let j_collider = ColliderBuilder::ball(NUCLEOTIDE_RADIUS)
                         .position(Isometry::translation(j_p[0], j_p[1], j_p[2]))
@@ -350,7 +350,7 @@ fn build_colliders(
                         .collision_groups(InteractionGroups::new(
                             Group::GROUP_1 | Group::GROUP_2,
                             Group::GROUP_1 | Group::GROUP_2,
-                            InteractionTestMode::Or,
+                            InteractionTestMode::And,
                         ));
 
                     let capsule = ColliderBuilder::capsule_from_endpoints(
