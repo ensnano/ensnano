@@ -1,7 +1,13 @@
 {
   "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
   "version": "0.2",
-  "ignorePaths": ["target/", "thirdparties/", "*.txt", "*.pdb", "Cargo.lock"],
+  "ignorePaths": [
+    "target/",
+    "thirdparties/",
+    "*.txt",
+    "*.pdb",
+    "Cargo.lock"
+  ],
   "words": [
     "2KPHSEF9U9",
     "ahash",
@@ -89,6 +95,7 @@
     "Jemalloc",
     "jemallocator",
     "joris",
+    "kcut",
     "Keyao",
     "Kutta",
     "lerp",
