@@ -11,9 +11,9 @@
 ## Bugs
 
 - Increasing the left panel too much crashes ENSnano
-- Crash when selection "Ellipse" or "Two spheres" in "Revolution Surfaces" tab 
+- Crash when selecting "Ellipse" or "Two spheres" in "Revolution Surfaces" tab
 - Toggle split of flatscene
-- Zooms gets stuck (waiting for Nicolas explanation)
+- Request fit doesn't work properly anymore, both in 2D and 3D
 
 ## Hide scientific WIP
 
@@ -24,6 +24,7 @@
 
 ## Scene (3D)
 
+- Movement is broken when both keyboard and mouse wheel translations (or zoom) are applied
 - Fix rotation with `H`/`J`/`K`/`L` while dragging (copy code from `swing`)
 - Cut plane (toggleable button next to grids)
 - Isometric view

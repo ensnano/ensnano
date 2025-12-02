@@ -20,6 +20,8 @@ pub(crate) struct RapierPhysicalSystem {
     interface: Weak<Mutex<RapierInterface>>,
 }
 
+const FRAME_MIN_TIME: Duration = Duration::from_millis(10);
+
 impl RapierPhysicalSystem {
     pub(crate) fn start_new(
         presenter: &Presenter,
@@ -58,13 +60,19 @@ impl RapierPhysicalSystem {
     pub(crate) fn run(mut self) {
         std::thread::spawn(move || {
             while let Some(interface) = self.interface.upgrade() {
+                let start_time = std::time::Instant::now();
+
                 // we update the physics
                 self.system.step();
                 // we get the positions
                 interface.lock().unwrap().space_position = self.system.get_positions();
 
-                // DEBUG : slowing down the simulation
-                std::thread::sleep(Duration::from_secs_f32(0.1));
+                let expected_end_time = start_time + FRAME_MIN_TIME;
+                let now = std::time::Instant::now();
+
+                if now < expected_end_time {
+                    std::thread::sleep(expected_end_time - now);
+                }
             }
         });
     }
