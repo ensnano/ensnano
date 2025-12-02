@@ -87,8 +87,8 @@ impl RapierParameters {
         free_nucleotide_stiffness: 80.0,
         free_nucleotide_damping: 40.0,
         free_nucleotide_rest_length: 0.7,
-        repulsion_strength: 0.14,
-        repulsion_range: 1.0,
+        repulsion_strength: 0.3,
+        repulsion_range: 1.5,
     };
 }
 
