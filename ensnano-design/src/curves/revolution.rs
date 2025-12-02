@@ -20,6 +20,7 @@ pub struct InterpolatedCurveDescriptor {
     /// Scale factor of the section
     pub curve_scale_factor: f64,
     pub interpolation: Vec<InterpolationDescriptor>,
+    #[serde(alias = "chevyshev_smoothening")] // cspell: disable-line
     pub chebyshev_smoothening: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub revolution_angle_init: Option<f64>,
