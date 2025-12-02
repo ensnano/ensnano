@@ -155,7 +155,7 @@ pub struct CircleDescriptor {
 impl CircleDescriptor {
     pub(super) fn with_helix_parameters(self, helix_parameters: &HelixParameters) -> CircleCurve {
         let circle_helix_parameters = self.helix_parameters.unwrap_or(helix_parameters.clone());
-        let perimeter = TAU * self.radius; 
+        let perimeter = TAU * self.radius;
         CircleCurve {
             _parameters: circle_helix_parameters,
             radius: self.radius,
