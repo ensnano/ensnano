@@ -14,6 +14,7 @@
 - Crash when selecting "Ellipse" or "Two spheres" in "Revolution Surfaces" tab
 - Toggle split of flatscene
 - Request fit doesn't work properly anymore, both in 2D and 3D
+- Organizer Tree slider doesn't work with the mouse
 
 ## Hide scientific WIP
 

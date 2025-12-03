@@ -1,3 +1,21 @@
+/*
+ENSnano, a 3d graphical application for DNA nanostructures.
+    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 pub mod instantiator;
 
 use crate::{
@@ -6,9 +24,10 @@ use crate::{
     utils::{is_false, vec_to_dvec},
 };
 use num_enum::{IntoPrimitive, TryFromPrimitive};
+
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use ultraviolet::{DMat3, DVec3, Vec3};
+use ultraviolet::{DMat3, DVec3, Rotor3, Vec3};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, IntoPrimitive, TryFromPrimitive, PartialOrd, Ord)]
 #[repr(usize)]
@@ -309,12 +328,12 @@ impl InstantiatedPiecewiseBezier {
     /// Return the CubicBezier with index i
     fn ith_cubic_bezier(&self, i: usize) -> CubicBezier {
         CubicBezier::new(CubicBezierConstructor {
-            start: self.ends.iter().cycle().nth(i).unwrap().position,
-            end: self.ends.iter().cycle().nth(i + 1).unwrap().position,
+            start: self.ends.iter().cycle().nth(i).unwrap().position, // p_i.position
+            end: self.ends.iter().cycle().nth(i + 1).unwrap().position, // p_i+1.position
             control1: self.ends.iter().cycle().nth(i).unwrap().position
-                + self.ends.iter().cycle().nth(i).unwrap().vector_out,
+                + self.ends.iter().cycle().nth(i).unwrap().vector_out, // p_i.position + p_i.vector_out
             control2: self.ends.iter().cycle().nth(i + 1).unwrap().position
-                - self.ends.iter().cycle().nth(i + 1).unwrap().vector_in,
+                - self.ends.iter().cycle().nth(i + 1).unwrap().vector_in, // p_i+1.position - p_i+1.vector_in
         })
     }
 
@@ -410,12 +429,24 @@ impl Curved for InstantiatedPiecewiseBezier {
         let s = self.t_to_segment_time(t);
         let b_i = self.ith_cubic_bezier(s.segment);
         b_i.speed(s.time)
+        // let s = self.t_to_segment_time(t);
+        //     let b_i = self.ith_cubic_bezier(s.segment).position(s.time);
+        //     let s2 = self.t_to_segment_time(t+1e-6);
+        //     let b2_i = self.ith_cubic_bezier(s.segment).position(s2.time);
+        //     return (b2_i - b_i) / 1e-6;
     }
 
     fn acceleration(&self, t: f64) -> DVec3 {
         let s = self.t_to_segment_time(t);
         let b_i = self.ith_cubic_bezier(s.segment);
         b_i.acceleration(s.time)
+        // let s0 = self.t_to_segment_time(t);
+        // let p0 = self.ith_cubic_bezier(s0.segment).position(s0.time);
+        // let s1 = self.t_to_segment_time(t+1e-6);
+        // let p1 = self.ith_cubic_bezier(s1.segment).position(s1.time);
+        // let s2 = self.t_to_segment_time(t+2e-6);
+        // let p2 = self.ith_cubic_bezier(s2.segment).position(s2.time);
+        // return (p2 + p0 - 2. * p1) / (1e-12);
     }
 
     fn bounds(&self) -> CurveBounds {
@@ -485,5 +516,82 @@ impl Curved for TranslatedPiecewiseBezier {
 
     fn legacy(&self) -> bool {
         self.legacy
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct InterpolatedC1PiecewiseBezierDescriptor {
+    pub points: Vec<Vec3>,
+    pub is_closed: bool,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub discretize_quickly: Option<bool>,
+}
+
+impl InterpolatedC1PiecewiseBezierDescriptor {
+    pub(super) fn instanciate(self) -> InstantiatedPiecewiseBezier {
+        if self.points.len() <= 2 {
+            let p0 = self.points.first().copied().unwrap_or_else(Vec3::zero);
+            let p1 = self.points.last().copied().unwrap_or_else(Vec3::zero);
+            return InstantiatedPiecewiseBezier {
+                ends: vec![
+                    BezierEndCoordinates {
+                        position: p0,
+                        vector_in: Vec3::zero(),
+                        vector_out: (p1 - p0) / 3.,
+                    },
+                    BezierEndCoordinates {
+                        position: p1,
+                        vector_in: (p0 - p1) / 3.,
+                        vector_out: Vec3::zero(),
+                    },
+                ],
+                t_min: None,
+                t_max: None,
+                is_cyclic: false,
+                id: 0,
+                discretize_quickly: true,
+            };
+        }
+        // it contains at least 3 points
+        let n = self.points.len();
+        let mut diffs = Vec::with_capacity(n);
+        diffs.push(Vec3::zero());
+        for (p, q) in self.points.iter().zip(self.points.iter().skip(2)) {
+            diffs.push((*q - *p) / 6.);
+        }
+        diffs.push(Vec3::zero());
+        if !self.is_closed {
+            // first tangent
+            let p = self.points[0];
+            let q = self.points[1];
+            let rotor = Rotor3::from_rotation_between(diffs[1].normalized(), (q - p).normalized());
+            diffs[0] = (q - p).normalized().rotated_by(rotor) * (diffs[1].mag());
+            // last tangent
+            let p = self.points[n - 2];
+            let q = self.points[n - 1];
+            let rotor =
+                Rotor3::from_rotation_between(diffs[n - 2].normalized(), (p - q).normalized());
+            diffs[n - 1] = (p - q).normalized().rotated_by(rotor) * (diffs[n - 2].mag());
+        } else {
+            diffs[0] = (self.points[1] - self.points[n - 1]) / 6.;
+            diffs[n - 1] = (self.points[0] - self.points[n - 2]) / 6.;
+        }
+
+        let mut ends = Vec::with_capacity(n);
+        for (p, dp) in self.points.into_iter().zip(diffs.into_iter()) {
+            ends.push(BezierEndCoordinates {
+                position: p,
+                vector_in: dp,
+                vector_out: dp,
+            });
+        }
+        InstantiatedPiecewiseBezier {
+            ends,
+            t_min: None,
+            t_max: None,
+            is_cyclic: self.is_closed,
+            id: 0,
+            discretize_quickly: self.discretize_quickly.unwrap_or(true),
+        }
     }
 }

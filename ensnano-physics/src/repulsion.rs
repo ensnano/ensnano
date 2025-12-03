@@ -2,11 +2,8 @@ use crate::simulation::RapierPhysicsSystem;
 use rapier3d::{
     parry::query::DefaultQueryDispatcher,
     prelude::*,
-    rayon::iter::{IntoParallelIterator as _, ParallelIterator as _},
+    rayon::iter::{IntoParallelRefIterator as _, ParallelIterator as _},
 };
-
-// const FORCE_RANGE: f32 = 5.0;
-// const FORCE_STRENGTH: f32 = 0.1;
 
 impl RapierPhysicsSystem {
     pub fn repulsion_step(&mut self, delta: f32) {
@@ -15,23 +12,26 @@ impl RapierPhysicsSystem {
 }
 
 // Following three functions from the "Particle-based Viscoelastic Fluid Simulation"
-fn simple_kernel_1(r: f32, h: f32) -> f32 {
-    1.0 - r / h
+fn simple_kernel_2(r: f32, h: f32) -> f32 {
+    let v = 1.0 - r / h;
+    v * v
 }
 
 /// Operates a repulsion between all rigid bodies
 /// based on colliders at proximity.
 fn repulsion_step(system: &mut RapierPhysicsSystem, delta: f32) {
-    let handles = system.collider_set.iter().map(|p| p.0).collect::<Vec<_>>();
+    let handles = system.nucleotide_body_map.values().collect::<Vec<_>>();
 
     // let forces = system
     //     .collider_set
     //     .iter()
     let forces = handles
-        .into_par_iter()
+        .clone()
+        .par_iter()
         .map(|handle| {
-            let body = system.collider_set.get(handle).unwrap();
-            let position = *body.position();
+            let collider = system.collider_set.get(**handle).unwrap();
+            let helix_id = collider.user_data;
+            let position = *collider.position();
 
             let force_range = system.rapier_parameters.repulsion_range;
             let force_strength = system.rapier_parameters.repulsion_strength;
@@ -45,12 +45,23 @@ fn repulsion_step(system: &mut RapierPhysicsSystem, delta: f32) {
             // we query for all colliders within a volume
             query_pipeline
                 .intersect_shape(
-                    *body.position(),
+                    position,
                     &Ball {
                         radius: force_range,
                     },
                 )
-                // from that we get a list of relative vectors
+                // we only keep the objects registered in group 2, which should be the nucleotides
+                .filter(|(_, collider)| {
+                    collider.collision_groups().test(InteractionGroups::new(
+                        Group::GROUP_2,
+                        Group::GROUP_2,
+                        InteractionTestMode::And,
+                    ))
+                })
+                // we only keep the objects that are from different helixes,
+                // filtering out our own helix
+                .filter(|(_, collider)| collider.user_data != helix_id)
+                // from that we get a list of relative vectorsosition.translation.vector - collider.position().translation.vector
                 .map(|(_, collider)| {
                     position.translation.vector - collider.position().translation.vector
                 })
@@ -59,20 +70,29 @@ fn repulsion_step(system: &mut RapierPhysicsSystem, delta: f32) {
                 // which we then normalize while keeping its length
                 .map(|v| (v.normalize(), v.norm()))
                 // which we then multiply by that square, and some other constants
-                .map(|(v, d)| v * simple_kernel_1(d, force_range) * delta * force_strength)
+                .map(|(v, d)| v * simple_kernel_2(d, force_range) * delta * force_strength)
                 // and we then sum all these forces
                 .sum()
         })
-        .collect::<Vec<_>>();
+        .collect::<Vec<Vector<Real>>>();
 
-    for (force, (_, collider)) in forces.iter().zip(system.collider_set.iter()) {
+    for (force, handle) in forces.into_iter().zip(handles.into_iter()) {
+        let Some(collider) = system.collider_set.get(*handle) else {
+            continue;
+        };
+
         let Some(parent) = collider.parent() else {
             continue;
         };
+
         let Some(body) = system.rigid_body_set.get_mut(parent) else {
             continue;
         };
 
-        body.apply_impulse_at_point(*force, collider.position().translation.vector.into(), true);
+        let collider_isometry = collider.position();
+
+        let point = collider_isometry.translation.vector;
+
+        body.add_force_at_point(force, point.into(), true);
     }
 }
