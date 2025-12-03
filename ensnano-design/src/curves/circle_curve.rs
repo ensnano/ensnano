@@ -98,3 +98,32 @@ impl Curved for CircleCurve {
         ))
     }
 }
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct CircleDescriptor {
+    pub radius: f64,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub abscissa_converter_factor: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub is_closed: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub target_nb_nt: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub helix_parameters: Option<HelixParameters>,
+}
+
+impl CircleDescriptor {
+    pub(super) fn with_helix_parameters(self, helix_parameters: &HelixParameters) -> CircleCurve {
+        let circle_helix_parameters = self.helix_parameters.unwrap_or(*helix_parameters);
+        let perimeter = TAU * self.radius;
+        CircleCurve {
+            _parameters: circle_helix_parameters,
+            radius: self.radius,
+            z: 0.,
+            perimeter,
+            abscissa_converter_factor: self.abscissa_converter_factor,
+            is_closed: self.is_closed,
+            target_nb_nt: self.target_nb_nt,
+        }
+    }
+}

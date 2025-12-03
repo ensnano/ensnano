@@ -1,3 +1,21 @@
+/*
+ENSnano, a 3d graphical application for DNA nanostructures.
+    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 pub mod bezier;
 mod chebyshev;
 mod circle_curve;
@@ -19,8 +37,9 @@ use crate::{
     curves::{
         bezier::{
             BezierEnd, CubicBezierConstructor, InstantiatedPiecewiseBezier,
-            instantiator::PieceWiseBezierInstantiator,
+            InterpolatedC1PiecewiseBezierDescriptor, instantiator::PieceWiseBezierInstantiator,
         },
+        circle_curve::CircleDescriptor,
         revolution::InterpolatedCurveDescriptor,
         sphere_concentric_circle::{
             PillConcentricStadiumDescriptor, PillTennisBallSeamDescriptor,
@@ -41,6 +60,7 @@ use crate::{
     parameters::HelixParameters,
     utils::{is_false, vec_to_dvec},
 };
+
 use bezier::TranslatedPiecewiseBezier;
 use chebyshev::{PolynomialCoordinates, PolynomialCoordinates_};
 use chebyshev_polynomials::ChebyshevPolynomial;
@@ -52,6 +72,7 @@ use std::{
     f64::consts::{PI, TAU},
     sync::Arc,
 };
+
 use time_nucl_map::AbscissaConverter;
 use torus::TwistedTorus;
 use ultraviolet::{DMat3, DVec3, Isometry2, Rotor3, Vec2, Vec3};
@@ -555,6 +576,7 @@ pub enum CurveDescriptor {
     SpiralCylinder(SpiralCylinderDescriptor),
     TubeSpiral(TubeSpiralDescriptor),
     SphereConcentricCircle(SphereConcentricCircleDescriptor),
+    Circle(CircleDescriptor),
     SphereTennisBallSeam(SphereTennisBallSeamDescriptor),
     PillConcentricStadium(PillConcentricStadiumDescriptor),
     PillTennisBallSeam(PillTennisBallSeamDescriptor),
@@ -570,6 +592,7 @@ pub enum CurveDescriptor {
         t_max: Option<f64>,
         points: Vec<BezierEnd>,
     },
+    InterpolatedPiecewiseBezier(InterpolatedC1PiecewiseBezierDescriptor),
     TranslatedPath {
         path_id: BezierPathId,
         translation: Vec3,
@@ -717,6 +740,7 @@ impl InstantiatedCurveDescriptor {
                 InstantiatedCurveDescriptor_::SphereLikeSpiral(s.clone())
             }
             CurveDescriptor::TubeSpiral(t) => InstantiatedCurveDescriptor_::TubeSpiral(t.clone()),
+            CurveDescriptor::Circle(t) => InstantiatedCurveDescriptor_::Circle(t.clone()),
             CurveDescriptor::SphereConcentricCircle(t) => {
                 InstantiatedCurveDescriptor_::SphereConcentricCircle(t.clone())
             }
@@ -736,6 +760,9 @@ impl InstantiatedCurveDescriptor {
             CurveDescriptor::Torus(t) => InstantiatedCurveDescriptor_::Torus(t.clone()),
             CurveDescriptor::TorusConcentricCircle(t) => {
                 InstantiatedCurveDescriptor_::TorusConcentricCircle(t.clone())
+            }
+            CurveDescriptor::InterpolatedPiecewiseBezier(desc) => {
+                InstantiatedCurveDescriptor_::InterpolatedPiecewiseBezier(desc.clone())
             }
             CurveDescriptor::EllipticTorusConcentricCircle(t) => {
                 InstantiatedCurveDescriptor_::EllipticTorusConcentricCircle(t.clone())
@@ -818,6 +845,7 @@ impl InstantiatedCurveDescriptor {
             CurveDescriptor::TubeSpiral(s) => {
                 Some(InstantiatedCurveDescriptor_::TubeSpiral(s.clone()))
             }
+            CurveDescriptor::Circle(s) => Some(InstantiatedCurveDescriptor_::Circle(s.clone())),
             CurveDescriptor::SphereConcentricCircle(s) => Some(
                 InstantiatedCurveDescriptor_::SphereConcentricCircle(s.clone()),
             ),
@@ -837,6 +865,9 @@ impl InstantiatedCurveDescriptor {
             CurveDescriptor::Torus(t) => Some(InstantiatedCurveDescriptor_::Torus(t.clone())),
             CurveDescriptor::TorusConcentricCircle(t) => Some(
                 InstantiatedCurveDescriptor_::TorusConcentricCircle(t.clone()),
+            ),
+            CurveDescriptor::InterpolatedPiecewiseBezier(t) => Some(
+                InstantiatedCurveDescriptor_::InterpolatedPiecewiseBezier(t.clone()),
             ),
             CurveDescriptor::EllipticTorusConcentricCircle(t) => Some(
                 InstantiatedCurveDescriptor_::EllipticTorusConcentricCircle(t.clone()),
@@ -944,6 +975,7 @@ enum InstantiatedCurveDescriptor_ {
     Bezier(CubicBezierConstructor),
     SphereLikeSpiral(SphereLikeSpiralDescriptor),
     TubeSpiral(TubeSpiralDescriptor),
+    Circle(CircleDescriptor),
     SphereConcentricCircle(SphereConcentricCircleDescriptor),
     SphereTennisBallSeam(SphereTennisBallSeamDescriptor),
     PillConcentricStadium(PillConcentricStadiumDescriptor),
@@ -956,6 +988,7 @@ enum InstantiatedCurveDescriptor_ {
     SuperTwist(SuperTwist),
     TwistedTorus(TwistedTorusDescriptor),
     PiecewiseBezier(InstantiatedPiecewiseBezierDescriptor),
+    InterpolatedPiecewiseBezier(InterpolatedC1PiecewiseBezierDescriptor),
     TranslatedBezierPath {
         path_curve: Arc<InstantiatedPiecewiseBezier>,
         translation: DVec3,
@@ -1063,6 +1096,10 @@ impl InstantiatedCurveDescriptor_ {
                 spiral.with_helix_parameters(*helix_parameters),
                 helix_parameters,
             )),
+            Self::Circle(constructor) => Arc::new(Curve::new(
+                constructor.with_helix_parameters(&helix_parameters.clone()),
+                helix_parameters,
+            )),
             Self::SphereConcentricCircle(constructor) => Arc::new(Curve::new(
                 constructor.with_helix_parameters(*helix_parameters),
                 helix_parameters,
@@ -1089,6 +1126,9 @@ impl InstantiatedCurveDescriptor_ {
                 torus.with_helix_parameters(helix_parameters),
                 helix_parameters,
             )),
+            Self::InterpolatedPiecewiseBezier(desc) => {
+                Arc::new(Curve::new(desc.instanciate(), helix_parameters))
+            }
             Self::SuperTwist(twist) => Arc::new(Curve::new(twist, helix_parameters)),
             Self::TwistedTorus(desc) => {
                 if let Some(curve) = cache.0.get(&desc) {
@@ -1146,6 +1186,12 @@ impl InstantiatedCurveDescriptor_ {
                 spiral.clone().with_helix_parameters(*helix_parameters),
                 helix_parameters,
             ))),
+            Self::Circle(constructor) => Some(Arc::new(Curve::new(
+                constructor
+                    .clone()
+                    .with_helix_parameters(&helix_parameters.clone()),
+                helix_parameters,
+            ))),
             Self::SphereConcentricCircle(constructor) => Some(Arc::new(Curve::new(
                 constructor.clone().with_helix_parameters(*helix_parameters),
                 helix_parameters,
@@ -1170,6 +1216,10 @@ impl InstantiatedCurveDescriptor_ {
             ))),
             Self::EllipticTorusConcentricCircle(torus) => Some(Arc::new(Curve::new(
                 torus.clone().with_helix_parameters(helix_parameters),
+                helix_parameters,
+            ))),
+            Self::InterpolatedPiecewiseBezier(desc) => Some(Arc::new(Curve::new(
+                desc.clone().instanciate(),
                 helix_parameters,
             ))),
             Self::SuperTwist(twist) => Some(Arc::new(Curve::new(twist.clone(), helix_parameters))),
@@ -1213,6 +1263,11 @@ impl InstantiatedCurveDescriptor_ {
             Self::SpiralCylinder(spiral) => Some(Curve::compute_length(
                 spiral.clone().with_helix_parameters(*helix_parameters),
             )),
+            Self::Circle(constructor) => Some(Curve::compute_length(
+                constructor
+                    .clone()
+                    .with_helix_parameters(&helix_parameters.clone()),
+            )),
             Self::SphereConcentricCircle(constructor) => Some(Curve::compute_length(
                 constructor.clone().with_helix_parameters(*helix_parameters),
             )),
@@ -1233,6 +1288,9 @@ impl InstantiatedCurveDescriptor_ {
             Self::EllipticTorusConcentricCircle(torus) => Some(Curve::compute_length(
                 torus.clone().with_helix_parameters(helix_parameters),
             )),
+            Self::InterpolatedPiecewiseBezier(desc) => {
+                Some(Curve::compute_length(desc.clone().instanciate()))
+            }
             Self::SuperTwist(twist) => Some(Curve::compute_length(twist.clone())),
             Self::TwistedTorus(_) | Self::PiecewiseBezier(_) => None,
             Self::TranslatedBezierPath {
@@ -1266,6 +1324,11 @@ impl InstantiatedCurveDescriptor_ {
             Self::SpiralCylinder(spiral) => Some(Curve::path(
                 spiral.clone().with_helix_parameters(*helix_parameters),
             )),
+            Self::Circle(constructor) => Some(Curve::path(
+                constructor
+                    .clone()
+                    .with_helix_parameters(&helix_parameters.clone()),
+            )),
             Self::SphereConcentricCircle(constructor) => Some(Curve::path(
                 constructor.clone().with_helix_parameters(*helix_parameters),
             )),
@@ -1283,6 +1346,9 @@ impl InstantiatedCurveDescriptor_ {
             Self::TorusConcentricCircle(torus) => Some(Curve::path(
                 torus.clone().with_helix_parameters(helix_parameters),
             )),
+            Self::InterpolatedPiecewiseBezier(desc) => {
+                Some(Curve::path(desc.clone().instanciate()))
+            }
             Self::EllipticTorusConcentricCircle(torus) => Some(Curve::path(
                 torus.clone().with_helix_parameters(helix_parameters),
             )),
