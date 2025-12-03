@@ -6,7 +6,12 @@ use crate::{
     parameters::RapierParameters,
 };
 use ahash::HashMap;
-use ensnano_design::{Nucl, helices::Helices, parameters::HelixParameters};
+use ensnano_design::{
+    Nucl,
+    elements::DesignElement,
+    helices::{Helices, NuclCollection},
+    parameters::HelixParameters,
+};
 use ensnano_interactor::ObjectType;
 use rapier3d::{na::Vector3, prelude::*};
 
@@ -33,18 +38,20 @@ impl RapierPhysicsSystem {
     pub fn full_simulation(
         parameters: HelixParameters,
         rapier_parameters: RapierParameters,
-        object_type: &HashMap<u32, ObjectType>,
+        nucl_collection: &NuclCollection,
+        elements: &Vec<DesignElement>,
         nucleotide: &HashMap<u32, Nucl>,
         space_position: &HashMap<u32, [f32; 3]>,
         helices: &Helices,
     ) -> Self {
-        let intermediary = build_helices(object_type, nucleotide);
+        let intermediary = build_helices(helices, elements, nucleotide);
 
         match rapier_parameters.simulation_type {
             crate::parameters::RapierSimulationType::Full => build_simulation(
                 FullSimulationSetup,
                 &intermediary,
-                object_type,
+                nucl_collection,
+                elements,
                 nucleotide,
                 space_position,
                 helices,
@@ -54,7 +61,8 @@ impl RapierPhysicsSystem {
             crate::parameters::RapierSimulationType::Rigid => build_simulation(
                 RigidHelicesSetup,
                 &intermediary,
-                object_type,
+                nucl_collection,
+                elements,
                 nucleotide,
                 space_position,
                 helices,
@@ -64,7 +72,8 @@ impl RapierPhysicsSystem {
             crate::parameters::RapierSimulationType::Cut => build_simulation(
                 CutHelicesSetup,
                 &intermediary,
-                object_type,
+                nucl_collection,
+                elements,
                 nucleotide,
                 space_position,
                 helices,
@@ -74,7 +83,8 @@ impl RapierPhysicsSystem {
             crate::parameters::RapierSimulationType::KCut => build_simulation(
                 KCutHelicesSetup,
                 &intermediary,
-                object_type,
+                nucl_collection,
+                elements,
                 nucleotide,
                 space_position,
                 helices,

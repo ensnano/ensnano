@@ -34,7 +34,8 @@ impl RapierPhysicalSystem {
                 .helix_parameters
                 .unwrap_or(HelixParameters::GEARY_2014_DNA_P_STICK),
             parameters,
-            &presenter.content.object_type,
+            presenter.content.nucl_collection.as_ref(),
+            &presenter.content.elements,
             &presenter.content.nucleotide,
             &presenter.content.space_position,
             &presenter.get_design().helices,

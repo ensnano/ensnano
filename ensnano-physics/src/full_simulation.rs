@@ -8,14 +8,14 @@ use crate::{
 use ahash::HashMap;
 use ensnano_design::{
     Nucl,
-    helices::{Helices, HelixCollection as _},
+    elements::DesignElement,
+    helices::{Helices, HelixCollection as _, NuclCollection},
     parameters::HelixParameters,
 };
 use ensnano_interactor::ObjectType;
 use rapier3d::prelude::*;
 
 const NUCLEOTIDE_RADIUS: f32 = 0.32;
-// const PAIR_CAPSULE_RADIUS: f32 = 0.1;
 
 const STRONG_SPRING_RANGES: [u32; 1] = [1];
 
@@ -204,7 +204,8 @@ impl SimulationSetup for KCutHelicesSetup {
 pub(crate) fn build_simulation<S: SimulationSetup>(
     setup: S,
     intermediary_representation: &HashMap<usize, IntermediaryHelix>,
-    object_type: &HashMap<u32, ObjectType>,
+    nucl_collection: &NuclCollection,
+    elements: &Vec<DesignElement>,
     nucleotide: &HashMap<u32, Nucl>,
     space_position: &HashMap<u32, [f32; 3]>,
     helices: &Helices,
@@ -271,7 +272,8 @@ pub(crate) fn build_simulation<S: SimulationSetup>(
 
     // add crossover springs
     let crossovers = add_crossover_springs(
-        object_type,
+        elements,
+        nucl_collection,
         nucleotide,
         &nucleotide_body_map,
         &collider_set,
@@ -658,7 +660,8 @@ fn build_free_springs(
 }
 
 pub(crate) fn add_crossover_springs(
-    object_type: &HashMap<u32, ObjectType>,
+    elements: &Vec<DesignElement>,
+    nucl_collection: &NuclCollection,
     nucleotide: &HashMap<u32, Nucl>,
     nucleotide_body_map: &HashMap<u32, ColliderHandle>,
     collider_set: &ColliderSet,
@@ -667,15 +670,45 @@ pub(crate) fn add_crossover_springs(
 ) -> Vec<(ColliderHandle, ColliderHandle)> {
     let mut bonds: Vec<(u32, u32)> = Default::default();
 
-    for ty in object_type.values() {
-        match ty {
-            ObjectType::Bond(a, b) | ObjectType::SlicedBond(_, a, b, _) => {
-                if nucleotide[a].helix == nucleotide[b].helix {
-                    continue;
-                }
-                bonds.push((*a, *b));
+    for element in elements {
+        // ObjectType::Bond(a, b) | ObjectType::SlicedBond(_, a, b, _) => {
+        //     if nucleotide[a].helix == nucleotide[b].helix {
+        //         continue;
+        //     }
+        //     bonds.push((*a, *b));
+        // }
+        // _ => {}
+        if let DesignElement::CrossOver {
+            helix5prime,
+            position5prime,
+            forward5prime,
+            helix3prime,
+            position3prime,
+            forward3prime,
+            ..
+        } = element
+        {
+            if helix5prime == helix3prime {
+                continue;
             }
-            _ => {}
+
+            let Some(&a) = nucl_collection.identifier.get(&Nucl {
+                helix: *helix5prime,
+                position: *position5prime,
+                forward: *forward5prime,
+            }) else {
+                continue;
+            };
+
+            let Some(&b) = nucl_collection.identifier.get(&Nucl {
+                helix: *helix3prime,
+                position: *position3prime,
+                forward: *forward3prime,
+            }) else {
+                continue;
+            };
+
+            bonds.push((a, b));
         }
     }
 
