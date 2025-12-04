@@ -12,7 +12,6 @@ use ensnano_design::{
     helices::{Helices, NuclCollection},
     parameters::HelixParameters,
 };
-use ensnano_interactor::ObjectType;
 use rapier3d::{na::Vector3, prelude::*};
 
 #[derive(Default)]
@@ -44,7 +43,7 @@ impl RapierPhysicsSystem {
         space_position: &HashMap<u32, [f32; 3]>,
         helices: &Helices,
     ) -> Self {
-        let intermediary = build_helices(helices, elements, nucleotide);
+        let intermediary = build_helices(elements, nucleotide);
 
         match rapier_parameters.simulation_type {
             crate::parameters::RapierSimulationType::Full => build_simulation(
@@ -52,7 +51,6 @@ impl RapierPhysicsSystem {
                 &intermediary,
                 nucl_collection,
                 elements,
-                nucleotide,
                 space_position,
                 helices,
                 &parameters,
@@ -63,7 +61,6 @@ impl RapierPhysicsSystem {
                 &intermediary,
                 nucl_collection,
                 elements,
-                nucleotide,
                 space_position,
                 helices,
                 &parameters,
@@ -74,7 +71,6 @@ impl RapierPhysicsSystem {
                 &intermediary,
                 nucl_collection,
                 elements,
-                nucleotide,
                 space_position,
                 helices,
                 &parameters,
@@ -85,7 +81,6 @@ impl RapierPhysicsSystem {
                 &intermediary,
                 nucl_collection,
                 elements,
-                nucleotide,
                 space_position,
                 helices,
                 &parameters,

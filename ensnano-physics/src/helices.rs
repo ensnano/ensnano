@@ -1,10 +1,5 @@
 use ahash::HashMap;
-use ensnano_design::{
-    Nucl,
-    elements::DesignElement,
-    helices::{Helices, HelixCollection},
-};
-use ensnano_interactor::ObjectType;
+use ensnano_design::{Nucl, elements::DesignElement};
 use std::ops::Range;
 
 /// Holds the intermediary representation
@@ -64,7 +59,6 @@ pub(crate) struct IntermediaryHelix {
 }
 
 pub(crate) fn build_helices(
-    helices: &Helices,
     elements: &Vec<DesignElement>,
     nucleotide: &HashMap<u32, Nucl>,
 ) -> HashMap<usize, IntermediaryHelix> {

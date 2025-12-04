@@ -12,7 +12,6 @@ use ensnano_design::{
     helices::{Helices, HelixCollection as _, NuclCollection},
     parameters::HelixParameters,
 };
-use ensnano_interactor::ObjectType;
 use rapier3d::prelude::*;
 
 const NUCLEOTIDE_RADIUS: f32 = 0.32;
@@ -206,7 +205,6 @@ pub(crate) fn build_simulation<S: SimulationSetup>(
     intermediary_representation: &HashMap<usize, IntermediaryHelix>,
     nucl_collection: &NuclCollection,
     elements: &Vec<DesignElement>,
-    nucleotide: &HashMap<u32, Nucl>,
     space_position: &HashMap<u32, [f32; 3]>,
     helices: &Helices,
     global_parameters: &HelixParameters,
@@ -274,7 +272,6 @@ pub(crate) fn build_simulation<S: SimulationSetup>(
     let crossovers = add_crossover_springs(
         elements,
         nucl_collection,
-        nucleotide,
         &nucleotide_body_map,
         &collider_set,
         &mut impulse_joint_set,
@@ -662,7 +659,6 @@ fn build_free_springs(
 pub(crate) fn add_crossover_springs(
     elements: &Vec<DesignElement>,
     nucl_collection: &NuclCollection,
-    nucleotide: &HashMap<u32, Nucl>,
     nucleotide_body_map: &HashMap<u32, ColliderHandle>,
     collider_set: &ColliderSet,
     impulse_joint_set: &mut ImpulseJointSet,
