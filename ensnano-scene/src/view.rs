@@ -166,10 +166,11 @@ impl View {
             (0.0, 5.0, 10.0),
             Rotor3::identity(),
         )));
+        let fovy = (12. / super::CAMERA_LENS_FOCAL).atan() * 2f32; // fovy = 2 * atan((24mm / 2) / focal)
         let projection = Rc::new(RefCell::new(Projection::new(
             area_size.width,
             area_size.height,
-            super::PROJECTION_FOVY,  // ensnano original default was: 70f32.to_radians(),
+            fovy,  // ensnano original default was: 70f32.to_radians(),
             0.1,
             1000.0,
         )));
