@@ -84,6 +84,7 @@ mod rotor_utils;
 mod sausage_rosary;
 
 const PNG_SIZE: u32 = 8192;
+pub const PROJECTION_FOVY: f32 = 40f32.to_radians(); // previous default was 70f32.to_radians() in view.rs
 
 /// A structure responsible of the 3D display of the designs
 pub struct Scene<S: AppState> {

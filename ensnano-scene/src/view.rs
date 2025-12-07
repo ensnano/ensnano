@@ -169,7 +169,7 @@ impl View {
         let projection = Rc::new(RefCell::new(Projection::new(
             area_size.width,
             area_size.height,
-            70f32.to_radians(),
+            super::PROJECTION_FOVY,  // ensnano original default was: 70f32.to_radians(),
             0.1,
             1000.0,
         )));
