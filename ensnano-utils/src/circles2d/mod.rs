@@ -138,10 +138,8 @@ impl CircleDrawer {
                     label: Some("Circle drawer pipeline layout"),
                 });
 
-        let format = wgpu::TextureFormat::Bgra8UnormSrgb;
-
         let targets = &[Some(wgpu::ColorTargetState {
-            format,
+            format: wgpu::TextureFormat::Bgra8UnormSrgb,
             blend: Some(wgpu::BlendState::ALPHA_BLENDING),
             write_mask: wgpu::ColorWrites::ALL,
         })];
