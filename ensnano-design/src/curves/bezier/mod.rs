@@ -528,7 +528,7 @@ pub struct InterpolatedC1PiecewiseBezierDescriptor {
 }
 
 impl InterpolatedC1PiecewiseBezierDescriptor {
-    pub(super) fn instanciate(self) -> InstantiatedPiecewiseBezier {
+    pub(super) fn instantiate(self) -> InstantiatedPiecewiseBezier {
         if self.points.len() <= 2 {
             let p0 = self.points.first().copied().unwrap_or_else(Vec3::zero);
             let p1 = self.points.last().copied().unwrap_or_else(Vec3::zero);

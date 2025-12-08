@@ -61,7 +61,7 @@ fn repulsion_step(system: &mut RapierPhysicsSystem, delta: f32) {
                 // we only keep the objects that are from different helixes,
                 // filtering out our own helix
                 .filter(|(_, collider)| collider.user_data != helix_id)
-                // from that we get a list of relative vectorsosition.translation.vector - collider.position().translation.vector
+                // from that we get a list of relative position.translation.vector - collider.position().translation.vector
                 .map(|(_, collider)| {
                     position.translation.vector - collider.position().translation.vector
                 })
