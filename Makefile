@@ -13,6 +13,10 @@ FRAG_SRCS := $(shell find . -name '*.frag')
 VERT_SRCS := $(shell find . -name '*.vert')
 SHADERS := $(patsubst %.frag,%.frag.spv,$(FRAG_SRCS)) $(patsubst %.vert,%.vert.spv,$(VERT_SRCS))
 
+# does not include doctests (--doc), but we have none so far
+test:
+	@cargo test --workspace --all-targets
+
 lint:
 	@cargo clippy --workspace --all-targets
 
