@@ -9,7 +9,7 @@ use ahash::HashMap;
 use ensnano_design::{
     Nucl,
     elements::DesignElement,
-    helices::{Helices, NuclCollection},
+    helices::{Helices, HelixCollection, NuclCollection},
     parameters::HelixParameters,
 };
 use rapier3d::{na::Vector3, prelude::*};

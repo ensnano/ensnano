@@ -434,8 +434,17 @@ fn build_strong_springs(
 
             let up_vectors = range
                 .clone()
-                .map(|k| (k, vec_to_vector(helix.normal_at_pos(k, true))))
+                .map(|k| {
+                    (
+                        k,
+                        vec_to_vector(helix.normal_at_pos(k + helix.initial_nt_index, true)),
+                    )
+                })
                 .collect::<HashMap<_, _>>();
+
+            // if *id == 1 {
+            //     println!("{up_vectors:?}");
+            // }
 
             // we use a vec to use Slice::window
             let range = range.clone().collect::<Vec<_>>();
