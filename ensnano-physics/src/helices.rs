@@ -126,30 +126,28 @@ pub(crate) fn build_helices(
         // ObjectType::Nucleotide(_) => todo!(),
         // ObjectType::HelixCylinder(_, _) => todo!(),
         // ObjectType::ColoredHelixCylinder(_, _, items) => todo!(),
-        match element {
-            DesignElement::CrossOver {
-                helix5prime,
-                position5prime,
-                helix3prime,
-                position3prime,
-                ..
-            } => {
-                if helix5prime == helix3prime {
-                    continue;
-                }
-
-                result
-                    .get_mut(helix5prime)
-                    .expect("Nucleotide with incorrect helix")
-                    .crossover_cuts
-                    .extend([*position5prime, position5prime + 1]);
-                result
-                    .get_mut(helix3prime)
-                    .expect("Nucleotide with incorrect helix")
-                    .crossover_cuts
-                    .extend([*position3prime, position3prime + 1]);
+        if let DesignElement::CrossOver {
+            helix5prime,
+            position5prime,
+            helix3prime,
+            position3prime,
+            ..
+        } = element
+        {
+            if helix5prime == helix3prime {
+                continue;
             }
-            _ => {}
+
+            result
+                .get_mut(helix5prime)
+                .expect("Nucleotide with incorrect helix")
+                .crossover_cuts
+                .extend([*position5prime, position5prime + 1]);
+            result
+                .get_mut(helix3prime)
+                .expect("Nucleotide with incorrect helix")
+                .crossover_cuts
+                .extend([*position3prime, position3prime + 1]);
         }
     }
 

@@ -605,7 +605,6 @@ impl Strand {
         false
     }
 
-    #[expect(clippy::assertions_on_constants)]
     pub fn add_insertion_at_nucl(&mut self, nucl: &Nucl, insertion_size: usize) {
         let insertion_point = self.locate_nucl(nucl);
         if let Some((d_id, n)) = insertion_point {
@@ -650,7 +649,6 @@ impl Strand {
         None
     }
 
-    #[expect(clippy::assertions_on_constants)]
     fn add_insertion_at_dom_position(&mut self, d_id: usize, pos: usize, insertion_size: usize) {
         if let Some((prime5, prime3)) = self.domains[d_id].split(pos) {
             self.domains[d_id] = prime3;
