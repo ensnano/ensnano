@@ -59,8 +59,6 @@ type ViewPtr = Rc<RefCell<View>>;
 
 const PNG_SIZE: u32 = 8192;
 
-pub const CAMERA_LENS_FOCAL: f32 = 50f32; // focal in mm of the camera lense based on a 24x36mm camera from which the Field of View Y fovy is computed in view/mod.rs - default was 17mm
-
 /// A structure responsible of the 3D display of the designs
 pub struct Scene<S: AppState> {
     /// The update to be performed before next frame

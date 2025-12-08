@@ -69,6 +69,9 @@ static MODEL_BG_ENTRY: &[wgpu::BindGroupLayoutEntry] = &[wgpu::BindGroupLayoutEn
 const CAMERA_NEAR: f32 = 0.1;
 const CAMERA_FAR: f32 = 1000.0;
 
+// Focal in mm of the camera lense based on a 24x36mm camera from which the Field of View Y fovy is computed in view/mod.rs - default was 17mm
+const CAMERA_FOCAL_LENGTH: f32 = 50.0;
+
 /// An object that handles the communication with the GPU to draw the scene.
 pub struct View {
     /// The camera, that is in charge of producing the view and projection matrices.
@@ -141,11 +144,11 @@ impl View {
             Vec3::new(0.0, 5.0, 10.0),
             Rotor3::identity(),
         )));
-        let fovy = (12. / super::CAMERA_LENS_FOCAL).atan() * 2f32; // fovy = 2 * atan((24mm / 2) / focal) - field of view Y fovy computed from the camera lens focal in mm for a 24x36mm camera
+        let fovy = (12. / CAMERA_FOCAL_LENGTH).atan() * 2f32; // fovy = 2 * atan((24mm / 2) / focal) - field of view Y fovy computed from the camera lens focal in mm for a 24x36mm camera
         let projection = Rc::new(RefCell::new(Projection::new(
             area_size.width,
             area_size.height,
-            fovy, // ensnano original = 70f32.to_radians(), corresponding to a 17mm very-wide-angle lens
+            fovy,
             CAMERA_NEAR,
             CAMERA_FAR,
         )));

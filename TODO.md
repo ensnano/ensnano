@@ -26,6 +26,7 @@
 
 ## Scene (3D)
 
+- Slider controlling camera focal length
 - Movement is broken when both keyboard and mouse wheel translations (or zoom) are applied
 - Fix rotation with `H`/`J`/`K`/`L` while dragging (copy code from `swing`)
 - Cut plane (toggleable button next to grids)
