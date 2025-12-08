@@ -105,12 +105,6 @@ impl FogParameters {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct CutPlaneParameters {
-    pub normal: Vec3,
-    pub dot_value: f32,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SplitMode {
     Flat,
