@@ -141,10 +141,11 @@ impl View {
             Vec3::new(0.0, 5.0, 10.0),
             Rotor3::identity(),
         )));
+        let fovy = (12. / super::CAMERA_LENS_FOCAL).atan() * 2f32; // fovy = 2 * atan((24mm / 2) / focal) - field of view Y fovy computed from the camera lens focal in mm for a 24x36mm camera
         let projection = Rc::new(RefCell::new(Projection::new(
             area_size.width,
             area_size.height,
-            70f32.to_radians(),
+            fovy, // ensnano original = 70f32.to_radians(), corresponding to a 17mm very-wide-angle lens
             CAMERA_NEAR,
             CAMERA_FAR,
         )));
