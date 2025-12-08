@@ -1,6 +1,5 @@
 use ahash::HashMap;
-use ensnano_design::Nucl;
-use ensnano_interactor::ObjectType;
+use ensnano_design::{Nucl, elements::DesignElement};
 use std::ops::Range;
 
 /// Holds the intermediary representation
@@ -60,7 +59,7 @@ pub(crate) struct IntermediaryHelix {
 }
 
 pub(crate) fn build_helices(
-    object_type: &HashMap<u32, ObjectType>,
+    elements: &Vec<DesignElement>,
     nucleotide: &HashMap<u32, Nucl>,
 ) -> HashMap<usize, IntermediaryHelix> {
     let mut result = HashMap::<usize, IntermediaryHelix>::default();
@@ -73,57 +72,82 @@ pub(crate) fn build_helices(
     }
 
     // we derive cut points from the bonds
-    for object in object_type.values() {
-        match object {
-            ObjectType::Bond(b, c) => {
-                if nucleotide[b].helix == nucleotide[c].helix {
+    for element in elements {
+        // ObjectType::Bond(b, c) => {
+        //     if nucleotide[b].helix == nucleotide[c].helix {
+        //         continue;
+        //     }
+        //     let b = nucleotide[b];
+        //     let c = nucleotide[c];
+
+        //     result
+        //         .get_mut(&b.helix)
+        //         .expect("Nucleotide with incorrect helix")
+        //         .crossover_cuts
+        //         .extend([b.position, b.position + 1]);
+        //     result
+        //         .get_mut(&c.helix)
+        //         .expect("Nucleotide with incorrect helix")
+        //         .crossover_cuts
+        //         .extend([c.position, c.position + 1]);
+        // }
+        // ObjectType::SlicedBond(a, b, c, d) => {
+        //     if nucleotide[b].helix == nucleotide[c].helix {
+        //         continue;
+        //     }
+        //     let a = nucleotide[a];
+        //     let b = nucleotide[b];
+        //     let c = nucleotide[c];
+        //     let d = nucleotide[d];
+
+        //     let b_cut = if a.position < b.position {
+        //         b.position
+        //     } else {
+        //         b.position + 1
+        //     };
+
+        //     let c_cut = if d.position < c.position {
+        //         c.position
+        //     } else {
+        //         c.position + 1
+        //     };
+
+        //     result
+        //         .get_mut(&b.helix)
+        //         .expect("Nucleotide with incorrect helix")
+        //         .crossover_cuts
+        //         .push(b_cut);
+        //     result
+        //         .get_mut(&c.helix)
+        //         .expect("Nucleotide with incorrect helix")
+        //         .crossover_cuts
+        //         .push(c_cut);
+        // }
+        // ObjectType::Nucleotide(_) => todo!(),
+        // ObjectType::HelixCylinder(_, _) => todo!(),
+        // ObjectType::ColoredHelixCylinder(_, _, items) => todo!(),
+        match element {
+            DesignElement::CrossOver {
+                helix5prime,
+                position5prime,
+                helix3prime,
+                position3prime,
+                ..
+            } => {
+                if helix5prime == helix3prime {
                     continue;
                 }
-                let b = nucleotide[b];
-                let c = nucleotide[c];
 
                 result
-                    .get_mut(&b.helix)
+                    .get_mut(helix5prime)
                     .expect("Nucleotide with incorrect helix")
                     .crossover_cuts
-                    .extend([b.position, b.position + 1]);
+                    .extend([*position5prime, position5prime + 1]);
                 result
-                    .get_mut(&c.helix)
+                    .get_mut(helix3prime)
                     .expect("Nucleotide with incorrect helix")
                     .crossover_cuts
-                    .extend([c.position, c.position + 1]);
-            }
-            ObjectType::SlicedBond(a, b, c, d) => {
-                if nucleotide[b].helix == nucleotide[c].helix {
-                    continue;
-                }
-                let a = nucleotide[a];
-                let b = nucleotide[b];
-                let c = nucleotide[c];
-                let d = nucleotide[d];
-
-                let b_cut = if a.position < b.position {
-                    b.position
-                } else {
-                    b.position + 1
-                };
-
-                let c_cut = if d.position < c.position {
-                    c.position
-                } else {
-                    c.position + 1
-                };
-
-                result
-                    .get_mut(&b.helix)
-                    .expect("Nucleotide with incorrect helix")
-                    .crossover_cuts
-                    .push(b_cut);
-                result
-                    .get_mut(&c.helix)
-                    .expect("Nucleotide with incorrect helix")
-                    .crossover_cuts
-                    .push(c_cut);
+                    .extend([*position3prime, position3prime + 1]);
             }
             _ => {}
         }
