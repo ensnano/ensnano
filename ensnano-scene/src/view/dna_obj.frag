@@ -23,9 +23,6 @@ layout(set=0, binding=0) uniform Uniform {
     float u_aspect_ratio;
     float u_stereography_zoom;
     uint u_nb_ray_tube;
-    uint u_is_cut;
-    vec3 u_cut_normal;
-    float u_cut_dot_value;
 };
 
 const float HALF_LIFE = 10.;
@@ -43,11 +40,6 @@ void main() {
     vec3 light_dir = normalize(light_position - v_position);
 
     vec3 view_dir = normalize(u_camera_position - v_position);
-
-    // cut the design according to a plane defined by the dot product with its normal vector u_cut_normal and u_cut_value
-    if (u_is_cut > 0 && dot(v_position, u_cut_normal) > u_cut_dot_value) {
-      discard;
-    }
 
     if (0.7 < v_color.w && v_color.w < 0.8) {
         f_color = v_color;

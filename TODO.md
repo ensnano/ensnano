@@ -12,9 +12,10 @@
 
 - Increasing the left panel too much crashes ENSnano
 - Crash when selecting "Ellipse" or "Two spheres" in "Revolution Surfaces" tab
-- Toggle split of flatscene
+- Clicking "Toggle split of flat scene" twice should do nothing
 - Request fit doesn't work properly anymore, both in 2D and 3D
 - Organizer Tree slider doesn't work with the mouse
+- Movement with mouse wheel doesn't work on some systems (Axel @ 42), both in 2D and 3D
 
 ## Hide scientific WIP
 
@@ -25,6 +26,7 @@
 
 ## Scene (3D)
 
+- Slider controlling camera focal length
 - Movement is broken when both keyboard and mouse wheel translations (or zoom) are applied
 - Fix rotation with `H`/`J`/`K`/`L` while dragging (copy code from `swing`)
 - Cut plane (toggleable button next to grids)

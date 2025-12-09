@@ -1127,7 +1127,7 @@ impl InstantiatedCurveDescriptor_ {
                 helix_parameters,
             )),
             Self::InterpolatedPiecewiseBezier(desc) => {
-                Arc::new(Curve::new(desc.instanciate(), helix_parameters))
+                Arc::new(Curve::new(desc.instantiate(), helix_parameters))
             }
             Self::SuperTwist(twist) => Arc::new(Curve::new(twist, helix_parameters)),
             Self::TwistedTorus(desc) => {
@@ -1219,7 +1219,7 @@ impl InstantiatedCurveDescriptor_ {
                 helix_parameters,
             ))),
             Self::InterpolatedPiecewiseBezier(desc) => Some(Arc::new(Curve::new(
-                desc.clone().instanciate(),
+                desc.clone().instantiate(),
                 helix_parameters,
             ))),
             Self::SuperTwist(twist) => Some(Arc::new(Curve::new(twist.clone(), helix_parameters))),
@@ -1289,7 +1289,7 @@ impl InstantiatedCurveDescriptor_ {
                 torus.clone().with_helix_parameters(helix_parameters),
             )),
             Self::InterpolatedPiecewiseBezier(desc) => {
-                Some(Curve::compute_length(desc.clone().instanciate()))
+                Some(Curve::compute_length(desc.clone().instantiate()))
             }
             Self::SuperTwist(twist) => Some(Curve::compute_length(twist.clone())),
             Self::TwistedTorus(_) | Self::PiecewiseBezier(_) => None,
@@ -1347,7 +1347,7 @@ impl InstantiatedCurveDescriptor_ {
                 torus.clone().with_helix_parameters(helix_parameters),
             )),
             Self::InterpolatedPiecewiseBezier(desc) => {
-                Some(Curve::path(desc.clone().instanciate()))
+                Some(Curve::path(desc.clone().instantiate()))
             }
             Self::EllipticTorusConcentricCircle(torus) => Some(Curve::path(
                 torus.clone().with_helix_parameters(helix_parameters),
