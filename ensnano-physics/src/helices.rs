@@ -56,6 +56,56 @@ pub(crate) struct IntermediaryHelix {
     pub single_ranges: Vec<Range<isize>>,
     // a cut at 3 means between levels 2 and 3
     pub crossover_cuts: Vec<isize>,
+
+    pub is_cyclic: bool,
+}
+
+/// Takes in the crossovers of the design as design elements,
+/// and detects the helices that are cyclic, and should be
+/// constructed using
+pub(crate) fn compute_cyclic_helices(elements: &Vec<DesignElement>) -> Vec<usize> {
+    let mut collected_crossovers = HashMap::default();
+    let mut result = vec![];
+
+    for element in elements {
+        if let DesignElement::CrossOver {
+            helix5prime,
+            position5prime,
+            forward5prime,
+            helix3prime,
+            position3prime,
+            forward3prime,
+            ..
+        } = element
+        {
+            // we are only interested in self looping helices
+            if helix5prime != helix3prime {
+                continue;
+            }
+
+            if let Some((helix, position, forward)) =
+                collected_crossovers.get(&(*helix5prime, *position5prime, !forward5prime))
+            {
+                if *helix == *helix3prime
+                    && *position == *position3prime
+                    && *forward == !forward3prime
+                {
+                    result.push(*helix);
+                }
+            }
+
+            collected_crossovers.insert(
+                (*helix5prime, *position5prime, *forward5prime),
+                (*helix3prime, *position3prime, *forward3prime),
+            );
+            collected_crossovers.insert(
+                (*helix3prime, *position3prime, *forward3prime),
+                (*helix5prime, *position5prime, *forward5prime),
+            );
+        }
+    }
+
+    result
 }
 
 pub(crate) fn build_helices(
@@ -71,61 +121,15 @@ pub(crate) fn build_helices(
             .push_nucleotide(id, nucl);
     }
 
+    for helix in compute_cyclic_helices(elements) {
+        result
+            .get_mut(&helix)
+            .expect("cyclic helix somehow was invalid")
+            .is_cyclic = true;
+    }
+
     // we derive cut points from the bonds
     for element in elements {
-        // ObjectType::Bond(b, c) => {
-        //     if nucleotide[b].helix == nucleotide[c].helix {
-        //         continue;
-        //     }
-        //     let b = nucleotide[b];
-        //     let c = nucleotide[c];
-
-        //     result
-        //         .get_mut(&b.helix)
-        //         .expect("Nucleotide with incorrect helix")
-        //         .crossover_cuts
-        //         .extend([b.position, b.position + 1]);
-        //     result
-        //         .get_mut(&c.helix)
-        //         .expect("Nucleotide with incorrect helix")
-        //         .crossover_cuts
-        //         .extend([c.position, c.position + 1]);
-        // }
-        // ObjectType::SlicedBond(a, b, c, d) => {
-        //     if nucleotide[b].helix == nucleotide[c].helix {
-        //         continue;
-        //     }
-        //     let a = nucleotide[a];
-        //     let b = nucleotide[b];
-        //     let c = nucleotide[c];
-        //     let d = nucleotide[d];
-
-        //     let b_cut = if a.position < b.position {
-        //         b.position
-        //     } else {
-        //         b.position + 1
-        //     };
-
-        //     let c_cut = if d.position < c.position {
-        //         c.position
-        //     } else {
-        //         c.position + 1
-        //     };
-
-        //     result
-        //         .get_mut(&b.helix)
-        //         .expect("Nucleotide with incorrect helix")
-        //         .crossover_cuts
-        //         .push(b_cut);
-        //     result
-        //         .get_mut(&c.helix)
-        //         .expect("Nucleotide with incorrect helix")
-        //         .crossover_cuts
-        //         .push(c_cut);
-        // }
-        // ObjectType::Nucleotide(_) => todo!(),
-        // ObjectType::HelixCylinder(_, _) => todo!(),
-        // ObjectType::ColoredHelixCylinder(_, _, items) => todo!(),
         if let DesignElement::CrossOver {
             helix5prime,
             position5prime,
