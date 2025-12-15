@@ -12,11 +12,12 @@ use ensnano_design::{
     helices::{Helices, HelixCollection as _, NuclCollection},
     parameters::HelixParameters,
 };
-use rapier3d::prelude::*;
+use rapier3d::{
+    na::{Const, OVector},
+    prelude::*,
+};
 
 const NUCLEOTIDE_RADIUS: f32 = 0.32;
-
-const STRONG_SPRING_RANGES: [u32; 1] = [1];
 
 /// A trait to represent a strategy of how to attach
 /// colliders to rigid bodies in the simulation.
@@ -421,10 +422,15 @@ fn build_strong_springs(
     global_parameters: &HelixParameters,
     rapier_parameters: &RapierParameters,
 ) {
+    let distance = 1;
+
     for (id, intermediary) in intermediary_representation {
         let helix = helices
             .get(id)
             .expect("Couldn't find an helix in spring creation");
+        let reference = SpringAnchorsReference::new(helix, distance, global_parameters);
+
+        let mut last_index = None;
 
         for range in &intermediary.double_ranges {
             // one long ranges have no springs inside
@@ -434,141 +440,198 @@ fn build_strong_springs(
 
             let up_vectors = range
                 .clone()
-                .map(|k| (k, vec_to_vector(helix.normal_at_pos(k, true))))
+                .map(|k| {
+                    (
+                        k,
+                        vec_to_vector(helix.normal_at_pos(k + helix.initial_nt_index, true)),
+                    )
+                })
                 .collect::<HashMap<_, _>>();
 
             // we use a vec to use Slice::window
             let range = range.clone().collect::<Vec<_>>();
 
-            for distance in STRONG_SPRING_RANGES {
-                let reference = SpringAnchorsReference::new(helix, distance, global_parameters);
+            // we make windows on the double helices range
+            // add springs to each end of the window based on
+            // the reference's anchors, using the up vectors
+            // computed earlier
 
-                // we make windows on the double helices range
-                // add springs to each end of the window based on
-                // the reference's anchors, using the up vectors
-                // computed earlier
+            for window in range.windows(2) {
+                let down_index = window.first().unwrap();
+                let up_index = window.last().unwrap();
 
-                for window in range.windows(distance as usize + 1) {
-                    let down_index = window.first().unwrap();
-
-                    let down_pair = intermediary.pairs[down_index];
-                    let down_up = &up_vectors[down_index];
-
-                    let IntermediaryPair::Pair(down_i, _, down_j) = down_pair else {
-                        panic!("Incoherent double ranges");
-                    };
-
-                    let down_forward = collider_set.get(nucleotide_body_map[&down_i]).unwrap();
-                    let down_backward = collider_set.get(nucleotide_body_map[&down_j]).unwrap();
-
-                    let down_body_handle = collider_set
-                        .get(nucleotide_body_map[&down_i])
-                        .unwrap()
-                        .parent()
-                        .unwrap();
-
-                    // down's up spring anchors
-                    let (down_forward, down_backward, down_left, down_right) = reference
-                        .get_up_spring_anchors(
-                            *down_forward.translation(),
-                            *down_backward.translation(),
-                            *down_up,
-                        );
-
-                    let up_index = window.last().unwrap();
-
-                    let up_pair = intermediary.pairs[up_index];
-                    let up_up = &up_vectors[up_index];
-
-                    let IntermediaryPair::Pair(up_i, _, up_j) = up_pair else {
-                        panic!("Incoherent double ranges");
-                    };
-
-                    let up_forward = collider_set.get(nucleotide_body_map[&up_i]).unwrap();
-                    let up_backward = collider_set.get(nucleotide_body_map[&up_j]).unwrap();
-
-                    let up_body_handle = collider_set
-                        .get(nucleotide_body_map[&up_i])
-                        .unwrap()
-                        .parent()
-                        .unwrap();
-
-                    // up's down spring anchors
-                    let (up_forward, up_backward, up_left, up_right) = reference
-                        .get_down_spring_anchors(
-                            *up_forward.translation(),
-                            *up_backward.translation(),
-                            *up_up,
-                        );
-
-                    // we don't attach rigid bodies to themselves
-                    if up_body_handle == down_body_handle {
-                        continue;
+                match last_index {
+                    Some(index) => {
+                        if *up_index > index {
+                            last_index = Some(*up_index);
+                        }
                     }
-
-                    // forward spring
-                    impulse_joint_set.insert(
-                        down_body_handle,
-                        up_body_handle,
-                        SpringJointBuilder::new(
-                            0.0,
-                            rapier_parameters.interbase_spring_stiffness,
-                            rapier_parameters.interbase_spring_damping,
-                        )
-                        .local_anchor1(down_forward)
-                        .local_anchor2(up_forward)
-                        .build(),
-                        true,
-                    );
-
-                    // backward spring
-                    impulse_joint_set.insert(
-                        down_body_handle,
-                        up_body_handle,
-                        SpringJointBuilder::new(
-                            0.0,
-                            rapier_parameters.interbase_spring_stiffness,
-                            rapier_parameters.interbase_spring_damping,
-                        )
-                        .local_anchor1(down_backward)
-                        .local_anchor2(up_backward)
-                        .build(),
-                        true,
-                    );
-
-                    // left spring
-                    impulse_joint_set.insert(
-                        down_body_handle,
-                        up_body_handle,
-                        SpringJointBuilder::new(
-                            0.0,
-                            rapier_parameters.interbase_spring_stiffness,
-                            rapier_parameters.interbase_spring_damping,
-                        )
-                        .local_anchor1(down_left)
-                        .local_anchor2(up_left)
-                        .build(),
-                        true,
-                    );
-
-                    // right spring
-                    impulse_joint_set.insert(
-                        down_body_handle,
-                        up_body_handle,
-                        SpringJointBuilder::new(
-                            0.0,
-                            rapier_parameters.interbase_spring_stiffness,
-                            rapier_parameters.interbase_spring_damping,
-                        )
-                        .local_anchor1(down_right)
-                        .local_anchor2(up_right)
-                        .build(),
-                        true,
-                    );
+                    None => last_index = Some(*up_index),
                 }
+
+                insert_strong_spring(
+                    &reference,
+                    nucleotide_body_map,
+                    impulse_joint_set,
+                    collider_set,
+                    rapier_parameters,
+                    &up_vectors,
+                    intermediary,
+                    down_index,
+                    up_index,
+                );
             }
         }
+
+        if let Some(index) = last_index
+            && intermediary.is_cyclic
+        {
+            let up_vectors = [0, index]
+                .into_iter()
+                .map(|k| {
+                    (
+                        k,
+                        vec_to_vector(helix.normal_at_pos(k + helix.initial_nt_index, true)),
+                    )
+                })
+                .collect::<HashMap<_, _>>();
+
+            insert_strong_spring(
+                &reference,
+                nucleotide_body_map,
+                impulse_joint_set,
+                collider_set,
+                rapier_parameters,
+                &up_vectors,
+                intermediary,
+                &index,
+                &0,
+            );
+        }
     }
+}
+
+fn insert_strong_spring(
+    reference: &SpringAnchorsReference,
+    nucleotide_body_map: &HashMap<u32, ColliderHandle>,
+    impulse_joint_set: &mut ImpulseJointSet,
+    collider_set: &ColliderSet,
+    rapier_parameters: &RapierParameters,
+    up_vectors: &HashMap<isize, OVector<f32, Const<3>>>,
+    intermediary: &IntermediaryHelix,
+    down_index: &isize,
+    up_index: &isize,
+) {
+    let down_pair = intermediary.pairs[down_index];
+    let down_up = &up_vectors[down_index];
+
+    let IntermediaryPair::Pair(down_i, _, down_j) = down_pair else {
+        panic!("Incoherent double ranges");
+    };
+
+    let down_forward = collider_set.get(nucleotide_body_map[&down_i]).unwrap();
+    let down_backward = collider_set.get(nucleotide_body_map[&down_j]).unwrap();
+
+    let down_body_handle = collider_set
+        .get(nucleotide_body_map[&down_i])
+        .unwrap()
+        .parent()
+        .unwrap();
+
+    // down's up spring anchors
+    let (down_forward, down_backward, down_left, down_right) = reference.get_up_spring_anchors(
+        *down_forward.translation(),
+        *down_backward.translation(),
+        *down_up,
+    );
+
+    let up_pair = intermediary.pairs[up_index];
+    let up_up = &up_vectors[up_index];
+
+    let IntermediaryPair::Pair(up_i, _, up_j) = up_pair else {
+        panic!("Incoherent double ranges");
+    };
+
+    let up_forward = collider_set.get(nucleotide_body_map[&up_i]).unwrap();
+    let up_backward = collider_set.get(nucleotide_body_map[&up_j]).unwrap();
+
+    let up_body_handle = collider_set
+        .get(nucleotide_body_map[&up_i])
+        .unwrap()
+        .parent()
+        .unwrap();
+
+    // up's down spring anchors
+    let (up_forward, up_backward, up_left, up_right) = reference.get_down_spring_anchors(
+        *up_forward.translation(),
+        *up_backward.translation(),
+        *up_up,
+    );
+
+    // we don't attach rigid bodies to themselves
+    if up_body_handle == down_body_handle {
+        return;
+    }
+
+    // forward spring
+    impulse_joint_set.insert(
+        down_body_handle,
+        up_body_handle,
+        SpringJointBuilder::new(
+            0.0,
+            rapier_parameters.interbase_spring_stiffness,
+            rapier_parameters.interbase_spring_damping,
+        )
+        .local_anchor1(down_forward)
+        .local_anchor2(up_forward)
+        .build(),
+        true,
+    );
+
+    // backward spring
+    impulse_joint_set.insert(
+        down_body_handle,
+        up_body_handle,
+        SpringJointBuilder::new(
+            0.0,
+            rapier_parameters.interbase_spring_stiffness,
+            rapier_parameters.interbase_spring_damping,
+        )
+        .local_anchor1(down_backward)
+        .local_anchor2(up_backward)
+        .build(),
+        true,
+    );
+
+    // left spring
+    impulse_joint_set.insert(
+        down_body_handle,
+        up_body_handle,
+        SpringJointBuilder::new(
+            0.0,
+            rapier_parameters.interbase_spring_stiffness,
+            rapier_parameters.interbase_spring_damping,
+        )
+        .local_anchor1(down_left)
+        .local_anchor2(up_left)
+        .build(),
+        true,
+    );
+
+    // right spring
+    impulse_joint_set.insert(
+        down_body_handle,
+        up_body_handle,
+        SpringJointBuilder::new(
+            0.0,
+            rapier_parameters.interbase_spring_stiffness,
+            rapier_parameters.interbase_spring_damping,
+        )
+        .local_anchor1(down_right)
+        .local_anchor2(up_right)
+        .build(),
+        true,
+    );
 }
 
 fn build_free_springs(

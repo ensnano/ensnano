@@ -23,9 +23,6 @@ layout(set=0, binding=0) uniform Uniform {
     float u_aspect_ratio;
     float u_stereography_zoom;
     uint u_nb_ray_tube;
-    uint u_is_cut;
-    vec3 u_cut_normal;
-    float u_cut_dot_value;
 };
 
 const float HALF_LIFE = 10.;

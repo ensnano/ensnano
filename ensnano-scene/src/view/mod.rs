@@ -34,10 +34,10 @@ use ensnano_consts::{
 use ensnano_design::{
     grid::GridId, group_attributes::GroupPivot, helices::Axis, utils::dvec_to_vec,
 };
-use ensnano_interactor::graphics::{
-    Background3D, CutPlaneParameters, DrawArea, FogParameters, HBondDisplay, PhySize, RenderingMode,
+use ensnano_interactor::{
+    graphics::{Background3D, DrawArea, FogParameters, HBondDisplay, PhySize, RenderingMode},
+    surfaces::UnrootedRevolutionSurfaceDescriptor,
 };
-use ensnano_interactor::surfaces::UnrootedRevolutionSurfaceDescriptor;
 use ensnano_utils::{bindgroup_manager, text, texture};
 use gltf_drawer::{ExternalObjects, Object3DDrawer};
 use grid::{GridInstance, GridIntersection, GridManager, GridTextures};
@@ -68,6 +68,9 @@ static MODEL_BG_ENTRY: &[wgpu::BindGroupLayoutEntry] = &[wgpu::BindGroupLayoutEn
 
 const CAMERA_NEAR: f32 = 0.1;
 const CAMERA_FAR: f32 = 1000.0;
+
+// Focal in mm of the camera lense based on a 24x36mm camera from which the Field of View Y fovy is computed in view/mod.rs - default was 17mm
+const CAMERA_FOCAL_LENGTH: f32 = 50.0;
 
 /// An object that handles the communication with the GPU to draw the scene.
 pub struct View {
@@ -110,8 +113,6 @@ pub struct View {
     external_objects_drawer: Object3DDrawer,
     stereography: Stereography,
     sheets_drawer: InstanceDrawer<Sheet2D>,
-    /// Cutting plane. TODO: remove? I don't see where the value is ever not `None`
-    cut_plane_parameters: Option<CutPlaneParameters>,
     // Post-processing shader parameters. TODO: bundle in InstanceDrawer or a new struct
     queue: Rc<Queue>,
     post_processing_pipeline: wgpu::RenderPipeline,
@@ -141,11 +142,11 @@ impl View {
             Vec3::new(0.0, 5.0, 10.0),
             Rotor3::identity(),
         )));
-        let fovy = (12. / super::CAMERA_LENS_FOCAL).atan() * 2f32; // fovy = 2 * atan((24mm / 2) / focal) - field of view Y fovy computed from the camera lens focal in mm for a 24x36mm camera
+        let fovy = (12. / CAMERA_FOCAL_LENGTH).atan() * 2f32; // fovy = 2 * atan((24mm / 2) / focal) - field of view Y fovy computed from the camera lens focal in mm for a 24x36mm camera
         let projection = Rc::new(RefCell::new(Projection::new(
             area_size.width,
             area_size.height,
-            fovy, // ensnano original = 70f32.to_radians(), corresponding to a 17mm very-wide-angle lens
+            fovy,
             CAMERA_NEAR,
             CAMERA_FAR,
         )));
@@ -296,8 +297,6 @@ impl View {
             "2d sheets",
         );
 
-        let cut_plane_parameters = None::<CutPlaneParameters>;
-
         // === POST-PROCESSING SHADER ===
         let post_processing_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("post-processing buffer"),
@@ -406,7 +405,6 @@ impl View {
             external_objects_drawer,
             stereography,
             sheets_drawer,
-            cut_plane_parameters,
             queue,
             post_processing_pipeline,
             post_processing_bind_group_layout,
@@ -420,7 +418,6 @@ impl View {
             self.projection.clone(),
             &self.fog_parameters,
             None,
-            self.cut_plane_parameters.as_ref(),
         ));
         self.stereographic_viewer
             .update(&Uniforms::from_view_proj_fog(
@@ -428,7 +425,6 @@ impl View {
                 self.projection.clone(),
                 &self.fog_parameters,
                 Some(&self.stereography),
-                self.cut_plane_parameters.as_ref(),
             ));
     }
 
@@ -1188,20 +1184,6 @@ impl Mesh {
             _ => None,
         }
     }
-
-    // FOR MEMORY
-    // pub fn to_u32(&self) -> u32 {
-    //     match self {
-    //         Mesh::Sphere => 1,
-    //         Mesh::Tube => 2,
-    //         Mesh::TubeLid => 3,
-    //         Mesh::SlicedTube => 4,
-    //         Mesh::PivotSphere => 5,
-    //         Mesh::Prime3Cone => 6,
-    //         Mesh::BaseEllipsoid => 7,
-    //         _ => 0,
-    //     }
-    // }
 }
 
 struct DnaDrawers {
