@@ -3976,7 +3976,7 @@ dependencies = [
  "static_assertions",
  "thiserror 2.0.17",
  "vec_map",
- "wide 0.7.33",
+ "wide",
 ]
 
 [[package]]
@@ -4295,15 +4295,6 @@ checksum = "28d3b2b1366ec20994f1fd18c3c594f05c5dd4bc44d8bb0c1c632c8d6829481f"
 
 [[package]]
 name = "safe_arch"
-version = "0.5.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1ff3d6d9696af502cc3110dacce942840fb06ff4514cad92236ecc455f2ce05"
-dependencies = [
- "bytemuck",
-]
-
-[[package]]
-name = "safe_arch"
 version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "96b02de82ddbe1b636e6170c21be622223aea188ef2e139be0a5b219ec215323"
@@ -4480,7 +4471,7 @@ dependencies = [
  "num-complex",
  "num-traits",
  "paste",
- "wide 0.7.33",
+ "wide",
 ]
 
 [[package]]
@@ -5060,12 +5051,13 @@ dependencies = [
 
 [[package]]
 name = "ultraviolet"
-version = "0.8.0-alpha.0"
-source = "git+https://github.com/termhn/ultraviolet?rev=b2fb29e#b2fb29e3cba46437008360e369aa18f4d0f22cf1"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ea519dad475ee0446b8172793c3c327e4fc81dafdaf05aaac510e630000b6296"
 dependencies = [
  "bytemuck",
  "serde",
- "wide 0.6.5",
+ "wide",
 ]
 
 [[package]]
@@ -5646,22 +5638,12 @@ dependencies = [
 
 [[package]]
 name = "wide"
-version = "0.6.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "46bbe7c604a27ca0b05c5503221e76da628225b568e6f1280b42dbad3b72d89b"
-dependencies = [
- "bytemuck",
- "safe_arch 0.5.2",
-]
-
-[[package]]
-name = "wide"
 version = "0.7.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0ce5da8ecb62bcd8ec8b7ea19f69a51275e91299be594ea5cc6ef7819e16cd03"
 dependencies = [
  "bytemuck",
- "safe_arch 0.7.4",
+ "safe_arch",
 ]
 
 [[package]]
