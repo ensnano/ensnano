@@ -13,7 +13,7 @@ use ensnano_design::{
     helices::Helix,
     parameters::HelixParameters,
     strands::{DomainJunction, Strand},
-    utils::dvec_to_vec,
+    utils::ultraviolet::dvec_to_vec,
 };
 use ensnano_interactor::surfaces::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceSystemDescriptor,

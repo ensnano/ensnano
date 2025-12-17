@@ -2,7 +2,7 @@ use crate::{
     domains::{Domain, helix_interval::HelixInterval, sanitize_domains},
     helices::Helices,
     nucl::{Nucl, VirtualNucl},
-    utils::is_false,
+    utils::serde::is_false,
 };
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, collections::BTreeMap, fmt::Write as _};

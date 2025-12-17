@@ -2,7 +2,7 @@ use ensnano_consts::SAMPLE_COUNT;
 use ensnano_design::{
     curves::torus::PointOnSurface,
     external_3d_objects::{External3DObject, External3DObjectId},
-    utils::dvec_to_vec,
+    utils::ultraviolet::dvec_to_vec,
 };
 use ensnano_interactor::surfaces::UnrootedRevolutionSurfaceDescriptor;
 use ensnano_utils::{

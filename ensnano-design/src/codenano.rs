@@ -4,7 +4,7 @@ use crate::{
     helices::{Helices, Helix},
     parameters::HelixParameters,
     strands::{Strand, Strands, read_junctions},
-    utils::is_false,
+    utils::serde::is_false,
 };
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, collections::BTreeMap, f64::consts::PI, fmt, sync::Arc};

@@ -40,7 +40,7 @@ use crate::{
     grid::{Edge, GridPosition, grid_collection::FreeGrids},
     helices::{AdditionalHelix2D, Helix},
     parameters::HelixParameters,
-    utils::{is_false, vec_to_dvec},
+    utils::{serde::is_false, ultraviolet::vec_to_dvec},
 };
 
 use bezier::TranslatedPiecewiseBezier;

@@ -32,7 +32,7 @@ use ensnano_consts::{
     MIN_RADIUS_FOR_FAKE_UPSCALING, PRINTABLE_CHARS, SAMPLE_COUNT, SELECT_SCALE_FACTOR,
 };
 use ensnano_design::{
-    grid::GridId, group_attributes::GroupPivot, helices::Axis, utils::dvec_to_vec,
+    grid::GridId, group_attributes::GroupPivot, helices::Axis, utils::ultraviolet::dvec_to_vec,
 };
 use ensnano_interactor::{
     graphics::{Background3D, DrawArea, FogParameters, HBondDisplay, PhySize, RenderingMode},

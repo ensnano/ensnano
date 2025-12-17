@@ -11,7 +11,10 @@ use crate::{
     grid::{Edge, Grid, GridAwareTranslation, GridData, GridId, HelixGridPosition},
     nucl::VirtualNucl,
     parameters::HelixParameters,
-    utils::{dvec_to_vec, f32_is_zero, is_false, isize_is_zero, rotor_to_drotor, vec_to_dvec},
+    utils::{
+        serde::{f32_is_zero, is_false, is_true, isize_is_zero},
+        ultraviolet::{dvec_to_vec, rotor_to_drotor, vec_to_dvec},
+    },
 };
 use ahash::HashMap;
 use serde::{Deserialize, Serialize};
@@ -183,7 +186,7 @@ pub struct Helix {
     pub helix_parameters: Option<HelixParameters>,
 
     /// Indicate whether the helix should be displayed in the 3D view.
-    #[serde(default = "default_visibility", skip_serializing_if = "bool::clone")]
+    #[serde(default = "default_visibility", skip_serializing_if = "is_true")]
     pub visible: bool,
 
     #[serde(default, skip_serializing_if = "is_false")]

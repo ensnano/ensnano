@@ -3,7 +3,7 @@ pub mod instantiator;
 use crate::{
     curves::{CurveBounds, CurveInstantiator, Curved},
     grid::{Edge, GridPosition},
-    utils::{is_false, vec_to_dvec},
+    utils::{serde::is_false, ultraviolet::vec_to_dvec},
 };
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 

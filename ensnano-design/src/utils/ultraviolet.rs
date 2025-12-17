@@ -1,8 +1,4 @@
-// TODO: split in 2 files
-
 use ultraviolet::{Bivec3, DBivec3, DRotor3, DVec3, Rotor3, Vec3};
-
-// === GEOMETRIC ALGEBRA CONVERSIONS ===
 
 pub fn vec_to_dvec(v: Vec3) -> DVec3 {
     DVec3 {
@@ -33,18 +29,4 @@ pub fn dvec_to_vec(dv: DVec3) -> Vec3 {
         y: dv.y as f32,
         z: dv.z as f32,
     }
-}
-
-// === SERIALIZATION UTILS ===
-
-pub(crate) fn isize_is_zero(x: &isize) -> bool {
-    *x == 0
-}
-
-pub(crate) fn f32_is_zero(x: &f32) -> bool {
-    *x == 0.0
-}
-
-pub(crate) fn is_false(x: &bool) -> bool {
-    !x
 }

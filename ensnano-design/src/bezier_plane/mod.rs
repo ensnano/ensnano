@@ -11,7 +11,7 @@ use crate::{
     },
     grid::{GridDescriptor, GridId, GridTypeDescr},
     parameters::HelixParameters,
-    utils::rotor_to_drotor,
+    utils::ultraviolet::rotor_to_drotor,
 };
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, sync::Arc};
