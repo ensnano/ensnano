@@ -10,7 +10,7 @@ use crate::{
     controller::LoadDesignError,
 };
 use cadnano::{Cadnano, FromCadnano as _};
-use ensnano_design::{Design, Nucl, codenano, ensnano_version, scadnano};
+use ensnano_design::{Design, Nucl, ensnano_version, scadnano};
 use ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
 use ensnano_utils::id_generator::IdGenerator;
 use scadnano::ScadnanoImportError;
@@ -70,7 +70,8 @@ fn read_file<P: AsRef<Path> + std::fmt::Debug>(path: P) -> Result<Design, LoadDe
         }
         Err(e) => {
             // If the file is not in icednano format, try the other supported format
-            let cdn_design: Result<codenano::Design<(), ()>, _> = serde_json::from_str(&json_str);
+            let cdn_design: Result<ensnano_design::codenano::Design<(), ()>, _> =
+                serde_json::from_str(&json_str);
 
             let scadnano_design: Result<scadnano::ScadnanoDesign, _> =
                 serde_json::from_str(&json_str);

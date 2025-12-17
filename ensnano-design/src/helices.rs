@@ -1,7 +1,6 @@
 use crate::{
     Nucl,
     bezier_plane::BezierPathId,
-    codenano,
     curves::{
         CurveDescriptor, InstantiatedCurve, InstantiatedCurveDescriptor, SurfaceInfo, SurfacePoint,
         bezier::{BezierControlPoint, BezierEnd, CubicBezierConstructor},
@@ -12,10 +11,7 @@ use crate::{
     grid::{Edge, Grid, GridAwareTranslation, GridData, GridId, HelixGridPosition},
     parameters::HelixParameters,
     scadnano::{ScadnanoGroup, ScadnanoHelix, ScadnanoImportError},
-    utils::{
-        default_visibility, dvec_to_vec, f32_is_zero, is_false, isize_is_zero, rotor_to_drotor,
-        vec_to_dvec,
-    },
+    utils::{dvec_to_vec, f32_is_zero, is_false, isize_is_zero, rotor_to_drotor, vec_to_dvec},
 };
 use ahash::HashMap;
 use serde::{Deserialize, Serialize};
@@ -165,6 +161,10 @@ impl Drop for HelicesMut<'_> {
     }
 }
 
+fn default_visibility() -> bool {
+    true
+}
+
 /// A DNA helix. All bases of all strands must be on a helix.
 ///
 /// The three angles are illustrated in the following image, from [the NASA website](https://www.grc.nasa.gov/www/k-12/airplane/rotations.html):
@@ -250,7 +250,7 @@ pub struct Helix {
 }
 
 impl Helix {
-    pub fn from_codenano(codenano_helix: &codenano::Helix) -> Self {
+    pub fn from_codenano(codenano_helix: &crate::codenano::Helix) -> Self {
         let position = Vec3::new(
             codenano_helix.position.x as f32,
             codenano_helix.position.y as f32,

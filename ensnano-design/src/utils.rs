@@ -45,10 +45,6 @@ pub(crate) fn f32_is_zero(x: &f32) -> bool {
     *x == 0.0
 }
 
-pub(crate) fn default_visibility() -> bool {
-    true
-}
-
 pub(crate) fn is_false(x: &bool) -> bool {
     !x
 }

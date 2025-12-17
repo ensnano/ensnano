@@ -317,37 +317,6 @@ impl Parameters {
     };
 }
 
-/// Represents 3D coordinates of the point of a finite element system
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[repr(C)]
-pub struct Point {
-    /// x coordinate
-    pub x: f64,
-    /// y coordinate
-    pub y: f64,
-    /// z coordinate
-    pub z: f64,
-}
-
-impl Point {
-    /// Convert an array of 3 floats into a Point
-    pub fn from_coord(coord: [f64; 3]) -> Self {
-        Self {
-            x: coord[0],
-            y: coord[1],
-            z: coord[2],
-        }
-    }
-
-    pub fn to_vec3(self) -> DVec3 {
-        DVec3 {
-            x: self.x,
-            y: self.y,
-            z: self.z,
-        }
-    }
-}
-
 /// A DNA helix. All bases of all strands must be on a helix.
 ///
 /// The three angles are illustrated in the following image, from [the NASA website](https://www.grc.nasa.gov/www/k-12/airplane/rotations.html):
@@ -356,19 +325,19 @@ impl Point {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Helix {
     /// Position of the position of the helix axis.
-    #[serde(default = "zero_point")]
-    pub position: Point,
+    #[serde(default)]
+    pub position: DVec3,
 
     /// Angle around the axis of the helix.
-    #[serde(default = "zero_f64")]
+    #[serde(default)]
     pub roll: f64,
 
     /// Horizontal rotation.
-    #[serde(default = "zero_f64")]
+    #[serde(default)]
     pub yaw: f64,
 
     /// Vertical rotation.
-    #[serde(default = "zero_f64")]
+    #[serde(default)]
     pub pitch: f64,
 
     /// Maximum available position of the helix.
@@ -376,17 +345,6 @@ pub struct Helix {
 
     /// Bold tickmarks.
     pub major_ticks: Option<Vec<isize>>,
-}
-
-fn zero_point() -> Point {
-    Point {
-        x: 0.,
-        y: 0.,
-        z: 0.,
-    }
-}
-fn zero_f64() -> f64 {
-    0.
 }
 
 impl fmt::Debug for Helix {
@@ -403,71 +361,52 @@ impl Helix {
     }
 
     /// 3D position of a nucleotide on this helix. `n` is the position along the axis, and `forward` is true iff the 5' to 3' direction of the strand containing that nucleotide runs in the same direction as the axis of the helix.
-    pub fn space_pos(&self, p: &Parameters, n: isize, forward: bool) -> [f64; 3] {
+    pub fn space_pos(&self, p: &Parameters, n: isize, forward: bool) -> DVec3 {
         let theta = self.theta(n, forward, p);
-        let mut ret = [
+        let ret = DVec3::new(
             n as f64 * p.rise,
             -theta.cos() * p.helix_radius,
             -theta.sin() * p.helix_radius,
-        ];
-
-        ret = self.rotate_point(ret);
-        ret[0] += self.position.x;
-        ret[1] += self.position.y;
-        ret[2] += self.position.z;
-        ret
+        );
+        self.rotate_point(ret) + self.position
     }
 
-    pub fn rotate_point(&self, ret: [f64; 3]) -> [f64; 3] {
-        let forward = [
+    #[expect(clippy::suspicious_operation_groupings)]
+    pub fn rotate_point(&self, ret: DVec3) -> DVec3 {
+        let forward = DVec3::new(
             self.yaw.cos() * self.pitch.cos(),
             self.pitch.sin(),
             -self.yaw.sin() * self.pitch.cos(),
-        ];
-        let right = [self.yaw.sin(), 0., self.yaw.cos()];
-        let up = [
-            right[1] * forward[2] - right[2] * forward[1],
-            right[2] * forward[0] - right[0] * forward[2],
-            right[0] * forward[1] - right[1] * forward[0],
-        ];
+        );
+        let right = DVec3::new(self.yaw.sin(), 0., self.yaw.cos());
+        let up = DVec3::new(
+            right.y * forward.z - right.z * forward.y,
+            right.z * forward.x - right.x * forward.z,
+            right.x * forward.y - right.y * forward.x,
+        );
 
-        [
-            ret[0] * forward[0] + ret[1] * up[0] + ret[2] * right[0],
-            ret[0] * forward[1] + ret[1] * up[1] + ret[2] * right[1],
-            ret[0] * forward[2] + ret[1] * up[2] + ret[2] * right[2],
-        ]
-    }
-
-    /// Return a basis of the Helix PoV
-    pub fn basis(&self) -> [[f64; 3]; 3] {
-        [
-            self.rotate_point([1., 0., 0.]),
-            self.rotate_point([0., self.roll.cos(), self.roll.sin()]),
-            self.rotate_point([0., -self.roll.sin(), self.roll.cos()]),
-        ]
+        DVec3::new(
+            ret.x * forward.x + ret.y * up.x + ret.z * right.x,
+            ret.x * forward.y + ret.y * up.y + ret.z * right.y,
+            ret.x * forward.z + ret.y * up.z + ret.z * right.z,
+        )
     }
 
     /// 3D position of the projection of the nucleotide on its helix.
     /// `n` is the position along the axis.
     pub fn axis_pos(&self, p: &Parameters, n: isize) -> DVec3 {
-        let mut ret = [n as f64 * p.rise, 0., 0.];
-
-        ret = self.rotate_point(ret);
-
-        ret[0] += self.position.x;
-        ret[1] += self.position.y;
-        ret[2] += self.position.z;
-        ret.into()
+        let ret = DVec3::new(n as f64 * p.rise, 0., 0.);
+        self.rotate_point(ret) + self.position
     }
 
     /// Test if two helices overlap.
     pub fn overlap(&self, other: &Self, p: &Parameters) -> bool {
-        let dir_vec = self.axis_pos(p, 1) - self.position.to_vec3();
-        let vec1 = other.axis_pos(p, 30) - self.position.to_vec3();
+        let dir_vec = self.axis_pos(p, 1) - self.position;
+        let vec1 = other.axis_pos(p, 30) - self.position;
         if vec1.cross(dir_vec).mag() / dir_vec.mag() > p.helix_radius {
             false
         } else {
-            let vec2 = other.axis_pos(p, -30) - self.position.to_vec3();
+            let vec2 = other.axis_pos(p, -30) - self.position;
             vec2.cross(dir_vec).mag() / dir_vec.mag() < p.helix_radius
         }
     }
@@ -475,13 +414,11 @@ impl Helix {
     /// A clone of `self` translated by one step along the y vector
     #[must_use]
     pub fn clone_up(&self, p: &Parameters) -> Self {
-        let mut new_position = [0., p.helix_radius * 2. + p.inter_helix_gap, 0.];
+        let mut new_position = DVec3::new(0., p.helix_radius * 2. + p.inter_helix_gap, 0.);
         new_position = self.rotate_point(new_position);
-        new_position[0] += self.position.x;
-        new_position[1] += self.position.y;
-        new_position[2] += self.position.z;
+        new_position += self.position;
         Self {
-            position: Point::from_coord(new_position),
+            position: new_position,
             ..self.clone()
         }
     }
@@ -489,13 +426,11 @@ impl Helix {
     /// A clone of `self` translated by minus one step along the y vector
     #[must_use]
     pub fn clone_down(&self, p: &Parameters) -> Self {
-        let mut new_position = [0., -p.helix_radius * 2. - p.inter_helix_gap, 0.];
+        let mut new_position = DVec3::new(0., -p.helix_radius * 2. - p.inter_helix_gap, 0.);
         new_position = self.rotate_point(new_position);
-        new_position[0] += self.position.x;
-        new_position[1] += self.position.y;
-        new_position[2] += self.position.z;
+        new_position += self.position;
         Self {
-            position: Point::from_coord(new_position),
+            position: new_position,
             ..self.clone()
         }
     }
@@ -503,13 +438,11 @@ impl Helix {
     /// A clone of `self` translated by minus one step along the z vector
     #[must_use]
     pub fn clone_left(&self, p: &Parameters) -> Self {
-        let mut new_position = [0., 0., -p.helix_radius * 2. - p.inter_helix_gap];
+        let mut new_position = DVec3::new(0., 0., -p.helix_radius * 2. - p.inter_helix_gap);
         new_position = self.rotate_point(new_position);
-        new_position[0] += self.position.x;
-        new_position[1] += self.position.y;
-        new_position[2] += self.position.z;
+        new_position += self.position;
         Self {
-            position: Point::from_coord(new_position),
+            position: new_position,
             ..self.clone()
         }
     }
@@ -517,20 +450,17 @@ impl Helix {
     /// A clone of `self` translated by one step along the z vector
     #[must_use]
     pub fn clone_forward(&self, p: &Parameters) -> Self {
-        let mut new_position = [0., 0., p.helix_radius * 2. + p.inter_helix_gap];
+        let mut new_position = DVec3::new(0., 0., p.helix_radius * 2. + p.inter_helix_gap);
         new_position = self.rotate_point(new_position);
-        new_position[0] += self.position.x;
-        new_position[1] += self.position.y;
-        new_position[2] += self.position.z;
+        new_position += self.position;
         Self {
-            position: Point::from_coord(new_position),
+            position: new_position,
             ..self.clone()
         }
     }
 
     /// Return the position on axis that is the closest to the point given in argument
-    pub fn closest_nucl(&self, point: [f64; 3], p: &Parameters) -> isize {
-        let point: DVec3 = point.into();
+    pub fn closest_nucl(&self, point: DVec3, p: &Parameters) -> isize {
         let mut up = 10000;
         let mut low = -10000;
         while up - low > 1 {

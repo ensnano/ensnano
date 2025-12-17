@@ -1,6 +1,5 @@
 //! DNA geometric parameters.
 
-use crate::codenano;
 use serde::{Deserialize, Serialize};
 use std::{
     f32::consts::{PI, SQRT_2, TAU},
@@ -146,7 +145,7 @@ impl HelixParameters {
         }
     };
 
-    pub fn from_codenano(codenano_param: &codenano::Parameters) -> Self {
+    pub fn from_codenano(codenano_param: &crate::codenano::Parameters) -> Self {
         Self {
             rise: codenano_param.rise as f32,
             helix_radius: codenano_param.helix_radius as f32,

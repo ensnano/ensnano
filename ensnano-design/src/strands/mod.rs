@@ -1,7 +1,7 @@
 mod formatting;
 
 use crate::{
-    Nucl, ScadnanoInsertionsDeletions, codenano,
+    Nucl, ScadnanoInsertionsDeletions,
     helices::{Helices, HelixCollection as _, VirtualNucl},
     insertions::InstantiatedInsertion,
     scadnano::{ScadnanoDomain, ScadnanoImportError, ScadnanoStrand},
@@ -324,7 +324,7 @@ pub fn sanitize_domains(domains: &[Domain], cyclic: bool) -> Vec<Domain> {
 }
 
 impl Strand {
-    pub fn from_codenano<Sl, Dl>(codenano_strand: &codenano::Strand<Sl, Dl>) -> Self {
+    pub fn from_codenano<Sl, Dl>(codenano_strand: &crate::codenano::Strand<Sl, Dl>) -> Self {
         let domains: Vec<Domain> = codenano_strand
             .domains
             .iter()
@@ -786,7 +786,7 @@ impl HelixInterval {
 }
 
 impl Domain {
-    pub fn from_codenano<Dl>(codenano_domain: &codenano::Domain<Dl>) -> Self {
+    pub fn from_codenano<Dl>(codenano_domain: &crate::codenano::Domain<Dl>) -> Self {
         let interval = HelixInterval {
             helix: codenano_domain.helix as usize,
             start: codenano_domain.start,
