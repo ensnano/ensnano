@@ -121,6 +121,7 @@
   - `GridPositionBuilder`
   - `OverlayType`
   - `RotationWidgetOrientation`
+  - `IterativeFrameAlgorithm`
 - Replace `ensnano_iced/fonts/material_icons.rs` by SVG icons from `icondata` lib
 - `build.rs` for shaders instead of manual compilation
 - Merge `ensnano_organizer` and `ensnano_gui`

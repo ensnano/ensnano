@@ -10,7 +10,7 @@ use pdb::PdbError;
 use std::{collections::HashMap, io::Write as _, path::PathBuf};
 
 /// The file formats to which an export is implemented
-#[derive(Debug, Clone, strum::Display)]
+#[derive(Debug, Clone)]
 pub enum ExportType {
     Cadnano,
     Pdb,
