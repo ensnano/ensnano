@@ -1,5 +1,3 @@
-mod formatting;
-
 use crate::{
     Nucl,
     helices::{Helices, HelixCollection as _, VirtualNucl},
@@ -7,7 +5,7 @@ use crate::{
     utils::is_false,
 };
 use serde::{Deserialize, Serialize};
-use std::{borrow::Cow, collections::BTreeMap, sync::Arc};
+use std::{borrow::Cow, collections::BTreeMap, fmt::Write as _, sync::Arc};
 
 /// A collection of strands, that maps strand identifier to strands.
 ///
@@ -1205,4 +1203,66 @@ pub struct PositionOnStrand {
     pub domain_id: usize,
     pub pos_on_domain: usize,
     pub pos_on_strand: usize,
+}
+
+impl Strand {
+    pub fn formatted_domains(&self) -> String {
+        let mut ret = String::new();
+        for d in &self.domains {
+            writeln!(&mut ret, "{d}").unwrap_or_default();
+        }
+        if self.is_cyclic {
+            writeln!(&mut ret, "[cycle]").unwrap_or_default();
+        }
+        ret
+    }
+
+    pub fn formatted_anonymous_junctions(&self) -> String {
+        let mut ret = String::new();
+        for j in &self.junctions {
+            let _ = write!(ret, "{} ", j.anonymous_fmt());
+        }
+        ret
+    }
+}
+
+impl std::fmt::Display for Domain {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Self::Insertion { nb_nucl, .. } => write!(f, "[@{nb_nucl}]"),
+            Self::HelixDomain(dom) => write!(f, "{dom}"),
+        }
+    }
+}
+
+impl DomainJunction {
+    fn anonymous_fmt(&self) -> String {
+        match self {
+            Self::Prime3 => String::from("[3']"),
+            Self::Adjacent => String::from("[->]"),
+            Self::UnidentifiedXover | Self::IdentifiedXover(_) => String::from("[x]"),
+        }
+    }
+}
+
+impl std::fmt::Debug for Domain {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{self}")
+    }
+}
+
+impl std::fmt::Display for HelixInterval {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        if self.forward {
+            write!(f, "[H{}: {} -> {}]", self.helix, self.start, self.end - 1)
+        } else {
+            write!(f, "[H{}: {} <- {}]", self.helix, self.start, self.end - 1)
+        }
+    }
+}
+
+impl std::fmt::Debug for HelixInterval {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{self}")
+    }
 }
