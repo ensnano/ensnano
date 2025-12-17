@@ -3214,7 +3214,8 @@ impl Controller {
                 // We can cut cross directly, but only if the target and source's helices are
                 // different
                 let target_3prime = b;
-                if source_nucl.helix != target_nucl.helix {
+                // NS: allow xover within the same helix
+                // if source_nucl.helix != target_nucl.helix {
                     Self::cross_cut(
                         strands,
                         source_id,
@@ -3223,12 +3224,15 @@ impl Controller {
                         target_3prime,
                         &mut self.color_idx,
                     )?
-                }
+                // } else {
+                //     println!("NS: Same helix 1");
+                // }
             }
             (None, Some(b)) => {
                 // We can cut cross directly but we need to reverse the xover
                 let target_3prime = b;
-                if source_nucl.helix != target_nucl.helix {
+                // NS: allow xover within the same helix
+                // if source_nucl.helix != target_nucl.helix {
                     Self::cross_cut(
                         strands,
                         target_id,
@@ -3237,10 +3241,13 @@ impl Controller {
                         target_3prime,
                         &mut self.color_idx,
                     )?
-                }
+                // } else {
+                //     println!("NS: Same helix 2");
+                // }
             }
             (None, None) => {
-                if source_nucl.helix != target_nucl.helix {
+                // NS: allow xover within the same helix
+                // if source_nucl.helix != target_nucl.helix {
                     if source_id != target_id {
                         Self::split_strand(strands, &source_nucl, None, &mut self.color_idx)?;
                         Self::cross_cut(
@@ -3310,7 +3317,9 @@ impl Controller {
                             )?;
                         }
                     }
-                }
+                // } else {
+                //     println!("NS: Same helix 3");
+                // }
             }
         }
         Ok(())
