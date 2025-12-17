@@ -3,8 +3,9 @@ use ahash::RandomState;
 use ensnano_design::{
     Nucl,
     curves::time_nucl_map::AbscissaConverter,
+    domains::{Domain, helix_interval::HelixInterval},
     helices::{Helices, HelixCollection as _, NuclCollection},
-    strands::{Domain, Extremity, HelixInterval, Strand},
+    strands::{Extremity, Strand},
 };
 use ensnano_flatscene::data::design::FlatSceneDesignReaderExt;
 use ensnano_interactor::{Referential, torsion::Torsion};

@@ -1,8 +1,9 @@
 use crate::{
     Design, Nucl,
+    domains::{Domain, helix_interval::HelixInterval},
     grid::{Grid, GridType},
     helices::Helix,
-    strands::{Domain, HelixInterval, Strand},
+    strands::Strand,
 };
 use serde::{Deserialize, Serialize};
 use std::{

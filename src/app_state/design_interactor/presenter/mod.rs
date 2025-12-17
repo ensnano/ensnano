@@ -11,10 +11,11 @@ use ensnano_design::{
     bezier_plane::{BezierPath, BezierPathId},
     collection::Collection as _,
     curves::bezier::InstantiatedPiecewiseBezier,
+    domains::Domain,
     elements::DesignElementKey,
     grid::{Grid, GridId},
     helices::{Helix, HelixCollection as _, NuclCollection},
-    strands::{Domain, Extremity, Strand},
+    strands::{Extremity, Strand},
 };
 use ensnano_exports::{ExportResult, ExportType, oxdna::BACKBONE_TO_CM};
 use ensnano_interactor::{

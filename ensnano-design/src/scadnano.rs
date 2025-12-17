@@ -1,9 +1,11 @@
 use crate::{
-    Design, ensnano_version,
+    Design,
+    domains::{Domain, helix_interval::HelixInterval, sanitize_domains},
+    ensnano_version,
     grid::{GridDescriptor, GridId, GridTypeDescr, HelixGridPosition, grid_collection::FreeGrids},
     helices::{Helices, Helix},
     parameters::HelixParameters,
-    strands::{Domain, HelixInterval, Strand, Strands, read_junctions, sanitize_domains},
+    strands::{Strand, Strands, read_junctions},
 };
 use serde::{Deserialize, Serialize};
 use std::{

@@ -1,7 +1,7 @@
 use ensnano_design::{
     Design, Nucl,
+    domains::Domain,
     helices::{Axis, OwnedAxis},
-    strands::Domain,
 };
 use std::cmp::Ordering;
 

@@ -4,10 +4,11 @@ use crate::app_state::{
 };
 use ensnano_design::{
     Design, MutStrandAndData, Nucl, UpToDateDesign,
+    domains::{Domain, helix_interval::HelixInterval},
     grid::{Edge, GridData, GridId, GridPosition, HelixGridPosition, grid_collection::FreeGridId},
     helices::{Helices, HelixCollection as _},
     parameters::HelixParameters,
-    strands::{Domain, HelixInterval, Strand, Strands, read_junctions},
+    strands::{Strand, Strands, read_junctions},
 };
 use ultraviolet::{Rotor3, Vec3};
 

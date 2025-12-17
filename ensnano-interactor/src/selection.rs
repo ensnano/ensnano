@@ -2,9 +2,10 @@ use ensnano_design::{
     Nucl,
     bezier_plane::{BezierPathId, BezierVertexId},
     curves::bezier::BezierControlPoint,
+    domains::Domain,
     elements::DesignElementKey,
     grid::{GridId, HelixGridPosition},
-    strands::{Domain, Strand},
+    strands::Strand,
 };
 use std::collections::BTreeSet;
 

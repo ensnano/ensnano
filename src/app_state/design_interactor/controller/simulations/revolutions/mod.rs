@@ -5,12 +5,14 @@ use crate::app_state::design_interactor::{
 };
 use crate::{app_state::ErrOperation, controller::channel_reader::ChannelReader};
 use closed_curves::CloseSurfaceTopology;
+use ensnano_design::domains::Domain;
+use ensnano_design::domains::helix_interval::HelixInterval;
 use ensnano_design::{
     AdditionalStructure, Design,
     curves::CurveDescriptor,
     helices::Helix,
     parameters::HelixParameters,
-    strands::{Domain, DomainJunction, HelixInterval, Strand},
+    strands::{DomainJunction, Strand},
     utils::dvec_to_vec,
 };
 use ensnano_interactor::surfaces::{

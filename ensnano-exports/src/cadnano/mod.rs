@@ -6,8 +6,8 @@ mod parity_graph;
 use ensnano_design::{
     Design, Nucl,
     collection::Collection as _,
+    domains::Domain,
     grid::{GridData, GridTypeDescr},
-    strands::Domain,
 };
 use serde::Serialize;
 use std::collections::HashMap;

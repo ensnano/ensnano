@@ -10,11 +10,11 @@ use ensnano_design::{
         CurveDescriptor, SurfaceInfo, SurfacePoint,
         bezier::{BezierControlPoint, CubicBezierConstructor},
     },
+    domains::Domain,
     external_3d_objects::External3DObjects,
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
     helices::{Helix, HelixCollection as _},
     parameters::HelixParameters,
-    strands::Domain,
 };
 use ensnano_interactor::{
     ObjectType, Referential,

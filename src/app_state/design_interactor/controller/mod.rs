@@ -33,6 +33,7 @@ use ensnano_design::{
         ErrDesignOperation, attach_object_to_grid, make_grid_from_helices, rotate_helices_3d,
         translate_helices,
     },
+    domains::{Domain, helix_interval::HelixInterval},
     drawing_style::{DrawingAttribute, DrawingStyle},
     elements::{DesignElementKey, DnaAttribute},
     external_3d_objects::{External3DObject, External3DObjectDescriptor},
@@ -44,7 +45,7 @@ use ensnano_design::{
     group_attributes::GroupPivot,
     helices::{Helices, Helix, HelixCollection as _, NuclCollection},
     mutate_in_arc, mutate_one_helix,
-    strands::{Domain, DomainJunction, HelixInterval, Strand, Strands},
+    strands::{DomainJunction, Strand, Strands},
 };
 use ensnano_gui::status_bar::ClipboardContent;
 use ensnano_interactor::{

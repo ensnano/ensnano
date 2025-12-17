@@ -12,6 +12,7 @@ pub mod collection;
 pub mod consts;
 pub mod curves;
 pub mod design_operations;
+pub mod domains;
 pub mod drawing_style;
 pub mod elements;
 pub mod external_3d_objects;
@@ -29,12 +30,13 @@ pub mod utils;
 use crate::{
     bezier_plane::{BezierPathData, BezierPaths, BezierPlanes},
     curves::CurveCache,
+    domains::Domain,
     external_3d_objects::External3DObjects,
     grid::grid_collection::FreeGrids,
     helices::{Helices, Helix, HelixCollection as _},
     isometry3_descriptor::Isometry3Descriptor,
     parameters::HelixParameters,
-    strands::{Domain, Strands},
+    strands::Strands,
 };
 use elements::DesignElementKey;
 use ensnano_organizer::tree::{GroupId, OrganizerTree};

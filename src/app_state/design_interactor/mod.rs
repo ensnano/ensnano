@@ -12,6 +12,7 @@ use crate::{
 };
 use controller::{Controller, ErrOperation, InteractorNotification};
 use ensnano_consts::UPDATE_VISIBILITY_SIEVE_LABEL;
+use ensnano_design::domains::Domain;
 use ensnano_design::{
     Design, SavingInformation,
     bezier_plane::{BezierPathId, BezierPlaneDescriptor},
@@ -20,7 +21,6 @@ use ensnano_design::{
     group_attributes::GroupAttribute,
     helices::HelixCollection as _,
     parameters::HelixParameters,
-    strands::Domain,
 };
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_gui::status_bar::{ClipboardContent, CurrentOpState};

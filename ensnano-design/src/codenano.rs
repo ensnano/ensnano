@@ -1,8 +1,9 @@
 use crate::{
     Design,
+    domains::{Domain, helix_interval::HelixInterval, sanitize_domains},
     helices::{Helices, Helix},
     parameters::HelixParameters,
-    strands::{Domain, HelixInterval, Strand, Strands, read_junctions, sanitize_domains},
+    strands::{Strand, Strands, read_junctions},
     utils::is_false,
 };
 use serde::{Deserialize, Serialize};

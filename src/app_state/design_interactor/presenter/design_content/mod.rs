@@ -7,12 +7,13 @@ use ensnano_consts::{
 };
 use ensnano_design::{
     Design, Nucl,
+    domains::Domain,
     drawing_style::{ColorType, DrawingAttribute, DrawingStyle},
     elements::{DesignElement, DesignElementKey},
     grid::{GridData, GridId, GridObject, GridPosition, HelixGridPosition},
     helices::{HelixCollection as _, NuclCollection},
     isometry3_descriptor::Isometry3MissingMethods as _,
-    strands::{Domain, DomainJunction},
+    strands::DomainJunction,
 };
 use ensnano_interactor::{
     ObjectType,

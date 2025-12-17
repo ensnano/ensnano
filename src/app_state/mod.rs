@@ -30,7 +30,7 @@ use address_pointer::AddressPointer;
 use design_interactor::{DesignInteractor, InteractorResult, controller::ErrOperation};
 use ensnano_consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION};
 use ensnano_design::{
-    SavingInformation, bezier_plane::BezierPathId, group_attributes::GroupPivot, strands::Domain,
+    SavingInformation, bezier_plane::BezierPathId, domains::Domain, group_attributes::GroupPivot,
 };
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_iced::ui_size::UiSize;
