@@ -59,8 +59,6 @@ pub const CIRCLE2D_BLUE: u32 = 0xFF_036992;
 pub const CIRCLE2D_RED: u32 = 0xFF_920303;
 pub const CIRCLE2D_GREEN: u32 = 0xFF_0C9203;
 
-pub const SCAFFOLD_COLOR: u32 = 0xFF_3498DB;
-
 pub const SELECTED_HELIX2D_COLOR: u32 = 0xFF_BF_1E_28;
 
 pub const ICON_PHYSICAL_ENGINE: char = '\u{e917}';

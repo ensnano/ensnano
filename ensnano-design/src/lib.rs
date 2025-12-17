@@ -6,6 +6,7 @@
 mod tests;
 
 pub mod bezier_plane;
+pub mod cadnano;
 pub mod codenano;
 pub mod collection;
 pub mod consts;
@@ -33,8 +34,7 @@ use crate::{
     helices::{Helices, Helix, HelixCollection as _},
     isometry3_descriptor::Isometry3Descriptor,
     parameters::HelixParameters,
-    scadnano::{ScadnanoDesign, ScadnanoGroup, ScadnanoImportError, ScadnanoInsertionsDeletions},
-    strands::{Domain, Strand, Strands},
+    strands::{Domain, Strands},
 };
 use elements::DesignElementKey;
 use ensnano_organizer::tree::{GroupId, OrganizerTree};
@@ -249,30 +249,6 @@ impl Design {
             !data.is_up_to_date(self)
         } else {
             true
-        }
-    }
-
-    pub fn from_codenano<Sl, Dl>(codenano_design: &codenano::Design<Sl, Dl>) -> Self {
-        let mut helices = BTreeMap::new();
-        for (i, helix) in codenano_design.helices.iter().enumerate() {
-            helices.insert(i, Arc::new(Helix::from_codenano(helix)));
-        }
-
-        let mut strands = BTreeMap::new();
-        for (i, strand) in codenano_design.strands.iter().enumerate() {
-            strands.insert(i, Strand::from_codenano(strand));
-        }
-
-        let helix_parameters = codenano_design
-            .parameters
-            .map(|p| HelixParameters::from_codenano(&p))
-            .unwrap_or_default();
-
-        Self {
-            helices: Helices(Arc::new(helices)),
-            strands: Strands(strands),
-            helix_parameters: Some(helix_parameters),
-            ..Default::default()
         }
     }
 
@@ -536,61 +512,6 @@ impl Design {
             helices: &self.helices,
             helix_parameters: self.helix_parameters.unwrap_or_default(),
         }
-    }
-
-    pub fn from_scadnano(scad: &ScadnanoDesign) -> Result<Self, ScadnanoImportError> {
-        let mut grids = Vec::new();
-        let mut group_map = BTreeMap::new();
-        let default_grid = scad.default_grid_descriptor()?;
-        let mut insertion_deletions = ScadnanoInsertionsDeletions::default();
-        group_map.insert(String::from("default_group"), 0usize);
-        grids.push(default_grid);
-        let mut helices_per_group = vec![0];
-        let mut groups: Vec<ScadnanoGroup> = vec![Default::default()];
-        if let Some(scad_groups) = &scad.groups {
-            for (name, g) in scad_groups {
-                let group = g.to_grid_desc()?;
-                groups.push(g.clone());
-                group_map.insert(name.clone(), grids.len());
-                grids.push(group);
-                helices_per_group.push(0);
-            }
-        }
-        for s in &scad.strands {
-            for d in &s.domains {
-                insertion_deletions.read_domain(d);
-            }
-        }
-        let mut helices = BTreeMap::new();
-        for (i, h) in scad.helices.iter().enumerate() {
-            let helix = Helix::from_scadnano(h, &group_map, &groups, &mut helices_per_group)?;
-            helices.insert(i, Arc::new(helix));
-        }
-        let mut strands = BTreeMap::new();
-        for (i, s) in scad.strands.iter().enumerate() {
-            let strand = Strand::from_scadnano(s, &insertion_deletions)?;
-            strands.insert(i, strand);
-        }
-        println!("grids {grids:?}");
-        println!("helices {helices:?}");
-        Ok(Self {
-            free_grids: FreeGrids::from_vec(grids),
-            helices: Helices(Arc::new(helices)),
-            strands: Strands(strands),
-            small_spheres: Default::default(),
-            scaffold_id: None, //TODO determine this value
-            scaffold_sequence: None,
-            scaffold_shift: None,
-            groups: Default::default(),
-            no_phantoms: Default::default(),
-            helix_parameters: Some(HelixParameters::DEFAULT),
-            anchors: Default::default(),
-            organizer_tree: None,
-            ensnano_version: ensnano_version(),
-            group_attributes: Default::default(),
-            cameras: Default::default(),
-            ..Default::default()
-        })
     }
 
     pub fn set_helices(&mut self, helices: BTreeMap<usize, Arc<Helix>>) {

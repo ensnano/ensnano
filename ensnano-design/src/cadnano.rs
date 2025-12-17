@@ -1,5 +1,4 @@
-use ensnano_consts::SCAFFOLD_COLOR;
-use ensnano_design::{
+use crate::{
     Design, Nucl,
     grid::{Grid, GridType},
     helices::Helix,
@@ -14,14 +13,16 @@ use std::{
 };
 use ultraviolet::{Rotor3, Vec3};
 
+const SCAFFOLD_COLOR: u32 = 0xFF_3498DB;
+
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
-pub(super) struct Cadnano {
+pub struct CadnanoDesign {
     name: String,
     vstrands: Vec<VStrand>,
 }
 
-impl Cadnano {
-    pub(super) fn from_file<P: AsRef<Path>>(file: P) -> Result<Self, CadnanoError> {
+impl CadnanoDesign {
+    pub fn from_file<P: AsRef<Path>>(file: P) -> Result<Self, CadnanoError> {
         let f = File::open(file)?;
         Ok(serde_json::from_reader(&f)?)
     }
@@ -48,9 +49,9 @@ struct VStrand {
 }
 
 #[derive(Debug)]
-pub(super) enum CadnanoError {
-    IO(#[expect(unused)] std::io::Error),
-    Json(#[expect(unused)] serde_json::Error),
+pub enum CadnanoError {
+    IO(std::io::Error),
+    Json(serde_json::Error),
 }
 
 impl From<std::io::Error> for CadnanoError {
@@ -66,68 +67,6 @@ impl From<serde_json::Error> for CadnanoError {
 }
 
 const NO_HELIX: usize = usize::MAX;
-
-pub(super) trait FromCadnano: Sized {
-    fn from_cadnano(nano: Cadnano) -> Self;
-}
-
-impl FromCadnano for Design {
-    /// Create a design from a cadnano file
-    fn from_cadnano(nano: Cadnano) -> Self {
-        let vstrands = nano.vstrands;
-        let mut seen: HashSet<(usize, usize, bool)> = HashSet::new();
-        let mut design = Self::new();
-        let mut nb_strand = 0;
-        let mut colors = BTreeMap::new();
-
-        let mut num_to_helix: HashMap<isize, usize> = HashMap::new();
-
-        let mut helices = BTreeMap::new();
-        let honeycomb = vstrands[0].scaf.len().is_multiple_of(21);
-        let grid = Grid::new(
-            Vec3::zero(),
-            Rotor3::identity(),
-            Default::default(),
-            if honeycomb {
-                GridType::honeycomb(None)
-            } else {
-                GridType::square(None)
-            },
-        );
-
-        for (i, v) in vstrands.iter().enumerate() {
-            num_to_helix.insert(v.num, i);
-            let position = grid.position_helix(v.col, v.row);
-            let helix = Helix::new(position, Rotor3::identity());
-            helices.insert(i, Arc::new(helix));
-            for (j, color) in &v.stap_colors {
-                colors.insert((i, *j as usize), *color as usize);
-            }
-        }
-        num_to_helix.insert(-1, NO_HELIX);
-
-        for scaf in [false, true] {
-            for i in 0..vstrands.len() {
-                let v = &vstrands[i];
-                for j in 0..v.stap.len() {
-                    let result = if scaf { v.scaf[j] } else { v.stap[j] };
-                    if seen.insert((i, j, scaf)) && result != (-1, -1, -1, -1) {
-                        println!("{scaf}, {i}, {j}");
-                        let end_5 = find_5_end(i, j, &vstrands, &num_to_helix, scaf);
-                        println!("end: {end_5:?}");
-                        let strand =
-                            make_strand(end_5, &vstrands, &num_to_helix, &mut seen, scaf, &colors);
-                        design.strands.insert(nb_strand, strand);
-                        nb_strand += 1;
-                    }
-                }
-            }
-        }
-        println!("color {colors:?}");
-        design.set_helices(helices);
-        design
-    }
-}
 
 fn find_5_end(
     i: usize,
@@ -282,4 +221,62 @@ fn make_strand(
 fn subtract_skips(nucl: usize, helix: usize, vstrands: &[VStrand]) -> isize {
     let skips: isize = (0..=nucl).map(|n| vstrands[helix].skip[n]).sum();
     nucl as isize + skips
+}
+
+impl Design {
+    /// Create a design from a cadnano file
+    pub fn from_cadnano(nano: &CadnanoDesign) -> Self {
+        let vstrands = &nano.vstrands;
+        let mut seen: HashSet<(usize, usize, bool)> = HashSet::new();
+        let mut design = Self::new();
+        let mut nb_strand = 0;
+        let mut colors = BTreeMap::new();
+
+        let mut num_to_helix: HashMap<isize, usize> = HashMap::new();
+
+        let mut helices = BTreeMap::new();
+        let honeycomb = vstrands[0].scaf.len().is_multiple_of(21);
+        let grid = Grid::new(
+            Vec3::zero(),
+            Rotor3::identity(),
+            Default::default(),
+            if honeycomb {
+                GridType::honeycomb(None)
+            } else {
+                GridType::square(None)
+            },
+        );
+
+        for (i, v) in vstrands.iter().enumerate() {
+            num_to_helix.insert(v.num, i);
+            let position = grid.position_helix(v.col, v.row);
+            let helix = Helix::new(position, Rotor3::identity());
+            helices.insert(i, Arc::new(helix));
+            for (j, color) in &v.stap_colors {
+                colors.insert((i, *j as usize), *color as usize);
+            }
+        }
+        num_to_helix.insert(-1, NO_HELIX);
+
+        for scaf in [false, true] {
+            for i in 0..vstrands.len() {
+                let v = &vstrands[i];
+                for j in 0..v.stap.len() {
+                    let result = if scaf { v.scaf[j] } else { v.stap[j] };
+                    if seen.insert((i, j, scaf)) && result != (-1, -1, -1, -1) {
+                        println!("{scaf}, {i}, {j}");
+                        let end_5 = find_5_end(i, j, vstrands, &num_to_helix, scaf);
+                        println!("end: {end_5:?}");
+                        let strand =
+                            make_strand(end_5, vstrands, &num_to_helix, &mut seen, scaf, &colors);
+                        design.strands.insert(nb_strand, strand);
+                        nb_strand += 1;
+                    }
+                }
+            }
+        }
+        println!("color {colors:?}");
+        design.set_helices(helices);
+        design
+    }
 }

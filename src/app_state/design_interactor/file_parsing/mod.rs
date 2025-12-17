@@ -1,4 +1,3 @@
-mod cadnano;
 pub(crate) mod junctions;
 
 use crate::app_state::{
@@ -9,11 +8,15 @@ use crate::{
     app_state::design_interactor::file_parsing::junctions::StrandJunction as _,
     controller::LoadDesignError,
 };
-use cadnano::{Cadnano, FromCadnano as _};
-use ensnano_design::{Design, Nucl, ensnano_version, scadnano};
+use ensnano_design::{
+    Design, Nucl,
+    cadnano::CadnanoDesign,
+    codenano::CodenanoDesign,
+    ensnano_version,
+    scadnano::{ScadnanoDesign, ScadnanoImportError},
+};
 use ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
 use ensnano_utils::id_generator::IdGenerator;
-use scadnano::ScadnanoImportError;
 use std::path::{Path, PathBuf};
 use version_compare::Cmp;
 
@@ -70,22 +73,18 @@ fn read_file<P: AsRef<Path> + std::fmt::Debug>(path: P) -> Result<Design, LoadDe
         }
         Err(e) => {
             // If the file is not in icednano format, try the other supported format
-            let cdn_design: Result<ensnano_design::codenano::Design<(), ()>, _> =
-                serde_json::from_str(&json_str);
+            let codenano_design: Result<CodenanoDesign, _> = serde_json::from_str(&json_str);
+            let scadnano_design: Result<ScadnanoDesign, _> = serde_json::from_str(&json_str);
 
-            let scadnano_design: Result<scadnano::ScadnanoDesign, _> =
-                serde_json::from_str(&json_str);
-
-            // Try codenano format
-            if let Ok(scadnano) = scadnano_design {
-                Design::from_scadnano(&scadnano).map_err(LoadDesignError::ScadnanoImportError)
-            } else if let Ok(design) = cdn_design {
+            if let Ok(design) = scadnano_design {
+                Design::from_scadnano(&design).map_err(LoadDesignError::ScadnanoImportError)
+            } else if let Ok(design) = codenano_design {
                 log::error!("{:?}", scadnano_design.err());
                 log::info!("ok codenano");
                 Ok(Design::from_codenano(&design))
-            } else if let Ok(cadnano) = Cadnano::from_file(path) {
+            } else if let Ok(design) = CadnanoDesign::from_file(path) {
                 log::info!("ok cadnano");
-                Ok(Design::from_cadnano(cadnano))
+                Ok(Design::from_cadnano(&design))
             } else {
                 log::error!("{e:?}");
                 // The file is not in any supported format

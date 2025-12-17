@@ -1,10 +1,9 @@
 mod formatting;
 
 use crate::{
-    Nucl, ScadnanoInsertionsDeletions,
+    Nucl,
     helices::{Helices, HelixCollection as _, VirtualNucl},
     insertions::InstantiatedInsertion,
-    scadnano::{ScadnanoDomain, ScadnanoImportError, ScadnanoStrand},
     utils::is_false,
 };
 use serde::{Deserialize, Serialize};
@@ -324,52 +323,6 @@ pub fn sanitize_domains(domains: &[Domain], cyclic: bool) -> Vec<Domain> {
 }
 
 impl Strand {
-    pub fn from_codenano<Sl, Dl>(codenano_strand: &crate::codenano::Strand<Sl, Dl>) -> Self {
-        let domains: Vec<Domain> = codenano_strand
-            .domains
-            .iter()
-            .map(|d| Domain::from_codenano(d))
-            .collect();
-        let sane_domains = sanitize_domains(&domains, codenano_strand.cyclic);
-        let junctions = read_junctions(&sane_domains, codenano_strand.cyclic);
-        Self {
-            domains: sane_domains,
-            sequence: codenano_strand.sequence.clone(),
-            is_cyclic: codenano_strand.cyclic,
-            junctions,
-            color: codenano_strand
-                .color
-                .clone()
-                .unwrap_or_else(|| codenano_strand.default_color())
-                .as_int(),
-            ..Default::default()
-        }
-    }
-
-    pub(super) fn from_scadnano(
-        scad: &ScadnanoStrand,
-        insertion_deletions: &ScadnanoInsertionsDeletions,
-    ) -> Result<Self, ScadnanoImportError> {
-        let color = scad.color()?;
-        let domains: Vec<Domain> = scad
-            .domains
-            .iter()
-            .flat_map(|s| Domain::from_scadnano(s, insertion_deletions))
-            .collect();
-        let sequence = scad.sequence.as_ref().map(|seq| Cow::Owned(seq.clone()));
-        let cyclic = scad.circular;
-        let sane_domains = sanitize_domains(&domains, cyclic);
-        let junctions = read_junctions(&sane_domains, cyclic);
-        Ok(Self {
-            domains: sane_domains,
-            color,
-            is_cyclic: cyclic,
-            junctions,
-            sequence,
-            ..Default::default()
-        })
-    }
-
     pub fn init(helix: usize, position: isize, forward: bool, color: u32) -> Self {
         let domains = vec![Domain::HelixDomain(HelixInterval {
             sequence: None,
@@ -786,44 +739,6 @@ impl HelixInterval {
 }
 
 impl Domain {
-    pub fn from_codenano<Dl>(codenano_domain: &crate::codenano::Domain<Dl>) -> Self {
-        let interval = HelixInterval {
-            helix: codenano_domain.helix as usize,
-            start: codenano_domain.start,
-            end: codenano_domain.end,
-            forward: codenano_domain.forward,
-            sequence: codenano_domain.sequence.clone(),
-        };
-        Self::HelixDomain(interval)
-    }
-
-    pub(super) fn from_scadnano(
-        scad: &ScadnanoDomain,
-        insertion_deletions: &ScadnanoInsertionsDeletions,
-    ) -> Vec<Self> {
-        match scad {
-            ScadnanoDomain::HelixDomain {
-                helix,
-                start,
-                end,
-                forward,
-                ..// TODO read insertion and deletion
-            } => {
-                let start = insertion_deletions.adjust(*start, *helix);
-                let end = insertion_deletions.adjust(*end, *helix);
-
-                vec![Self::HelixDomain(HelixInterval {
-                    helix: *helix,
-                    start,
-                    end,
-                    forward: *forward,
-                    sequence: None,
-                })]
-            }
-            ScadnanoDomain::Loopout{ loopout: n } => vec![Self::new_insertion(*n)]
-        }
-    }
-
     pub fn length(&self) -> usize {
         match self {
             Self::Insertion { nb_nucl, .. } => *nb_nucl,

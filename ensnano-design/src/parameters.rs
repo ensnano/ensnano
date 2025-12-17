@@ -145,17 +145,6 @@ impl HelixParameters {
         }
     };
 
-    pub fn from_codenano(codenano_param: &crate::codenano::Parameters) -> Self {
-        Self {
-            rise: codenano_param.rise as f32,
-            helix_radius: codenano_param.helix_radius as f32,
-            bases_per_turn: codenano_param.bases_per_turn as f32,
-            groove_angle: codenano_param.groove_angle as f32,
-            inter_helix_gap: codenano_param.inter_helix_gap as f32,
-            inclination: 0.0,
-        }
-    }
-
     pub fn formatted_string(&self) -> String {
         let mut ret = String::new();
         writeln!(&mut ret, "  Radius: {:.3} nm", self.helix_radius).unwrap_or_default();
