@@ -52,6 +52,7 @@ use iced::{
 use iced_aw::widgets::{TabBarPosition, Tabs};
 use iced_runtime::Program;
 use std::{
+    collections::BTreeSet,
     f32::consts::PI,
     sync::{Arc, Mutex},
 };
@@ -1141,7 +1142,7 @@ where
             .contextual_panel
             .view(self.ui_size, &self.application_state);
 
-        let selection: std::collections::BTreeSet<DesignElementKey> = self
+        let selection: BTreeSet<DesignElementKey> = self
             .application_state
             .get_selection()
             .iter()

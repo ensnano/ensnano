@@ -597,21 +597,16 @@ impl Strand {
     }
 
     pub fn has_insertions(&self) -> bool {
-        for d in &self.domains {
-            if let Domain::Insertion { .. } = d {
-                return true;
-            }
-        }
-        false
+        self.domains
+            .iter()
+            .any(|d| matches!(d, Domain::Insertion { .. }))
     }
 
     pub fn add_insertion_at_nucl(&mut self, nucl: &Nucl, insertion_size: usize) {
-        let insertion_point = self.locate_nucl(nucl);
-        if let Some((d_id, n)) = insertion_point {
+        if let Some((d_id, n)) = self.locate_nucl(nucl) {
             self.add_insertion_at_dom_position(d_id, n, insertion_size);
         } else {
-            println!("Could not add insertion");
-            assert!(!cfg!(test), "Could not locate nucleotide in strand");
+            log::warn!("Could not add insertion");
         }
     }
 
@@ -661,8 +656,7 @@ impl Strand {
                 self.domains.insert(d_id, prime5);
             }
         } else {
-            println!("Could not split");
-            assert!(!cfg!(test), "Could not split domain");
+            log::warn!("Could not split");
         }
     }
 
