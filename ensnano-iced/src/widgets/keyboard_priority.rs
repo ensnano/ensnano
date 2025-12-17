@@ -56,7 +56,7 @@ impl<'a, Message> KeyboardPriority<'a, Message> {
         let id = KeyboardPriorityId::new(id);
         let content = content.into();
         let size = content.as_widget().size_hint();
-        KeyboardPriority {
+        Self {
             id: id.clone(),
             width: size.width.fluid(),
             height: size.height.fluid(),
