@@ -1,11 +1,6 @@
 use crate::utils::is_false;
 use serde::{Deserialize, Serialize};
-use std::{
-    borrow::Cow,
-    convert::TryFrom as _,
-    f64::consts::{PI, TAU},
-    fmt,
-};
+use std::{borrow::Cow, f64::consts::PI, fmt};
 use ultraviolet::DVec3;
 
 /// The main type of this crate, describing a DNA design.
@@ -25,27 +20,9 @@ pub struct Design<StrandLabel, DomainLabel> {
     pub parameters: Option<Parameters>,
 }
 
-impl<StrandLabel: Serialize, DomainLabel: Serialize> Default for Design<StrandLabel, DomainLabel> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl<StrandLabel: Serialize, DomainLabel: Serialize> Design<StrandLabel, DomainLabel> {
-    /// Initiates a design.
-    pub fn new() -> Self {
-        Self {
-            version: env!("CARGO_PKG_VERSION").to_owned(),
-            helices: Vec::new(),
-            strands: Vec::new(),
-            parameters: Some(Parameters::DEFAULT),
-        }
-    }
-}
-
 /// A DNA strand.
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
-pub struct Strand<Label, DomainLabel> {
+pub struct Strand<StrandLabel, DomainLabel> {
     /// The (ordered) vector of domains, where each domain is a
     /// directed interval of a helix.
     pub domains: Vec<Domain<DomainLabel>>,
@@ -65,10 +42,10 @@ pub struct Strand<Label, DomainLabel> {
     /// An optional label for the strand. Can be
     /// `serde_json::Value::Null`, and skipped in the serialization.
     #[serde(skip_serializing_if = "Option::is_none", default = "none")]
-    pub label: Option<Label>,
+    pub label: Option<StrandLabel>,
 }
 
-fn none<Label>() -> Option<Label> {
+fn none<T>() -> Option<T> {
     None
 }
 
@@ -122,16 +99,11 @@ impl Color {
             Self::Rgb { r, g, b } => ((*r as u32) << 16) | ((*g as u32) << 8) | (*b as u32),
         }
     }
-
-    /// Kelly color number `n`.
-    pub fn kelly(n: usize) -> Self {
-        KELLY[n % KELLY.len()].clone()
-    }
 }
 
 /// A domain, i.e. an interval of a helix.
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
-pub struct Domain<Label> {
+pub struct Domain<StrandLabel> {
     /// Index of the helix in the array of helices. Indices start at
     /// 0.
     pub helix: isize,
@@ -150,103 +122,11 @@ pub struct Domain<Label> {
     pub forward: bool,
     /// An optional label that can be attached to strands.
     #[serde(skip_serializing_if = "Option::is_none", default = "none")]
-    pub label: Option<Label>,
+    pub label: Option<StrandLabel>,
     /// In addition to the strand-level sequence, individual domains
     /// may have sequences too. The precedence has to be defined by
     /// the user of this library.
     pub sequence: Option<Cow<'static, str>>,
-}
-
-impl<Label> Domain<Label> {
-    /// Iterate through the positions of this domain, in 5' to 3'
-    /// order (meaning that the values produced by this iterator might
-    /// be increasing or decreasing).
-    pub fn iter(&self) -> DomainIter {
-        DomainIter {
-            start: self.start,
-            end: self.end,
-            forward: self.forward,
-        }
-    }
-
-    /// Translate this domain. The first parameter is the translation
-    /// along the helix, the second one is a translation across
-    /// helices (probably most meaningful for a flat design).
-    #[must_use]
-    pub fn translate(self, dx: isize, dy: isize) -> Self {
-        Self {
-            start: self.start + dx,
-            end: self.end + dx,
-            helix: usize::try_from(self.helix + dy).unwrap() as isize,
-            ..self
-        }
-    }
-
-    /// Translate this domain along its helix.
-    #[must_use]
-    pub fn shift_x(self, dx: isize) -> Self {
-        Self {
-            start: self.start + dx,
-            end: self.end + dx,
-            ..self
-        }
-    }
-
-    /// Translate this domain to a different helix (probably most
-    /// meaningful for a flat design).
-    #[must_use]
-    pub fn shift_y(self, dy: isize) -> Self {
-        Self {
-            helix: usize::try_from(self.helix + dy).unwrap() as isize,
-            ..self
-        }
-    }
-
-    /// Number of Nucleotides on the domain
-    #[must_use]
-    pub fn length(&self) -> isize {
-        self.end - self.start
-    }
-
-    /// Return a domain that has the same bounds as self
-    #[must_use]
-    pub fn pseudo_copy(&self) -> Self {
-        Self {
-            helix: self.helix,
-            start: self.start,
-            end: self.end,
-            forward: self.forward,
-            label: None,
-            sequence: None,
-        }
-    }
-
-    /// Return true iff `self` contains the nucleotide (h, x, b)
-    pub fn contains(&self, h: isize, x: isize, b: bool) -> bool {
-        self.helix == h && self.forward == b && self.start <= x && self.end > x
-    }
-
-    /// Return the first nucl of `self` or `None` if `self` is empty
-    pub fn first_nucl(&self) -> Option<(isize, isize, bool)> {
-        if self.start >= self.end {
-            None
-        } else if self.forward {
-            Some((self.helix, self.start, self.forward))
-        } else {
-            Some((self.helix, self.end - 1, self.forward))
-        }
-    }
-
-    /// Return the last nucl of `self` or `None` if `self` is empty
-    pub fn last_nucl(&self) -> Option<(isize, isize, bool)> {
-        if self.start >= self.end {
-            None
-        } else if self.forward {
-            Some((self.helix, self.end - 1, self.forward))
-        } else {
-            Some((self.helix, self.start, self.forward))
-        }
-    }
 }
 
 /// An iterator over all positions of a domain.
@@ -350,135 +230,6 @@ pub struct Helix {
 impl fmt::Debug for Helix {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_tuple("").field(&self.position).finish()
-    }
-}
-
-impl Helix {
-    /// Angle of base number `n` around this helix.
-    pub fn theta(&self, n: isize, forward: bool, cst: &Parameters) -> f64 {
-        let shift = if forward { cst.groove_angle } else { 0. };
-        n as f64 * TAU / cst.bases_per_turn + shift + self.roll + PI
-    }
-
-    /// 3D position of a nucleotide on this helix. `n` is the position along the axis, and `forward` is true iff the 5' to 3' direction of the strand containing that nucleotide runs in the same direction as the axis of the helix.
-    pub fn space_pos(&self, p: &Parameters, n: isize, forward: bool) -> DVec3 {
-        let theta = self.theta(n, forward, p);
-        let ret = DVec3::new(
-            n as f64 * p.rise,
-            -theta.cos() * p.helix_radius,
-            -theta.sin() * p.helix_radius,
-        );
-        self.rotate_point(ret) + self.position
-    }
-
-    #[expect(clippy::suspicious_operation_groupings)]
-    pub fn rotate_point(&self, ret: DVec3) -> DVec3 {
-        let forward = DVec3::new(
-            self.yaw.cos() * self.pitch.cos(),
-            self.pitch.sin(),
-            -self.yaw.sin() * self.pitch.cos(),
-        );
-        let right = DVec3::new(self.yaw.sin(), 0., self.yaw.cos());
-        let up = DVec3::new(
-            right.y * forward.z - right.z * forward.y,
-            right.z * forward.x - right.x * forward.z,
-            right.x * forward.y - right.y * forward.x,
-        );
-
-        DVec3::new(
-            ret.x * forward.x + ret.y * up.x + ret.z * right.x,
-            ret.x * forward.y + ret.y * up.y + ret.z * right.y,
-            ret.x * forward.z + ret.y * up.z + ret.z * right.z,
-        )
-    }
-
-    /// 3D position of the projection of the nucleotide on its helix.
-    /// `n` is the position along the axis.
-    pub fn axis_pos(&self, p: &Parameters, n: isize) -> DVec3 {
-        let ret = DVec3::new(n as f64 * p.rise, 0., 0.);
-        self.rotate_point(ret) + self.position
-    }
-
-    /// Test if two helices overlap.
-    pub fn overlap(&self, other: &Self, p: &Parameters) -> bool {
-        let dir_vec = self.axis_pos(p, 1) - self.position;
-        let vec1 = other.axis_pos(p, 30) - self.position;
-        if vec1.cross(dir_vec).mag() / dir_vec.mag() > p.helix_radius {
-            false
-        } else {
-            let vec2 = other.axis_pos(p, -30) - self.position;
-            vec2.cross(dir_vec).mag() / dir_vec.mag() < p.helix_radius
-        }
-    }
-
-    /// A clone of `self` translated by one step along the y vector
-    #[must_use]
-    pub fn clone_up(&self, p: &Parameters) -> Self {
-        let mut new_position = DVec3::new(0., p.helix_radius * 2. + p.inter_helix_gap, 0.);
-        new_position = self.rotate_point(new_position);
-        new_position += self.position;
-        Self {
-            position: new_position,
-            ..self.clone()
-        }
-    }
-
-    /// A clone of `self` translated by minus one step along the y vector
-    #[must_use]
-    pub fn clone_down(&self, p: &Parameters) -> Self {
-        let mut new_position = DVec3::new(0., -p.helix_radius * 2. - p.inter_helix_gap, 0.);
-        new_position = self.rotate_point(new_position);
-        new_position += self.position;
-        Self {
-            position: new_position,
-            ..self.clone()
-        }
-    }
-
-    /// A clone of `self` translated by minus one step along the z vector
-    #[must_use]
-    pub fn clone_left(&self, p: &Parameters) -> Self {
-        let mut new_position = DVec3::new(0., 0., -p.helix_radius * 2. - p.inter_helix_gap);
-        new_position = self.rotate_point(new_position);
-        new_position += self.position;
-        Self {
-            position: new_position,
-            ..self.clone()
-        }
-    }
-
-    /// A clone of `self` translated by one step along the z vector
-    #[must_use]
-    pub fn clone_forward(&self, p: &Parameters) -> Self {
-        let mut new_position = DVec3::new(0., 0., p.helix_radius * 2. + p.inter_helix_gap);
-        new_position = self.rotate_point(new_position);
-        new_position += self.position;
-        Self {
-            position: new_position,
-            ..self.clone()
-        }
-    }
-
-    /// Return the position on axis that is the closest to the point given in argument
-    pub fn closest_nucl(&self, point: DVec3, p: &Parameters) -> isize {
-        let mut up = 10000;
-        let mut low = -10000;
-        while up - low > 1 {
-            let point_low = self.axis_pos(p, low);
-            let point_up = self.axis_pos(p, up);
-            let dist_low = (point_low - point).mag();
-            let dist_up = (point_up - point).mag();
-            if dist_low > dist_up {
-                low = (up + low) / 2;
-            } else {
-                up = (up + low) / 2;
-            }
-        }
-        let point_low = self.axis_pos(p, low);
-        let point_up = self.axis_pos(p, up);
-        let dist_low = (point_low - point).mag();
-        let dist_up = (point_up - point).mag();
-        if dist_low > dist_up { up } else { low }
     }
 }
 
