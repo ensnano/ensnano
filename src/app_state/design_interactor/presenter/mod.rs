@@ -7,7 +7,7 @@ pub(crate) mod impl_readergui;
 use crate::app_state::{address_pointer::AddressPointer, design_interactor::DesignInteractor};
 use design_content::DesignContent;
 use ensnano_design::{
-    CameraId, Design, Nucl,
+    CameraId, Design,
     bezier_plane::{BezierPath, BezierPathId},
     collection::Collection as _,
     curves::bezier::InstantiatedPiecewiseBezier,
@@ -15,6 +15,7 @@ use ensnano_design::{
     elements::DesignElementKey,
     grid::{Grid, GridId},
     helices::{Helix, HelixCollection as _, NuclCollection},
+    nucl::Nucl,
     strands::{Extremity, Strand},
 };
 use ensnano_exports::{ExportResult, ExportType, oxdna::BACKBONE_TO_CM};

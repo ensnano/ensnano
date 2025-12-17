@@ -6,13 +6,13 @@ use crate::{
     view::grid::GridIntersection,
 };
 use ensnano_design::{
-    Nucl,
     bezier_plane::{
         BezierPathId, BezierPlaneId, BezierPlaneIntersection, BezierVertex, BezierVertexId,
         ray_bezier_plane_intersection,
     },
     grid::{GridId, GridObject, GridPosition},
     helices::Axis,
+    nucl::Nucl,
 };
 use ensnano_interactor::selection::ActionMode;
 use ultraviolet::{Vec2, Vec3};

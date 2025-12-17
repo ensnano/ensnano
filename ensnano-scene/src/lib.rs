@@ -13,11 +13,11 @@ use controller::{Consequence, Controller};
 use data::{Data, design3d::SceneDesignReaderExt};
 use element_selector::{ElementSelector, SceneElement};
 use ensnano_design::{
-    Nucl,
     bezier_plane::BezierVertexId,
     consts::ITERATIVE_AXIS_ALGORITHM,
     grid::{GridPosition, HelixGridPosition},
     group_attributes::GroupPivot,
+    nucl::Nucl,
 };
 use ensnano_interactor::{
     DesignOperation, NewBezierTangentVector, WidgetBasis,

@@ -23,7 +23,7 @@ use crate::{data::design::FlatSceneDesignReaderExt, flat_types::FlatNucl};
 use controller::{Consequence, Controller};
 use data::Data;
 use ensnano_consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE};
-use ensnano_design::{Nucl, consts::ITERATIVE_AXIS_ALGORITHM};
+use ensnano_design::{consts::ITERATIVE_AXIS_ALGORITHM, nucl::Nucl};
 use ensnano_interactor::{
     DesignOperation, StrandBuildingStatus,
     application::{AppId, Application, Notification},

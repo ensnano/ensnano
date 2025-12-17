@@ -27,12 +27,12 @@ use ensnano_consts::{
     SPHERE_RADIUS,
 };
 use ensnano_design::{
-    Nucl,
     bezier_plane::BezierVertexId,
     collection::Collection as _,
     curves::{SurfaceInfo, SurfacePoint},
     external_3d_objects::External3DObjectsStamp,
     grid::{GridId, GridObject, GridPosition},
+    nucl::Nucl,
 };
 use ensnano_interactor::{
     ObjectType, Referential,

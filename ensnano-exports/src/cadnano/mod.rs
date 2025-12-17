@@ -4,10 +4,11 @@
 mod parity_graph;
 
 use ensnano_design::{
-    Design, Nucl,
+    Design,
     collection::Collection as _,
     domains::Domain,
     grid::{GridData, GridTypeDescr},
+    nucl::Nucl,
 };
 use serde::Serialize;
 use std::collections::HashMap;

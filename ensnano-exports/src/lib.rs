@@ -5,7 +5,7 @@ pub mod oxdna;
 pub mod pdb;
 
 use cadnano::CadnanoError;
-use ensnano_design::{Design, Nucl};
+use ensnano_design::{Design, nucl::Nucl};
 use pdb::PdbError;
 use std::{collections::HashMap, io::Write as _, path::PathBuf};
 

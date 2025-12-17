@@ -9,6 +9,7 @@ use crate::{
     },
     design_operations::ErrDesignOperation,
     grid::{Edge, Grid, GridAwareTranslation, GridData, GridId, HelixGridPosition},
+    nucl::VirtualNucl,
     parameters::HelixParameters,
     utils::{dvec_to_vec, f32_is_zero, is_false, isize_is_zero, rotor_to_drotor, vec_to_dvec},
 };
@@ -804,20 +805,6 @@ impl Helix {
     }
 }
 
-/// The virtual position of a nucleotide.
-///
-/// Two nucleotides on different helices with the same support helix will be mapped
-/// to the same `VirtualNucl` if they are at the same position on that support helix
-#[derive(Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Hash, Debug, PartialOrd, Ord)]
-pub struct VirtualNucl(pub(crate) Nucl);
-
-impl VirtualNucl {
-    #[must_use]
-    pub fn compl(&self) -> Self {
-        Self(self.0.compl())
-    }
-}
-
 #[derive(Default, Clone)]
 pub struct NuclCollection {
     pub identifier: BTreeMap<Nucl, u32>, //HashMap<Nucl, u32, RandomState>,
@@ -851,21 +838,6 @@ impl NuclCollection {
 
     pub fn insert_virtual(&mut self, virtual_nucl: VirtualNucl, nucl: Nucl) -> Option<Nucl> {
         self.virtual_nucl_map.insert(virtual_nucl, nucl)
-    }
-}
-
-impl Nucl {
-    pub fn map_to_virtual_nucl(nucl: Self, helices: &Helices) -> Option<VirtualNucl> {
-        let h = helices.get(&nucl.helix)?;
-        let support_helix_id = h
-            .support_helix
-            .or(Some(nucl.helix))
-            .filter(|h_id| helices.contains_key(h_id))?;
-        Some(VirtualNucl(Self {
-            helix: support_helix_id,
-            position: nucl.position + h.initial_nt_index,
-            forward: nucl.forward,
-        }))
     }
 }
 

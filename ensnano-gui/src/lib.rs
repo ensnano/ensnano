@@ -16,10 +16,11 @@ use crate::left_panel::{
     tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
 };
 use ensnano_design::{
-    CameraId, Nucl,
+    CameraId,
     bezier_plane::{BezierPathId, BezierVertexId},
     elements::{DesignElement, DesignElementKey, DnaAttribute},
     grid::{GridId, GridTypeDescr},
+    nucl::Nucl,
     parameters::HelixParameters,
 };
 use ensnano_exports::ExportType;

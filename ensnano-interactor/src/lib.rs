@@ -13,7 +13,7 @@ pub mod surfaces;
 pub mod torsion;
 
 use ensnano_design::{
-    CameraId, Nucl,
+    CameraId,
     bezier_plane::{
         BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
     },
@@ -24,6 +24,7 @@ use ensnano_design::{
         hyperboloid::Hyperboloid,
     },
     group_attributes::GroupPivot,
+    nucl::Nucl,
     parameters::HelixParameters,
 };
 use ensnano_organizer::tree::{GroupId, OrganizerTree};

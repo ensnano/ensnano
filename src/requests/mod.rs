@@ -9,9 +9,9 @@ pub(crate) mod poll;
 
 use crate::controller::normal_state::Action;
 use ensnano_design::{
-    Nucl,
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridPosition, GridTypeDescr},
+    nucl::Nucl,
 };
 use ensnano_iced::widgets::keyboard_priority::PriorityRequest;
 use ensnano_interactor::{

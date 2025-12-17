@@ -1,6 +1,6 @@
 use crate::app_state::design_interactor::DesignInteractor;
 use ensnano_design::{
-    AdditionalStructure, Nucl,
+    AdditionalStructure,
     bezier_plane::{
         BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
         InstantiatedPath,
@@ -14,6 +14,7 @@ use ensnano_design::{
     external_3d_objects::External3DObjects,
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
     helices::{Helix, HelixCollection as _},
+    nucl::Nucl,
     parameters::HelixParameters,
 };
 use ensnano_interactor::{

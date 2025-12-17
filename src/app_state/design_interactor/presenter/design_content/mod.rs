@@ -6,13 +6,14 @@ use ensnano_consts::{
     BOND_RADIUS, CLONE_OPACITY, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, SPHERE_RADIUS,
 };
 use ensnano_design::{
-    Design, Nucl,
+    Design,
     domains::Domain,
     drawing_style::{ColorType, DrawingAttribute, DrawingStyle},
     elements::{DesignElement, DesignElementKey},
     grid::{GridData, GridId, GridObject, GridPosition, HelixGridPosition},
     helices::{HelixCollection as _, NuclCollection},
     isometry3_descriptor::Isometry3MissingMethods as _,
+    nucl::Nucl,
     strands::DomainJunction,
 };
 use ensnano_interactor::{

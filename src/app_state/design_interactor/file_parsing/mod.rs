@@ -9,10 +9,11 @@ use crate::{
     controller::LoadDesignError,
 };
 use ensnano_design::{
-    Design, Nucl,
+    Design,
     cadnano::CadnanoDesign,
     codenano::CodenanoDesign,
     ensnano_version,
+    nucl::Nucl,
     scadnano::{ScadnanoDesign, ScadnanoImportError},
 };
 use ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;

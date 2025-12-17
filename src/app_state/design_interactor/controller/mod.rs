@@ -19,7 +19,7 @@ use crate::{
 };
 use clipboard::{Clipboard, CopyOperation, PastePosition, PastedStrand, StrandClipboard};
 use ensnano_design::{
-    CameraId, Design, Nucl, UpToDateDesign,
+    CameraId, Design, UpToDateDesign,
     bezier_plane::{
         BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
         import_from_svg::{SvgImportError, read_first_svg_path},
@@ -45,6 +45,7 @@ use ensnano_design::{
     group_attributes::GroupPivot,
     helices::{Helices, Helix, HelixCollection as _, NuclCollection},
     mutate_in_arc, mutate_one_helix,
+    nucl::Nucl,
     strands::{DomainJunction, Strand, Strands},
 };
 use ensnano_gui::status_bar::ClipboardContent;

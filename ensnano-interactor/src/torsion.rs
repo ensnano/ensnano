@@ -1,4 +1,4 @@
-use ensnano_design::Nucl;
+use ensnano_design::nucl::Nucl;
 
 type Xover = (Nucl, Nucl);
 

@@ -14,7 +14,8 @@ use ensnano_consts::{
     HELIX_BORDER_COLOR,
 };
 use ensnano_design::{
-    Nucl, curves::time_nucl_map::AbscissaConverter as AbscissaConverter_, helices::NuclCollection,
+    curves::time_nucl_map::AbscissaConverter as AbscissaConverter_, helices::NuclCollection,
+    nucl::Nucl,
 };
 use ensnano_utils::{
     chars2d::text_drawer::{Line, Sentence, TextDrawer},

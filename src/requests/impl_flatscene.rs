@@ -3,7 +3,7 @@
 use crate::app_state::design_interactor::controller::clipboard::PastePosition;
 use crate::controller::normal_state::Action;
 use crate::requests::Requests;
-use ensnano_design::Nucl;
+use ensnano_design::nucl::Nucl;
 use ensnano_flatscene::Requests as FlatSceneRequests;
 use ensnano_interactor::{
     DesignOperation, application::AppId, operation::Operation, selection::Selection,

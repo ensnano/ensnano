@@ -1,4 +1,4 @@
-use crate::Nucl;
+use crate::nucl::Nucl;
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 

@@ -8,10 +8,11 @@ use crate::app_state::design_interactor::{
 };
 use crate::controller::channel_reader::ChannelReader;
 use ensnano_design::{
-    Design, Nucl,
+    Design,
     collection::Collection as _,
     grid::{GridId, grid_collection::FreeGridId},
     helices::{Helix, HelixCollection as _, NuclCollection},
+    nucl::Nucl,
     parameters::HelixParameters,
 };
 use ensnano_interactor::RigidBodyConstants;

@@ -7,7 +7,7 @@ use crate::{
     rand_base_from_symbol,
 };
 use ahash::AHashMap;
-use ensnano_design::{Design, Nucl, domains::Domain, helices::HelixCollection as _};
+use ensnano_design::{Design, domains::Domain, helices::HelixCollection as _, nucl::Nucl};
 use itertools::Itertools as _;
 use std::{
     borrow::Cow,

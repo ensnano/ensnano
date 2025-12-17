@@ -1,7 +1,7 @@
 use crate::{
-    Nucl,
     domains::{Domain, helix_interval::HelixInterval, sanitize_domains},
-    helices::{Helices, VirtualNucl},
+    helices::Helices,
+    nucl::{Nucl, VirtualNucl},
     utils::is_false,
 };
 use serde::{Deserialize, Serialize};

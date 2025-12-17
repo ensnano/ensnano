@@ -2,9 +2,9 @@ pub mod helix_interval;
 
 use self::helix_interval::HelixInterval;
 use crate::{
-    Nucl,
-    helices::{Helices, HelixCollection as _, VirtualNucl},
+    helices::{Helices, HelixCollection as _},
     insertions::InstantiatedInsertion,
+    nucl::{Nucl, VirtualNucl},
 };
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, sync::Arc};

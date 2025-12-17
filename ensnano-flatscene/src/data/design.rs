@@ -8,9 +8,9 @@ use ensnano_consts::{
     CANDIDATE_COLOR, CANDIDATE_STRAND_HIGHLIGHT_FACTOR_2D, SELECTED_STRAND_HIGHLIGHT_FACTOR_2D,
 };
 use ensnano_design::{
-    Nucl,
     curves::time_nucl_map::AbscissaConverter,
     helices::{Helices, Helix, HelixCollection as _, NuclCollection},
+    nucl::Nucl,
     strands::Extremity,
 };
 use ensnano_interactor::{Referential, torsion::Torsion};

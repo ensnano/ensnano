@@ -15,7 +15,7 @@ use crate::{
 use ahash::RandomState;
 use background::Background;
 use ensnano_consts::{CANDIDATE_COLOR, PRINTABLE_CHARS, SAMPLE_COUNT, SELECTED_COLOR};
-use ensnano_design::{Nucl, helices::NuclCollection};
+use ensnano_design::{helices::NuclCollection, nucl::Nucl};
 use ensnano_interactor::graphics::{DrawArea, PhySize};
 use ensnano_utils::{
     Ndc,

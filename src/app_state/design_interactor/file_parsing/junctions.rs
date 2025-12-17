@@ -1,6 +1,6 @@
 use ensnano_design::{
-    Nucl,
     domains::{Domain, helix_interval::HelixInterval, sanitize_domains},
+    nucl::Nucl,
     strands::{DomainJunction, Strand},
 };
 use ensnano_utils::id_generator::IdGenerator;

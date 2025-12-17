@@ -17,9 +17,9 @@ use crate::{
     view::handle_drawer::{HandleColors, HandleDir},
 };
 use ensnano_design::{
-    Nucl,
     bezier_plane::{BezierPathId, BezierPlaneId, BezierVertexId},
     grid::{GridId, GridObject},
+    nucl::Nucl,
 };
 use std::borrow::Cow;
 use ultraviolet::Vec2;

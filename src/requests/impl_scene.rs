@@ -3,7 +3,7 @@
 use crate::app_state::design_interactor::controller::clipboard::PastePosition;
 use crate::controller::normal_state::Action;
 use crate::requests::Requests;
-use ensnano_design::{Nucl, grid::GridPosition, group_attributes::GroupPivot};
+use ensnano_design::{grid::GridPosition, group_attributes::GroupPivot, nucl::Nucl};
 use ensnano_interactor::{
     DesignOperation,
     application::AppId,

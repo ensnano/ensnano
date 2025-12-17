@@ -26,7 +26,7 @@ use ensnano_consts::{
     SURFACE_PIVOT_SPHERE_COLOR, UNCHECKED_XOVER_COLOR, basis_color,
 };
 use ensnano_design::{
-    AdditionalStructure, Nucl,
+    AdditionalStructure,
     bezier_plane::{
         BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, InstantiatedPath,
     },
@@ -37,6 +37,7 @@ use ensnano_design::{
     },
     external_3d_objects::External3DObjects,
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
+    nucl::Nucl,
     parameters::HelixParameters,
 };
 use ensnano_interactor::{

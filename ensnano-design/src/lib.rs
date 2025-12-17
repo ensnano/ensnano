@@ -22,12 +22,13 @@ pub mod helices;
 mod insertions;
 pub mod isometry3_descriptor;
 mod material_colors;
+pub mod nucl;
 pub mod parameters;
 pub mod scadnano;
 pub mod strands;
 pub mod utils;
 
-use crate::{
+use self::{
     bezier_plane::{BezierPathData, BezierPaths, BezierPlanes},
     curves::CurveCache,
     domains::Domain,
@@ -35,6 +36,7 @@ use crate::{
     grid::grid_collection::FreeGrids,
     helices::{Helices, Helix, HelixCollection as _},
     isometry3_descriptor::Isometry3Descriptor,
+    nucl::Nucl,
     parameters::HelixParameters,
     strands::Strands,
 };
@@ -615,101 +617,4 @@ where
         .map(|h| mutate_in_arc(h, mutation))?;
     design.helices = Helices(Arc::new(new_helices_map));
     Some(())
-}
-
-#[derive(Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Hash, Debug)]
-pub struct Nucl {
-    pub helix: usize,
-    pub position: isize,
-    pub forward: bool,
-}
-
-impl PartialOrd for Nucl {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for Nucl {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        if self.helix != other.helix {
-            self.helix.cmp(&other.helix)
-        } else if self.forward != other.forward {
-            self.forward.cmp(&other.forward)
-        } else if self.forward {
-            self.position.cmp(&other.position)
-        } else {
-            self.position.cmp(&other.position).reverse()
-        }
-    }
-}
-
-impl Nucl {
-    pub fn new(helix: usize, position: isize, forward: bool) -> Self {
-        Self {
-            helix,
-            position,
-            forward,
-        }
-    }
-
-    #[must_use]
-    pub fn left(&self) -> Self {
-        Self {
-            position: self.position - 1,
-            ..*self
-        }
-    }
-
-    #[must_use]
-    pub fn right(&self) -> Self {
-        Self {
-            position: self.position + 1,
-            ..*self
-        }
-    }
-
-    #[must_use]
-    pub fn prime3(&self) -> Self {
-        Self {
-            position: if self.forward {
-                self.position + 1
-            } else {
-                self.position - 1
-            },
-            ..*self
-        }
-    }
-
-    #[must_use]
-    pub fn prime5(&self) -> Self {
-        Self {
-            position: if self.forward {
-                self.position - 1
-            } else {
-                self.position + 1
-            },
-            ..*self
-        }
-    }
-
-    #[must_use]
-    pub fn compl(&self) -> Self {
-        Self {
-            forward: !self.forward,
-            ..*self
-        }
-    }
-
-    pub fn is_neighbor(&self, other: &Self) -> bool {
-        self.helix == other.helix
-            && self.forward == other.forward
-            && (self.position - other.position).abs() == 1
-    }
-}
-
-impl std::fmt::Display for Nucl {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "({}, {}, {})", self.helix, self.position, self.forward)
-    }
 }

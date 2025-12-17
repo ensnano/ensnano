@@ -1,10 +1,10 @@
 use crate::app_state::design_interactor::DesignInteractor;
 use ahash::RandomState;
 use ensnano_design::{
-    Nucl,
     curves::time_nucl_map::AbscissaConverter,
     domains::{Domain, helix_interval::HelixInterval},
     helices::{Helices, HelixCollection as _, NuclCollection},
+    nucl::Nucl,
     strands::{Extremity, Strand},
 };
 use ensnano_flatscene::data::design::FlatSceneDesignReaderExt;

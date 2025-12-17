@@ -405,8 +405,8 @@ mod tests {
         transitions::OkOperation as TopOkOperation,
     };
     use ensnano_design::{
-        Nucl,
         grid::{GridDescriptor, GridId, GridTypeDescr, HelixGridPosition},
+        nucl::Nucl,
         strands::{DomainJunction, Strand},
     };
     use ensnano_interactor::{
