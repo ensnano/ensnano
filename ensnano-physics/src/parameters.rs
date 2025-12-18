@@ -1,3 +1,7 @@
+//! This module defines the simulation parameters. This is exported
+//! so that the interface part of the program can directly construct
+//! the relevant data types.
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct RapierParameters {
     pub is_simulation_running: bool,
