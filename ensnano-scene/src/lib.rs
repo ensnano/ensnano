@@ -85,7 +85,7 @@ mod sausage_rosary;
 
 const PNG_SIZE: u32 = 8192;
 pub const CAMERA_LENS_FOCAL: f32 = 50f32; // in mm based on 24x36mm camera used to compute Fielf of View Y (fovy) for the camera in veiw.rs
-// pub const PROJECTION_FOVY: f32 = (CAMERA_FOCAL/2f32).atan() * 2f32; // previous default was 70f32.to_radians() in view.rs
+                                          // pub const PROJECTION_FOVY: f32 = (CAMERA_FOCAL/2f32).atan() * 2f32; // previous default was 70f32.to_radians() in view.rs
 
 /// A structure responsible of the 3D display of the designs
 pub struct Scene<S: AppState> {

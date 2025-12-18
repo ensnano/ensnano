@@ -16,6 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+pub const ALLOW_SAME_HELIX_CROSSOVERS: bool = true;
+
 use super::{NuclCollection, SimulationUpdate};
 use crate::app_state::AddressPointer;
 use ensnano_design::{
@@ -3215,7 +3217,7 @@ impl Controller {
                 // different
                 let target_3prime = b;
                 // NS: allow xover within the same helix
-                // if source_nucl.helix != target_nucl.helix {
+                if ALLOW_SAME_HELIX_CROSSOVERS || source_nucl.helix != target_nucl.helix {
                     Self::cross_cut(
                         strands,
                         source_id,
@@ -3224,15 +3226,13 @@ impl Controller {
                         target_3prime,
                         &mut self.color_idx,
                     )?
-                // } else {
-                //     println!("NS: Same helix 1");
-                // }
+                }
             }
             (None, Some(b)) => {
                 // We can cut cross directly but we need to reverse the xover
                 let target_3prime = b;
                 // NS: allow xover within the same helix
-                // if source_nucl.helix != target_nucl.helix {
+                if ALLOW_SAME_HELIX_CROSSOVERS || source_nucl.helix != target_nucl.helix {
                     Self::cross_cut(
                         strands,
                         target_id,
@@ -3241,13 +3241,11 @@ impl Controller {
                         target_3prime,
                         &mut self.color_idx,
                     )?
-                // } else {
-                //     println!("NS: Same helix 2");
-                // }
+                }
             }
             (None, None) => {
                 // NS: allow xover within the same helix
-                // if source_nucl.helix != target_nucl.helix {
+                if ALLOW_SAME_HELIX_CROSSOVERS || source_nucl.helix != target_nucl.helix {
                     if source_id != target_id {
                         Self::split_strand(strands, &source_nucl, None, &mut self.color_idx)?;
                         Self::cross_cut(
@@ -3317,9 +3315,7 @@ impl Controller {
                             )?;
                         }
                     }
-                // } else {
-                //     println!("NS: Same helix 3");
-                // }
+                }
             }
         }
         Ok(())
