@@ -1,3 +1,7 @@
+//! This module reads the ENSnano design and extracts information for the
+//! simulation. This mostly involves reconstructing the helices, and what
+//! portion of them are fully double helices or made of free nucleotides.
+
 use ahash::HashMap;
 use ensnano_design::{Nucl, elements::DesignElement};
 use std::ops::Range;
@@ -108,6 +112,7 @@ pub(crate) fn compute_cyclic_helices(elements: &Vec<DesignElement>) -> Vec<usize
     result
 }
 
+/// Creates the helices from the DesignElements.
 pub(crate) fn build_helices(
     elements: &Vec<DesignElement>,
     nucleotide: &HashMap<u32, Nucl>,

@@ -1,3 +1,5 @@
+//! This module defines the repulsion force which is an important part of the simulation.
+
 use crate::simulation::RapierPhysicsSystem;
 use rapier3d::{
     parry::query::DefaultQueryDispatcher,

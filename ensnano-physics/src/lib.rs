@@ -2,11 +2,10 @@
 //! done through the rapier3d crate.
 
 mod anchors;
-mod full_simulation;
 mod helices;
-// mod import;
 pub mod parameters;
 mod repulsion;
+mod setup;
 pub mod simulation;
 
 use rapier3d::{
@@ -15,7 +14,7 @@ use rapier3d::{
 };
 use ultraviolet::Vec3;
 
-/// Conversion method
+/// Conversion method used inside this crate.
 pub(crate) fn vec_to_vector(v: Vec3) -> OVector<f32, Const<3>> {
     vector![v.x, v.y, v.z]
 }
