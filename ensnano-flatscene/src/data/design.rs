@@ -2,6 +2,7 @@ use crate::{
     Requests,
     data::strand::Strand,
     flat_types::{Flat, FlatHelix, FlatHelixMaps, FlatIdx, FlatNucl, HelixSegment, HelixVec},
+    full_isometry::FullIsometry,
 };
 use ahash::RandomState;
 use ensnano_consts::{
@@ -14,7 +15,6 @@ use ensnano_design::{
     strands::Extremity,
 };
 use ensnano_interactor::{Referential, torsion::Torsion};
-use ensnano_utils::full_isometry::FullIsometry;
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap},
     sync::{Arc, Mutex},

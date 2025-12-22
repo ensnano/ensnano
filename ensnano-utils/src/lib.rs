@@ -1,6 +1,5 @@
 pub mod bindgroup_manager;
 pub mod colors;
-pub mod full_isometry;
 pub mod id_generator;
 pub mod instance;
 pub mod obj_loader;

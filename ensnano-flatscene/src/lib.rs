@@ -20,6 +20,7 @@ mod circles2d;
 mod controller;
 pub mod data;
 mod flat_types;
+mod full_isometry;
 mod view;
 
 use self::{
