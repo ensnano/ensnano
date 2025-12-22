@@ -387,7 +387,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             build_helix_mode,
         ];
 
-        let action_mode_buttons: Vec<Element<'_, _, _, _>> = action_modes_to_display
+        let action_mode_buttons: Vec<Element<'_, _>> = action_modes_to_display
             .iter()
             .map(|mode| {
                 tooltip(
@@ -413,7 +413,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             SelectionMode::Nucleotide,
         ];
 
-        let selection_mode_buttons: Vec<Element<'_, _, _, _>> = SelectionMode::ALL
+        let selection_mode_buttons: Vec<Element<'_, _>> = SelectionMode::ALL
             .iter()
             .filter(|mode| selection_modes_to_display.contains(mode))
             .map(|mode| {

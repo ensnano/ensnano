@@ -248,7 +248,7 @@ impl CameraShortcutPanel {
 
         // Create button widget for each predefined target.
 
-        let rotate_buttons: Column<Message<State>, _, _> = self::column![
+        let rotate_buttons: Column<Message<State>> = self::column![
             row(IntoIterator::into_iter([4, 2, 5]).map(|i| {
                 rotation_icon_button(i, ui_size)
                     .on_press(rotation_message(i, self.xz, self.yz, self.xy))
