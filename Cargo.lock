@@ -1185,7 +1185,6 @@ dependencies = [
  "ensnano_interactor",
  "ensnano_organizer",
  "ensnano_physics",
- "ensnano_utils",
  "iced",
  "iced_aw",
  "iced_graphics",
@@ -1204,10 +1203,12 @@ dependencies = [
 name = "ensnano_interactor"
 version = "0.7.0"
 dependencies = [
+ "bytemuck",
  "chrono",
  "ensnano_consts",
  "ensnano_design",
  "ensnano_organizer",
+ "fontdue",
  "log",
  "num",
  "rayon",
@@ -1273,7 +1274,6 @@ dependencies = [
  "color_space",
  "ensnano_consts",
  "ensnano_interactor",
- "fontdue",
  "gltf",
  "log",
  "nom_stl",

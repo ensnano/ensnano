@@ -4,14 +4,11 @@ pub mod full_isometry;
 pub mod id_generator;
 pub mod instance;
 pub mod obj_loader;
-pub mod text;
 pub mod texture;
 
 use serde::{Deserialize, Serialize};
 use wgpu::util::{BufferInitDescriptor, DeviceExt as _};
 use winit::dpi::{PhysicalPosition, PhysicalSize, Pixel};
-
-pub const TEXTURE_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8UnormSrgb;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct StrandNucleotidesPositions {

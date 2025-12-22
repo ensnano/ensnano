@@ -1,5 +1,6 @@
 use ensnano_consts::SAMPLE_COUNT;
-use ensnano_utils::{TEXTURE_FORMAT, texture::Texture};
+use ensnano_interactor::TEXTURE_FORMAT;
+use ensnano_utils::texture::Texture;
 use lyon::{
     math::point,
     path::Path,

@@ -11,6 +11,7 @@ pub mod operation;
 pub mod selection;
 pub mod strand_builder;
 pub mod surfaces;
+pub mod text;
 pub mod torsion;
 pub mod ui_size;
 
@@ -34,6 +35,8 @@ use selection::Selection;
 use std::path::PathBuf;
 use surfaces::RevolutionSimulationParameters;
 use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
+
+pub const TEXTURE_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8UnormSrgb;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum ObjectType {

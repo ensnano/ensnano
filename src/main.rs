@@ -107,7 +107,7 @@ use ensnano_gui::{
 };
 use ensnano_interactor::{
     DesignOperation, DesignRotation, DesignTranslation, IsometryTarget, PastingStatus,
-    RigidBodyConstants,
+    RigidBodyConstants, TEXTURE_FORMAT,
     app_state_parameters::{
         AppStateParameters, check_xovers_parameter::CheckXoversParameter,
         suggestion_parameters::SuggestionParameters,
@@ -127,7 +127,6 @@ use ensnano_interactor::{
 use ensnano_organizer::{keyboard_priority::KeyboardPriorityId, tree::GroupId};
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_scene::{AppState as _, Scene, SceneKind, data::design3d::SceneDesignReaderExt as _};
-use ensnano_utils::TEXTURE_FORMAT;
 use iced::{
     advanced::{clipboard, renderer},
     mouse::Cursor,

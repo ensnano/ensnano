@@ -34,7 +34,7 @@ use ensnano_design::{
 use ensnano_exports::ExportType;
 use ensnano_interactor::{
     HyperboloidRequest, InsertionPoint, PastingStatus, RollRequest, ScaffoldInfo, SimulationState,
-    StrandBuildingStatus, WidgetBasis,
+    StrandBuildingStatus, TEXTURE_FORMAT, WidgetBasis,
     app_state_parameters::{
         AppStateParameters, check_xovers_parameter::CheckXoversParameter,
         suggestion_parameters::SuggestionParameters,
@@ -54,7 +54,6 @@ use ensnano_organizer::{
     tree::{GroupId, OrganizerTree},
 };
 use ensnano_physics::parameters::RapierParameters;
-use ensnano_utils::TEXTURE_FORMAT;
 use iced::{
     Size,
     advanced::{clipboard, mouse, renderer},

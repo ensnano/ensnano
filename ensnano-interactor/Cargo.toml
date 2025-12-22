@@ -13,7 +13,9 @@ ensnano_consts.workspace = true
 ensnano_design.workspace = true
 ensnano_organizer.workspace = true
 
+bytemuck.workspace = true
 chrono.workspace = true
+fontdue.workspace = true
 log.workspace = true
 num.workspace = true
 rayon.workspace = true
