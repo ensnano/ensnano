@@ -17,66 +17,63 @@ use iced::{
 };
 use ultraviolet::Vec3;
 
-/// A named camera orientation.
+/// A named camera.
 ///
 /// Orientation is defined by the direction pointed by the camera lens, and the direction pointed
 /// by the top of the camera (representing the top of the screen view).
-#[derive(Clone)]
-struct NamedCameraPosition {
-    name: &'static str,
-    // Direction pointed the camera lens.
-    direction: Vec3,
-    // Direction pointed the top of the camera.
-    up: Vec3,
+#[derive(Debug, Clone, Copy)]
+enum NamedCamera {
+    Front,
+    Back,
+    Left,
+    Right,
+    Top,
+    Bottom,
 }
 
-impl NamedCameraPosition {
-    /// Generate a message to set camera to desired position.
-    fn message<State: AppState>(&self) -> Message<State> {
-        Message::FixPoint(self.direction, self.up)
+impl NamedCamera {
+    fn name(self) -> &'static str {
+        match self {
+            Self::Left => "Left",
+            Self::Right => "Right",
+            Self::Top => "Top",
+            Self::Back => "Back",
+            Self::Front => "Front",
+            Self::Bottom => "Bottom",
+        }
     }
 
-    /// Turn a NamedCameraPosition into a button.
-    fn button<State: AppState>(&self, ui_size: UiSize) -> iced::Element<'_, Message<State>> {
-        fixed_text_button(self.name, 2.0, ui_size)
+    fn direction(self) -> Vec3 {
+        match self {
+            Self::Left => Vec3::new(-1., 0., 0.),
+            Self::Right => Vec3::new(1., 0., 0.),
+            Self::Top => Vec3::new(0., 1., 0.),
+            Self::Back => Vec3::new(0., 0., 1.),
+            Self::Front => Vec3::new(0., 0., -1.),
+            Self::Bottom => Vec3::new(0., -1., 0.),
+        }
+    }
+
+    fn up(self) -> Vec3 {
+        match self {
+            Self::Top => Vec3::new(0., 0., 1.),
+            Self::Bottom => Vec3::new(0., 0., -1.),
+            Self::Left | Self::Right | Self::Back | Self::Front => Vec3::new(0., 1., 0.),
+        }
+    }
+
+    /// Generate a message to set camera to desired position.
+    fn message<State: AppState>(self) -> Message<State> {
+        Message::FixPoint(self.direction(), self.up())
+    }
+
+    /// Turn a [`NamedCamera`] into a button.
+    fn button<'a, State: AppState>(self, ui_size: UiSize) -> iced::Element<'a, Message<State>> {
+        fixed_text_button(self.name(), 2.0, ui_size)
             .on_press(self.message())
             .into()
     }
 }
-
-/// Six predefined positions.
-const PREDEFINED_CAMERA_ORIENTATION: [NamedCameraPosition; 6] = [
-    NamedCameraPosition {
-        name: "Left",
-        direction: Vec3::new(-1., 0., 0.),
-        up: Vec3::new(0., 1., 0.),
-    },
-    NamedCameraPosition {
-        name: "Right",
-        direction: Vec3::new(1., 0., 0.),
-        up: Vec3::new(0., 1., 0.),
-    },
-    NamedCameraPosition {
-        name: "Top",
-        direction: Vec3::new(0., 1., 0.),
-        up: Vec3::new(0., 0., 1.),
-    },
-    NamedCameraPosition {
-        name: "Back",
-        direction: Vec3::new(0., 0., 1.),
-        up: Vec3::new(0., 1., 0.),
-    },
-    NamedCameraPosition {
-        name: "Front",
-        direction: Vec3::new(0., 0., -1.),
-        up: Vec3::new(0., 1., 0.),
-    },
-    NamedCameraPosition {
-        name: "Bottom",
-        direction: Vec3::new(0., -1., 0.),
-        up: Vec3::new(0., 0., -1.),
-    },
-];
 
 #[derive(Debug, Clone, Copy)]
 enum Rotation {
@@ -89,19 +86,22 @@ enum Rotation {
 }
 
 impl Rotation {
-    /// Generate the message that request rotation.
-    fn message<State: AppState>(&self) -> Message<State> {
+    fn angles(self) -> (f32, f32, f32) {
         const ROTATION_AMOUNT: f32 = PI / 12.;
-        let (angle_x, angle_y, angle_z) = match self {
+        match self {
             Self::PositiveX => (ROTATION_AMOUNT, 0., 0.),
             Self::NegativeX => (-ROTATION_AMOUNT, 0., 0.),
             Self::PositiveY => (0., ROTATION_AMOUNT, 0.),
             Self::NegativeY => (0., -ROTATION_AMOUNT, 0.),
             Self::PositiveZ => (0., 0., ROTATION_AMOUNT),
             Self::NegativeZ => (0., 0., -ROTATION_AMOUNT),
-        };
-        // TODO: x, y, z
-        Message::RotateCam(angle_y, angle_x, angle_z)
+        }
+    }
+
+    /// Generate the message that request rotation.
+    fn message<State: AppState>(&self) -> Message<State> {
+        let (angle_x, angle_y, angle_z) = self.angles();
+        Message::RotateCam(angle_y, angle_x, angle_z) // TODO: x, y, z    
     }
 
     fn button<'a, State: AppState>(self, ui_size: UiSize) -> iced::Element<'a, Message<State>> {
@@ -258,6 +258,11 @@ impl CameraShortcutPanel {
     }
 
     pub fn view<State: AppState>(&self, ui_size: UiSize) -> iced::Element<'_, Message<State>> {
+        const NAMED_CAMERA_GRID: [[NamedCamera; 3]; 2] = [
+            [NamedCamera::Left, NamedCamera::Top, NamedCamera::Front],
+            [NamedCamera::Right, NamedCamera::Bottom, NamedCamera::Back],
+        ];
+
         const ROTATION_GRID: [[Rotation; 3]; 2] = [
             [
                 Rotation::NegativeZ,
@@ -281,23 +286,11 @@ impl CameraShortcutPanel {
                         .height(ui_size.button())
                         .horizontal_alignment(Horizontal::Center),
                     extra_jump(),
-                    row![
-                        column![
-                            PREDEFINED_CAMERA_ORIENTATION[0].button(ui_size),
-                            PREDEFINED_CAMERA_ORIENTATION[1].button(ui_size),
-                        ]
-                        .spacing(ui_size.button_spacing()),
-                        column![
-                            PREDEFINED_CAMERA_ORIENTATION[2].button(ui_size),
-                            PREDEFINED_CAMERA_ORIENTATION[3].button(ui_size),
-                        ]
-                        .spacing(ui_size.button_spacing()),
-                        column![
-                            PREDEFINED_CAMERA_ORIENTATION[4].button(ui_size),
-                            PREDEFINED_CAMERA_ORIENTATION[5].button(ui_size),
-                        ]
-                        .spacing(ui_size.button_spacing()),
-                    ]
+                    column(NAMED_CAMERA_GRID.iter().map(|camera_row| {
+                        row(camera_row.iter().map(|cam| cam.button(ui_size)))
+                            .spacing(ui_size.button_spacing())
+                            .into()
+                    }))
                     .spacing(ui_size.button_spacing()),
                 ]
                 .align_items(Alignment::Center),
