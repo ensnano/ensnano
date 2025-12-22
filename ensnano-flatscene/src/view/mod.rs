@@ -14,6 +14,7 @@ use crate::{
         strand::{FreeEnd, Strand, StrandVertex},
     },
     flat_types::{FlatIdx, FlatNucl, FlatSelection},
+    ndc::Ndc,
 };
 use ahash::RandomState;
 use background::Background;
@@ -24,7 +25,6 @@ use ensnano_interactor::{
     graphics::{DrawArea, PhySize},
     texture::Texture,
 };
-use ensnano_utils::Ndc;
 use helix_view::{HelixView, StrandView};
 use insertion::InsertionDrawer;
 use rectangle::Rectangle;

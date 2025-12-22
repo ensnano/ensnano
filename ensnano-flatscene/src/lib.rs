@@ -21,6 +21,7 @@ mod controller;
 pub mod data;
 mod flat_types;
 mod full_isometry;
+mod ndc;
 mod view;
 
 use self::{

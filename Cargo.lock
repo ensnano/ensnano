@@ -1277,7 +1277,6 @@ dependencies = [
  "ensnano_consts",
  "rand 0.8.5",
  "ultraviolet",
- "winit",
 ]
 
 [[package]]
