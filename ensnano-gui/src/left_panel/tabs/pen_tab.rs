@@ -1,14 +1,12 @@
 use crate::{
     AppState,
+    fonts::material_icons::{MaterialIcon, MaterialIconStyle, icon_to_char},
+    helpers::{extra_jump, icon_button, material_icon_button, section},
     left_panel::{Message, tabs::GuiTab},
 };
 use ensnano_consts::{ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID};
 use ensnano_design::grid::GridTypeDescr;
-use ensnano_iced::{
-    fonts::material_icons::{MaterialIcon, MaterialIconStyle, icon_to_char},
-    helpers::{extra_jump, icon_button, material_icon_button, section},
-    ui_size::UiSize,
-};
+use ensnano_iced::ui_size::UiSize;
 use iced::widget::{checkbox, column, row, text};
 use iced_aw::TabLabel;
 use std::marker::PhantomData;

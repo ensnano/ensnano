@@ -6,6 +6,7 @@ pub mod tabs;
 
 use crate::{
     AppState, OverlayType, Requests,
+    fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
     left_panel::tabs::{
         camera_tab::FogChoices,
         revolution_tab::{CurveDescriptorBuilder, RevolutionParameterId},
@@ -26,10 +27,7 @@ use ensnano_design::{
 };
 use ensnano_exports::ExportType;
 use ensnano_iced::{
-    color_picker::ColorPickerMessage,
-    fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
-    theme::GuiBackground,
-    ui_size::UiSize,
+    color_picker::ColorPickerMessage, theme::GuiBackground, ui_size::UiSize,
     widgets::keyboard_priority::PriorityRequest,
 };
 use ensnano_interactor::{

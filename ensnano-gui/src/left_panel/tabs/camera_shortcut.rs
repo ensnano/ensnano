@@ -1,13 +1,13 @@
-use crate::{AppState, CameraId, left_panel::Message};
-use ensnano_iced::{
+use crate::{
+    AppState, CameraId,
     fonts::material_icons::{MaterialIcon, MaterialIconStyle},
     helpers::{
         extra_jump, fixed_text_button, material_icon, material_icon_button, rotation_icon_button,
         section, subsection,
     },
-    ui_size::UiSize,
-    widgets::keyboard_priority::keyboard_priority,
+    left_panel::Message,
 };
+use ensnano_iced::{ui_size::UiSize, widgets::keyboard_priority::keyboard_priority};
 use iced::{
     Alignment, Command, Length,
     alignment::Horizontal,

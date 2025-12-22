@@ -1,5 +1,7 @@
 use crate::{
     AppState,
+    fonts::material_icons::{MaterialIcon, icon_to_char},
+    helpers::{extra_jump, jump_by, right_checkbox, section, subsection},
     left_panel::{
         Message, ScrollSensitivity,
         discrete_value::{FactoryId, RequestFactory, ValueId},
@@ -7,11 +9,7 @@ use crate::{
     },
 };
 use ensnano_design::{ensnano_version, parameters::NAMED_DNA_PARAMETERS};
-use ensnano_iced::{
-    fonts::material_icons::{MaterialIcon, icon_to_char},
-    helpers::{extra_jump, jump_by, right_checkbox, section, subsection},
-    ui_size::{ALL_UI_SIZES, UiSize},
-};
+use ensnano_iced::ui_size::{ALL_UI_SIZES, UiSize};
 use iced::widget::{column, pick_list, scrollable, text};
 use iced_aw::TabLabel;
 use std::marker::PhantomData;

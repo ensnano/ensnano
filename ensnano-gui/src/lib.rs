@@ -6,14 +6,19 @@
 //! [Request](Requests) data structure.
 
 mod consts;
+pub mod fonts;
+mod helpers;
 mod icon;
 pub mod left_panel;
 pub mod status_bar;
 pub mod top_bar;
 
-use crate::left_panel::{
-    LeftPanel, RigidBodyParametersRequest,
-    tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
+use crate::{
+    fonts::{INTER_REGULAR_FONT, load_fonts},
+    left_panel::{
+        LeftPanel, RigidBodyParametersRequest,
+        tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
+    },
 };
 use ensnano_design::{
     CameraId,
@@ -24,11 +29,7 @@ use ensnano_design::{
     parameters::HelixParameters,
 };
 use ensnano_exports::ExportType;
-use ensnano_iced::{
-    fonts::{INTER_REGULAR_FONT, load_fonts},
-    ui_size::UiSize,
-    widgets::keyboard_priority::PriorityRequest,
-};
+use ensnano_iced::{ui_size::UiSize, widgets::keyboard_priority::PriorityRequest};
 use ensnano_interactor::{
     HyperboloidRequest, InsertionPoint, PastingStatus, RollRequest, ScaffoldInfo, SimulationState,
     StrandBuildingStatus, WidgetBasis,

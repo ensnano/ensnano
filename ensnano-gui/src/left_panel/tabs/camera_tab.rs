@@ -1,13 +1,10 @@
 use crate::{
     AppState,
-    left_panel::{Message, tabs::GuiTab},
-};
-use ensnano_iced::{
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, right_checkbox, section, subsection, text_button},
-    theme,
-    ui_size::UiSize,
+    left_panel::{Message, tabs::GuiTab},
 };
+use ensnano_iced::{theme, ui_size::UiSize};
 use ensnano_interactor::{
     app_state_parameters::{AppStateParameters, check_xovers_parameter::CheckXoversParameter},
     graphics::{

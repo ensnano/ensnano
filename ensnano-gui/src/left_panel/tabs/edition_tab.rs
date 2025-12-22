@@ -1,5 +1,7 @@
 use crate::{
     AppState,
+    fonts::material_icons::{MaterialIcon, icon_to_char},
+    helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
     left_panel::{
         HelixRoll, Message, color_to_u32,
         discrete_value::{FactoryId, RequestFactory, ValueId},
@@ -9,8 +11,6 @@ use crate::{
 use ensnano_design::elements::DesignElementKey;
 use ensnano_iced::{
     color_picker::{ColorPicker, ColorPickerMessage},
-    fonts::material_icons::{MaterialIcon, icon_to_char},
-    helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
     ui_size::UiSize,
 };
 use ensnano_interactor::{RollRequest, selection::extract_strands_from_selection};

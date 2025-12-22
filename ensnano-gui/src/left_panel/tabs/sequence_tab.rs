@@ -1,15 +1,11 @@
 use crate::{
     AppState,
+    helpers::{extra_jump, right_checkbox, section, text_button},
     left_panel::{Message, tabs::GuiTab},
 };
 use ensnano_consts::ICON_ATGC;
 use ensnano_design::elements::DesignElementKey;
-use ensnano_iced::{
-    helpers::{extra_jump, right_checkbox, section, text_button},
-    theme,
-    ui_size::UiSize,
-    widgets::keyboard_priority::keyboard_priority,
-};
+use ensnano_iced::{theme, ui_size::UiSize, widgets::keyboard_priority::keyboard_priority};
 use ensnano_interactor::StandardSequence;
 use iced::{
     Length,

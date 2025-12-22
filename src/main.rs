@@ -100,9 +100,11 @@ use ensnano_design::{
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_flatscene::FlatScene;
 use ensnano_gui::{
-    AppState as _, Gui, IcedMessages, OverlayType, TopBarState, left_panel::ColorOverlay,
+    AppState as _, Gui, IcedMessages, OverlayType, TopBarState,
+    fonts::{INTER_REGULAR_FONT, load_fonts},
+    left_panel::ColorOverlay,
 };
-use ensnano_iced::{fonts, theme, ui_size::UiSize, widgets::keyboard_priority::KeyboardPriorityId};
+use ensnano_iced::{theme, ui_size::UiSize, widgets::keyboard_priority::KeyboardPriorityId};
 use ensnano_interactor::{
     DesignOperation, DesignRotation, DesignTranslation, IsometryTarget, PastingStatus,
     RigidBodyConstants,
@@ -314,7 +316,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let settings = Settings {
         antialiasing: Some(Antialiasing::MSAAx4),
         default_text_size: parameters.ui_size.main_text().into(),
-        default_font: fonts::INTER_REGULAR_FONT,
+        default_font: INTER_REGULAR_FONT,
         ..Default::default()
     };
     // Initialize the renderer
@@ -323,7 +325,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         settings.default_font,
         settings.default_text_size,
     ));
-    fonts::load_fonts(&mut overlay_renderer);
+    load_fonts(&mut overlay_renderer);
     let device = Rc::new(device);
     let queue = Rc::new(queue);
     let mut resized = false;

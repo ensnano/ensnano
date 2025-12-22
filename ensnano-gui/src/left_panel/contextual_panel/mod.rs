@@ -1,17 +1,16 @@
 pub(super) mod value_constructor;
 
-use crate::{AppState, GuiDesignReaderExt, Requests, left_panel::Message};
+use crate::{
+    AppState, GuiDesignReaderExt, Requests,
+    helpers::{extra_jump, right_checkbox, section, subsection, text_button},
+    left_panel::Message,
+};
 use ensnano_consts::{
     ALT, BACKSPACE_CHAR, CTRL, HELIX_CHAR, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_UP, L_CLICK, M_CLICK,
     MOVE_CHAR, NUCL_CHAR, R_CLICK, ROT_CHAR, SELECT_CHAR, SHIFT, STRAND_CHAR, SUPPR_CHAR,
 };
 use ensnano_design::{bezier_plane::BezierVertexId, grid::GridId};
-use ensnano_iced::{
-    helpers::{extra_jump, right_checkbox, section, subsection, text_button},
-    theme,
-    ui_size::UiSize,
-    widgets::keyboard_priority::keyboard_priority,
-};
+use ensnano_iced::{theme, ui_size::UiSize, widgets::keyboard_priority::keyboard_priority};
 use ensnano_interactor::{
     SimulationState,
     selection::{ActionMode, Selection},

@@ -1,13 +1,10 @@
-use crate::{
-    fonts::{
-        ENSNANO_FONT, INTER_BOLD_FONT,
-        material_icons::{
-            MATERIAL_ICONS_DARK, MATERIAL_ICONS_LIGHT, MaterialIcon, MaterialIconStyle,
-            icon_to_char,
-        },
+use crate::fonts::{
+    ENSNANO_FONT, INTER_BOLD_FONT,
+    material_icons::{
+        MATERIAL_ICONS_DARK, MATERIAL_ICONS_LIGHT, MaterialIcon, MaterialIconStyle, icon_to_char,
     },
-    ui_size::UiSize,
 };
+use ensnano_iced::ui_size::UiSize;
 use iced::{
     Length,
     alignment::{Alignment, Horizontal, Vertical},
@@ -19,30 +16,30 @@ use iced::{
 const JUMP_SIZE: f32 = 4.0;
 
 /// Add vertical space of fixed amount
-pub fn extra_jump() -> Space {
+pub(crate) fn extra_jump() -> Space {
     jump_by(JUMP_SIZE)
 }
 
 /// Add vertical space of specified amount.
-pub fn jump_by(amount: impl Into<Length>) -> Space {
+pub(crate) fn jump_by(amount: impl Into<Length>) -> Space {
     Space::with_height(amount)
 }
 
 // === TEXT FUNCTIONS ===
 
 /// Section title widget
-pub fn section<'a>(title: impl ToString, ui_size: UiSize) -> Text<'a> {
+pub(crate) fn section<'a>(title: impl ToString, ui_size: UiSize) -> Text<'a> {
     text(title).size(ui_size.head_text()).font(INTER_BOLD_FONT)
 }
 
 /// Section subtitle widget
-pub fn subsection<'a>(title: impl ToString, ui_size: UiSize) -> Text<'a> {
+pub(crate) fn subsection<'a>(title: impl ToString, ui_size: UiSize) -> Text<'a> {
     text(title).size(ui_size.intermediate_text())
 }
 
 // === ICON FUNCTIONS ===
 
-pub fn material_icon<'a>(
+pub(crate) fn material_icon<'a>(
     icon: MaterialIcon,
     style: MaterialIconStyle,
     ui_size: UiSize,
@@ -89,11 +86,14 @@ macro_rules! button_text_wrapper {
 }
 
 /// Return a text button.
-pub fn text_button<'a, Message>(label: impl ToString, ui_size: UiSize) -> Button<'a, Message> {
+pub(crate) fn text_button<'a, Message>(
+    label: impl ToString,
+    ui_size: UiSize,
+) -> Button<'a, Message> {
     button_text_wrapper!(text(label).size(ui_size.main_text()), ui_size).height(ui_size.button())
 }
 
-pub fn fixed_text_button<'a, Message>(
+pub(crate) fn fixed_text_button<'a, Message>(
     label: impl ToString,
     width_factor: f32,
     ui_size: UiSize,
@@ -108,7 +108,7 @@ pub fn fixed_text_button<'a, Message>(
 }
 
 /// Return a button containing an icon in the light theme.
-pub fn material_icon_button<'a, Message>(
+pub(crate) fn material_icon_button<'a, Message>(
     icon: MaterialIcon,
     style: MaterialIconStyle,
     ui_size: UiSize,
@@ -118,12 +118,12 @@ pub fn material_icon_button<'a, Message>(
         .width(ui_size.button())
 }
 
-pub fn rotation_icon_button<'a, Message>(i: usize, ui_size: UiSize) -> Button<'a, Message> {
+pub(crate) fn rotation_icon_button<'a, Message>(i: usize, ui_size: UiSize) -> Button<'a, Message> {
     button_text_wrapper!(rotation_icon(i, ui_size).height(ui_size.button()), ui_size)
 }
 
 /// A button containing an icon from the ENSNANO font.
-pub fn icon_button<'a, Message>(icon_char: char, ui_size: UiSize) -> Button<'a, Message>
+pub(crate) fn icon_button<'a, Message>(icon_char: char, ui_size: UiSize) -> Button<'a, Message>
 where
     Message: Clone,
 {
@@ -136,7 +136,10 @@ where
 }
 
 /// A button containing an icon.
-pub fn image_button<'a, Message>(image: Image<Handle>, ui_size: UiSize) -> Button<'a, Message>
+pub(crate) fn image_button<'a, Message>(
+    image: Image<Handle>,
+    ui_size: UiSize,
+) -> Button<'a, Message>
 where
     Message: Clone + 'a,
 {
@@ -146,7 +149,7 @@ where
 }
 
 /// Return a button that starts, then stops something.
-pub fn start_stop_button<'a, F, Message>(
+pub(crate) fn start_stop_button<'a, F, Message>(
     label: impl ToString,
     ui_size: UiSize,
     start_stop_switch: Option<F>,
@@ -174,7 +177,7 @@ where
 // === CHECKBOX FUNCTIONS ===
 
 /// Return a checkbox widget with its label placed on the left.
-pub fn right_checkbox<'a, Message>(
+pub(crate) fn right_checkbox<'a, Message>(
     is_checked: bool,
     label: impl ToString,
     toggle_message: impl Fn(bool) -> Message + 'a,
