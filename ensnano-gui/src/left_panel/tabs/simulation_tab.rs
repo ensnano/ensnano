@@ -6,9 +6,9 @@ use crate::{
         discrete_value::{FactoryId, RequestFactory, ValueId},
         tabs::{GuiTab, gostop::GoStop},
     },
+    theme,
 };
 use ensnano_consts::ICON_PHYSICAL_ENGINE;
-use ensnano_iced::theme::BadValue;
 use ensnano_interactor::{RollRequest, SimulationState, ui_size::UiSize};
 use ensnano_organizer::keyboard_priority::keyboard_priority;
 use ensnano_physics::parameters::{RapierParameters, RapierSimulationType};
@@ -350,7 +350,7 @@ fn rapier_parameters_field_editor<State: AppState>(
                     )))
             }
             .width(70)
-            .style(BadValue(true)),
+            .style(theme::BadValue(true)),
         )
     ]
     .align_items(Alignment::Center)

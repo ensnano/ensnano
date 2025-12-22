@@ -3,9 +3,9 @@ use crate::{
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, jump_by, section, subsection, text_button},
     left_panel::{Message, tabs::GuiTab},
+    theme,
 };
 use ensnano_design::curves::torus::CurveDescriptor2D;
-use ensnano_iced::theme;
 use ensnano_interactor::{
     SimulationState,
     surfaces::{

@@ -1,5 +1,4 @@
-use crate::{AppState, Requests};
-use ensnano_iced::theme::GuiBackground;
+use crate::{AppState, Requests, theme::GuiBackground};
 use ensnano_interactor::{
     PastingStatus, StrandBuildingStatus, operation::Operation, ui_size::UiSize,
 };

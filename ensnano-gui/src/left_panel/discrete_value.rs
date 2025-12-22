@@ -2,7 +2,7 @@
 
 // TODO: Make it an independent object like ensnano_iced::color_picker ?
 
-use crate::{AppState, left_panel::Message};
+use crate::{AppState, left_panel::Message, theme};
 use iced::{
     Alignment, Length, Pixels,
     widget::{Space, button, row, slider, text},
@@ -190,13 +190,13 @@ impl DiscreteValue {
             slider(self.min_val..=self.max_val, self.value, |_| {
                 Message::Nothing
             })
-            .style(ensnano_iced::theme::DeactivatedSlider)
+            .style(theme::DeactivatedSlider)
         };
 
         let mut name_text = text(self.name.clone()).size(name_size);
 
         if !active {
-            name_text = name_text.style(ensnano_iced::theme::DISABLED_TEXT);
+            name_text = name_text.style(theme::DISABLED_TEXT);
         }
 
         row![

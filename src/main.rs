@@ -103,8 +103,8 @@ use ensnano_gui::{
     AppState as _, Gui, IcedMessages, OverlayType, TopBarState,
     fonts::{INTER_REGULAR_FONT, load_fonts},
     left_panel::ColorOverlay,
+    theme,
 };
-use ensnano_iced::theme;
 use ensnano_interactor::{
     DesignOperation, DesignRotation, DesignTranslation, IsometryTarget, PastingStatus,
     RigidBodyConstants,

@@ -1107,7 +1107,6 @@ dependencies = [
  "ensnano_exports",
  "ensnano_flatscene",
  "ensnano_gui",
- "ensnano_iced",
  "ensnano_interactor",
  "ensnano_organizer",
  "ensnano_physics",
@@ -1240,7 +1239,6 @@ version = "0.7.0"
 dependencies = [
  "color_space",
  "iced",
- "iced_aw",
  "iced_graphics",
  "iced_wgpu",
  "log",

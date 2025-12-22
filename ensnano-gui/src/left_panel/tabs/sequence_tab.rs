@@ -2,10 +2,10 @@ use crate::{
     AppState,
     helpers::{extra_jump, right_checkbox, section, text_button},
     left_panel::{Message, tabs::GuiTab},
+    theme,
 };
 use ensnano_consts::ICON_ATGC;
 use ensnano_design::elements::DesignElementKey;
-use ensnano_iced::theme;
 use ensnano_interactor::{StandardSequence, ui_size::UiSize};
 use ensnano_organizer::keyboard_priority::keyboard_priority;
 use iced::{

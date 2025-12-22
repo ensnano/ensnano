@@ -4,5 +4,4 @@
 //! the building of the GUI.
 
 pub mod color_picker;
-pub mod theme;
 pub mod widgets;

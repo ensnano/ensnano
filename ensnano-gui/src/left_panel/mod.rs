@@ -11,6 +11,7 @@ use crate::{
         camera_tab::FogChoices,
         revolution_tab::{CurveDescriptorBuilder, RevolutionParameterId},
     },
+    theme::GuiBackground,
 };
 use color_picker::ColorPicker;
 use contextual_panel::{
@@ -26,7 +27,7 @@ use ensnano_design::{
     parameters::NamedParameter,
 };
 use ensnano_exports::ExportType;
-use ensnano_iced::{color_picker::ColorPickerMessage, theme::GuiBackground};
+use ensnano_iced::color_picker::ColorPickerMessage;
 use ensnano_interactor::{
     HyperboloidRequest,
     app_state_parameters::{

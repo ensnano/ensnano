@@ -11,6 +11,7 @@ mod helpers;
 mod icon;
 pub mod left_panel;
 pub mod status_bar;
+pub mod theme;
 pub mod top_bar;
 
 use crate::{

@@ -106,7 +106,6 @@ ensnano_design.workspace = true
 ensnano_exports.workspace = true
 ensnano_flatscene.workspace = true
 ensnano_gui.workspace = true
-ensnano_iced.workspace = true
 ensnano_interactor.workspace = true
 ensnano_organizer.workspace = true
 ensnano_physics.workspace = true
