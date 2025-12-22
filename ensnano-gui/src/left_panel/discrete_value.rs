@@ -2,10 +2,10 @@
 
 // TODO: Make it an independent object like ensnano_gui::color_picker ?
 
-use crate::{left_panel::Message, theme, AppState};
+use crate::{AppState, left_panel::Message, theme};
 use iced::{
-    widget::{button, row, slider, text, Space},
     Alignment, Length, Pixels,
+    widget::{Space, button, row, slider, text},
 };
 use std::collections::BTreeMap;
 

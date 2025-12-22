@@ -1,5 +1,4 @@
 pub mod bindgroup_manager;
-pub mod click_counter;
 pub mod colors;
 pub mod filename;
 pub mod full_isometry;

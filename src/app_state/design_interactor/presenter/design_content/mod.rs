@@ -1,7 +1,9 @@
+mod click_counter;
 mod xover_suggestions;
 
 use crate::app_state::design_interactor::presenter::{JunctionsIds, Presenter, SimulationUpdate};
 use ahash::RandomState;
+use click_counter::ClickCounter;
 use ensnano_consts::{
     BOND_RADIUS, CLONE_OPACITY, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, SPHERE_RADIUS,
 };
@@ -22,7 +24,7 @@ use ensnano_interactor::{
     graphics::{LoopoutBond, LoopoutNucl},
 };
 use ensnano_scene::{data::design3d::Scalebar, view::grid::GridInstance};
-use ensnano_utils::{click_counter::ClickCounter, colors, instance::Instance};
+use ensnano_utils::{colors, instance::Instance};
 use serde::Serialize;
 use std::{
     borrow::Cow,
