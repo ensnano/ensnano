@@ -52,6 +52,7 @@ use ensnano_gui::status_bar::ClipboardContent;
 use ensnano_interactor::{
     BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
     HyperboloidOperation, IsometryTarget, NewBezierTangentVector, PastingStatus, SimulationState,
+    colors::{new_color, random_color_with_shade},
     operation::{Operation, TranslateBezierPathVertex},
     selection::{Selection, list_of_helices},
     strand_builder::{
@@ -59,7 +60,6 @@ use ensnano_interactor::{
     },
 };
 use ensnano_organizer::tree::GroupId;
-use ensnano_utils::colors;
 use std::{
     borrow::Cow,
     collections::{BTreeMap, HashMap},
@@ -1868,9 +1868,9 @@ impl Controller {
                     .unwrap_or_default();
 
                 let color = if let Some(shade) = strand_style.color_shade {
-                    colors::random_color_with_shade(shade, strand_style.hue_range)
+                    random_color_with_shade(shade, strand_style.hue_range)
                 } else {
-                    colors::new_color(&mut self.color_idx)
+                    new_color(&mut self.color_idx)
                 };
 
                 strand.color = color;
@@ -2176,7 +2176,7 @@ impl Controller {
 
     fn init_strand(&mut self, design: &mut Design, nucl: Nucl) -> usize {
         let s_id = design.strands.keys().max().map_or(0, |n| n + 1);
-        let color = colors::new_color(&mut self.color_idx);
+        let color = new_color(&mut self.color_idx);
         design.strands.insert(
             s_id,
             Strand::init(nucl.helix, nucl.position, nucl.forward, color),
@@ -2196,7 +2196,7 @@ impl Controller {
         } else {
             0
         };
-        let color = colors::new_color(&mut self.color_idx);
+        let color = new_color(&mut self.color_idx);
         design
             .strands
             .insert(new_key, Strand::init(helix, position, forward, color));

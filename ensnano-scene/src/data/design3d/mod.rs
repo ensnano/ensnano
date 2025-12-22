@@ -43,16 +43,14 @@ use ensnano_design::{
 };
 use ensnano_interactor::{
     ObjectType, Referential,
+    colors::{new_color, purple_to_blue_gradient_color_in_range},
     graphics::{LoopoutBond, LoopoutNucl},
     selection::{
         InteractorDesignReaderExt, PHANTOM_RANGE, PhantomElement, phantom_helix_encoder_bond,
         phantom_helix_encoder_nucl,
     },
 };
-use ensnano_utils::{
-    colors::{self, purple_to_blue_gradient_color_in_range},
-    instance::Instance,
-};
+use ensnano_utils::instance::Instance;
 use std::{
     collections::{BTreeMap, HashMap, HashSet, hash_map::RandomState},
     f32::consts::TAU,
@@ -293,7 +291,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
             if draw_helices && let Some(path) = additional_structure.nt_paths() {
                 let mut color_idx = 0;
                 for positions in path {
-                    let color = colors::new_color(&mut color_idx);
+                    let color = new_color(&mut color_idx);
                     let positions = positions
                         .into_iter()
                         .map(|p| transformation.transform_vec(p))
@@ -323,7 +321,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                         create_dna_bond(
                             pos_left,
                             pos_right,
-                            colors::new_color(&mut color_idx), //REGULAR_H_BOND_COLOR,
+                            new_color(&mut color_idx), //REGULAR_H_BOND_COLOR,
                             u32::MAX,
                             false,
                         )

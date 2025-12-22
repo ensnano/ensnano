@@ -9,9 +9,5 @@ license.workspace = true
 workspace = true
 
 [dependencies]
-ensnano_consts.workspace = true
-
 bytemuck.workspace = true
-color_space.workspace = true
-rand.workspace = true
 ultraviolet.workspace = true

@@ -1205,12 +1205,14 @@ version = "0.7.0"
 dependencies = [
  "bytemuck",
  "chrono",
+ "color_space",
  "ensnano_consts",
  "ensnano_design",
  "ensnano_organizer",
  "fontdue",
  "log",
  "num",
+ "rand 0.8.5",
  "rayon",
  "serde",
  "ultraviolet",
@@ -1273,9 +1275,6 @@ name = "ensnano_utils"
 version = "0.7.0"
 dependencies = [
  "bytemuck",
- "color_space",
- "ensnano_consts",
- "rand 0.8.5",
  "ultraviolet",
 ]
 

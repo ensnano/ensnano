@@ -15,9 +15,11 @@ ensnano_organizer.workspace = true
 
 bytemuck.workspace = true
 chrono.workspace = true
+color_space.workspace = true
 fontdue.workspace = true
 log.workspace = true
 num.workspace = true
+rand.workspace = true
 rayon.workspace = true
 serde.workspace = true
 ultraviolet.workspace = true

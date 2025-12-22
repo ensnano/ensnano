@@ -1,24 +1,30 @@
 mod closed_curves;
 
-use crate::app_state::design_interactor::{
-    controller::simulations::SimulationInterface, presenter::SimulationUpdate,
+use crate::{
+    app_state::{
+        ErrOperation,
+        design_interactor::{
+            controller::simulations::SimulationInterface, presenter::SimulationUpdate,
+        },
+    },
+    controller::channel_reader::ChannelReader,
 };
-use crate::{app_state::ErrOperation, controller::channel_reader::ChannelReader};
 use closed_curves::CloseSurfaceTopology;
-use ensnano_design::domains::Domain;
-use ensnano_design::domains::helix_interval::HelixInterval;
 use ensnano_design::{
     AdditionalStructure, Design,
     curves::CurveDescriptor,
+    domains::{Domain, helix_interval::HelixInterval},
     helices::Helix,
     parameters::HelixParameters,
     strands::{DomainJunction, Strand},
     utils::ultraviolet::dvec_to_vec,
 };
-use ensnano_interactor::surfaces::{
-    EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceSystemDescriptor,
+use ensnano_interactor::{
+    colors::new_color,
+    surfaces::{
+        EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceSystemDescriptor,
+    },
 };
-use ensnano_utils::colors::new_color;
 use mathru::{
     algebra::linear::vector::vector::Vector,
     analysis::differential_equation::ordinary::{
