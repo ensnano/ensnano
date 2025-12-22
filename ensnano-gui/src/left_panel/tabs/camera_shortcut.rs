@@ -100,8 +100,8 @@ impl Rotation {
 
     /// Generate the message that request rotation.
     fn message<State: AppState>(&self) -> Message<State> {
-        let (angle_x, angle_y, angle_z) = self.angles();
-        Message::RotateCam(angle_y, angle_x, angle_z) // TODO: x, y, z    
+        let (x, y, z) = self.angles();
+        Message::RotateCam(x, y, z)
     }
 
     fn button<'a, State: AppState>(self, ui_size: UiSize) -> iced::Element<'a, Message<State>> {
@@ -169,10 +169,6 @@ impl CameraWidget {
 
 pub struct CameraShortcutPanel {
     width: u16,
-    // Camera angles
-    xz: isize,
-    yz: isize,
-    xy: isize,
     scroll_state: scrollable::State,
     camera_input_name: Option<String>,
     camera_being_edited: Option<CameraId>,
@@ -183,9 +179,6 @@ impl CameraShortcutPanel {
     pub fn new(width: u16) -> Self {
         Self {
             width,
-            xz: 0,
-            yz: 0,
-            xy: 0,
             scroll_state: Default::default(),
             camera_input_name: None,
             camera_being_edited: None,
@@ -195,18 +188,6 @@ impl CameraShortcutPanel {
 
     pub fn new_width(&mut self, width: u16) {
         self.width = width;
-    }
-
-    pub fn reset_angles(&mut self) {
-        self.xz = 0;
-        self.yz = 0;
-        self.xy = 0;
-    }
-
-    pub fn set_angles(&mut self, xz: isize, yz: isize, xy: isize) {
-        self.xz += xz;
-        self.yz += yz;
-        self.xy += xy;
     }
 
     pub fn set_camera_input_name(&mut self, name: String) {

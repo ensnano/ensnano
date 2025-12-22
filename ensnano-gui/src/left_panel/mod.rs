@@ -383,13 +383,11 @@ where
                     .change_action_mode(action_mode);
                 Command::none()
             }
-            Message::RotateCam(xz, yz, xy) => {
-                self.camera_shortcut
-                    .set_angles(xz as isize, yz as isize, xy as isize);
+            Message::RotateCam(x, y, z) => {
                 self.requests
                     .lock()
                     .unwrap()
-                    .perform_camera_rotation(xz, yz, xy);
+                    .perform_camera_rotation(x, y, z);
                 Command::none()
             }
             Message::FixPoint(point, up) => {
@@ -397,7 +395,6 @@ where
                     .lock()
                     .unwrap()
                     .set_camera_dir_up_vec(point, up);
-                self.camera_shortcut.reset_angles();
                 Command::none()
             }
             Message::LengthHelicesChanged(length_str) => {

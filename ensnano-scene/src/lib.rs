@@ -874,7 +874,7 @@ impl<S: AppState> Scene<S> {
         self.fit_design();
     }
 
-    fn request_camera_rotation(&mut self, xz: f32, yz: f32, xy: f32, app_state: &S) {
+    fn request_camera_rotation(&mut self, x: f32, y: f32, z: f32, app_state: &S) {
         let pivot = self
             .data
             .borrow()
@@ -892,7 +892,7 @@ impl<S: AppState> Scene<S> {
                 .filter(|r| !r.x.is_nan() && !r.y.is_nan() && !r.z.is_nan())
         });
         log::info!("pivot {pivot:?}");
-        self.controller.rotate_camera(xz, yz, xy, pivot);
+        self.controller.rotate_camera(x, y, z, pivot);
     }
 
     fn create_png_export_texture(
@@ -1161,8 +1161,8 @@ impl<S: AppState> Application for Scene<S> {
                 }
                 self.notify(SceneNotification::CameraMoved);
             }
-            Notification::CameraRotation(xz, yz, xy) => {
-                self.request_camera_rotation(xz, yz, xy, &older_state);
+            Notification::CameraRotation(x, y, z) => {
+                self.request_camera_rotation(x, y, z, &older_state);
                 self.notify(SceneNotification::CameraMoved);
             }
             Notification::CenterSelection(selection, app_id) => {

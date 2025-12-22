@@ -162,8 +162,8 @@ impl GuiRequests for Requests {
         self.camera_target = Some((direction, up));
     }
 
-    fn perform_camera_rotation(&mut self, xz: f32, yz: f32, xy: f32) {
-        self.camera_rotation = Some((xz, yz, xy));
+    fn perform_camera_rotation(&mut self, x: f32, y: f32, z: f32) {
+        self.camera_rotation = Some((x, y, z));
     }
 
     fn create_grid(&mut self, grid_type_descriptor: GridTypeDescr) {

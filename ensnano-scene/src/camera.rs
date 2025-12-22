@@ -749,9 +749,9 @@ impl CameraController {
         }
     }
 
-    pub(crate) fn rotate_camera(&mut self, angle_xz: f32, angle_yz: f32, pivot: Option<Vec3>) {
+    pub(crate) fn rotate_camera(&mut self, x: f32, y: f32, pivot: Option<Vec3>) {
         let dist = pivot.map(|p| (self.camera.borrow().position - p).mag());
-        let rotation = Rotor3::from_rotation_yz(angle_yz) * Rotor3::from_rotation_xz(angle_xz);
+        let rotation = Rotor3::from_rotation_yz(x) * Rotor3::from_rotation_xz(y);
 
         // and we apply this rotation to the camera
         let new_rotor = rotation * self.cam0.rotor;

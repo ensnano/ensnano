@@ -126,7 +126,7 @@ pub trait Requests: 'static + Send {
     fn set_fog_parameters(&mut self, parameters: FogParameters);
     /// Set the direction and up vector of the 3D camera
     fn set_camera_dir_up_vec(&mut self, direction: Vec3, up: Vec3);
-    fn perform_camera_rotation(&mut self, xz: f32, yz: f32, xy: f32);
+    fn perform_camera_rotation(&mut self, x: f32, y: f32, z: f32);
     /// Create a new grid in front of the 3D camera
     fn create_grid(&mut self, grid_type_descriptor: GridTypeDescr);
     fn set_candidates_keys(&mut self, candidates: Vec<DesignElementKey>);
