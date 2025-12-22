@@ -3,8 +3,9 @@
 //! [InstanceDrawer].
 
 use ensnano_consts::SAMPLE_COUNT;
-use ensnano_interactor::texture::Texture;
-use ensnano_utils::{bindgroup_manager::DynamicBindGroup, create_buffer_with_data};
+use ensnano_interactor::{
+    bindgroup_manager::DynamicBindGroup, create_buffer_with_data, texture::Texture,
+};
 use std::rc::Rc;
 use wgpu::{
     BindGroupLayoutDescriptor, Device, PrimitiveTopology, Queue, RenderPass, RenderPipeline,

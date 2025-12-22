@@ -6,9 +6,10 @@ use ensnano_design::{
     utils::ultraviolet::dvec_to_vec,
 };
 use ensnano_interactor::{
-    TEXTURE_FORMAT, surfaces::UnrootedRevolutionSurfaceDescriptor, texture::Texture,
+    TEXTURE_FORMAT, create_buffer_with_data, surfaces::UnrootedRevolutionSurfaceDescriptor,
+    texture::Texture,
 };
-use ensnano_utils::{colors::hsv_color, create_buffer_with_data, instance::Instance};
+use ensnano_utils::{colors::hsv_color, instance::Instance};
 use std::{
     collections::BTreeMap,
     f64::consts::TAU,

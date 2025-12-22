@@ -1,9 +1,7 @@
-pub mod bindgroup_manager;
 pub mod colors;
 pub mod instance;
 
 use serde::{Deserialize, Serialize};
-use wgpu::util::{BufferInitDescriptor, DeviceExt as _};
 use winit::dpi::{PhysicalPosition, PhysicalSize, Pixel};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -12,20 +10,6 @@ pub struct StrandNucleotidesPositions {
     pub positions: Vec<[f32; 3]>,
     pub curvatures: Vec<f64>,
     pub torsions: Vec<f64>,
-}
-
-pub fn create_buffer_with_data(
-    device: &wgpu::Device,
-    data: &[u8],
-    usage: wgpu::BufferUsages,
-    label: &str,
-) -> wgpu::Buffer {
-    let descriptor = BufferInitDescriptor {
-        label: Some(label),
-        contents: data,
-        usage,
-    };
-    device.create_buffer_init(&descriptor)
 }
 
 /// This struct handle the alignment of row in WGPU buffers.

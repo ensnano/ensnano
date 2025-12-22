@@ -22,7 +22,6 @@ use crate::{
     camera::{Camera, CameraPtr, Projection, ProjectionPtr},
     maths_3d::{cast_ray, distance_to_cursor_with_penalty, unproject_point_on_line},
 };
-use bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
 use direction_cube::{DirectionCube, DirectionTexture, SkyBox};
 use dna_obj::{
     PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance, SphereInstance,
@@ -35,12 +34,12 @@ use ensnano_design::{
     grid::GridId, group_attributes::GroupPivot, helices::Axis, utils::ultraviolet::dvec_to_vec,
 };
 use ensnano_interactor::{
+    bindgroup_manager::{DynamicBindGroup, UniformBindGroup},
     graphics::{Background3D, DrawArea, FogParameters, HBondDisplay, PhySize, RenderingMode},
     surfaces::UnrootedRevolutionSurfaceDescriptor,
     text::Letter,
     texture::Texture,
 };
-use ensnano_utils::bindgroup_manager;
 use gltf_drawer::{ExternalObjects, Object3DDrawer};
 use grid::{GridInstance, GridIntersection, GridManager, GridTextures};
 use grid_disc::GridDisc;

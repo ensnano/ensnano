@@ -20,13 +20,11 @@ use background::Background;
 use ensnano_consts::{CANDIDATE_COLOR, PRINTABLE_CHARS, SAMPLE_COUNT, SELECTED_COLOR};
 use ensnano_design::{helices::NuclCollection, nucl::Nucl};
 use ensnano_interactor::{
+    bindgroup_manager::{DynamicBindGroup, UniformBindGroup},
     graphics::{DrawArea, PhySize},
     texture::Texture,
 };
-use ensnano_utils::{
-    Ndc,
-    bindgroup_manager::{DynamicBindGroup, UniformBindGroup},
-};
+use ensnano_utils::Ndc;
 use helix_view::{HelixView, StrandView};
 use insertion::InsertionDrawer;
 use rectangle::Rectangle;

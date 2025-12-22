@@ -3,6 +3,7 @@
 
 pub mod app_state_parameters;
 pub mod application;
+pub mod bindgroup_manager;
 pub mod consts;
 pub mod filename;
 pub mod graphics;
@@ -36,6 +37,7 @@ use selection::Selection;
 use std::path::PathBuf;
 use surfaces::RevolutionSimulationParameters;
 use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
+use wgpu::util::{BufferInitDescriptor, DeviceExt as _};
 
 pub const TEXTURE_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8UnormSrgb;
 
@@ -623,4 +625,18 @@ impl StandardSequence {
         }
         ret
     }
+}
+
+pub fn create_buffer_with_data(
+    device: &wgpu::Device,
+    data: &[u8],
+    usage: wgpu::BufferUsages,
+    label: &str,
+) -> wgpu::Buffer {
+    let descriptor = BufferInitDescriptor {
+        label: Some(label),
+        contents: data,
+        usage,
+    };
+    device.create_buffer_init(&descriptor)
 }
