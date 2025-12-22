@@ -1,5 +1,6 @@
 pub(crate) mod controller;
 pub(crate) mod file_parsing;
+mod id_generator;
 pub(crate) mod presenter;
 
 use crate::app_state::address_pointer::AddressPointer;
@@ -401,6 +402,7 @@ mod tests {
         AppState,
         design_interactor::{
             controller::clipboard::PastePosition, file_parsing::junctions::StrandJunction as _,
+            id_generator::IdGenerator,
         },
         transitions::OkOperation as TopOkOperation,
     };
@@ -413,7 +415,6 @@ mod tests {
         InsertionPoint, operation::GridHelixCreation, selection::InteractorDesignReaderExt as _,
     };
     use ensnano_scene::data::design3d::SceneDesignReaderExt as _;
-    use ensnano_utils::id_generator::IdGenerator;
     use regex::Regex;
     use ultraviolet::{Rotor3, Vec3};
 

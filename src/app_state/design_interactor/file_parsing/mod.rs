@@ -1,11 +1,13 @@
 pub(crate) mod junctions;
 
-use crate::app_state::{
-    address_pointer::AddressPointer,
-    design_interactor::{DesignInteractor, presenter::Presenter},
-};
+use super::id_generator::IdGenerator;
 use crate::{
-    app_state::design_interactor::file_parsing::junctions::StrandJunction as _,
+    app_state::{
+        address_pointer::AddressPointer,
+        design_interactor::{
+            DesignInteractor, file_parsing::junctions::StrandJunction as _, presenter::Presenter,
+        },
+    },
     controller::LoadDesignError,
 };
 use ensnano_design::{
@@ -17,7 +19,6 @@ use ensnano_design::{
     scadnano::{ScadnanoDesign, ScadnanoImportError},
 };
 use ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
-use ensnano_utils::id_generator::IdGenerator;
 use std::path::{Path, PathBuf};
 use version_compare::Cmp;
 

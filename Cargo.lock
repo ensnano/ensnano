@@ -1271,7 +1271,6 @@ dependencies = [
 name = "ensnano_utils"
 version = "0.7.0"
 dependencies = [
- "ahash 0.8.12",
  "bytemuck",
  "color_space",
  "ensnano_consts",

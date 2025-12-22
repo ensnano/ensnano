@@ -1,9 +1,9 @@
+use super::super::id_generator::IdGenerator;
 use ensnano_design::{
     domains::{Domain, helix_interval::HelixInterval, sanitize_domains},
     nucl::Nucl,
     strands::{DomainJunction, Strand},
 };
-use ensnano_utils::id_generator::IdGenerator;
 
 pub(crate) trait StrandJunction {
     /// Read the junctions for self when loading the design.

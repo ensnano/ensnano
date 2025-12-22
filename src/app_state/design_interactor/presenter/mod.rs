@@ -4,6 +4,7 @@ pub(crate) mod impl_reader2d;
 pub(crate) mod impl_reader3d;
 pub(crate) mod impl_readergui;
 
+use super::id_generator::IdGenerator;
 use crate::app_state::{address_pointer::AddressPointer, design_interactor::DesignInteractor};
 use design_content::DesignContent;
 use ensnano_design::{
@@ -27,7 +28,6 @@ use ensnano_interactor::{
     strand_builder::{NeighborDescriptor, NeighborDescriptorGiver as _},
 };
 use ensnano_scene::data::design3d::{HBond, HalfHBond};
-use ensnano_utils::id_generator::IdGenerator;
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
     fmt::Write as _,
@@ -116,7 +116,7 @@ impl Presenter {
 
     /// Return a fresh presenter presenting an imported `Design` with a given set of junctions, as
     /// well as a pointer to the design held by this fresh presenter.
-    pub(crate) fn from_new_design(
+    pub(super) fn from_new_design(
         design: Design,
         old_junctions_ids: &JunctionsIds,
         suggestion_parameters: SuggestionParameters,
