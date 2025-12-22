@@ -28,7 +28,11 @@ use ensnano_design::{
     parameters::NamedParameter,
 };
 use ensnano_exports::ExportType;
-use ensnano_interactor::{
+use ensnano_organizer::{
+    Organizer, OrganizerMessage, keyboard_priority::PriorityRequest, tree::OrganizerTree,
+};
+use ensnano_physics::parameters::RapierParameters;
+use ensnano_utils::{
     HyperboloidRequest,
     app_state_parameters::{
         AppStateParameters, check_xovers_parameter::CheckXoversParameter,
@@ -39,10 +43,6 @@ use ensnano_interactor::{
     surfaces::EquadiffSolvingMethod,
     ui_size::UiSize,
 };
-use ensnano_organizer::{
-    Organizer, OrganizerMessage, keyboard_priority::PriorityRequest, tree::OrganizerTree,
-};
-use ensnano_physics::parameters::RapierParameters;
 use export_menu::ExportMenu;
 use iced::{
     Color, Command, Element, Length,

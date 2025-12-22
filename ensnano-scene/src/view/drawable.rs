@@ -1,5 +1,5 @@
 use ensnano_consts::{SAMPLE_COUNT, VIEWER_BINDING_ID};
-use ensnano_interactor::{create_buffer_with_data, texture::Texture};
+use ensnano_utils::{create_buffer_with_data, texture::Texture};
 use std::rc::Rc;
 use ultraviolet::Vec3;
 use wgpu::{Device, RenderPass, RenderPipeline, include_spirv};

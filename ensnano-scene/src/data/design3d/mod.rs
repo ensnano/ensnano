@@ -41,7 +41,7 @@ use ensnano_design::{
     nucl::Nucl,
     parameters::HelixParameters,
 };
-use ensnano_interactor::{
+use ensnano_utils::{
     ObjectType, Referential,
     colors::{new_color, purple_to_blue_gradient_color_in_range},
     graphics::{LoopoutBond, LoopoutNucl},

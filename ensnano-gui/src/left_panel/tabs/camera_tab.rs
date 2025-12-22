@@ -5,7 +5,7 @@ use crate::{
     left_panel::{Message, tabs::GuiTab},
     theme,
 };
-use ensnano_interactor::{
+use ensnano_utils::{
     app_state_parameters::{AppStateParameters, check_xovers_parameter::CheckXoversParameter},
     graphics::{
         ALL_BACKGROUND3D, ALL_RENDERING_MODE, Background3D, FogParameters, HBondDisplay,

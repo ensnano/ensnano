@@ -3,7 +3,7 @@
 //! [InstanceDrawer].
 
 use ensnano_consts::SAMPLE_COUNT;
-use ensnano_interactor::{
+use ensnano_utils::{
     bindgroup_manager::DynamicBindGroup, create_buffer_with_data, texture::Texture,
 };
 use std::rc::Rc;

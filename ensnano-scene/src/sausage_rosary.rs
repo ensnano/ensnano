@@ -3,7 +3,7 @@ use crate::{
     view::dna_obj::{SlicedTubeInstance, TubeLidInstance},
 };
 use ensnano_consts::HELIX_CYLINDER_COLOR;
-use ensnano_interactor::instance::Instance;
+use ensnano_utils::instance::Instance;
 use ultraviolet::{Rotor3, Vec3};
 
 pub(crate) struct SausageRosary {

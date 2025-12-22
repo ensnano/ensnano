@@ -20,7 +20,7 @@ use ensnano_design::{
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
     nucl::Nucl,
 };
-use ensnano_interactor::graphics::PhySize;
+use ensnano_utils::graphics::PhySize;
 use std::{cell::RefCell, ops::Deref as _, rc::Rc, time::Duration};
 use ultraviolet::{Rotor3, Vec2, Vec3};
 use winit::{

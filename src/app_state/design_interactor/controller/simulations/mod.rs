@@ -15,9 +15,9 @@ use ensnano_design::{
     nucl::Nucl,
     parameters::HelixParameters,
 };
-use ensnano_interactor::RigidBodyConstants;
-use ensnano_interactor::surfaces::RevolutionSurfaceSystemDescriptor;
 use ensnano_physics::parameters::RapierParameters;
+use ensnano_utils::RigidBodyConstants;
+use ensnano_utils::surfaces::RevolutionSurfaceSystemDescriptor;
 use mathru::{
     algebra::linear::vector::vector::Vector,
     analysis::differential_equation::ordinary::{

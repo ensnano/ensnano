@@ -20,7 +20,8 @@ use ensnano_design::{
     group_attributes::GroupPivot,
     nucl::Nucl,
 };
-use ensnano_interactor::{
+use ensnano_organizer::tree::GroupId;
+use ensnano_utils::{
     DesignOperation, NewBezierTangentVector, WidgetBasis,
     app_state_parameters::check_xovers_parameter::CheckXoversParameter,
     application::{AppId, Application, Camera3D, Notification},
@@ -39,7 +40,6 @@ use ensnano_interactor::{
     strand_builder::StrandBuilder,
     surfaces::UnrootedRevolutionSurfaceDescriptor,
 };
-use ensnano_organizer::tree::GroupId;
 use itertools::Itertools as _;
 use maths_3d::FiniteVec3;
 use std::{

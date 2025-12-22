@@ -1,6 +1,8 @@
 use crate::app_state::{AppState, design_interactor::DesignInteractor};
 use ensnano_design::{bezier_plane::BezierVertexId, grid::GridId, group_attributes::GroupPivot};
-use ensnano_interactor::{
+use ensnano_organizer::tree::GroupId;
+use ensnano_scene::{AppState as App3D, view::DrawOptions};
+use ensnano_utils::{
     WidgetBasis,
     app_state_parameters::check_xovers_parameter::CheckXoversParameter,
     consts::scroll_sensitivity_conversion,
@@ -8,8 +10,6 @@ use ensnano_interactor::{
     strand_builder::StrandBuilder,
     surfaces::UnrootedRevolutionSurfaceDescriptor,
 };
-use ensnano_organizer::tree::GroupId;
-use ensnano_scene::{AppState as App3D, view::DrawOptions};
 use std::path::PathBuf;
 
 impl App3D for AppState {

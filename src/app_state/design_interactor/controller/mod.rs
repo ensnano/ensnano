@@ -49,7 +49,8 @@ use ensnano_design::{
     strands::{DomainJunction, Strand, Strands},
 };
 use ensnano_gui::status_bar::ClipboardContent;
-use ensnano_interactor::{
+use ensnano_organizer::tree::GroupId;
+use ensnano_utils::{
     BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
     HyperboloidOperation, IsometryTarget, NewBezierTangentVector, PastingStatus, SimulationState,
     colors::{new_color, random_color_with_shade},
@@ -59,7 +60,6 @@ use ensnano_interactor::{
         DomainIdentifier, NeighborDescriptor, NeighborDescriptorGiver as _, StrandBuilder,
     },
 };
-use ensnano_organizer::tree::GroupId;
 use std::{
     borrow::Cow,
     collections::{BTreeMap, HashMap},

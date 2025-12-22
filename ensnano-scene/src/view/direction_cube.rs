@@ -1,5 +1,5 @@
 use crate::view::instances_drawer::{Instantiable, ResourceProvider, Vertexable};
-use ensnano_interactor::TEXTURE_FORMAT;
+use ensnano_utils::TEXTURE_FORMAT;
 use image::GenericImageView as _;
 use std::rc::Rc;
 use ultraviolet::{Vec2, Vec3};

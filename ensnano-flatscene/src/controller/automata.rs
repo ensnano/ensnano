@@ -6,7 +6,7 @@ use crate::{
     flat_types::{FlatHelix, FlatNucl},
 };
 use ensnano_consts::CIRCLE2D_GREY;
-use ensnano_interactor::selection::ActionMode;
+use ensnano_utils::selection::ActionMode;
 use std::time::Instant;
 use ultraviolet::Vec2;
 use winit::{

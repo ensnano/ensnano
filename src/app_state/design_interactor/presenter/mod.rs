@@ -20,14 +20,14 @@ use ensnano_design::{
     strands::{Extremity, Strand},
 };
 use ensnano_exports::{ExportResult, ExportType, oxdna::BACKBONE_TO_CM};
-use ensnano_interactor::{
+use ensnano_scene::data::design3d::{HBond, HalfHBond};
+use ensnano_utils::{
     Referential, ScaffoldInfo,
     app_state_parameters::suggestion_parameters::SuggestionParameters,
     application::Camera3D,
     selection::Selection,
     strand_builder::{NeighborDescriptor, NeighborDescriptorGiver as _},
 };
-use ensnano_scene::data::design3d::{HBond, HalfHBond};
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
     fmt::Write as _,

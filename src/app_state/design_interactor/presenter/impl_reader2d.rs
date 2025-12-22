@@ -8,7 +8,7 @@ use ensnano_design::{
     strands::{Extremity, Strand},
 };
 use ensnano_flatscene::data::design::FlatSceneDesignReaderExt;
-use ensnano_interactor::{Referential, torsion::Torsion};
+use ensnano_utils::{Referential, torsion::Torsion};
 use std::{
     collections::{BTreeMap, HashMap},
     sync::Arc,

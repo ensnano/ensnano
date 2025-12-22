@@ -25,12 +25,12 @@ use ensnano_design::{
 };
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_gui::status_bar::{ClipboardContent, CurrentOpState};
-use ensnano_interactor::{
+use ensnano_organizer::tree::GroupId;
+use ensnano_utils::{
     DesignOperation, PastingStatus, SimulationState,
     app_state_parameters::suggestion_parameters::SuggestionParameters, operation::Operation,
     selection::Selection, strand_builder::StrandBuilder,
 };
-use ensnano_organizer::tree::GroupId;
 use presenter::{Presenter, SimulationUpdate, apply_simulation_update, update_presenter};
 use std::{io::Write as _, path::PathBuf, sync::Arc};
 
@@ -411,10 +411,10 @@ mod tests {
         nucl::Nucl,
         strands::{DomainJunction, Strand},
     };
-    use ensnano_interactor::{
+    use ensnano_scene::data::design3d::SceneDesignReaderExt as _;
+    use ensnano_utils::{
         InsertionPoint, operation::GridHelixCreation, selection::InteractorDesignReaderExt as _,
     };
-    use ensnano_scene::data::design3d::SceneDesignReaderExt as _;
     use regex::Regex;
     use ultraviolet::{Rotor3, Vec3};
 

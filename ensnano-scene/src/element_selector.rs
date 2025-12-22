@@ -4,7 +4,7 @@ use ensnano_design::{
     curves::bezier::BezierControlPoint,
     grid::{GridId, GridPosition},
 };
-use ensnano_interactor::{
+use ensnano_utils::{
     buffer_dimensions::BufferDimensions,
     consts::widget_id_to_bezier,
     graphics::DrawArea,

@@ -1,4 +1,4 @@
-use ensnano_interactor::selection::{ActionMode, SelectionMode};
+use ensnano_utils::selection::{ActionMode, SelectionMode};
 use iced::widget::image::Handle;
 
 pub(crate) trait HasIcon {

@@ -10,7 +10,7 @@ use crate::{
     },
 };
 use ensnano_design::elements::DesignElementKey;
-use ensnano_interactor::{RollRequest, selection::extract_strands_from_selection, ui_size::UiSize};
+use ensnano_utils::{RollRequest, selection::extract_strands_from_selection, ui_size::UiSize};
 use iced::{
     Command,
     widget::{column, row, scrollable},

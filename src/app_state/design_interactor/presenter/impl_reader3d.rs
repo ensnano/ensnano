@@ -17,16 +17,16 @@ use ensnano_design::{
     nucl::Nucl,
     parameters::HelixParameters,
 };
-use ensnano_interactor::{
-    ObjectType, Referential,
-    graphics::{LoopoutBond, LoopoutNucl},
-};
 use ensnano_scene::{
     data::{
         StrandNucleotidesPositions,
         design3d::{HBond, Scalebar, SceneDesignReaderExt},
     },
     view::grid::GridInstance,
+};
+use ensnano_utils::{
+    ObjectType, Referential,
+    graphics::{LoopoutBond, LoopoutNucl},
 };
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::Arc;

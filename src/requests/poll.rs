@@ -4,7 +4,7 @@
 use crate::controller::normal_state::Action;
 use crate::requests::Requests;
 use crate::{MainState, app_state::design_interactor::controller::clipboard::PastePosition};
-use ensnano_interactor::{
+use ensnano_utils::{
     DesignOperation, HyperboloidOperation, application::Notification,
     selection::SelectionConversion as _,
 };

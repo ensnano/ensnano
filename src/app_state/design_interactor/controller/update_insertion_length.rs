@@ -4,7 +4,7 @@ use ensnano_design::{
     domains::Domain,
     strands::{DomainJunction, Strand},
 };
-use ensnano_interactor::InsertionPoint;
+use ensnano_utils::InsertionPoint;
 
 impl Controller {
     pub(super) fn update_insertion_length(

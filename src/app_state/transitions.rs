@@ -1,5 +1,5 @@
 use crate::app_state::AppState;
-use ensnano_interactor::application::Camera3D;
+use ensnano_utils::application::Camera3D;
 use std::borrow::Cow;
 
 /// Represents an undoable operation.

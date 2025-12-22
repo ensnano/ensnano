@@ -105,7 +105,10 @@ use ensnano_gui::{
     left_panel::ColorOverlay,
     theme,
 };
-use ensnano_interactor::{
+use ensnano_organizer::{keyboard_priority::KeyboardPriorityId, tree::GroupId};
+use ensnano_physics::parameters::RapierParameters;
+use ensnano_scene::{AppState as _, Scene, SceneKind, data::design3d::SceneDesignReaderExt as _};
+use ensnano_utils::{
     DesignOperation, DesignRotation, DesignTranslation, IsometryTarget, PastingStatus,
     RigidBodyConstants, TEXTURE_FORMAT,
     app_state_parameters::{
@@ -124,9 +127,6 @@ use ensnano_interactor::{
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
     ui_size::UiSize,
 };
-use ensnano_organizer::{keyboard_priority::KeyboardPriorityId, tree::GroupId};
-use ensnano_physics::parameters::RapierParameters;
-use ensnano_scene::{AppState as _, Scene, SceneKind, data::design3d::SceneDesignReaderExt as _};
 use iced::{
     advanced::{clipboard, renderer},
     mouse::Cursor,

@@ -11,7 +11,7 @@ use crate::{
     },
 };
 use ensnano_design::grid::{Grid, GridDivision as _, GridId, GridPosition, GridType};
-use ensnano_interactor::instance::Instance;
+use ensnano_utils::instance::Instance;
 use std::collections::BTreeMap;
 use ultraviolet::{Mat4, Vec2, Vec3, Vec4};
 use wgpu::{Device, RenderPass, include_spirv};

@@ -9,7 +9,7 @@ use ensnano_design::{
     strands::Strand,
 };
 use ensnano_gui::{EnsnTree, GuiDesignReaderExt as ReaderGui};
-use ensnano_interactor::{InsertionPoint, selection::Selection};
+use ensnano_utils::{InsertionPoint, selection::Selection};
 use std::sync::Arc;
 use ultraviolet::{Rotor3, Vec2, Vec3};
 

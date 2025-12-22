@@ -14,7 +14,7 @@ use ensnano_design::{
     nucl::Nucl,
     strands::Extremity,
 };
-use ensnano_interactor::{Referential, torsion::Torsion};
+use ensnano_utils::{Referential, torsion::Torsion};
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap},
     sync::{Arc, Mutex},

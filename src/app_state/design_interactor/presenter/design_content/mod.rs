@@ -18,14 +18,14 @@ use ensnano_design::{
     nucl::Nucl,
     strands::DomainJunction,
 };
-use ensnano_interactor::{
+use ensnano_scene::{data::design3d::Scalebar, view::grid::GridInstance};
+use ensnano_utils::{
     ObjectType,
     app_state_parameters::suggestion_parameters::SuggestionParameters,
     colors::purple_to_blue_gradient_color_in_range,
     graphics::{LoopoutBond, LoopoutNucl},
     instance::Instance,
 };
-use ensnano_scene::{data::design3d::Scalebar, view::grid::GridInstance};
 use serde::Serialize;
 use std::{
     borrow::Cow,

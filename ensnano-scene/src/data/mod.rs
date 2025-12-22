@@ -34,7 +34,7 @@ use ensnano_design::{
     grid::{GridId, GridObject, GridPosition},
     nucl::Nucl,
 };
-use ensnano_interactor::{
+use ensnano_utils::{
     ObjectType, Referential,
     application::Camera3D,
     graphics::HBondDisplay,

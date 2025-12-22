@@ -8,7 +8,7 @@ use ensnano_design::{
     nucl::Nucl,
     strands::Strand,
 };
-use ensnano_interactor::selection::InteractorDesignReaderExt as MainReader;
+use ensnano_utils::selection::InteractorDesignReaderExt as MainReader;
 use itertools::Itertools as _;
 use rust_xlsxwriter::{Color, Format, Workbook};
 use serde::Serialize;

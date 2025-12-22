@@ -9,9 +9,9 @@ use crate::{
     theme,
 };
 use ensnano_consts::ICON_PHYSICAL_ENGINE;
-use ensnano_interactor::{RollRequest, SimulationState, ui_size::UiSize};
 use ensnano_organizer::keyboard_priority::keyboard_priority;
 use ensnano_physics::parameters::{RapierParameters, RapierSimulationType};
+use ensnano_utils::{RollRequest, SimulationState, ui_size::UiSize};
 use iced::{
     Alignment,
     widget::{Column, Space, column, pick_list, row, scrollable, text, text_input},

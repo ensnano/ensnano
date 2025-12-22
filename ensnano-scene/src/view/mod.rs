@@ -33,7 +33,7 @@ use ensnano_consts::{
 use ensnano_design::{
     grid::GridId, group_attributes::GroupPivot, helices::Axis, utils::ultraviolet::dvec_to_vec,
 };
-use ensnano_interactor::{
+use ensnano_utils::{
     bindgroup_manager::{DynamicBindGroup, UniformBindGroup},
     graphics::{Background3D, DrawArea, FogParameters, HBondDisplay, PhySize, RenderingMode},
     surfaces::UnrootedRevolutionSurfaceDescriptor,

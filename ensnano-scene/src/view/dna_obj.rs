@@ -8,7 +8,7 @@ use ensnano_consts::{
     NB_RAY_TUBE, NB_SECTOR_SPHERE, NB_STACK_SPHERE, SPHERE_RADIUS, STEREOGRAPHIC_SPHERE_COLOR,
     STEREOGRAPHIC_SPHERE_RADIUS,
 };
-use ensnano_interactor::instance::Instance;
+use ensnano_utils::instance::Instance;
 use std::{
     f32::consts::{FRAC_1_SQRT_2, PI, TAU},
     iter::zip,

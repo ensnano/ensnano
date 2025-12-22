@@ -19,7 +19,7 @@ use ensnano_design::{
     strands::{DomainJunction, Strand},
     utils::ultraviolet::dvec_to_vec,
 };
-use ensnano_interactor::{
+use ensnano_utils::{
     colors::new_color,
     surfaces::{
         EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceSystemDescriptor,

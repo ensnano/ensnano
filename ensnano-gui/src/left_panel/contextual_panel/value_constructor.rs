@@ -3,8 +3,8 @@ use crate::{
     consts::{MAX_NB_TURN, MIN_NB_TURN, NB_TURN_SLIDER_SPACING, NB_TURN_STEP},
     left_panel::Message,
 };
-use ensnano_interactor::{selection::Selection, ui_size::UiSize};
 use ensnano_organizer::keyboard_priority::keyboard_priority;
+use ensnano_utils::{selection::Selection, ui_size::UiSize};
 use iced::{
     Alignment, Length,
     widget::{Column, Space, column, row, slider, text, text_input},

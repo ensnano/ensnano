@@ -18,7 +18,7 @@ use ensnano_design::{
     nucl::Nucl,
     scadnano::{ScadnanoDesign, ScadnanoImportError},
 };
-use ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
+use ensnano_utils::app_state_parameters::suggestion_parameters::SuggestionParameters;
 use std::path::{Path, PathBuf};
 use version_compare::Cmp;
 

@@ -14,7 +14,7 @@ use ensnano_design::{
     helices::Axis,
     nucl::Nucl,
 };
-use ensnano_interactor::selection::ActionMode;
+use ensnano_utils::selection::ActionMode;
 use ultraviolet::{Vec2, Vec3};
 use winit::{dpi::PhysicalPosition, keyboard::ModifiersState};
 

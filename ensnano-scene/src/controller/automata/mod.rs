@@ -22,7 +22,7 @@ use ensnano_design::{
     bezier_plane::{BezierVertex, BezierVertexId},
     grid::GridId,
 };
-use ensnano_interactor::selection::ActionMode;
+use ensnano_utils::selection::ActionMode;
 use event_context::{EventContext, XoverOrigin};
 use point_and_click_state::PointAndClicking;
 use std::{borrow::Cow, cell::RefCell};

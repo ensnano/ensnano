@@ -5,7 +5,7 @@ use ensnano_design::{
     external_3d_objects::{External3DObject, External3DObjectId},
     utils::ultraviolet::dvec_to_vec,
 };
-use ensnano_interactor::{
+use ensnano_utils::{
     TEXTURE_FORMAT, colors::hsv_color, create_buffer_with_data, instance::Instance,
     surfaces::UnrootedRevolutionSurfaceDescriptor, texture::Texture,
 };

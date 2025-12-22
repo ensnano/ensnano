@@ -21,7 +21,7 @@ use ensnano_consts::{
     CANDIDATE_COLOR, CANDIDATE_STRAND_HIGHLIGHT_FACTOR_2D, SELECTED_COLOR, SELECTED_HELIX2D_COLOR,
     SELECTED_STRAND_HIGHLIGHT_FACTOR_2D, SELECTION_2D_CYCLE_TIME_LIMIT_MS,
 };
-use ensnano_interactor::{
+use ensnano_utils::{
     StrandBuildingStatus,
     selection::{PhantomElement, Selection, SelectionMode},
 };

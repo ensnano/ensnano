@@ -13,7 +13,12 @@ use ensnano_design::{
     grid::{GridId, GridPosition, GridTypeDescr},
     nucl::Nucl,
 };
-use ensnano_interactor::{
+use ensnano_organizer::{
+    keyboard_priority::PriorityRequest,
+    tree::{GroupId, OrganizerTree},
+};
+use ensnano_physics::parameters::RapierParameters;
+use ensnano_utils::{
     HyperboloidRequest, RigidBodyConstants, RollRequest,
     app_state_parameters::{
         check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
@@ -24,11 +29,6 @@ use ensnano_interactor::{
     selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
     surfaces::UnrootedRevolutionSurfaceDescriptor,
 };
-use ensnano_organizer::{
-    keyboard_priority::PriorityRequest,
-    tree::{GroupId, OrganizerTree},
-};
-use ensnano_physics::parameters::RapierParameters;
 use std::{collections::VecDeque, sync::Arc};
 use ultraviolet::Vec3;
 

@@ -33,7 +33,8 @@ use ensnano_design::{
     SavingInformation, bezier_plane::BezierPathId, domains::Domain, group_attributes::GroupPivot,
 };
 use ensnano_exports::{ExportResult, ExportType};
-use ensnano_interactor::{
+use ensnano_organizer::tree::GroupId;
+use ensnano_utils::{
     DesignOperation, PastingStatus, SimulationState, StrandBuildingStatus, WidgetBasis,
     app_state_parameters::{
         AppStateParameters, check_xovers_parameter::CheckXoversParameter,
@@ -45,7 +46,6 @@ use ensnano_interactor::{
     surfaces::{RevolutionSurfaceRadius, UnrootedRevolutionSurfaceDescriptor},
     ui_size::UiSize,
 };
-use ensnano_organizer::tree::GroupId;
 use std::{
     path::PathBuf,
     sync::{Arc, RwLock},

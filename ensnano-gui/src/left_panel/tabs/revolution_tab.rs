@@ -6,7 +6,8 @@ use crate::{
     theme,
 };
 use ensnano_design::curves::torus::CurveDescriptor2D;
-use ensnano_interactor::{
+use ensnano_organizer::keyboard_priority::keyboard_priority;
+use ensnano_utils::{
     SimulationState,
     surfaces::{
         EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceRadius,
@@ -15,7 +16,6 @@ use ensnano_interactor::{
     },
     ui_size::UiSize,
 };
-use ensnano_organizer::keyboard_priority::keyboard_priority;
 use iced::{
     Alignment, Command, Length,
     widget::{

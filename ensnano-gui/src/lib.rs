@@ -32,7 +32,12 @@ use ensnano_design::{
     parameters::HelixParameters,
 };
 use ensnano_exports::ExportType;
-use ensnano_interactor::{
+use ensnano_organizer::{
+    keyboard_priority::PriorityRequest,
+    tree::{GroupId, OrganizerTree},
+};
+use ensnano_physics::parameters::RapierParameters;
+use ensnano_utils::{
     HyperboloidRequest, InsertionPoint, PastingStatus, RollRequest, ScaffoldInfo, SimulationState,
     StrandBuildingStatus, TEXTURE_FORMAT, WidgetBasis,
     app_state_parameters::{
@@ -49,11 +54,6 @@ use ensnano_interactor::{
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
     ui_size::UiSize,
 };
-use ensnano_organizer::{
-    keyboard_priority::PriorityRequest,
-    tree::{GroupId, OrganizerTree},
-};
-use ensnano_physics::parameters::RapierParameters;
 use iced::{
     Size,
     advanced::{clipboard, mouse, renderer},

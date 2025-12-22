@@ -1,7 +1,7 @@
 pub(crate) mod text_drawer;
 
 use ensnano_consts::{SAMPLE_COUNT, TEXTURE_BINDING_ID};
-use ensnano_interactor::{
+use ensnano_utils::{
     bindgroup_manager::DynamicBindGroup,
     text::{self, Letter},
     texture::Texture,

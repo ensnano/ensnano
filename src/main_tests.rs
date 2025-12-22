@@ -2,7 +2,7 @@
 
 use super::*;
 use ensnano_design::nucl::Nucl;
-use ensnano_interactor::graphics::DrawArea;
+use ensnano_utils::graphics::DrawArea;
 use winit::dpi::PhysicalPosition;
 
 struct DummyScene;
