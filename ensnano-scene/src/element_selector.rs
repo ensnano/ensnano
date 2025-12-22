@@ -5,11 +5,11 @@ use ensnano_design::{
     grid::{GridId, GridPosition},
 };
 use ensnano_interactor::{
+    buffer_dimensions::BufferDimensions,
     consts::widget_id_to_bezier,
     graphics::DrawArea,
     selection::{PhantomElement, phantom_helix_decoder},
 };
-use ensnano_utils::BufferDimensions;
 use num_enum::IntoPrimitive;
 use std::rc::Rc;
 use wgpu::{Device, Queue};

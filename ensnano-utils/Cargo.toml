@@ -15,5 +15,4 @@ bytemuck.workspace = true
 color_space.workspace = true
 rand.workspace = true
 ultraviolet.workspace = true
-wgpu.workspace = true
 winit.workspace = true

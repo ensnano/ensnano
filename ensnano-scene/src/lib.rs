@@ -24,6 +24,7 @@ use ensnano_interactor::{
     DesignOperation, NewBezierTangentVector, WidgetBasis,
     app_state_parameters::check_xovers_parameter::CheckXoversParameter,
     application::{AppId, Application, Camera3D, Notification},
+    buffer_dimensions::BufferDimensions,
     filename::derive_path_with_prefix_and_time_stamp_and_suffix,
     graphics::{DrawArea, FogParameters, PhySize},
     operation::{
@@ -39,7 +40,6 @@ use ensnano_interactor::{
     surfaces::UnrootedRevolutionSurfaceDescriptor,
 };
 use ensnano_organizer::tree::GroupId;
-use ensnano_utils::BufferDimensions;
 use itertools::Itertools as _;
 use maths_3d::FiniteVec3;
 use std::{

@@ -35,6 +35,7 @@ use ensnano_design::{consts::ITERATIVE_AXIS_ALGORITHM, nucl::Nucl};
 use ensnano_interactor::{
     DesignOperation, StrandBuildingStatus,
     application::{AppId, Application, Notification},
+    buffer_dimensions::BufferDimensions,
     filename::derive_path_with_prefix_and_time_stamp_and_suffix,
     graphics::{DrawArea, PhySize},
     operation::{CrossCut, Cut, Operation, Xover},
@@ -44,7 +45,6 @@ use ensnano_interactor::{
     },
     strand_builder::StrandBuilder,
 };
-use ensnano_utils::BufferDimensions;
 use itertools::Itertools as _;
 use std::{
     cell::RefCell,
