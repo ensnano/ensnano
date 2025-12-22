@@ -23,6 +23,7 @@ use ensnano_interactor::{
     DesignOperation, NewBezierTangentVector, WidgetBasis,
     app_state_parameters::check_xovers_parameter::CheckXoversParameter,
     application::{AppId, Application, Camera3D, Notification},
+    filename::derive_path_with_prefix_and_time_stamp_and_suffix,
     graphics::{DrawArea, FogParameters, PhySize},
     operation::{
         BezierControlPointTranslation, GridHelixCreation, GridRotation, GridTranslation,
@@ -37,7 +38,7 @@ use ensnano_interactor::{
     surfaces::UnrootedRevolutionSurfaceDescriptor,
 };
 use ensnano_organizer::tree::GroupId;
-use ensnano_utils::{BufferDimensions, filename};
+use ensnano_utils::BufferDimensions;
 use itertools::Itertools as _;
 use maths_3d::FiniteVec3;
 use std::{
@@ -929,7 +930,7 @@ impl<S: AppState> Scene<S> {
     }
 
     fn export_3d_png(&self, design_path: Option<Arc<Path>>) {
-        let path = filename::derive_path_with_prefix_and_time_stamp_and_suffix(
+        let path = derive_path_with_prefix_and_time_stamp_and_suffix(
             design_path,
             Some("export_3d"),
             Some(format!("{ITERATIVE_AXIS_ALGORITHM}").as_str()),
@@ -1055,7 +1056,7 @@ impl<S: AppState> Scene<S> {
     }
 
     fn export_stl(&self, design_path: Option<Arc<Path>>, app_state: &S) {
-        let path = filename::derive_path_with_prefix_and_time_stamp_and_suffix(
+        let path = derive_path_with_prefix_and_time_stamp_and_suffix(
             design_path,
             Some("export_stl"),
             Some(format!("{ITERATIVE_AXIS_ALGORITHM}").as_str()),
@@ -1073,7 +1074,7 @@ impl<S: AppState> Scene<S> {
     }
 
     fn export_nucleotides_positions(&self, design_path: Option<Arc<Path>>) {
-        let path = filename::derive_path_with_prefix_and_time_stamp_and_suffix(
+        let path = derive_path_with_prefix_and_time_stamp_and_suffix(
             design_path,
             Some("nucleotide_positions"),
             Some(format!("{ITERATIVE_AXIS_ALGORITHM}").as_str()),

@@ -14,7 +14,6 @@ ensnano_interactor.workspace = true # TODO: remove (only used for PhySize)
 
 ahash.workspace = true
 bytemuck.workspace = true
-chrono.workspace = true
 color_space.workspace = true
 fontdue.workspace = true
 gltf.workspace = true

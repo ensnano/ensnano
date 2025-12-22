@@ -1204,6 +1204,7 @@ dependencies = [
 name = "ensnano_interactor"
 version = "0.7.0"
 dependencies = [
+ "chrono",
  "ensnano_consts",
  "ensnano_design",
  "ensnano_organizer",
@@ -1269,7 +1270,6 @@ version = "0.7.0"
 dependencies = [
  "ahash 0.8.12",
  "bytemuck",
- "chrono",
  "color_space",
  "ensnano_consts",
  "ensnano_interactor",
