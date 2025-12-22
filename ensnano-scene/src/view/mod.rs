@@ -34,8 +34,13 @@ use ensnano_consts::{
 use ensnano_design::{
     grid::GridId, group_attributes::GroupPivot, helices::Axis, utils::ultraviolet::dvec_to_vec,
 };
-use ensnano_interactor::{graphics::{Background3D, DrawArea, FogParameters, HBondDisplay, PhySize, RenderingMode}, surfaces::UnrootedRevolutionSurfaceDescriptor, text::Letter};
-use ensnano_utils::{bindgroup_manager, texture};
+use ensnano_interactor::{
+    graphics::{Background3D, DrawArea, FogParameters, HBondDisplay, PhySize, RenderingMode},
+    surfaces::UnrootedRevolutionSurfaceDescriptor,
+    text::Letter,
+    texture::Texture,
+};
+use ensnano_utils::bindgroup_manager;
 use gltf_drawer::{ExternalObjects, Object3DDrawer};
 use grid::{GridInstance, GridIntersection, GridManager, GridTextures};
 use grid_disc::GridDisc;
@@ -46,7 +51,6 @@ use letter::LetterInstance;
 use rotation_widget::{RotationMode, RotationWidget, RotationWidgetDescriptor};
 use sheet_2d::Sheet2D;
 use std::{cell::RefCell, collections::BTreeMap, rc::Rc};
-use texture::Texture;
 use ultraviolet::{Mat4, Rotor3, Vec3};
 use uniforms::{Stereography, Uniforms};
 use wgpu::{Device, Queue, util::DeviceExt as _};

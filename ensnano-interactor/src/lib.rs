@@ -12,6 +12,7 @@ pub mod selection;
 pub mod strand_builder;
 pub mod surfaces;
 pub mod text;
+pub mod texture;
 pub mod torsion;
 pub mod ui_size;
 

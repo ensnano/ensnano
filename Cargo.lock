@@ -1274,7 +1274,6 @@ dependencies = [
  "bytemuck",
  "color_space",
  "ensnano_consts",
- "ensnano_interactor",
  "rand 0.8.5",
  "serde",
  "ultraviolet",

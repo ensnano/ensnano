@@ -10,7 +10,6 @@ workspace = true
 
 [dependencies]
 ensnano_consts.workspace = true
-ensnano_interactor.workspace = true # TODO: remove (only used for PhySize)
 
 bytemuck.workspace = true
 color_space.workspace = true

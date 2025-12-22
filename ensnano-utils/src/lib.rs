@@ -1,7 +1,6 @@
 pub mod bindgroup_manager;
 pub mod colors;
 pub mod instance;
-pub mod texture;
 
 use serde::{Deserialize, Serialize};
 use wgpu::util::{BufferInitDescriptor, DeviceExt as _};

@@ -1,4 +1,4 @@
-use ensnano_interactor::graphics::PhySize;
+use crate::graphics::PhySize;
 
 pub struct Texture {
     pub view: wgpu::TextureView,
@@ -11,7 +11,7 @@ pub struct SampledTexture {
 }
 
 impl Texture {
-    pub const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float; // 1.
+    pub const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;
 
     pub fn create_depth_texture(device: &wgpu::Device, size: &PhySize, sample_count: u32) -> Self {
         let size = wgpu::Extent3d {

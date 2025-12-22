@@ -19,11 +19,13 @@ use ahash::RandomState;
 use background::Background;
 use ensnano_consts::{CANDIDATE_COLOR, PRINTABLE_CHARS, SAMPLE_COUNT, SELECTED_COLOR};
 use ensnano_design::{helices::NuclCollection, nucl::Nucl};
-use ensnano_interactor::graphics::{DrawArea, PhySize};
+use ensnano_interactor::{
+    graphics::{DrawArea, PhySize},
+    texture::Texture,
+};
 use ensnano_utils::{
     Ndc,
     bindgroup_manager::{DynamicBindGroup, UniformBindGroup},
-    texture::Texture,
 };
 use helix_view::{HelixView, StrandView};
 use insertion::InsertionDrawer;

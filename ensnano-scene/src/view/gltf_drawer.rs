@@ -5,10 +5,10 @@ use ensnano_design::{
     external_3d_objects::{External3DObject, External3DObjectId},
     utils::ultraviolet::dvec_to_vec,
 };
-use ensnano_interactor::{TEXTURE_FORMAT, surfaces::UnrootedRevolutionSurfaceDescriptor};
-use ensnano_utils::{
-    colors::hsv_color, create_buffer_with_data, instance::Instance, texture::Texture,
+use ensnano_interactor::{
+    TEXTURE_FORMAT, surfaces::UnrootedRevolutionSurfaceDescriptor, texture::Texture,
 };
+use ensnano_utils::{colors::hsv_color, create_buffer_with_data, instance::Instance};
 use std::{
     collections::BTreeMap,
     f64::consts::TAU,

@@ -1,8 +1,11 @@
 pub(crate) mod text_drawer;
 
 use ensnano_consts::{SAMPLE_COUNT, TEXTURE_BINDING_ID};
-use ensnano_interactor::text::{self, Letter};
-use ensnano_utils::{bindgroup_manager::DynamicBindGroup, texture::Texture};
+use ensnano_interactor::{
+    text::{self, Letter},
+    texture::Texture,
+};
+use ensnano_utils::bindgroup_manager::DynamicBindGroup;
 use std::rc::Rc;
 use ultraviolet::{Mat2, Vec2, Vec4};
 use wgpu::{BindGroupLayout, Device, Queue, RenderPass, RenderPipeline, include_spirv};

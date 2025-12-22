@@ -19,9 +19,9 @@ use ensnano_interactor::{
     graphics::{DrawArea, GuiComponentType, PhySize, SplitMode},
     multiplexer::Multiplexer as GuiMultiplexer,
     selection::{ActionMode, SelectionMode},
+    texture::SampledTexture,
     ui_size::UiSize,
 };
-use ensnano_utils::texture::SampledTexture;
 use iced_wgpu::wgpu::Device;
 use layout_manager::{LayoutTree, PixelRegion};
 use std::{
