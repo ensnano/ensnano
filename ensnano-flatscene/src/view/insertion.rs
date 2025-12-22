@@ -1,9 +1,12 @@
 use ensnano_consts::SAMPLE_COUNT;
 use ensnano_utils::{bindgroup_manager::DynamicBindGroup, instance::Instance};
 use lyon::{
-    math::Point,
-    path::Path,
-    tessellation::{self, StrokeVertex, StrokeVertexConstructor},
+    math::point,
+    path::{LineCap, LineJoin, Path},
+    tessellation::{
+        BuffersBuilder, StrokeOptions, StrokeTessellator, StrokeVertex, StrokeVertexConstructor,
+        VertexBuffers,
+    },
 };
 use std::rc::Rc;
 use ultraviolet::{Mat2, Rotor2, Vec2};
@@ -135,30 +138,30 @@ impl InsertionInstance {
     }
 }
 
-type Vertices = tessellation::VertexBuffers<InsertionVertex, u16>;
+type Vertices = VertexBuffers<InsertionVertex, u16>;
 
 fn make_vertices() -> Vertices {
     let mut vertices = Vertices::new();
     let mut builder = Path::builder();
-    let origin = Point::new(0., 0.);
-    let left = Point::new(-1., 1.);
-    let right = Point::new(1., 1.);
+    let origin = point(0., 0.);
+    let left = point(-1., 1.);
+    let right = point(1., 1.);
 
     builder.begin(origin);
     builder.cubic_bezier_to(left, right, origin);
-    let mut stroke_tess = tessellation::StrokeTessellator::new();
+    let mut stroke_tess = StrokeTessellator::new();
 
     builder.end(false);
     let path = builder.build();
     stroke_tess
         .tessellate_path(
             &path,
-            &tessellation::StrokeOptions::tolerance(0.01)
-                .with_line_cap(tessellation::LineCap::Round)
-                .with_end_cap(tessellation::LineCap::Round)
-                .with_start_cap(tessellation::LineCap::Round)
-                .with_line_join(tessellation::LineJoin::Round),
-            &mut tessellation::BuffersBuilder::new(&mut vertices, InsertionVertexBuilder),
+            &StrokeOptions::tolerance(0.01)
+                .with_line_cap(LineCap::Round)
+                .with_end_cap(LineCap::Round)
+                .with_start_cap(LineCap::Round)
+                .with_line_join(LineJoin::Round),
+            &mut BuffersBuilder::new(&mut vertices, InsertionVertexBuilder),
         )
         .expect("Error during tessellation");
     vertices

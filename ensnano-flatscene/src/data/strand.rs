@@ -6,15 +6,18 @@ use crate::{
 };
 use ensnano_utils::instance::Instance;
 use lyon::{
-    math::Point,
-    path::{Path, path::BuilderWithAttributes},
-    tessellation::{self, StrokeVertex, StrokeVertexConstructor},
+    math::{Point, point},
+    path::{LineCap, LineJoin, Path, path::BuilderWithAttributes},
+    tessellation::{
+        BuffersBuilder, StrokeOptions, StrokeTessellator, StrokeVertex, StrokeVertexConstructor,
+        VertexBuffers,
+    },
 };
 use ultraviolet::Vec2;
 
-type Vertices = tessellation::VertexBuffers<StrandVertex, u16>;
+type Vertices = VertexBuffers<StrandVertex, u16>;
 
-macro_rules! point {
+macro_rules! vec2_to_point {
     ($point: ident) => {
         Point::new($point.x, $point.y)
     };
@@ -67,7 +70,7 @@ impl Strand {
             return (vertices, cross_split_vertices);
         }
         let color = self.get_path_color();
-        let mut stroke_tess = tessellation::StrokeTessellator::new();
+        let mut stroke_tess = StrokeTessellator::new();
 
         let filtered_free_end = FilteredFreeEnd::read(free_end, self.id);
         let mut strand_vertex_builder = StrandVertexBuilder::init(StrandVertexBuilderInitializer {
@@ -89,12 +92,12 @@ impl Strand {
         stroke_tess
             .tessellate_path(
                 &path,
-                &tessellation::StrokeOptions::tolerance(0.01)
-                    .with_line_cap(tessellation::LineCap::Round)
-                    .with_end_cap(tessellation::LineCap::Round)
-                    .with_start_cap(tessellation::LineCap::Round)
-                    .with_line_join(tessellation::LineJoin::Round),
-                &mut tessellation::BuffersBuilder::new(
+                &StrokeOptions::tolerance(0.01)
+                    .with_line_cap(LineCap::Round)
+                    .with_end_cap(LineCap::Round)
+                    .with_start_cap(LineCap::Round)
+                    .with_line_join(LineJoin::Round),
+                &mut BuffersBuilder::new(
                     &mut vertices,
                     WithAttributes {
                         color,
@@ -106,12 +109,12 @@ impl Strand {
         stroke_tess
             .tessellate_path(
                 &cross_split_path,
-                &tessellation::StrokeOptions::tolerance(0.01)
-                    .with_line_cap(tessellation::LineCap::Round)
-                    .with_end_cap(tessellation::LineCap::Round)
-                    .with_start_cap(tessellation::LineCap::Round)
-                    .with_line_join(tessellation::LineJoin::Round),
-                &mut tessellation::BuffersBuilder::new(
+                &StrokeOptions::tolerance(0.01)
+                    .with_line_cap(LineCap::Round)
+                    .with_end_cap(LineCap::Round)
+                    .with_start_cap(LineCap::Round)
+                    .with_line_join(LineJoin::Round),
+                &mut BuffersBuilder::new(
                     &mut cross_split_vertices,
                     WithAttributes {
                         color,
@@ -138,21 +141,21 @@ impl Strand {
         let start = helices[nucl1.helix].get_nucl_position(&nucl1, Shift::No);
         let end = helices[nucl2.helix].get_nucl_position(&nucl2, Shift::No);
 
-        builder.begin(Point::new(start.x, start.y), &[1e-4, 1.]);
-        builder.line_to(Point::new(end.x, end.y), &[1e-4, 1.]);
-        let mut stroke_tess = tessellation::StrokeTessellator::new();
+        builder.begin(point(start.x, start.y), &[1e-4, 1.]);
+        builder.line_to(point(end.x, end.y), &[1e-4, 1.]);
+        let mut stroke_tess = StrokeTessellator::new();
 
         builder.end(false);
         let path = builder.build();
         stroke_tess
             .tessellate_path(
                 &path,
-                &tessellation::StrokeOptions::tolerance(0.01)
-                    .with_line_cap(tessellation::LineCap::Round)
-                    .with_end_cap(tessellation::LineCap::Round)
-                    .with_start_cap(tessellation::LineCap::Round)
-                    .with_line_join(tessellation::LineJoin::Round),
-                &mut tessellation::BuffersBuilder::new(
+                &StrokeOptions::tolerance(0.01)
+                    .with_line_cap(LineCap::Round)
+                    .with_end_cap(LineCap::Round)
+                    .with_start_cap(LineCap::Round)
+                    .with_line_join(LineJoin::Round),
+                &mut BuffersBuilder::new(
                     &mut vertices,
                     WithAttributes {
                         color,
@@ -383,7 +386,7 @@ impl<'a> StrandVertexBuilder<'a> {
                 self.depth = depth;
                 self.start_drawing_on(self.last_point.expect("last point"));
                 self.main_path_builder
-                    .line_to(Point::new(position.x, position.y), attributes!(self));
+                    .line_to(point(position.x, position.y), attributes!(self));
                 self.last_point = Some(position);
             }
             DrawingInstruction::XoverTo {
@@ -399,9 +402,9 @@ impl<'a> StrandVertexBuilder<'a> {
                 {
                     self.stop_drawing();
                     self.split_cross_over_builder
-                        .begin(Point::new(from.x, from.y), &[self.depth, 5.0]);
+                        .begin(point(from.x, from.y), &[self.depth, 5.0]);
                     self.split_cross_over_builder
-                        .line_to(Point::new(to.x, to.y), &[self.depth, 5.0]);
+                        .line_to(point(to.x, to.y), &[self.depth, 5.0]);
                     self.split_cross_over_builder.end(false);
                 } else {
                     let origin = self.last_point.expect("last point");
@@ -440,9 +443,9 @@ impl<'a> StrandVertexBuilder<'a> {
         let control_2 = xover.target + (dist.sqrt() / 2.) * normal_2;
         let target = xover.target;
         self.main_path_builder.cubic_bezier_to(
-            point!(control_1),
-            point!(control_2),
-            point!(target),
+            vec2_to_point!(control_1),
+            vec2_to_point!(control_2),
+            vec2_to_point!(target),
             attributes!(self),
         );
     }
@@ -455,15 +458,15 @@ impl<'a> StrandVertexBuilder<'a> {
     fn draw_free_end(&mut self, from: Vec2, to: Vec2) {
         if let Some((from, to)) = self.alternative_positions(from, to) {
             self.split_cross_over_builder
-                .begin(Point::new(from.x, from.y), attributes!(self));
+                .begin(point(from.x, from.y), attributes!(self));
             self.split_cross_over_builder
-                .line_to(Point::new(to.x, to.y), attributes!(self));
+                .line_to(point(to.x, to.y), attributes!(self));
             self.split_cross_over_builder.end(false);
         } else {
             self.depth = 1e-4;
             self.start_drawing_on(from);
             self.main_path_builder
-                .line_to(point!(to), attributes!(self));
+                .line_to(vec2_to_point!(to), attributes!(self));
         }
     }
 
@@ -488,7 +491,8 @@ impl<'a> StrandVertexBuilder<'a> {
 
     fn start_drawing_on(&mut self, pos: Vec2) {
         if !self.main_builder_is_drawing {
-            self.main_path_builder.begin(point!(pos), attributes!(self));
+            self.main_path_builder
+                .begin(vec2_to_point!(pos), attributes!(self));
         }
         self.main_builder_is_drawing = true;
     }

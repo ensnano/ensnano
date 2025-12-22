@@ -70,7 +70,7 @@ image = "0.23"
 int-enum = "1.0.1"
 itertools = "0.10.3"
 log = "0.4"
-lyon = { git = "https://github.com/nical/lyon", rev = "ea6d904c6c9ec0445c5653c119a48c43ea76cee9" }
+lyon = "1.0"
 mathru = "0.13"
 nom_stl = "0.2.2"
 num = { version = "0.4", default-features = false }
