@@ -1162,6 +1162,7 @@ dependencies = [
  "ensnano_design",
  "ensnano_interactor",
  "ensnano_utils",
+ "fontdue",
  "futures",
  "futures-channel",
  "itertools",

@@ -1,7 +1,4 @@
 pub mod bindgroup_manager;
-pub mod camera2d;
-pub mod chars2d;
-pub mod circles2d;
 pub mod click_counter;
 pub mod colors;
 pub mod filename;

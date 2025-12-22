@@ -1,5 +1,5 @@
-use crate::{bindgroup_manager::DynamicBindGroup, texture::Texture};
 use ensnano_consts::SAMPLE_COUNT;
+use ensnano_utils::{bindgroup_manager::DynamicBindGroup, texture::Texture};
 use std::rc::Rc;
 use ultraviolet::Vec2;
 use wgpu::{BindGroupLayout, Device, Queue, RenderPass, RenderPipeline, include_spirv};
@@ -50,7 +50,7 @@ impl CircleInstance {
     }
 }
 
-pub struct CircleDrawer {
+pub(crate) struct CircleDrawer {
     device: Rc<Device>,
     /// A possible updates to the instances to be drawn. Must be taken into account before drawing
     /// next frame
@@ -63,13 +63,13 @@ pub struct CircleDrawer {
     pipeline: Option<RenderPipeline>,
 }
 
-pub enum CircleKind {
+pub(crate) enum CircleKind {
     FullCircle,
     RotationWidget,
 }
 
 impl CircleDrawer {
-    pub fn new(
+    pub(crate) fn new(
         device: Rc<Device>,
         queue: Rc<Queue>,
         globals_layout: &BindGroupLayout,
@@ -89,7 +89,7 @@ impl CircleDrawer {
         ret
     }
 
-    pub fn draw<'a>(&'a mut self, render_pass: &mut RenderPass<'a>) {
+    pub(crate) fn draw<'a>(&'a mut self, render_pass: &mut RenderPass<'a>) {
         self.update_instances();
         if self.number_instances > 0 {
             render_pass.set_pipeline(self.pipeline.as_ref().unwrap());
@@ -98,7 +98,7 @@ impl CircleDrawer {
         }
     }
 
-    pub fn new_instances(&mut self, instances: Rc<Vec<CircleInstance>>) {
+    pub(crate) fn new_instances(&mut self, instances: Rc<Vec<CircleInstance>>) {
         self.new_instances = Some(instances);
     }
 

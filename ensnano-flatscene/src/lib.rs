@@ -14,12 +14,19 @@
 //! 3. **world coordinates**: this is the absolute coordinate system in which elements are
 //!    positioned.
 
+mod camera2d;
+mod chars2d;
+mod circles2d;
 mod controller;
 pub mod data;
 mod flat_types;
 mod view;
 
-use crate::{data::design::FlatSceneDesignReaderExt, flat_types::FlatNucl};
+use self::{
+    camera2d::{Camera2D, FitRectangle},
+    data::design::FlatSceneDesignReaderExt,
+    flat_types::FlatNucl,
+};
 use controller::{Consequence, Controller};
 use data::Data;
 use ensnano_consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE};
@@ -36,9 +43,7 @@ use ensnano_interactor::{
     strand_builder::StrandBuilder,
 };
 use ensnano_utils::{
-    BufferDimensions,
-    camera2d::{self, Camera2D, FitRectangle},
-    filename::derive_path_with_prefix_and_time_stamp_and_suffix,
+    BufferDimensions, filename::derive_path_with_prefix_and_time_stamp_and_suffix,
 };
 use itertools::Itertools as _;
 use std::{

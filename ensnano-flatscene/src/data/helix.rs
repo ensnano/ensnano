@@ -1,5 +1,7 @@
 use crate::{
     CameraPtr,
+    chars2d::text_drawer::{Line, Sentence, TextDrawer},
+    circles2d::CircleInstance,
     data::design::Helix2d,
     flat_types::{Flat, FlatHelix, FlatHelixMaps, FlatNucl, FlatPosition, HelixSegment},
     view::{
@@ -17,12 +19,7 @@ use ensnano_design::{
     curves::time_nucl_map::AbscissaConverter as AbscissaConverter_, helices::NuclCollection,
     nucl::Nucl,
 };
-use ensnano_utils::{
-    chars2d::text_drawer::{Line, Sentence, TextDrawer},
-    circles2d::CircleInstance,
-    full_isometry::FullIsometry,
-    instance::Instance,
-};
+use ensnano_utils::{full_isometry::FullIsometry, instance::Instance};
 use lyon::{
     math::{Box2D, point},
     path::{Path, Winding, builder::BorderRadii},

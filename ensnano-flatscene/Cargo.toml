@@ -17,6 +17,7 @@ ensnano_utils.workspace = true
 ahash.workspace = true
 bytemuck.workspace = true
 color_space.workspace = true
+fontdue.workspace = true
 futures.workspace = true
 futures-channel.workspace = true
 itertools.workspace = true

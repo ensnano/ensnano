@@ -1,18 +1,18 @@
-pub mod text_drawer;
+pub(crate) mod text_drawer;
 
-use crate::{
+use ensnano_consts::{SAMPLE_COUNT, TEXTURE_BINDING_ID};
+use ensnano_utils::{
     bindgroup_manager::DynamicBindGroup,
     text::{Letter, Vertex as CharVertex},
     texture::Texture,
 };
-use ensnano_consts::{SAMPLE_COUNT, TEXTURE_BINDING_ID};
 use std::rc::Rc;
 use ultraviolet::{Mat2, Vec2, Vec4};
 use wgpu::{BindGroupLayout, Device, Queue, RenderPass, RenderPipeline, include_spirv};
 
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct CharInstance {
+pub(crate) struct CharInstance {
     /// The top left of the glyph's bounding box
     pub top_left: Vec2,
     pub rotation: Mat2,
@@ -21,7 +21,7 @@ pub struct CharInstance {
     pub color: Vec4,
 }
 
-pub struct CharDrawer {
+pub(crate) struct CharDrawer {
     device: Rc<Device>,
     /// A possible updates to the instances to be drawn. Must be taken into account before drawing
     /// next frame
@@ -36,7 +36,7 @@ pub struct CharDrawer {
 }
 
 impl CharDrawer {
-    pub fn new(
+    pub(crate) fn new(
         device: Rc<Device>,
         queue: Rc<Queue>,
         globals_layout: &BindGroupLayout,
@@ -65,7 +65,7 @@ impl CharDrawer {
         ret
     }
 
-    pub fn draw<'a>(&'a mut self, render_pass: &mut RenderPass<'a>) {
+    pub(crate) fn draw<'a>(&'a mut self, render_pass: &mut RenderPass<'a>) {
         self.update_instances();
         render_pass.set_pipeline(self.pipeline.as_ref().unwrap());
         render_pass.set_bind_group(1, self.instances_bg.get_bindgroup(), &[]);
@@ -74,7 +74,7 @@ impl CharDrawer {
         render_pass.draw(0..4, 0..self.number_instances as u32);
     }
 
-    pub fn new_instances(&mut self, instances: Rc<Vec<CharInstance>>) {
+    pub(crate) fn new_instances(&mut self, instances: Rc<Vec<CharInstance>>) {
         self.new_instances = Some(instances);
     }
 

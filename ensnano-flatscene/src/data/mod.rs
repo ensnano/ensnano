@@ -4,6 +4,7 @@ pub mod strand;
 
 use crate::{
     AppState, CameraPtr, Requests, ViewPtr,
+    camera2d::FitRectangle,
     data::{
         design::FlatSceneDesignReaderExt,
         helix::{Helix, HelixHandle},
@@ -24,7 +25,6 @@ use ensnano_interactor::{
     StrandBuildingStatus,
     selection::{PhantomElement, Selection, SelectionMode},
 };
-use ensnano_utils::camera2d::FitRectangle;
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap, HashSet},
     sync::{Arc, Mutex},

@@ -5,6 +5,9 @@ mod rectangle;
 
 use crate::{
     CameraPtr,
+    camera2d::Globals,
+    chars2d::text_drawer::TextDrawer,
+    circles2d::{CircleDrawer, CircleInstance, CircleKind},
     data::{
         design::FlatTorsion,
         helix::{CharCollector, GpuVertex, Helix, HelixModel, Shift},
@@ -20,9 +23,6 @@ use ensnano_interactor::graphics::{DrawArea, PhySize};
 use ensnano_utils::{
     Ndc,
     bindgroup_manager::{DynamicBindGroup, UniformBindGroup},
-    camera2d::Globals,
-    chars2d::text_drawer::TextDrawer,
-    circles2d::{CircleDrawer, CircleInstance, CircleKind},
     texture::Texture,
 };
 use helix_view::{HelixView, StrandView};
