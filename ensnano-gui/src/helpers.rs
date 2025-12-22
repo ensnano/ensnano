@@ -7,7 +7,7 @@ use crate::fonts::{
 use ensnano_iced::ui_size::UiSize;
 use iced::{
     Length,
-    alignment::{Alignment, Horizontal, Vertical},
+    alignment::{Alignment, Horizontal},
     widget::{Button, Image, Row, Space, Text, button, checkbox, image::Handle, row, text},
 };
 
@@ -52,22 +52,6 @@ pub(crate) fn material_icon<'a>(
         .size(ui_size.icon())
 }
 
-/// Return a text widget containing the rotation arrow.
-fn rotation_icon<'a>(i: usize, ui_size: UiSize) -> Text<'a> {
-    match i {
-        0 => material_icon(MaterialIcon::ArrowBack, MaterialIconStyle::Dark, ui_size),
-        1 => material_icon(MaterialIcon::ArrowForward, MaterialIconStyle::Dark, ui_size),
-        2 => material_icon(MaterialIcon::ArrowUpward, MaterialIconStyle::Dark, ui_size),
-        3 => material_icon(
-            MaterialIcon::ArrowDownward,
-            MaterialIconStyle::Dark,
-            ui_size,
-        ),
-        4 => material_icon(MaterialIcon::Undo, MaterialIconStyle::Dark, ui_size),
-        _ => material_icon(MaterialIcon::Redo, MaterialIconStyle::Dark, ui_size),
-    }
-}
-
 // === BUTTON FUNCTIONS ===
 
 // NOTE: It seems since iced 0.12 that giving a size to a button make the (text) content disappear,
@@ -76,14 +60,15 @@ fn rotation_icon<'a>(i: usize, ui_size: UiSize) -> Text<'a> {
 // NOTE: This wrapper ensures that every button has a consistent shape.
 macro_rules! button_text_wrapper {
     ($text:expr, $ui_size:ident) => {
-        button(
+        iced::widget::button(
             $text
                 .horizontal_alignment(Horizontal::Center)
-                .vertical_alignment(Vertical::Center),
+                .vertical_alignment(iced::alignment::Vertical::Center),
         )
         .padding($ui_size.button_pad())
     };
 }
+pub(crate) use button_text_wrapper;
 
 /// Return a text button.
 pub(crate) fn text_button<'a, Message>(
@@ -116,10 +101,6 @@ pub(crate) fn material_icon_button<'a, Message>(
     button_text_wrapper!(material_icon(icon, style, ui_size), ui_size)
         .height(ui_size.button())
         .width(ui_size.button())
-}
-
-pub(crate) fn rotation_icon_button<'a, Message>(i: usize, ui_size: UiSize) -> Button<'a, Message> {
-    button_text_wrapper!(rotation_icon(i, ui_size).height(ui_size.button()), ui_size)
 }
 
 /// A button containing an icon from the ENSNANO font.

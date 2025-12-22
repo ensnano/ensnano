@@ -1,8 +1,10 @@
+use std::f32::consts::PI;
+
 use crate::{
     AppState, CameraId,
     fonts::material_icons::{MaterialIcon, MaterialIconStyle},
     helpers::{
-        extra_jump, fixed_text_button, material_icon, material_icon_button, rotation_icon_button,
+        button_text_wrapper, extra_jump, fixed_text_button, material_icon, material_icon_button,
         section, subsection,
     },
     left_panel::Message,
@@ -32,6 +34,13 @@ impl NamedCameraPosition {
     /// Generate a message to set camera to desired position.
     fn message<State: AppState>(&self) -> Message<State> {
         Message::FixPoint(self.direction, self.up)
+    }
+
+    /// Turn a NamedCameraPosition into a button.
+    fn button<State: AppState>(&self, ui_size: UiSize) -> iced::Element<'_, Message<State>> {
+        fixed_text_button(self.name, 2.0, ui_size)
+            .on_press(self.message())
+            .into()
     }
 }
 
@@ -69,39 +78,49 @@ const PREDEFINED_CAMERA_ORIENTATION: [NamedCameraPosition; 6] = [
     },
 ];
 
-/// Turn a NamedCameraPosition into a button.
-fn named_camera_to_button<State: AppState>(
-    position: &NamedCameraPosition,
-    ui_size: UiSize,
-) -> iced::Element<'_, Message<State>> {
-    fixed_text_button(position.name, 2.0, ui_size)
-        .on_press(position.message())
-        .into()
+#[derive(Debug, Clone, Copy)]
+enum Rotation {
+    PositiveX,
+    NegativeX,
+    PositiveY,
+    NegativeY,
+    PositiveZ,
+    NegativeZ,
 }
 
-/// Generate the message that request rotation.
-fn rotation_message<State: AppState>(
-    i: usize,
-    _xz: isize,
-    _yz: isize,
-    _xy: isize,
-) -> Message<State> {
-    let angle_xz = match i {
-        0 => 15f32.to_radians(),
-        1 => -15f32.to_radians(),
-        _ => 0f32,
-    };
-    let angle_yz = match i {
-        2 => -15f32.to_radians(),
-        3 => 15f32.to_radians(),
-        _ => 0f32,
-    };
-    let angle_xy = match i {
-        4 => 15f32.to_radians(),
-        5 => -15f32.to_radians(),
-        _ => 0f32,
-    };
-    Message::RotateCam(angle_xz, angle_yz, angle_xy)
+impl Rotation {
+    /// Generate the message that request rotation.
+    fn message<State: AppState>(&self) -> Message<State> {
+        const ROTATION_AMOUNT: f32 = PI / 12.;
+        let (angle_x, angle_y, angle_z) = match self {
+            Self::PositiveX => (ROTATION_AMOUNT, 0., 0.),
+            Self::NegativeX => (-ROTATION_AMOUNT, 0., 0.),
+            Self::PositiveY => (0., ROTATION_AMOUNT, 0.),
+            Self::NegativeY => (0., -ROTATION_AMOUNT, 0.),
+            Self::PositiveZ => (0., 0., ROTATION_AMOUNT),
+            Self::NegativeZ => (0., 0., -ROTATION_AMOUNT),
+        };
+        // TODO: x, y, z
+        Message::RotateCam(angle_y, angle_x, angle_z)
+    }
+
+    fn button<'a, State: AppState>(self, ui_size: UiSize) -> iced::Element<'a, Message<State>> {
+        let icon = match self {
+            Self::NegativeY => MaterialIcon::ArrowBack,
+            Self::PositiveY => MaterialIcon::ArrowForward,
+            Self::NegativeX => MaterialIcon::ArrowUpward,
+            Self::PositiveX => MaterialIcon::ArrowDownward,
+            Self::NegativeZ => MaterialIcon::Undo,
+            Self::PositiveZ => MaterialIcon::Redo,
+        };
+
+        button_text_wrapper!(
+            material_icon(icon, MaterialIconStyle::Dark, ui_size).height(ui_size.button()),
+            ui_size
+        )
+        .on_press(self.message())
+        .into()
+    }
 }
 
 // Custom camera editor.
@@ -238,70 +257,44 @@ impl CameraShortcutPanel {
         Command::none()
     }
 
-    pub fn view<State: AppState>(
-        &self,
-        ui_size: UiSize,
-        _state: &State,
-    ) -> iced::Element<'_, Message<State>> {
-        //let (ui_size, _) = state;
-        //let ui_size = ui_size.to_owned();
+    pub fn view<State: AppState>(&self, ui_size: UiSize) -> iced::Element<'_, Message<State>> {
+        const ROTATION_GRID: [[Rotation; 3]; 2] = [
+            [
+                Rotation::NegativeZ,
+                Rotation::NegativeX,
+                Rotation::PositiveZ,
+            ],
+            [
+                Rotation::NegativeY,
+                Rotation::PositiveX,
+                Rotation::PositiveY,
+            ],
+        ];
 
-        // Create button widget for each predefined target.
-
-        let rotate_buttons: Column<Message<State>> = self::column![
-            row(IntoIterator::into_iter([4, 2, 5]).map(|i| {
-                rotation_icon_button(i, ui_size)
-                    .on_press(rotation_message(i, self.xz, self.yz, self.xy))
-                    .into()
-            }))
-            .spacing(ui_size.button_spacing()),
-            row(IntoIterator::into_iter([0, 3, 1]).map(|i| {
-                rotation_icon_button(i, ui_size)
-                    .on_press(rotation_message(i, self.xz, self.yz, self.xy))
-                    .into()
-            }))
-            .spacing(ui_size.button_spacing()),
-        ]
-        .spacing(ui_size.button_spacing());
-
-        //let mut ret = Column::new();
-        //while rotate_buttons.len() > 0 {
-        //    let mut row = Row::new();
-        //    row = row.push(rotate_buttons.remove(0)).spacing(5);
-        //    let mut space = ui_size.button() + 5;
-        //    while space + ui_size.button() < width && rotate_buttons.len() > 0 {
-        //        row = row.push(rotate_buttons.remove(0)).spacing(5);
-        //        space += ui_size.button() + 5;
-        //    }
-        //    ret = ret.spacing(5).push(row)
-        //}
-        // TODO: Reimplement this with:
-        //  https://docs.rs/iced/latest/iced/advanced/layout/flex/index.html
-
-        let content = self::column![
-            self::column![
+        let content = column![
+            column![
                 section("Camera", ui_size),
                 Space::with_width(ui_size.button_spacing()),
                 // add_target_buttons!
-                self::column![
+                column![
                     subsection("Fixed", ui_size)
                         .height(ui_size.button())
                         .horizontal_alignment(Horizontal::Center),
                     extra_jump(),
                     row![
-                        self::column![
-                            named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[0], ui_size),
-                            named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[1], ui_size),
+                        column![
+                            PREDEFINED_CAMERA_ORIENTATION[0].button(ui_size),
+                            PREDEFINED_CAMERA_ORIENTATION[1].button(ui_size),
                         ]
                         .spacing(ui_size.button_spacing()),
-                        self::column![
-                            named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[2], ui_size),
-                            named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[3], ui_size),
+                        column![
+                            PREDEFINED_CAMERA_ORIENTATION[2].button(ui_size),
+                            PREDEFINED_CAMERA_ORIENTATION[3].button(ui_size),
                         ]
                         .spacing(ui_size.button_spacing()),
-                        self::column![
-                            named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[4], ui_size),
-                            named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[5], ui_size),
+                        column![
+                            PREDEFINED_CAMERA_ORIENTATION[4].button(ui_size),
+                            PREDEFINED_CAMERA_ORIENTATION[5].button(ui_size),
                         ]
                         .spacing(ui_size.button_spacing()),
                     ]
@@ -311,21 +304,26 @@ impl CameraShortcutPanel {
                 Space::with_height(2.0 * ui_size.button_spacing()),
                 row![
                     // add_rotate_buttons!
-                    self::column![
+                    column![
                         subsection("Rotation", ui_size)
                             .height(ui_size.button())
                             .horizontal_alignment(Horizontal::Center),
                         extra_jump(),
-                        rotate_buttons,
+                        column(ROTATION_GRID.iter().map(|rotation_row| {
+                            row(rotation_row.iter().map(|rotation| rotation.button(ui_size)))
+                                .spacing(ui_size.button_spacing())
+                                .into()
+                        }))
+                        .spacing(ui_size.button_spacing()),
                     ]
                     .align_items(Alignment::Center),
                     Space::with_width(2.0 * ui_size.button_spacing()),
                     // add_screenshot_button!
-                    self::column![
+                    column![
                         material_icon(MaterialIcon::PhotoCamera, MaterialIconStyle::Dark, ui_size)
                             .height(ui_size.button()),
                         extra_jump(),
-                        self::column![
+                        column![
                             fixed_text_button("2D", 1.0, ui_size).on_press(Message::ScreenShot2D),
                             fixed_text_button("3D", 1.0, ui_size).on_press(Message::ScreenShot3D),
                         ]
@@ -335,10 +333,10 @@ impl CameraShortcutPanel {
                     Space::with_width(2.0 * ui_size.button_spacing()),
                     // add_stl_export_button!
                     // add_nucleotides_positions_export_button!
-                    self::column![
+                    column![
                         Space::with_height(ui_size.button()),
                         extra_jump(),
-                        self::column![
+                        column![
                             fixed_text_button("STL", 2.0, ui_size).on_press(Message::StlExport),
                             fixed_text_button("Nucl", 2.0, ui_size)
                                 .on_press(Message::SaveNucleotidesPositions),

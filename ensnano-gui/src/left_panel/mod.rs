@@ -1133,9 +1133,7 @@ where
         // NOTE: The style, height and width values are necessary to clear the tab when
         //       switching to a new tab.
         //
-        let camera_shortcut = self
-            .camera_shortcut
-            .view(self.ui_size, &self.application_state);
+        let camera_shortcut = self.camera_shortcut.view(self.ui_size);
         let contextual_menu = self
             .contextual_panel
             .view(self.ui_size, &self.application_state);
