@@ -258,7 +258,7 @@ unused_self = "allow" # TODO: warn (weird that we have 64 occurrences)
 
 # restriction
 allow_attributes_without_reason = "allow"
-arbitrary_source_item_ordering = "allow" # TODO: warn (requires some thought and configuration)
+arbitrary_source_item_ordering = "allow"
 arithmetic_side_effects = "allow"
 as_conversions = "allow"
 as_underscore = "allow"
@@ -290,7 +290,6 @@ missing_trait_methods = "allow"
 mod_module_files = "allow"
 module_name_repetitions = "allow"
 modulo_arithmetic = "allow"
-multiple_inherent_impl = "allow" # TODO: warn once clippy 1.92 gets out
 non_ascii_literal = "allow"
 panic = "allow" # TODO: warn (use assert!, todo!, unreachable! or proper error handling)
 partial_pub_fields = "allow"

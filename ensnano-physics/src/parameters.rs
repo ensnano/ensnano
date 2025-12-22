@@ -18,6 +18,24 @@ pub struct RapierParameters {
 }
 
 impl RapierParameters {
+    const DEFAULT: Self = Self {
+        is_simulation_running: false,
+        simulation_type: RapierSimulationType::Full,
+        k_cut_threshold: 8,
+        linear_damping: 0.06,
+        angular_damping: 0.6,
+        interbase_spring_stiffness: 100.0,
+        interbase_spring_damping: 10.0,
+        crossover_stiffness: 100.0,
+        crossover_damping: 50.0,
+        crossover_rest_length: 0.68,
+        free_nucleotide_stiffness: 80.0,
+        free_nucleotide_damping: 40.0,
+        free_nucleotide_rest_length: 0.7,
+        repulsion_strength: 0.2,
+        repulsion_range: 1.3,
+    };
+
     pub fn parameters_array(&self) -> [f32; 12] {
         [
             self.linear_damping,
@@ -70,26 +88,6 @@ impl std::fmt::Display for RapierSimulationType {
             Self::KCut => "KCut",
         })
     }
-}
-
-impl RapierParameters {
-    const DEFAULT: Self = Self {
-        is_simulation_running: false,
-        simulation_type: RapierSimulationType::Full,
-        k_cut_threshold: 8,
-        linear_damping: 0.06,
-        angular_damping: 0.6,
-        interbase_spring_stiffness: 100.0,
-        interbase_spring_damping: 10.0,
-        crossover_stiffness: 100.0,
-        crossover_damping: 50.0,
-        crossover_rest_length: 0.68,
-        free_nucleotide_stiffness: 80.0,
-        free_nucleotide_damping: 40.0,
-        free_nucleotide_rest_length: 0.7,
-        repulsion_strength: 0.2,
-        repulsion_range: 1.3,
-    };
 }
 
 impl Default for RapierParameters {
