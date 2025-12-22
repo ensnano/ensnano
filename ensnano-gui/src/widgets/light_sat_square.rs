@@ -20,7 +20,7 @@ const DEFAULT_SIZE: f32 = 360.0;
 
 /// The internal state of a [LightSatSquare].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub struct LightSatState {
+pub(crate) struct LightSatState {
     is_dragging: bool,
 }
 

@@ -5,6 +5,7 @@
 //! other components of the program it is forwarded to the `main` function via the
 //! [Request](Requests) data structure.
 
+mod color_picker;
 mod consts;
 pub mod fonts;
 mod helpers;
@@ -13,6 +14,7 @@ pub mod left_panel;
 pub mod status_bar;
 pub mod theme;
 pub mod top_bar;
+mod widgets;
 
 use crate::{
     fonts::{INTER_REGULAR_FONT, load_fonts},

@@ -20,7 +20,7 @@ const DEFAULT_SIZE: f32 = 90.0;
 
 /// The internal state of a [`HueRow`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub struct State {
+pub(crate) struct State {
     is_dragging: bool,
 }
 

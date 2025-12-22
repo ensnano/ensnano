@@ -1,11 +1,11 @@
 //! A slider to choose a numerical value within a discrete linear range.
 
-// TODO: Make it an independent object like ensnano_iced::color_picker ?
+// TODO: Make it an independent object like ensnano_gui::color_picker ?
 
-use crate::{AppState, left_panel::Message, theme};
+use crate::{left_panel::Message, theme, AppState};
 use iced::{
+    widget::{button, row, slider, text, Space},
     Alignment, Length, Pixels,
-    widget::{Space, button, row, slider, text},
 };
 use std::collections::BTreeMap;
 

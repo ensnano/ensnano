@@ -19,7 +19,7 @@ const DEFAULT_SIZE: f32 = 90.0;
 
 /// The State of a [ColorSquare]
 #[derive(Default, Clone, Eq, PartialEq)]
-pub struct ColorSquareState {
+pub(crate) struct ColorSquareState {
     clicked: bool,
 }
 

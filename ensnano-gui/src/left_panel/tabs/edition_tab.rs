@@ -1,5 +1,6 @@
 use crate::{
     AppState,
+    color_picker::{ColorPicker, ColorPickerMessage},
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
     left_panel::{
@@ -9,7 +10,6 @@ use crate::{
     },
 };
 use ensnano_design::elements::DesignElementKey;
-use ensnano_iced::color_picker::{ColorPicker, ColorPickerMessage};
 use ensnano_interactor::{RollRequest, selection::extract_strands_from_selection, ui_size::UiSize};
 use iced::{
     Command,

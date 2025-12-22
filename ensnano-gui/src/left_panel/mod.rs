@@ -4,6 +4,7 @@ mod discrete_value;
 mod export_menu;
 pub mod tabs;
 
+use crate::color_picker::ColorPickerMessage;
 use crate::{
     AppState, OverlayType, Requests,
     fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
@@ -27,7 +28,6 @@ use ensnano_design::{
     parameters::NamedParameter,
 };
 use ensnano_exports::ExportType;
-use ensnano_iced::color_picker::ColorPickerMessage;
 use ensnano_interactor::{
     HyperboloidRequest,
     app_state_parameters::{

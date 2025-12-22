@@ -32,8 +32,6 @@ pub enum ColorPickerMessage {
     ColorPicked(Color),
     FinishChangingColor,
 }
-// Local alias
-type Message = ColorPickerMessage;
 
 fn hsv_to_color(hsv: Hsv) -> Color {
     let Rgb { r, g, b } = Rgb::from(hsv);
@@ -50,13 +48,13 @@ fn color_to_hsv(color: Color) -> Hsv {
 }
 
 /// Helper function to create color squares.
-fn color_square<'a>(color: Color) -> ColorSquare<'a, Message> {
+fn color_square<'a>(color: Color) -> ColorSquare<'a, ColorPickerMessage> {
     ColorSquare::new(color)
-        .on_click(Message::ColorPicked)
-        .on_release(Message::FinishChangingColor)
+        .on_click(ColorPickerMessage::ColorPicked)
+        .on_release(ColorPickerMessage::FinishChangingColor)
 }
 
-pub struct ColorPicker {
+pub(crate) struct ColorPicker {
     size: f32,
     current_color: Hsv,
     color_history: VecDeque<Color>,
@@ -65,7 +63,7 @@ pub struct ColorPicker {
 }
 
 impl ColorPicker {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             size: DEFAULT_SIZE,
             current_color: Hsv {
@@ -81,11 +79,11 @@ impl ColorPicker {
         2 * (FACTOR - 2)
     }
 
-    pub fn current_color(&self) -> Color {
+    pub(crate) fn current_color(&self) -> Color {
         hsv_to_color(self.current_color)
     }
 
-    pub fn current_hue(&self) -> f64 {
+    pub(crate) fn current_hue(&self) -> f64 {
         self.current_color.h
     }
 
@@ -96,11 +94,11 @@ impl ColorPicker {
         }
     }
 
-    pub fn update(&mut self, message: Message) {
+    pub(crate) fn update(&mut self, message: ColorPickerMessage) {
         // TODO: Managed color_square internally
         match message {
             // HueColumn message
-            Message::HueChanged(hue) => {
+            ColorPickerMessage::HueChanged(hue) => {
                 self.current_color = Hsv {
                     h: hue,
                     ..self.current_color
@@ -108,7 +106,7 @@ impl ColorPicker {
                 //self.update_color();
             }
             // HsvSat square message
-            Message::HsvSatValueChanged(saturation, value) => {
+            ColorPickerMessage::HsvSatValueChanged(saturation, value) => {
                 self.current_color = Hsv {
                     s: saturation,
                     v: value,
@@ -117,24 +115,24 @@ impl ColorPicker {
                 //self.update_color();
             }
             // Color square message
-            Message::ColorPicked(color) => {
+            ColorPickerMessage::ColorPicked(color) => {
                 self.current_color = color_to_hsv(color);
             }
-            Message::FinishChangingColor => {
+            ColorPickerMessage::FinishChangingColor => {
                 self.add_color_to_history(self.current_color());
             }
         }
     }
 
-    pub fn view(&self) -> iced::Element<'_, Message> {
+    pub(crate) fn view(&self) -> iced::Element<'_, ColorPickerMessage> {
         column![
             HueRow::new()
-                .on_slide(Message::HueChanged)
+                .on_slide(ColorPickerMessage::HueChanged)
                 .height(Length::Fixed(self.size))
                 .width(Length::Fixed(FACTOR as f32 * self.size)),
             LightSatSquare::new(self.current_hue())
-                .on_slide(Message::HsvSatValueChanged)
-                .on_finish(Message::FinishChangingColor)
+                .on_slide(ColorPickerMessage::HsvSatValueChanged)
+                .on_finish(ColorPickerMessage::FinishChangingColor)
                 .height(Length::Fixed(FACTOR as f32 * self.size))
                 .width(Length::Fixed(FACTOR as f32 * self.size)),
             row![
@@ -149,7 +147,7 @@ impl ColorPicker {
         .into()
     }
 
-    fn view_color_history(&self) -> iced::Element<'_, Message> {
+    fn view_color_history(&self) -> iced::Element<'_, ColorPickerMessage> {
         let mut color_squares = self.color_history.iter().map(|c| {
             color_square(c.to_owned())
                 .height(Length::Fixed(self.size - GAP))
