@@ -5,8 +5,8 @@ use crate::{
 };
 use ensnano_consts::ICON_ATGC;
 use ensnano_design::elements::DesignElementKey;
-use ensnano_iced::{theme, ui_size::UiSize};
-use ensnano_interactor::StandardSequence;
+use ensnano_iced::theme;
+use ensnano_interactor::{StandardSequence, ui_size::UiSize};
 use ensnano_organizer::keyboard_priority::keyboard_priority;
 use iced::{
     Length,

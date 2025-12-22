@@ -33,7 +33,6 @@ use ensnano_design::{
     SavingInformation, bezier_plane::BezierPathId, domains::Domain, group_attributes::GroupPivot,
 };
 use ensnano_exports::{ExportResult, ExportType};
-use ensnano_iced::ui_size::UiSize;
 use ensnano_interactor::{
     DesignOperation, PastingStatus, SimulationState, StrandBuildingStatus, WidgetBasis,
     app_state_parameters::{
@@ -44,6 +43,7 @@ use ensnano_interactor::{
     operation::Operation,
     selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
     surfaces::{RevolutionSurfaceRadius, UnrootedRevolutionSurfaceDescriptor},
+    ui_size::UiSize,
 };
 use ensnano_organizer::tree::GroupId;
 use std::{

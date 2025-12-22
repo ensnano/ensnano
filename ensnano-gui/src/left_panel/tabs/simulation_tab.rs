@@ -8,8 +8,8 @@ use crate::{
     },
 };
 use ensnano_consts::ICON_PHYSICAL_ENGINE;
-use ensnano_iced::{theme::BadValue, ui_size::UiSize};
-use ensnano_interactor::{RollRequest, SimulationState};
+use ensnano_iced::theme::BadValue;
+use ensnano_interactor::{RollRequest, SimulationState, ui_size::UiSize};
 use ensnano_organizer::keyboard_priority::keyboard_priority;
 use ensnano_physics::parameters::{RapierParameters, RapierSimulationType};
 use iced::{

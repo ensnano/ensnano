@@ -11,7 +11,6 @@ workspace = true
 [dependencies]
 ensnano_consts.workspace = true
 ensnano_design.workspace = true
-ensnano_iced.workspace = true
 ensnano_organizer.workspace = true
 
 log.workspace = true

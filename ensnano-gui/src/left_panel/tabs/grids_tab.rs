@@ -10,8 +10,7 @@ use crate::{
 };
 use ensnano_consts::{ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID};
 use ensnano_design::grid::GridTypeDescr;
-use ensnano_iced::ui_size::UiSize;
-use ensnano_interactor::HyperboloidRequest;
+use ensnano_interactor::{HyperboloidRequest, ui_size::UiSize};
 use iced::{
     Length,
     widget::{Column, column, row, scrollable, text, tooltip},

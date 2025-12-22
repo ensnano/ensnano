@@ -9,7 +9,7 @@ use crate::{
     },
 };
 use ensnano_design::{ensnano_version, parameters::NAMED_DNA_PARAMETERS};
-use ensnano_iced::ui_size::{ALL_UI_SIZES, UiSize};
+use ensnano_interactor::ui_size::{ALL_UI_SIZES, UiSize};
 use iced::widget::{column, pick_list, scrollable, text};
 use iced_aw::TabLabel;
 use std::marker::PhantomData;

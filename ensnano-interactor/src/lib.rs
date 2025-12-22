@@ -11,6 +11,7 @@ pub mod selection;
 pub mod strand_builder;
 pub mod surfaces;
 pub mod torsion;
+pub mod ui_size;
 
 use ensnano_design::{
     CameraId,

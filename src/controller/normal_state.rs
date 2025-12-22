@@ -25,7 +25,7 @@ use ensnano_design::{
 };
 use ensnano_exports::ExportType;
 use ensnano_gui::OverlayType;
-use ensnano_iced::ui_size::UiSize;
+use ensnano_interactor::ui_size::UiSize;
 use ensnano_interactor::{
     DesignOperation, HyperboloidOperation, HyperboloidRequest, RigidBodyConstants, RollRequest,
     application::Notification,

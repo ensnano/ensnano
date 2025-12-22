@@ -10,10 +10,11 @@ use ensnano_consts::{
     MOVE_CHAR, NUCL_CHAR, R_CLICK, ROT_CHAR, SELECT_CHAR, SHIFT, STRAND_CHAR, SUPPR_CHAR,
 };
 use ensnano_design::{bezier_plane::BezierVertexId, grid::GridId};
-use ensnano_iced::{theme, ui_size::UiSize};
+use ensnano_iced::theme;
 use ensnano_interactor::{
     SimulationState,
     selection::{ActionMode, Selection},
+    ui_size::UiSize,
 };
 use ensnano_organizer::keyboard_priority::keyboard_priority;
 use iced::{

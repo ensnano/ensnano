@@ -15,4 +15,3 @@ iced_aw.workspace = true
 iced_graphics.workspace = true
 iced_wgpu.workspace = true
 log.workspace = true
-serde.workspace = true

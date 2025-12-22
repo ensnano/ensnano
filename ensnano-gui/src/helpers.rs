@@ -4,7 +4,7 @@ use crate::fonts::{
         MATERIAL_ICONS_DARK, MATERIAL_ICONS_LIGHT, MaterialIcon, MaterialIconStyle, icon_to_char,
     },
 };
-use ensnano_iced::ui_size::UiSize;
+use ensnano_interactor::ui_size::UiSize;
 use iced::{
     Length,
     alignment::{Alignment, Horizontal},

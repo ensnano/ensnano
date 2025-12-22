@@ -1244,7 +1244,6 @@ dependencies = [
  "iced_graphics",
  "iced_wgpu",
  "log",
- "serde",
 ]
 
 [[package]]
@@ -1253,7 +1252,6 @@ version = "0.7.0"
 dependencies = [
  "ensnano_consts",
  "ensnano_design",
- "ensnano_iced",
  "ensnano_organizer",
  "log",
  "num",

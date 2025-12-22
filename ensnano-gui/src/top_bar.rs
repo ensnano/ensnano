@@ -14,10 +14,11 @@ use crate::{
     helpers::{fixed_text_button, image_button, material_icon_button, text_button},
     icon::{HasIcon as _, HasIconDependentOnAxis as _},
 };
-use ensnano_iced::{theme::GuiBackground, ui_size::UiSize};
+use ensnano_iced::theme::GuiBackground;
 use ensnano_interactor::{
     graphics::SplitMode,
     selection::{ActionMode, SelectionMode},
+    ui_size::UiSize,
 };
 use iced::{
     Element, Length, Padding, theme,

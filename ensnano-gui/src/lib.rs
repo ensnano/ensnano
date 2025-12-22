@@ -29,7 +29,6 @@ use ensnano_design::{
     parameters::HelixParameters,
 };
 use ensnano_exports::ExportType;
-use ensnano_iced::ui_size::UiSize;
 use ensnano_interactor::{
     HyperboloidRequest, InsertionPoint, PastingStatus, RollRequest, ScaffoldInfo, SimulationState,
     StrandBuildingStatus, WidgetBasis,
@@ -45,6 +44,7 @@ use ensnano_interactor::{
     operation::Operation,
     selection::{ActionMode, Selection, SelectionMode},
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
+    ui_size::UiSize,
 };
 use ensnano_organizer::{
     keyboard_priority::PriorityRequest,

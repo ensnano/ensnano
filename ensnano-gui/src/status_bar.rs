@@ -1,6 +1,8 @@
 use crate::{AppState, Requests};
-use ensnano_iced::{theme::GuiBackground, ui_size::UiSize};
-use ensnano_interactor::{PastingStatus, StrandBuildingStatus, operation::Operation};
+use ensnano_iced::theme::GuiBackground;
+use ensnano_interactor::{
+    PastingStatus, StrandBuildingStatus, operation::Operation, ui_size::UiSize,
+};
 use ensnano_organizer::keyboard_priority::{PriorityRequest, keyboard_priority};
 use iced::{
     Alignment, Color, Element, Length,

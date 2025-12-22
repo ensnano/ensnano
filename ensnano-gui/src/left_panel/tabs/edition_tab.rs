@@ -9,11 +9,8 @@ use crate::{
     },
 };
 use ensnano_design::elements::DesignElementKey;
-use ensnano_iced::{
-    color_picker::{ColorPicker, ColorPickerMessage},
-    ui_size::UiSize,
-};
-use ensnano_interactor::{RollRequest, selection::extract_strands_from_selection};
+use ensnano_iced::color_picker::{ColorPicker, ColorPickerMessage};
+use ensnano_interactor::{RollRequest, selection::extract_strands_from_selection, ui_size::UiSize};
 use iced::{
     Command,
     widget::{column, row, scrollable},

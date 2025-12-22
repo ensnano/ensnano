@@ -104,7 +104,7 @@ use ensnano_gui::{
     fonts::{INTER_REGULAR_FONT, load_fonts},
     left_panel::ColorOverlay,
 };
-use ensnano_iced::{theme, ui_size::UiSize};
+use ensnano_iced::theme;
 use ensnano_interactor::{
     DesignOperation, DesignRotation, DesignTranslation, IsometryTarget, PastingStatus,
     RigidBodyConstants,
@@ -122,6 +122,7 @@ use ensnano_interactor::{
         list_of_xover_as_nucl_pairs,
     },
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
+    ui_size::UiSize,
 };
 use ensnano_organizer::{keyboard_priority::KeyboardPriorityId, tree::GroupId};
 use ensnano_physics::parameters::RapierParameters;

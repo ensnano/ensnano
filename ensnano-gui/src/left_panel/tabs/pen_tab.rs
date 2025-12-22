@@ -6,7 +6,7 @@ use crate::{
 };
 use ensnano_consts::{ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID};
 use ensnano_design::grid::GridTypeDescr;
-use ensnano_iced::ui_size::UiSize;
+use ensnano_interactor::ui_size::UiSize;
 use iced::widget::{checkbox, column, row, text};
 use iced_aw::TabLabel;
 use std::marker::PhantomData;

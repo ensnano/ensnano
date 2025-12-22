@@ -4,13 +4,14 @@ use crate::{
     helpers::{extra_jump, right_checkbox, section, subsection, text_button},
     left_panel::{Message, tabs::GuiTab},
 };
-use ensnano_iced::{theme, ui_size::UiSize};
+use ensnano_iced::theme;
 use ensnano_interactor::{
     app_state_parameters::{AppStateParameters, check_xovers_parameter::CheckXoversParameter},
     graphics::{
         ALL_BACKGROUND3D, ALL_RENDERING_MODE, Background3D, FogParameters, HBondDisplay,
         RenderingMode, fog_kind,
     },
+    ui_size::UiSize,
 };
 use iced::{
     Alignment, Length,

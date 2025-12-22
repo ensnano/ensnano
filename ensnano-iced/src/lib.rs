@@ -5,5 +5,4 @@
 
 pub mod color_picker;
 pub mod theme;
-pub mod ui_size;
 pub mod widgets;
