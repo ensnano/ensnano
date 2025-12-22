@@ -22,9 +22,9 @@ use ensnano_design::{
 };
 use ensnano_interactor::{
     consts::{bezier_control_color, bezier_widget_id},
+    instance::Instance,
     selection::Selection,
 };
-use ensnano_utils::instance::Instance;
 use ultraviolet::{Rotor3, Vec2, Vec3};
 
 impl<R: SceneDesignReaderExt> Design3D<R> {

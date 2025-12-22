@@ -23,9 +23,9 @@ use ensnano_interactor::{
     app_state_parameters::suggestion_parameters::SuggestionParameters,
     colors::purple_to_blue_gradient_color_in_range,
     graphics::{LoopoutBond, LoopoutNucl},
+    instance::Instance,
 };
 use ensnano_scene::{data::design3d::Scalebar, view::grid::GridInstance};
-use ensnano_utils::instance::Instance;
 use serde::Serialize;
 use std::{
     borrow::Cow,

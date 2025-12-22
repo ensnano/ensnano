@@ -4,7 +4,7 @@ use crate::{
     flat_types::FlatNucl,
     view::insertion::InsertionInstance,
 };
-use ensnano_utils::instance::Instance;
+use ensnano_interactor::instance::Instance;
 use lyon::{
     math::{Point, point},
     path::{LineCap, LineJoin, Path, path::BuilderWithAttributes},

@@ -45,12 +45,12 @@ use ensnano_interactor::{
     ObjectType, Referential,
     colors::{new_color, purple_to_blue_gradient_color_in_range},
     graphics::{LoopoutBond, LoopoutNucl},
+    instance::Instance,
     selection::{
         InteractorDesignReaderExt, PHANTOM_RANGE, PhantomElement, phantom_helix_encoder_bond,
         phantom_helix_encoder_nucl,
     },
 };
-use ensnano_utils::instance::Instance;
 use std::{
     collections::{BTreeMap, HashMap, HashSet, hash_map::RandomState},
     f32::consts::TAU,

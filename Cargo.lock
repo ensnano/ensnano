@@ -1078,7 +1078,6 @@ dependencies = [
  "ensnano_organizer",
  "ensnano_physics",
  "ensnano_scene",
- "ensnano_utils",
  "futures",
  "iced",
  "iced_graphics",
@@ -1161,7 +1160,6 @@ dependencies = [
  "ensnano_consts",
  "ensnano_design",
  "ensnano_interactor",
- "ensnano_utils",
  "fontdue",
  "futures",
  "futures-channel",
@@ -1251,7 +1249,6 @@ dependencies = [
  "ensnano_design",
  "ensnano_interactor",
  "ensnano_organizer",
- "ensnano_utils",
  "futures",
  "futures-channel",
  "gltf",
@@ -1268,14 +1265,6 @@ dependencies = [
  "ultraviolet",
  "wgpu",
  "winit",
-]
-
-[[package]]
-name = "ensnano_utils"
-version = "0.7.0"
-dependencies = [
- "bytemuck",
- "ultraviolet",
 ]
 
 [[package]]

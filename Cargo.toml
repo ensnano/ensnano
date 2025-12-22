@@ -9,7 +9,6 @@ members = [
     "ensnano-organizer",
     "ensnano-physics",
     "ensnano-scene",
-    "ensnano-utils",
 ]
 
 [workspace.package]
@@ -36,7 +35,6 @@ ensnano_interactor = { path = "ensnano-interactor" }
 ensnano_organizer = { path = "ensnano-organizer" }
 ensnano_physics = { path = "ensnano-physics" }
 ensnano_scene = { path = "ensnano-scene" }
-ensnano_utils = { path = "ensnano-utils" }
 
 ahash = "0.8.6"
 bytemuck = "1.2.0"
@@ -108,7 +106,6 @@ ensnano_interactor.workspace = true
 ensnano_organizer.workspace = true
 ensnano_physics.workspace = true
 ensnano_scene.workspace = true
-ensnano_utils.workspace = true
 
 ahash.workspace = true
 chebyshev_polynomials.workspace = true

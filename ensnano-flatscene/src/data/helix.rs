@@ -20,7 +20,7 @@ use ensnano_design::{
     curves::time_nucl_map::AbscissaConverter as AbscissaConverter_, helices::NuclCollection,
     nucl::Nucl,
 };
-use ensnano_utils::instance::Instance;
+use ensnano_interactor::instance::Instance;
 use lyon::{
     math::{Box2D, point},
     path::{Path, Winding, builder::BorderRadii},

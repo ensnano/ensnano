@@ -9,6 +9,7 @@ pub mod colors;
 pub mod consts;
 pub mod filename;
 pub mod graphics;
+pub mod instance;
 pub mod multiplexer;
 pub mod operation;
 pub mod selection;

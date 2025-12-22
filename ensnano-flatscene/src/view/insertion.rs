@@ -1,6 +1,5 @@
 use ensnano_consts::SAMPLE_COUNT;
-use ensnano_interactor::bindgroup_manager::DynamicBindGroup;
-use ensnano_utils::instance::Instance;
+use ensnano_interactor::{bindgroup_manager::DynamicBindGroup, instance::Instance};
 use lyon::{
     math::point,
     path::{LineCap, LineJoin, Path},
