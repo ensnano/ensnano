@@ -3,7 +3,7 @@
 // The original source was distributed under the MIT License by Nicolas Silva.
 // A copy of the original license is available in thirdparties/lyon/LICENSE
 
-use ensnano_consts::SAMPLE_COUNT;
+use ensnano_utils::consts::SAMPLE_COUNT;
 use lyon::{
     geom::{Box2D, point},
     tessellation::{

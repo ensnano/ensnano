@@ -3,9 +3,11 @@ use crate::{
     maths_3d::{Basis3D, FiniteVec3, Plane, cast_ray, unproject_point_on_plane},
     view::uniforms::Stereography,
 };
-use ensnano_consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP};
 use ensnano_design::curves::{SurfaceInfo, SurfacePoint};
-use ensnano_utils::graphics::PhySize;
+use ensnano_utils::{
+    consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP},
+    graphics::PhySize,
+};
 
 use std::{
     cell::RefCell,

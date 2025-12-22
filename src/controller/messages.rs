@@ -1,5 +1,5 @@
 use crate::dialog::{DialogFilter, DialogFilters};
-use ensnano_consts::{ENS_BACKUP_EXTENSION, ENS_EXTENSION, ORIGAMI_EXTENSION};
+use ensnano_utils::consts::{ENS_BACKUP_EXTENSION, ENS_EXTENSION, ORIGAMI_EXTENSION};
 use std::path::Path;
 
 pub(super) const NO_FILE_RECEIVED_LOAD: &str = "Open canceled";

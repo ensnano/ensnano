@@ -4,9 +4,11 @@ use crate::{
     helpers::{extra_jump, icon_button, material_icon_button, section},
     left_panel::{Message, tabs::GuiTab},
 };
-use ensnano_consts::{ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID};
 use ensnano_design::grid::GridTypeDescr;
-use ensnano_utils::ui_size::UiSize;
+use ensnano_utils::{
+    consts::{ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID},
+    ui_size::UiSize,
+};
 use iced::widget::{checkbox, column, row, text};
 use iced_aw::TabLabel;
 use std::marker::PhantomData;

@@ -28,7 +28,6 @@ use crate::{
 };
 use address_pointer::AddressPointer;
 use design_interactor::{DesignInteractor, InteractorResult, controller::ErrOperation};
-use ensnano_consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION};
 use ensnano_design::{
     SavingInformation, bezier_plane::BezierPathId, domains::Domain, group_attributes::GroupPivot,
 };
@@ -40,6 +39,7 @@ use ensnano_utils::{
         AppStateParameters, check_xovers_parameter::CheckXoversParameter,
         suggestion_parameters::SuggestionParameters,
     },
+    consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION},
     graphics::{Background3D, HBondDisplay, RenderingMode},
     operation::Operation,
     selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},

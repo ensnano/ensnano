@@ -19,13 +19,6 @@ use crate::{
         letter::LetterInstance,
     },
 };
-use ensnano_consts::{
-    BASIS_SCALE, BOND_RADIUS, CANDIDATE_COLOR, CHECKED_XOVER_COLOR, FREE_XOVER_COLOR,
-    FREE_XOVER_SCALE_FACTOR, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, NB_PRINTABLE_CHARS,
-    PIVOT_SCALE_FACTOR, PIVOT_SPHERE_COLOR, PRINTABLE_CHARS, REGULAR_H_BOND_COLOR,
-    SELECT_SCALE_FACTOR, SELECTED_COLOR, SPHERE_RADIUS, SUGGESTION_COLOR,
-    SURFACE_PIVOT_SPHERE_COLOR, UNCHECKED_XOVER_COLOR, basis_color,
-};
 use ensnano_design::{
     AdditionalStructure,
     bezier_plane::{
@@ -44,6 +37,13 @@ use ensnano_design::{
 use ensnano_utils::{
     ObjectType, Referential,
     colors::{new_color, purple_to_blue_gradient_color_in_range},
+    consts::{
+        BASIS_SCALE, BOND_RADIUS, CANDIDATE_COLOR, CHECKED_XOVER_COLOR, FREE_XOVER_COLOR,
+        FREE_XOVER_SCALE_FACTOR, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, NB_PRINTABLE_CHARS,
+        PIVOT_SCALE_FACTOR, PIVOT_SPHERE_COLOR, PRINTABLE_CHARS, REGULAR_H_BOND_COLOR,
+        SELECT_SCALE_FACTOR, SELECTED_COLOR, SPHERE_RADIUS, SUGGESTION_COLOR,
+        SURFACE_PIVOT_SPHERE_COLOR, UNCHECKED_XOVER_COLOR, basis_color,
+    },
     graphics::{LoopoutBond, LoopoutNucl},
     instance::Instance,
     selection::{

@@ -18,10 +18,10 @@ use crate::{
 };
 use ahash::RandomState;
 use background::Background;
-use ensnano_consts::{CANDIDATE_COLOR, PRINTABLE_CHARS, SAMPLE_COUNT, SELECTED_COLOR};
 use ensnano_design::{helices::NuclCollection, nucl::Nucl};
 use ensnano_utils::{
     bindgroup_manager::{DynamicBindGroup, UniformBindGroup},
+    consts::{CANDIDATE_COLOR, PRINTABLE_CHARS, SAMPLE_COUNT, SELECTED_COLOR},
     graphics::{DrawArea, PhySize},
     texture::Texture,
 };

@@ -18,7 +18,7 @@ use crate::view::{
     },
     instances_drawer::Instantiable as _,
 };
-use ensnano_consts::NB_RAY_TUBE;
+use ensnano_utils::consts::NB_RAY_TUBE;
 use ultraviolet::{Mat3, Vec3};
 
 impl RawDnaInstance {

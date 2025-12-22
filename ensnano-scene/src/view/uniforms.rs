@@ -1,6 +1,8 @@
 use crate::camera::{CameraPtr, ProjectionPtr};
-use ensnano_consts::NB_RAY_TUBE;
-use ensnano_utils::graphics::{FogParameters, fog_kind};
+use ensnano_utils::{
+    consts::NB_RAY_TUBE,
+    graphics::{FogParameters, fog_kind},
+};
 use ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
 
 #[repr(C)] // We need this for Rust to store our data correctly for the shaders

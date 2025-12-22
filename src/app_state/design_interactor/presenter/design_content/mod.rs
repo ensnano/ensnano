@@ -4,9 +4,6 @@ mod xover_suggestions;
 use crate::app_state::design_interactor::presenter::{JunctionsIds, Presenter, SimulationUpdate};
 use ahash::RandomState;
 use click_counter::ClickCounter;
-use ensnano_consts::{
-    BOND_RADIUS, CLONE_OPACITY, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, SPHERE_RADIUS,
-};
 use ensnano_design::{
     Design,
     domains::Domain,
@@ -23,6 +20,9 @@ use ensnano_utils::{
     ObjectType,
     app_state_parameters::suggestion_parameters::SuggestionParameters,
     colors::purple_to_blue_gradient_color_in_range,
+    consts::{
+        BOND_RADIUS, CLONE_OPACITY, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, SPHERE_RADIUS,
+    },
     graphics::{LoopoutBond, LoopoutNucl},
     instance::Instance,
 };

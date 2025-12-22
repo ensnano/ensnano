@@ -3,22 +3,22 @@ pub(crate) mod file_parsing;
 mod id_generator;
 pub(crate) mod presenter;
 
-use crate::app_state::address_pointer::AddressPointer;
-use crate::controller::SaveDesignError;
 use crate::{
-    app_state::design_interactor::controller::{
-        OkOperation, clipboard::CopyOperation, simulations::SimulationOperation,
+    app_state::{
+        address_pointer::AddressPointer,
+        design_interactor::controller::{
+            OkOperation, clipboard::CopyOperation, simulations::SimulationOperation,
+        },
     },
-    controller::channel_reader::ChannelReader,
+    controller::{SaveDesignError, channel_reader::ChannelReader},
 };
 use controller::{Controller, ErrOperation, InteractorNotification};
-use ensnano_consts::UPDATE_VISIBILITY_SIEVE_LABEL;
-use ensnano_design::domains::Domain;
 use ensnano_design::{
     Design, SavingInformation,
     bezier_plane::{BezierPathId, BezierPlaneDescriptor},
     collection::Collection as _,
     curves::bezier::InstantiatedPiecewiseBezier,
+    domains::Domain,
     group_attributes::GroupAttribute,
     helices::HelixCollection as _,
     parameters::HelixParameters,
@@ -28,8 +28,9 @@ use ensnano_gui::status_bar::{ClipboardContent, CurrentOpState};
 use ensnano_organizer::tree::GroupId;
 use ensnano_utils::{
     DesignOperation, PastingStatus, SimulationState,
-    app_state_parameters::suggestion_parameters::SuggestionParameters, operation::Operation,
-    selection::Selection, strand_builder::StrandBuilder,
+    app_state_parameters::suggestion_parameters::SuggestionParameters,
+    consts::UPDATE_VISIBILITY_SIEVE_LABEL, operation::Operation, selection::Selection,
+    strand_builder::StrandBuilder,
 };
 use presenter::{Presenter, SimulationUpdate, apply_simulation_update, update_presenter};
 use std::{io::Write as _, path::PathBuf, sync::Arc};

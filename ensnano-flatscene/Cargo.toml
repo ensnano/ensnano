@@ -9,7 +9,6 @@ license.workspace = true
 workspace = true
 
 [dependencies]
-ensnano_consts.workspace = true
 ensnano_design.workspace = true
 ensnano_utils.workspace = true
 

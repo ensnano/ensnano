@@ -4,11 +4,13 @@ use crate::view::{
     Mesh,
     instances_drawer::{Instantiable, Vertexable},
 };
-use ensnano_consts::{
-    NB_RAY_TUBE, NB_SECTOR_SPHERE, NB_STACK_SPHERE, SPHERE_RADIUS, STEREOGRAPHIC_SPHERE_COLOR,
-    STEREOGRAPHIC_SPHERE_RADIUS,
+use ensnano_utils::{
+    consts::{
+        NB_RAY_TUBE, NB_SECTOR_SPHERE, NB_STACK_SPHERE, SPHERE_RADIUS, STEREOGRAPHIC_SPHERE_COLOR,
+        STEREOGRAPHIC_SPHERE_RADIUS,
+    },
+    instance::Instance,
 };
-use ensnano_utils::instance::Instance;
 use std::{
     f32::consts::{FRAC_1_SQRT_2, PI, TAU},
     iter::zip,

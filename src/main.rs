@@ -89,10 +89,6 @@ use controller::{
         ScaffoldSetter, SetScaffoldSequenceError, SetScaffoldSequenceOk, TargetScaffoldLength,
     },
 };
-use ensnano_consts::{
-    APP_NAME, ENS_BACKUP_EXTENSION, ENS_UNNAMED_FILE_NAME, NO_DESIGN_TITLE, SEC_BETWEEN_BACKUPS,
-    SEC_PER_YEAR, WELCOME_MSG,
-};
 use ensnano_design::{
     Camera, CameraId, SavingInformation, bezier_plane::BezierPlaneDescriptor, grid::GridId,
     group_attributes::GroupPivot,
@@ -116,6 +112,10 @@ use ensnano_utils::{
         suggestion_parameters::SuggestionParameters,
     },
     application::{Application, Camera3D, Notification},
+    consts::{
+        APP_NAME, ENS_BACKUP_EXTENSION, ENS_UNNAMED_FILE_NAME, NO_DESIGN_TITLE,
+        SEC_BETWEEN_BACKUPS, SEC_PER_YEAR, WELCOME_MSG,
+    },
     graphics::{Background3D, GuiComponentType, HBondDisplay, PhySize, RenderingMode, SplitMode},
     operation::Operation,
     selection::{

@@ -22,10 +22,6 @@ use crate::{
     },
 };
 use design3d::{Design3D, SceneDesignReaderExt};
-use ensnano_consts::{
-    BOND_RADIUS, CANDIDATE_COLOR, CANDIDATE_SCALE_FACTOR, SELECT_SCALE_FACTOR, SELECTED_COLOR,
-    SPHERE_RADIUS,
-};
 use ensnano_design::{
     bezier_plane::BezierVertexId,
     collection::Collection as _,
@@ -37,6 +33,10 @@ use ensnano_design::{
 use ensnano_utils::{
     ObjectType, Referential,
     application::Camera3D,
+    consts::{
+        BOND_RADIUS, CANDIDATE_COLOR, CANDIDATE_SCALE_FACTOR, SELECT_SCALE_FACTOR, SELECTED_COLOR,
+        SPHERE_RADIUS,
+    },
     graphics::HBondDisplay,
     selection::{
         ActionMode, CenterOfSelection, PhantomElement, Selection, SelectionMode,
