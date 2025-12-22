@@ -56,7 +56,7 @@ impl<State: AppState> GuiTab<State> for GridTab<State> {
     }
 
     fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {
-        let content = self::column![
+        let content = column![
             section("Grids", ui_size),
             subsection("New Grid", ui_size),
             // add_grid_buttons!

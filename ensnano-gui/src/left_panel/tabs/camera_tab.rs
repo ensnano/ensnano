@@ -73,7 +73,7 @@ impl<State: AppState> GuiTab<State> for CameraTab<State> {
     }
 
     fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Message<State>> {
-        let content = self::column![
+        let content = column![
             section("Camera", ui_size),
             subsection("Toggle visibility", ui_size),
             row![
@@ -203,7 +203,7 @@ impl FogGuiParameters {
         // Hand method to
         let label_width = 65.0f32;
 
-        self::column![
+        column![
             extra_jump(),
             row![
                 subsection("Distance Fog", ui_size),

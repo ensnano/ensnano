@@ -100,7 +100,7 @@ impl<State: AppState> GuiTab<State> for EditionTab<State> {
                 tighten_helices_button.on_press(Message::Redim2dHelices(false));
         }
 
-        let content = self::column![
+        let content = column![
             section("Edition", ui_size),
             // add_roll_slider!
             column(

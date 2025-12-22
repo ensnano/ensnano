@@ -560,7 +560,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
         };
 
         let simulation_buttons = if SimulationState::Relaxing == app_state.get_simulation_state() {
-            self::column![
+            column![
                 text_button("Abort", ui_size).on_press(Message::StopSimulation),
                 jump_by(2),
                 text(
@@ -576,14 +576,14 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
             if SimulationState::None == app_state.get_simulation_state() && desc.is_some() {
                 button = button.on_press(Message::InitRevolutionRelaxation);
             }
-            self::column![button]
+            column![button]
         };
 
-        let content = self::column![
+        let content = column![
             section("Revolution Surfaces", ui_size),
             checkbox("Show bezier paths", app_state.get_show_bezier_paths())
                 .on_toggle(Message::SetShowBezierPaths),
-            self::column![
+            column![
                 extra_jump(),
                 subsection("Section parameters", ui_size),
                 row![
@@ -602,10 +602,10 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
                 if let Some(widget) = &self.curve_descriptor_widget {
                     widget.view(ui_size)
                 } else {
-                    self::column![].into()
+                    column![].into()
                 },
             ],
-            self::column![
+            column![
                 extra_jump(),
                 subsection("Revolution parameters", ui_size),
                 row![
@@ -636,7 +636,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
                 .align_items(Alignment::Center),
             ]
             .spacing(2),
-            self::column![
+            column![
                 extra_jump(),
                 subsection("Discretization parameters", ui_size),
                 row![
@@ -655,7 +655,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
                 .align_items(Alignment::Center),
             ]
             .spacing(2),
-            self::column![
+            column![
                 extra_jump(),
                 subsection("Simulation parameters", ui_size),
                 row![
@@ -710,7 +710,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
                 .align_items(Alignment::Center),
             ]
             .spacing(2),
-            self::column![
+            column![
                 extra_jump(),
                 section("Relaxation computation", ui_size),
                 simulation_buttons,

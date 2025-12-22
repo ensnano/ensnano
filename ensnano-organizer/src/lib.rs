@@ -309,7 +309,7 @@ impl<E: OrganizerElement> Organizer<E> {
             new_group_button = new_group_button.on_press(OrganizerMessage::new_group());
         }
         container(
-            self::column![
+            column![
                 // Title row
                 row![
                     tooltip(
@@ -1157,7 +1157,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                     0
                 };
                 let title_row = view.view(name, id.clone(), *expanded);
-                let mut col = self::column![title_row].spacing(LEVELS_V_SPACING);
+                let mut col = column![title_row].spacing(LEVELS_V_SPACING);
                 if *expanded {
                     for c in children {
                         let r = row![

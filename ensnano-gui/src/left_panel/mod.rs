@@ -1157,7 +1157,7 @@ where
         };
 
         container(
-            self::column![
+            column![
                 first_container.height(Length::FillPortion(2)),
                 horizontal_rule(5),
                 container(camera_shortcut).height(Length::FillPortion(1)),

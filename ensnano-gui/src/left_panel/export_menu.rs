@@ -10,7 +10,7 @@ impl ExportMenu {
     where
         State: AppState,
     {
-        let content = self::column![
+        let content = column![
             button(text("Cancel")).on_press(Message::CancelExport),
             button(text("Oxdna")).on_press(Message::Export(ExportType::Oxdna)),
             button(text("Pdb")).on_press(Message::Export(ExportType::Pdb)),

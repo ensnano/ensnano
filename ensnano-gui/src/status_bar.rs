@@ -188,7 +188,7 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
         let pasting_status_row =
             row![horizontal_space(), text(pasting_text), Space::with_width(5),];
 
-        let content = self::column![Space::new(Length::Fill, 3), content, pasting_status_row,];
+        let content = column![Space::new(Length::Fill, 3), content, pasting_status_row,];
 
         container(content)
             .style(GuiBackground)

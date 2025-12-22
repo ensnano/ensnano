@@ -33,9 +33,9 @@ impl<State: AppState> GuiTab<State> for PenTab<State> {
             None => "None".to_owned(),
         };
 
-        let content = self::column![
+        let content = column![
             section("Bezier Planes", ui_size),
-            self::column![
+            column![
                 material_icon_button(MaterialIcon::FileOpen, MaterialIconStyle::Light, ui_size)
                     .on_press(Message::LoadSvgFile),
                 // add_buttons!

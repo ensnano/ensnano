@@ -101,7 +101,7 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
         //    }
         //}
 
-        let content = self::column![
+        let content = column![
             section("Sequence", ui_size),
             extra_jump(),
             // add_show_sequence_button!
@@ -147,7 +147,7 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
                 if app_state.get_scaffold_info().is_none() {
                     length_text = length_text.style(theme::DISABLED_TEXT);
                 }
-                self::column![text(scaffold_text).size(ui_size.main_text()), length_text,]
+                column![text(scaffold_text).size(ui_size.main_text()), length_text,]
             },
             extra_jump(),
             // add_rainbow_scaffold_checkbox!
@@ -217,7 +217,7 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
             section("Staples", ui_size),
             extra_jump(),
             // add_download_staples_button!
-            self::column![
+            column![
                 text_button("Export Staples", ui_size).on_press(Message::StaplesRequested),
                 text_button("Export Origamis", ui_size).on_press(Message::OrigamisRequested),
             ]

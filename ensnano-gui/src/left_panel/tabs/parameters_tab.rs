@@ -55,7 +55,7 @@ impl<State: AppState> GuiTab<State> for ParametersTab<State> {
     fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {
         let dna_params = &app_state.get_dna_parameters();
 
-        let content = self::column![
+        let content = column![
             section("Parameters", ui_size),
             extra_jump(),
             subsection("Font size", ui_size),
@@ -79,7 +79,7 @@ impl<State: AppState> GuiTab<State> for ParametersTab<State> {
                 Some(app_state.get_dna_parameters().name().clone()),
                 Message::NewDnaParameters,
             ),
-            self::column![
+            column![
                 text(format!("  Radius: {:.3} nm", dna_params.helix_radius)),
                 text(format!("  Radius: {:.3} nm", dna_params.helix_radius)),
                 text(format!("  Rise: {:.3} nm", dna_params.rise)),

@@ -244,7 +244,7 @@ where
         _selection: &Selection,
         _app_state: &State,
     ) -> iced::Element<'_, Message<State>> {
-        self::column![
+        column![
             text("Position").size(ui_size.intermediate_text()),
             self.position_builder.view(),
         ]
@@ -319,7 +319,7 @@ where
         selection: &Selection,
         app_state: &State,
     ) -> iced::Element<'_, Message<State>> {
-        self::column![
+        column![
             text("Position").size(ui_size.intermediate_text()),
             self.position_builder.view(),
             text("Orientation").size(ui_size.intermediate_text()),

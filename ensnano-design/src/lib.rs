@@ -32,18 +32,18 @@ use self::{
     bezier_plane::{BezierPathData, BezierPaths, BezierPlanes},
     curves::CurveCache,
     domains::Domain,
+    elements::DesignElementKey,
     external_3d_objects::External3DObjects,
     grid::grid_collection::FreeGrids,
+    grid::{GridData, GridDescriptor, GridId},
+    group_attributes::GroupAttribute,
     helices::{Helices, Helix, HelixCollection as _},
     isometry3_descriptor::Isometry3Descriptor,
     nucl::Nucl,
     parameters::HelixParameters,
     strands::Strands,
 };
-use elements::DesignElementKey;
 use ensnano_organizer::tree::{GroupId, OrganizerTree};
-use grid::{GridData, GridDescriptor, GridId};
-use group_attributes::GroupAttribute;
 use serde::{Deserialize, Serialize};
 use serde_with::{DefaultOnError, serde_as};
 use std::{

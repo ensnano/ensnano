@@ -151,9 +151,9 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
         let volume_exclusion = self.rigid_body_factory.requestable.volume_exclusion;
         let brownian_motion = self.rigid_body_factory.requestable.brownian_motion;
 
-        let content = self::column![
+        let content = column![
             section("Simulation (Beta)", ui_size),
-            self::column![
+            column![
                 self.physical_simulation
                     .view(ui_size, "Roll", roll_active, sim_state.is_rolling(),),
                 start_stop_button(
@@ -184,8 +184,8 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
                     .view(brownian_motion, ui_size.main_text())
             ),
             section("Rapier Simulation", ui_size),
-            self::column![
-                self::row![pick_list(
+            column![
+                row![pick_list(
                     [
                         RapierSimulationType::Full,
                         RapierSimulationType::Rigid,
@@ -198,7 +198,7 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
                         ..self.rapier_parameters
                     }),
                 )],
-                self::row![
+                row![
                     text_button("Start", ui_size).on_press_maybe(
                         if self.rapier_parameters.is_simulation_running || sim_state.is_paused() {
                             None
