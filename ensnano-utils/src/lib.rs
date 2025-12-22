@@ -2,7 +2,6 @@ pub mod bindgroup_manager;
 pub mod colors;
 pub mod id_generator;
 pub mod instance;
-pub mod obj_loader;
 pub mod texture;
 
 use serde::{Deserialize, Serialize};

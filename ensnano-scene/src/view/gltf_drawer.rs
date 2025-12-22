@@ -1,3 +1,4 @@
+use crate::obj_loader::{GltfMesh, ModelVertex, load_gltf, load_stl};
 use ensnano_consts::SAMPLE_COUNT;
 use ensnano_design::{
     curves::torus::PointOnSurface,
@@ -6,11 +7,7 @@ use ensnano_design::{
 };
 use ensnano_interactor::{TEXTURE_FORMAT, surfaces::UnrootedRevolutionSurfaceDescriptor};
 use ensnano_utils::{
-    colors::hsv_color,
-    create_buffer_with_data,
-    instance::Instance,
-    obj_loader::{GltfMesh, ModelVertex, load_gltf, load_stl},
-    texture::Texture,
+    colors::hsv_color, create_buffer_with_data, instance::Instance, texture::Texture,
 };
 use std::{
     collections::BTreeMap,

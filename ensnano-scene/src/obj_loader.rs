@@ -24,7 +24,7 @@ impl ModelVertex {
     }
 }
 
-pub struct GltfFile {
+pub(crate) struct GltfFile {
     pub meshes: Vec<GltfMesh>,
 }
 
@@ -65,7 +65,7 @@ fn read_mesh(mesh_data: &gltf::Mesh, data: &[gltf::buffer::Data]) -> Result<Gltf
     Ok(GltfMesh { vertices, indices })
 }
 
-pub fn load_gltf<P: AsRef<Path>>(path: P) -> Result<GltfFile, ErrGltf> {
+pub(crate) fn load_gltf<P: AsRef<Path>>(path: P) -> Result<GltfFile, ErrGltf> {
     let (doc, data, _) = gltf::import(path).ok().ok_or(ErrGltf::CannotReadFile)?;
     let mesh_data = doc.meshes();
     let mut meshes = Vec::new();
@@ -77,7 +77,7 @@ pub fn load_gltf<P: AsRef<Path>>(path: P) -> Result<GltfFile, ErrGltf> {
 }
 
 #[derive(Debug)]
-pub enum ErrGltf {
+pub(crate) enum ErrGltf {
     CannotReadFile,
     NoPrimitive,
     NoColor,
@@ -85,11 +85,11 @@ pub enum ErrGltf {
     NoPosition,
 }
 
-pub struct StlMesh {
+pub(crate) struct StlMesh {
     pub vertices: Vec<ModelVertex>,
 }
 
-pub fn load_stl<P: AsRef<Path>>(path: P) -> Result<StlMesh, ErrStl> {
+pub(crate) fn load_stl<P: AsRef<Path>>(path: P) -> Result<StlMesh, ErrStl> {
     let color = DEFAULT_STL_COLOR; //[0.55, 0.20, 0.25, 1.];
     let file = File::open(path).map_err(ErrStl::FileErr)?;
     let mut stl_buff = BufReader::new(&file);
@@ -111,7 +111,7 @@ pub fn load_stl<P: AsRef<Path>>(path: P) -> Result<StlMesh, ErrStl> {
 }
 
 #[derive(Debug)]
-pub enum ErrStl {
-    FileErr(std::io::Error),
-    StlParseErr(nom_stl::Error),
+pub(crate) enum ErrStl {
+    FileErr(#[expect(unused)] std::io::Error),
+    StlParseErr(#[expect(unused)] nom_stl::Error),
 }
