@@ -394,7 +394,6 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
                     action_mode_btn(
                         mode,
                         self.app_state.get_action_mode(),
-                        self.ui_size.button(),
                         self.app_state.get_widget_basis().is_axis_aligned(),
                         self.ui_size,
                     ),
@@ -490,7 +489,6 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
 fn action_mode_btn<'a, State: AppState>(
     mode: &ActionMode,
     current_action_mode: ActionMode,
-    _button_size: impl Into<Length>,
     axis_aligned: bool,
     ui_size: UiSize,
 ) -> Button<'a, Message<State>> {
