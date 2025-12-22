@@ -5,8 +5,9 @@ use crate::{
 };
 use ensnano_consts::ICON_ATGC;
 use ensnano_design::elements::DesignElementKey;
-use ensnano_iced::{theme, ui_size::UiSize, widgets::keyboard_priority::keyboard_priority};
+use ensnano_iced::{theme, ui_size::UiSize};
 use ensnano_interactor::StandardSequence;
+use ensnano_organizer::keyboard_priority::keyboard_priority;
 use iced::{
     Length,
     widget::{column, row, scrollable, text, text_input},

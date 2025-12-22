@@ -104,7 +104,7 @@ use ensnano_gui::{
     fonts::{INTER_REGULAR_FONT, load_fonts},
     left_panel::ColorOverlay,
 };
-use ensnano_iced::{theme, ui_size::UiSize, widgets::keyboard_priority::KeyboardPriorityId};
+use ensnano_iced::{theme, ui_size::UiSize};
 use ensnano_interactor::{
     DesignOperation, DesignRotation, DesignTranslation, IsometryTarget, PastingStatus,
     RigidBodyConstants,
@@ -123,7 +123,7 @@ use ensnano_interactor::{
     },
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
 };
-use ensnano_organizer::tree::GroupId;
+use ensnano_organizer::{keyboard_priority::KeyboardPriorityId, tree::GroupId};
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_scene::{AppState as _, Scene, SceneKind, data::design3d::SceneDesignReaderExt as _};
 use ensnano_utils::TEXTURE_FORMAT;

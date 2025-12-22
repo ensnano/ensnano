@@ -1268,8 +1268,8 @@ dependencies = [
 name = "ensnano_organizer"
 version = "0.7.0"
 dependencies = [
- "ensnano_iced",
  "iced",
+ "iced_graphics",
  "icondata",
  "log",
  "rand 0.8.5",

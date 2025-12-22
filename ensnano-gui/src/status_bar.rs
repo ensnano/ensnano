@@ -1,10 +1,7 @@
 use crate::{AppState, Requests};
-use ensnano_iced::{
-    theme::GuiBackground,
-    ui_size::UiSize,
-    widgets::keyboard_priority::{PriorityRequest, keyboard_priority},
-};
+use ensnano_iced::{theme::GuiBackground, ui_size::UiSize};
 use ensnano_interactor::{PastingStatus, StrandBuildingStatus, operation::Operation};
+use ensnano_organizer::keyboard_priority::{PriorityRequest, keyboard_priority};
 use iced::{
     Alignment, Color, Element, Length,
     widget::{Row, Space, Text, column, container, horizontal_space, row, text, text_input},

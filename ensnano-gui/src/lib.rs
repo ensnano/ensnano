@@ -29,7 +29,7 @@ use ensnano_design::{
     parameters::HelixParameters,
 };
 use ensnano_exports::ExportType;
-use ensnano_iced::{ui_size::UiSize, widgets::keyboard_priority::PriorityRequest};
+use ensnano_iced::ui_size::UiSize;
 use ensnano_interactor::{
     HyperboloidRequest, InsertionPoint, PastingStatus, RollRequest, ScaffoldInfo, SimulationState,
     StrandBuildingStatus, WidgetBasis,
@@ -46,7 +46,10 @@ use ensnano_interactor::{
     selection::{ActionMode, Selection, SelectionMode},
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
 };
-use ensnano_organizer::tree::{GroupId, OrganizerTree};
+use ensnano_organizer::{
+    keyboard_priority::PriorityRequest,
+    tree::{GroupId, OrganizerTree},
+};
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::TEXTURE_FORMAT;
 use iced::{

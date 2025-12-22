@@ -11,7 +11,7 @@ use ensnano_design::{
 };
 use ensnano_exports::ExportType;
 use ensnano_gui::{OverlayType, Requests as GuiRequests, left_panel::RigidBodyParametersRequest};
-use ensnano_iced::{ui_size::UiSize, widgets::keyboard_priority::PriorityRequest};
+use ensnano_iced::ui_size::UiSize;
 use ensnano_interactor::{
     DesignOperation, HyperboloidRequest, InsertionPoint, RigidBodyConstants, RollRequest,
     app_state_parameters::{
@@ -23,7 +23,10 @@ use ensnano_interactor::{
     selection::{ActionMode, SelectionMode},
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
 };
-use ensnano_organizer::tree::{GroupId, OrganizerTree};
+use ensnano_organizer::{
+    keyboard_priority::PriorityRequest,
+    tree::{GroupId, OrganizerTree},
+};
 use ensnano_physics::parameters::RapierParameters;
 use std::{collections::BTreeSet, sync::Arc};
 use ultraviolet::{Rotor3, Vec2, Vec3};

@@ -5,7 +5,7 @@ use crate::{
     left_panel::{Message, tabs::GuiTab},
 };
 use ensnano_design::curves::torus::CurveDescriptor2D;
-use ensnano_iced::{theme, ui_size::UiSize, widgets::keyboard_priority::keyboard_priority};
+use ensnano_iced::{theme, ui_size::UiSize};
 use ensnano_interactor::{
     SimulationState,
     surfaces::{
@@ -14,6 +14,7 @@ use ensnano_interactor::{
         UnrootedRevolutionSurfaceDescriptor,
     },
 };
+use ensnano_organizer::keyboard_priority::keyboard_priority;
 use iced::{
     Alignment, Command, Length,
     widget::{

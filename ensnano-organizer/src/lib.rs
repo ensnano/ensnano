@@ -7,15 +7,18 @@ pub mod drag_drop_target;
 pub mod element;
 pub mod hoverable_container;
 mod icon;
+pub mod keyboard_priority;
 pub mod theme;
 pub mod tree;
 
-use crate::{
+use self::{
     drag_drop_target::{DragDropTarget, DragIdentifier},
     element::{AttributeDisplayer, ElementKey, OrganizerAttribute as _, OrganizerElement},
+    hoverable_container::HoverableContainer,
+    keyboard_priority::{PriorityRequest, keyboard_priority},
+    theme::OrganizerTheme,
+    tree::{GroupId, OrganizerTree},
 };
-use ensnano_iced::widgets::keyboard_priority::{PriorityRequest, keyboard_priority};
-use hoverable_container::HoverableContainer;
 use iced::{
     Element, Length,
     keyboard::Modifiers,
@@ -29,8 +32,6 @@ use std::{
     collections::{BTreeMap, BTreeSet, HashMap},
     convert::TryInto as _,
 };
-use theme::OrganizerTheme;
-use tree::{GroupId, OrganizerTree};
 
 const LEVELS_V_SPACING: u16 = 2;
 const H_SPACING_IN_UNITS: u16 = 15;

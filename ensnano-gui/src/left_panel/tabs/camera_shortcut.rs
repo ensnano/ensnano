@@ -9,7 +9,8 @@ use crate::{
     },
     left_panel::Message,
 };
-use ensnano_iced::{ui_size::UiSize, widgets::keyboard_priority::keyboard_priority};
+use ensnano_iced::ui_size::UiSize;
+use ensnano_organizer::keyboard_priority::keyboard_priority;
 use iced::{
     Alignment, Command, Length,
     alignment::Horizontal,

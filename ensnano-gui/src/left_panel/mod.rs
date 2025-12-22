@@ -26,10 +26,7 @@ use ensnano_design::{
     parameters::NamedParameter,
 };
 use ensnano_exports::ExportType;
-use ensnano_iced::{
-    color_picker::ColorPickerMessage, theme::GuiBackground, ui_size::UiSize,
-    widgets::keyboard_priority::PriorityRequest,
-};
+use ensnano_iced::{color_picker::ColorPickerMessage, theme::GuiBackground, ui_size::UiSize};
 use ensnano_interactor::{
     HyperboloidRequest,
     app_state_parameters::{
@@ -40,7 +37,9 @@ use ensnano_interactor::{
     selection::{ActionMode, Selection, SelectionConversion as _},
     surfaces::EquadiffSolvingMethod,
 };
-use ensnano_organizer::{Organizer, OrganizerMessage, tree::OrganizerTree};
+use ensnano_organizer::{
+    Organizer, OrganizerMessage, keyboard_priority::PriorityRequest, tree::OrganizerTree,
+};
 use ensnano_physics::parameters::RapierParameters;
 use export_menu::ExportMenu;
 use iced::{
