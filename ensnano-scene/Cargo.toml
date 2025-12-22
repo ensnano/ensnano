@@ -27,6 +27,7 @@ lyon.workspace = true
 nom_stl.workspace = true
 num_enum.workspace = true
 png.workspace = true
+serde.workspace = true
 serde_json.workspace = true
 ultraviolet.workspace = true
 wgpu.workspace = true

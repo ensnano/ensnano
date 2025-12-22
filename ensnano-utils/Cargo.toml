@@ -14,7 +14,6 @@ ensnano_consts.workspace = true
 bytemuck.workspace = true
 color_space.workspace = true
 rand.workspace = true
-serde.workspace = true
 ultraviolet.workspace = true
 wgpu.workspace = true
 winit.workspace = true

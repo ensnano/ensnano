@@ -2,6 +2,7 @@
 
 mod bezier_paths;
 
+use super::StrandNucleotidesPositions;
 use crate::{
     SceneElement::DesignElement,
     element_selector::SceneElement,
@@ -49,7 +50,6 @@ use ensnano_interactor::{
     },
 };
 use ensnano_utils::{
-    StrandNucleotidesPositions,
     colors::{self, purple_to_blue_gradient_color_in_range},
     instance::Instance,
 };

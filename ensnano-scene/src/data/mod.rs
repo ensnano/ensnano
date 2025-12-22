@@ -43,7 +43,7 @@ use ensnano_interactor::{
         extract_helices_with_controls,
     },
 };
-use ensnano_utils::StrandNucleotidesPositions;
+use serde::{Deserialize, Serialize};
 use std::{
     cell::RefCell,
     collections::{BTreeMap, HashMap, HashSet},
@@ -1993,6 +1993,14 @@ struct Discs<'a, R: SceneDesignReaderExt> {
     selection: &'a mut Vec<GridPosition>,
     candidates: &'a mut Vec<GridPosition>,
     design: &'a Design3D<R>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct StrandNucleotidesPositions {
+    pub is_cyclic: bool,
+    pub positions: Vec<[f32; 3]>,
+    pub curvatures: Vec<f64>,
+    pub torsions: Vec<f64>,
 }
 
 fn add_discs<R: SceneDesignReaderExt>(pos: GridPosition, discs: Discs<R>, level: DiscLevel) {

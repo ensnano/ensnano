@@ -22,10 +22,12 @@ use ensnano_interactor::{
     graphics::{LoopoutBond, LoopoutNucl},
 };
 use ensnano_scene::{
-    data::design3d::{HBond, Scalebar, SceneDesignReaderExt},
+    data::{
+        StrandNucleotidesPositions,
+        design3d::{HBond, Scalebar, SceneDesignReaderExt},
+    },
     view::grid::GridInstance,
 };
-use ensnano_utils::StrandNucleotidesPositions;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::Arc;
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};

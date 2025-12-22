@@ -1,16 +1,7 @@
 pub mod colors;
 pub mod instance;
 
-use serde::{Deserialize, Serialize};
 use winit::dpi::{PhysicalPosition, PhysicalSize, Pixel};
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct StrandNucleotidesPositions {
-    pub is_cyclic: bool,
-    pub positions: Vec<[f32; 3]>,
-    pub curvatures: Vec<f64>,
-    pub torsions: Vec<f64>,
-}
 
 /// This struct handle the alignment of row in WGPU buffers.
 pub struct BufferDimensions {
