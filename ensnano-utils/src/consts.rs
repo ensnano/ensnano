@@ -234,9 +234,3 @@ pub fn bezier_control_id(control_point: BezierControlPoint) -> u32 {
         BezierControlPoint::PiecewiseBezier(n) => n as u32 + BEZIER_END_WIDGET_ID + 1,
     }
 }
-
-pub const BASE_SCROLL_SENSITIVITY: f32 = 0.12;
-
-pub fn scroll_sensitivity_conversion(sensitivity: f32) -> f32 {
-    10f32.powf(sensitivity / 10.) * BASE_SCROLL_SENSITIVITY
-}

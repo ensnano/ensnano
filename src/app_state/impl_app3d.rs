@@ -5,7 +5,6 @@ use ensnano_scene::{AppState as App3D, view::DrawOptions};
 use ensnano_utils::{
     WidgetBasis,
     app_state_parameters::check_xovers_parameter::CheckXoversParameter,
-    consts::scroll_sensitivity_conversion,
     selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
     strand_builder::StrandBuilder,
     surfaces::UnrootedRevolutionSurfaceDescriptor,
@@ -124,12 +123,13 @@ impl App3D for AppState {
     }
 
     fn get_scroll_sensitivity(&self) -> f32 {
+        const BASE_SCROLL_SENSITIVITY: f32 = 0.12;
         let sign = if self.0.parameters.inverted_y_scroll {
             -1.0
         } else {
             1.0
         };
-        sign * scroll_sensitivity_conversion(self.0.parameters.scroll_sensitivity)
+        sign * 10f32.powf(self.0.parameters.scroll_sensitivity / 10.) * BASE_SCROLL_SENSITIVITY
     }
 
     fn show_insertion_discriminants(&self) -> bool {

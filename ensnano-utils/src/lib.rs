@@ -38,7 +38,6 @@ use ensnano_design::{
 use ensnano_organizer::tree::{GroupId, OrganizerTree};
 use selection::Selection;
 use std::path::PathBuf;
-use surfaces::RevolutionSimulationParameters;
 use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
 use wgpu::util::{BufferInitDescriptor, DeviceExt as _};
 
