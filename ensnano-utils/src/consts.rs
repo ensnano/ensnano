@@ -136,26 +136,11 @@ pub const PIECEWISE_BEZIER_COLOR: u32 = 0xFF_66_CD_AA; // Medium Aquamarine
 
 pub const UPDATE_VISIBILITY_SIEVE_LABEL: &str = "Update visibility sieve";
 
-pub const COLOR_ADENOSINE: u32 = 0x00_CC0000;
-pub const COLOR_THYMINE: u32 = 0x00_0000CC;
-pub const COLOR_GUANINE: u32 = 0x00_00CC00;
-pub const COLOR_CYTOSINE: u32 = 0x00_CC00CC;
-pub const UNKNOWN_BASE_COLOR: u32 = 0x00_77_88_99;
 pub const REGULAR_H_BOND_COLOR: u32 = 0x_29_26_26;
 
 pub const RANDOM_COLOR_SHADE_HUE_RANGE: f64 = 0.1;
 pub const RANDOM_COLOR_SHADE_SATURATION_RANGE: f64 = 0.2;
 pub const RANDOM_COLOR_SHADE_VALUE_RANGE: f64 = 0.2;
-
-pub const fn basis_color(basis: char) -> u32 {
-    match basis {
-        'A' => COLOR_ADENOSINE,
-        'T' => COLOR_THYMINE,
-        'G' => COLOR_GUANINE,
-        'C' => COLOR_CYTOSINE,
-        _ => UNKNOWN_BASE_COLOR,
-    }
-}
 
 pub const BASIS_SCALE: Vec3 = Vec3 {
     x: 0.33 / SPHERE_RADIUS,
@@ -198,7 +183,13 @@ pub const BEZIER_SHEET_CORNER_RADIUS: f32 = 15.0;
 pub const APP_NAME: &str = "ENSnano";
 
 pub fn bezier_widget_id(helix_id: u32, control_point: BezierControlPoint) -> u32 {
-    let bezier_id = bezier_control_id(control_point);
+    let bezier_id = match control_point {
+        BezierControlPoint::CubicBezier(c) => {
+            let control_id: usize = c.into();
+            BEZIER_START_WIDGET_ID + control_id as u32
+        }
+        BezierControlPoint::PiecewiseBezier(n) => n as u32 + BEZIER_END_WIDGET_ID + 1,
+    };
     (helix_id << 8) | bezier_id
 }
 
@@ -222,15 +213,5 @@ pub const fn bezier_control_color(control_point: BezierControlPoint) -> u32 {
         BezierControlPoint::CubicBezier(CubicBezierControlPoint::Control2) => BEZIER_CONTROL2_COLOR,
         BezierControlPoint::CubicBezier(CubicBezierControlPoint::End) => BEZIER_END_COLOR,
         BezierControlPoint::PiecewiseBezier(_) => PIECEWISE_BEZIER_COLOR,
-    }
-}
-
-pub fn bezier_control_id(control_point: BezierControlPoint) -> u32 {
-    match control_point {
-        BezierControlPoint::CubicBezier(c) => {
-            let control_id: usize = c.into();
-            BEZIER_START_WIDGET_ID + control_id as u32
-        }
-        BezierControlPoint::PiecewiseBezier(n) => n as u32 + BEZIER_END_WIDGET_ID + 1,
     }
 }

@@ -42,7 +42,7 @@ use ensnano_utils::{
         FREE_XOVER_SCALE_FACTOR, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, NB_PRINTABLE_CHARS,
         PIVOT_SCALE_FACTOR, PIVOT_SPHERE_COLOR, PRINTABLE_CHARS, REGULAR_H_BOND_COLOR,
         SELECT_SCALE_FACTOR, SELECTED_COLOR, SPHERE_RADIUS, SUGGESTION_COLOR,
-        SURFACE_PIVOT_SPHERE_COLOR, UNCHECKED_XOVER_COLOR, basis_color,
+        SURFACE_PIVOT_SPHERE_COLOR, UNCHECKED_XOVER_COLOR,
     },
     graphics::{LoopoutBond, LoopoutNucl},
     instance::Instance,
@@ -1472,107 +1472,6 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
     }
 }
 
-fn create_dna_bond(source: Vec3, dest: Vec3, color: u32, id: u32, use_alpha: bool) -> TubeInstance {
-    let color = if use_alpha {
-        Instance::color_from_au32(color)
-    } else {
-        Instance::unclear_color_from_u32(color)
-    };
-    let rotor = Rotor3::from_rotation_between(Vec3::unit_x(), (dest - source).normalized());
-    let position = (dest + source) / 2.;
-    let length = (dest - source).mag();
-
-    TubeInstance {
-        position,
-        color,
-        rotor,
-        id,
-        radius: BOND_RADIUS,
-        length,
-    }
-}
-
-fn create_helix_cylinder(
-    source: Vec3,
-    dest: Vec3,
-    radius: f32,
-    color: u32,
-    id: u32,
-    use_alpha: bool,
-) -> (TubeLidInstance, SlicedTubeInstance, TubeLidInstance) {
-    let color = if use_alpha {
-        Instance::color_from_au32(color)
-    } else {
-        Instance::unclear_color_from_u32(color)
-    };
-    let length = (dest - source).mag();
-    let u = (dest - source).normalized();
-    let rotor = Rotor3::safe_from_rotation_from_unit_x_to(u);
-    let rotor2 = Rotor3::safe_from_rotation_from_unit_x_to(-u);
-    let position = (dest + source) / 2.;
-
-    (
-        TubeLidInstance {
-            position: source,
-            color,
-            rotor: rotor2,
-            id,
-            radius,
-        },
-        SlicedTubeInstance {
-            position,
-            color,
-            rotor,
-            id,
-            radius,
-            length,
-            prev: Vec3::zero(),
-            next: Vec3::zero(),
-        },
-        TubeLidInstance {
-            position: dest,
-            color,
-            rotor,
-            id,
-            radius,
-        },
-    )
-}
-
-fn create_check_bond(source: Vec3, dest: Vec3, checked: bool) -> RawDnaInstance {
-    let radius = (source - dest).mag() / 2.;
-    let position = (source + dest) / 2.;
-    let color = if checked {
-        Instance::color_from_au32(CHECKED_XOVER_COLOR)
-    } else {
-        Instance::color_from_au32(UNCHECKED_XOVER_COLOR)
-    };
-    SphereInstance {
-        position,
-        radius,
-        color,
-        id: 0,
-    }
-    .to_raw_instance()
-}
-
-fn create_prime3_cone(source: Vec3, dest: Vec3, color: u32, radius: f32) -> RawDnaInstance {
-    let color = Instance::unclear_color_from_u32(color);
-    let rotor = Rotor3::from_rotation_between(Vec3::unit_x(), (dest - source).normalized());
-    let length = (2. * radius).max(1. / 3. * (dest - source).mag());
-    let position = (3. * source + 2. * dest) / 5.;
-
-    ConeInstance {
-        position,
-        length,
-        rotor,
-        color,
-        id: 0,
-        radius,
-    }
-    .to_raw_instance()
-}
-
 #[derive(Debug, Clone)]
 pub struct HalfHBond {
     pub backbone: Vec3,
@@ -1688,4 +1587,115 @@ pub(super) struct HBondsInstances {
     pub full_h_bonds: Vec<RawDnaInstance>,
     pub partial_h_bonds: Vec<RawDnaInstance>,
     pub ellipsoids: Vec<RawDnaInstance>,
+}
+
+const fn basis_color(basis: char) -> u32 {
+    match basis {
+        'A' => 0x00_CC0000,
+        'T' => 0x00_0000CC,
+        'G' => 0x00_00CC00,
+        'C' => 0x00_CC00CC,
+        _ => 0x00_77_88_99,
+    }
+}
+
+fn create_dna_bond(source: Vec3, dest: Vec3, color: u32, id: u32, use_alpha: bool) -> TubeInstance {
+    let color = if use_alpha {
+        Instance::color_from_au32(color)
+    } else {
+        Instance::unclear_color_from_u32(color)
+    };
+    let rotor = Rotor3::from_rotation_between(Vec3::unit_x(), (dest - source).normalized());
+    let position = (dest + source) / 2.;
+    let length = (dest - source).mag();
+
+    TubeInstance {
+        position,
+        color,
+        rotor,
+        id,
+        radius: BOND_RADIUS,
+        length,
+    }
+}
+
+fn create_helix_cylinder(
+    source: Vec3,
+    dest: Vec3,
+    radius: f32,
+    color: u32,
+    id: u32,
+    use_alpha: bool,
+) -> (TubeLidInstance, SlicedTubeInstance, TubeLidInstance) {
+    let color = if use_alpha {
+        Instance::color_from_au32(color)
+    } else {
+        Instance::unclear_color_from_u32(color)
+    };
+    let length = (dest - source).mag();
+    let u = (dest - source).normalized();
+    let rotor = Rotor3::safe_from_rotation_from_unit_x_to(u);
+    let rotor2 = Rotor3::safe_from_rotation_from_unit_x_to(-u);
+    let position = (dest + source) / 2.;
+
+    (
+        TubeLidInstance {
+            position: source,
+            color,
+            rotor: rotor2,
+            id,
+            radius,
+        },
+        SlicedTubeInstance {
+            position,
+            color,
+            rotor,
+            id,
+            radius,
+            length,
+            prev: Vec3::zero(),
+            next: Vec3::zero(),
+        },
+        TubeLidInstance {
+            position: dest,
+            color,
+            rotor,
+            id,
+            radius,
+        },
+    )
+}
+
+fn create_check_bond(source: Vec3, dest: Vec3, checked: bool) -> RawDnaInstance {
+    let radius = (source - dest).mag() / 2.;
+    let position = (source + dest) / 2.;
+    let color = if checked {
+        Instance::color_from_au32(CHECKED_XOVER_COLOR)
+    } else {
+        Instance::color_from_au32(UNCHECKED_XOVER_COLOR)
+    };
+    SphereInstance {
+        position,
+        radius,
+        color,
+        id: 0,
+    }
+    .to_raw_instance()
+}
+
+fn create_prime3_cone(source: Vec3, dest: Vec3, color: u32, radius: f32) -> RawDnaInstance {
+    let color = Instance::unclear_color_from_u32(color);
+    let rotor = Rotor3::from_rotation_between(Vec3::unit_x(), (dest - source).normalized());
+    let length = (2. * radius).max(1. / 3. * (dest - source).mag());
+    let position = (3. * source + 2. * dest) / 5.;
+
+    ConeInstance {
+        position,
+        length,
+        rotor,
+        color,
+        id: 0,
+        radius,
+    }
+    .to_raw_instance()
 }
