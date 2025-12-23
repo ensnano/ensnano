@@ -6,14 +6,14 @@ use ultraviolet::{Vec3, Vec4};
 pub const APP_NAME: &str = "ENSnano";
 
 pub const WELCOME_MSG: &str = "\
-╔════════════════════════════════════════════════════════════════════════════╗
-║                                                                            ║
-║                                  ENSNANO                                   ║
-║                                                                            ║
-║        Welcome! During runtime, the console may print error                ║
-║        messages intended to help developers investigate bugs.              ║
-║                                                                            ║
-╚════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════╗
+║                                                                      ║
+║                               ENSNANO                                ║
+║                                                                      ║
+║        Welcome! During runtime, the console may print error          ║
+║        messages intended to help developers investigate bugs.        ║
+║                                                                      ║
+╚══════════════════════════════════════════════════════════════════════╝
 ";
 
 pub const VIEWER_BINDING_ID: u32 = 0;
