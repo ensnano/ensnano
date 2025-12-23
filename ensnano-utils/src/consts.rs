@@ -1,4 +1,4 @@
-//! Defines constants uses throughout the workspace.
+//! Defines constants used throughout the workspace.
 
 use ensnano_design::curves::bezier::{BezierControlPoint, CubicBezierControlPoint};
 use ultraviolet::{Vec3, Vec4};
