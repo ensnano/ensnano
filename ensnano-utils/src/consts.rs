@@ -1,6 +1,5 @@
 //! Defines constants used throughout the workspace.
 
-use ensnano_design::curves::bezier::{BezierControlPoint, CubicBezierControlPoint};
 use ultraviolet::{Vec3, Vec4};
 
 pub const APP_NAME: &str = "ENSnano";
@@ -182,37 +181,3 @@ pub const SELECTION_2D_CYCLE_TIME_LIMIT_MS: u64 = 2_000;
 // steel blue
 pub const BEZIER_SHEET_CORNER_COLOR: u32 = 0x46_82_B4;
 pub const BEZIER_SHEET_CORNER_RADIUS: f32 = 15.0;
-
-pub fn bezier_widget_id(helix_id: u32, control_point: BezierControlPoint) -> u32 {
-    let bezier_id = match control_point {
-        BezierControlPoint::CubicBezier(c) => {
-            let control_id: usize = c.into();
-            BEZIER_START_WIDGET_ID + control_id as u32
-        }
-        BezierControlPoint::PiecewiseBezier(n) => n as u32 + BEZIER_END_WIDGET_ID + 1,
-    };
-    (helix_id << 8) | bezier_id
-}
-
-pub fn widget_id_to_bezier(id: u32) -> Option<(usize, BezierControlPoint)> {
-    let control = match id & 0xFF {
-        n if n > BEZIER_END_WIDGET_ID => Some(BezierControlPoint::PiecewiseBezier(
-            (n - 1 - BEZIER_END_WIDGET_ID) as usize,
-        )),
-        n => {
-            let control = ((n - BEZIER_START_WIDGET_ID) as usize).try_into().ok();
-            control.map(BezierControlPoint::CubicBezier)
-        }
-    };
-    Some((id >> 8) as usize).zip(control)
-}
-
-pub const fn bezier_control_color(control_point: BezierControlPoint) -> u32 {
-    match control_point {
-        BezierControlPoint::CubicBezier(CubicBezierControlPoint::Start) => BEZIER_START_COLOR,
-        BezierControlPoint::CubicBezier(CubicBezierControlPoint::Control1) => BEZIER_CONTROL1_COLOR,
-        BezierControlPoint::CubicBezier(CubicBezierControlPoint::Control2) => BEZIER_CONTROL2_COLOR,
-        BezierControlPoint::CubicBezier(CubicBezierControlPoint::End) => BEZIER_END_COLOR,
-        BezierControlPoint::PiecewiseBezier(_) => PIECEWISE_BEZIER_COLOR,
-    }
-}

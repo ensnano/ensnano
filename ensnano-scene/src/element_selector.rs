@@ -6,7 +6,7 @@ use ensnano_design::{
 };
 use ensnano_utils::{
     buffer_dimensions::BufferDimensions,
-    consts::widget_id_to_bezier,
+    consts::{BEZIER_END_WIDGET_ID, BEZIER_START_WIDGET_ID},
     graphics::DrawArea,
     selection::{PhantomElement, phantom_helix_decoder},
 };
@@ -423,4 +423,17 @@ pub(crate) fn bezier_tangent_id(path_id: BezierPathId, vertex_id: usize, tangent
         u32::from(ObjType::BezierTangentOut)
     };
     (front << 24) | ((path_id.0) << 16) | (vertex_id as u32)
+}
+
+fn widget_id_to_bezier(id: u32) -> Option<(usize, BezierControlPoint)> {
+    let control = match id & 0xFF {
+        n if n > BEZIER_END_WIDGET_ID => Some(BezierControlPoint::PiecewiseBezier(
+            (n - 1 - BEZIER_END_WIDGET_ID) as usize,
+        )),
+        n => {
+            let control = ((n - BEZIER_START_WIDGET_ID) as usize).try_into().ok();
+            control.map(BezierControlPoint::CubicBezier)
+        }
+    };
+    Some((id >> 8) as usize).zip(control)
 }
