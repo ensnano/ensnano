@@ -99,14 +99,15 @@ pub const L_CLICK: char = '\u{e918}';
 pub const M_CLICK: char = '\u{e91b}';
 pub const R_CLICK: char = '\u{e91a}';
 
-pub const WELCOME_MSG: &str = "
-==============================================================================
-==============================================================================
-                               WELCOME TO ENSNANO\n
-During runtime, the console may print error messages that are useful to the
-programer to investigate bugs.\n
-==============================================================================
-==============================================================================
+pub const WELCOME_MSG: &str = "\
+╔════════════════════════════════════════════════════════════════════════════╗
+║                                                                            ║
+║                                  ENSNANO                                   ║
+║                                                                            ║
+║        Welcome! During runtime, the console may print error                ║
+║        messages intended to help developers investigate bugs.              ║
+║                                                                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
 ";
 
 pub const RGB_HANDLE_COLORS: [u32; 3] = [0xFF0000, 0xFF00, 0xFF];
