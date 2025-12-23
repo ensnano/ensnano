@@ -1,4 +1,3 @@
-use crate::consts::DEFAULT_REVOLUTION_SIMULATION_PARAMETERS;
 use ensnano_design::{
     curves::{
         revolution::{InterpolatedCurveDescriptor, InterpolationDescriptor},
@@ -358,7 +357,16 @@ pub struct RevolutionSimulationParameters {
 
 impl Default for RevolutionSimulationParameters {
     fn default() -> Self {
-        DEFAULT_REVOLUTION_SIMULATION_PARAMETERS
+        Self {
+            nb_section_per_segment: 100,
+            spring_stiffness: 8.0,
+            torsion_stiffness: 30.0,
+            fluid_friction: 1.0,
+            ball_mass: 10.0,
+            time_span: 5.0e-2,
+            simulation_step: 1e-3,
+            method: EquadiffSolvingMethod::Ralston,
+        }
     }
 }
 

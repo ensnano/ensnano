@@ -1,6 +1,5 @@
 //! Defines constants uses throughout the workspace.
 
-use crate::{RevolutionSimulationParameters, surfaces::EquadiffSolvingMethod};
 use ensnano_design::curves::bezier::{BezierControlPoint, CubicBezierControlPoint};
 use ultraviolet::{Vec3, Vec4};
 
@@ -44,9 +43,9 @@ pub const CANDIDATE_COLOR: u32 = 0xBF_00_FF_00;
 pub const SELECTED_COLOR: u32 = 0xBF_FF_00_00;
 pub const SUGGESTION_COLOR: u32 = 0xBF_FF_00_FF;
 pub const PIVOT_SPHERE_COLOR: u32 = 0xBF_FF_FF_00;
-pub const SURFACE_PIVOT_SPHERE_COLOR: u32 = 0xBF_FF_14_B9; // pinkish
+pub const SURFACE_PIVOT_SPHERE_COLOR: u32 = 0xBF_FF_14_B9; // Pinkish
 pub const FREE_XOVER_COLOR: u32 = 0xBF_00_00_FF;
-pub const CHECKED_XOVER_COLOR: u32 = 0xBF_3C_B3_71; //Medium sea green
+pub const CHECKED_XOVER_COLOR: u32 = 0xBF_3C_B3_71; // Medium sea green
 pub const UNCHECKED_XOVER_COLOR: u32 = 0xCF_FF_14_93; // Deep pink
 pub const STEREOGRAPHIC_SPHERE_COLOR: u32 = 0xDD_2F_4F_4F; // Slate grey
 pub const STEREOGRAPHIC_SPHERE_RADIUS: f32 = 2.;
@@ -241,15 +240,3 @@ pub const BASE_SCROLL_SENSITIVITY: f32 = 0.12;
 pub fn scroll_sensitivity_conversion(sensitivity: f32) -> f32 {
     10f32.powf(sensitivity / 10.) * BASE_SCROLL_SENSITIVITY
 }
-
-pub const DEFAULT_REVOLUTION_SIMULATION_PARAMETERS: RevolutionSimulationParameters =
-    RevolutionSimulationParameters {
-        nb_section_per_segment: 100,
-        spring_stiffness: 8.0,
-        torsion_stiffness: 30.0,
-        fluid_friction: 1.0,
-        ball_mass: 10.0,
-        time_span: 5.0e-2,
-        simulation_step: 1e-3,
-        method: EquadiffSolvingMethod::Ralston,
-    };
