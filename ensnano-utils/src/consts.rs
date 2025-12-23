@@ -3,6 +3,19 @@
 use ensnano_design::curves::bezier::{BezierControlPoint, CubicBezierControlPoint};
 use ultraviolet::{Vec3, Vec4};
 
+pub const APP_NAME: &str = "ENSnano";
+
+pub const WELCOME_MSG: &str = "\
+╔════════════════════════════════════════════════════════════════════════════╗
+║                                                                            ║
+║                                  ENSNANO                                   ║
+║                                                                            ║
+║        Welcome! During runtime, the console may print error                ║
+║        messages intended to help developers investigate bugs.              ║
+║                                                                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
+";
+
 pub const VIEWER_BINDING_ID: u32 = 0;
 pub const TEXTURE_BINDING_ID: u32 = 2;
 
@@ -99,17 +112,6 @@ pub const L_CLICK: char = '\u{e918}';
 pub const M_CLICK: char = '\u{e91b}';
 pub const R_CLICK: char = '\u{e91a}';
 
-pub const WELCOME_MSG: &str = "\
-╔════════════════════════════════════════════════════════════════════════════╗
-║                                                                            ║
-║                                  ENSNANO                                   ║
-║                                                                            ║
-║        Welcome! During runtime, the console may print error                ║
-║        messages intended to help developers investigate bugs.              ║
-║                                                                            ║
-╚════════════════════════════════════════════════════════════════════════════╝
-";
-
 pub const RGB_HANDLE_COLORS: [u32; 3] = [0xFF0000, 0xFF00, 0xFF];
 pub const CYM_HANDLE_COLORS: [u32; 3] = [0x00FFFF, 0xFF00FF, 0xFFFF00];
 
@@ -180,8 +182,6 @@ pub const SELECTION_2D_CYCLE_TIME_LIMIT_MS: u64 = 2_000;
 // steel blue
 pub const BEZIER_SHEET_CORNER_COLOR: u32 = 0x46_82_B4;
 pub const BEZIER_SHEET_CORNER_RADIUS: f32 = 15.0;
-
-pub const APP_NAME: &str = "ENSnano";
 
 pub fn bezier_widget_id(helix_id: u32, control_point: BezierControlPoint) -> u32 {
     let bezier_id = match control_point {
