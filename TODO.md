@@ -86,6 +86,7 @@
 - Check and accept nix merge request
 - Fix all GitLab issues
 - Update `iced` to 0.14
+  - Replace all occurrences of `text(format!(...))` with the macro `text!(...)`
 - Port to the web with WASM
 - Distribution of strand lengths (analysis tab)
 - Triple-stranded DNA
