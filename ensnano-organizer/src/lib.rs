@@ -305,7 +305,7 @@ impl<E: OrganizerElement> Organizer<E> {
                     .width(Length::FillPortion(8))
             ]);
         }
-        let mut new_group_button = button(text("New Group"));
+        let mut new_group_button = button("New Group");
         if !selection.is_empty() {
             new_group_button = new_group_button.on_press(OrganizerMessage::new_group());
         }

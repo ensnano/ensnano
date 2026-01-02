@@ -247,7 +247,7 @@ fn kcut_threshold_editor<State: AppState>(
     ui_size: UiSize,
 ) -> iced::Element<'static, Message<State>> {
     row![
-        text("KCut threshold"),
+        "KCut threshold",
         Space::with_width(ui_size.checkbox_spacing()),
         text_button("-", ui_size).on_press_maybe(
             (parameters.simulation_type == RapierSimulationType::KCut).then(|| {

@@ -127,7 +127,7 @@ impl<State: AppState> GuiTab<State> for CameraTab<State> {
             subsection("Rendering", ui_size),
             row![
                 row![
-                    text("Style"),
+                    "Style",
                     pick_list(
                         ALL_RENDERING_MODE,
                         Some(self.rendering_mode),
@@ -138,7 +138,7 @@ impl<State: AppState> GuiTab<State> for CameraTab<State> {
                 .spacing(5)
                 .width(Length::FillPortion(1)),
                 row![
-                    text("Background"),
+                    "Background",
                     pick_list(
                         ALL_BACKGROUND3D,
                         Some(self.background3d),

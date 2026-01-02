@@ -102,14 +102,14 @@ impl<State: AppState> GuiTab<State> for ParametersTab<State> {
             section("About", ui_size),
             text(format!("Version {}", ensnano_version())),
             subsection("Development:", ui_size),
-            text("Nicolas Levy"),
+            "Nicolas Levy",
             extra_jump(),
             subsection("Conception:", ui_size),
-            text("Nicolas Levy"),
-            text("Nicolas Schabanel"),
+            "Nicolas Levy",
+            "Nicolas Schabanel",
             extra_jump(),
             subsection("License:", ui_size),
-            text("GPLv3"),
+            "GPLv3",
         ];
         scrollable(content).into()
     }

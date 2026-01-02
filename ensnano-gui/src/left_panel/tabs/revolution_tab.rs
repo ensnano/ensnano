@@ -543,7 +543,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
         let desc = self.get_revolution_system(app_state, false);
 
         let shift_buttons = {
-            let buttons = (button(text("-")), button(text("+")));
+            let buttons = (button("-"), button("+"));
             if let Some(shift) = self.get_shift_per_turn(app_state) {
                 row![
                     buttons.0.on_press(Message::DecrRevolutionShift),
@@ -556,7 +556,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
                     buttons.0,
                     buttons.1,
                     Space::with_width(ui_size.checkbox_spacing()),
-                    text("Nb shift: ###"),
+                    "Nb shift: ###",
                 ]
             }
         };
@@ -589,7 +589,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
                 extra_jump(),
                 subsection("Section parameters", ui_size),
                 row![
-                    text("Curve type"),
+                    "Curve type",
                     Space::with_width(ui_size.checkbox_spacing()),
                     pick_list(
                         State::POSSIBLE_CURVES,
@@ -611,7 +611,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
                 extra_jump(),
                 subsection("Revolution parameters", ui_size),
                 row![
-                    text("Nb Half Turns"),
+                    "Nb Half Turns",
                     Space::with_width(ui_size.checkbox_spacing()),
                     self.half_turn_count
                         .input_view(RevolutionParameterId::HalfTurnCount),
@@ -622,7 +622,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
                     |RevolutionScaling { nb_helix }| format!("Nb helix: {nb_helix}")
                 )),
                 row![
-                    text("Nb spiral"),
+                    "Nb spiral",
                     Space::with_width(ui_size.checkbox_spacing()),
                     self.nb_spiral_state_input
                         .input_view(RevolutionParameterId::NbSpiral),
@@ -630,7 +630,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
                 .align_items(Alignment::Center),
                 shift_buttons,
                 row![
-                    text("Revolution Radius"),
+                    "Revolution Radius",
                     Space::with_width(ui_size.checkbox_spacing()),
                     self.radius_input
                         .input_view(RevolutionParameterId::RevolutionRadius),
@@ -642,14 +642,14 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
                 extra_jump(),
                 subsection("Discretization parameters", ui_size),
                 row![
-                    text("Nb section per segments"),
+                    "Nb section per segments",
                     Space::with_width(ui_size.checkbox_spacing()),
                     self.nb_section_per_segment_input
                         .input_view(RevolutionParameterId::NbSectionPerSegment),
                 ]
                 .align_items(Alignment::Center),
                 row![
-                    text("Target length"),
+                    "Target length",
                     Space::with_width(ui_size.checkbox_spacing()),
                     self.scaffold_len_target
                         .input_view(RevolutionParameterId::ScaffoldLenTarget),
@@ -661,34 +661,34 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
                 extra_jump(),
                 subsection("Simulation parameters", ui_size),
                 row![
-                    text("Spring Stiffness"),
+                    "Spring Stiffness",
                     Space::with_width(ui_size.checkbox_spacing()),
                     self.spring_stiffness
                         .input_view(RevolutionParameterId::SpringStiffness),
                 ]
                 .align_items(Alignment::Center),
                 row![
-                    text("Torsion Stiffness"),
+                    "Torsion Stiffness",
                     Space::with_width(ui_size.checkbox_spacing()),
                     self.torsion_stiffness
                         .input_view(RevolutionParameterId::TorsionStiffness),
                 ]
                 .align_items(Alignment::Center),
                 row![
-                    text("Fluid Friction"),
+                    "Fluid Friction",
                     Space::with_width(ui_size.checkbox_spacing()),
                     self.fluid_friction
                         .input_view(RevolutionParameterId::FluidFriction),
                 ]
                 .align_items(Alignment::Center),
                 row![
-                    text("Ball Mass"),
+                    "Ball Mass",
                     Space::with_width(ui_size.checkbox_spacing()),
                     self.ball_mass.input_view(RevolutionParameterId::BallMass),
                 ]
                 .align_items(Alignment::Center),
                 row![
-                    text("Solving Method"),
+                    "Solving Method",
                     Space::with_width(ui_size.checkbox_spacing()),
                     pick_list(
                         EquadiffSolvingMethod::ALL_METHODS,
@@ -698,13 +698,13 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
                 ]
                 .align_items(Alignment::Center),
                 row![
-                    text("Tie Span"),
+                    "Tie Span",
                     Space::with_width(ui_size.checkbox_spacing()),
                     self.time_span.input_view(RevolutionParameterId::TimeSpan),
                 ]
                 .align_items(Alignment::Center),
                 row![
-                    text("Simulation Step"),
+                    "Simulation Step",
                     Space::with_width(ui_size.checkbox_spacing()),
                     self.simulation_step
                         .input_view(RevolutionParameterId::SimulationStep),

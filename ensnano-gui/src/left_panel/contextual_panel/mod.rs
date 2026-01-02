@@ -384,7 +384,7 @@ where
                 .as_ref()
                 .unwrap_or(&real_len_string);
             content = content.push(row![
-                text("Loopout"),
+                "Loopout",
                 keyboard_priority(
                     "Loopout",
                     Message::SetKeyboardPriority,
