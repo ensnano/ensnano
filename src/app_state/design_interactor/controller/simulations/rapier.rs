@@ -11,7 +11,6 @@ use ensnano_physics::simulation::RapierPhysicsSystem;
 use std::{
     collections::HashMap,
     sync::{Arc, Mutex, Weak},
-    time::Duration,
 };
 
 #[derive(Default)]
@@ -19,8 +18,6 @@ pub(crate) struct RapierPhysicalSystem {
     system: RapierPhysicsSystem,
     interface: Weak<Mutex<RapierInterface>>,
 }
-
-const FRAME_MIN_TIME: Duration = Duration::from_millis(10);
 
 impl RapierPhysicalSystem {
     pub(crate) fn start_new(
@@ -61,18 +58,11 @@ impl RapierPhysicalSystem {
     pub(crate) fn run(mut self) {
         std::thread::spawn(move || {
             while let Some(interface) = self.interface.upgrade() {
-                let start_time = std::time::Instant::now();
-
                 // we update the physics
                 self.system.step();
                 // we get the positions
-                interface.lock().unwrap().space_position = self.system.get_positions();
-
-                let expected_end_time = start_time + FRAME_MIN_TIME;
-                let now = std::time::Instant::now();
-
-                if now < expected_end_time {
-                    std::thread::sleep(expected_end_time - now);
+                if let Ok(mut guard) = interface.try_lock() {
+                    guard.space_position = self.system.get_positions();
                 }
             }
         });
