@@ -1,9 +1,11 @@
+//! This module defines important structures that hold the simulation for the rest of the program.
+
 use crate::{
-    full_simulation::{
-        CutHelicesSetup, FullSimulationSetup, KCutHelicesSetup, RigidHelicesSetup, build_simulation,
-    },
     helices::build_helices,
     parameters::RapierParameters,
+    setup::{
+        CutHelicesSetup, FullSimulationSetup, KCutHelicesSetup, RigidHelicesSetup, build_simulation,
+    },
 };
 use ahash::HashMap;
 use ensnano_design::{
@@ -14,6 +16,7 @@ use ensnano_design::{
 };
 use rapier3d::{na::Vector3, prelude::*};
 
+/// This structures holds all the data necessary for the simulation.
 #[derive(Default)]
 pub struct RapierPhysicsSystem {
     pub integration_parameters: IntegrationParameters,
@@ -106,25 +109,6 @@ impl RapierPhysicsSystem {
             &(),
             &(),
         );
-
-        // let mut sum = 0.0;
-        // let mut count = 0;
-        // for (a, b) in &self.crossovers {
-        //     let Some(a) = self.collider_set.get(*a) else {
-        //         continue;
-        //     };
-        //     let Some(b) = self.collider_set.get(*b) else {
-        //         continue;
-        //     };
-
-        //     sum += a.translation().metric_distance(&b.translation());
-
-        //     count += 1;
-        // }
-
-        // let average = sum / count as f32;
-
-        // println!("Average : {average}");
     }
 
     pub fn get_positions(&self) -> Vec<(u32, [f32; 3])> {

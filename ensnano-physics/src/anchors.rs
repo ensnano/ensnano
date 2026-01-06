@@ -1,3 +1,9 @@
+//! This modules constructs the position of anchor points for the springs that
+//! are part of the rapier simulation of DNA.
+//! It does so by creating a reference of the provided HelixParameters
+//! with no curve, which implies that a curved helix using those anchors
+//! would try to go back to a straight configuration.
+
 use crate::vec_to_vector;
 use ensnano_design::{helices::Helix, parameters::HelixParameters};
 use rapier3d::{
@@ -14,7 +20,7 @@ use ultraviolet::{Rotor3, Vec3};
 pub(crate) struct SpringAnchorsReference {
     nucleotide_forward: OVector<f32, Const<3>>,
 
-    // the local forward vector of the curve
+    // the local forward vector of the curve. Given by the local frame
     up: OVector<f32, Const<3>>,
 
     up_forward_anchor: OVector<f32, Const<3>>,
