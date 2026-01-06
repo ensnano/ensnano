@@ -1,6 +1,6 @@
 use crate::app_state::design_interactor::DesignInteractor;
 use ensnano_design::{
-    AdditionalStructure, Nucl,
+    AdditionalStructure,
     bezier_plane::{
         BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
         InstantiatedPath,
@@ -10,21 +10,24 @@ use ensnano_design::{
         CurveDescriptor, SurfaceInfo, SurfacePoint,
         bezier::{BezierControlPoint, CubicBezierConstructor},
     },
+    domains::Domain,
     external_3d_objects::External3DObjects,
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
     helices::{Helix, HelixCollection as _},
+    nucl::Nucl,
     parameters::HelixParameters,
-    strands::Domain,
 };
-use ensnano_interactor::{
+use ensnano_scene::{
+    data::{
+        StrandNucleotidesPositions,
+        design3d::{HBond, Scalebar, SceneDesignReaderExt},
+    },
+    view::grid::GridInstance,
+};
+use ensnano_utils::{
     ObjectType, Referential,
     graphics::{LoopoutBond, LoopoutNucl},
 };
-use ensnano_scene::{
-    data::design3d::{HBond, Scalebar, SceneDesignReaderExt},
-    view::grid::GridInstance,
-};
-use ensnano_utils::StrandNucleotidesPositions;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::Arc;
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};

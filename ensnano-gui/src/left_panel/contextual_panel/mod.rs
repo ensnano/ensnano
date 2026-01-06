@@ -1,20 +1,22 @@
 pub(super) mod value_constructor;
 
-use crate::{AppState, GuiDesignReaderExt, Requests, left_panel::Message};
-use ensnano_consts::{
-    ALT, BACKSPACE_CHAR, CTRL, HELIX_CHAR, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_UP, L_CLICK, M_CLICK,
-    MOVE_CHAR, NUCL_CHAR, R_CLICK, ROT_CHAR, SELECT_CHAR, SHIFT, STRAND_CHAR, SUPPR_CHAR,
+use crate::{
+    AppState, GuiDesignReaderExt, Requests,
+    helpers::{extra_jump, right_checkbox, section, subsection, text_button},
+    left_panel::Message,
+    theme,
 };
 use ensnano_design::{bezier_plane::BezierVertexId, grid::GridId};
-use ensnano_iced::{
-    helpers::{extra_jump, right_checkbox, section, subsection, text_button},
-    theme,
-    ui_size::UiSize,
-    widgets::keyboard_priority::keyboard_priority,
-};
-use ensnano_interactor::{
+use ensnano_organizer::keyboard_priority::keyboard_priority;
+use ensnano_utils::{
     SimulationState,
+    consts::{
+        ALT, BACKSPACE_CHAR, CTRL, HELIX_CHAR, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_UP, L_CLICK,
+        M_CLICK, MOVE_CHAR, NUCL_CHAR, R_CLICK, ROT_CHAR, SELECT_CHAR, SHIFT, STRAND_CHAR,
+        SUPPR_CHAR,
+    },
     selection::{ActionMode, Selection},
+    ui_size::UiSize,
 };
 use iced::{
     Alignment, Command, Length,
@@ -287,7 +289,7 @@ where
         //
         let mut content = if self.show_tutorial {
             let link = "http://ens-lyon.fr/ensnano";
-            self::column![
+            column![
                 section("Tutorials", ui_size)
                     .width(Length::Fill)
                     .horizontal_alignment(Horizontal::Center),
@@ -308,7 +310,7 @@ where
         } else if nb_selected > 1 {
             // NOTE: When the number of objects selected is greater than one,
             //       we only print the number of object selected.
-            self::column![text(format!("{nb_selected} objects selected"))]
+            column![text(format!("{nb_selected} objects selected"))]
                 .width(Length::Fill)
                 .align_items(Alignment::Center)
         } else {
@@ -317,7 +319,7 @@ where
             column = column.push(
                 row![
                     Space::with_width(Length::FillPortion(1)),
-                    self::column![text_button("Help", ui_size).on_press(Message::ForceHelp),]
+                    column![text_button("Help", ui_size).on_press(Message::ForceHelp),]
                         .width(Length::FillPortion(1)),
                     Space::with_width(Length::FillPortion(1)),
                 ]
@@ -382,7 +384,7 @@ where
                 .as_ref()
                 .unwrap_or(&real_len_string);
             content = content.push(row![
-                text("Loopout"),
+                "Loopout",
                 keyboard_priority(
                     "Loopout",
                     Message::SetKeyboardPriority,
@@ -501,7 +503,7 @@ fn add_grid_content<'a, State: AppState>(
     ui_size: UiSize,
     twisting: TwistStatus,
 ) -> iced::Element<'a, Message<State>> {
-    self::column![
+    column![
         // twist_button
         match twisting {
             TwistStatus::Twisting => text_button("Stop", ui_size).on_press(Message::StopSimulation),
@@ -528,7 +530,7 @@ fn add_strand_content<'a, State: AppState>(
     ui_size: UiSize,
 ) -> iced::Element<'a, Message<State>> {
     let s_id = info_values[2].parse::<usize>().unwrap();
-    self::column![
+    column![
         row![
             text("Name").size(ui_size.main_text()),
             keyboard_priority(
@@ -560,7 +562,7 @@ fn add_help_to_column<'a, State: AppState>(
     help: Vec<(String, String)>,
     ui_size: UiSize,
 ) -> Column<'a, Message<State>> {
-    self::column![
+    column![
         text(help_title).size(ui_size.intermediate_text()),
         column(help.iter().map(|(l, r)| {
             if l.is_empty() {
@@ -586,7 +588,7 @@ fn add_help_to_column<'a, State: AppState>(
 }
 
 fn turn_into_help_column<'a, State: AppState>(ui_size: UiSize) -> Column<'a, Message<State>> {
-    self::column![
+    column![
         section("Help", ui_size)
             .width(Length::Fill)
             .horizontal_alignment(Horizontal::Center),
@@ -852,7 +854,7 @@ impl AddStrandMenu {
             theme::DISABLED_TEXT
         };
 
-        self::column![
+        column![
             right_checkbox(
                 self.text_inputs_are_active,
                 "Add double strand on helix",
@@ -860,7 +862,7 @@ impl AddStrandMenu {
                 ui_size,
             ),
             row![
-                self::column![
+                column![
                     text("Starting nt").style(color_choose_strand_start_length),
                     // position_input
                     keyboard_priority(
@@ -872,7 +874,7 @@ impl AddStrandMenu {
                     )
                 ]
                 .width(width / 2),
-                self::column![
+                column![
                     text("Length (nt)").style(color_choose_strand_start_length),
                     // length_input
                     keyboard_priority(

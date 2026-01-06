@@ -9,9 +9,8 @@ license.workspace = true
 workspace = true
 
 [dependencies]
-ensnano_iced.workspace = true
-
 iced.workspace = true
+iced_graphics.workspace = true
 icondata.workspace = true
 log.workspace = true
 rand.workspace = true

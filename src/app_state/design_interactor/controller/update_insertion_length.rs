@@ -1,9 +1,10 @@
 use crate::app_state::design_interactor::controller::{Controller, ErrOperation};
 use ensnano_design::{
     Design,
-    strands::{Domain, DomainJunction, Strand},
+    domains::Domain,
+    strands::{DomainJunction, Strand},
 };
-use ensnano_interactor::InsertionPoint;
+use ensnano_utils::InsertionPoint;
 
 impl Controller {
     pub(super) fn update_insertion_length(

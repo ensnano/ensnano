@@ -10,7 +10,8 @@ use ensnano_gui::{
     left_panel::tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
     status_bar::{ClipboardContent, CurrentOpState},
 };
-use ensnano_interactor::{
+use ensnano_organizer::tree::GroupId;
+use ensnano_utils::{
     PastingStatus, ScaffoldInfo, SimulationState, StrandBuildingStatus, WidgetBasis,
     app_state_parameters::{
         check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
@@ -20,7 +21,6 @@ use ensnano_interactor::{
         ActionMode, Selection, SelectionConversion as _, SelectionMode, all_helices_no_grid,
     },
 };
-use ensnano_organizer::tree::GroupId;
 
 impl GuiState for AppState {
     const POSSIBLE_CURVES: &'static [CurveDescriptorBuilder<Self>] =

@@ -11,8 +11,12 @@ use ensnano_design::{
 };
 use ensnano_exports::ExportType;
 use ensnano_gui::{OverlayType, Requests as GuiRequests, left_panel::RigidBodyParametersRequest};
-use ensnano_iced::{ui_size::UiSize, widgets::keyboard_priority::PriorityRequest};
-use ensnano_interactor::{
+use ensnano_organizer::{
+    keyboard_priority::PriorityRequest,
+    tree::{GroupId, OrganizerTree},
+};
+use ensnano_physics::parameters::RapierParameters;
+use ensnano_utils::{
     DesignOperation, HyperboloidRequest, InsertionPoint, RigidBodyConstants, RollRequest,
     app_state_parameters::{
         check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
@@ -22,9 +26,8 @@ use ensnano_interactor::{
     operation::Operation,
     selection::{ActionMode, SelectionMode},
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
+    ui_size::UiSize,
 };
-use ensnano_organizer::tree::{GroupId, OrganizerTree};
-use ensnano_physics::parameters::RapierParameters;
 use std::{collections::BTreeSet, sync::Arc};
 use ultraviolet::{Rotor3, Vec2, Vec3};
 
@@ -162,8 +165,8 @@ impl GuiRequests for Requests {
         self.camera_target = Some((direction, up));
     }
 
-    fn perform_camera_rotation(&mut self, xz: f32, yz: f32, xy: f32) {
-        self.camera_rotation = Some((xz, yz, xy));
+    fn perform_camera_rotation(&mut self, x: f32, y: f32, z: f32) {
+        self.camera_rotation = Some((x, y, z));
     }
 
     fn create_grid(&mut self, grid_type_descriptor: GridTypeDescr) {

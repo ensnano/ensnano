@@ -1,7 +1,5 @@
 use crate::{
-    helices::HelixCollection,
-    parameters::HelixParameters,
-    strands::{Domain, Strand},
+    domains::Domain, helices::HelixCollection, parameters::HelixParameters, strands::Strand,
 };
 use rand::Rng as _;
 use rand_distr::StandardNormal;

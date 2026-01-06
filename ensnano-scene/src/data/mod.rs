@@ -22,28 +22,28 @@ use crate::{
     },
 };
 use design3d::{Design3D, SceneDesignReaderExt};
-use ensnano_consts::{
-    BOND_RADIUS, CANDIDATE_COLOR, CANDIDATE_SCALE_FACTOR, SELECT_SCALE_FACTOR, SELECTED_COLOR,
-    SPHERE_RADIUS,
-};
 use ensnano_design::{
-    Nucl,
     bezier_plane::BezierVertexId,
     collection::Collection as _,
     curves::{SurfaceInfo, SurfacePoint},
     external_3d_objects::External3DObjectsStamp,
     grid::{GridId, GridObject, GridPosition},
+    nucl::Nucl,
 };
-use ensnano_interactor::{
+use ensnano_utils::{
     ObjectType, Referential,
     application::Camera3D,
+    consts::{
+        BOND_RADIUS, CANDIDATE_COLOR, CANDIDATE_SCALE_FACTOR, SELECT_SCALE_FACTOR, SELECTED_COLOR,
+        SPHERE_RADIUS,
+    },
     graphics::HBondDisplay,
     selection::{
         ActionMode, CenterOfSelection, PhantomElement, Selection, SelectionMode,
         extract_helices_with_controls,
     },
 };
-use ensnano_utils::StrandNucleotidesPositions;
+use serde::{Deserialize, Serialize};
 use std::{
     cell::RefCell,
     collections::{BTreeMap, HashMap, HashSet},
@@ -1993,6 +1993,14 @@ struct Discs<'a, R: SceneDesignReaderExt> {
     selection: &'a mut Vec<GridPosition>,
     candidates: &'a mut Vec<GridPosition>,
     design: &'a Design3D<R>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct StrandNucleotidesPositions {
+    pub is_cyclic: bool,
+    pub positions: Vec<[f32; 3]>,
+    pub curvatures: Vec<f64>,
+    pub torsions: Vec<f64>,
 }
 
 fn add_discs<R: SceneDesignReaderExt>(pos: GridPosition, discs: Discs<R>, level: DiscLevel) {

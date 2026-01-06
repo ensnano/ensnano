@@ -1,21 +1,3 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 pub mod bezier;
 mod chebyshev;
 mod circle_curve;
@@ -58,7 +40,7 @@ use crate::{
     grid::{Edge, GridPosition, grid_collection::FreeGrids},
     helices::{AdditionalHelix2D, Helix},
     parameters::HelixParameters,
-    utils::{is_false, vec_to_dvec},
+    utils::{serde::is_false, ultraviolet::vec_to_dvec},
 };
 
 use bezier::TranslatedPiecewiseBezier;

@@ -9,12 +9,16 @@ pub(crate) mod poll;
 
 use crate::controller::normal_state::Action;
 use ensnano_design::{
-    Nucl,
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridPosition, GridTypeDescr},
+    nucl::Nucl,
 };
-use ensnano_iced::widgets::keyboard_priority::PriorityRequest;
-use ensnano_interactor::{
+use ensnano_organizer::{
+    keyboard_priority::PriorityRequest,
+    tree::{GroupId, OrganizerTree},
+};
+use ensnano_physics::parameters::RapierParameters;
+use ensnano_utils::{
     HyperboloidRequest, RigidBodyConstants, RollRequest,
     app_state_parameters::{
         check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
@@ -25,8 +29,6 @@ use ensnano_interactor::{
     selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
     surfaces::UnrootedRevolutionSurfaceDescriptor,
 };
-use ensnano_organizer::tree::{GroupId, OrganizerTree};
-use ensnano_physics::parameters::RapierParameters;
 use std::{collections::VecDeque, sync::Arc};
 use ultraviolet::Vec3;
 

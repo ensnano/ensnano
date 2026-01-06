@@ -3,7 +3,7 @@ use crate::{
         CurveBounds, Curved, EPSILON_DERIVATIVE, SurfaceInfo, SurfacePoint,
         torus::{CurveDescriptor2D, PointOnSurface_},
     },
-    utils::dvec_to_vec,
+    utils::ultraviolet::dvec_to_vec,
 };
 use chebyshev_polynomials::ChebyshevPolynomial;
 use rayon::prelude::*;

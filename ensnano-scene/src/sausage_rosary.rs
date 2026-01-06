@@ -2,8 +2,7 @@ use crate::{
     rotor_utils::SafeRotor as _,
     view::dna_obj::{SlicedTubeInstance, TubeLidInstance},
 };
-use ensnano_consts::HELIX_CYLINDER_COLOR;
-use ensnano_utils::instance::Instance;
+use ensnano_utils::{consts::HELIX_CYLINDER_COLOR, instance::Instance};
 use ultraviolet::{Rotor3, Vec3};
 
 pub(crate) struct SausageRosary {

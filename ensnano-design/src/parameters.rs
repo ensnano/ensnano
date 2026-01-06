@@ -1,6 +1,5 @@
 //! DNA geometric parameters.
 
-use crate::codenano;
 use serde::{Deserialize, Serialize};
 use std::{
     f32::consts::{PI, SQRT_2, TAU},
@@ -145,17 +144,6 @@ impl HelixParameters {
             inter_helix_gap: 0.70, // nm
         }
     };
-
-    pub fn from_codenano(codenano_param: &codenano::Parameters) -> Self {
-        Self {
-            rise: codenano_param.rise as f32,
-            helix_radius: codenano_param.helix_radius as f32,
-            bases_per_turn: codenano_param.bases_per_turn as f32,
-            groove_angle: codenano_param.groove_angle as f32,
-            inter_helix_gap: codenano_param.inter_helix_gap as f32,
-            inclination: 0.0,
-        }
-    }
 
     pub fn formatted_string(&self) -> String {
         let mut ret = String::new();

@@ -6,7 +6,7 @@
 //! * [LayoutNode::VSplit] — represents a region divided vertically between two subregions.
 //! * [LayoutNode::HSplit] — represents a region divided horizontally between two subregions.
 
-use ensnano_interactor::graphics::GuiComponentType;
+use ensnano_utils::graphics::GuiComponentType;
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 use winit::dpi::PhysicalPosition;
 

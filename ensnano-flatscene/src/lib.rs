@@ -14,19 +14,30 @@
 //! 3. **world coordinates**: this is the absolute coordinate system in which elements are
 //!    positioned.
 
+mod camera2d;
+mod chars2d;
+mod circles2d;
 mod controller;
 pub mod data;
 mod flat_types;
+mod full_isometry;
+mod ndc;
 mod view;
 
-use crate::{data::design::FlatSceneDesignReaderExt, flat_types::FlatNucl};
+use self::{
+    camera2d::{Camera2D, FitRectangle},
+    data::design::FlatSceneDesignReaderExt,
+    flat_types::FlatNucl,
+};
 use controller::{Consequence, Controller};
 use data::Data;
-use ensnano_consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE};
-use ensnano_design::{Nucl, consts::ITERATIVE_AXIS_ALGORITHM};
-use ensnano_interactor::{
+use ensnano_design::{consts::ITERATIVE_AXIS_ALGORITHM, nucl::Nucl};
+use ensnano_utils::{
     DesignOperation, StrandBuildingStatus,
     application::{AppId, Application, Notification},
+    buffer_dimensions::BufferDimensions,
+    consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE},
+    filename::derive_path_with_prefix_and_time_stamp_and_suffix,
     graphics::{DrawArea, PhySize},
     operation::{CrossCut, Cut, Operation, Xover},
     selection::{
@@ -34,11 +45,6 @@ use ensnano_interactor::{
         extract_nucls_and_xover_ends,
     },
     strand_builder::StrandBuilder,
-};
-use ensnano_utils::{
-    BufferDimensions,
-    camera2d::{self, Camera2D, FitRectangle},
-    filename::derive_path_with_prefix_and_time_stamp_and_suffix,
 };
 use itertools::Itertools as _;
 use std::{

@@ -4,12 +4,15 @@ mod discrete_value;
 mod export_menu;
 pub mod tabs;
 
+use crate::color_picker::ColorPickerMessage;
 use crate::{
     AppState, OverlayType, Requests,
+    fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
     left_panel::tabs::{
         camera_tab::FogChoices,
         revolution_tab::{CurveDescriptorBuilder, RevolutionParameterId},
     },
+    theme::GuiBackground,
 };
 use color_picker::ColorPicker;
 use contextual_panel::{
@@ -25,14 +28,11 @@ use ensnano_design::{
     parameters::NamedParameter,
 };
 use ensnano_exports::ExportType;
-use ensnano_iced::{
-    color_picker::ColorPickerMessage,
-    fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
-    theme::GuiBackground,
-    ui_size::UiSize,
-    widgets::keyboard_priority::PriorityRequest,
+use ensnano_organizer::{
+    Organizer, OrganizerMessage, keyboard_priority::PriorityRequest, tree::OrganizerTree,
 };
-use ensnano_interactor::{
+use ensnano_physics::parameters::RapierParameters;
+use ensnano_utils::{
     HyperboloidRequest,
     app_state_parameters::{
         AppStateParameters, check_xovers_parameter::CheckXoversParameter,
@@ -41,9 +41,8 @@ use ensnano_interactor::{
     graphics::{Background3D, HBondDisplay, RenderingMode},
     selection::{ActionMode, Selection, SelectionConversion as _},
     surfaces::EquadiffSolvingMethod,
+    ui_size::UiSize,
 };
-use ensnano_organizer::{Organizer, OrganizerMessage, tree::OrganizerTree};
-use ensnano_physics::parameters::RapierParameters;
 use export_menu::ExportMenu;
 use iced::{
     Color, Command, Element, Length,
@@ -52,6 +51,7 @@ use iced::{
 use iced_aw::widgets::{TabBarPosition, Tabs};
 use iced_runtime::Program;
 use std::{
+    collections::BTreeSet,
     f32::consts::PI,
     sync::{Arc, Mutex},
 };
@@ -384,13 +384,11 @@ where
                     .change_action_mode(action_mode);
                 Command::none()
             }
-            Message::RotateCam(xz, yz, xy) => {
-                self.camera_shortcut
-                    .set_angles(xz as isize, yz as isize, xy as isize);
+            Message::RotateCam(x, y, z) => {
                 self.requests
                     .lock()
                     .unwrap()
-                    .perform_camera_rotation(xz, yz, xy);
+                    .perform_camera_rotation(x, y, z);
                 Command::none()
             }
             Message::FixPoint(point, up) => {
@@ -398,7 +396,6 @@ where
                     .lock()
                     .unwrap()
                     .set_camera_dir_up_vec(point, up);
-                self.camera_shortcut.reset_angles();
                 Command::none()
             }
             Message::LengthHelicesChanged(length_str) => {
@@ -1134,14 +1131,12 @@ where
         // NOTE: The style, height and width values are necessary to clear the tab when
         //       switching to a new tab.
         //
-        let camera_shortcut = self
-            .camera_shortcut
-            .view(self.ui_size, &self.application_state);
+        let camera_shortcut = self.camera_shortcut.view(self.ui_size);
         let contextual_menu = self
             .contextual_panel
             .view(self.ui_size, &self.application_state);
 
-        let selection: std::collections::BTreeSet<DesignElementKey> = self
+        let selection: BTreeSet<DesignElementKey> = self
             .application_state
             .get_selection()
             .iter()
@@ -1160,7 +1155,7 @@ where
         };
 
         container(
-            self::column![
+            column![
                 first_container.height(Length::FillPortion(2)),
                 horizontal_rule(5),
                 container(camera_shortcut).height(Length::FillPortion(1)),

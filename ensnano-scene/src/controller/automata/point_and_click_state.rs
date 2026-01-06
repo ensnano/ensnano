@@ -19,7 +19,7 @@ use crate::{
     },
     element_selector::SceneElement,
 };
-use ensnano_design::Nucl;
+use ensnano_design::nucl::Nucl;
 use std::{borrow::Cow, time::Instant};
 use winit::{
     dpi::PhysicalPosition,

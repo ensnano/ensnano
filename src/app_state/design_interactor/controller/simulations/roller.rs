@@ -11,7 +11,7 @@ use crate::{
     },
     controller::channel_reader::ChannelReader,
 };
-use ensnano_design::{Design, Nucl, helices::Helix, parameters::HelixParameters};
+use ensnano_design::{Design, helices::Helix, nucl::Nucl, parameters::HelixParameters};
 use std::{
     collections::HashMap,
     f32::consts::{FRAC_PI_2, SQRT_2, TAU},

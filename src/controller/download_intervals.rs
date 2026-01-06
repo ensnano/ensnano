@@ -1,18 +1,18 @@
-use crate::controller::{
-    State, TransitionMessage,
-    messages::{
-        NO_FILE_RECEIVED_STAPLE, NO_SCAFFOLD_SEQUENCE_SET, NO_SCAFFOLD_SET, ORIGAMI_FILTERS,
-        successful_staples_export_msg,
-    },
-    normal_state::NormalState,
-};
 use crate::{
     MainStateView,
-    controller::download_staples::{DownloadStapleError, DownloadStapleOk, StaplesDownloader},
+    controller::{
+        State, TransitionMessage,
+        download_staples::{DownloadStapleError, DownloadStapleOk, StaplesDownloader},
+        messages::{
+            NO_FILE_RECEIVED_STAPLE, NO_SCAFFOLD_SEQUENCE_SET, NO_SCAFFOLD_SET, ORIGAMI_FILTERS,
+            successful_staples_export_msg,
+        },
+        normal_state::NormalState,
+    },
     dialog,
 };
 use dialog::{MustAckMessage, PathInput};
-use ensnano_consts::ORIGAMI_EXTENSION;
+use ensnano_utils::consts::ORIGAMI_EXTENSION;
 use std::path::PathBuf;
 
 #[derive(Default)]

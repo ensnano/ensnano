@@ -6,7 +6,8 @@
     "thirdparties/",
     "*.txt",
     "*.pdb",
-    "Cargo.lock"
+    "Cargo.lock",
+    "NOTES.md"
   ],
   "words": [
     "2KPHSEF9U9",

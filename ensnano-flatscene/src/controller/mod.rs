@@ -13,7 +13,7 @@ use crate::{
     flat_types::{FlatHelix, FlatNucl},
 };
 use automata::{ControllerState, NormalState, Transition, ctrl};
-use ensnano_interactor::{
+use ensnano_utils::{
     graphics::PhySize,
     selection::{ActionMode, Selection},
 };

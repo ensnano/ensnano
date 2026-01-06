@@ -1,16 +1,18 @@
 //! This module defines the ensnano format.
-//! All other format supported by ensnano are converted into this format and run-time manipulation
-//! of designs are performed on an `ensnano::Design` structure
+//! All other format supported by ensnano are converted into this format and
+//! run-time manipulations of designs are performed on an `ensnano::Design` structure
 
 #[cfg(test)]
 mod tests;
 
 pub mod bezier_plane;
+pub mod cadnano;
 pub mod codenano;
 pub mod collection;
 pub mod consts;
 pub mod curves;
 pub mod design_operations;
+pub mod domains;
 pub mod drawing_style;
 pub mod elements;
 pub mod external_3d_objects;
@@ -20,26 +22,28 @@ pub mod helices;
 mod insertions;
 pub mod isometry3_descriptor;
 mod material_colors;
+pub mod nucl;
 pub mod parameters;
 pub mod scadnano;
 pub mod strands;
 pub mod utils;
 
-use crate::{
+use self::{
     bezier_plane::{BezierPathData, BezierPaths, BezierPlanes},
     curves::CurveCache,
+    domains::Domain,
+    elements::DesignElementKey,
     external_3d_objects::External3DObjects,
     grid::grid_collection::FreeGrids,
+    grid::{GridData, GridDescriptor, GridId},
+    group_attributes::GroupAttribute,
     helices::{Helices, Helix, HelixCollection as _},
     isometry3_descriptor::Isometry3Descriptor,
+    nucl::Nucl,
     parameters::HelixParameters,
-    scadnano::{ScadnanoDesign, ScadnanoGroup, ScadnanoImportError, ScadnanoInsertionsDeletions},
-    strands::{Domain, Strand, Strands},
+    strands::Strands,
 };
-use elements::DesignElementKey;
 use ensnano_organizer::tree::{GroupId, OrganizerTree};
-use grid::{GridData, GridDescriptor, GridId};
-use group_attributes::GroupAttribute;
 use serde::{Deserialize, Serialize};
 use serde_with::{DefaultOnError, serde_as};
 use std::{
@@ -249,30 +253,6 @@ impl Design {
             !data.is_up_to_date(self)
         } else {
             true
-        }
-    }
-
-    pub fn from_codenano<Sl, Dl>(codenano_design: &codenano::Design<Sl, Dl>) -> Self {
-        let mut helices = BTreeMap::new();
-        for (i, helix) in codenano_design.helices.iter().enumerate() {
-            helices.insert(i, Arc::new(Helix::from_codenano(helix)));
-        }
-
-        let mut strands = BTreeMap::new();
-        for (i, strand) in codenano_design.strands.iter().enumerate() {
-            strands.insert(i, Strand::from_codenano(strand));
-        }
-
-        let helix_parameters = codenano_design
-            .parameters
-            .map(|p| HelixParameters::from_codenano(&p))
-            .unwrap_or_default();
-
-        Self {
-            helices: Helices(Arc::new(helices)),
-            strands: Strands(strands),
-            helix_parameters: Some(helix_parameters),
-            ..Default::default()
         }
     }
 
@@ -538,61 +518,6 @@ impl Design {
         }
     }
 
-    pub fn from_scadnano(scad: &ScadnanoDesign) -> Result<Self, ScadnanoImportError> {
-        let mut grids = Vec::new();
-        let mut group_map = BTreeMap::new();
-        let default_grid = scad.default_grid_descriptor()?;
-        let mut insertion_deletions = ScadnanoInsertionsDeletions::default();
-        group_map.insert(String::from("default_group"), 0usize);
-        grids.push(default_grid);
-        let mut helices_per_group = vec![0];
-        let mut groups: Vec<ScadnanoGroup> = vec![Default::default()];
-        if let Some(scad_groups) = &scad.groups {
-            for (name, g) in scad_groups {
-                let group = g.to_grid_desc()?;
-                groups.push(g.clone());
-                group_map.insert(name.clone(), grids.len());
-                grids.push(group);
-                helices_per_group.push(0);
-            }
-        }
-        for s in &scad.strands {
-            for d in &s.domains {
-                insertion_deletions.read_domain(d);
-            }
-        }
-        let mut helices = BTreeMap::new();
-        for (i, h) in scad.helices.iter().enumerate() {
-            let helix = Helix::from_scadnano(h, &group_map, &groups, &mut helices_per_group)?;
-            helices.insert(i, Arc::new(helix));
-        }
-        let mut strands = BTreeMap::new();
-        for (i, s) in scad.strands.iter().enumerate() {
-            let strand = Strand::from_scadnano(s, &insertion_deletions)?;
-            strands.insert(i, strand);
-        }
-        println!("grids {grids:?}");
-        println!("helices {helices:?}");
-        Ok(Self {
-            free_grids: FreeGrids::from_vec(grids),
-            helices: Helices(Arc::new(helices)),
-            strands: Strands(strands),
-            small_spheres: Default::default(),
-            scaffold_id: None, //TODO determine this value
-            scaffold_sequence: None,
-            scaffold_shift: None,
-            groups: Default::default(),
-            no_phantoms: Default::default(),
-            helix_parameters: Some(HelixParameters::DEFAULT),
-            anchors: Default::default(),
-            organizer_tree: None,
-            ensnano_version: ensnano_version(),
-            group_attributes: Default::default(),
-            cameras: Default::default(),
-            ..Default::default()
-        })
-    }
-
     pub fn set_helices(&mut self, helices: BTreeMap<usize, Arc<Helix>>) {
         self.helices = Helices(Arc::new(helices));
     }
@@ -692,101 +617,4 @@ where
         .map(|h| mutate_in_arc(h, mutation))?;
     design.helices = Helices(Arc::new(new_helices_map));
     Some(())
-}
-
-#[derive(Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Hash, Debug)]
-pub struct Nucl {
-    pub helix: usize,
-    pub position: isize,
-    pub forward: bool,
-}
-
-impl PartialOrd for Nucl {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for Nucl {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        if self.helix != other.helix {
-            self.helix.cmp(&other.helix)
-        } else if self.forward != other.forward {
-            self.forward.cmp(&other.forward)
-        } else if self.forward {
-            self.position.cmp(&other.position)
-        } else {
-            self.position.cmp(&other.position).reverse()
-        }
-    }
-}
-
-impl Nucl {
-    pub fn new(helix: usize, position: isize, forward: bool) -> Self {
-        Self {
-            helix,
-            position,
-            forward,
-        }
-    }
-
-    #[must_use]
-    pub fn left(&self) -> Self {
-        Self {
-            position: self.position - 1,
-            ..*self
-        }
-    }
-
-    #[must_use]
-    pub fn right(&self) -> Self {
-        Self {
-            position: self.position + 1,
-            ..*self
-        }
-    }
-
-    #[must_use]
-    pub fn prime3(&self) -> Self {
-        Self {
-            position: if self.forward {
-                self.position + 1
-            } else {
-                self.position - 1
-            },
-            ..*self
-        }
-    }
-
-    #[must_use]
-    pub fn prime5(&self) -> Self {
-        Self {
-            position: if self.forward {
-                self.position - 1
-            } else {
-                self.position + 1
-            },
-            ..*self
-        }
-    }
-
-    #[must_use]
-    pub fn compl(&self) -> Self {
-        Self {
-            forward: !self.forward,
-            ..*self
-        }
-    }
-
-    pub fn is_neighbor(&self, other: &Self) -> bool {
-        self.helix == other.helix
-            && self.forward == other.forward
-            && (self.position - other.position).abs() == 1
-    }
-}
-
-impl std::fmt::Display for Nucl {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "({}, {}, {})", self.helix, self.position, self.forward)
-    }
 }

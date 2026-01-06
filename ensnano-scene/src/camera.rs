@@ -3,9 +3,11 @@ use crate::{
     maths_3d::{Basis3D, FiniteVec3, Plane, cast_ray, unproject_point_on_plane},
     view::uniforms::Stereography,
 };
-use ensnano_consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP};
 use ensnano_design::curves::{SurfaceInfo, SurfacePoint};
-use ensnano_interactor::graphics::PhySize;
+use ensnano_utils::{
+    consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP},
+    graphics::PhySize,
+};
 
 use std::{
     cell::RefCell,
@@ -749,9 +751,9 @@ impl CameraController {
         }
     }
 
-    pub(crate) fn rotate_camera(&mut self, angle_xz: f32, angle_yz: f32, pivot: Option<Vec3>) {
+    pub(crate) fn rotate_camera(&mut self, x: f32, y: f32, pivot: Option<Vec3>) {
         let dist = pivot.map(|p| (self.camera.borrow().position - p).mag());
-        let rotation = Rotor3::from_rotation_yz(angle_yz) * Rotor3::from_rotation_xz(angle_xz);
+        let rotation = Rotor3::from_rotation_yz(x) * Rotor3::from_rotation_xz(y);
 
         // and we apply this rotation to the camera
         let new_rotor = rotation * self.cam0.rotor;

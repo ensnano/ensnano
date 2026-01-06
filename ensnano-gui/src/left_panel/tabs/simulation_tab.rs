@@ -1,20 +1,16 @@
 use crate::{
     AppState, Requests,
+    helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
     left_panel::{
         BrownianParametersFactory, Message, RigidBodyFactory, RigidBodyParametersRequest,
         discrete_value::{FactoryId, RequestFactory, ValueId},
         tabs::{GuiTab, gostop::GoStop},
     },
+    theme,
 };
-use ensnano_consts::ICON_PHYSICAL_ENGINE;
-use ensnano_iced::{
-    helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
-    theme::BadValue,
-    ui_size::UiSize,
-    widgets::keyboard_priority::keyboard_priority,
-};
-use ensnano_interactor::{RollRequest, SimulationState};
+use ensnano_organizer::keyboard_priority::keyboard_priority;
 use ensnano_physics::parameters::{RapierParameters, RapierSimulationType};
+use ensnano_utils::{RollRequest, SimulationState, consts::ICON_PHYSICAL_ENGINE, ui_size::UiSize};
 use iced::{
     Alignment,
     widget::{Column, Space, column, pick_list, row, scrollable, text, text_input},
@@ -153,9 +149,9 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
         let volume_exclusion = self.rigid_body_factory.requestable.volume_exclusion;
         let brownian_motion = self.rigid_body_factory.requestable.brownian_motion;
 
-        let content = self::column![
+        let content = column![
             section("Simulation (Beta)", ui_size),
-            self::column![
+            column![
                 self.physical_simulation
                     .view(ui_size, "Roll", roll_active, sim_state.is_rolling(),),
                 start_stop_button(
@@ -186,8 +182,8 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
                     .view(brownian_motion, ui_size.main_text())
             ),
             section("Rapier Simulation", ui_size),
-            self::column![
-                self::row![pick_list(
+            column![
+                row![pick_list(
                     [
                         RapierSimulationType::Full,
                         RapierSimulationType::Rigid,
@@ -200,7 +196,7 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
                         ..self.rapier_parameters
                     }),
                 )],
-                self::row![
+                row![
                     text_button("Start", ui_size).on_press_maybe(
                         if self.rapier_parameters.is_simulation_running || sim_state.is_paused() {
                             None
@@ -251,7 +247,7 @@ fn kcut_threshold_editor<State: AppState>(
     ui_size: UiSize,
 ) -> iced::Element<'static, Message<State>> {
     row![
-        text("KCut threshold"),
+        "KCut threshold",
         Space::with_width(ui_size.checkbox_spacing()),
         text_button("-", ui_size).on_press_maybe(
             (parameters.simulation_type == RapierSimulationType::KCut).then(|| {
@@ -353,7 +349,7 @@ fn rapier_parameters_field_editor<State: AppState>(
                     )))
             }
             .width(70)
-            .style(BadValue(true)),
+            .style(theme::BadValue(true)),
         )
     ]
     .align_items(Alignment::Center)

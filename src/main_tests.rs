@@ -1,14 +1,15 @@
 //! Test suite for the `MainState` structure
 
 use super::*;
-use ensnano_design::Nucl;
-use ensnano_interactor::graphics::DrawArea;
+use ensnano_design::nucl::Nucl;
+use ensnano_utils::graphics::DrawArea;
 use winit::dpi::PhysicalPosition;
 
 struct DummyScene;
 
 impl Application for DummyScene {
     type AppState = AppState;
+
     fn on_notify(&mut self, _notification: Notification) {}
 
     fn needs_redraw(&mut self, _dt: Duration, _app_state: Self::AppState) -> bool {

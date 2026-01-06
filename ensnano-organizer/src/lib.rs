@@ -7,15 +7,18 @@ pub mod drag_drop_target;
 pub mod element;
 pub mod hoverable_container;
 mod icon;
+pub mod keyboard_priority;
 pub mod theme;
 pub mod tree;
 
-use crate::{
+use self::{
     drag_drop_target::{DragDropTarget, DragIdentifier},
     element::{AttributeDisplayer, ElementKey, OrganizerAttribute as _, OrganizerElement},
+    hoverable_container::HoverableContainer,
+    keyboard_priority::{PriorityRequest, keyboard_priority},
+    theme::OrganizerTheme,
+    tree::{GroupId, OrganizerTree},
 };
-use ensnano_iced::widgets::keyboard_priority::{PriorityRequest, keyboard_priority};
-use hoverable_container::HoverableContainer;
 use iced::{
     Element, Length,
     keyboard::Modifiers,
@@ -29,8 +32,6 @@ use std::{
     collections::{BTreeMap, BTreeSet, HashMap},
     convert::TryInto as _,
 };
-use theme::OrganizerTheme;
-use tree::{GroupId, OrganizerTree};
 
 const LEVELS_V_SPACING: u16 = 2;
 const H_SPACING_IN_UNITS: u16 = 15;
@@ -304,12 +305,12 @@ impl<E: OrganizerElement> Organizer<E> {
                     .width(Length::FillPortion(8))
             ]);
         }
-        let mut new_group_button = button(text("New Group"));
+        let mut new_group_button = button("New Group");
         if !selection.is_empty() {
             new_group_button = new_group_button.on_press(OrganizerMessage::new_group());
         }
         container(
-            self::column![
+            column![
                 // Title row
                 row![
                     tooltip(
@@ -1157,7 +1158,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                     0
                 };
                 let title_row = view.view(name, id.clone(), *expanded);
-                let mut col = self::column![title_row].spacing(LEVELS_V_SPACING);
+                let mut col = column![title_row].spacing(LEVELS_V_SPACING);
                 if *expanded {
                     for c in children {
                         let r = row![

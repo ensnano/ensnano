@@ -1,19 +1,19 @@
 use crate::{
     AppState,
+    fonts::material_icons::{MaterialIcon, icon_to_char},
+    helpers::{extra_jump, icon_button, section, subsection, text_button},
     left_panel::{
         Hyperboloid_, Message,
         discrete_value::{FactoryId, RequestFactory, ValueId},
         tabs::GuiTab,
     },
 };
-use ensnano_consts::{ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID};
 use ensnano_design::grid::GridTypeDescr;
-use ensnano_iced::{
-    fonts::material_icons::{MaterialIcon, icon_to_char},
-    helpers::{extra_jump, icon_button, section, subsection, text_button},
+use ensnano_utils::{
+    HyperboloidRequest,
+    consts::{ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID},
     ui_size::UiSize,
 };
-use ensnano_interactor::HyperboloidRequest;
 use iced::{
     Length,
     widget::{Column, column, row, scrollable, text, tooltip},
@@ -58,7 +58,7 @@ impl<State: AppState> GuiTab<State> for GridTab<State> {
     }
 
     fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {
-        let content = self::column![
+        let content = column![
             section("Grids", ui_size),
             subsection("New Grid", ui_size),
             // add_grid_buttons!

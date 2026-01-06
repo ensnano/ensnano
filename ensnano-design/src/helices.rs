@@ -1,7 +1,6 @@
 use crate::{
     Nucl,
     bezier_plane::BezierPathId,
-    codenano,
     curves::{
         CurveDescriptor, InstantiatedCurve, InstantiatedCurveDescriptor, SurfaceInfo, SurfacePoint,
         bezier::{BezierControlPoint, BezierEnd, CubicBezierConstructor},
@@ -10,11 +9,11 @@ use crate::{
     },
     design_operations::ErrDesignOperation,
     grid::{Edge, Grid, GridAwareTranslation, GridData, GridId, HelixGridPosition},
+    nucl::VirtualNucl,
     parameters::HelixParameters,
-    scadnano::{ScadnanoGroup, ScadnanoHelix, ScadnanoImportError},
     utils::{
-        default_visibility, dvec_to_vec, f32_is_zero, is_false, isize_is_zero, rotor_to_drotor,
-        vec_to_dvec,
+        serde::{f32_is_zero, is_false, is_true, isize_is_zero},
+        ultraviolet::{dvec_to_vec, rotor_to_drotor, vec_to_dvec},
     },
 };
 use ahash::HashMap;
@@ -24,7 +23,7 @@ use std::{
     f32::consts::{FRAC_PI_2, PI, TAU},
     sync::Arc,
 };
-use ultraviolet::{DRotor3, DVec3, Isometry2, Mat4, Rotor2, Rotor3, Vec2, Vec3};
+use ultraviolet::{DRotor3, DVec3, Isometry2, Mat4, Rotor3, Vec2, Vec3};
 
 /// A structure mapping helices identifier to `Helix` objects
 #[derive(Debug, Default, Serialize, Deserialize, Clone)]
@@ -165,6 +164,10 @@ impl Drop for HelicesMut<'_> {
     }
 }
 
+fn default_visibility() -> bool {
+    true
+}
+
 /// A DNA helix. All bases of all strands must be on a helix.
 ///
 /// The three angles are illustrated in the following image, from [the NASA website](https://www.grc.nasa.gov/www/k-12/airplane/rotations.html):
@@ -183,7 +186,7 @@ pub struct Helix {
     pub helix_parameters: Option<HelixParameters>,
 
     /// Indicate whether the helix should be displayed in the 3D view.
-    #[serde(default = "default_visibility", skip_serializing_if = "bool::clone")]
+    #[serde(default = "default_visibility", skip_serializing_if = "is_true")]
     pub visible: bool,
 
     #[serde(default, skip_serializing_if = "is_false")]
@@ -224,18 +227,18 @@ pub struct Helix {
         skip,
         alias = "instanciated_descriptor", // cspell: disable-line
     )]
-    pub(super) instantiated_descriptor: Option<Arc<InstantiatedCurveDescriptor>>,
+    pub(crate) instantiated_descriptor: Option<Arc<InstantiatedCurveDescriptor>>,
 
     #[serde(
         default,
         skip,
         alias = "instanciated_curve", // cspell: disable-line
     )]
-    pub(super) instantiated_curve: Option<InstantiatedCurve>,
+    pub(crate) instantiated_curve: Option<InstantiatedCurve>,
 
     // TODO: remove? Seems to always be 0.0
     #[serde(default, skip_serializing_if = "f32_is_zero")]
-    delta_bases_per_turn: f32,
+    pub(crate) delta_bases_per_turn: f32,
 
     #[serde(default, skip_serializing_if = "isize_is_zero")]
     pub initial_nt_index: isize,
@@ -250,107 +253,6 @@ pub struct Helix {
 }
 
 impl Helix {
-    pub fn from_codenano(codenano_helix: &codenano::Helix) -> Self {
-        let position = Vec3::new(
-            codenano_helix.position.x as f32,
-            codenano_helix.position.y as f32,
-            codenano_helix.position.z as f32,
-        );
-
-        let orientation = Rotor3::from_rotation_xz(-codenano_helix.yaw as f32)
-            * Rotor3::from_rotation_xy(codenano_helix.pitch as f32)
-            * Rotor3::from_rotation_yz(codenano_helix.roll as f32);
-
-        Self {
-            position,
-            orientation,
-            helix_parameters: None,
-            grid_position: None,
-            isometry2d: None,
-            additional_isometries: Vec::new(),
-            symmetry: Vec2::one(),
-            visible: true,
-            roll: 0f32,
-            locked_for_simulations: false,
-            curve: None,
-            instantiated_curve: None,
-            instantiated_descriptor: None,
-            delta_bases_per_turn: 0.,
-            initial_nt_index: 0,
-            support_helix: None,
-            path_id: None,
-        }
-    }
-
-    pub fn from_scadnano(
-        scad: &ScadnanoHelix,
-        group_map: &BTreeMap<String, usize>,
-        groups: &[ScadnanoGroup],
-        helix_per_group: &mut Vec<usize>,
-    ) -> Result<Self, ScadnanoImportError> {
-        let group_id = scad
-            .group
-            .clone()
-            .unwrap_or_else(|| String::from("default_group"));
-        let Some(grid_id) = group_map.get(&group_id) else {
-            return Err(ScadnanoImportError::MissingField(format!(
-                "group {group_id}",
-            )));
-        };
-        let Some(x) = scad.grid_position.first().copied() else {
-            return Err(ScadnanoImportError::MissingField(String::from("x")));
-        };
-        let Some(y) = scad.grid_position.get(1).copied() else {
-            return Err(ScadnanoImportError::MissingField(String::from("y")));
-        };
-        let Some(group) = groups.get(*grid_id) else {
-            return Err(ScadnanoImportError::MissingField(format!(
-                "group {grid_id}",
-            )));
-        };
-
-        println!("helices per group {group_map:?}");
-        println!("helices per group {helix_per_group:?}");
-        let Some(nb_helices) = helix_per_group.get_mut(*grid_id) else {
-            return Err(ScadnanoImportError::MissingField(format!(
-                "helix_per_group {grid_id}",
-            )));
-        };
-        let rotation = Rotor2::from_angle(group.pitch.unwrap_or_default().to_radians());
-        let isometry2d = Isometry2 {
-            translation: (5. * *nb_helices as f32 - 1.) * Vec2::unit_y().rotated_by(rotation)
-                + 5. * Vec2::new(group.position.x, group.position.y),
-            rotation,
-        };
-        *nb_helices += 1;
-
-        Ok(Self {
-            position: Vec3::zero(),
-            orientation: Rotor3::identity(),
-            helix_parameters: None,
-            grid_position: Some(HelixGridPosition {
-                grid: GridId::FreeGrid(*grid_id),
-                x,
-                y,
-                axis_pos: 0,
-                roll: 0f32,
-            }),
-            visible: true,
-            roll: 0f32,
-            isometry2d: Some(isometry2d),
-            additional_isometries: Vec::new(),
-            symmetry: Vec2::one(),
-            locked_for_simulations: false,
-            curve: None,
-            instantiated_curve: None,
-            instantiated_descriptor: None,
-            delta_bases_per_turn: 0.,
-            initial_nt_index: 0,
-            support_helix: None,
-            path_id: None,
-        })
-    }
-
     pub fn translated_by(&self, edge: Edge, grid_data: &GridData) -> Option<Self> {
         log::debug!("attempt to translate helix");
         let grid_position = self
@@ -906,20 +808,6 @@ impl Helix {
     }
 }
 
-/// The virtual position of a nucleotide.
-///
-/// Two nucleotides on different helices with the same support helix will be mapped
-/// to the same `VirtualNucl` if they are at the same position on that support helix
-#[derive(Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Hash, Debug, PartialOrd, Ord)]
-pub struct VirtualNucl(pub(super) Nucl);
-
-impl VirtualNucl {
-    #[must_use]
-    pub fn compl(&self) -> Self {
-        Self(self.0.compl())
-    }
-}
-
 #[derive(Default, Clone)]
 pub struct NuclCollection {
     pub identifier: BTreeMap<Nucl, u32>, //HashMap<Nucl, u32, RandomState>,
@@ -953,21 +841,6 @@ impl NuclCollection {
 
     pub fn insert_virtual(&mut self, virtual_nucl: VirtualNucl, nucl: Nucl) -> Option<Nucl> {
         self.virtual_nucl_map.insert(virtual_nucl, nucl)
-    }
-}
-
-impl Nucl {
-    pub fn map_to_virtual_nucl(nucl: Self, helices: &Helices) -> Option<VirtualNucl> {
-        let h = helices.get(&nucl.helix)?;
-        let support_helix_id = h
-            .support_helix
-            .or(Some(nucl.helix))
-            .filter(|h_id| helices.contains_key(h_id))?;
-        Some(VirtualNucl(Self {
-            helix: support_helix_id,
-            position: nucl.position + h.initial_nt_index,
-            forward: nucl.forward,
-        }))
     }
 }
 

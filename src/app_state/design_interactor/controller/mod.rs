@@ -19,7 +19,7 @@ use crate::{
 };
 use clipboard::{Clipboard, CopyOperation, PastePosition, PastedStrand, StrandClipboard};
 use ensnano_design::{
-    CameraId, Design, Nucl, UpToDateDesign,
+    CameraId, Design, UpToDateDesign,
     bezier_plane::{
         BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
         import_from_svg::{SvgImportError, read_first_svg_path},
@@ -33,6 +33,7 @@ use ensnano_design::{
         ErrDesignOperation, attach_object_to_grid, make_grid_from_helices, rotate_helices_3d,
         translate_helices,
     },
+    domains::{Domain, helix_interval::HelixInterval},
     drawing_style::{DrawingAttribute, DrawingStyle},
     elements::{DesignElementKey, DnaAttribute},
     external_3d_objects::{External3DObject, External3DObjectDescriptor},
@@ -44,20 +45,21 @@ use ensnano_design::{
     group_attributes::GroupPivot,
     helices::{Helices, Helix, HelixCollection as _, NuclCollection},
     mutate_in_arc, mutate_one_helix,
-    strands::{Domain, DomainJunction, HelixInterval, Strand, Strands},
+    nucl::Nucl,
+    strands::{DomainJunction, Strand, Strands},
 };
 use ensnano_gui::status_bar::ClipboardContent;
-use ensnano_interactor::{
+use ensnano_organizer::tree::GroupId;
+use ensnano_utils::{
     BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
     HyperboloidOperation, IsometryTarget, NewBezierTangentVector, PastingStatus, SimulationState,
+    colors::{new_color, random_color_with_shade},
     operation::{Operation, TranslateBezierPathVertex},
     selection::{Selection, list_of_helices},
     strand_builder::{
         DomainIdentifier, NeighborDescriptor, NeighborDescriptorGiver as _, StrandBuilder,
     },
 };
-use ensnano_organizer::tree::GroupId;
-use ensnano_utils::colors;
 use std::{
     borrow::Cow,
     collections::{BTreeMap, HashMap},
@@ -1866,9 +1868,9 @@ impl Controller {
                     .unwrap_or_default();
 
                 let color = if let Some(shade) = strand_style.color_shade {
-                    colors::random_color_with_shade(shade, strand_style.hue_range)
+                    random_color_with_shade(shade, strand_style.hue_range)
                 } else {
-                    colors::new_color(&mut self.color_idx)
+                    new_color(&mut self.color_idx)
                 };
 
                 strand.color = color;
@@ -2174,7 +2176,7 @@ impl Controller {
 
     fn init_strand(&mut self, design: &mut Design, nucl: Nucl) -> usize {
         let s_id = design.strands.keys().max().map_or(0, |n| n + 1);
-        let color = colors::new_color(&mut self.color_idx);
+        let color = new_color(&mut self.color_idx);
         design.strands.insert(
             s_id,
             Strand::init(nucl.helix, nucl.position, nucl.forward, color),
@@ -2194,7 +2196,7 @@ impl Controller {
         } else {
             0
         };
-        let color = colors::new_color(&mut self.color_idx);
+        let color = new_color(&mut self.color_idx);
         design
             .strands
             .insert(new_key, Strand::init(helix, position, forward, color));

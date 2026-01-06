@@ -8,23 +8,24 @@ use crate::{
         sheet_2d::Sheet2D,
     },
 };
-use ensnano_consts::{
-    BEZIER_CONTROL_RADIUS, BEZIER_CONTROL1_COLOR, BEZIER_SHEET_CORNER_COLOR,
-    BEZIER_SHEET_CORNER_RADIUS, BEZIER_SKELETON_RADIUS, BOND_RADIUS, SPHERE_RADIUS,
-};
 use ensnano_design::{
     bezier_plane::{BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertexId},
     curves::{
         CurveDescriptor,
-        bezier::{BezierControlPoint, BezierEndCoordinates},
+        bezier::{BezierControlPoint, BezierEndCoordinates, CubicBezierControlPoint},
     },
     parameters::HelixParameters,
 };
-use ensnano_interactor::{
-    consts::{bezier_control_color, bezier_widget_id},
+use ensnano_utils::{
+    consts::{
+        BEZIER_CONTROL_RADIUS, BEZIER_CONTROL1_COLOR, BEZIER_CONTROL2_COLOR, BEZIER_END_COLOR,
+        BEZIER_END_WIDGET_ID, BEZIER_SHEET_CORNER_COLOR, BEZIER_SHEET_CORNER_RADIUS,
+        BEZIER_SKELETON_RADIUS, BEZIER_START_COLOR, BEZIER_START_WIDGET_ID, BOND_RADIUS,
+        PIECEWISE_BEZIER_COLOR, SPHERE_RADIUS,
+    },
+    instance::Instance,
     selection::Selection,
 };
-use ensnano_utils::instance::Instance;
 use ultraviolet::{Rotor3, Vec2, Vec3};
 
 impl<R: SceneDesignReaderExt> Design3D<R> {
@@ -353,4 +354,25 @@ fn add_raw_instances_representing_bezier_vertex(
         )
         .to_raw_instance(),
     );
+}
+
+fn bezier_widget_id(helix_id: u32, control_point: BezierControlPoint) -> u32 {
+    let bezier_id = match control_point {
+        BezierControlPoint::CubicBezier(c) => {
+            let control_id: usize = c.into();
+            BEZIER_START_WIDGET_ID + control_id as u32
+        }
+        BezierControlPoint::PiecewiseBezier(n) => n as u32 + BEZIER_END_WIDGET_ID + 1,
+    };
+    (helix_id << 8) | bezier_id
+}
+
+const fn bezier_control_color(control_point: BezierControlPoint) -> u32 {
+    match control_point {
+        BezierControlPoint::CubicBezier(CubicBezierControlPoint::Start) => BEZIER_START_COLOR,
+        BezierControlPoint::CubicBezier(CubicBezierControlPoint::Control1) => BEZIER_CONTROL1_COLOR,
+        BezierControlPoint::CubicBezier(CubicBezierControlPoint::Control2) => BEZIER_CONTROL2_COLOR,
+        BezierControlPoint::CubicBezier(CubicBezierControlPoint::End) => BEZIER_END_COLOR,
+        BezierControlPoint::PiecewiseBezier(_) => PIECEWISE_BEZIER_COLOR,
+    }
 }

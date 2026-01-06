@@ -9,22 +9,23 @@ license.workspace = true
 workspace = true
 
 [dependencies]
-ensnano_consts.workspace = true
 ensnano_design.workspace = true
-ensnano_interactor.workspace = true
 ensnano_organizer.workspace = true
 ensnano_utils.workspace = true
 
 bytemuck.workspace = true
 futures.workspace = true
 futures-channel.workspace = true
+gltf.workspace = true
 image.workspace = true
 int-enum.workspace = true
 itertools.workspace = true
 log.workspace = true
 lyon.workspace = true
+nom_stl.workspace = true
 num_enum.workspace = true
 png.workspace = true
+serde.workspace = true
 serde_json.workspace = true
 ultraviolet.workspace = true
 wgpu.workspace = true

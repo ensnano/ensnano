@@ -2,9 +2,9 @@
 //! `Instantiable` trait can be turned into instances that can be drawn by an
 //! [InstanceDrawer].
 
-use ensnano_consts::SAMPLE_COUNT;
 use ensnano_utils::{
-    bindgroup_manager::DynamicBindGroup, create_buffer_with_data, texture::Texture,
+    bindgroup_manager::DynamicBindGroup, consts::SAMPLE_COUNT, create_buffer_with_data,
+    texture::Texture,
 };
 use std::rc::Rc;
 use wgpu::{

@@ -2,19 +2,22 @@ use crate::{
     Requests,
     data::strand::Strand,
     flat_types::{Flat, FlatHelix, FlatHelixMaps, FlatIdx, FlatNucl, HelixSegment, HelixVec},
+    full_isometry::FullIsometry,
 };
 use ahash::RandomState;
-use ensnano_consts::{
-    CANDIDATE_COLOR, CANDIDATE_STRAND_HIGHLIGHT_FACTOR_2D, SELECTED_STRAND_HIGHLIGHT_FACTOR_2D,
-};
 use ensnano_design::{
-    Nucl,
     curves::time_nucl_map::AbscissaConverter,
     helices::{Helices, Helix, HelixCollection as _, NuclCollection},
+    nucl::Nucl,
     strands::Extremity,
 };
-use ensnano_interactor::{Referential, torsion::Torsion};
-use ensnano_utils::full_isometry::FullIsometry;
+use ensnano_utils::{
+    Referential,
+    consts::{
+        CANDIDATE_COLOR, CANDIDATE_STRAND_HIGHLIGHT_FACTOR_2D, SELECTED_STRAND_HIGHLIGHT_FACTOR_2D,
+    },
+    torsion::Torsion,
+};
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap},
     sync::{Arc, Mutex},

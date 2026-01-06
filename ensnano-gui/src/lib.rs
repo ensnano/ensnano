@@ -5,32 +5,41 @@
 //! other components of the program it is forwarded to the `main` function via the
 //! [Request](Requests) data structure.
 
+mod color_picker;
 mod consts;
+pub mod fonts;
+mod helpers;
 mod icon;
 pub mod left_panel;
 pub mod status_bar;
+pub mod theme;
 pub mod top_bar;
+mod widgets;
 
-use crate::left_panel::{
-    LeftPanel, RigidBodyParametersRequest,
-    tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
+use crate::{
+    fonts::{INTER_REGULAR_FONT, load_fonts},
+    left_panel::{
+        LeftPanel, RigidBodyParametersRequest,
+        tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
+    },
 };
 use ensnano_design::{
-    CameraId, Nucl,
+    CameraId,
     bezier_plane::{BezierPathId, BezierVertexId},
     elements::{DesignElement, DesignElementKey, DnaAttribute},
     grid::{GridId, GridTypeDescr},
+    nucl::Nucl,
     parameters::HelixParameters,
 };
 use ensnano_exports::ExportType;
-use ensnano_iced::{
-    fonts::{INTER_REGULAR_FONT, load_fonts},
-    ui_size::UiSize,
-    widgets::keyboard_priority::PriorityRequest,
+use ensnano_organizer::{
+    keyboard_priority::PriorityRequest,
+    tree::{GroupId, OrganizerTree},
 };
-use ensnano_interactor::{
+use ensnano_physics::parameters::RapierParameters;
+use ensnano_utils::{
     HyperboloidRequest, InsertionPoint, PastingStatus, RollRequest, ScaffoldInfo, SimulationState,
-    StrandBuildingStatus, WidgetBasis,
+    StrandBuildingStatus, TEXTURE_FORMAT, WidgetBasis,
     app_state_parameters::{
         AppStateParameters, check_xovers_parameter::CheckXoversParameter,
         suggestion_parameters::SuggestionParameters,
@@ -43,10 +52,8 @@ use ensnano_interactor::{
     operation::Operation,
     selection::{ActionMode, Selection, SelectionMode},
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
+    ui_size::UiSize,
 };
-use ensnano_organizer::tree::{GroupId, OrganizerTree};
-use ensnano_physics::parameters::RapierParameters;
-use ensnano_utils::TEXTURE_FORMAT;
 use iced::{
     Size,
     advanced::{clipboard, mouse, renderer},
@@ -124,7 +131,7 @@ pub trait Requests: 'static + Send {
     fn set_fog_parameters(&mut self, parameters: FogParameters);
     /// Set the direction and up vector of the 3D camera
     fn set_camera_dir_up_vec(&mut self, direction: Vec3, up: Vec3);
-    fn perform_camera_rotation(&mut self, xz: f32, yz: f32, xy: f32);
+    fn perform_camera_rotation(&mut self, x: f32, y: f32, z: f32);
     /// Create a new grid in front of the 3D camera
     fn create_grid(&mut self, grid_type_descriptor: GridTypeDescr);
     fn set_candidates_keys(&mut self, candidates: Vec<DesignElementKey>);

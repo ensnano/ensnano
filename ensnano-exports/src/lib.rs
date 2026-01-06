@@ -5,12 +5,12 @@ pub mod oxdna;
 pub mod pdb;
 
 use cadnano::CadnanoError;
-use ensnano_design::{Design, Nucl};
+use ensnano_design::{Design, nucl::Nucl};
 use pdb::PdbError;
 use std::{collections::HashMap, io::Write as _, path::PathBuf};
 
 /// The file formats to which an export is implemented
-#[derive(Debug, Clone, strum::Display)]
+#[derive(Debug, Clone)]
 pub enum ExportType {
     Cadnano,
     Pdb,
