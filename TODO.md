@@ -46,6 +46,7 @@
   - Simply use the normal?
 - Give uniform instead of hardcoding
 - Fix on transparent objects (create a separate pass?)
+- Widget to control the width
 
 ## Flat Scene (2D)
 
@@ -90,6 +91,7 @@
 - Port to the web with WASM
 - Distribution of strand lengths (analysis tab)
 - Triple-stranded DNA
+- Split 2D view when clicking on xover in 3D view whose nucleotides are far apart
 - Local crossover optimization
 - Animation timeline
 - Publish `ensnano` on crates.io?
