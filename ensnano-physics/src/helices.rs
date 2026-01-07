@@ -114,10 +114,15 @@ pub(crate) fn compute_cyclic_helices(elements: &Vec<DesignElement>) -> Vec<usize
 pub(crate) fn build_helices(
     elements: &Vec<DesignElement>,
     nucleotide: &HashMap<u32, Nucl>,
+    is_clone_map: &HashMap<u32, bool>,
 ) -> HashMap<usize, IntermediaryHelix> {
     let mut result = HashMap::<usize, IntermediaryHelix>::default();
 
     for (&id, &nucl) in nucleotide {
+        // we skip nucleotides that are clones.
+        if is_clone_map.get(&id).is_none_or(|is_clone| *is_clone) {
+            continue;
+        }
         result
             .entry(nucl.helix)
             .or_default()
