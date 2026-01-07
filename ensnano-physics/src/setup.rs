@@ -9,9 +9,9 @@ use crate::{
 };
 use ahash::HashMap;
 use ensnano_design::{
-    Nucl,
     elements::DesignElement,
     helices::{Helices, HelixCollection as _, NuclCollection},
+    nucl::Nucl,
     parameters::HelixParameters,
 };
 use rapier3d::{
