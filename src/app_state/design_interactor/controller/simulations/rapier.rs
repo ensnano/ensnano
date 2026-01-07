@@ -36,6 +36,7 @@ impl RapierPhysicalSystem {
             &presenter.content.nucleotide,
             &presenter.content.space_position,
             &presenter.get_design().helices,
+            &presenter.content.is_clone_map,
         );
 
         let interface = Arc::new(Mutex::new(RapierInterface {
