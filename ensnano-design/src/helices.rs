@@ -562,7 +562,7 @@ impl Helix {
             .as_ref()
             .and_then(|c| {
                 let axis = c.curve.axis_at_pos(n, forward)?;
-                Some(dvec_to_vec(axis[2]))
+                Some(dvec_to_vec(axis[2]).rotated_by(self.orientation))
             })
             .unwrap_or_else(|| Vec3::unit_x().rotated_by(self.orientation))
     }
