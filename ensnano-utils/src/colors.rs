@@ -1,4 +1,4 @@
-use ensnano_consts::{
+use crate::consts::{
     RANDOM_COLOR_SHADE_HUE_RANGE, RANDOM_COLOR_SHADE_SATURATION_RANGE,
     RANDOM_COLOR_SHADE_VALUE_RANGE,
 };

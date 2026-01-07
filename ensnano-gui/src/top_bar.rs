@@ -7,20 +7,18 @@
 
 use crate::{
     AppState, Requests, TopBarState,
-    icon::{HasIcon as _, HasIconDependentOnAxis as _},
-};
-use ensnano_iced::{
     fonts::{
         ENSNANO_FONT,
         material_icons::{MaterialIcon, MaterialIconStyle},
     },
     helpers::{fixed_text_button, image_button, material_icon_button, text_button},
+    icon::{HasIcon as _, HasIconDependentOnAxis as _},
     theme::GuiBackground,
-    ui_size::UiSize,
 };
-use ensnano_interactor::{
+use ensnano_utils::{
     graphics::SplitMode,
     selection::{ActionMode, SelectionMode},
+    ui_size::UiSize,
 };
 use iced::{
     Element, Length, Padding, theme,
@@ -390,14 +388,13 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             build_helix_mode,
         ];
 
-        let action_mode_buttons: Vec<Element<'_, _, _, _>> = action_modes_to_display
+        let action_mode_buttons: Vec<Element<'_, _>> = action_modes_to_display
             .iter()
             .map(|mode| {
                 tooltip(
                     action_mode_btn(
                         mode,
                         self.app_state.get_action_mode(),
-                        self.ui_size.button(),
                         self.app_state.get_widget_basis().is_axis_aligned(),
                         self.ui_size,
                     ),
@@ -416,7 +413,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             SelectionMode::Nucleotide,
         ];
 
-        let selection_mode_buttons: Vec<Element<'_, _, _, _>> = SelectionMode::ALL
+        let selection_mode_buttons: Vec<Element<'_, _>> = SelectionMode::ALL
             .iter()
             .filter(|mode| selection_modes_to_display.contains(mode))
             .map(|mode| {
@@ -493,7 +490,6 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
 fn action_mode_btn<'a, State: AppState>(
     mode: &ActionMode,
     current_action_mode: ActionMode,
-    _button_size: impl Into<Length>,
     axis_aligned: bool,
     ui_size: UiSize,
 ) -> Button<'a, Message<State>> {

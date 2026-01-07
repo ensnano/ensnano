@@ -1,26 +1,31 @@
+mod click_counter;
 mod xover_suggestions;
 
 use crate::app_state::design_interactor::presenter::{JunctionsIds, Presenter, SimulationUpdate};
 use ahash::RandomState;
-use ensnano_consts::{
-    BOND_RADIUS, CLONE_OPACITY, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, SPHERE_RADIUS,
-};
+use click_counter::ClickCounter;
 use ensnano_design::{
-    Design, Nucl,
+    Design,
+    domains::Domain,
     drawing_style::{ColorType, DrawingAttribute, DrawingStyle},
     elements::{DesignElement, DesignElementKey},
     grid::{GridData, GridId, GridObject, GridPosition, HelixGridPosition},
     helices::{HelixCollection as _, NuclCollection},
     isometry3_descriptor::Isometry3MissingMethods as _,
-    strands::{Domain, DomainJunction},
-};
-use ensnano_interactor::{
-    ObjectType,
-    app_state_parameters::suggestion_parameters::SuggestionParameters,
-    graphics::{LoopoutBond, LoopoutNucl},
+    nucl::Nucl,
+    strands::DomainJunction,
 };
 use ensnano_scene::{data::design3d::Scalebar, view::grid::GridInstance};
-use ensnano_utils::{click_counter::ClickCounter, colors, instance::Instance};
+use ensnano_utils::{
+    ObjectType,
+    app_state_parameters::suggestion_parameters::SuggestionParameters,
+    colors::purple_to_blue_gradient_color_in_range,
+    consts::{
+        BOND_RADIUS, CLONE_OPACITY, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, SPHERE_RADIUS,
+    },
+    graphics::{LoopoutBond, LoopoutNucl},
+    instance::Instance,
+};
 use serde::Serialize;
 use std::{
     borrow::Cow,
@@ -1016,9 +1021,9 @@ impl DesignContent {
                             .curvature
                             .unwrap_or_else(|| helix_style.torsion.unwrap());
                         scalebar = if helix_style.torsion.is_none() {
-                            Some((r_min, r_max, colors::purple_to_blue_gradient_color_in_range))
+                            Some((r_min, r_max, purple_to_blue_gradient_color_in_range))
                         } else {
-                            Some((r_max, r_min, colors::purple_to_blue_gradient_color_in_range))
+                            Some((r_max, r_min, purple_to_blue_gradient_color_in_range))
                         };
 
                         let colors = (i..=j)
@@ -1027,7 +1032,7 @@ impl DesignContent {
                                 if helix_style.curvature.is_some() {
                                     if let Some(curvature) = helix.curvature_at_pos(n) {
                                         let radius = 1. / curvature;
-                                        colors::purple_to_blue_gradient_color_in_range(
+                                        purple_to_blue_gradient_color_in_range(
                                             radius as f32,
                                             r_min,
                                             r_max,
@@ -1036,7 +1041,7 @@ impl DesignContent {
                                         color
                                     }
                                 } else if let Some(torsion) = helix.torsion_at_pos(n) {
-                                    colors::purple_to_blue_gradient_color_in_range(
+                                    purple_to_blue_gradient_color_in_range(
                                         torsion as f32,
                                         r_max,
                                         r_min,

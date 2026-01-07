@@ -3,6 +3,7 @@ mod controller;
 pub mod data;
 mod element_selector;
 mod maths_3d;
+mod obj_loader;
 mod rotor_utils;
 mod sausage_rosary;
 mod stl;
@@ -13,16 +14,19 @@ use controller::{Consequence, Controller};
 use data::{Data, design3d::SceneDesignReaderExt};
 use element_selector::{ElementSelector, SceneElement};
 use ensnano_design::{
-    Nucl,
     bezier_plane::BezierVertexId,
     consts::ITERATIVE_AXIS_ALGORITHM,
     grid::{GridPosition, HelixGridPosition},
     group_attributes::GroupPivot,
+    nucl::Nucl,
 };
-use ensnano_interactor::{
+use ensnano_organizer::tree::GroupId;
+use ensnano_utils::{
     DesignOperation, NewBezierTangentVector, WidgetBasis,
     app_state_parameters::check_xovers_parameter::CheckXoversParameter,
     application::{AppId, Application, Camera3D, Notification},
+    buffer_dimensions::BufferDimensions,
+    filename::derive_path_with_prefix_and_time_stamp_and_suffix,
     graphics::{DrawArea, FogParameters, PhySize},
     operation::{
         BezierControlPointTranslation, GridHelixCreation, GridRotation, GridTranslation,
@@ -36,8 +40,6 @@ use ensnano_interactor::{
     strand_builder::StrandBuilder,
     surfaces::UnrootedRevolutionSurfaceDescriptor,
 };
-use ensnano_organizer::tree::GroupId;
-use ensnano_utils::{BufferDimensions, filename};
 use itertools::Itertools as _;
 use maths_3d::FiniteVec3;
 use std::{
@@ -874,7 +876,7 @@ impl<S: AppState> Scene<S> {
         self.fit_design();
     }
 
-    fn request_camera_rotation(&mut self, xz: f32, yz: f32, xy: f32, app_state: &S) {
+    fn request_camera_rotation(&mut self, x: f32, y: f32, z: f32, app_state: &S) {
         let pivot = self
             .data
             .borrow()
@@ -892,7 +894,7 @@ impl<S: AppState> Scene<S> {
                 .filter(|r| !r.x.is_nan() && !r.y.is_nan() && !r.z.is_nan())
         });
         log::info!("pivot {pivot:?}");
-        self.controller.rotate_camera(xz, yz, xy, pivot);
+        self.controller.rotate_camera(x, y, z, pivot);
     }
 
     fn create_png_export_texture(
@@ -929,7 +931,7 @@ impl<S: AppState> Scene<S> {
     }
 
     fn export_3d_png(&self, design_path: Option<Arc<Path>>) {
-        let path = filename::derive_path_with_prefix_and_time_stamp_and_suffix(
+        let path = derive_path_with_prefix_and_time_stamp_and_suffix(
             design_path,
             Some("export_3d"),
             Some(format!("{ITERATIVE_AXIS_ALGORITHM}").as_str()),
@@ -1055,7 +1057,7 @@ impl<S: AppState> Scene<S> {
     }
 
     fn export_stl(&self, design_path: Option<Arc<Path>>, app_state: &S) {
-        let path = filename::derive_path_with_prefix_and_time_stamp_and_suffix(
+        let path = derive_path_with_prefix_and_time_stamp_and_suffix(
             design_path,
             Some("export_stl"),
             Some(format!("{ITERATIVE_AXIS_ALGORITHM}").as_str()),
@@ -1073,7 +1075,7 @@ impl<S: AppState> Scene<S> {
     }
 
     fn export_nucleotides_positions(&self, design_path: Option<Arc<Path>>) {
-        let path = filename::derive_path_with_prefix_and_time_stamp_and_suffix(
+        let path = derive_path_with_prefix_and_time_stamp_and_suffix(
             design_path,
             Some("nucleotide_positions"),
             Some(format!("{ITERATIVE_AXIS_ALGORITHM}").as_str()),
@@ -1161,8 +1163,8 @@ impl<S: AppState> Application for Scene<S> {
                 }
                 self.notify(SceneNotification::CameraMoved);
             }
-            Notification::CameraRotation(xz, yz, xy) => {
-                self.request_camera_rotation(xz, yz, xy, &older_state);
+            Notification::CameraRotation(x, y, z) => {
+                self.request_camera_rotation(x, y, z, &older_state);
                 self.notify(SceneNotification::CameraMoved);
             }
             Notification::CenterSelection(selection, app_id) => {

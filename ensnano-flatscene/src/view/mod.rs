@@ -5,24 +5,24 @@ mod rectangle;
 
 use crate::{
     CameraPtr,
+    camera2d::Globals,
+    chars2d::text_drawer::TextDrawer,
+    circles2d::{CircleDrawer, CircleInstance, CircleKind},
     data::{
         design::FlatTorsion,
         helix::{CharCollector, GpuVertex, Helix, HelixModel, Shift},
         strand::{FreeEnd, Strand, StrandVertex},
     },
     flat_types::{FlatIdx, FlatNucl, FlatSelection},
+    ndc::Ndc,
 };
 use ahash::RandomState;
 use background::Background;
-use ensnano_consts::{CANDIDATE_COLOR, PRINTABLE_CHARS, SAMPLE_COUNT, SELECTED_COLOR};
-use ensnano_design::{Nucl, helices::NuclCollection};
-use ensnano_interactor::graphics::{DrawArea, PhySize};
+use ensnano_design::{helices::NuclCollection, nucl::Nucl};
 use ensnano_utils::{
-    Ndc,
     bindgroup_manager::{DynamicBindGroup, UniformBindGroup},
-    camera2d::Globals,
-    chars2d::text_drawer::TextDrawer,
-    circles2d::{CircleDrawer, CircleInstance, CircleKind},
+    consts::{CANDIDATE_COLOR, PRINTABLE_CHARS, SAMPLE_COUNT, SELECTED_COLOR},
+    graphics::{DrawArea, PhySize},
     texture::Texture,
 };
 use helix_view::{HelixView, StrandView};

@@ -4,7 +4,7 @@
 use crate::controller::normal_state::Action;
 use crate::requests::Requests;
 use crate::{MainState, app_state::design_interactor::controller::clipboard::PastePosition};
-use ensnano_interactor::{
+use ensnano_utils::{
     DesignOperation, HyperboloidOperation, application::Notification,
     selection::SelectionConversion as _,
 };
@@ -70,10 +70,8 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
         main_state.push_action(Action::NotifyApps(Notification::CameraTarget(target)));
     }
 
-    if let Some(rotation) = requests.camera_rotation.take() {
-        main_state.push_action(Action::NotifyApps(Notification::CameraRotation(
-            rotation.0, rotation.1, rotation.2,
-        )));
+    if let Some((x, y, z)) = requests.camera_rotation.take() {
+        main_state.push_action(Action::NotifyApps(Notification::CameraRotation(x, y, z)));
     }
 
     if let Some(scaffold_id) = requests.set_scaffold_id.take() {

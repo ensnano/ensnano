@@ -1,5 +1,8 @@
 use crate::{
     AppState,
+    color_picker::{ColorPicker, ColorPickerMessage},
+    fonts::material_icons::{MaterialIcon, icon_to_char},
+    helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
     left_panel::{
         HelixRoll, Message, color_to_u32,
         discrete_value::{FactoryId, RequestFactory, ValueId},
@@ -7,13 +10,7 @@ use crate::{
     },
 };
 use ensnano_design::elements::DesignElementKey;
-use ensnano_iced::{
-    color_picker::{ColorPicker, ColorPickerMessage},
-    fonts::material_icons::{MaterialIcon, icon_to_char},
-    helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
-    ui_size::UiSize,
-};
-use ensnano_interactor::{RollRequest, selection::extract_strands_from_selection};
+use ensnano_utils::{RollRequest, selection::extract_strands_from_selection, ui_size::UiSize};
 use iced::{
     Command,
     widget::{column, row, scrollable},
@@ -100,7 +97,7 @@ impl<State: AppState> GuiTab<State> for EditionTab<State> {
                 tighten_helices_button.on_press(Message::Redim2dHelices(false));
         }
 
-        let content = self::column![
+        let content = column![
             section("Edition", ui_size),
             // add_roll_slider!
             column(

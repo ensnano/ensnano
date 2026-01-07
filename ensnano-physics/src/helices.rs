@@ -3,7 +3,7 @@
 //! portion of them are fully double helices or made of free nucleotides.
 
 use ahash::HashMap;
-use ensnano_design::{Nucl, elements::DesignElement};
+use ensnano_design::{elements::DesignElement, nucl::Nucl};
 use std::ops::Range;
 
 /// Holds the intermediary representation
@@ -89,13 +89,11 @@ pub(crate) fn compute_cyclic_helices(elements: &Vec<DesignElement>) -> Vec<usize
 
             if let Some((helix, position, forward)) =
                 collected_crossovers.get(&(*helix5prime, *position5prime, !forward5prime))
+                && *helix == *helix3prime
+                && *position == *position3prime
+                && *forward != *forward3prime
             {
-                if *helix == *helix3prime
-                    && *position == *position3prime
-                    && *forward == !forward3prime
-                {
-                    result.push(*helix);
-                }
+                result.push(*helix);
             }
 
             collected_crossovers.insert(

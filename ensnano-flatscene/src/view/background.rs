@@ -3,11 +3,12 @@
 // The original source was distributed under the MIT License by Nicolas Silva.
 // A copy of the original license is available in thirdparties/lyon/LICENSE
 
-use ensnano_consts::SAMPLE_COUNT;
+use ensnano_utils::consts::SAMPLE_COUNT;
 use lyon::{
-    geom::{Rect, point, size},
+    geom::{Box2D, point},
     tessellation::{
-        BuffersBuilder, FillOptions, FillTessellator, FillVertexConstructor, VertexBuffers,
+        BuffersBuilder, FillOptions, FillTessellator, FillVertex, FillVertexConstructor,
+        VertexBuffers,
     },
 };
 use wgpu::util::DeviceExt as _;
@@ -30,7 +31,7 @@ impl Background {
 
         fill_tess
             .tessellate_rectangle(
-                &Rect::new(point(-1.0, -1.0), size(2.0, 2.0)),
+                &Box2D::new(point(-1.0, -1.0), point(1.0, 1.0)),
                 &FillOptions::DEFAULT,
                 &mut BuffersBuilder::new(&mut bg_geometry, Custom),
             )
@@ -165,7 +166,7 @@ struct BgPoint {
 pub(super) struct Custom;
 
 impl FillVertexConstructor<BgPoint> for Custom {
-    fn new_vertex(&mut self, vertex: lyon::tessellation::FillVertex) -> BgPoint {
+    fn new_vertex(&mut self, vertex: FillVertex) -> BgPoint {
         BgPoint {
             point: vertex.position().to_array(),
         }

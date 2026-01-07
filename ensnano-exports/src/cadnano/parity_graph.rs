@@ -1,5 +1,5 @@
 use crate::cadnano::CadnanoError;
-use ensnano_design::{Design, helices::HelixCollection as _, strands::Domain};
+use ensnano_design::{Design, domains::Domain, helices::HelixCollection as _};
 
 pub(super) fn get_parity(design: &Design, max_helix_idx: usize) -> Result<Vec<bool>, CadnanoError> {
     let mut father = make_group(design, max_helix_idx);

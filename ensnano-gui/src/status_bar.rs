@@ -1,10 +1,6 @@
-use crate::{AppState, Requests};
-use ensnano_iced::{
-    theme::GuiBackground,
-    ui_size::UiSize,
-    widgets::keyboard_priority::{PriorityRequest, keyboard_priority},
-};
-use ensnano_interactor::{PastingStatus, StrandBuildingStatus, operation::Operation};
+use crate::{AppState, Requests, theme::GuiBackground};
+use ensnano_organizer::keyboard_priority::{PriorityRequest, keyboard_priority};
+use ensnano_utils::{PastingStatus, StrandBuildingStatus, operation::Operation, ui_size::UiSize};
 use iced::{
     Alignment, Color, Element, Length,
     widget::{Row, Space, Text, column, container, horizontal_space, row, text, text_input},
@@ -188,7 +184,7 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
         let pasting_status_row =
             row![horizontal_space(), text(pasting_text), Space::with_width(5),];
 
-        let content = self::column![Space::new(Length::Fill, 3), content, pasting_status_row,];
+        let content = column![Space::new(Length::Fill, 3), content, pasting_status_row,];
 
         container(content)
             .style(GuiBackground)
@@ -341,7 +337,6 @@ impl OperationInput {
 }
 
 mod input_color {
-    // TODO: Move this in ensnano_iced.
     use crate::status_bar::GOLD_ORANGE;
     use iced::{
         Background, Border, Color, theme,

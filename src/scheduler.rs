@@ -1,5 +1,5 @@
 use crate::{app_state::AppState, multiplexer::Multiplexer};
-use ensnano_interactor::{application::Application, graphics::GuiComponentType};
+use ensnano_utils::{application::Application, graphics::GuiComponentType};
 use std::{
     collections::HashMap,
     sync::{Arc, Mutex},

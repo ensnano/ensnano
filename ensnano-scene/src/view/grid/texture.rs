@@ -1,9 +1,11 @@
-use ensnano_consts::SAMPLE_COUNT;
-use ensnano_utils::{TEXTURE_FORMAT, texture::Texture};
+use ensnano_utils::{TEXTURE_FORMAT, consts::SAMPLE_COUNT, texture::Texture};
 use lyon::{
-    math::Point,
+    math::point,
     path::Path,
-    tessellation::{self, StrokeVertex, StrokeVertexConstructor},
+    tessellation::{
+        BuffersBuilder, StrokeOptions, StrokeTessellator, StrokeVertex, StrokeVertexConstructor,
+        VertexBuffers,
+    },
 };
 use wgpu::{Device, Sampler, TextureView, util::DeviceExt as _};
 
@@ -16,7 +18,7 @@ pub(super) struct Vertex {
     normal: [f32; 2],
 }
 
-type Vertices = tessellation::VertexBuffers<Vertex, u16>;
+type Vertices = VertexBuffers<Vertex, u16>;
 
 pub(super) struct SquareTexture {
     pub view: TextureView,
@@ -129,22 +131,22 @@ fn fill_square_texture(target: &TextureView, device: &Device, encoder: &mut wgpu
 
 fn square_texture_vertices() -> Vertices {
     let mut vertices = Vertices::new();
-    let mut stroke_tess = tessellation::StrokeTessellator::new();
+    let mut stroke_tess = StrokeTessellator::new();
 
     let mut builder = Path::builder();
 
-    builder.begin(Point::new(-1., -1.));
-    builder.line_to(Point::new(-1., 1.));
-    builder.line_to(Point::new(1., 1.));
-    builder.line_to(Point::new(1., -1.));
+    builder.begin(point(-1., -1.));
+    builder.line_to(point(-1., 1.));
+    builder.line_to(point(1., 1.));
+    builder.line_to(point(1., -1.));
     builder.end(true);
     let path = builder.build();
 
     stroke_tess
         .tessellate_path(
             &path,
-            &tessellation::StrokeOptions::default(),
-            &mut tessellation::BuffersBuilder::new(&mut vertices, Custom),
+            &StrokeOptions::default(),
+            &mut BuffersBuilder::new(&mut vertices, Custom),
         )
         .expect("error during tessellation");
     vertices
@@ -265,22 +267,22 @@ fn fill_honeycomb_texture(
 
 fn honeycomb_texture_vertices() -> Vertices {
     let mut vertices = Vertices::new();
-    let mut stroke_tess = tessellation::StrokeTessellator::new();
+    let mut stroke_tess = StrokeTessellator::new();
 
     let mut builder = Path::builder();
 
-    builder.begin(Point::new(1., -1.));
-    builder.line_to(Point::new(1., -1. / 3.));
-    builder.line_to(Point::new(-1., 1. / 3.));
-    builder.line_to(Point::new(-1., 1.));
+    builder.begin(point(1., -1.));
+    builder.line_to(point(1., -1. / 3.));
+    builder.line_to(point(-1., 1. / 3.));
+    builder.line_to(point(-1., 1.));
     builder.end(false);
     let path = builder.build();
 
     stroke_tess
         .tessellate_path(
             &path,
-            &tessellation::StrokeOptions::default(),
-            &mut tessellation::BuffersBuilder::new(&mut vertices, Custom),
+            &StrokeOptions::default(),
+            &mut BuffersBuilder::new(&mut vertices, Custom),
         )
         .expect("error during tessellation");
     vertices

@@ -9,14 +9,11 @@ license.workspace = true
 workspace = true
 
 [dependencies]
-ensnano_consts.workspace = true
 ensnano_design.workspace = true
 ensnano_exports.workspace = true
-ensnano_iced.workspace = true
-ensnano_interactor.workspace = true
 ensnano_organizer.workspace = true
-ensnano_utils.workspace = true
 ensnano_physics.workspace = true
+ensnano_utils.workspace = true
 
 color_space.workspace = true
 iced.workspace = true

@@ -1,7 +1,10 @@
 use crate::{
     CameraPtr,
+    chars2d::text_drawer::{Line, Sentence, TextDrawer},
+    circles2d::CircleInstance,
     data::design::Helix2d,
     flat_types::{Flat, FlatHelix, FlatHelixMaps, FlatNucl, FlatPosition, HelixSegment},
+    full_isometry::FullIsometry,
     view::{
         EditionInfo,
         insertion::{InsertionDescriptor, InsertionInstance},
@@ -9,27 +12,23 @@ use crate::{
 };
 use abscissa_converter::AbscissaConverter;
 use ahash::RandomState;
-use ensnano_consts::{
-    BLACK_VEC4, CIRCLE2D_BLUE, CIRCLE2D_GREEN, CIRCLE2D_GREY, CIRCLE2D_RED, GREY_UNKNOWN_NUCL_VEC4,
-    HELIX_BORDER_COLOR,
-};
 use ensnano_design::{
-    Nucl, curves::time_nucl_map::AbscissaConverter as AbscissaConverter_, helices::NuclCollection,
+    curves::time_nucl_map::AbscissaConverter as AbscissaConverter_, helices::NuclCollection,
+    nucl::Nucl,
 };
 use ensnano_utils::{
-    chars2d::text_drawer::{Line, Sentence, TextDrawer},
-    circles2d::CircleInstance,
-    full_isometry::FullIsometry,
+    consts::{
+        BLACK_VEC4, CIRCLE2D_BLUE, CIRCLE2D_GREEN, CIRCLE2D_GREY, CIRCLE2D_RED,
+        GREY_UNKNOWN_NUCL_VEC4, HELIX_BORDER_COLOR,
+    },
     instance::Instance,
 };
 use lyon::{
-    math::{Point, rect},
-    path::{
-        Path, Winding,
-        builder::{BorderRadii, PathBuilder as _},
-    },
+    math::{Box2D, point},
+    path::{Path, Winding, builder::BorderRadii},
     tessellation::{
-        self, FillVertex, FillVertexConstructor, StrokeVertex, StrokeVertexConstructor,
+        BuffersBuilder, FillOptions, FillTessellator, FillVertex, FillVertexConstructor,
+        StrokeOptions, StrokeTessellator, StrokeVertex, StrokeVertexConstructor, VertexBuffers,
     },
 };
 use std::{
@@ -39,7 +38,7 @@ use std::{
 };
 use ultraviolet::{Mat2, Rotor2, Vec2, Vec4};
 
-type Vertices = tessellation::VertexBuffers<GpuVertex, u16>;
+type Vertices = VertexBuffers<GpuVertex, u16>;
 
 const CIRCLE_WIDGET_RADIUS: f32 = 1.5;
 const ZOOM_THRESHOLD: f32 = 7.0;
@@ -138,11 +137,11 @@ impl Helix {
         ) as f32;
         let top = 0.;
         let bottom = 2.;
-        let mut fill_tess = tessellation::FillTessellator::new();
+        let mut fill_tess = FillTessellator::new();
 
         let mut builder = Path::builder();
         builder.add_rounded_rectangle(
-            &rect(left, top, right - left, bottom - top),
+            &Box2D::new(point(left, top), point(right, bottom)),
             &BorderRadii::new(0.1),
             Winding::Positive,
         );
@@ -150,8 +149,8 @@ impl Helix {
         fill_tess
             .tessellate_path(
                 &path,
-                &tessellation::FillOptions::default(),
-                &mut tessellation::BuffersBuilder::new(
+                &FillOptions::default(),
+                &mut BuffersBuilder::new(
                     &mut vertices,
                     WithAttribute(VertexAttribute {
                         id: self.flat_id.flat.0 as u32,
@@ -176,12 +175,12 @@ impl Helix {
         let top = 0.;
         let bottom = 2.;
 
-        let mut stroke_tess = tessellation::StrokeTessellator::new();
+        let mut stroke_tess = StrokeTessellator::new();
 
         let mut builder = Path::builder();
 
         builder.add_rounded_rectangle(
-            &rect(left, top, right - left, bottom - top),
+            &Box2D::new(point(left, top), point(right, bottom)),
             &BorderRadii::new(0.1),
             Winding::Positive,
         );
@@ -189,19 +188,19 @@ impl Helix {
             let x = self
                 .abscissa_converter
                 .nucl_to_x_conversion(FlatPosition::from_real(i, self.flat_id.segment_left));
-            builder.begin(Point::new(x as f32, 0.));
-            builder.line_to(Point::new(x as f32, 2.));
+            builder.begin(point(x as f32, 0.));
+            builder.line_to(point(x as f32, 2.));
             builder.end(false);
         }
-        builder.begin(Point::new(left, 1.));
-        builder.line_to(Point::new(right, 1.));
+        builder.begin(point(left, 1.));
+        builder.line_to(point(right, 1.));
         builder.end(false);
         let path = builder.build();
         stroke_tess
             .tessellate_path(
                 &path,
-                &tessellation::StrokeOptions::default(),
-                &mut tessellation::BuffersBuilder::new(
+                &StrokeOptions::default(),
+                &mut BuffersBuilder::new(
                     &mut vertices,
                     WithAttribute(VertexAttribute {
                         id: self.flat_id.flat.0 as u32,

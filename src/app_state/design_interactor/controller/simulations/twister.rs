@@ -16,7 +16,7 @@ use ensnano_design::{
     grid::{GridDescriptor, GridId, GridTypeDescr, grid_collection::FreeGridId},
     helices::{Helix, HelixCollection as _},
     parameters::HelixParameters,
-    utils::vec_to_dvec,
+    utils::ultraviolet::vec_to_dvec,
 };
 use std::{
     collections::HashMap,

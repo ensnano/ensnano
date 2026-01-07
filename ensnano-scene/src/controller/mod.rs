@@ -15,12 +15,12 @@ use crate::{
 };
 use automata::{NormalState, State, Transition, WidgetTarget};
 use ensnano_design::{
-    Nucl,
     bezier_plane::{BezierPathId, BezierPlaneId, BezierVertex, BezierVertexId},
     curves::{SurfaceInfo, SurfacePoint},
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
+    nucl::Nucl,
 };
-use ensnano_interactor::graphics::PhySize;
+use ensnano_utils::graphics::PhySize;
 use std::{cell::RefCell, ops::Deref as _, rc::Rc, time::Duration};
 use ultraviolet::{Rotor3, Vec2, Vec3};
 use winit::{
@@ -426,10 +426,10 @@ impl<S: AppState> Controller<S> {
         self.camera_controller.process_mouse(dx, dy);
     }
 
-    pub(crate) fn rotate_camera(&mut self, xz: f32, yz: f32, xy: f32, pivot: Option<Vec3>) {
+    pub(crate) fn rotate_camera(&mut self, x: f32, y: f32, z: f32, pivot: Option<Vec3>) {
         self.camera_controller.init_movement(false);
-        self.camera_controller.rotate_camera(xz, yz, pivot);
-        self.camera_controller.tilt_camera(xy);
+        self.camera_controller.rotate_camera(x, y, pivot);
+        self.camera_controller.tilt_camera(z);
         self.shift_cam();
     }
 

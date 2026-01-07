@@ -4,28 +4,30 @@ pub(crate) mod impl_reader2d;
 pub(crate) mod impl_reader3d;
 pub(crate) mod impl_readergui;
 
+use super::id_generator::IdGenerator;
 use crate::app_state::{address_pointer::AddressPointer, design_interactor::DesignInteractor};
 use design_content::DesignContent;
 use ensnano_design::{
-    CameraId, Design, Nucl,
+    CameraId, Design,
     bezier_plane::{BezierPath, BezierPathId},
     collection::Collection as _,
     curves::bezier::InstantiatedPiecewiseBezier,
+    domains::Domain,
     elements::DesignElementKey,
     grid::{Grid, GridId},
     helices::{Helix, HelixCollection as _, NuclCollection},
-    strands::{Domain, Extremity, Strand},
+    nucl::Nucl,
+    strands::{Extremity, Strand},
 };
 use ensnano_exports::{ExportResult, ExportType, oxdna::BACKBONE_TO_CM};
-use ensnano_interactor::{
+use ensnano_scene::data::design3d::{HBond, HalfHBond};
+use ensnano_utils::{
     Referential, ScaffoldInfo,
     app_state_parameters::suggestion_parameters::SuggestionParameters,
     application::Camera3D,
     selection::Selection,
     strand_builder::{NeighborDescriptor, NeighborDescriptorGiver as _},
 };
-use ensnano_scene::data::design3d::{HBond, HalfHBond};
-use ensnano_utils::id_generator::IdGenerator;
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
     fmt::Write as _,
@@ -114,7 +116,7 @@ impl Presenter {
 
     /// Return a fresh presenter presenting an imported `Design` with a given set of junctions, as
     /// well as a pointer to the design held by this fresh presenter.
-    pub(crate) fn from_new_design(
+    pub(super) fn from_new_design(
         design: Design,
         old_junctions_ids: &JunctionsIds,
         suggestion_parameters: SuggestionParameters,

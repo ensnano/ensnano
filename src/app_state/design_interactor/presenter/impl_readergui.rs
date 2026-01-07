@@ -1,14 +1,15 @@
 use crate::app_state::design_interactor::DesignInteractor;
 use ensnano_design::{
-    CameraId, Nucl,
+    CameraId,
     bezier_plane::{BezierPathId, BezierVertexId},
     collection::Collection as _,
     elements::DesignElement,
     grid::GridId,
+    nucl::Nucl,
     strands::Strand,
 };
 use ensnano_gui::{EnsnTree, GuiDesignReaderExt as ReaderGui};
-use ensnano_interactor::{InsertionPoint, selection::Selection};
+use ensnano_utils::{InsertionPoint, selection::Selection};
 use std::sync::Arc;
 use ultraviolet::{Rotor3, Vec2, Vec3};
 

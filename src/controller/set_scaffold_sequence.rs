@@ -10,7 +10,7 @@ use crate::{
     },
     dialog::{self, PathInput},
 };
-use ensnano_interactor::StandardSequence;
+use ensnano_utils::StandardSequence;
 use std::path::{Path, PathBuf};
 
 /// User is in the process of setting the sequence of the scaffold

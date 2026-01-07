@@ -15,7 +15,6 @@ use crate::{
     },
     controller::download_staples::DownloadStaples,
 };
-use ensnano_consts::ENS_EXTENSION;
 use ensnano_design::{
     CameraId,
     bezier_plane::BezierPlaneDescriptor,
@@ -25,16 +24,16 @@ use ensnano_design::{
 };
 use ensnano_exports::ExportType;
 use ensnano_gui::OverlayType;
-use ensnano_iced::ui_size::UiSize;
-use ensnano_interactor::{
+use ensnano_physics::parameters::RapierParameters;
+use ensnano_utils::{
     DesignOperation, HyperboloidOperation, HyperboloidRequest, RigidBodyConstants, RollRequest,
     application::Notification,
+    consts::ENS_EXTENSION,
     graphics::{FogParameters, SplitMode},
     selection::{all_helices_no_grid, extract_grids, extract_strands_from_selection},
     surfaces::RevolutionSurfaceSystemDescriptor,
+    ui_size::UiSize,
 };
-
-use ensnano_physics::parameters::RapierParameters;
 use std::{
     path::{Path, PathBuf},
     sync::Arc,

@@ -4,6 +4,7 @@ pub mod strand;
 
 use crate::{
     AppState, CameraPtr, Requests, ViewPtr,
+    camera2d::FitRectangle,
     data::{
         design::FlatSceneDesignReaderExt,
         helix::{Helix, HelixHandle},
@@ -16,15 +17,15 @@ use crate::{
 };
 use ahash::RandomState;
 use design::Design2d;
-use ensnano_consts::{
-    CANDIDATE_COLOR, CANDIDATE_STRAND_HIGHLIGHT_FACTOR_2D, SELECTED_COLOR, SELECTED_HELIX2D_COLOR,
-    SELECTED_STRAND_HIGHLIGHT_FACTOR_2D, SELECTION_2D_CYCLE_TIME_LIMIT_MS,
-};
-use ensnano_interactor::{
+use ensnano_utils::{
     StrandBuildingStatus,
+    consts::{
+        CANDIDATE_COLOR, CANDIDATE_STRAND_HIGHLIGHT_FACTOR_2D, SELECTED_COLOR,
+        SELECTED_HELIX2D_COLOR, SELECTED_STRAND_HIGHLIGHT_FACTOR_2D,
+        SELECTION_2D_CYCLE_TIME_LIMIT_MS,
+    },
     selection::{PhantomElement, Selection, SelectionMode},
 };
-use ensnano_utils::camera2d::FitRectangle;
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap, HashSet},
     sync::{Arc, Mutex},

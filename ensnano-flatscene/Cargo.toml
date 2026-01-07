@@ -9,14 +9,13 @@ license.workspace = true
 workspace = true
 
 [dependencies]
-ensnano_consts.workspace = true
 ensnano_design.workspace = true
-ensnano_interactor.workspace = true
 ensnano_utils.workspace = true
 
 ahash.workspace = true
 bytemuck.workspace = true
 color_space.workspace = true
+fontdue.workspace = true
 futures.workspace = true
 futures-channel.workspace = true
 itertools.workspace = true

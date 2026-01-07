@@ -28,24 +28,24 @@ use crate::{
 };
 use address_pointer::AddressPointer;
 use design_interactor::{DesignInteractor, InteractorResult, controller::ErrOperation};
-use ensnano_consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION};
 use ensnano_design::{
-    SavingInformation, bezier_plane::BezierPathId, group_attributes::GroupPivot, strands::Domain,
+    SavingInformation, bezier_plane::BezierPathId, domains::Domain, group_attributes::GroupPivot,
 };
 use ensnano_exports::{ExportResult, ExportType};
-use ensnano_iced::ui_size::UiSize;
-use ensnano_interactor::{
+use ensnano_organizer::tree::GroupId;
+use ensnano_utils::{
     DesignOperation, PastingStatus, SimulationState, StrandBuildingStatus, WidgetBasis,
     app_state_parameters::{
         AppStateParameters, check_xovers_parameter::CheckXoversParameter,
         suggestion_parameters::SuggestionParameters,
     },
+    consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION},
     graphics::{Background3D, HBondDisplay, RenderingMode},
     operation::Operation,
     selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
     surfaces::{RevolutionSurfaceRadius, UnrootedRevolutionSurfaceDescriptor},
+    ui_size::UiSize,
 };
-use ensnano_organizer::tree::GroupId;
 use std::{
     path::PathBuf,
     sync::{Arc, RwLock},

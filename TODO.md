@@ -46,6 +46,7 @@
   - Simply use the normal?
 - Give uniform instead of hardcoding
 - Fix on transparent objects (create a separate pass?)
+- Widget to control the width
 
 ## Flat Scene (2D)
 
@@ -85,10 +86,12 @@
 
 - Check and accept nix merge request
 - Fix all GitLab issues
-- Update `iced` to 0.13
+- Update `iced` to 0.14
+  - Replace all occurrences of `text(format!(...))` with the macro `text!(...)`
 - Port to the web with WASM
 - Distribution of strand lengths (analysis tab)
 - Triple-stranded DNA
+- Split 2D view when clicking on xover in 3D view whose nucleotides are far apart
 - Local crossover optimization
 - Animation timeline
 - Publish `ensnano` on crates.io?
@@ -121,10 +124,10 @@
   - `GridPositionBuilder`
   - `OverlayType`
   - `RotationWidgetOrientation`
-- Replace `ensnano_iced/fonts/material_icons.rs` by SVG icons from `icondata` lib
+  - `IterativeFrameAlgorithm`
+- Replace `ensnano_gui/fonts/material_icons.rs` by SVG icons from `icondata` lib
 - `build.rs` for shaders instead of manual compilation
 - Merge `ensnano_organizer` and `ensnano_gui`
-- Merge `ensnano_interactor` and `ensnano_utils`?
 - Share more code between `ensnano_scene` and `ensnano_flatscene`:
   - e.g. `export_2d_png` and `export_3d_png` are pretty much the same
 - Split `src/controller/quit.rs` in multiple file

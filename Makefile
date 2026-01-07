@@ -23,6 +23,9 @@ lint:
 test:
 	@cargo test --workspace --all-targets
 
+format:
+	@cargo fmt --all
+
 shaders: $(SHADERS)
 	@echo Shaders compilation: Done.
 

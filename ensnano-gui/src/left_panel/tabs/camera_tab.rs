@@ -1,19 +1,17 @@
 use crate::{
     AppState,
-    left_panel::{Message, tabs::GuiTab},
-};
-use ensnano_iced::{
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, right_checkbox, section, subsection, text_button},
+    left_panel::{Message, tabs::GuiTab},
     theme,
-    ui_size::UiSize,
 };
-use ensnano_interactor::{
+use ensnano_utils::{
     app_state_parameters::{AppStateParameters, check_xovers_parameter::CheckXoversParameter},
     graphics::{
         ALL_BACKGROUND3D, ALL_RENDERING_MODE, Background3D, FogParameters, HBondDisplay,
         RenderingMode, fog_kind,
     },
+    ui_size::UiSize,
 };
 use iced::{
     Alignment, Length,
@@ -76,7 +74,7 @@ impl<State: AppState> GuiTab<State> for CameraTab<State> {
     }
 
     fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Message<State>> {
-        let content = self::column![
+        let content = column![
             section("Camera", ui_size),
             subsection("Toggle visibility", ui_size),
             row![
@@ -129,7 +127,7 @@ impl<State: AppState> GuiTab<State> for CameraTab<State> {
             subsection("Rendering", ui_size),
             row![
                 row![
-                    text("Style"),
+                    "Style",
                     pick_list(
                         ALL_RENDERING_MODE,
                         Some(self.rendering_mode),
@@ -140,7 +138,7 @@ impl<State: AppState> GuiTab<State> for CameraTab<State> {
                 .spacing(5)
                 .width(Length::FillPortion(1)),
                 row![
-                    text("Background"),
+                    "Background",
                     pick_list(
                         ALL_BACKGROUND3D,
                         Some(self.background3d),
@@ -206,7 +204,7 @@ impl FogGuiParameters {
         // Hand method to
         let label_width = 65.0f32;
 
-        self::column![
+        column![
             extra_jump(),
             row![
                 subsection("Distance Fog", ui_size),

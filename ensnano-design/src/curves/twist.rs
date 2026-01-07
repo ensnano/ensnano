@@ -1,7 +1,7 @@
 use crate::{
     curves::{CurveBounds, Curved},
     parameters::HelixParameters,
-    utils::{rotor_to_drotor, vec_to_dvec},
+    utils::{ultraviolet::rotor_to_drotor, ultraviolet::vec_to_dvec},
 };
 use serde::{Deserialize, Serialize};
 use std::f64::consts::TAU;

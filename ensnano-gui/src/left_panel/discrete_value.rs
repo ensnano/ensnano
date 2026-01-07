@@ -1,9 +1,8 @@
 //! A slider to choose a numerical value within a discrete linear range.
 
-// TODO: Make it an independent object like ensnano_iced::color_picker ?
+// TODO: Make it an independent object like ensnano_gui::color_picker ?
 
-use crate::{AppState, left_panel::Message};
-use ensnano_iced::theme;
+use crate::{AppState, left_panel::Message, theme};
 use iced::{
     Alignment, Length, Pixels,
     widget::{Space, button, row, slider, text},
@@ -159,22 +158,22 @@ impl DiscreteValue {
         name_size: impl Into<Pixels>,
     ) -> iced::Element<'_, Message<State>> {
         let decr_button = if active && self.value - self.step >= self.min_val {
-            button(text("-")).on_press(Message::DiscreteValue {
+            button("-").on_press(Message::DiscreteValue {
                 factory_id: self.owner_id,
                 value_id: self.value_id,
                 value: self.value - self.step,
             })
         } else {
-            button(text("-"))
+            button("-")
         };
         let incr_button = if active && self.value + self.step <= self.max_val {
-            button(text("+")).on_press(Message::DiscreteValue {
+            button("+").on_press(Message::DiscreteValue {
                 factory_id: self.owner_id,
                 value_id: self.value_id,
                 value: self.value + self.step,
             })
         } else {
-            button(text("+"))
+            button("+")
         };
         let factory_id = self.owner_id;
         let value_id = self.value_id;

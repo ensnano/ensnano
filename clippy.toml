@@ -1,4 +1,4 @@
 absolute-paths-max-segments = 3
 doc-valid-idents = ["ENSnano", ".."]
-# inherent-impl-lint-scope = "module" (TODO: re-enable once clippy 1.92 gets out)
-too-many-arguments-threshold = 11 # TODO: 6
+inherent-impl-lint-scope = "module"
+too-many-arguments-threshold = 11    # TODO: 6

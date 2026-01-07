@@ -3,11 +3,13 @@ use crate::app_state::{
     design_interactor::controller::{Controller, ControllerState, DuplicationEdge, ErrOperation},
 };
 use ensnano_design::{
-    Design, MutStrandAndData, Nucl, UpToDateDesign,
+    Design, MutStrandAndData, UpToDateDesign,
+    domains::{Domain, helix_interval::HelixInterval},
     grid::{Edge, GridData, GridId, GridPosition, HelixGridPosition, grid_collection::FreeGridId},
     helices::{Helices, HelixCollection as _},
+    nucl::Nucl,
     parameters::HelixParameters,
-    strands::{Domain, HelixInterval, Strand, Strands, read_junctions},
+    strands::{Strand, Strands, read_junctions},
 };
 use ultraviolet::{Rotor3, Vec3};
 

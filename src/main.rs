@@ -89,10 +89,6 @@ use controller::{
         ScaffoldSetter, SetScaffoldSequenceError, SetScaffoldSequenceOk, TargetScaffoldLength,
     },
 };
-use ensnano_consts::{
-    APP_NAME, ENS_BACKUP_EXTENSION, ENS_UNNAMED_FILE_NAME, NO_DESIGN_TITLE, SEC_BETWEEN_BACKUPS,
-    SEC_PER_YEAR, WELCOME_MSG,
-};
 use ensnano_design::{
     Camera, CameraId, SavingInformation, bezier_plane::BezierPlaneDescriptor, grid::GridId,
     group_attributes::GroupPivot,
@@ -100,17 +96,26 @@ use ensnano_design::{
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_flatscene::FlatScene;
 use ensnano_gui::{
-    AppState as _, Gui, IcedMessages, OverlayType, TopBarState, left_panel::ColorOverlay,
+    AppState as _, Gui, IcedMessages, OverlayType, TopBarState,
+    fonts::{INTER_REGULAR_FONT, load_fonts},
+    left_panel::ColorOverlay,
+    theme,
 };
-use ensnano_iced::{fonts, theme, ui_size::UiSize, widgets::keyboard_priority::KeyboardPriorityId};
-use ensnano_interactor::{
+use ensnano_organizer::{keyboard_priority::KeyboardPriorityId, tree::GroupId};
+use ensnano_physics::parameters::RapierParameters;
+use ensnano_scene::{AppState as _, Scene, SceneKind, data::design3d::SceneDesignReaderExt as _};
+use ensnano_utils::{
     DesignOperation, DesignRotation, DesignTranslation, IsometryTarget, PastingStatus,
-    RigidBodyConstants,
+    RigidBodyConstants, TEXTURE_FORMAT,
     app_state_parameters::{
         AppStateParameters, check_xovers_parameter::CheckXoversParameter,
         suggestion_parameters::SuggestionParameters,
     },
     application::{Application, Camera3D, Notification},
+    consts::{
+        APP_NAME, ENS_BACKUP_EXTENSION, ENS_UNNAMED_FILE_NAME, NO_DESIGN_TITLE,
+        SEC_BETWEEN_BACKUPS, SEC_PER_YEAR, WELCOME_MSG,
+    },
     graphics::{Background3D, GuiComponentType, HBondDisplay, PhySize, RenderingMode, SplitMode},
     operation::Operation,
     selection::{
@@ -120,11 +125,8 @@ use ensnano_interactor::{
         list_of_xover_as_nucl_pairs,
     },
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
+    ui_size::UiSize,
 };
-use ensnano_organizer::tree::GroupId;
-use ensnano_physics::parameters::RapierParameters;
-use ensnano_scene::{AppState as _, Scene, SceneKind, data::design3d::SceneDesignReaderExt as _};
-use ensnano_utils::TEXTURE_FORMAT;
 use iced::{
     advanced::{clipboard, renderer},
     mouse::Cursor,
@@ -314,7 +316,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let settings = Settings {
         antialiasing: Some(Antialiasing::MSAAx4),
         default_text_size: parameters.ui_size.main_text().into(),
-        default_font: fonts::INTER_REGULAR_FONT,
+        default_font: INTER_REGULAR_FONT,
         ..Default::default()
     };
     // Initialize the renderer
@@ -323,7 +325,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         settings.default_font,
         settings.default_text_size,
     ));
-    fonts::load_fonts(&mut overlay_renderer);
+    load_fonts(&mut overlay_renderer);
     let device = Rc::new(device);
     let queue = Rc::new(queue);
     let mut resized = false;
