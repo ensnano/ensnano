@@ -763,6 +763,12 @@ pub(crate) fn add_crossover_springs(
 
     // for each bond, a spring
     for (a, b) in bonds {
+        // this spring might be between "virtual" nucleotides which
+        // are not real.
+        if !nucleotide_body_map.contains_key(&a) || !nucleotide_body_map.contains_key(&b) {
+            continue;
+        }
+
         result.push((nucleotide_body_map[&a], nucleotide_body_map[&b]));
         let a = collider_set
             .get(nucleotide_body_map[&a])
