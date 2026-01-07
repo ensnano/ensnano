@@ -66,6 +66,8 @@ pub(crate) struct DesignContent {
     /// Maps the identifier of an element to its radius
     pub radius_map: HashMap<u32, f32, RandomState>,
     pub letter_map: Arc<HashMap<Nucl, char, RandomState>>,
+    // Maps each nucleotide to if it is the result of a virtual clone
+    pub is_clone_map: HashMap<u32, bool, RandomState>,
     pub elements: Vec<DesignElement>,
     pub suggestions: Vec<(Nucl, Nucl)>,
     pub(super) grid_manager: GridData,
@@ -422,6 +424,7 @@ impl DesignContent {
         let mut helix_map = HashMap::default();
         let mut letter_map = HashMap::default();
         let mut with_cones_map = HashMap::default();
+        let mut is_clone_map = HashMap::default();
         let mut loopout_bonds = Vec::new();
         let mut loopout_nucls = Vec::new();
         let mut id_tmp = 0u32;
@@ -668,6 +671,7 @@ impl DesignContent {
                         color_map.insert(nucl_id, nucl_color);
                         radius_map.insert(nucl_id, nucl_radius); // radius given to the bond
                         helix_map.insert(nucl_id, nucl.helix); // get helix_id from bond_id
+                        is_clone_map.insert(nucl_id, false);
 
                         let letter = dom_seq
                             .as_ref()
@@ -1094,6 +1098,7 @@ impl DesignContent {
                     );
                     radius_map.insert(clone_nucl_id, *nucl_radius); // radius given to the bond
                     helix_map.insert(clone_nucl_id, nucl.helix); // get helix_id from bond_id
+                    is_clone_map.insert(clone_nucl_id, true);
 
                     let nucl_pos = Vec3::new(position[0], position[1], position[2]);
                     let clone_pos = isometry3.translation + nucl_pos.rotated_by(isometry3.rotation);
@@ -1203,6 +1208,7 @@ impl DesignContent {
             radius_map,
             helix_map,
             letter_map: Arc::new(letter_map),
+            is_clone_map,
             elements,
             grid_manager,
             suggestions: vec![],

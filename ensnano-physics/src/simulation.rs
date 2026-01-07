@@ -45,8 +45,9 @@ impl RapierPhysicsSystem {
         nucleotide: &HashMap<u32, Nucl>,
         space_position: &HashMap<u32, [f32; 3]>,
         helices: &Helices,
+        is_clone_map: &HashMap<u32, bool>,
     ) -> Self {
-        let intermediary = build_helices(elements, nucleotide);
+        let intermediary = build_helices(elements, nucleotide, is_clone_map);
 
         match rapier_parameters.simulation_type {
             crate::parameters::RapierSimulationType::Full => build_simulation(
