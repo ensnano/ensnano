@@ -66,46 +66,34 @@ pub(crate) struct IntermediaryHelix {
 
 /// Takes in the crossovers of the design as design elements,
 /// and detects the helices that are cyclic, and should be
-/// constructed using
+/// constructed using strong springs
 pub(crate) fn compute_cyclic_helices(elements: &Vec<DesignElement>) -> Vec<usize> {
-    let mut collected_crossovers = HashMap::default();
     let mut result = vec![];
 
     for element in elements {
         if let DesignElement::CrossOver {
             helix5prime,
             position5prime,
-            forward5prime,
             helix3prime,
             position3prime,
-            forward3prime,
             ..
         } = element
         {
-            // we are only interested in self looping helices
+            // we are only interested in crossovers from an helix
+            // to itself
             if helix5prime != helix3prime {
                 continue;
             }
 
-            if let Some((helix, position, forward)) =
-                collected_crossovers.get(&(*helix5prime, *position5prime, !forward5prime))
-                && *helix == *helix3prime
-                && *position == *position3prime
-                && *forward != *forward3prime
-            {
-                result.push(*helix);
+            // if one of the positions is the first, we deem the helix cyclic
+            if *position5prime == 0 || *position3prime == 0 {
+                result.push(*helix5prime);
             }
-
-            collected_crossovers.insert(
-                (*helix5prime, *position5prime, *forward5prime),
-                (*helix3prime, *position3prime, *forward3prime),
-            );
-            collected_crossovers.insert(
-                (*helix3prime, *position3prime, *forward3prime),
-                (*helix5prime, *position5prime, *forward5prime),
-            );
         }
     }
+
+    result.sort_unstable();
+    result.dedup();
 
     result
 }
