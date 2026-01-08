@@ -2,6 +2,7 @@
 //! done through the rapier3d crate.
 
 mod anchors;
+mod brown;
 mod helices;
 pub mod parameters;
 mod repulsion;

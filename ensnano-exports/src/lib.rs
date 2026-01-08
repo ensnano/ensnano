@@ -7,6 +7,7 @@ pub mod pdb;
 use cadnano::CadnanoError;
 use ensnano_design::{Design, nucl::Nucl};
 use pdb::PdbError;
+use rand::seq::IndexedRandom as _;
 use std::{collections::HashMap, io::Write as _, path::PathBuf};
 
 /// The file formats to which an export is implemented
@@ -136,8 +137,7 @@ fn rand_base() -> char {
 }
 
 fn rand_pick(list: &[char]) -> char {
-    let idx = rand::random::<usize>() % list.len();
-    list[idx]
+    *list.choose(&mut rand::rng()).unwrap()
 }
 
 const CANONICAL_BASES: &[char] = &['A', 'T', 'G', 'C', 'U'];

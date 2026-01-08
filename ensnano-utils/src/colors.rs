@@ -36,12 +36,12 @@ pub fn random_color_with_shade(shade: u32, hue_range: Option<f64>) -> u32 {
     );
     let shade = color_space::Hsv::from(color_space::Rgb::new(r as f64, g as f64, b as f64));
     // randomly modify the shade
-    let mut rng = rand::thread_rng();
-    let hue = (shade.h / 360. + h_range * (2. * rng.r#gen::<f64>() - 1.)).fract() * 360.;
+    let mut rng = rand::rng();
+    let hue = (shade.h / 360. + h_range * (2. * rng.random::<f64>() - 1.)).fract() * 360.;
     let saturation =
-        (shade.s.min(1. - s_range) + s_range * (2. * rng.r#gen::<f64>() - 1.)).clamp(0., 1.);
+        (shade.s.min(1. - s_range) + s_range * (2. * rng.random::<f64>() - 1.)).clamp(0., 1.);
     let value =
-        (shade.v.min(1. - v_range) + v_range * (2. * rng.r#gen::<f64>() - 1.)).clamp(0., 1.);
+        (shade.v.min(1. - v_range) + v_range * (2. * rng.random::<f64>() - 1.)).clamp(0., 1.);
 
     (hsv_color(hue, saturation, value) & 0xFF_FF_FF) | a
 }
