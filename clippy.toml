@@ -1,4 +1,7 @@
 absolute-paths-max-segments = 3
-doc-valid-idents = ["ENSnano", ".."]
+doc-valid-idents = [
+    "ENSnano",
+    "..",
+] # ".." appends the Clippy defaults to our identifiers 
 inherent-impl-lint-scope = "module"
-too-many-arguments-threshold = 11    # TODO: 6
+too-many-arguments-threshold = 11 # TODO: 6
