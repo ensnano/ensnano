@@ -110,7 +110,7 @@ impl InsertionDescriptor {
     }
 
     fn instantiate(&self, helix_parameters: &HelixParameters) -> Vec<Vec3> {
-        let mut rnd = rand::thread_rng();
+        let mut rnd = rand::rng();
         let mut ret = Vec::with_capacity(self.nb_nucl);
         let len_0 = helix_parameters.dist_ac();
 

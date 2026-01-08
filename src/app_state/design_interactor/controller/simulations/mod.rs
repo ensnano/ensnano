@@ -295,7 +295,7 @@ impl HelixSystem {
     }
 
     fn brownian_jump(&mut self) {
-        let mut rnd = rand::thread_rng();
+        let mut rnd = rand::rng();
         // t.0 because t is a &Reverse<_>
         if let Some((t, _)) = self.brownian_heap.peek()
             && self.next_time < t.0.into_inner()
@@ -322,7 +322,7 @@ impl HelixSystem {
     fn update_parameters(&mut self, parameters: RigidBodyConstants) {
         self.rigid_parameters = parameters;
         self.brownian_heap.clear();
-        let mut rnd = rand::thread_rng();
+        let mut rnd = rand::rng();
         let exp_law = Exp::new(self.rigid_parameters.brownian_rate).unwrap();
         for i in 0..self.free_nucls.len() {
             if !self.free_anchors.iter().any(|(x, _)| *x == i) {
@@ -1042,7 +1042,7 @@ fn make_flexible_helices_system(
             }
         }
     }
-    let mut rnd = rand::thread_rng();
+    let mut rnd = rand::rng();
     let mut brownian_heap = BinaryHeap::new();
     let exp_law = Exp::new(rigid_parameters.brownian_rate).unwrap();
     for i in 0..interval_results.free_nucls.len() {

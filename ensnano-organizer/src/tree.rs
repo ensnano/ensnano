@@ -1,6 +1,6 @@
 use rand::{
     Rng,
-    distributions::{Distribution, Standard},
+    distr::{Distribution, StandardUniform},
 };
 use serde::{Deserialize, Serialize};
 use std::{
@@ -222,9 +222,9 @@ impl<'de, K: Deserialize<'de>> Deserialize<'de> for OrganizerTree<K> {
 /// Used to map groups to group attributes.
 pub struct GroupId(u64);
 
-impl Distribution<GroupId> for Standard {
+impl Distribution<GroupId> for StandardUniform {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> GroupId {
-        let id: u64 = rng.r#gen();
+        let id: u64 = rng.random();
         GroupId(id)
     }
 }

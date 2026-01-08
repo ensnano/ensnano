@@ -19,6 +19,7 @@ pub struct RapierParameters {
     pub free_nucleotide_rest_length: f32,
     pub repulsion_strength: f32,
     pub repulsion_range: f32,
+    pub brownian_motion_strength: f32,
 }
 
 impl RapierParameters {
@@ -38,9 +39,10 @@ impl RapierParameters {
         free_nucleotide_rest_length: 0.7,
         repulsion_strength: 0.2,
         repulsion_range: 1.3,
+        brownian_motion_strength: 2.0,
     };
 
-    pub fn parameters_array(&self) -> [f32; 12] {
+    pub fn parameters_array(&self) -> [f32; 13] {
         [
             self.linear_damping,
             self.angular_damping,
@@ -54,11 +56,12 @@ impl RapierParameters {
             self.free_nucleotide_rest_length,
             self.repulsion_strength,
             self.repulsion_range,
+            self.brownian_motion_strength,
         ]
     }
 
     pub fn set_parameters_array(&mut self, array: &[f32]) {
-        assert!(array.len() > 11);
+        assert!(array.len() > 12);
 
         self.linear_damping = array[0];
         self.angular_damping = array[1];
@@ -72,6 +75,7 @@ impl RapierParameters {
         self.free_nucleotide_rest_length = array[9];
         self.repulsion_strength = array[10];
         self.repulsion_range = array[11];
+        self.brownian_motion_strength = array[12];
     }
 }
 

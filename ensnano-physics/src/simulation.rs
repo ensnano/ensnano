@@ -96,6 +96,8 @@ impl RapierPhysicsSystem {
     pub fn step(&mut self) {
         self.repulsion_step(1.0 / 24.0);
 
+        self.brownian_motion_step(1.0 / 24.0);
+
         self.physics_pipeline.step(
             &Vector3::new(0.0, 0.0, 0.0),
             &self.integration_parameters,

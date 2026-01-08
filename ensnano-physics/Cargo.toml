@@ -13,4 +13,5 @@ ensnano_design.workspace = true
 
 ahash.workspace = true
 rapier3d.workspace = true
+rand.workspace = true
 ultraviolet.workspace = true
