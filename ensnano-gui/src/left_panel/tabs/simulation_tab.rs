@@ -284,7 +284,7 @@ fn kcut_threshold_editor<State: AppState>(
     .into()
 }
 
-const PARAMETER_FIELD_NAMES: [&str; 12] = [
+const PARAMETER_FIELD_NAMES: [&str; 13] = [
     "Linear damping",
     "Angular damping",
     "Interbase spring stiffness",
@@ -297,6 +297,7 @@ const PARAMETER_FIELD_NAMES: [&str; 12] = [
     "Free nucleotide rest length",
     "Repulsion strength",
     "Repulsion range",
+    "Brownian motion strength",
 ];
 
 fn apply_parameter_fields(
@@ -305,7 +306,7 @@ fn apply_parameter_fields(
 ) -> RapierParameters {
     let default_array = parameters.parameters_array();
 
-    let array = (0..12)
+    let array = (0..PARAMETER_FIELD_NAMES.len())
         .map(|k| {
             fields
                 .get(PARAMETER_FIELD_NAMES[k])
@@ -366,7 +367,7 @@ fn view_rapier_parameters<State: AppState>(
 
     let values = parameters.parameters_array();
 
-    for k in 0..12 {
+    for k in 0..PARAMETER_FIELD_NAMES.len() {
         elements.push(rapier_parameters_field_editor(
             PARAMETER_FIELD_NAMES[k],
             values[k],

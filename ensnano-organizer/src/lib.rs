@@ -236,7 +236,7 @@ pub struct Organizer<E: OrganizerElement> {
 impl<E: OrganizerElement> Organizer<E> {
     /// Create a new organizer object with default sections.
     pub fn new() -> Self {
-        let rng = rand::thread_rng();
+        let rng = rand::rng();
         let mut sections = Vec::new(); // Hold sections that will be added to [Organizer].
 
         // NOTE: Sections are yielded from their index, implicitly defined in
@@ -1233,7 +1233,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                     // when we generate a new identifier, we must notify the program that the tree
                     // is different
                     *must_update_tree = true;
-                    rng.r#gen()
+                    rng.random()
                 });
                 Self::Node {
                     children,
@@ -1269,7 +1269,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 }
             })
             .collect();
-        let group_id = rng.r#gen();
+        let group_id = rng.random();
         Self::Node {
             id,
             children,

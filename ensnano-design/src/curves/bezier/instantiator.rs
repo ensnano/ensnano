@@ -169,7 +169,7 @@ pub(crate) trait PieceWiseBezierInstantiator<T: BezierEndCoordinateUnit> {
         } else {
             None
         }?;
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let t_max = if self.is_cyclic() {
             Some(descriptor.len() as f64)
         } else {
@@ -180,7 +180,7 @@ pub(crate) trait PieceWiseBezierInstantiator<T: BezierEndCoordinateUnit> {
             t_max,
             ends: descriptor,
             is_cyclic: self.is_cyclic(),
-            id: rng.r#gen(),
+            id: rng.random(),
             discretize_quickly: false,
         })
     }
