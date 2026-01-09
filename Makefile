@@ -13,6 +13,13 @@ FRAG_SRCS := $(shell find . -name '*.frag')
 VERT_SRCS := $(shell find . -name '*.vert')
 SHADERS := $(patsubst %.frag,%.frag.spv,$(FRAG_SRCS)) $(patsubst %.vert,%.vert.spv,$(VERT_SRCS))
 
+validate:
+	@$(MAKE) -s format
+	@$(MAKE) -s spell
+	@$(MAKE) -s check
+	@$(MAKE) -s lint
+	@$(MAKE) -s test
+
 check:
 	@cargo check --workspace --all-targets
 
@@ -25,6 +32,9 @@ test:
 
 format:
 	@cargo fmt --all
+
+spell:
+	@npx cspell .
 
 shaders: $(SHADERS)
 	@echo Shaders compilation: Done.

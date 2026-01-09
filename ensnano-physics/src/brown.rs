@@ -16,9 +16,9 @@ impl RapierPhysicsSystem {
 
 fn random_unit_vector(rng: &mut impl Rng) -> Vector<f32> {
     let phi: f32 = rng.random_range(0.0..PI * 2.0);
-    let costheta: f32 = rng.random_range(-1.0..1.0);
+    let cos_theta: f32 = rng.random_range(-1.0..1.0);
 
-    let theta = costheta.acos();
+    let theta = cos_theta.acos();
     let x = theta.sin() * phi.cos();
     let y = theta.sin() * phi.sin();
     let z = theta.cos();

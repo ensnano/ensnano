@@ -42,7 +42,7 @@ pub(crate) trait SimulationSetup {
 }
 
 /// This is used for full simulations. This is the default setting and
-/// should be prefered over other ones if performances allow.
+/// should be preferred over other ones if performances allow.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub(crate) struct FullSimulationSetup;
 
@@ -159,7 +159,7 @@ impl SimulationSetup for CutHelicesSetup {
 }
 
 /// This setup starts the same as CutHelicesSetup,
-/// but also makes sure that there is no rigidbody with
+/// but also makes sure that there is no rigid body with
 /// more than K elements in it, cutting when necessary.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub(crate) struct KCutHelicesSetup;
