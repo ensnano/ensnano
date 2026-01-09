@@ -83,7 +83,7 @@ impl RapierParameters {
         self.repulsion_range = array[11];
         self.brownian_motion_strength = array[12];
         self.entropic_spring_strength = array[13];
-        self.entropic_spring_strength = array[14];
+        self.entropic_spring_damping = array[14];
     }
 }
 
