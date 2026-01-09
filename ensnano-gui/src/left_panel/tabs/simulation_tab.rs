@@ -284,7 +284,7 @@ fn kcut_threshold_editor<State: AppState>(
     .into()
 }
 
-const PARAMETER_FIELD_NAMES: [&str; 13] = [
+const PARAMETER_FIELD_NAMES: [&str; 15] = [
     "Linear damping",
     "Angular damping",
     "Interbase spring stiffness",
@@ -298,6 +298,8 @@ const PARAMETER_FIELD_NAMES: [&str; 13] = [
     "Repulsion strength",
     "Repulsion range",
     "Brownian motion strength",
+    "Entropic springs strength",
+    "Entropic springs damping",
 ];
 
 fn apply_parameter_fields(

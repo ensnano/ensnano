@@ -709,6 +709,80 @@ fn build_free_springs(
                     true,
                 );
             }
+
+            // here we create the entropic spring
+
+            if rapier_parameters.entropic_spring_strength <= 0.0 {
+                continue;
+            }
+
+            let Some(down_pair) = intermediary.pairs.get(&range.start) else {
+                continue;
+            };
+            let Some(up_pair) = intermediary.pairs.get(&(range.end - 1)) else {
+                continue;
+            };
+
+            // we find the corresponding colliders
+            // -> one of them could be a double
+            let Some((i, _, j, _)) = down_pair.match_single(up_pair) else {
+                continue;
+            };
+
+            let up_collider = nucleotide_body_map[&i];
+            let down_collider = nucleotide_body_map[&j];
+
+            let Some(up_body_handle) = collider_set
+                .get(up_collider)
+                .expect("Couldn't find collider")
+                .parent()
+            else {
+                continue;
+            };
+            let Some(down_body_handle) = collider_set
+                .get(down_collider)
+                .expect("Couldn't find collider")
+                .parent()
+            else {
+                continue;
+            };
+
+            let down_offset = collider_set
+                .get(down_collider)
+                .expect("Couldn't find collider")
+                .position();
+            let up_offset = collider_set
+                .get(up_collider)
+                .expect("Couldn't find collider")
+                .position();
+
+            // we don't attach rigid bodies to themselves
+            if up_body_handle == down_body_handle {
+                continue;
+            }
+
+            // We model an entropic spring with stiffness the inverse of the
+            // square root of the length of the chain.
+            let len = range.end - range.start;
+            let factor = 1.0 / (len as f32).sqrt();
+
+            let strength = rapier_parameters.entropic_spring_strength;
+
+            // free nucleotide spring
+            impulse_joint_set.insert(
+                down_body_handle,
+                up_body_handle,
+                SpringJointBuilder::new(
+                    // entropic springs have rest length 0
+                    0.0,
+                    factor * strength,
+                    rapier_parameters.entropic_spring_damping,
+                )
+                .local_anchor1(down_offset.translation.vector.into())
+                .local_anchor2(up_offset.translation.vector.into())
+                .build(),
+                true,
+            );
         }
     }
 }
