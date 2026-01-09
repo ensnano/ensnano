@@ -16,6 +16,8 @@
 - Request fit doesn't work properly anymore, both in 2D and 3D
 - Organizer Tree slider doesn't work with the mouse
 - Movement with mouse wheel doesn't work on some systems (Axel @ 42), both in 2D and 3D
+- Distance fog is broken ([NS message](https://discord.com/channels/689053746604670995/1419689469472411691/1459186505888170035))
+- oxDNA export is broken ([NS message](https://discord.com/channels/689053746604670995/1420320954185416745/1459185179594850396))
 
 ## Hide scientific WIP
 
@@ -130,4 +132,4 @@
 - Merge `ensnano_organizer` and `ensnano_gui`
 - Share more code between `ensnano_scene` and `ensnano_flatscene`:
   - e.g. `export_2d_png` and `export_3d_png` are pretty much the same
-- Split `src/controller/quit.rs` in multiple file
+- Split `src/controller/quit.rs` in multiple files
