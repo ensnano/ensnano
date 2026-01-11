@@ -28,7 +28,7 @@ lint:
 
 # does not include doctests (--doc), but we have none so far
 test:
-	@cargo test --workspace --all-targets
+	@cargo test --workspace --all-targets --release
 
 format:
 	@cargo fmt --all
