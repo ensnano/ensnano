@@ -37,7 +37,7 @@ use crate::{
         tube_spiral::TubeSpiralDescriptor,
         twist::Twist,
     },
-    grid::{Edge, GridPosition, grid_collection::FreeGrids},
+    grid::{Edge, GridData, GridPosition, grid_collection::FreeGrids},
     helices::{AdditionalHelix2D, Helix},
     parameters::HelixParameters,
     utils::{serde::is_false, ultraviolet::vec_to_dvec},
@@ -657,7 +657,7 @@ impl CurveDescriptor {
         }
     }
 
-    pub fn translate(&self, edge: Edge, grid_reader: &dyn CurveInstantiator) -> Option<Self> {
+    pub fn translate(&self, edge: Edge, grid_reader: &GridData) -> Option<Self> {
         match self {
             Self::PiecewiseBezier {
                 points,
@@ -703,19 +703,9 @@ pub struct InstantiatedCurveDescriptor {
     instance: InstantiatedCurveDescriptor_,
 }
 
-/// A type that is capable of converting Design object to concrete 3D position.
-///
-/// This is used to instantiate curves that reference design objects.
-pub trait CurveInstantiator {
-    fn concrete_grid_position(&self, position: GridPosition) -> Vec3;
-    fn source(&self) -> FreeGrids;
-    fn source_paths(&self) -> Option<BezierPathData>;
-    fn translate_by_edge(&self, position: GridPosition, edge: Edge) -> Option<GridPosition>;
-}
-
 impl InstantiatedCurveDescriptor {
     /// Reads the design data to resolve the reference to elements of the design
-    pub fn instantiate(desc: Arc<CurveDescriptor>, grid_reader: &dyn CurveInstantiator) -> Self {
+    pub fn instantiate(desc: Arc<CurveDescriptor>, grid_reader: &GridData) -> Self {
         let instance = match desc.as_ref() {
             CurveDescriptor::Bezier(b) => InstantiatedCurveDescriptor_::Bezier(b.clone()),
             CurveDescriptor::SphereLikeSpiral(s) => {
@@ -996,7 +986,7 @@ pub struct InstantiatedPiecewiseBezierDescriptor {
 
 struct PieceWiseBezierInstantiator_<'a, 'b> {
     points: &'a [BezierEnd],
-    grid_reader: &'b dyn CurveInstantiator,
+    grid_reader: &'b GridData,
 }
 
 impl PieceWiseBezierInstantiator<Vec3> for PieceWiseBezierInstantiator_<'_, '_> {
@@ -1025,7 +1015,7 @@ impl PieceWiseBezierInstantiator<Vec3> for PieceWiseBezierInstantiator_<'_, '_> 
 impl InstantiatedPiecewiseBezierDescriptor {
     fn instantiate(
         points: &[BezierEnd],
-        grid_reader: &dyn CurveInstantiator,
+        grid_reader: &GridData,
         t_min: Option<f64>,
         t_max: Option<f64>,
     ) -> Self {

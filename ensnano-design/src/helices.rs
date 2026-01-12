@@ -225,7 +225,7 @@ impl Helix {
         let grid_position = self
             .grid_position
             .as_ref()
-            .and_then(|gp| grid_data.translate_by_edge(gp, &edge));
+            .and_then(|gp| grid_data.translate_by_helix_and_edge(gp, &edge));
         let new_curve_descriptor = self
             .curve
             .as_ref()

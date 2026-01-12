@@ -1,8 +1,8 @@
 pub mod instantiator;
 
 use crate::{
-    curves::{CurveBounds, CurveInstantiator, Curved},
-    grid::{Edge, GridPosition},
+    curves::{CurveBounds, Curved},
+    grid::{Edge, GridData, GridPosition},
     utils::{serde::is_false, ultraviolet::vec_to_dvec},
 };
 use num_enum::{IntoPrimitive, TryFromPrimitive};
@@ -363,11 +363,7 @@ pub struct BezierEnd {
 }
 
 impl BezierEnd {
-    pub(super) fn translated_by(
-        self,
-        edge: Edge,
-        grid_reader: &dyn CurveInstantiator,
-    ) -> Option<Self> {
+    pub(super) fn translated_by(self, edge: Edge, grid_reader: &GridData) -> Option<Self> {
         grid_reader
             .translate_by_edge(self.position, edge)
             .map(|position| Self { position, ..self })
