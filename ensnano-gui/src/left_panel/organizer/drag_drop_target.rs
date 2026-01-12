@@ -1,7 +1,7 @@
 //! Allow your users to drag and drop widgets.
 
-use super::message::OrganizerMessage;
-use ensnano_organizer::{NodeId, element::OrganizerElement};
+use super::{OrganizerNodeId, message::OrganizerMessage};
+use ensnano_organizer::element::OrganizerElement;
 use iced::{
     Element, Length, Padding, Rectangle, Size, Vector,
     advanced::{
@@ -17,7 +17,7 @@ use iced::{
 /// Identifier for drag-drop widgets.
 #[derive(Debug, Clone, PartialOrd, PartialEq, Eq, Ord)]
 pub enum DragIdentifier<K, AutoGroup> {
-    Group { id: NodeId<AutoGroup> },
+    Group { id: OrganizerNodeId<AutoGroup> },
     Section { key: K },
 }
 

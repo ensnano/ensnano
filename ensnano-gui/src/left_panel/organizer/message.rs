@@ -1,6 +1,5 @@
-use super::drag_drop_target::DragIdentifier;
+use super::{OrganizerNodeId, drag_drop_target::DragIdentifier};
 use ensnano_organizer::{
-    NodeId,
     element::OrganizerElement,
     keyboard_priority::PriorityRequest,
     tree::{GroupId, OrganizerTree},
@@ -33,14 +32,14 @@ pub enum OrganizerMessage<E: OrganizerElement> {
 #[derive(Clone, Debug)]
 pub enum OrganizerInternalMessage<E: OrganizerElement> {
     Expand {
-        id: NodeId<E::AutoGroup>,
+        id: OrganizerNodeId<E::AutoGroup>,
         expanded: bool,
     },
     NodeSelected {
-        id: NodeId<E::AutoGroup>,
+        id: OrganizerNodeId<E::AutoGroup>,
     },
     NodeHovered {
-        id: NodeId<E::AutoGroup>,
+        id: OrganizerNodeId<E::AutoGroup>,
         hovered_in: bool,
     },
     KeyHovered {
@@ -51,7 +50,7 @@ pub enum OrganizerInternalMessage<E: OrganizerElement> {
         key: E::Key,
     },
     Edit {
-        id: NodeId<E::AutoGroup>,
+        id: OrganizerNodeId<E::AutoGroup>,
     },
     StopEdit,
     NameInput {
@@ -60,30 +59,30 @@ pub enum OrganizerInternalMessage<E: OrganizerElement> {
     /// Create a new group.
     NewGroup,
     AddSelectionToGroup {
-        id: NodeId<E::AutoGroup>,
+        id: OrganizerNodeId<E::AutoGroup>,
     },
     Delete {
-        id: NodeId<E::AutoGroup>,
+        id: OrganizerNodeId<E::AutoGroup>,
     },
     DragDropped(DragIdentifier<E::Key, E::AutoGroup>),
     Dragging(DragIdentifier<E::Key, E::AutoGroup>),
     AttributeSelected {
         attribute: E::Attribute,
-        id: NodeId<E::AutoGroup>,
+        id: OrganizerNodeId<E::AutoGroup>,
     },
 }
 
 /// Shorthands to send internal messages.
 impl<E: OrganizerElement> OrganizerMessage<E> {
-    pub(super) fn expand(id: NodeId<E::AutoGroup>, expanded: bool) -> Self {
+    pub(super) fn expand(id: OrganizerNodeId<E::AutoGroup>, expanded: bool) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::Expand { id, expanded })
     }
 
-    pub(super) fn node_selected(id: NodeId<E::AutoGroup>) -> Self {
+    pub(super) fn node_selected(id: OrganizerNodeId<E::AutoGroup>) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::NodeSelected { id })
     }
 
-    pub(super) fn node_hovered(id: NodeId<E::AutoGroup>, hovered_in: bool) -> Self {
+    pub(super) fn node_hovered(id: OrganizerNodeId<E::AutoGroup>, hovered_in: bool) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::NodeHovered { id, hovered_in })
     }
 
@@ -91,11 +90,11 @@ impl<E: OrganizerElement> OrganizerMessage<E> {
         Self::InternalMessage(OrganizerInternalMessage::KeyHovered { key, hovered_in })
     }
 
-    pub(super) fn edit(id: NodeId<E::AutoGroup>) -> Self {
+    pub(super) fn edit(id: OrganizerNodeId<E::AutoGroup>) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::Edit { id })
     }
 
-    pub(super) fn delete(id: NodeId<E::AutoGroup>) -> Self {
+    pub(super) fn delete(id: OrganizerNodeId<E::AutoGroup>) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::Delete { id })
     }
 
@@ -111,7 +110,7 @@ impl<E: OrganizerElement> OrganizerMessage<E> {
         Self::InternalMessage(OrganizerInternalMessage::ElementSelected { key })
     }
 
-    pub(super) fn add_selection_to_group(id: NodeId<E::AutoGroup>) -> Self {
+    pub(super) fn add_selection_to_group(id: OrganizerNodeId<E::AutoGroup>) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::AddSelectionToGroup { id })
     }
 
@@ -127,7 +126,10 @@ impl<E: OrganizerElement> OrganizerMessage<E> {
         Self::InternalMessage(OrganizerInternalMessage::DragDropped(key))
     }
 
-    pub(super) fn attribute_selected(attribute: E::Attribute, id: NodeId<E::AutoGroup>) -> Self {
+    pub(super) fn attribute_selected(
+        attribute: E::Attribute,
+        id: OrganizerNodeId<E::AutoGroup>,
+    ) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::AttributeSelected { attribute, id })
     }
 }
