@@ -8,7 +8,6 @@ mod tests;
 pub mod bezier_plane;
 pub mod cadnano;
 pub mod codenano;
-pub mod collection;
 pub mod consts;
 pub mod curves;
 pub mod design_operations;

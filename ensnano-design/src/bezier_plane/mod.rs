@@ -1,7 +1,6 @@
 pub mod import_from_svg;
 
 use crate::{
-    collection::HasMap,
     curves::{
         Curve,
         bezier::{
@@ -37,14 +36,6 @@ pub struct BezierPlaneId(pub u32);
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct BezierPlanes(Arc<BTreeMap<BezierPlaneId, Arc<BezierPlaneDescriptor>>>);
-
-impl HasMap for BezierPlanes {
-    type Key = BezierPlaneId;
-    type Item = BezierPlaneDescriptor;
-    fn get_map(&self) -> &BTreeMap<Self::Key, Arc<Self::Item>> {
-        &self.0
-    }
-}
 
 impl BezierPlanes {
     pub fn make_mut(&mut self) -> BezierPlanesMut<'_> {
@@ -158,14 +149,6 @@ pub struct BezierPathId(pub u32);
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct BezierPaths(Arc<BTreeMap<BezierPathId, Arc<BezierPath>>>);
-
-impl HasMap for BezierPaths {
-    type Key = BezierPathId;
-    type Item = BezierPath;
-    fn get_map(&self) -> &BTreeMap<Self::Key, Arc<Self::Item>> {
-        self.0.as_ref()
-    }
-}
 
 pub struct BezierPathsMut<'a> {
     source: &'a mut BezierPaths,

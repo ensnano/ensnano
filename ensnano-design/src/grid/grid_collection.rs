@@ -1,7 +1,4 @@
-use crate::{
-    collection::HasMap,
-    grid::{GridDescriptor, GridId},
-};
+use crate::grid::{GridDescriptor, GridId};
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, sync::Arc};
 
@@ -28,14 +25,6 @@ impl FreeGridId {
 #[derive(Debug, Clone, Deserialize, Serialize, Default)]
 /// Collection of free grids descriptor
 pub struct FreeGrids(pub(super) Arc<BTreeMap<FreeGridId, Arc<GridDescriptor>>>);
-
-impl HasMap for FreeGrids {
-    type Key = FreeGridId;
-    type Item = GridDescriptor;
-    fn get_map(&self) -> &BTreeMap<Self::Key, Arc<Self::Item>> {
-        &self.0
-    }
-}
 
 impl FreeGrids {
     pub fn make_mut(&mut self) -> FreeGridsMut<'_> {
