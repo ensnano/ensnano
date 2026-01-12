@@ -38,19 +38,19 @@ use ensnano_design::{
     bezier_plane::BezierPathId,
     elements::{DesignElement, DesignElementKey},
     grid::GridTypeDescr,
+    operation::HyperboloidRequest,
     parameters::NamedParameter,
+    selection::{ActionMode, Selection, SelectionConversion as _},
 };
 use ensnano_exports::ExportType;
 use ensnano_organizer::{keyboard_priority::PriorityRequest, tree::OrganizerTree};
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
-    HyperboloidRequest,
     app_state_parameters::{
         AppStateParameters, check_xovers_parameter::CheckXoversParameter,
         suggestion_parameters::SuggestionParameters,
     },
     graphics::{Background3D, HBondDisplay, RenderingMode},
-    selection::{ActionMode, Selection, SelectionConversion as _},
     surfaces::EquadiffSolvingMethod,
     ui_size::UiSize,
 };

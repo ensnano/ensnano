@@ -13,10 +13,8 @@ use crate::{
     flat_types::{FlatHelix, FlatNucl},
 };
 use automata::{ControllerState, NormalState, Transition, ctrl};
-use ensnano_utils::{
-    graphics::PhySize,
-    selection::{ActionMode, Selection},
-};
+use ensnano_design::selection::{ActionMode, Selection};
+use ensnano_utils::graphics::PhySize;
 use std::cell::RefCell;
 use ultraviolet::Vec2;
 use winit::{

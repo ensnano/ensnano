@@ -8,9 +8,8 @@ use crate::{
         tabs::GuiTab,
     },
 };
-use ensnano_design::grid::GridTypeDescr;
+use ensnano_design::{grid::GridTypeDescr, operation::HyperboloidRequest};
 use ensnano_utils::{
-    HyperboloidRequest,
     consts::{ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID},
     ui_size::UiSize,
 };

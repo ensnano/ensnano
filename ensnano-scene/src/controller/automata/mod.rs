@@ -18,13 +18,10 @@ use dragging_state::{
 use ensnano_design::{
     bezier_plane::{BezierVertex, BezierVertexId},
     grid::GridId,
-};
-use ensnano_utils::{
-    consts::{
-        DIR_HANDLE_ID, FRONT_CIRCLE_ID, RIGHT_CIRCLE_ID, RIGHT_HANDLE_ID, UP_CIRCLE_ID,
-        UP_HANDLE_ID,
-    },
     selection::ActionMode,
+};
+use ensnano_utils::consts::{
+    DIR_HANDLE_ID, FRONT_CIRCLE_ID, RIGHT_CIRCLE_ID, RIGHT_HANDLE_ID, UP_CIRCLE_ID, UP_HANDLE_ID,
 };
 use event_context::{EventContext, XoverOrigin};
 use point_and_click_state::PointAndClicking;

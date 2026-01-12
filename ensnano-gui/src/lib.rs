@@ -29,7 +29,9 @@ use ensnano_design::{
     elements::{DesignElement, DesignElementKey, DnaAttribute},
     grid::{GridId, GridTypeDescr},
     nucl::Nucl,
+    operation::{HyperboloidRequest, InsertionPoint},
     parameters::HelixParameters,
+    selection::{ActionMode, Selection, SelectionMode},
 };
 use ensnano_exports::ExportType;
 use ensnano_organizer::{
@@ -38,8 +40,8 @@ use ensnano_organizer::{
 };
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
-    HyperboloidRequest, InsertionPoint, PastingStatus, RollRequest, ScaffoldInfo, SimulationState,
-    StrandBuildingStatus, TEXTURE_FORMAT, WidgetBasis,
+    PastingStatus, RollRequest, ScaffoldInfo, SimulationState, StrandBuildingStatus,
+    TEXTURE_FORMAT, WidgetBasis,
     app_state_parameters::{
         AppStateParameters, check_xovers_parameter::CheckXoversParameter,
         suggestion_parameters::SuggestionParameters,
@@ -50,7 +52,6 @@ use ensnano_utils::{
     },
     multiplexer::Multiplexer,
     operation::Operation,
-    selection::{ActionMode, Selection, SelectionMode},
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
     ui_size::UiSize,
 };

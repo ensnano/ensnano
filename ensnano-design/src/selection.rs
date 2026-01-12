@@ -1,4 +1,6 @@
-use ensnano_design::{
+// TODO: find a better place for everything in this file
+
+use crate::{
     bezier_plane::{BezierPathId, BezierVertexId},
     curves::bezier::BezierControlPoint,
     domains::Domain,

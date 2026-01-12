@@ -1,4 +1,4 @@
-use crate::{
+use ensnano_design::operation::{
     BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation, IsometryTarget,
 };
 use ensnano_design::{

@@ -23,8 +23,10 @@ mod insertions;
 pub mod isometry3_descriptor;
 mod material_colors;
 pub mod nucl;
+pub mod operation;
 pub mod parameters;
 pub mod scadnano;
+pub mod selection;
 pub mod strands;
 pub mod utils;
 

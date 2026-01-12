@@ -6,7 +6,11 @@ use crate::{
     left_panel::Message,
     theme,
 };
-use ensnano_design::{bezier_plane::BezierVertexId, grid::GridId};
+use ensnano_design::{
+    bezier_plane::BezierVertexId,
+    grid::GridId,
+    selection::{ActionMode, Selection},
+};
 use ensnano_organizer::keyboard_priority::keyboard_priority;
 use ensnano_utils::{
     SimulationState,
@@ -15,7 +19,6 @@ use ensnano_utils::{
         M_CLICK, MOVE_CHAR, NUCL_CHAR, R_CLICK, ROT_CHAR, SELECT_CHAR, SHIFT, STRAND_CHAR,
         SUPPR_CHAR,
     },
-    selection::{ActionMode, Selection},
     ui_size::UiSize,
 };
 use iced::{

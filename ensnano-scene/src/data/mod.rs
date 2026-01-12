@@ -29,6 +29,10 @@ use ensnano_design::{
     external_3d_objects::External3DObjectsStamp,
     grid::{GridId, GridObject, GridPosition},
     nucl::Nucl,
+    selection::{
+        ActionMode, CenterOfSelection, PhantomElement, Selection, SelectionMode,
+        extract_helices_with_controls,
+    },
 };
 use ensnano_utils::{
     ObjectType, Referential,
@@ -38,10 +42,6 @@ use ensnano_utils::{
         SPHERE_RADIUS,
     },
     graphics::HBondDisplay,
-    selection::{
-        ActionMode, CenterOfSelection, PhantomElement, Selection, SelectionMode,
-        extract_helices_with_controls,
-    },
 };
 use serde::{Deserialize, Serialize};
 use std::{

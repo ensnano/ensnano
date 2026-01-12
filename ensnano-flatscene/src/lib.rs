@@ -31,19 +31,23 @@ use self::{
 };
 use controller::{Consequence, Controller};
 use data::Data;
-use ensnano_design::{consts::ITERATIVE_AXIS_ALGORITHM, nucl::Nucl};
+use ensnano_design::{
+    consts::ITERATIVE_AXIS_ALGORITHM,
+    nucl::Nucl,
+    operation::DesignOperation,
+    selection::{
+        InteractorDesignReaderExt, PhantomElement, Selection, SelectionMode,
+        extract_nucls_and_xover_ends,
+    },
+};
 use ensnano_utils::{
-    DesignOperation, StrandBuildingStatus,
+    StrandBuildingStatus,
     application::{AppId, Application, Notification},
     buffer_dimensions::BufferDimensions,
     consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE},
     filename::derive_path_with_prefix_and_time_stamp_and_suffix,
     graphics::{DrawArea, PhySize},
     operation::{CrossCut, Cut, Operation, Xover},
-    selection::{
-        InteractorDesignReaderExt, PhantomElement, Selection, SelectionMode,
-        extract_nucls_and_xover_ends,
-    },
     strand_builder::StrandBuilder,
 };
 use itertools::Itertools as _;

@@ -1,8 +1,5 @@
-use crate::{
-    graphics::{DrawArea, FogParameters},
-    selection::Selection,
-};
-use ensnano_design::group_attributes::GroupPivot;
+use crate::graphics::{DrawArea, FogParameters};
+use ensnano_design::{group_attributes::GroupPivot, selection::Selection};
 use std::{path::Path, sync::Arc, time::Duration};
 use ultraviolet::{Rotor3, Vec3};
 use winit::{

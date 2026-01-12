@@ -90,8 +90,17 @@ use controller::{
     },
 };
 use ensnano_design::{
-    Camera, CameraId, SavingInformation, bezier_plane::BezierPlaneDescriptor, grid::GridId,
+    Camera, CameraId, SavingInformation,
+    bezier_plane::BezierPlaneDescriptor,
+    grid::GridId,
     group_attributes::GroupPivot,
+    operation::{DesignOperation, DesignRotation, DesignTranslation, IsometryTarget},
+    selection::{
+        ActionMode, CenterOfSelection, InteractorDesignReaderExt, Selection, SelectionMode,
+        extract_nucls_from_selection, extract_only_grids, extract_strands_from_selection,
+        list_of_bezier_vertices, list_of_free_grids, list_of_helices, list_of_strands,
+        list_of_xover_as_nucl_pairs,
+    },
 };
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_flatscene::FlatScene;
@@ -105,8 +114,7 @@ use ensnano_organizer::{keyboard_priority::KeyboardPriorityId, tree::GroupId};
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_scene::{AppState as _, Scene, SceneKind, data::design3d::SceneDesignReaderExt as _};
 use ensnano_utils::{
-    DesignOperation, DesignRotation, DesignTranslation, IsometryTarget, PastingStatus,
-    RigidBodyConstants, TEXTURE_FORMAT,
+    PastingStatus, RigidBodyConstants, TEXTURE_FORMAT,
     app_state_parameters::{
         AppStateParameters, check_xovers_parameter::CheckXoversParameter,
         suggestion_parameters::SuggestionParameters,
@@ -118,12 +126,6 @@ use ensnano_utils::{
     },
     graphics::{Background3D, GuiComponentType, HBondDisplay, PhySize, RenderingMode, SplitMode},
     operation::Operation,
-    selection::{
-        ActionMode, CenterOfSelection, InteractorDesignReaderExt, Selection, SelectionMode,
-        extract_nucls_from_selection, extract_only_grids, extract_strands_from_selection,
-        list_of_bezier_vertices, list_of_free_grids, list_of_helices, list_of_strands,
-        list_of_xover_as_nucl_pairs,
-    },
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
     ui_size::UiSize,
 };

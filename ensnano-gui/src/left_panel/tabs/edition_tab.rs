@@ -9,8 +9,8 @@ use crate::{
         tabs::GuiTab,
     },
 };
-use ensnano_design::elements::DesignElementKey;
-use ensnano_utils::{RollRequest, selection::extract_strands_from_selection, ui_size::UiSize};
+use ensnano_design::{elements::DesignElementKey, selection::extract_strands_from_selection};
+use ensnano_utils::{RollRequest, ui_size::UiSize};
 use iced::{
     Command,
     widget::{column, row, scrollable},

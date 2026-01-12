@@ -5,7 +5,8 @@ use crate::{
     data::{ClickResult, helix::HelixHandle, strand::FreeEnd},
     flat_types::{FlatHelix, FlatNucl},
 };
-use ensnano_utils::{consts::CIRCLE2D_GREY, selection::ActionMode};
+use ensnano_design::selection::ActionMode;
+use ensnano_utils::consts::CIRCLE2D_GREY;
 use std::time::Instant;
 use ultraviolet::Vec2;
 use winit::{

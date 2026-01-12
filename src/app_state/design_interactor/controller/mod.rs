@@ -51,11 +51,9 @@ use ensnano_design::{
 use ensnano_gui::status_bar::ClipboardContent;
 use ensnano_organizer::tree::GroupId;
 use ensnano_utils::{
-    BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
-    HyperboloidOperation, IsometryTarget, NewBezierTangentVector, PastingStatus, SimulationState,
+    PastingStatus, SimulationState,
     colors::{new_color, random_color_with_shade},
     operation::{Operation, TranslateBezierPathVertex},
-    selection::{Selection, list_of_helices},
     strand_builder::{
         DomainIdentifier, NeighborDescriptor, NeighborDescriptorGiver as _, StrandBuilder,
     },

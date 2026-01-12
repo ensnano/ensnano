@@ -17,6 +17,7 @@ use crate::{
 };
 use ahash::RandomState;
 use design::Design2d;
+use ensnano_design::selection::{PhantomElement, Selection, SelectionMode};
 use ensnano_utils::{
     StrandBuildingStatus,
     consts::{
@@ -24,7 +25,6 @@ use ensnano_utils::{
         SELECTED_HELIX2D_COLOR, SELECTED_STRAND_HIGHLIGHT_FACTOR_2D,
         SELECTION_2D_CYCLE_TIME_LIMIT_MS,
     },
-    selection::{PhantomElement, Selection, SelectionMode},
 };
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap, HashSet},

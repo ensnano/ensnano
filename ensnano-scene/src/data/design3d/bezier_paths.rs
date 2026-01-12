@@ -15,6 +15,7 @@ use ensnano_design::{
         bezier::{BezierControlPoint, BezierEndCoordinates, CubicBezierControlPoint},
     },
     parameters::HelixParameters,
+    selection::Selection,
 };
 use ensnano_utils::{
     consts::{
@@ -24,7 +25,6 @@ use ensnano_utils::{
         PIECEWISE_BEZIER_COLOR, SPHERE_RADIUS,
     },
     instance::Instance,
-    selection::Selection,
 };
 use ultraviolet::{Rotor3, Vec2, Vec3};
 

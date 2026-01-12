@@ -3,12 +3,12 @@ use ensnano_design::{
     bezier_plane::{BezierPathId, BezierPlaneId, BezierVertexId},
     curves::bezier::BezierControlPoint,
     grid::{GridId, GridPosition},
+    selection::{PhantomElement, phantom_helix_decoder},
 };
 use ensnano_utils::{
     buffer_dimensions::BufferDimensions,
     consts::{BEZIER_END_WIDGET_ID, BEZIER_START_WIDGET_ID},
     graphics::DrawArea,
-    selection::{PhantomElement, phantom_helix_decoder},
 };
 use num_enum::IntoPrimitive;
 use std::rc::Rc;

@@ -15,11 +15,8 @@ use crate::{
     icon::{HasIcon as _, HasIconDependentOnAxis as _},
     theme::GuiBackground,
 };
-use ensnano_utils::{
-    graphics::SplitMode,
-    selection::{ActionMode, SelectionMode},
-    ui_size::UiSize,
-};
+use ensnano_design::selection::{ActionMode, SelectionMode};
+use ensnano_utils::{graphics::SplitMode, ui_size::UiSize};
 use iced::{
     Element, Length, Padding, theme,
     widget::{Button, Row, container, image, row, text, tooltip},

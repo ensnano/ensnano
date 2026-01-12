@@ -13,8 +13,8 @@ use ensnano_design::{
     grid::{GridId, GridObject, GridPosition},
     helices::Axis,
     nucl::Nucl,
+    selection::ActionMode,
 };
-use ensnano_utils::selection::ActionMode;
 use ultraviolet::{Vec2, Vec3};
 use winit::{dpi::PhysicalPosition, keyboard::ModifiersState};
 

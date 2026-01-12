@@ -19,10 +19,15 @@ use ensnano_design::{
     grid::{GridPosition, HelixGridPosition},
     group_attributes::GroupPivot,
     nucl::Nucl,
+    operation::{DesignOperation, NewBezierTangentVector},
+    selection::{
+        ActionMode, CenterOfSelection, Selection, SelectionMode, extract_control_points,
+        list_of_xover_ids, set_of_grids_containing_selection, set_of_helices_containing_selection,
+    },
 };
 use ensnano_organizer::tree::GroupId;
 use ensnano_utils::{
-    DesignOperation, NewBezierTangentVector, WidgetBasis,
+    WidgetBasis,
     app_state_parameters::check_xovers_parameter::CheckXoversParameter,
     application::{AppId, Application, Camera3D, Notification},
     buffer_dimensions::BufferDimensions,
@@ -32,10 +37,6 @@ use ensnano_utils::{
         BezierControlPointTranslation, GridHelixCreation, GridRotation, GridTranslation,
         HelixRotation, HelixTranslation, Operation, TranslateBezierPathVertex,
         TranslateBezierSheetCorner,
-    },
-    selection::{
-        ActionMode, CenterOfSelection, Selection, SelectionMode, extract_control_points,
-        list_of_xover_ids, set_of_grids_containing_selection, set_of_helices_containing_selection,
     },
     strand_builder::StrandBuilder,
     surfaces::UnrootedRevolutionSurfaceDescriptor,

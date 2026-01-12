@@ -33,6 +33,10 @@ use ensnano_design::{
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
     nucl::Nucl,
     parameters::HelixParameters,
+    selection::{
+        InteractorDesignReaderExt, PHANTOM_RANGE, PhantomElement, phantom_helix_encoder_bond,
+        phantom_helix_encoder_nucl,
+    },
 };
 use ensnano_utils::{
     ObjectType, Referential,
@@ -46,10 +50,6 @@ use ensnano_utils::{
     },
     graphics::{LoopoutBond, LoopoutNucl},
     instance::Instance,
-    selection::{
-        InteractorDesignReaderExt, PHANTOM_RANGE, PhantomElement, phantom_helix_encoder_bond,
-        phantom_helix_encoder_nucl,
-    },
 };
 use std::{
     collections::{BTreeMap, HashMap, HashSet, hash_map::RandomState},
