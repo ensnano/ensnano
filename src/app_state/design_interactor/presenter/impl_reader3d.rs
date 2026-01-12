@@ -1,9 +1,9 @@
 use crate::app_state::design_interactor::DesignInteractor;
+use ahash::RandomState;
 use ensnano_design::{
     AdditionalStructure,
     bezier_plane::{
-        BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
-        InstantiatedPath,
+        BezierPathId, BezierPlaneId, BezierPlanes, BezierVertex, BezierVertexId, InstantiatedPath,
     },
     curves::{
         CurveDescriptor, SurfaceInfo, SurfacePoint,
@@ -551,8 +551,10 @@ impl SceneDesignReaderExt for DesignInteractor {
             .map(Arc::as_ref)
     }
 
-    fn get_nucleotides_positions_by_strands(&self) -> HashMap<usize, StrandNucleotidesPositions> {
-        let mut nucl_pos = HashMap::new();
+    fn get_nucleotides_positions_by_strands(
+        &self,
+    ) -> HashMap<usize, StrandNucleotidesPositions, RandomState> {
+        let mut nucl_pos = HashMap::default();
         let design = self.presenter.current_design.as_ref();
         let content = self.presenter.content.as_ref();
 

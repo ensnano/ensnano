@@ -56,8 +56,16 @@ impl FreeGrids {
         self.0.get(grid_id).map(AsRef::as_ref)
     }
 
+    pub fn keys(&self) -> impl Iterator<Item = &FreeGridId> {
+        self.0.keys()
+    }
+
     pub fn values(&self) -> impl Iterator<Item = &GridDescriptor> {
         self.0.values().map(AsRef::as_ref)
+    }
+
+    pub fn len(&self) -> usize {
+        self.0.len()
     }
 }
 

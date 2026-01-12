@@ -57,6 +57,10 @@ impl Helices {
     pub fn contains_key(&self, id: &usize) -> bool {
         self.0.contains_key(id)
     }
+
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
 }
 
 pub struct HelicesMut<'a> {
@@ -108,6 +112,10 @@ impl HelicesMut<'_> {
         let helix_id = self.new_map.keys().last().unwrap_or(&0) + 1;
         self.insert(helix_id, helix);
         helix_id
+    }
+
+    pub fn get(&self, id: &usize) -> Option<&Helix> {
+        self.new_map.get(id).map(AsRef::as_ref)
     }
 }
 

@@ -46,12 +46,20 @@ impl BezierPlanes {
         }
     }
 
+    pub fn values(&self) -> impl Iterator<Item = &BezierPlaneDescriptor> {
+        self.0.values().map(AsRef::as_ref)
+    }
+
     pub fn iter(&self) -> impl Iterator<Item = (&BezierPlaneId, &BezierPlaneDescriptor)> {
         self.0.iter().map(|(id, desc)| (id, desc.as_ref()))
     }
 
     pub fn get(&self, plane_id: &BezierPlaneId) -> Option<&BezierPlaneDescriptor> {
         self.0.get(plane_id).map(AsRef::as_ref)
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
     }
 }
 
@@ -164,8 +172,23 @@ pub struct BezierPathsMut<'a> {
 }
 
 impl BezierPaths {
+    pub fn make_mut(&mut self) -> BezierPathsMut<'_> {
+        BezierPathsMut {
+            new_map: BTreeMap::clone(&self.0),
+            source: self,
+        }
+    }
+
+    pub fn get(&self, id: &BezierPathId) -> Option<&BezierPath> {
+        self.0.get(id).map(AsRef::as_ref)
+    }
+
     pub fn keys(&self) -> impl Iterator<Item = &BezierPathId> {
         self.0.keys()
+    }
+
+    pub fn values(&self) -> impl Iterator<Item = &BezierPath> {
+        self.0.values().map(AsRef::as_ref)
     }
 }
 
