@@ -593,13 +593,8 @@ pub trait InteractorDesignReaderExt {
     fn get_domain_ends(&self, s_id: usize) -> Option<Vec<Nucl>>;
 }
 
-pub trait SelectionConversion: Sized {
-    fn from_selection(selection: &Selection, d_id: u32) -> Option<Self>;
-    fn to_selection(&self, d_id: u32) -> Selection;
-}
-
-impl SelectionConversion for DesignElementKey {
-    fn from_selection(selection: &Selection, d_id: u32) -> Option<Self> {
+impl DesignElementKey {
+    pub fn from_selection(selection: &Selection, d_id: u32) -> Option<Self> {
         if selection.get_design() != Some(d_id) {
             return None;
         }
@@ -637,7 +632,7 @@ impl SelectionConversion for DesignElementKey {
             }
     }
 
-    fn to_selection(&self, d_id: u32) -> Selection {
+    pub fn to_selection(&self, d_id: u32) -> Selection {
         match self {
             Self::Nucleotide {
                 helix,

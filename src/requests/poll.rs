@@ -5,10 +5,7 @@ use crate::{
     MainState, app_state::design_interactor::controller::clipboard::PastePosition,
     controller::normal_state::Action, requests::Requests,
 };
-use ensnano_design::{
-    operation::{DesignOperation, HyperboloidOperation},
-    selection::SelectionConversion as _,
-};
+use ensnano_design::operation::{DesignOperation, HyperboloidOperation};
 use ensnano_utils::application::Notification;
 use std::ops::DerefMut;
 

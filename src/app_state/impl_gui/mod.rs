@@ -6,9 +6,7 @@ use ensnano_design::{
     bezier_plane::BezierPathId,
     elements::DesignElementKey,
     parameters::HelixParameters,
-    selection::{
-        ActionMode, Selection, SelectionConversion as _, SelectionMode, all_helices_no_grid,
-    },
+    selection::{ActionMode, Selection, SelectionMode, all_helices_no_grid},
 };
 use ensnano_gui::{
     AppState as GuiState, GuiDesignReaderExt,

@@ -40,7 +40,7 @@ use ensnano_design::{
     grid::GridTypeDescr,
     operation::HyperboloidRequest,
     parameters::NamedParameter,
-    selection::{ActionMode, Selection, SelectionConversion as _},
+    selection::{ActionMode, Selection},
 };
 use ensnano_exports::ExportType;
 use ensnano_organizer::{keyboard_priority::PriorityRequest, tree::OrganizerTree};
