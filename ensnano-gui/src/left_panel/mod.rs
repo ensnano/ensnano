@@ -13,7 +13,7 @@ use self::{
     },
     discrete_value::{FactoryId, Requestable, ValueId},
     export_menu::ExportMenu,
-    organizer::Organizer,
+    organizer::{Organizer, message::OrganizerMessage},
     tabs::{
         GuiTab as _, TabId,
         camera_shortcut::CameraShortcutPanel,
@@ -41,9 +41,7 @@ use ensnano_design::{
     parameters::NamedParameter,
 };
 use ensnano_exports::ExportType;
-use ensnano_organizer::{
-    OrganizerMessage, keyboard_priority::PriorityRequest, tree::OrganizerTree,
-};
+use ensnano_organizer::{keyboard_priority::PriorityRequest, tree::OrganizerTree};
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
     HyperboloidRequest,

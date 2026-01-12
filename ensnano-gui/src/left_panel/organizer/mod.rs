@@ -1,10 +1,15 @@
+mod drag_drop_target;
 mod icon;
+pub(super) mod message;
 mod theme;
 
-use self::theme::OrganizerTheme;
-use ensnano_organizer::{
-    NodeId, OrganizerInternalMessage, OrganizerMessage,
+use self::{
     drag_drop_target::{DragDropTarget, DragIdentifier},
+    message::{OrganizerInternalMessage, OrganizerMessage},
+    theme::OrganizerTheme,
+};
+use ensnano_organizer::{
+    NodeId,
     element::{
         AttributeDisplay, AttributeWidget, ElementKey, OrganizerAttribute, OrganizerElement,
     },
