@@ -99,40 +99,29 @@ struct OxDnaBond {
     prime3: isize,
 }
 
-pub trait OxDnaHelix {
-    fn ox_dna_nucl(
-        &self,
-        nucl_idx: isize,
-        forward: bool,
-        helix_parameters: &HelixParameters,
-    ) -> OxDnaNucl;
-}
-
-impl OxDnaHelix for Helix {
-    fn ox_dna_nucl(
-        &self,
-        nucl_idx: isize,
-        forward: bool,
-        helix_parameters: &HelixParameters,
-    ) -> OxDnaNucl {
-        let backbone_position = self.space_pos(helix_parameters, nucl_idx, forward);
-        let a1 = {
-            let other_base = self.space_pos(helix_parameters, nucl_idx, !forward);
-            (other_base - backbone_position).normalized()
-        };
-        let normal = if forward {
-            (self.normal_at_pos(nucl_idx, forward)).normalized()
-        } else {
-            -(self.normal_at_pos(nucl_idx, forward)).normalized()
-        };
-        let cm_position = backbone_position * OXDNA_LEN_FACTOR + a1 * BACKBONE_TO_CM;
-        OxDnaNucl {
-            position: cm_position,
-            backbone_base: a1,
-            normal,
-            velocity: Vec3::zero(),
-            angular_velocity: Vec3::zero(),
-        }
+pub fn oxdna_nucl(
+    helix: &Helix,
+    nucl_idx: isize,
+    forward: bool,
+    helix_parameters: &HelixParameters,
+) -> OxDnaNucl {
+    let backbone_position = helix.space_pos(helix_parameters, nucl_idx, forward);
+    let a1 = {
+        let other_base = helix.space_pos(helix_parameters, nucl_idx, !forward);
+        (other_base - backbone_position).normalized()
+    };
+    let normal = if forward {
+        (helix.normal_at_pos(nucl_idx, forward)).normalized()
+    } else {
+        -(helix.normal_at_pos(nucl_idx, forward)).normalized()
+    };
+    let cm_position = backbone_position * OXDNA_LEN_FACTOR + a1 * BACKBONE_TO_CM;
+    OxDnaNucl {
+        position: cm_position,
+        backbone_base: a1,
+        normal,
+        velocity: Vec3::zero(),
+        angular_velocity: Vec3::zero(),
     }
 }
 
@@ -280,11 +269,8 @@ pub(super) fn to_oxdna(design: &Design, basis_map: BasisMapper) -> (OxDnaConfig,
         for d in &s.domains {
             if let Domain::HelixDomain(dom) = d {
                 for position in dom.iter() {
-                    let ox_nucl = design.helices.get(&dom.helix).unwrap().ox_dna_nucl(
-                        position,
-                        dom.forward,
-                        &helix_parameters,
-                    );
+                    let helix = design.helices.get(&dom.helix).unwrap();
+                    let ox_nucl = oxdna_nucl(helix, position, dom.forward, &helix_parameters);
                     let nucl = Nucl {
                         position,
                         helix: dom.helix,
