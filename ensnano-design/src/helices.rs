@@ -42,11 +42,11 @@ impl Helices {
         self.0.get(id).map(AsRef::as_ref)
     }
 
-    pub(crate) fn keys(&self) -> impl Iterator<Item = &usize> {
+    pub fn keys(&self) -> impl Iterator<Item = &usize> {
         self.0.keys()
     }
 
-    pub(crate) fn values(&self) -> impl Iterator<Item = &'_ Helix> {
+    pub fn values(&self) -> impl Iterator<Item = &'_ Helix> {
         self.0.values().map(AsRef::as_ref)
     }
 
@@ -54,7 +54,7 @@ impl Helices {
         self.0.iter().map(|(id, arc)| (id, arc.as_ref()))
     }
 
-    pub(crate) fn contains_key(&self, id: &usize) -> bool {
+    pub fn contains_key(&self, id: &usize) -> bool {
         self.0.contains_key(id)
     }
 }
@@ -774,8 +774,8 @@ pub struct NuclCollection {
 }
 
 impl NuclCollection {
-    pub fn iter_nucls_ids<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a Nucl, &'a u32)> + 'a> {
-        Box::new(self.identifier.iter())
+    pub fn iter_nucls_ids(&'_ self) -> impl Iterator<Item = (&'_ Nucl, &'_ u32)> {
+        self.identifier.iter()
     }
 
     pub fn virtual_to_real(&self, virtual_nucl: &VirtualNucl) -> Option<&Nucl> {

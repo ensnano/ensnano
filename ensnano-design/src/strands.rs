@@ -137,8 +137,6 @@ impl Strands {
         min.zip(max)
     }
 
-    // Collection methods
-    //============================================================================================
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
@@ -187,7 +185,6 @@ impl Strands {
         let id = self.0.keys().max().map_or(0, |m| m + 1);
         self.0.insert(id, strand);
     }
-    //============================================================================================
 }
 
 /// A link between a 5' and a 3' domain.
