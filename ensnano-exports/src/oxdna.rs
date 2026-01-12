@@ -86,10 +86,17 @@ impl OxDnaTopology {
         let mut file = std::fs::File::create(path)?;
         writeln!(&mut file, "{} {}", self.nb_nucl, self.nb_strand)?;
         for bond in &self.bonds {
+            // we write the strand id starting at 1, as indicated in the format
+            // specifications. Also, this format specifically lists the 3' neighbour
+            // first.
+            // https://lorenzo-rovigatti.github.io/oxDNA/configurations.html#classic-format-3-to-5
             writeln!(
                 &mut file,
                 "{} {} {} {}",
-                bond.strand_id, bond.base, bond.prime5, bond.prime3
+                bond.strand_id + 1,
+                bond.base,
+                bond.prime3,
+                bond.prime5
             )?;
         }
         Ok(())
