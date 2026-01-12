@@ -24,7 +24,6 @@ use crate::{
 use design3d::{Design3D, SceneDesignReaderExt};
 use ensnano_design::{
     bezier_plane::BezierVertexId,
-    collection::Collection as _,
     curves::{SurfaceInfo, SurfacePoint},
     external_3d_objects::External3DObjectsStamp,
     grid::{GridId, GridObject, GridPosition},

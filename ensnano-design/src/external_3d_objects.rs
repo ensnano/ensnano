@@ -1,8 +1,7 @@
-use crate::collection::Collection;
 use relative_path::RelativePathBuf;
 use serde::{Deserialize, Serialize};
 use std::{
-    collections::HashMap,
+    collections::{HashMap, hash_map},
     path::{Path, PathBuf},
     sync::Arc,
 };
@@ -64,36 +63,11 @@ pub struct External3DObjects(Arc<HashMap<External3DObjectId, External3DObject>>)
 #[derive(Debug, Copy, Clone)]
 pub struct External3DObjectsStamp(*const HashMap<External3DObjectId, External3DObject>);
 
-impl Collection for External3DObjects {
-    type Key = External3DObjectId;
-    type Item = External3DObject;
-
-    fn get(&self, id: &Self::Key) -> Option<&Self::Item> {
-        self.0.get(id)
-    }
-
-    fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a Self::Key, &'a Self::Item)> + 'a> {
-        Box::new(self.0.iter())
-    }
-
-    fn values<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Self::Item> + 'a> {
-        Box::new(self.0.values())
-    }
-
-    fn keys<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Self::Key> + 'a> {
-        Box::new(self.0.keys())
-    }
-
-    fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
-    fn len(&self) -> usize {
-        self.0.len()
-    }
-}
-
 impl External3DObjects {
+    pub fn iter(&self) -> hash_map::Iter<'_, External3DObjectId, External3DObject> {
+        self.0.iter()
+    }
+
     pub fn was_updated(
         &self,
         old_stamp: Option<External3DObjectsStamp>,
