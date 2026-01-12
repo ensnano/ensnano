@@ -13,6 +13,7 @@ ensnano_design.workspace = true
 ensnano_organizer.workspace = true
 ensnano_utils.workspace = true
 
+ahash.workspace = true
 bytemuck.workspace = true
 futures.workspace = true
 futures-channel.workspace = true

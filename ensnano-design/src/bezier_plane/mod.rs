@@ -51,7 +51,7 @@ impl BezierPlanes {
     }
 
     pub fn get(&self, plane_id: &BezierPlaneId) -> Option<&BezierPlaneDescriptor> {
-        self.0.get(&plane_id).map(AsRef::as_ref)
+        self.0.get(plane_id).map(AsRef::as_ref)
     }
 }
 

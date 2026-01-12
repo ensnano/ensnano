@@ -37,6 +37,26 @@ impl Helices {
             new_map,
         }
     }
+
+    pub fn get(&self, id: &usize) -> Option<&Helix> {
+        self.0.get(id).map(AsRef::as_ref)
+    }
+
+    pub(crate) fn keys(&self) -> impl Iterator<Item = &usize> {
+        self.0.keys()
+    }
+
+    pub(crate) fn values(&self) -> impl Iterator<Item = &'_ Helix> {
+        self.0.values().map(AsRef::as_ref)
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = (&'_ usize, &'_ Helix)> {
+        self.0.iter().map(|(id, arc)| (id, arc.as_ref()))
+    }
+
+    pub(crate) fn contains_key(&self, id: &usize) -> bool {
+        self.0.contains_key(id)
+    }
 }
 
 pub struct HelicesMut<'a> {
@@ -85,7 +105,7 @@ impl HelicesMut<'_> {
     /// Add an helix to the collection and return the identifier of the added helix in the
     /// collection.
     pub fn push_helix(&mut self, helix: Helix) -> usize {
-        let helix_id = self.get_collection().keys().last().unwrap_or(&0) + 1;
+        let helix_id = self.new_map.keys().last().unwrap_or(&0) + 1;
         self.insert(helix_id, helix);
         helix_id
     }

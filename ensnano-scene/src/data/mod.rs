@@ -21,6 +21,7 @@ use crate::{
         },
     },
 };
+use ahash::RandomState;
 use design3d::{Design3D, SceneDesignReaderExt};
 use ensnano_design::{
     bezier_plane::BezierVertexId,
@@ -1219,7 +1220,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
 
     pub fn get_nucleotides_positions_by_strands(
         &self,
-    ) -> Option<HashMap<usize, StrandNucleotidesPositions>> {
+    ) -> Option<HashMap<usize, StrandNucleotidesPositions, RandomState>> {
         Some(
             self.designs
                 .first()?

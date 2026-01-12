@@ -1216,6 +1216,7 @@ dependencies = [
 name = "ensnano_scene"
 version = "0.7.0"
 dependencies = [
+ "ahash 0.8.12",
  "bytemuck",
  "ensnano_design",
  "ensnano_organizer",
