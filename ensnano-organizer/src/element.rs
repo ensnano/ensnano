@@ -1,8 +1,3 @@
-use crate::icon::{ICON_SIZE, icon};
-use iced::{
-    Element,
-    widget::{button, text},
-};
 use icondata::Icon;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
@@ -74,49 +69,10 @@ pub enum AttributeDisplay {
 
 #[derive(Clone)]
 pub struct AttributeWidget<A: OrganizerAttribute> {
-    value_if_pressed: A,
+    pub value_if_pressed: A,
 }
 impl<A: OrganizerAttribute> AttributeWidget<A> {
     pub fn new(value_if_pressed: A) -> Self {
         Self { value_if_pressed }
-    }
-}
-
-#[derive(Default, Clone)]
-pub(crate) struct AttributeDisplayer<A: OrganizerAttribute> {
-    being_modified: bool,
-    widget: Option<AttributeWidget<A>>,
-    attribute: Option<A>,
-}
-
-impl<Attrib: OrganizerAttribute> AttributeDisplayer<Attrib> {
-    pub(crate) fn new() -> Self {
-        Self {
-            being_modified: false,
-            widget: None,
-            attribute: None,
-        }
-    }
-
-    pub(crate) fn update_attribute(&mut self, attribute: Option<Attrib>) {
-        self.update_widget(attribute.as_ref().map(OrganizerAttribute::widget));
-        self.attribute = attribute;
-    }
-
-    pub(crate) fn update_widget(&mut self, widget: Option<AttributeWidget<Attrib>>) {
-        self.being_modified = false;
-        self.widget = widget;
-    }
-
-    pub(crate) fn view(&self) -> Option<Element<'_, Attrib>> {
-        self.widget.as_ref().map(|widget| {
-            match self.attribute.as_ref().map(OrganizerAttribute::char_repr) {
-                Some(AttributeDisplay::Icon(c)) => button(icon(c)),
-                Some(AttributeDisplay::Text(s)) => button(text(s).size(ICON_SIZE)),
-                _ => button("???"),
-            }
-            .on_press(widget.value_if_pressed.clone())
-            .into()
-        })
     }
 }

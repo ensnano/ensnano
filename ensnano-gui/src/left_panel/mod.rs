@@ -2,24 +2,37 @@ mod color_picker;
 mod contextual_panel;
 mod discrete_value;
 mod export_menu;
+mod organizer;
 pub mod tabs;
 
-use crate::color_picker::ColorPickerMessage;
+use self::{
+    color_picker::ColorPicker,
+    contextual_panel::{
+        ContextualPanel,
+        value_constructor::{InstantiatedValue, ValueKind},
+    },
+    discrete_value::{FactoryId, Requestable, ValueId},
+    export_menu::ExportMenu,
+    organizer::Organizer,
+    tabs::{
+        GuiTab as _, TabId,
+        camera_shortcut::CameraShortcutPanel,
+        camera_tab::{CameraTab, FogChoices},
+        edition_tab::EditionTab,
+        grids_tab::GridTab,
+        parameters_tab::ParametersTab,
+        pen_tab::PenTab,
+        revolution_tab::{CurveDescriptorBuilder, RevolutionParameterId, RevolutionTab},
+        sequence_tab::SequenceTab,
+        simulation_tab::SimulationTab,
+    },
+};
 use crate::{
     AppState, OverlayType, Requests,
+    color_picker::ColorPickerMessage,
     fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
-    left_panel::tabs::{
-        camera_tab::FogChoices,
-        revolution_tab::{CurveDescriptorBuilder, RevolutionParameterId},
-    },
     theme::GuiBackground,
 };
-use color_picker::ColorPicker;
-use contextual_panel::{
-    ContextualPanel,
-    value_constructor::{InstantiatedValue, ValueKind},
-};
-use discrete_value::{FactoryId, Requestable, ValueId};
 use ensnano_design::{
     CameraId,
     bezier_plane::BezierPathId,
@@ -29,7 +42,7 @@ use ensnano_design::{
 };
 use ensnano_exports::ExportType;
 use ensnano_organizer::{
-    Organizer, OrganizerMessage, keyboard_priority::PriorityRequest, tree::OrganizerTree,
+    OrganizerMessage, keyboard_priority::PriorityRequest, tree::OrganizerTree,
 };
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
@@ -43,7 +56,6 @@ use ensnano_utils::{
     surfaces::EquadiffSolvingMethod,
     ui_size::UiSize,
 };
-use export_menu::ExportMenu;
 use iced::{
     Color, Command, Element, Length,
     widget::{Button, Column, Container, Text, column, container, horizontal_rule, text_input},
@@ -54,11 +66,6 @@ use std::{
     collections::BTreeSet,
     f32::consts::PI,
     sync::{Arc, Mutex},
-};
-use tabs::{
-    GuiTab as _, TabId, camera_shortcut::CameraShortcutPanel, camera_tab::CameraTab,
-    edition_tab::EditionTab, grids_tab::GridTab, parameters_tab::ParametersTab, pen_tab::PenTab,
-    revolution_tab::RevolutionTab, sequence_tab::SequenceTab, simulation_tab::SimulationTab,
 };
 use ultraviolet::Vec3;
 use winit::{
