@@ -42,7 +42,6 @@ use crate::{
     parameters::HelixParameters,
     utils::{serde::is_false, ultraviolet::vec_to_dvec},
 };
-
 use bezier::TranslatedPiecewiseBezier;
 use chebyshev::{PolynomialCoordinates, PolynomialCoordinates_};
 use chebyshev_polynomials::ChebyshevPolynomial;

@@ -77,18 +77,10 @@ impl From<std::io::Error> for ExportError {
 }
 
 /// A collection mapping nucleotide location to their basis
-pub trait BasisMap {
-    fn get(&self, nucl: &Nucl) -> Option<&char>;
-}
-
-impl BasisMap for HashMap<Nucl, char, ahash::RandomState> {
-    fn get(&self, nucl: &Nucl) -> Option<&char> {
-        self.get(nucl)
-    }
-}
+type BasisMap = HashMap<Nucl, char, ahash::RandomState>;
 
 struct BasisMapper<'a> {
-    map: Option<&'a dyn BasisMap>,
+    map: Option<&'a BasisMap>,
     alternative: HashMap<Nucl, char>,
 }
 
@@ -110,7 +102,7 @@ impl<'a> BasisMapper<'a> {
         }
     }
 
-    fn new(map: Option<&'a dyn BasisMap>) -> Self {
+    fn new(map: Option<&'a BasisMap>) -> Self {
         Self {
             map,
             alternative: HashMap::new(),
@@ -167,7 +159,7 @@ fn rand_base_from_symbol(symbol: char, compl_a: char) -> char {
 pub fn export(
     design: &Design,
     export_type: ExportType,
-    basis_map: Option<&dyn BasisMap>,
+    basis_map: Option<&BasisMap>,
     export_path: &PathBuf,
 ) -> Result<ExportSuccess, ExportError> {
     let basis_mapper = BasisMapper::new(basis_map);
