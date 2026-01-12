@@ -22,7 +22,7 @@ use iced::{
 };
 
 /// A widget that emits a message when hovered.
-pub struct HoverableContainer<'a, Message> {
+pub(super) struct HoverableContainer<'a, Message> {
     padding: Padding,
     content: Element<'a, Message>,
     on_hover: Option<Message>,
@@ -31,7 +31,7 @@ pub struct HoverableContainer<'a, Message> {
 
 impl<'a, Message> HoverableContainer<'a, Message> {
     /// Creates a new [HoverableContainer] with the given content.
-    pub fn new(content: impl Into<Element<'a, Message>>) -> Self {
+    pub(super) fn new(content: impl Into<Element<'a, Message>>) -> Self {
         HoverableContainer {
             padding: Padding::ZERO,
             content: content.into(),
@@ -40,23 +40,16 @@ impl<'a, Message> HoverableContainer<'a, Message> {
         }
     }
 
-    /// Sets the [`Padding`] of the content.
-    #[must_use]
-    pub fn padding<P: Into<Padding>>(mut self, padding: P) -> Self {
-        self.padding = padding.into();
-        self
-    }
-
     /// Sets the message that will be produced when the content is hovered.
     #[must_use]
-    pub fn on_hover(mut self, message: Message) -> Self {
+    pub(super) fn on_hover(mut self, message: Message) -> Self {
         self.on_hover = Some(message);
         self
     }
 
     /// Sets the message that will be produced when the content is unhovered.
     #[must_use]
-    pub fn on_unhover(mut self, message: Message) -> Self {
+    pub(super) fn on_unhover(mut self, message: Message) -> Self {
         self.on_unhover = Some(message);
         self
     }
@@ -64,7 +57,7 @@ impl<'a, Message> HoverableContainer<'a, Message> {
 
 /// The local state of an [`HoverableContainer`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub struct State {
+struct HoverableContainerState {
     is_hovered: bool,
 }
 
@@ -73,10 +66,10 @@ where
     Message: 'a + Clone,
 {
     fn tag(&self) -> widget::tree::Tag {
-        widget::tree::Tag::of::<State>()
+        widget::tree::Tag::of::<HoverableContainerState>()
     }
     fn state(&self) -> widget::tree::State {
-        widget::tree::State::new(State::default())
+        widget::tree::State::new(HoverableContainerState::default())
     }
     fn children(&self) -> Vec<widget::Tree> {
         vec![widget::Tree::new(&self.content)]
@@ -111,7 +104,7 @@ where
             return event::Status::Captured;
         }
 
-        let state = tree.state.downcast_mut::<State>();
+        let state = tree.state.downcast_mut::<HoverableContainerState>();
         let was_hovered = state.is_hovered;
         let now_hovered = cursor_position.is_over(layout.bounds());
         match (was_hovered, now_hovered) {

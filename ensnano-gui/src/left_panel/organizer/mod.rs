@@ -1,10 +1,12 @@
 mod drag_drop_target;
+mod hoverable_container;
 mod icon;
 pub(super) mod message;
 mod theme;
 
 use self::{
     drag_drop_target::{DragDropTarget, DragIdentifier},
+    hoverable_container::HoverableContainer,
     message::{OrganizerInternalMessage, OrganizerMessage},
     theme::OrganizerTheme,
 };
@@ -13,7 +15,6 @@ use ensnano_organizer::{
     element::{
         AttributeDisplay, AttributeWidget, ElementKey, OrganizerAttribute, OrganizerElement,
     },
-    hoverable_container::HoverableContainer,
     keyboard_priority::keyboard_priority,
     tree::{GroupId, OrganizerTree},
 };
