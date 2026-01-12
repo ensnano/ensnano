@@ -103,21 +103,17 @@ impl Domain {
                 end,
                 helix,
                 ..
-            }) => {
-                if *helix == nucl.helix && *forward == nucl.forward {
-                    if nucl.position >= *start && nucl.position < *end {
-                        if *forward {
-                            Some((nucl.position - *start) as usize)
-                        } else {
-                            Some((*end - 1 - nucl.position) as usize)
-                        }
+            }) => (*helix == nucl.helix
+                && *forward == nucl.forward
+                && nucl.position >= *start
+                && nucl.position < *end)
+                .then(|| {
+                    if *forward {
+                        (nucl.position - *start) as usize
                     } else {
-                        None
+                        (*end - 1 - nucl.position) as usize
                     }
-                } else {
-                    None
-                }
-            }
+                }),
         }
     }
 
@@ -138,19 +134,17 @@ impl Domain {
                     .unwrap_or(*helix);
                 let start = start + shift;
                 let end = end + shift;
-                if helix == nucl.0.helix && *forward == nucl.0.forward {
-                    if nucl.0.position >= start && nucl.0.position < end {
+                (helix == nucl.0.helix
+                    && *forward == nucl.0.forward
+                    && nucl.0.position >= start
+                    && nucl.0.position < end)
+                    .then(|| {
                         if *forward {
-                            Some((nucl.0.position - start) as usize)
+                            (nucl.0.position - start) as usize
                         } else {
-                            Some((end - 1 - nucl.0.position) as usize)
+                            (end - 1 - nucl.0.position) as usize
                         }
-                    } else {
-                        None
-                    }
-                } else {
-                    None
-                }
+                    })
             }
         }
     }
