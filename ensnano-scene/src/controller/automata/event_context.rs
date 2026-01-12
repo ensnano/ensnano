@@ -216,6 +216,7 @@ impl<'a, S: AppState> EventContext<'a, S> {
         self.app_state
             .get_design_reader()
             .get_bezier_planes()
+            .0
             .get(&plane_id)
             .and_then(|p| p.ray_intersection(ray.0, ray.1))
     }
@@ -244,6 +245,7 @@ impl<'a, S: AppState> EventContext<'a, S> {
             self.app_state
                 .get_design_reader()
                 .get_bezier_planes()
+                .0
                 .iter(),
             ray.0,
             ray.1,

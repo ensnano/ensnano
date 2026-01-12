@@ -1,5 +1,5 @@
 use crate::{
-    collection::{Collection as _, HasMap},
+    collection::HasMap,
     grid::{GridDescriptor, GridId},
 };
 use serde::{Deserialize, Serialize};
@@ -60,7 +60,7 @@ impl FreeGrids {
 
     pub fn get_from_g_id(&self, key: &GridId) -> Option<&GridDescriptor> {
         let free_id = FreeGridId::try_from_grid_id(*key)?;
-        self.get(&free_id)
+        self.0.get(&free_id).map(AsRef::as_ref)
     }
 }
 

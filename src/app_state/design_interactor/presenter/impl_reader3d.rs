@@ -414,9 +414,7 @@ impl SceneDesignReaderExt for DesignInteractor {
         helix.curve.as_ref().map(Arc::as_ref)
     }
 
-    fn get_bezier_planes(
-        &self,
-    ) -> &dyn Collection<Key = BezierPlaneId, Item = BezierPlaneDescriptor> {
+    fn get_bezier_planes(&self) -> &BezierPlanes {
         &self.presenter.current_design.bezier_planes
     }
 

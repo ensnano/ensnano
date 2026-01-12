@@ -21,10 +21,7 @@ use crate::{
 };
 use ensnano_design::{
     AdditionalStructure,
-    bezier_plane::{
-        BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, InstantiatedPath,
-    },
-    collection::Collection,
+    bezier_plane::{BezierPathId, BezierPlaneId, BezierPlanes, BezierVertex, InstantiatedPath},
     curves::{
         CurveDescriptor, SurfaceInfo, SurfacePoint,
         bezier::{BezierControlPoint, CubicBezierConstructor},
@@ -1565,9 +1562,7 @@ pub trait SceneDesignReaderExt: 'static + InteractorDesignReaderExt {
     fn get_all_loopout_bonds(&self) -> &[LoopoutBond];
     fn get_insertion_length(&self, bond_id: u32) -> usize;
     fn get_expected_bond_length(&self) -> f32;
-    fn get_bezier_planes(
-        &self,
-    ) -> &dyn Collection<Item = BezierPlaneDescriptor, Key = BezierPlaneId>;
+    fn get_bezier_planes(&self) -> &BezierPlanes;
     fn get_parameters(&self) -> HelixParameters;
     fn get_bezier_paths(&self) -> Option<&BTreeMap<BezierPathId, Arc<InstantiatedPath>>>;
     fn get_bezier_vertex(&self, path_id: BezierPathId, vertex_id: usize) -> Option<BezierVertex>;

@@ -1,7 +1,7 @@
 pub mod import_from_svg;
 
 use crate::{
-    collection::{Collection as _, HasMap},
+    collection::HasMap,
     curves::{
         Curve,
         bezier::{
@@ -367,7 +367,7 @@ impl PieceWiseBezierInstantiator<Vec3> for BezierInstantiator {
         let vertex = self.source_path.vertices().get(i)?;
         vertex.position_in.and_then(|position_in| {
             let vec2 = vertex.position - position_in;
-            let plane = self.source_planes.get(&vertex.plane_id)?;
+            let plane = self.source_planes.0.get(&vertex.plane_id)?;
             Some(plane.vec2_angle_to_vec3(vec2, vertex.angle_with_plane))
         })
     }
@@ -376,7 +376,7 @@ impl PieceWiseBezierInstantiator<Vec3> for BezierInstantiator {
         let vertex = self.source_path.vertices().get(i)?;
         vertex.position_out.and_then(|position_out| {
             let vec2 = position_out - vertex.position;
-            let plane = self.source_planes.get(&vertex.plane_id)?;
+            let plane = self.source_planes.0.get(&vertex.plane_id)?;
             Some(plane.vec2_angle_to_vec3(vec2, vertex.angle_with_plane))
         })
     }

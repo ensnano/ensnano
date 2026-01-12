@@ -6,7 +6,6 @@ pub mod hyperboloid;
 use crate::{
     Design,
     bezier_plane::{BezierPathData, BezierPathId, BezierVertexId},
-    collection::Collection as _,
     curves::{
         CurveCache, CurveDescriptor, CurveInstantiator, InstantiatedCurve,
         InstantiatedCurveDescriptor,
@@ -752,7 +751,7 @@ impl GridData {
         for (g_id, desc) in paths_data.grids() {
             grids.insert(g_id, desc.to_grid(helix_parameters));
         }
-        for (g_id, desc) in source_grids.iter() {
+        for (g_id, desc) in source_grids.0.iter() {
             let grid = desc.to_grid(helix_parameters);
             grids.insert(GridId::FreeGrid(g_id.0), grid);
         }

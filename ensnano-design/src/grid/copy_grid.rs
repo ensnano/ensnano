@@ -1,6 +1,5 @@
 use crate::{
     Design,
-    collection::Collection as _,
     domains::{Domain, helix_interval::HelixInterval},
     grid::{
         GridDescriptor, GridId, HelixGridPosition,

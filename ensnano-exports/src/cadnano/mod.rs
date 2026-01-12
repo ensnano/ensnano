@@ -5,7 +5,6 @@ mod parity_graph;
 
 use ensnano_design::{
     Design,
-    collection::Collection as _,
     domains::Domain,
     grid::{GridData, GridTypeDescr},
     nucl::Nucl,
@@ -69,7 +68,7 @@ fn get_ensnano_bonds(design: &Design) -> EnsnanoBonds {
 fn get_grid_type(grids: &GridData) -> Result<GridType, CadnanoError> {
     let mut ret: Option<GridType> = None;
 
-    for g in grids.source_free_grids.values() {
+    for g in grids.source_free_grids.0.values() {
         match g.grid_type {
             GridTypeDescr::Square { .. } => {
                 if ret == Some(GridType::HoneyComb) {
