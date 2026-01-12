@@ -172,6 +172,15 @@ pub struct StrandBuildingStatus {
     pub dragged_nucl: Nucl,
 }
 
+impl StrandBuildingStatus {
+    pub fn to_info(&self) -> String {
+        format!(
+            "Current domain length: {} nt ({:.2} nm). 5': {}, 3': {}",
+            self.nt_length, self.nm_length, self.prime5.position, self.prime3.position
+        )
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PastingStatus {
     Copy,

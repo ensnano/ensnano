@@ -1,6 +1,6 @@
 use crate::{AppState, Requests, theme::GuiBackground};
 use ensnano_organizer::keyboard_priority::{PriorityRequest, keyboard_priority};
-use ensnano_utils::{PastingStatus, StrandBuildingStatus, operation::Operation, ui_size::UiSize};
+use ensnano_utils::{PastingStatus, operation::Operation, ui_size::UiSize};
 use iced::{
     Alignment, Color, Element, Length,
     widget::{Row, Space, Text, column, container, horizontal_space, row, text, text_input},
@@ -410,19 +410,6 @@ mod input_color {
             Default::default()
             // Maybe this is not correct. I wrote this to make it compile.
         }
-    }
-}
-
-trait ToInfo {
-    fn to_info(&self) -> String;
-}
-
-impl ToInfo for StrandBuildingStatus {
-    fn to_info(&self) -> String {
-        format!(
-            "Current domain length: {} nt ({:.2} nm). 5': {}, 3': {}",
-            self.nt_length, self.nm_length, self.prime5.position, self.prime3.position
-        )
     }
 }
 
