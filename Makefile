@@ -21,10 +21,10 @@ validate:
 	@$(MAKE) -s test
 
 check:
-	@cargo check --workspace --all-targets
+	@RUSTFLAGS="--deny warnings" cargo check --workspace --all-targets
 
 lint:
-	@cargo clippy --workspace --all-targets
+	@RUSTFLAGS="--deny warnings" cargo clippy --workspace --all-targets
 
 # does not include doctests (--doc), but we have none so far
 test:

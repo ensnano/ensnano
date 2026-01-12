@@ -313,6 +313,7 @@ use_debug = "allow" # TODO: warn once log! is used everywhere instead of println
 wildcard_enum_match_arm = "allow"
 
 # style
+len_without_is_empty = "allow"
 new_without_default = "allow"
 wrong_self_convention = "allow" # TODO: warn
 
