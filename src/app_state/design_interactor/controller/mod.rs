@@ -46,6 +46,11 @@ use ensnano_design::{
     helices::{Helices, Helix, HelixCollection as _, NuclCollection},
     mutate_in_arc, mutate_one_helix,
     nucl::Nucl,
+    operation::{
+        BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
+        HyperboloidOperation, IsometryTarget, NewBezierTangentVector,
+    },
+    selection::{Selection, list_of_helices},
     strands::{DomainJunction, Strand, Strands},
 };
 use ensnano_gui::status_bar::ClipboardContent;

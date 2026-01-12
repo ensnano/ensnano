@@ -6,10 +6,11 @@ use ensnano_design::{
     elements::DesignElement,
     grid::GridId,
     nucl::Nucl,
+    operation::InsertionPoint,
+    selection::Selection,
     strands::Strand,
 };
 use ensnano_gui::{EnsnTree, GuiDesignReaderExt as ReaderGui};
-use ensnano_utils::{InsertionPoint, selection::Selection};
 use std::sync::Arc;
 use ultraviolet::{Rotor3, Vec2, Vec3};
 

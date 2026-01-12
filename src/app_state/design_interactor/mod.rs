@@ -21,16 +21,17 @@ use ensnano_design::{
     domains::Domain,
     group_attributes::GroupAttribute,
     helices::HelixCollection as _,
+    operation::DesignOperation,
     parameters::HelixParameters,
+    selection::Selection,
 };
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_gui::status_bar::{ClipboardContent, CurrentOpState};
 use ensnano_organizer::tree::GroupId;
 use ensnano_utils::{
-    DesignOperation, PastingStatus, SimulationState,
+    PastingStatus, SimulationState,
     app_state_parameters::suggestion_parameters::SuggestionParameters,
-    consts::UPDATE_VISIBILITY_SIEVE_LABEL, operation::Operation, selection::Selection,
-    strand_builder::StrandBuilder,
+    consts::UPDATE_VISIBILITY_SIEVE_LABEL, operation::Operation, strand_builder::StrandBuilder,
 };
 use presenter::{Presenter, SimulationUpdate, apply_simulation_update, update_presenter};
 use std::{io::Write as _, path::PathBuf, sync::Arc};
@@ -410,12 +411,12 @@ mod tests {
     use ensnano_design::{
         grid::{GridDescriptor, GridId, GridTypeDescr, HelixGridPosition},
         nucl::Nucl,
+        operation::InsertionPoint,
+        selection::InteractorDesignReaderExt as _,
         strands::{DomainJunction, Strand},
     };
     use ensnano_scene::data::design3d::SceneDesignReaderExt as _;
-    use ensnano_utils::{
-        InsertionPoint, operation::GridHelixCreation, selection::InteractorDesignReaderExt as _,
-    };
+    use ensnano_utils::operation::GridHelixCreation;
     use regex::Regex;
     use ultraviolet::{Rotor3, Vec3};
 

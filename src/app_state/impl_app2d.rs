@@ -1,10 +1,7 @@
 use crate::app_state::{AppState, design_interactor::DesignInteractor};
+use ensnano_design::selection::{Selection, SelectionMode};
 use ensnano_flatscene::AppState as App2D;
-use ensnano_utils::{
-    StrandBuildingStatus,
-    selection::{Selection, SelectionMode},
-    strand_builder::StrandBuilder,
-};
+use ensnano_utils::{StrandBuildingStatus, strand_builder::StrandBuilder};
 
 impl App2D for AppState {
     type Reader = DesignInteractor;

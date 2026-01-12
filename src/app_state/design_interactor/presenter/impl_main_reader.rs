@@ -6,9 +6,9 @@ use ensnano_design::{
     grid::{GridId, HelixGridPosition},
     helices::HelixCollection as _,
     nucl::Nucl,
+    selection::InteractorDesignReaderExt,
     strands::Strand,
 };
-use ensnano_utils::selection::InteractorDesignReaderExt as MainReader;
 use itertools::Itertools as _;
 use rust_xlsxwriter::{Color, Format, Workbook};
 use serde::Serialize;
@@ -302,7 +302,7 @@ fn warn_scaffold_seq_mismatch(scaffold_length: usize, sequence_length: usize) ->
     )
 }
 
-impl MainReader for DesignInteractor {
+impl InteractorDesignReaderExt for DesignInteractor {
     fn get_xover_id(&self, pair: &(Nucl, Nucl)) -> Option<usize> {
         self.presenter.junctions_ids.get_id(pair)
     }

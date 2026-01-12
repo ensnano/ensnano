@@ -3,14 +3,15 @@
 use crate::app_state::design_interactor::controller::clipboard::PastePosition;
 use crate::controller::normal_state::Action;
 use crate::requests::Requests;
-use ensnano_design::{grid::GridPosition, group_attributes::GroupPivot, nucl::Nucl};
-use ensnano_scene::Requests as SceneRequests;
-use ensnano_utils::{
-    DesignOperation,
-    application::AppId,
-    operation::Operation,
+use ensnano_design::{
+    grid::GridPosition,
+    group_attributes::GroupPivot,
+    nucl::Nucl,
+    operation::DesignOperation,
     selection::{CenterOfSelection, Selection},
 };
+use ensnano_scene::Requests as SceneRequests;
+use ensnano_utils::{application::AppId, operation::Operation};
 use std::sync::Arc;
 use ultraviolet::{Rotor3, Vec3};
 

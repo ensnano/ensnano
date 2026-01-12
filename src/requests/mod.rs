@@ -12,6 +12,8 @@ use ensnano_design::{
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridPosition, GridTypeDescr},
     nucl::Nucl,
+    operation::HyperboloidRequest,
+    selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
 };
 use ensnano_organizer::{
     keyboard_priority::PriorityRequest,
@@ -19,14 +21,13 @@ use ensnano_organizer::{
 };
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
-    HyperboloidRequest, RigidBodyConstants, RollRequest,
+    RigidBodyConstants, RollRequest,
     app_state_parameters::{
         check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
     },
     application::AppId,
     graphics::{Background3D, FogParameters, HBondDisplay, RenderingMode},
     operation::Operation,
-    selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
     surfaces::UnrootedRevolutionSurfaceDescriptor,
 };
 use std::{collections::VecDeque, sync::Arc};

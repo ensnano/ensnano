@@ -349,7 +349,7 @@ impl HyperboloidRequest {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Copy)]
 pub struct InsertionPoint {
     pub nucl: Nucl,
     pub nucl_is_prime5_of_insertion: bool,

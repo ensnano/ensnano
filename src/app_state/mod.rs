@@ -29,12 +29,17 @@ use crate::{
 use address_pointer::AddressPointer;
 use design_interactor::{DesignInteractor, InteractorResult, controller::ErrOperation};
 use ensnano_design::{
-    SavingInformation, bezier_plane::BezierPathId, domains::Domain, group_attributes::GroupPivot,
+    SavingInformation,
+    bezier_plane::BezierPathId,
+    domains::Domain,
+    group_attributes::GroupPivot,
+    operation::DesignOperation,
+    selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
 };
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_organizer::tree::GroupId;
 use ensnano_utils::{
-    DesignOperation, PastingStatus, SimulationState, StrandBuildingStatus, WidgetBasis,
+    PastingStatus, SimulationState, StrandBuildingStatus, WidgetBasis,
     app_state_parameters::{
         AppStateParameters, check_xovers_parameter::CheckXoversParameter,
         suggestion_parameters::SuggestionParameters,
@@ -42,7 +47,6 @@ use ensnano_utils::{
     consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION},
     graphics::{Background3D, HBondDisplay, RenderingMode},
     operation::Operation,
-    selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
     surfaces::{RevolutionSurfaceRadius, UnrootedRevolutionSurfaceDescriptor},
     ui_size::UiSize,
 };

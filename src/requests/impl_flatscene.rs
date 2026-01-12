@@ -3,11 +3,9 @@
 use crate::app_state::design_interactor::controller::clipboard::PastePosition;
 use crate::controller::normal_state::Action;
 use crate::requests::Requests;
-use ensnano_design::nucl::Nucl;
+use ensnano_design::{nucl::Nucl, operation::DesignOperation, selection::Selection};
 use ensnano_flatscene::Requests as FlatSceneRequests;
-use ensnano_utils::{
-    DesignOperation, application::AppId, operation::Operation, selection::Selection,
-};
+use ensnano_utils::{application::AppId, operation::Operation};
 use std::sync::Arc;
 use ultraviolet::Isometry2;
 

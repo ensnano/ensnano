@@ -3,7 +3,12 @@ mod curve_builders;
 use crate::app_state::{AppState, NewHelixStrand};
 use curve_builders::{BEZIER_CURVE_BUILDER, ELLIPSE_BUILDER, TWO_SPHERES_BUILDER};
 use ensnano_design::{
-    bezier_plane::BezierPathId, elements::DesignElementKey, parameters::HelixParameters,
+    bezier_plane::BezierPathId,
+    elements::DesignElementKey,
+    parameters::HelixParameters,
+    selection::{
+        ActionMode, Selection, SelectionConversion as _, SelectionMode, all_helices_no_grid,
+    },
 };
 use ensnano_gui::{
     AppState as GuiState, GuiDesignReaderExt,
@@ -17,9 +22,6 @@ use ensnano_utils::{
         check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
     },
     graphics::HBondDisplay,
-    selection::{
-        ActionMode, Selection, SelectionConversion as _, SelectionMode, all_helices_no_grid,
-    },
 };
 
 impl GuiState for AppState {

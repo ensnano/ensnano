@@ -7,7 +7,9 @@ use ensnano_design::{
     bezier_plane::{BezierPathId, BezierVertexId},
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridTypeDescr},
+    operation::{DesignOperation, HyperboloidRequest, InsertionPoint},
     parameters::HelixParameters,
+    selection::{ActionMode, SelectionMode},
 };
 use ensnano_exports::ExportType;
 use ensnano_gui::{OverlayType, Requests as GuiRequests, left_panel::RigidBodyParametersRequest};
@@ -17,14 +19,13 @@ use ensnano_organizer::{
 };
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
-    DesignOperation, HyperboloidRequest, InsertionPoint, RigidBodyConstants, RollRequest,
+    RigidBodyConstants, RollRequest,
     app_state_parameters::{
         check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
     },
     application::Notification,
     graphics::{Background3D, FogParameters, HBondDisplay, RenderingMode, SplitMode},
     operation::Operation,
-    selection::{ActionMode, SelectionMode},
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
     ui_size::UiSize,
 };

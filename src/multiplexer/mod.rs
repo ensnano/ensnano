@@ -15,10 +15,10 @@
 pub(crate) mod layout_manager;
 
 use crate::{controller::normal_state::Action, requests::Requests};
+use ensnano_design::selection::{ActionMode, SelectionMode};
 use ensnano_utils::{
     graphics::{DrawArea, GuiComponentType, PhySize, SplitMode},
     multiplexer::Multiplexer as GuiMultiplexer,
-    selection::{ActionMode, SelectionMode},
     texture::SampledTexture,
     ui_size::UiSize,
 };
