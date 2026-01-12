@@ -95,8 +95,8 @@ impl OxDnaTopology {
                 "{} {} {} {}",
                 bond.strand_id + 1,
                 bond.base,
-                bond.prime3,
-                bond.prime5
+                bond.prime5,
+                bond.prime3
             )?;
         }
         Ok(())
