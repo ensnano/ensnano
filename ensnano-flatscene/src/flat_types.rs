@@ -144,7 +144,7 @@ impl FlatHelixMaps {
         Some(segment.len())
     }
 
-    pub fn iter(&self) -> Box<dyn Iterator<Item = (&HelixSegment, &FlatIdx)> + '_> {
+    pub fn iter(&self) -> impl Iterator<Item = (&HelixSegment, &FlatIdx)> {
         Box::new(self.real_to_flat.iter())
     }
 

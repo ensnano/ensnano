@@ -10,7 +10,6 @@ use design_content::DesignContent;
 use ensnano_design::{
     CameraId, Design,
     bezier_plane::{BezierPath, BezierPathId},
-    collection::Collection as _,
     curves::bezier::InstantiatedPiecewiseBezier,
     domains::Domain,
     elements::DesignElementKey,

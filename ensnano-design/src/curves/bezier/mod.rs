@@ -51,7 +51,7 @@ impl CubicBezierConstructor {
 
     /// Returns an iterator over the control points of self
     pub fn iter(&self) -> impl Iterator<Item = (CubicBezierControlPoint, &Vec3)> {
-        vec![
+        [
             (CubicBezierControlPoint::Start, &self.start),
             (CubicBezierControlPoint::Control1, &self.control1),
             (CubicBezierControlPoint::Control2, &self.control2),

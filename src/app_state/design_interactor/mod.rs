@@ -16,7 +16,6 @@ use controller::{Controller, ErrOperation, InteractorNotification};
 use ensnano_design::{
     Design, SavingInformation,
     bezier_plane::{BezierPathId, BezierPlaneDescriptor},
-    collection::Collection as _,
     curves::bezier::InstantiatedPiecewiseBezier,
     domains::Domain,
     group_attributes::GroupAttribute,

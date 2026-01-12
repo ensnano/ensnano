@@ -51,6 +51,14 @@ impl FreeGrids {
         let free_id = FreeGridId::try_from_grid_id(*key)?;
         self.0.get(&free_id).map(AsRef::as_ref)
     }
+
+    pub fn get(&self, grid_id: &FreeGridId) -> Option<&GridDescriptor> {
+        self.0.get(grid_id).map(AsRef::as_ref)
+    }
+
+    pub fn values(&self) -> impl Iterator<Item = &GridDescriptor> {
+        self.0.values().map(AsRef::as_ref)
+    }
 }
 
 pub struct FreeGridsMut<'a> {

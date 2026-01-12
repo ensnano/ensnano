@@ -1,7 +1,7 @@
 use relative_path::RelativePathBuf;
 use serde::{Deserialize, Serialize};
 use std::{
-    collections::{HashMap, hash_map},
+    collections::HashMap,
     path::{Path, PathBuf},
     sync::Arc,
 };
@@ -64,7 +64,7 @@ pub struct External3DObjects(Arc<HashMap<External3DObjectId, External3DObject>>)
 pub struct External3DObjectsStamp(*const HashMap<External3DObjectId, External3DObject>);
 
 impl External3DObjects {
-    pub fn iter(&self) -> hash_map::Iter<'_, External3DObjectId, External3DObject> {
+    pub fn iter(&self) -> impl Iterator<Item = (&External3DObjectId, &External3DObject)> {
         self.0.iter()
     }
 

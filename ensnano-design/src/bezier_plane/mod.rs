@@ -45,6 +45,14 @@ impl BezierPlanes {
             new_map,
         }
     }
+
+    pub fn iter(&self) -> impl Iterator<Item = (&BezierPlaneId, &BezierPlaneDescriptor)> {
+        self.0.iter().map(|(id, desc)| (id, desc.as_ref()))
+    }
+
+    pub fn get(&self, plane_id: &BezierPlaneId) -> Option<&BezierPlaneDescriptor> {
+        self.0.get(&plane_id).map(AsRef::as_ref)
+    }
 }
 
 impl BezierPlaneDescriptor {
@@ -156,11 +164,8 @@ pub struct BezierPathsMut<'a> {
 }
 
 impl BezierPaths {
-    pub fn make_mut(&mut self) -> BezierPathsMut<'_> {
-        BezierPathsMut {
-            new_map: BTreeMap::clone(&self.0),
-            source: self,
-        }
+    pub fn keys(&self) -> impl Iterator<Item = &BezierPathId> {
+        self.0.keys()
     }
 }
 

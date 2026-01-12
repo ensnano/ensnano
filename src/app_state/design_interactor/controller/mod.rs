@@ -24,7 +24,6 @@ use ensnano_design::{
         BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
         import_from_svg::{SvgImportError, read_first_svg_path},
     },
-    collection::Collection as _,
     curves::{
         CurveDescriptor,
         bezier::{BezierControlPoint, BezierEnd},

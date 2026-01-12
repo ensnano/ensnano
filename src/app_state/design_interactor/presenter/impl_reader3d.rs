@@ -5,7 +5,6 @@ use ensnano_design::{
         BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
         InstantiatedPath,
     },
-    collection::Collection,
     curves::{
         CurveDescriptor, SurfaceInfo, SurfacePoint,
         bezier::{BezierControlPoint, CubicBezierConstructor},

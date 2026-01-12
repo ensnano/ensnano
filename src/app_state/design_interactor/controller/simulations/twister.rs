@@ -8,7 +8,6 @@ use crate::{
 };
 use ensnano_design::{
     Design,
-    collection::Collection as _,
     curves::{
         CurveDescriptor,
         twist::{Twist, nb_turn_per_100_nt_to_omega, twist_to_omega},
