@@ -38,7 +38,7 @@ use self::{
     grid::grid_collection::FreeGrids,
     grid::{GridData, GridDescriptor, GridId},
     group_attributes::GroupAttribute,
-    helices::{Helices, Helix, HelixCollection as _},
+    helices::{Helices, Helix},
     isometry3_descriptor::Isometry3Descriptor,
     nucl::Nucl,
     parameters::HelixParameters,

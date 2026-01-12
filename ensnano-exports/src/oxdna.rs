@@ -1,10 +1,6 @@
 use crate::{BasisMapper, rand_base};
 use ensnano_design::{
-    Design,
-    domains::Domain,
-    helices::{Helix, HelixCollection as _},
-    nucl::Nucl,
-    parameters::HelixParameters,
+    Design, domains::Domain, helices::Helix, nucl::Nucl, parameters::HelixParameters,
 };
 use std::{f32::consts::TAU, io::Write as _, mem::ManuallyDrop, path::Path};
 use ultraviolet::{Mat3, Rotor3, Vec3};

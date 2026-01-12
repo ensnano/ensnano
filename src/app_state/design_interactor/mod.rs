@@ -19,7 +19,6 @@ use ensnano_design::{
     curves::bezier::InstantiatedPiecewiseBezier,
     domains::Domain,
     group_attributes::GroupAttribute,
-    helices::HelixCollection as _,
     operation::DesignOperation,
     parameters::HelixParameters,
     selection::Selection,

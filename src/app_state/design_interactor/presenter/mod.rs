@@ -6,6 +6,7 @@ pub(crate) mod impl_readergui;
 
 use super::id_generator::IdGenerator;
 use crate::app_state::{address_pointer::AddressPointer, design_interactor::DesignInteractor};
+use ahash::RandomState;
 use design_content::DesignContent;
 use ensnano_design::{
     CameraId, Design,
@@ -14,7 +15,7 @@ use ensnano_design::{
     domains::Domain,
     elements::DesignElementKey,
     grid::{Grid, GridId},
-    helices::{Helix, HelixCollection as _, NuclCollection},
+    helices::{Helix, NuclCollection},
     nucl::Nucl,
     selection::Selection,
     strands::{Extremity, Strand},
@@ -752,7 +753,7 @@ pub(crate) trait SimulationUpdate: Send + Sync {
     fn update_positions(
         &self,
         _identifier_nucl: &NuclCollection,
-        _space_position: &mut HashMap<u32, [f32; 3], ahash::RandomState>,
+        _space_position: &mut HashMap<u32, [f32; 3], RandomState>,
     ) {
     }
 

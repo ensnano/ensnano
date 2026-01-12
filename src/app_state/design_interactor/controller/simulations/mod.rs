@@ -7,10 +7,11 @@ use crate::app_state::design_interactor::{
     Presenter, controller::ErrOperation, presenter::SimulationUpdate,
 };
 use crate::controller::channel_reader::ChannelReader;
+use ahash::RandomState;
 use ensnano_design::{
     Design,
     grid::{GridId, grid_collection::FreeGridId},
-    helices::{Helix, HelixCollection as _, NuclCollection},
+    helices::{Helix, NuclCollection},
     nucl::Nucl,
     parameters::HelixParameters,
 };
@@ -1290,7 +1291,7 @@ impl SimulationUpdate for RigidHelixState {
     fn update_positions(
         &self,
         identifier_nucl: &NuclCollection,
-        space_position: &mut HashMap<u32, [f32; 3], ahash::RandomState>,
+        space_position: &mut HashMap<u32, [f32; 3], RandomState>,
     ) {
         let helices: Vec<Helix> = (0..self.constants.nb_helices)
             .map(|n| {

@@ -12,7 +12,7 @@ use ensnano_design::{
     domains::Domain,
     external_3d_objects::External3DObjects,
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
-    helices::{Helix, HelixCollection as _},
+    helices::Helix,
     nucl::Nucl,
     parameters::HelixParameters,
 };

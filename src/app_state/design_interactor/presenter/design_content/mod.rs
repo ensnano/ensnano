@@ -10,7 +10,7 @@ use ensnano_design::{
     drawing_style::{ColorType, DrawingAttribute, DrawingStyle},
     elements::{DesignElement, DesignElementKey},
     grid::{GridData, GridId, GridObject, GridPosition, HelixGridPosition},
-    helices::{HelixCollection as _, NuclCollection},
+    helices::NuclCollection,
     isometry3_descriptor::Isometry3MissingMethods as _,
     nucl::Nucl,
     strands::DomainJunction,

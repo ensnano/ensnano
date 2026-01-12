@@ -2,7 +2,7 @@ pub mod helix_interval;
 
 use self::helix_interval::HelixInterval;
 use crate::{
-    helices::{Helices, HelixCollection as _},
+    helices::Helices,
     insertions::InstantiatedInsertion,
     nucl::{Nucl, VirtualNucl},
 };

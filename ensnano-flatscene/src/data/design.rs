@@ -7,7 +7,7 @@ use crate::{
 use ahash::RandomState;
 use ensnano_design::{
     curves::time_nucl_map::AbscissaConverter,
-    helices::{Helices, Helix, HelixCollection as _, NuclCollection},
+    helices::{Helices, Helix, NuclCollection},
     nucl::Nucl,
     strands::Extremity,
 };

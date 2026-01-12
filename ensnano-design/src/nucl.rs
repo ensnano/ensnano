@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::helices::{Helices, HelixCollection as _};
+use crate::helices::Helices;
 
 #[derive(Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Hash, Debug)]
 pub struct Nucl {

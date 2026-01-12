@@ -42,7 +42,7 @@ use ensnano_design::{
         hyperboloid::Hyperboloid,
     },
     group_attributes::GroupPivot,
-    helices::{Helices, Helix, HelixCollection as _, NuclCollection},
+    helices::{Helices, Helix, NuclCollection},
     mutate_in_arc, mutate_one_helix,
     nucl::Nucl,
     operation::{

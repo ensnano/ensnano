@@ -4,7 +4,6 @@ use crate::controller::download_staples::{
 };
 use ensnano_design::{
     grid::{GridId, HelixGridPosition},
-    helices::HelixCollection as _,
     nucl::Nucl,
     selection::InteractorDesignReaderExt,
     strands::Strand,

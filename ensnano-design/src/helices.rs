@@ -39,67 +39,6 @@ impl Helices {
     }
 }
 
-pub trait HelixCollection {
-    fn get(&self, id: &usize) -> Option<&Helix>;
-    fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a usize, &'a Helix)> + 'a>;
-    fn values<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Helix> + 'a>;
-    fn keys<'a>(&'a self) -> Box<dyn Iterator<Item = &'a usize> + 'a>;
-    fn len(&self) -> usize;
-    fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
-    fn contains_key(&self, id: &usize) -> bool;
-}
-
-pub trait HasHelixCollection {
-    fn get_collection(&self) -> &BTreeMap<usize, Arc<Helix>>;
-}
-
-impl HasHelixCollection for Helices {
-    fn get_collection(&self) -> &BTreeMap<usize, Arc<Helix>> {
-        &self.0
-    }
-}
-
-impl HasHelixCollection for HelicesMut<'_> {
-    fn get_collection(&self) -> &BTreeMap<usize, Arc<Helix>> {
-        &self.new_map
-    }
-}
-
-impl<T> HelixCollection for T
-where
-    T: HasHelixCollection,
-{
-    fn get(&self, id: &usize) -> Option<&Helix> {
-        self.get_collection().get(id).map(AsRef::as_ref)
-    }
-
-    fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a usize, &'a Helix)> + 'a> {
-        Box::new(
-            self.get_collection()
-                .iter()
-                .map(|(id, arc)| (id, arc.as_ref())),
-        )
-    }
-
-    fn keys<'a>(&'a self) -> Box<dyn Iterator<Item = &'a usize> + 'a> {
-        Box::new(self.get_collection().keys())
-    }
-
-    fn values<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Helix> + 'a> {
-        Box::new(self.get_collection().values().map(AsRef::as_ref))
-    }
-
-    fn len(&self) -> usize {
-        self.get_collection().len()
-    }
-
-    fn contains_key(&self, id: &usize) -> bool {
-        self.get_collection().contains_key(id)
-    }
-}
-
 pub struct HelicesMut<'a> {
     source: &'a mut Helices,
     new_map: BTreeMap<usize, Arc<Helix>>,
@@ -810,7 +749,7 @@ impl Helix {
 
 #[derive(Default, Clone)]
 pub struct NuclCollection {
-    pub identifier: BTreeMap<Nucl, u32>, //HashMap<Nucl, u32, RandomState>,
+    pub identifier: BTreeMap<Nucl, u32>,
     virtual_nucl_map: HashMap<VirtualNucl, Nucl>,
 }
 

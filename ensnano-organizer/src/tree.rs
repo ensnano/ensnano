@@ -1,12 +1,10 @@
+use ahash::RandomState;
 use rand::{
     Rng,
     distr::{Distribution, StandardUniform},
 };
 use serde::{Deserialize, Serialize};
-use std::{
-    collections::{HashMap, hash_map::RandomState},
-    hash::Hash,
-};
+use std::{collections::HashMap, hash::Hash};
 
 /// A tree-like structure that references and organize all the data being edited.
 #[derive(Clone, Debug, Serialize)]
@@ -104,7 +102,7 @@ impl<K: Eq + Hash + Copy> OrganizerTree<K> {
         &self,
         prefix: &str,
     ) -> HashMap<K, Vec<&str>, RandomState> {
-        let mut hashmap = HashMap::new();
+        let mut hashmap = HashMap::default();
 
         match self {
             Self::Leaf(_) => (),

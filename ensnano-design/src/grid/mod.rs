@@ -16,7 +16,7 @@ use crate::{
     },
     design_operations::{ErrDesignOperation, MIN_HELICES_TO_MAKE_GRID},
     grid::{grid_collection::FreeGrids, hyperboloid::Hyperboloid},
-    helices::{Axis, Helices, Helix, HelixCollection as _},
+    helices::{Axis, Helices, Helix},
     parameters::HelixParameters,
 };
 use serde::{Deserialize, Serialize};

@@ -6,7 +6,7 @@ use ensnano_design::{
     Design, MutStrandAndData, UpToDateDesign,
     domains::{Domain, helix_interval::HelixInterval},
     grid::{Edge, GridData, GridId, GridPosition, HelixGridPosition, grid_collection::FreeGridId},
-    helices::{Helices, HelixCollection as _},
+    helices::Helices,
     nucl::Nucl,
     parameters::HelixParameters,
     strands::{Strand, Strands, read_junctions},

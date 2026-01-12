@@ -5,7 +5,7 @@ use crate::{
         GridDescriptor, GridId, HelixGridPosition,
         grid_collection::{FreeGridId, FreeGrids, FreeGridsMut},
     },
-    helices::{Helix, HelixCollection as _},
+    helices::Helix,
     strands::{DomainJunction, Strand},
 };
 use std::{borrow::Cow, collections::HashMap};

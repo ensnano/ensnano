@@ -19,6 +19,7 @@ use crate::{
         letter::LetterInstance,
     },
 };
+use ahash::RandomState;
 use ensnano_design::{
     AdditionalStructure,
     bezier_plane::{BezierPathId, BezierPlaneId, BezierPlanes, BezierVertex, InstantiatedPath},
@@ -49,7 +50,7 @@ use ensnano_utils::{
     instance::Instance,
 };
 use std::{
-    collections::{BTreeMap, HashMap, HashSet, hash_map::RandomState},
+    collections::{BTreeMap, HashMap, HashSet},
     f32::consts::TAU,
     rc::Rc,
     sync::Arc,
