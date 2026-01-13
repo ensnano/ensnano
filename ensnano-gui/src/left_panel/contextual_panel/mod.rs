@@ -3,6 +3,7 @@ pub(super) mod value_constructor;
 use crate::{
     AppState, GuiDesignReaderExt, Requests,
     helpers::{extra_jump, right_checkbox, section, subsection, text_button},
+    keyboard_priority::keyboard_priority,
     left_panel::Message,
     theme,
 };
@@ -11,7 +12,6 @@ use ensnano_design::{
     grid::GridId,
     selection::{ActionMode, Selection},
 };
-use ensnano_organizer::keyboard_priority::keyboard_priority;
 use ensnano_utils::{
     SimulationState,
     consts::{

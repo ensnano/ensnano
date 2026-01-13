@@ -1,10 +1,10 @@
 use crate::{
     AppState,
     consts::{MAX_NB_TURN, MIN_NB_TURN, NB_TURN_SLIDER_SPACING, NB_TURN_STEP},
+    keyboard_priority::keyboard_priority,
     left_panel::Message,
 };
 use ensnano_design::selection::Selection;
-use ensnano_organizer::keyboard_priority::keyboard_priority;
 use ensnano_utils::ui_size::UiSize;
 use iced::{
     Alignment, Length,

@@ -2,11 +2,11 @@ use crate::{
     AppState,
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, jump_by, section, subsection, text_button},
+    keyboard_priority::keyboard_priority,
     left_panel::{Message, tabs::GuiTab},
     theme,
 };
 use ensnano_design::curves::torus::CurveDescriptor2D;
-use ensnano_organizer::keyboard_priority::keyboard_priority;
 use ensnano_utils::{
     SimulationState,
     surfaces::{

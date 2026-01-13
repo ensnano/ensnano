@@ -4,5 +4,4 @@
 //! `ensnano_gui`.
 
 pub mod element;
-pub mod keyboard_priority;
 pub mod tree;

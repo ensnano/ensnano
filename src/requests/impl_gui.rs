@@ -12,11 +12,11 @@ use ensnano_design::{
     selection::{ActionMode, SelectionMode},
 };
 use ensnano_exports::ExportType;
-use ensnano_gui::{OverlayType, Requests as GuiRequests, left_panel::RigidBodyParametersRequest};
-use ensnano_organizer::{
-    keyboard_priority::PriorityRequest,
-    tree::{GroupId, OrganizerTree},
+use ensnano_gui::{
+    OverlayType, Requests as GuiRequests, keyboard_priority::PriorityRequest,
+    left_panel::RigidBodyParametersRequest,
 };
+use ensnano_organizer::tree::{GroupId, OrganizerTree};
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
     RigidBodyConstants, RollRequest,

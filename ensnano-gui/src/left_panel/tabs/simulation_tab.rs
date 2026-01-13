@@ -1,6 +1,7 @@
 use crate::{
     AppState, Requests,
     helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
+    keyboard_priority::keyboard_priority,
     left_panel::{
         BrownianParametersFactory, Message, RigidBodyFactory, RigidBodyParametersRequest,
         discrete_value::{FactoryId, RequestFactory, ValueId},
@@ -8,7 +9,6 @@ use crate::{
     },
     theme,
 };
-use ensnano_organizer::keyboard_priority::keyboard_priority;
 use ensnano_physics::parameters::{RapierParameters, RapierSimulationType};
 use ensnano_utils::{RollRequest, SimulationState, consts::ICON_PHYSICAL_ENGINE, ui_size::UiSize};
 use iced::{

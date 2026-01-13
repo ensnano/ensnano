@@ -31,6 +31,7 @@ use crate::{
     AppState, OverlayType, Requests,
     color_picker::ColorPickerMessage,
     fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
+    keyboard_priority::PriorityRequest,
     theme::GuiBackground,
 };
 use ensnano_design::{
@@ -43,7 +44,7 @@ use ensnano_design::{
     selection::{ActionMode, Selection},
 };
 use ensnano_exports::ExportType;
-use ensnano_organizer::{keyboard_priority::PriorityRequest, tree::OrganizerTree};
+use ensnano_organizer::tree::OrganizerTree;
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
     app_state_parameters::{

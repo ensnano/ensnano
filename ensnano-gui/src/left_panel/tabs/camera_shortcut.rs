@@ -7,9 +7,9 @@ use crate::{
         button_text_wrapper, extra_jump, fixed_text_button, material_icon, material_icon_button,
         section, subsection,
     },
+    keyboard_priority::keyboard_priority,
     left_panel::Message,
 };
-use ensnano_organizer::keyboard_priority::keyboard_priority;
 use ensnano_utils::ui_size::UiSize;
 use iced::{
     Alignment, Command, Length,

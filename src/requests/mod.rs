@@ -15,10 +15,8 @@ use ensnano_design::{
     operation::HyperboloidRequest,
     selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
 };
-use ensnano_organizer::{
-    keyboard_priority::PriorityRequest,
-    tree::{GroupId, OrganizerTree},
-};
+use ensnano_gui::keyboard_priority::PriorityRequest;
+use ensnano_organizer::tree::{GroupId, OrganizerTree};
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
     RigidBodyConstants, RollRequest,

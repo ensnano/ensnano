@@ -1,7 +1,8 @@
+use crate::keyboard_priority::PriorityRequest;
+
 use super::{OrganizerNodeId, drag_drop_target::DragIdentifier};
 use ensnano_organizer::{
     element::OrganizerElement,
-    keyboard_priority::PriorityRequest,
     tree::{GroupId, OrganizerTree},
 };
 use iced::widget::text_input;

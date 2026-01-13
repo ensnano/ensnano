@@ -1194,8 +1194,6 @@ name = "ensnano_organizer"
 version = "0.7.0"
 dependencies = [
  "ahash 0.8.12",
- "iced",
- "iced_graphics",
  "icondata",
  "rand 0.9.2",
  "serde",

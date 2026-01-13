@@ -4,6 +4,8 @@ mod icon;
 pub(super) mod message;
 mod theme;
 
+use crate::keyboard_priority::keyboard_priority;
+
 use self::{
     drag_drop_target::{DragDropTarget, DragIdentifier},
     hoverable_container::HoverableContainer,
@@ -14,7 +16,6 @@ use ensnano_organizer::{
     element::{
         AttributeDisplay, AttributeWidget, ElementKey, OrganizerAttribute, OrganizerElement,
     },
-    keyboard_priority::keyboard_priority,
     tree::{GroupId, OrganizerTree},
 };
 use iced::{
