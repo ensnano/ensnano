@@ -11,6 +11,7 @@ pub mod filename;
 pub mod graphics;
 pub mod instance;
 pub mod multiplexer;
+pub mod obj_loader;
 pub mod operation;
 pub mod strand_builder;
 pub mod surfaces;

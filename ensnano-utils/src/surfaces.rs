@@ -1,9 +1,15 @@
+use crate::{
+    colors::hsv_color,
+    instance::Instance,
+    obj_loader::{GltfMesh, ModelVertex},
+};
 use ensnano_design::{
     curves::{
         revolution::{InterpolatedCurveDescriptor, InterpolationDescriptor},
         torus::{CurveDescriptor2D, PointOnSurface},
     },
     parameters::HelixParameters,
+    utils::ultraviolet::dvec_to_vec,
 };
 use num::integer::gcd;
 use rayon::iter::{IntoParallelIterator as _, ParallelIterator as _};
@@ -252,6 +258,58 @@ impl UnrootedRevolutionSurfaceDescriptor {
                 nb_section: nb_helix,
             }
         })
+    }
+
+    pub fn meshes(&self) -> Vec<GltfMesh> {
+        const NB_STRIP: usize = 100;
+        const STRIP_WIDTH: f64 = 0.3;
+        const NB_SECTION_PER_STRIP: usize = 1_000;
+
+        let frame = self.get_frame();
+
+        (0..NB_STRIP)
+            .map(|strip_idx| {
+                let s_high = strip_idx as f64 / NB_STRIP as f64;
+                let s_low = s_high + STRIP_WIDTH / NB_STRIP as f64;
+
+                let vertices: Vec<ModelVertex> = (0..=(NB_SECTION_PER_STRIP + 1))
+                    .flat_map(|section_idx| {
+                        [s_high, s_low].into_iter().map(move |s| {
+                            let revolution_fract = section_idx as f64 / NB_SECTION_PER_STRIP as f64;
+                            let revolution_angle = TAU * revolution_fract;
+
+                            let surface_point = PointOnSurface {
+                                revolution_angle,
+                                section_parameter: s,
+                                revolution_axis_position: self.get_revolution_axis_position(),
+                                section_half_turn_per_revolution: self.half_turn_count,
+                                curve_scale_factor: 1.,
+                            };
+                            let position = frame.transform_vec(dvec_to_vec(
+                                self.curve.point_on_surface(&surface_point),
+                            ));
+
+                            let normal = frame.transform_vec(dvec_to_vec(
+                                self.curve.normal_of_surface(&surface_point),
+                            ));
+
+                            let vertex_color = hsv_color(revolution_angle.to_degrees(), 0.7, 0.7);
+                            let color = Instance::color_from_u32(vertex_color);
+
+                            ModelVertex {
+                                position: position.into(),
+                                normal: normal.into(),
+                                color: color.into(),
+                            }
+                        })
+                    })
+                    .collect();
+                GltfMesh {
+                    vertices,
+                    indices: (0u32..=(2 * (NB_SECTION_PER_STRIP + 1) as u32)).collect(),
+                }
+            })
+            .collect()
     }
 }
 

@@ -3,7 +3,6 @@ mod controller;
 pub mod data;
 mod element_selector;
 mod maths_3d;
-mod obj_loader;
 mod rotor_utils;
 mod sausage_rosary;
 mod stl;
