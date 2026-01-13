@@ -1,6 +1,7 @@
 use crate::{
-    AppState, Requests,
+    GuiAppState, GuiRequests,
     helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
+    keyboard_priority::keyboard_priority,
     left_panel::{
         BrownianParametersFactory, Message, RigidBodyFactory, RigidBodyParametersRequest,
         discrete_value::{FactoryId, RequestFactory, ValueId},
@@ -8,7 +9,6 @@ use crate::{
     },
     theme,
 };
-use ensnano_organizer::keyboard_priority::keyboard_priority;
 use ensnano_physics::parameters::{RapierParameters, RapierSimulationType};
 use ensnano_utils::{RollRequest, SimulationState, consts::ICON_PHYSICAL_ENGINE, ui_size::UiSize};
 use iced::{
@@ -19,7 +19,7 @@ use iced_aw::TabLabel;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-pub struct SimulationTab<State: AppState> {
+pub struct SimulationTab<State: GuiAppState> {
     rigid_body_factory: RequestFactory<RigidBodyFactory>,
     brownian_factory: RequestFactory<BrownianParametersFactory>,
     //rigid_grid_button: GoStop<State>,
@@ -30,7 +30,7 @@ pub struct SimulationTab<State: AppState> {
     pub rapier_parameter_fields: HashMap<String, String>,
 }
 
-impl<State: AppState> SimulationTab<State> {
+impl<State: GuiAppState> SimulationTab<State> {
     pub fn new() -> Self {
         let init_brownian = BrownianParametersFactory {
             rate: 0.,
@@ -93,7 +93,7 @@ impl<State: AppState> SimulationTab<State> {
         self.physical_simulation.request()
     }
 
-    pub fn leave_tab<R: Requests>(&self, requests: Arc<Mutex<R>>, app_state: &State) {
+    pub fn leave_tab<R: GuiRequests>(&self, requests: Arc<Mutex<R>>, app_state: &State) {
         if SimulationState::RigidGrid == app_state.get_simulation_state() {
             self.request_stop_rigid_body_simulation(requests);
             println!("stop grids");
@@ -103,7 +103,7 @@ impl<State: AppState> SimulationTab<State> {
         }
     }
 
-    fn request_stop_rigid_body_simulation<R: Requests>(&self, requests: Arc<Mutex<R>>) {
+    fn request_stop_rigid_body_simulation<R: GuiRequests>(&self, requests: Arc<Mutex<R>>) {
         let mut request = None;
         self.make_rigid_body_request(&mut request);
         if let Some(request) = request {
@@ -134,7 +134,7 @@ impl<State: AppState> SimulationTab<State> {
     }
 }
 
-impl<State: AppState> GuiTab<State> for SimulationTab<State> {
+impl<State: GuiAppState> GuiTab<State> for SimulationTab<State> {
     type Message = Message<State>;
 
     fn label(&self) -> TabLabel {
@@ -241,7 +241,7 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
     }
 }
 
-fn kcut_threshold_editor<State: AppState>(
+fn kcut_threshold_editor<State: GuiAppState>(
     parameters: &RapierParameters,
     fields: &HashMap<String, String>,
     ui_size: UiSize,
@@ -323,7 +323,7 @@ fn apply_parameter_fields(
     result
 }
 
-fn rapier_parameters_field_editor<State: AppState>(
+fn rapier_parameters_field_editor<State: GuiAppState>(
     description: impl ToString,
     default_value: f32,
     ui_size: UiSize,
@@ -359,7 +359,7 @@ fn rapier_parameters_field_editor<State: AppState>(
     .into()
 }
 
-fn view_rapier_parameters<State: AppState>(
+fn view_rapier_parameters<State: GuiAppState>(
     parameters: RapierParameters,
     fields: &HashMap<String, String>,
     ui_size: UiSize,
@@ -388,7 +388,7 @@ fn view_rapier_parameters<State: AppState>(
 struct PhysicalSimulation;
 
 impl PhysicalSimulation {
-    fn view<State: AppState>(
+    fn view<State: GuiAppState>(
         &self,
         ui_size: UiSize,
         name: &'static str,

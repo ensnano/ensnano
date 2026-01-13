@@ -5,9 +5,9 @@ use crate::{
     },
     controller::channel_reader::ChannelReader,
 };
+use ahash::RandomState;
 use ensnano_design::{Design, helices::NuclCollection, parameters::HelixParameters};
-use ensnano_physics::parameters::RapierParameters;
-use ensnano_physics::simulation::RapierPhysicsSystem;
+use ensnano_physics::{parameters::RapierParameters, simulation::RapierPhysicsSystem};
 use std::{
     collections::HashMap,
     sync::{Arc, Mutex, Weak},
@@ -100,7 +100,7 @@ impl SimulationUpdate for RapierInterface {
     fn update_positions(
         &self,
         _identifier_nucl: &NuclCollection,
-        space_position: &mut HashMap<u32, [f32; 3], ahash::RandomState>,
+        space_position: &mut HashMap<u32, [f32; 3], RandomState>,
     ) {
         // we extract the physical positions here
         space_position.extend(self.space_position.iter().map(|(a, b)| (a, b)));

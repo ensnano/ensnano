@@ -1,17 +1,20 @@
 use crate::app_state::{AppState, design_interactor::DesignInteractor};
-use ensnano_design::{bezier_plane::BezierVertexId, grid::GridId, group_attributes::GroupPivot};
-use ensnano_organizer::tree::GroupId;
-use ensnano_scene::{AppState as App3D, view::DrawOptions};
+use ensnano_design::{
+    bezier_plane::BezierVertexId,
+    grid::GridId,
+    group_attributes::GroupPivot,
+    interaction_modes::{ActionMode, SelectionMode},
+    organizer_tree::GroupId,
+    selection::{CenterOfSelection, Selection},
+};
+use ensnano_scene::{SceneAppState, view::DrawOptions};
 use ensnano_utils::{
-    WidgetBasis,
-    app_state_parameters::check_xovers_parameter::CheckXoversParameter,
-    selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
-    strand_builder::StrandBuilder,
-    surfaces::UnrootedRevolutionSurfaceDescriptor,
+    WidgetBasis, app_state_parameters::check_xovers_parameter::CheckXoversParameter,
+    strand_builder::StrandBuilder, surfaces::UnrootedRevolutionSurfaceDescriptor,
 };
 use std::path::PathBuf;
 
-impl App3D for AppState {
+impl SceneAppState for AppState {
     type AppStateDesignReader = DesignInteractor;
 
     fn get_selection(&self) -> &[Selection] {

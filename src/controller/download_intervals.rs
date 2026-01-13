@@ -1,8 +1,9 @@
 use crate::{
     MainStateView,
+    app_state::design_interactor::DesignInteractor,
     controller::{
-        State, TransitionMessage,
-        download_staples::{DownloadStapleError, DownloadStapleOk, StaplesDownloader},
+        AutomataState, TransitionMessage,
+        download_staples::{DownloadStapleError, DownloadStapleOk},
         messages::{
             NO_FILE_RECEIVED_STAPLE, NO_SCAFFOLD_SEQUENCE_SET, NO_SCAFFOLD_SET, ORIGAMI_FILTERS,
             successful_staples_export_msg,
@@ -36,24 +37,22 @@ enum Step {
     Downloading { design_id: usize, path: PathBuf },
 }
 
-impl State for DownloadIntervals {
-    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
-        let downloader = main_state.get_staple_downloader();
+impl AutomataState for DownloadIntervals {
+    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn AutomataState> {
+        let downloader = main_state.get_design_interactor();
         match self.step {
-            Step::Init => get_design_providing_staples(downloader.as_ref()),
+            Step::Init => get_design_providing_staples(&downloader),
             Step::AskingPath(state) => ask_path(state, main_state),
             Step::PathAsked {
                 path_input,
                 design_id,
             } => poll_path(path_input, design_id),
-            Step::Downloading { design_id, path } => {
-                download_staples(downloader.as_ref(), design_id, path)
-            }
+            Step::Downloading { design_id, path } => download_staples(&downloader, design_id, path),
         }
     }
 }
 
-fn get_design_providing_staples(downloader: &dyn StaplesDownloader) -> Box<dyn State> {
+fn get_design_providing_staples(downloader: &DesignInteractor) -> Box<dyn AutomataState> {
     let result = downloader.download_staples();
     match result {
         Ok(DownloadStapleOk { warnings }) => AskingPath_ {
@@ -122,7 +121,7 @@ impl AskingPath_ {
     }
 }
 
-fn poll_path(path_input: PathInput, design_id: usize) -> Box<dyn State> {
+fn poll_path(path_input: PathInput, design_id: usize) -> Box<dyn AutomataState> {
     if let Some(result) = path_input.get() {
         if let Some(path) = result {
             Box::new(DownloadIntervals {
@@ -146,10 +145,10 @@ fn poll_path(path_input: PathInput, design_id: usize) -> Box<dyn State> {
 }
 
 fn download_staples(
-    downloader: &dyn StaplesDownloader,
+    downloader: &DesignInteractor,
     _design_id: usize,
     path: PathBuf,
-) -> Box<dyn State> {
+) -> Box<dyn AutomataState> {
     downloader.write_intervals(&path);
     let msg = successful_staples_export_msg(&path);
     TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(NormalState))

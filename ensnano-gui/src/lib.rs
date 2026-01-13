@@ -9,7 +9,7 @@ mod color_picker;
 mod consts;
 pub mod fonts;
 mod helpers;
-mod icon;
+pub mod keyboard_priority;
 pub mod left_panel;
 pub mod status_bar;
 pub mod theme;
@@ -18,6 +18,7 @@ mod widgets;
 
 use crate::{
     fonts::{INTER_REGULAR_FONT, load_fonts},
+    keyboard_priority::PriorityRequest,
     left_panel::{
         LeftPanel, RigidBodyParametersRequest,
         tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
@@ -26,20 +27,20 @@ use crate::{
 use ensnano_design::{
     CameraId,
     bezier_plane::{BezierPathId, BezierVertexId},
-    elements::{DesignElement, DesignElementKey, DnaAttribute},
+    design_element::{DesignElement, DesignElementKey, DnaAttribute},
     grid::{GridId, GridTypeDescr},
+    interaction_modes::{ActionMode, SelectionMode},
     nucl::Nucl,
+    operation::{HyperboloidRequest, InsertionPoint},
+    organizer_tree::{GroupId, OrganizerTree},
     parameters::HelixParameters,
+    selection::Selection,
 };
 use ensnano_exports::ExportType;
-use ensnano_organizer::{
-    keyboard_priority::PriorityRequest,
-    tree::{GroupId, OrganizerTree},
-};
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
-    HyperboloidRequest, InsertionPoint, PastingStatus, RollRequest, ScaffoldInfo, SimulationState,
-    StrandBuildingStatus, TEXTURE_FORMAT, WidgetBasis,
+    PastingStatus, RollRequest, ScaffoldInfo, SimulationState, StrandBuildingStatus,
+    TEXTURE_FORMAT, WidgetBasis,
     app_state_parameters::{
         AppStateParameters, check_xovers_parameter::CheckXoversParameter,
         suggestion_parameters::SuggestionParameters,
@@ -48,9 +49,8 @@ use ensnano_utils::{
         Background3D, DrawArea, FogParameters, GuiComponentType, HBondDisplay, RenderingMode,
         SplitMode,
     },
-    multiplexer::Multiplexer,
+    multiplexer_ext::MultiplexerExt,
     operation::Operation,
-    selection::{ActionMode, Selection, SelectionMode},
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
     ui_size::UiSize,
 };
@@ -74,9 +74,7 @@ use ultraviolet::{Rotor3, Vec2, Vec3};
 use wgpu::{Device, Queue};
 use winit::{dpi::PhysicalSize, event::Modifiers, window::Window};
 
-pub type EnsnTree = OrganizerTree<DesignElementKey>;
-
-pub trait Requests: 'static + Send {
+pub trait GuiRequests: 'static + Send {
     fn close_overlay(&mut self, overlay_type: OverlayType);
     /// Change the color of the selected strands
     fn change_strand_color(&mut self, color: u32);
@@ -141,7 +139,7 @@ pub trait Requests: 'static + Send {
         group_id: Option<GroupId>,
         new_group: bool,
     );
-    fn update_organizer_tree(&mut self, tree: OrganizerTree<DesignElementKey>);
+    fn update_organizer_tree(&mut self, tree: OrganizerTree);
     /// Update one attribute of several Dna Elements
     fn update_attribute_of_elements(
         &mut self,
@@ -230,13 +228,13 @@ pub enum OverlayType {
 }
 
 #[expect(clippy::large_enum_variant)]
-enum GuiState<R: Requests, S: AppState> {
+enum GuiState<R: GuiRequests, S: GuiAppState> {
     TopBar(program::State<TopBar<R, S>>),
     LeftPanel(program::State<LeftPanel<R, S>>),
     StatusBar(program::State<StatusBar<R, S>>),
 }
 
-impl<R: Requests, S: AppState> GuiState<R, S> {
+impl<R: GuiRequests, S: GuiAppState> GuiState<R, S> {
     fn queue_event(&mut self, event: Event) {
         if let Event::Keyboard(keyboard::Event::KeyPressed {
             key: keyboard::Key::Named(keyboard::key::Named::Tab),
@@ -382,7 +380,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
 }
 
 /// A Gui component.
-struct GuiComponent<R: Requests, S: AppState> {
+struct GuiComponent<R: GuiRequests, S: GuiAppState> {
     state: GuiState<R, S>,
     debug: Debug,
     redraw: bool,
@@ -390,12 +388,12 @@ struct GuiComponent<R: Requests, S: AppState> {
     renderer: iced::Renderer,
 }
 
-impl<R: Requests, S: AppState> GuiComponent<R, S> {
+impl<R: GuiRequests, S: GuiAppState> GuiComponent<R, S> {
     /// Initialize the top bar gui component
     fn top_bar(
         mut renderer: iced::Renderer,
         window: &Window,
-        multiplexer: &dyn Multiplexer,
+        multiplexer: &dyn MultiplexerExt,
         requests: Arc<Mutex<R>>,
         app_state: S,
         top_bar_state: TopBarState,
@@ -429,7 +427,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
     fn left_panel(
         mut renderer: iced::Renderer,
         window: &Window,
-        multiplexer: &dyn Multiplexer,
+        multiplexer: &dyn MultiplexerExt,
         requests: Arc<Mutex<R>>,
         first_time: bool,
         state: &S,
@@ -465,7 +463,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
     fn status_bar(
         mut renderer: iced::Renderer,
         window: &Window,
-        multiplexer: &dyn Multiplexer,
+        multiplexer: &dyn MultiplexerExt,
         requests: Arc<Mutex<R>>,
         state: &S,
         ui_size: UiSize,
@@ -503,7 +501,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
         &mut self.state
     }
 
-    fn resize(&mut self, window: &Window, multiplexer: &dyn Multiplexer) {
+    fn resize(&mut self, window: &Window, multiplexer: &dyn MultiplexerExt) {
         let area = multiplexer.get_draw_area(self.element_type).unwrap();
         self.state.resize(area, window);
         log::debug!("resizing {area:?}");
@@ -515,7 +513,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
         window: &Window,
         theme: &iced::Theme,
         style: &renderer::Style,
-        multiplexer: &dyn Multiplexer,
+        multiplexer: &dyn MultiplexerExt,
         resized: bool,
     ) -> bool {
         let area = multiplexer.get_draw_area(self.element_type).unwrap();
@@ -552,7 +550,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
         encoder: &mut wgpu::CommandEncoder,
         clear_color: Option<iced::Color>,
         window: &Window,
-        multiplexer: &dyn Multiplexer,
+        multiplexer: &dyn MultiplexerExt,
         mouse_interaction: &mut iced::mouse::Interaction,
     ) {
         if self.redraw {
@@ -582,7 +580,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
 /// The manager of the graphical user interface.
 ///
 /// The manager contains a [`GuiComponent`] for each [`GuiComponentType`] (top_bar, left_panel, etc…)
-pub struct Gui<R: Requests, S: AppState> {
+pub struct Gui<R: GuiRequests, S: GuiAppState> {
     /// WGPU Settings
     wgpu_settings: iced_wgpu::Settings,
     /// WGPU device
@@ -596,12 +594,12 @@ pub struct Gui<R: Requests, S: AppState> {
     components: HashMap<GuiComponentType, GuiComponent<R, S>>,
 }
 
-impl<R: Requests, State: AppState> Gui<R, State> {
+impl<R: GuiRequests, State: GuiAppState> Gui<R, State> {
     pub fn new(
         device: Rc<Device>,
         queue: Rc<Queue>,
         window: &Window,
-        multiplexer: &dyn Multiplexer,
+        multiplexer: &dyn MultiplexerExt,
         requests: Arc<Mutex<R>>,
         parameters: AppStateParameters,
         global_state: &State,
@@ -639,7 +637,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
     fn rebuild_gui(
         &mut self,
         window: &Window,
-        multiplexer: &dyn Multiplexer,
+        multiplexer: &dyn MultiplexerExt,
         state: &State,
         top_bar_state: TopBarState,
     ) {
@@ -767,7 +765,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
     }
 
     /// Get the new size of each gui component from the multiplexer and forwards them.
-    pub fn resize(&mut self, multiplexer: &dyn Multiplexer, window: &Window) {
+    pub fn resize(&mut self, multiplexer: &dyn MultiplexerExt, window: &Window) {
         for element in self.components.values_mut() {
             element.resize(window, multiplexer);
         }
@@ -780,7 +778,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         window: &Window,
         theme: &iced::Theme,
         style: &renderer::Style,
-        multiplexer: &dyn Multiplexer,
+        multiplexer: &dyn MultiplexerExt,
     ) -> bool {
         let mut ret = false;
         for elements in self.components.values_mut() {
@@ -792,7 +790,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
     /// Ask the gui component to process the event and messages that they have received.
     pub fn update(
         &mut self,
-        multiplexer: &dyn Multiplexer,
+        multiplexer: &dyn MultiplexerExt,
         theme: &iced::Theme,
         style: &renderer::Style,
         window: &Window,
@@ -807,7 +805,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         &mut self,
         ui_size: UiSize,
         window: &Window,
-        multiplexer: &dyn Multiplexer,
+        multiplexer: &dyn MultiplexerExt,
         app_state: &State,
         top_bar_state: TopBarState,
     ) {
@@ -820,7 +818,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
     pub fn notify_scale_factor_change(
         &mut self,
         window: &Window,
-        multiplexer: &dyn Multiplexer,
+        multiplexer: &dyn MultiplexerExt,
         app_state: &State,
         top_bar_state: TopBarState,
     ) {
@@ -841,7 +839,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         encoder: &mut wgpu::CommandEncoder,
         clear_color: Option<iced::Color>,
         window: &Window,
-        multiplexer: &dyn Multiplexer,
+        multiplexer: &dyn MultiplexerExt,
         mouse_interaction: &mut iced::mouse::Interaction,
     ) {
         *mouse_interaction = Default::default();
@@ -873,7 +871,7 @@ fn convert_size_u32(size: PhysicalSize<u32>) -> Size<u32> {
 }
 
 /// Message sent to the gui component
-pub struct IcedMessages<S: AppState> {
+pub struct IcedMessages<S: GuiAppState> {
     left_panel: VecDeque<left_panel::Message<S>>,
     top_bar: VecDeque<top_bar::Message<S>>,
     status_bar: VecDeque<status_bar::Message<S>>,
@@ -882,7 +880,7 @@ pub struct IcedMessages<S: AppState> {
     redraw: bool,
 }
 
-impl<S: AppState> IcedMessages<S> {
+impl<S: GuiAppState> IcedMessages<S> {
     pub fn new() -> Self {
         Self {
             left_panel: VecDeque::new(),
@@ -954,7 +952,7 @@ impl<S: AppState> IcedMessages<S> {
     }
 }
 
-pub trait AppState:
+pub trait GuiAppState:
     Default + PartialEq + Clone + 'static + Send + std::fmt::Debug + std::fmt::Pointer
 {
     const POSSIBLE_CURVES: &'static [CurveDescriptorBuilder<Self>];
@@ -1006,7 +1004,7 @@ pub trait GuiDesignReaderExt: 'static {
     fn length_decomposition(&self, s_id: usize) -> String;
     fn nucl_is_anchor(&self, nucl: Nucl) -> bool;
     fn get_dna_elements(&self) -> &[DesignElement];
-    fn get_organizer_tree(&self) -> Option<Arc<EnsnTree>>;
+    fn get_organizer_tree(&self) -> Option<Arc<OrganizerTree>>;
     fn strand_name(&self, s_id: usize) -> String;
     fn get_all_cameras(&self) -> Vec<(CameraId, &str)>;
     fn get_grid_position_and_orientation(&self, g_id: GridId) -> Option<(Vec3, Rotor3)>;

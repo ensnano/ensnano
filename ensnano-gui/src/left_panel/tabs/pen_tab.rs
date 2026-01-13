@@ -1,5 +1,5 @@
 use crate::{
-    AppState,
+    GuiAppState,
     fonts::material_icons::{MaterialIcon, MaterialIconStyle, icon_to_char},
     helpers::{extra_jump, icon_button, material_icon_button, section},
     left_panel::{Message, tabs::GuiTab},
@@ -17,11 +17,11 @@ const NEW_BEZIER_PLANE_ICON: MaterialIcon = MaterialIcon::HistoryEdu;
 const EDIT_BEZIER_PATH_ICON: MaterialIcon = MaterialIcon::LinearScale;
 
 #[derive(Default)]
-pub struct PenTab<State: AppState> {
+pub struct PenTab<State: GuiAppState> {
     _state_type: PhantomData<State>,
 }
 
-impl<State: AppState> GuiTab<State> for PenTab<State> {
+impl<State: GuiAppState> GuiTab<State> for PenTab<State> {
     type Message = Message<State>;
 
     fn label(&self) -> TabLabel {

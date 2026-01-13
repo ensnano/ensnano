@@ -416,7 +416,7 @@ impl CurveDescriptor2D {
         }
     }
 
-    fn instantiate(self) -> Arc<dyn Curve2D + Sync + Send> {
+    fn instantiate(self) -> Arc<InstantiatedEllipse> {
         match self {
             Self::Ellipse {
                 semi_minor_axis,
@@ -478,9 +478,7 @@ impl InstantiatedEllipse {
         ret.initialize_cache();
         ret
     }
-}
 
-impl Curve2D for InstantiatedEllipse {
     fn position(&self, t: f64) -> DVec2 {
         let t = TAU * t;
         DVec2 {
@@ -500,16 +498,6 @@ impl Curve2D for InstantiatedEllipse {
     fn get_cached_curvilinear_abscissa_mut(&mut self) -> Option<&mut Vec<f64>> {
         Some(&mut self.cached_curvilinear_abscissa)
     }
-}
-
-trait Curve2D {
-    fn position(&self, t: f64) -> DVec2;
-
-    fn symmetry_order(&self) -> usize;
-
-    fn get_cached_curvilinear_abscissa_mut(&mut self) -> Option<&mut Vec<f64>>;
-
-    fn get_cached_curvilinear_abscissa(&self) -> Option<&[f64]>;
 
     fn t_for_curvilinear_abscissa(&self, s_objective: f64) -> f64 {
         if let Some(cache) = self.get_cached_curvilinear_abscissa() {
@@ -610,7 +598,7 @@ fn binary_search(goal: f64, slice: &[f64]) -> Option<usize> {
 }
 
 pub(super) struct TwistedTorus {
-    instantiated_curve: Arc<dyn Curve2D + Sync + Send>,
+    instantiated_curve: Arc<InstantiatedEllipse>,
     descriptor: TwistedTorusDescriptor,
     /// A scaling of the revolving curve so that the correct number of helices fit in the shape
     scale: f64,

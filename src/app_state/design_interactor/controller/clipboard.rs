@@ -6,7 +6,7 @@ use ensnano_design::{
     Design, MutStrandAndData, UpToDateDesign,
     domains::{Domain, helix_interval::HelixInterval},
     grid::{Edge, GridData, GridId, GridPosition, HelixGridPosition, grid_collection::FreeGridId},
-    helices::{Helices, HelixCollection as _},
+    helices::Helices,
     nucl::Nucl,
     parameters::HelixParameters,
     strands::{Strand, Strands, read_junctions},
@@ -401,7 +401,7 @@ impl Controller {
                     if let Some(pos1) = &previous_position {
                         let edge = edge_iter.next().ok_or(ErrOperation::CannotPasteHere)?;
                         let pos2 = grid_manager
-                            .translate_by_edge(pos1, edge)
+                            .translate_by_helix_and_edge(pos1, edge)
                             .ok_or(ErrOperation::CannotPasteHere)?;
                         let helix = grid_manager
                             .pos_to_object(pos2.light())
@@ -457,7 +457,7 @@ impl Controller {
     ) -> Option<Nucl> {
         let pos1 = helices.get(&nucl1.helix).and_then(|h| h.grid_position)?;
         let h2 = grid_manager
-            .translate_by_edge(&pos1, edge)
+            .translate_by_helix_and_edge(&pos1, edge)
             .and_then(|pos2| grid_manager.pos_to_object(pos2.light()))
             .map(|obj| obj.helix())?;
         Some(Nucl {
@@ -707,7 +707,10 @@ impl Controller {
             } => {
                 let data = design.get_updated_grid_data().clone();
                 let new_duplication_point = data
-                    .translate_by_edge(&last_pasting_point.to_helix_pos(), &duplication_edge)
+                    .translate_by_helix_and_edge(
+                        &last_pasting_point.to_helix_pos(),
+                        &duplication_edge,
+                    )
                     .ok_or(ErrOperation::CannotPasteHere)?;
                 let h_id0 = helices.first().ok_or(ErrOperation::EmptyClipboard)?;
                 let edge = data

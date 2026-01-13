@@ -1,6 +1,7 @@
 //! Allow your users to drag and drop widgets.
 
-use crate::{NodeId, OrganizerMessage, element::OrganizerElement};
+use super::{OrganizerNodeId, message::OrganizerMessage};
+use ensnano_design::design_element::DesignElementKey;
 use iced::{
     Element, Length, Padding, Rectangle, Size, Vector,
     advanced::{
@@ -15,22 +16,22 @@ use iced::{
 
 /// Identifier for drag-drop widgets.
 #[derive(Debug, Clone, PartialOrd, PartialEq, Eq, Ord)]
-pub enum DragIdentifier<K, AutoGroup> {
-    Group { id: NodeId<AutoGroup> },
-    Section { key: K },
+pub enum DragIdentifier {
+    Group { id: OrganizerNodeId },
+    Section { key: DesignElementKey },
 }
 
 /// An widget that can be dragged.
 ///
 /// There is no [Padding], [Size] for this widget. It sticks around its content.
-pub struct DragDropTarget<'a, Message, K, E> {
+pub struct DragDropTarget<'a, Message> {
     content: Element<'a, Message>,
-    identifier: DragIdentifier<K, E>,
+    identifier: DragIdentifier,
 }
 
-impl<'a, Message, K, E> DragDropTarget<'a, Message, K, E> {
+impl<'a, Message> DragDropTarget<'a, Message> {
     /// Creates a new [`DragDropTarget`] with the given content and identifier.
-    pub fn new(content: impl Into<Element<'a, Message>>, identifier: DragIdentifier<K, E>) -> Self {
+    pub fn new(content: impl Into<Element<'a, Message>>, identifier: DragIdentifier) -> Self {
         Self {
             content: content.into(),
             identifier,
@@ -38,10 +39,8 @@ impl<'a, Message, K, E> DragDropTarget<'a, Message, K, E> {
     }
 }
 
-impl<E> Widget<OrganizerMessage<E>, iced::Theme, iced::Renderer>
-    for DragDropTarget<'_, OrganizerMessage<E>, E::Key, E::AutoGroup>
-where
-    E: OrganizerElement,
+impl Widget<OrganizerMessage, iced::Theme, iced::Renderer>
+    for DragDropTarget<'_, OrganizerMessage>
 {
     fn tag(&self) -> widget::tree::Tag {
         self.content.as_widget().tag()
@@ -93,7 +92,7 @@ where
         cursor_position: mouse::Cursor,
         renderer: &iced::Renderer,
         clipboard: &mut dyn Clipboard,
-        shell: &mut Shell<OrganizerMessage<E>>,
+        shell: &mut Shell<OrganizerMessage>,
         viewport: &Rectangle,
     ) -> event::Status {
         let status = self.content.as_widget_mut().on_event(
@@ -150,7 +149,7 @@ where
         layout: Layout,
         renderer: &iced::Renderer,
         translation: Vector,
-    ) -> Option<overlay::Element<'b, OrganizerMessage<E>, iced::Theme, iced::Renderer>> {
+    ) -> Option<overlay::Element<'b, OrganizerMessage, iced::Theme, iced::Renderer>> {
         self.content.as_widget_mut().overlay(
             tree,
             layout.children().next().unwrap(),
@@ -160,12 +159,8 @@ where
     }
 }
 
-impl<'a, E> From<DragDropTarget<'a, OrganizerMessage<E>, E::Key, E::AutoGroup>>
-    for Element<'a, OrganizerMessage<E>>
-where
-    E: OrganizerElement,
-{
-    fn from(value: DragDropTarget<'a, OrganizerMessage<E>, E::Key, E::AutoGroup>) -> Self {
+impl<'a> From<DragDropTarget<'a, OrganizerMessage>> for Element<'a, OrganizerMessage> {
+    fn from(value: DragDropTarget<'a, OrganizerMessage>) -> Self {
         Element::new(value)
     }
 }

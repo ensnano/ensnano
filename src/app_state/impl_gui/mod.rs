@@ -3,26 +3,27 @@ mod curve_builders;
 use crate::app_state::{AppState, NewHelixStrand};
 use curve_builders::{BEZIER_CURVE_BUILDER, ELLIPSE_BUILDER, TWO_SPHERES_BUILDER};
 use ensnano_design::{
-    bezier_plane::BezierPathId, elements::DesignElementKey, parameters::HelixParameters,
+    bezier_plane::BezierPathId,
+    design_element::DesignElementKey,
+    interaction_modes::{ActionMode, SelectionMode},
+    organizer_tree::GroupId,
+    parameters::HelixParameters,
+    selection::{Selection, all_helices_no_grid},
 };
 use ensnano_gui::{
-    AppState as GuiState, GuiDesignReaderExt,
+    GuiAppState, GuiDesignReaderExt,
     left_panel::tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
     status_bar::{ClipboardContent, CurrentOpState},
 };
-use ensnano_organizer::tree::GroupId;
 use ensnano_utils::{
     PastingStatus, ScaffoldInfo, SimulationState, StrandBuildingStatus, WidgetBasis,
     app_state_parameters::{
         check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
     },
     graphics::HBondDisplay,
-    selection::{
-        ActionMode, Selection, SelectionConversion as _, SelectionMode, all_helices_no_grid,
-    },
 };
 
-impl GuiState for AppState {
+impl GuiAppState for AppState {
     const POSSIBLE_CURVES: &'static [CurveDescriptorBuilder<Self>] =
         &[ELLIPSE_BUILDER, TWO_SPHERES_BUILDER, BEZIER_CURVE_BUILDER];
 

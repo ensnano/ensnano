@@ -1,11 +1,11 @@
 use crate::{
-    AppState,
+    GuiAppState,
     helpers::{extra_jump, right_checkbox, section, text_button},
+    keyboard_priority::keyboard_priority,
     left_panel::{Message, tabs::GuiTab},
     theme,
 };
-use ensnano_design::elements::DesignElementKey;
-use ensnano_organizer::keyboard_priority::keyboard_priority;
+use ensnano_design::design_element::DesignElementKey;
 use ensnano_utils::{StandardSequence, consts::ICON_ATGC, ui_size::UiSize};
 use iced::{
     Length,
@@ -14,7 +14,7 @@ use iced::{
 use iced_aw::TabLabel;
 use std::marker::PhantomData;
 
-pub struct SequenceTab<State: AppState> {
+pub struct SequenceTab<State: GuiAppState> {
     toggle_text_value: bool,
     scaffold_position_str: String,
     scaffold_position: usize,
@@ -43,7 +43,7 @@ fn get_sequence_name(sequence: &str) -> &'static str {
     }
 }
 
-impl<State: AppState> SequenceTab<State> {
+impl<State: GuiAppState> SequenceTab<State> {
     pub fn new() -> Self {
         Self {
             toggle_text_value: false,
@@ -84,7 +84,7 @@ impl<State: AppState> SequenceTab<State> {
     }
 }
 
-impl<State: AppState> GuiTab<State> for SequenceTab<State> {
+impl<State: GuiAppState> GuiTab<State> for SequenceTab<State> {
     type Message = Message<State>;
 
     fn label(&self) -> TabLabel {

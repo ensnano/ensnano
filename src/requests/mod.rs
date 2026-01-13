@@ -9,24 +9,24 @@ pub(crate) mod poll;
 
 use crate::controller::normal_state::Action;
 use ensnano_design::{
-    elements::{DesignElementKey, DnaAttribute},
+    design_element::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridPosition, GridTypeDescr},
+    interaction_modes::{ActionMode, SelectionMode},
     nucl::Nucl,
+    operation::HyperboloidRequest,
+    organizer_tree::{GroupId, OrganizerTree},
+    selection::{CenterOfSelection, Selection},
 };
-use ensnano_organizer::{
-    keyboard_priority::PriorityRequest,
-    tree::{GroupId, OrganizerTree},
-};
+use ensnano_gui::keyboard_priority::PriorityRequest;
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
-    HyperboloidRequest, RigidBodyConstants, RollRequest,
+    RigidBodyConstants, RollRequest,
     app_state_parameters::{
         check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
     },
     application::AppId,
     graphics::{Background3D, FogParameters, HBondDisplay, RenderingMode},
     operation::Operation,
-    selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
     surfaces::UnrootedRevolutionSurfaceDescriptor,
 };
 use std::{collections::VecDeque, sync::Arc};
@@ -81,7 +81,7 @@ pub(crate) struct Requests {
     pub organizer_selection: Option<(Vec<DesignElementKey>, Option<GroupId>, bool)>,
     pub organizer_candidates: Option<Vec<DesignElementKey>>,
     pub new_attribute: Option<(DnaAttribute, Vec<DesignElementKey>)>,
-    pub new_tree: Option<OrganizerTree<DesignElementKey>>,
+    pub new_tree: Option<OrganizerTree>,
     pub split2d: Option<()>,
     pub toggle_visibility: Option<bool>,
     pub all_visible: Option<()>,

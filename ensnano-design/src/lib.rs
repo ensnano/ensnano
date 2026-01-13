@@ -8,23 +8,28 @@ mod tests;
 pub mod bezier_plane;
 pub mod cadnano;
 pub mod codenano;
-pub mod collection;
 pub mod consts;
 pub mod curves;
+pub mod design_element;
 pub mod design_operations;
 pub mod domains;
 pub mod drawing_style;
-pub mod elements;
 pub mod external_3d_objects;
 pub mod grid;
 pub mod group_attributes;
 pub mod helices;
+pub mod id_generator;
 mod insertions;
+pub mod interaction_modes;
 pub mod isometry3_descriptor;
 mod material_colors;
 pub mod nucl;
+pub mod operation;
+pub mod organizer_tree;
 pub mod parameters;
+pub mod phantom_element;
 pub mod scadnano;
+pub mod selection;
 pub mod strands;
 pub mod utils;
 
@@ -32,18 +37,21 @@ use self::{
     bezier_plane::{BezierPathData, BezierPaths, BezierPlanes},
     curves::CurveCache,
     domains::Domain,
-    elements::DesignElementKey,
     external_3d_objects::External3DObjects,
     grid::grid_collection::FreeGrids,
     grid::{GridData, GridDescriptor, GridId},
     group_attributes::GroupAttribute,
-    helices::{Helices, Helix, HelixCollection as _},
+    helices::{Helices, Helix},
     isometry3_descriptor::Isometry3Descriptor,
     nucl::Nucl,
     parameters::HelixParameters,
     strands::Strands,
 };
-use ensnano_organizer::tree::{GroupId, OrganizerTree};
+use crate::{
+    grid::HelixGridPosition,
+    organizer_tree::{GroupId, OrganizerTree},
+    strands::Strand,
+};
 use serde::{Deserialize, Serialize};
 use serde_with::{DefaultOnError, serde_as};
 use std::{
@@ -115,7 +123,7 @@ pub struct Design {
     pub anchors: HashSet<Nucl>,
 
     #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub organizer_tree: Option<Arc<OrganizerTree<DesignElementKey>>>,
+    pub organizer_tree: Option<Arc<OrganizerTree>>,
 
     #[serde(default)]
     pub ensnano_version: String,
@@ -521,6 +529,15 @@ impl Design {
     pub fn set_helices(&mut self, helices: BTreeMap<usize, Arc<Helix>>) {
         self.helices = Helices(Arc::new(helices));
     }
+}
+
+pub trait MainDesignReaderExt {
+    fn get_grid_position_of_helix(&self, h_id: usize) -> Option<HelixGridPosition>;
+    fn get_xover_id(&self, pair: &(Nucl, Nucl)) -> Option<usize>;
+    fn get_xover_with_id(&self, id: usize) -> Option<(Nucl, Nucl)>;
+    fn get_strand_with_id(&self, id: usize) -> Option<&Strand>;
+    fn get_helix_grid(&self, h_id: usize) -> Option<GridId>;
+    fn get_domain_ends(&self, s_id: usize) -> Option<Vec<Nucl>>;
 }
 
 pub trait AdditionalStructure: Send + Sync {

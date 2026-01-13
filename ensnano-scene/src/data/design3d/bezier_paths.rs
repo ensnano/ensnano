@@ -1,5 +1,5 @@
 use crate::{
-    AppState,
+    SceneAppState,
     data::design3d::{Design3D, SceneDesignReaderExt, create_dna_bond},
     element_selector,
     view::{
@@ -15,6 +15,7 @@ use ensnano_design::{
         bezier::{BezierControlPoint, BezierEndCoordinates, CubicBezierControlPoint},
     },
     parameters::HelixParameters,
+    selection::Selection,
 };
 use ensnano_utils::{
     consts::{
@@ -24,7 +25,6 @@ use ensnano_utils::{
         PIECEWISE_BEZIER_COLOR, SPHERE_RADIUS,
     },
     instance::Instance,
-    selection::Selection,
 };
 use ultraviolet::{Rotor3, Vec2, Vec3};
 
@@ -98,7 +98,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
         }
     }
 
-    pub fn get_bezier_sheets<S: AppState>(
+    pub fn get_bezier_sheets<S: SceneAppState>(
         &self,
         app_state: &S,
     ) -> (Vec<Sheet2D>, Vec<RawDnaInstance>) {
@@ -135,7 +135,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
             .map(|v| v.position)
     }
 
-    pub fn get_bezier_paths_elements<S: AppState>(
+    pub fn get_bezier_paths_elements<S: SceneAppState>(
         &self,
         app_state: &S,
     ) -> (Vec<RawDnaInstance>, Vec<RawDnaInstance>) {

@@ -3,7 +3,6 @@ mod controller;
 pub mod data;
 mod element_selector;
 mod maths_3d;
-mod obj_loader;
 mod rotor_utils;
 mod sausage_rosary;
 mod stl;
@@ -18,11 +17,17 @@ use ensnano_design::{
     consts::ITERATIVE_AXIS_ALGORITHM,
     grid::{GridPosition, HelixGridPosition},
     group_attributes::GroupPivot,
+    interaction_modes::{ActionMode, SelectionMode},
     nucl::Nucl,
+    operation::{DesignOperation, NewBezierTangentVector},
+    organizer_tree::GroupId,
+    selection::{
+        CenterOfSelection, Selection, extract_control_points, list_of_xover_ids,
+        set_of_grids_containing_selection, set_of_helices_containing_selection,
+    },
 };
-use ensnano_organizer::tree::GroupId;
 use ensnano_utils::{
-    DesignOperation, NewBezierTangentVector, WidgetBasis,
+    WidgetBasis,
     app_state_parameters::check_xovers_parameter::CheckXoversParameter,
     application::{AppId, Application, Camera3D, Notification},
     buffer_dimensions::BufferDimensions,
@@ -32,10 +37,6 @@ use ensnano_utils::{
         BezierControlPointTranslation, GridHelixCreation, GridRotation, GridTranslation,
         HelixRotation, HelixTranslation, Operation, TranslateBezierPathVertex,
         TranslateBezierSheetCorner,
-    },
-    selection::{
-        ActionMode, CenterOfSelection, Selection, SelectionMode, extract_control_points,
-        list_of_xover_ids, set_of_grids_containing_selection, set_of_helices_containing_selection,
     },
     strand_builder::StrandBuilder,
     surfaces::UnrootedRevolutionSurfaceDescriptor,
@@ -62,7 +63,7 @@ type ViewPtr = Rc<RefCell<View>>;
 const PNG_SIZE: u32 = 8192;
 
 /// A structure responsible of the 3D display of the designs
-pub struct Scene<S: AppState> {
+pub struct Scene<S: SceneAppState> {
     /// The update to be performed before next frame
     update: SceneUpdate,
     /// The Object that handles the drawing to the 3d texture
@@ -75,7 +76,7 @@ pub struct Scene<S: AppState> {
     area: DrawArea,
     element_selector: ElementSelector,
     older_state: S,
-    requests: Arc<Mutex<dyn Requests>>,
+    requests: Arc<Mutex<dyn SceneRequests>>,
     scene_kind: SceneKind,
     current_camera: Arc<(Camera3D, f32)>,
 }
@@ -86,7 +87,7 @@ pub enum SceneKind {
     Stereographic,
 }
 
-impl<S: AppState> Scene<S> {
+impl<S: SceneAppState> Scene<S> {
     /// Create a new scene.
     /// # Argument
     ///
@@ -97,7 +98,7 @@ impl<S: AppState> Scene<S> {
     /// * `window_size` the *Physical* size of the window in which the application is displayed
     ///
     /// * `area` the limits, in *physical* size of the area on which the scene is displayed
-    pub fn new<R: 'static + Requests>(
+    pub fn new<R: 'static + SceneRequests>(
         device: Rc<Device>,
         queue: Rc<Queue>,
         window_size: PhySize,
@@ -1141,7 +1142,7 @@ pub enum SceneNotification {
     NewCameraPosition(Vec3),
 }
 
-impl<S: AppState> Application for Scene<S> {
+impl<S: SceneAppState> Application for Scene<S> {
     type AppState = S;
 
     fn on_notify(&mut self, notification: Notification) {
@@ -1288,7 +1289,7 @@ impl<S: AppState> Application for Scene<S> {
     }
 }
 
-pub trait AppState: Clone + 'static {
+pub trait SceneAppState: Clone + 'static {
     type AppStateDesignReader: SceneDesignReaderExt;
     fn get_selection(&self) -> &[Selection];
     fn get_candidates(&self) -> &[Selection];
@@ -1331,7 +1332,7 @@ pub trait AppState: Clone + 'static {
     fn get_current_unrooted_surface(&self) -> Option<UnrootedRevolutionSurfaceDescriptor>;
 }
 
-pub trait Requests {
+pub trait SceneRequests {
     fn update_operation(&mut self, op: Arc<dyn Operation>);
     fn apply_design_operation(&mut self, op: DesignOperation);
     fn set_candidate(&mut self, candidates: Vec<Selection>);

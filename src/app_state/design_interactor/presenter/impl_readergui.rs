@@ -2,18 +2,19 @@ use crate::app_state::design_interactor::DesignInteractor;
 use ensnano_design::{
     CameraId,
     bezier_plane::{BezierPathId, BezierVertexId},
-    collection::Collection as _,
-    elements::DesignElement,
+    design_element::DesignElement,
     grid::GridId,
     nucl::Nucl,
+    operation::InsertionPoint,
+    organizer_tree::OrganizerTree,
+    selection::Selection,
     strands::Strand,
 };
-use ensnano_gui::{EnsnTree, GuiDesignReaderExt as ReaderGui};
-use ensnano_utils::{InsertionPoint, selection::Selection};
+use ensnano_gui::GuiDesignReaderExt;
 use std::sync::Arc;
 use ultraviolet::{Rotor3, Vec2, Vec3};
 
-impl ReaderGui for DesignInteractor {
+impl GuiDesignReaderExt for DesignInteractor {
     fn grid_has_small_spheres(&self, g_id: GridId) -> bool {
         self.presenter.content.grid_has_small_spheres(g_id)
     }
@@ -50,7 +51,7 @@ impl ReaderGui for DesignInteractor {
         self.presenter.content.elements.as_slice()
     }
 
-    fn get_organizer_tree(&self) -> Option<Arc<EnsnTree>> {
+    fn get_organizer_tree(&self) -> Option<Arc<OrganizerTree>> {
         self.presenter.get_design().organizer_tree.clone()
     }
 

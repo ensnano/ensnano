@@ -10,10 +10,9 @@ license.workspace = true
 workspace = true
 
 [dependencies]
-ensnano_organizer.workspace = true
-
 ahash.workspace = true
 chebyshev_polynomials.workspace = true
+iced.workspace = true
 icondata.workspace = true
 log.workspace = true
 num.workspace = true

@@ -37,66 +37,29 @@ impl Helices {
             new_map,
         }
     }
-}
 
-pub trait HelixCollection {
-    fn get(&self, id: &usize) -> Option<&Helix>;
-    fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a usize, &'a Helix)> + 'a>;
-    fn values<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Helix> + 'a>;
-    fn keys<'a>(&'a self) -> Box<dyn Iterator<Item = &'a usize> + 'a>;
-    fn len(&self) -> usize;
-    fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
-    fn contains_key(&self, id: &usize) -> bool;
-}
-
-pub trait HasHelixCollection {
-    fn get_collection(&self) -> &BTreeMap<usize, Arc<Helix>>;
-}
-
-impl HasHelixCollection for Helices {
-    fn get_collection(&self) -> &BTreeMap<usize, Arc<Helix>> {
-        &self.0
-    }
-}
-
-impl HasHelixCollection for HelicesMut<'_> {
-    fn get_collection(&self) -> &BTreeMap<usize, Arc<Helix>> {
-        &self.new_map
-    }
-}
-
-impl<T> HelixCollection for T
-where
-    T: HasHelixCollection,
-{
-    fn get(&self, id: &usize) -> Option<&Helix> {
-        self.get_collection().get(id).map(AsRef::as_ref)
+    pub fn get(&self, id: &usize) -> Option<&Helix> {
+        self.0.get(id).map(AsRef::as_ref)
     }
 
-    fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a usize, &'a Helix)> + 'a> {
-        Box::new(
-            self.get_collection()
-                .iter()
-                .map(|(id, arc)| (id, arc.as_ref())),
-        )
+    pub fn keys(&self) -> impl Iterator<Item = &usize> {
+        self.0.keys()
     }
 
-    fn keys<'a>(&'a self) -> Box<dyn Iterator<Item = &'a usize> + 'a> {
-        Box::new(self.get_collection().keys())
+    pub fn values(&self) -> impl Iterator<Item = &'_ Helix> {
+        self.0.values().map(AsRef::as_ref)
     }
 
-    fn values<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Helix> + 'a> {
-        Box::new(self.get_collection().values().map(AsRef::as_ref))
+    pub fn iter(&self) -> impl Iterator<Item = (&'_ usize, &'_ Helix)> {
+        self.0.iter().map(|(id, arc)| (id, arc.as_ref()))
     }
 
-    fn len(&self) -> usize {
-        self.get_collection().len()
+    pub fn contains_key(&self, id: &usize) -> bool {
+        self.0.contains_key(id)
     }
 
-    fn contains_key(&self, id: &usize) -> bool {
-        self.get_collection().contains_key(id)
+    pub fn len(&self) -> usize {
+        self.0.len()
     }
 }
 
@@ -146,9 +109,13 @@ impl HelicesMut<'_> {
     /// Add an helix to the collection and return the identifier of the added helix in the
     /// collection.
     pub fn push_helix(&mut self, helix: Helix) -> usize {
-        let helix_id = self.get_collection().keys().last().unwrap_or(&0) + 1;
+        let helix_id = self.new_map.keys().last().unwrap_or(&0) + 1;
         self.insert(helix_id, helix);
         helix_id
+    }
+
+    pub fn get(&self, id: &usize) -> Option<&Helix> {
+        self.new_map.get(id).map(AsRef::as_ref)
     }
 }
 
@@ -258,7 +225,7 @@ impl Helix {
         let grid_position = self
             .grid_position
             .as_ref()
-            .and_then(|gp| grid_data.translate_by_edge(gp, &edge));
+            .and_then(|gp| grid_data.translate_by_helix_and_edge(gp, &edge));
         let new_curve_descriptor = self
             .curve
             .as_ref()
@@ -810,13 +777,13 @@ impl Helix {
 
 #[derive(Default, Clone)]
 pub struct NuclCollection {
-    pub identifier: BTreeMap<Nucl, u32>, //HashMap<Nucl, u32, RandomState>,
+    pub identifier: BTreeMap<Nucl, u32>,
     virtual_nucl_map: HashMap<VirtualNucl, Nucl>,
 }
 
 impl NuclCollection {
-    pub fn iter_nucls_ids<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a Nucl, &'a u32)> + 'a> {
-        Box::new(self.identifier.iter())
+    pub fn iter_nucls_ids(&'_ self) -> impl Iterator<Item = (&'_ Nucl, &'_ u32)> {
+        self.identifier.iter()
     }
 
     pub fn virtual_to_real(&self, virtual_nucl: &VirtualNucl) -> Option<&Nucl> {

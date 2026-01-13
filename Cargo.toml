@@ -4,7 +4,6 @@ members = [
     "ensnano-exports",
     "ensnano-flatscene",
     "ensnano-gui",
-    "ensnano-organizer",
     "ensnano-physics",
     "ensnano-scene",
     "ensnano-utils",
@@ -29,7 +28,6 @@ ensnano_design = { path = "ensnano-design" }
 ensnano_exports = { path = "ensnano-exports" }
 ensnano_flatscene = { path = "ensnano-flatscene" }
 ensnano_gui = { path = "ensnano-gui" }
-ensnano_organizer = { path = "ensnano-organizer" }
 ensnano_physics = { path = "ensnano-physics" }
 ensnano_scene = { path = "ensnano-scene" }
 ensnano_utils = { path = "ensnano-utils" }
@@ -56,7 +54,7 @@ iced_graphics = "0.12"
 iced_runtime = "0.12"
 iced_wgpu = "0.12"
 iced_winit = "0.12"
-icondata = { version = "0.6", default-features = false, features = [
+icondata = { version = "0.7", default-features = false, features = [
     "bootstrap-icons",
     "material-design-icons",
 ] }
@@ -99,7 +97,6 @@ ensnano_design.workspace = true
 ensnano_exports.workspace = true
 ensnano_flatscene.workspace = true
 ensnano_gui.workspace = true
-ensnano_organizer.workspace = true
 ensnano_physics.workspace = true
 ensnano_scene.workspace = true
 ensnano_utils.workspace = true
@@ -309,10 +306,11 @@ unreachable = "allow"
 unseparated_literal_suffix = "allow"
 unwrap_in_result = "allow"
 unwrap_used = "allow"
-use_debug = "allow" # TODO: warn once log! is used everywhere instead of println!
+use_debug = "allow" 
 wildcard_enum_match_arm = "allow"
 
 # style
+len_without_is_empty = "allow"
 new_without_default = "allow"
 wrong_self_convention = "allow" # TODO: warn
 

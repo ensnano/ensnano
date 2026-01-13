@@ -1,11 +1,10 @@
 use crate::app_state::design_interactor::DesignInteractor;
+use ahash::RandomState;
 use ensnano_design::{
     AdditionalStructure,
     bezier_plane::{
-        BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
-        InstantiatedPath,
+        BezierPathId, BezierPlaneId, BezierPlanes, BezierVertex, BezierVertexId, InstantiatedPath,
     },
-    collection::Collection,
     curves::{
         CurveDescriptor, SurfaceInfo, SurfacePoint,
         bezier::{BezierControlPoint, CubicBezierConstructor},
@@ -13,7 +12,7 @@ use ensnano_design::{
     domains::Domain,
     external_3d_objects::External3DObjects,
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
-    helices::{Helix, HelixCollection as _},
+    helices::Helix,
     nucl::Nucl,
     parameters::HelixParameters,
 };
@@ -414,9 +413,7 @@ impl SceneDesignReaderExt for DesignInteractor {
         helix.curve.as_ref().map(Arc::as_ref)
     }
 
-    fn get_bezier_planes(
-        &self,
-    ) -> &dyn Collection<Key = BezierPlaneId, Item = BezierPlaneDescriptor> {
+    fn get_bezier_planes(&self) -> &BezierPlanes {
         &self.presenter.current_design.bezier_planes
     }
 
@@ -554,8 +551,10 @@ impl SceneDesignReaderExt for DesignInteractor {
             .map(Arc::as_ref)
     }
 
-    fn get_nucleotides_positions_by_strands(&self) -> HashMap<usize, StrandNucleotidesPositions> {
-        let mut nucl_pos = HashMap::new();
+    fn get_nucleotides_positions_by_strands(
+        &self,
+    ) -> HashMap<usize, StrandNucleotidesPositions, RandomState> {
+        let mut nucl_pos = HashMap::default();
         let design = self.presenter.current_design.as_ref();
         let content = self.presenter.content.as_ref();
 

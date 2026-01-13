@@ -1,5 +1,5 @@
 use crate::{
-    AppState,
+    GuiAppState,
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, jump_by, right_checkbox, section, subsection},
     left_panel::{
@@ -14,14 +14,14 @@ use iced::widget::{column, pick_list, scrollable, text};
 use iced_aw::TabLabel;
 use std::marker::PhantomData;
 
-pub struct ParametersTab<State: AppState> {
+pub struct ParametersTab<State: GuiAppState> {
     scroll_sensitivity_factory: RequestFactory<ScrollSensitivity>,
     _invert_y_scroll: bool,
     _state_type: PhantomData<State>,
 }
 
-impl<State: AppState> ParametersTab<State> {
-    pub fn new<S: AppState>(app_state: &S) -> Self {
+impl<State: GuiAppState> ParametersTab<State> {
+    pub fn new<S: GuiAppState>(app_state: &S) -> Self {
         Self {
             scroll_sensitivity_factory: RequestFactory::new(
                 FactoryId::Scroll,
@@ -45,7 +45,7 @@ impl<State: AppState> ParametersTab<State> {
     }
 }
 
-impl<State: AppState> GuiTab<State> for ParametersTab<State> {
+impl<State: GuiAppState> GuiTab<State> for ParametersTab<State> {
     type Message = Message<State>;
 
     fn label(&self) -> TabLabel {

@@ -83,30 +83,40 @@ mod scheduler;
 use controller::{
     Controller, LoadDesignError, SaveDesignError,
     channel_reader::{ChannelReader, ChannelReaderUpdate},
-    download_staples::StaplesDownloader,
     normal_state::Action,
     set_scaffold_sequence::{
-        ScaffoldSetter, SetScaffoldSequenceError, SetScaffoldSequenceOk, TargetScaffoldLength,
+        SetScaffoldSequenceError, SetScaffoldSequenceOk, TargetScaffoldLength,
     },
 };
 use ensnano_design::{
-    Camera, CameraId, SavingInformation, bezier_plane::BezierPlaneDescriptor, grid::GridId,
+    Camera, CameraId, MainDesignReaderExt, SavingInformation,
+    bezier_plane::BezierPlaneDescriptor,
+    grid::GridId,
     group_attributes::GroupPivot,
+    interaction_modes::{ActionMode, SelectionMode},
+    operation::{DesignOperation, DesignRotation, DesignTranslation, IsometryTarget},
+    organizer_tree::GroupId,
+    selection::{
+        CenterOfSelection, Selection, extract_nucls_from_selection, extract_only_grids,
+        extract_strands_from_selection, list_of_bezier_vertices, list_of_free_grids,
+        list_of_helices, list_of_strands, list_of_xover_as_nucl_pairs,
+    },
 };
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_flatscene::FlatScene;
 use ensnano_gui::{
-    AppState as _, Gui, IcedMessages, OverlayType, TopBarState,
+    Gui, GuiAppState as _, IcedMessages, OverlayType, TopBarState,
     fonts::{INTER_REGULAR_FONT, load_fonts},
+    keyboard_priority::KeyboardPriorityId,
     left_panel::ColorOverlay,
     theme,
 };
-use ensnano_organizer::{keyboard_priority::KeyboardPriorityId, tree::GroupId};
 use ensnano_physics::parameters::RapierParameters;
-use ensnano_scene::{AppState as _, Scene, SceneKind, data::design3d::SceneDesignReaderExt as _};
+use ensnano_scene::{
+    Scene, SceneAppState as _, SceneKind, data::design3d::SceneDesignReaderExt as _,
+};
 use ensnano_utils::{
-    DesignOperation, DesignRotation, DesignTranslation, IsometryTarget, PastingStatus,
-    RigidBodyConstants, TEXTURE_FORMAT,
+    PastingStatus, RigidBodyConstants, TEXTURE_FORMAT,
     app_state_parameters::{
         AppStateParameters, check_xovers_parameter::CheckXoversParameter,
         suggestion_parameters::SuggestionParameters,
@@ -118,12 +128,6 @@ use ensnano_utils::{
     },
     graphics::{Background3D, GuiComponentType, HBondDisplay, PhySize, RenderingMode, SplitMode},
     operation::Operation,
-    selection::{
-        ActionMode, CenterOfSelection, InteractorDesignReaderExt, Selection, SelectionMode,
-        extract_nucls_from_selection, extract_only_grids, extract_strands_from_selection,
-        list_of_bezier_vertices, list_of_free_grids, list_of_helices, list_of_strands,
-        list_of_xover_as_nucl_pairs,
-    },
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
     ui_size::UiSize,
 };
@@ -155,10 +159,13 @@ use winit::{
 
 use crate::app_state::{
     AppState,
-    design_interactor::controller::{
-        ErrOperation, InteractorNotification,
-        clipboard::{CopyOperation, PastePosition},
-        simulations::SimulationOperation,
+    design_interactor::{
+        DesignInteractor,
+        controller::{
+            ErrOperation, InteractorNotification,
+            clipboard::{CopyOperation, PastePosition},
+            simulations::SimulationOperation,
+        },
     },
     transitions::{AppStateTransition, OkOperation, TransitionLabel},
 };
@@ -1756,8 +1763,8 @@ impl MainStateView<'_> {
         self.main_state.redo();
     }
 
-    fn get_staple_downloader(&self) -> Box<dyn StaplesDownloader> {
-        Box::new(self.main_state.app_state.get_design_interactor())
+    fn get_design_interactor(&self) -> DesignInteractor {
+        self.main_state.app_state.get_design_interactor()
     }
 
     fn save_design(&mut self, path: &PathBuf) -> Result<(), SaveDesignError> {
@@ -1809,7 +1816,7 @@ impl MainStateView<'_> {
         Box::new(self.main_state.app_state.get_selection())
     }
 
-    fn get_design_reader(&self) -> Box<dyn InteractorDesignReaderExt> {
+    fn get_design_reader(&self) -> Box<dyn MainDesignReaderExt> {
         Box::new(self.main_state.app_state.get_design_interactor())
     }
 
@@ -2083,9 +2090,7 @@ impl MainStateView<'_> {
     fn load_svg(&mut self, path: PathBuf) {
         self.apply_operation(DesignOperation::ImportSvgPath { path });
     }
-}
 
-impl ScaffoldSetter for MainStateView<'_> {
     fn set_scaffold_sequence(
         &mut self,
         sequence: String,
@@ -2103,7 +2108,7 @@ impl ScaffoldSetter for MainStateView<'_> {
             Ok(OkOperation::NotUndoable) => (),
             Err(e) => return Err(SetScaffoldSequenceError(format!("{e:?}"))),
         }
-        let default_shift = self.get_staple_downloader().default_shift();
+        let default_shift = self.get_design_interactor().default_shift();
         let scaffold_length = self.get_scaffold_length().unwrap_or(0);
         let target_scaffold_length = if len == scaffold_length {
             TargetScaffoldLength::Ok

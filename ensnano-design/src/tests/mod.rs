@@ -2,7 +2,7 @@ use super::*;
 use crate::{
     domains::{helix_interval::HelixInterval, sanitize_domains},
     scadnano::ScadnanoDesign,
-    strands::{DomainJunction, Strand, read_junctions},
+    strands::{DomainJunction, read_junctions},
 };
 use regex::Regex;
 use std::fmt::Write as _;

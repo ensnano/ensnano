@@ -2,6 +2,7 @@
 
 ## Stabilize `dev_iced`
 
+- Movement is broken when both keyboard and mouse wheel translations (or zoom) are applied
 - Fix text fields in organizer tree
 - Fix text fields in revolution surface tab
 - Click on organizer tree should select and reciprocally (select should highlight in red in organizer tree)
@@ -29,7 +30,6 @@
 ## Scene (3D)
 
 - Slider controlling camera focal length
-- Movement is broken when both keyboard and mouse wheel translations (or zoom) are applied
 - Fix rotation with `H`/`J`/`K`/`L` while dragging (copy code from `swing`)
 - Cut plane (toggleable button next to grids)
 - Isometric view
@@ -48,7 +48,7 @@
   - Simply use the normal?
 - Give uniform instead of hardcoding
 - Fix on transparent objects (create a separate pass?)
-- Widget to control the width
+- Slider widget to control the width
 
 ## Flat Scene (2D)
 
@@ -101,6 +101,12 @@
 
 ## Refactor
 
+- Lift some types from the main crate to a crate above to avoid circular dependencies requiring single-use traits:
+  - `Multiplexer`
+  - `AppState`
+  - `DesignInteractor`
+  - ...
+- Clean/split `main.rs`
 - Remove in-file modules:
   - `abscissa_converter`
   - `input_color`
@@ -109,18 +115,20 @@
   - `color_square`
   - `gostop`
   - `fog_kind`
-- Rename structs with the same name in different crates, then remove all use aliases (`use ... as ...`)
+- Rename structs with the same name in different crates, then remove all use aliases (`use ... as ...`):
+  - `AbscissaConverter as AbscissaConverter_`
 - kebab-case -> snake_case for the crate directories
 - More consistent styling:
   - Create some `rustfmt.toml` rules?
   - Merge imports?
   - `mod` then `use`
 - Remove traits implemented only once:
-  - `Data`
-  - `AppState`
-  - `MainState`
-  - `ScaffoldSetter`
+  - `AdditionalStructure` (ensnano_design)
+  - `(Gui|FlatScene|Scene)AppState`
+  - `(Gui|FlatScene|Scene)Requests`
+  - `(Gui|FlatScene|Scene|Main)DesignReaderExt`
   - `Multiplexer`
+  - `RawDrawer`
 - Remove enums with one variant -> struct or raw value:
   - `AppOperation`
   - `GridPositionBuilder`
@@ -129,7 +137,8 @@
   - `IterativeFrameAlgorithm`
 - Replace `ensnano_gui/fonts/material_icons.rs` by SVG icons from `icondata` lib
 - `build.rs` for shaders instead of manual compilation
-- Merge `ensnano_organizer` and `ensnano_gui`
 - Share more code between `ensnano_scene` and `ensnano_flatscene`:
   - e.g. `export_2d_png` and `export_3d_png` are pretty much the same
+- Remove all `println!` and use the `log` crate everywhere
 - Split `src/controller/quit.rs` in multiple files
+- Rename one of the color_picker files (or merge)

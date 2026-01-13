@@ -3,11 +3,11 @@
 
 use crate::{
     BasisMapper,
-    oxdna::{OXDNA_LEN_FACTOR, OxDnaHelix as _, free_oxdna_nucl},
+    oxdna::{OXDNA_LEN_FACTOR, free_oxdna_nucl, oxdna_nucl},
     rand_base_from_symbol,
 };
 use ahash::AHashMap;
-use ensnano_design::{Design, domains::Domain, helices::HelixCollection as _, nucl::Nucl};
+use ensnano_design::{Design, domains::Domain, nucl::Nucl};
 use itertools::Itertools as _;
 use std::{
     borrow::Cow,
@@ -688,11 +688,8 @@ pub(super) fn pdb_export(
         for d in &s.domains {
             if let Domain::HelixDomain(dom) = d {
                 for position in dom.iter() {
-                    let ox_nucl = design.helices.get(&dom.helix).unwrap().ox_dna_nucl(
-                        position,
-                        dom.forward,
-                        &helix_parameters,
-                    );
+                    let helix = design.helices.get(&dom.helix).unwrap();
+                    let ox_nucl = oxdna_nucl(helix, position, dom.forward, &helix_parameters);
                     let nucl = Nucl {
                         position,
                         helix: dom.helix,

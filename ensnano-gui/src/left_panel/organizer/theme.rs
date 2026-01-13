@@ -61,7 +61,7 @@ impl ColorGradient {
 }
 
 /// “Parent” theme
-pub struct OrganizerTheme {
+pub(super) struct OrganizerTheme {
     gradient: ColorGradient,
     text_color: Color,
     border_color: Color,
@@ -79,7 +79,7 @@ pub(super) struct OrganizerThemeLevel {
 }
 
 /// “Selection” theme
-pub(super) struct OrganizerThemeSelection {
+struct OrganizerThemeSelection {
     selected: bool,
     text_color: Color,
     selected_color: Color,
@@ -225,7 +225,7 @@ impl OrganizerTheme {
         }
     }
 
-    pub fn grey() -> Self {
+    pub(super) fn grey() -> Self {
         Self {
             gradient: grey_gradient(),
             text_color: Color::WHITE,

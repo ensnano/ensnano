@@ -10,13 +10,14 @@ workspace = true
 
 [dependencies]
 ensnano_design.workspace = true
-ensnano_organizer.workspace = true
 
 bytemuck.workspace = true
 chrono.workspace = true
 color_space.workspace = true
 fontdue.workspace = true
+gltf.workspace = true
 log.workspace = true
+nom_stl.workspace = true
 num.workspace = true
 rand.workspace = true
 rayon.workspace = true

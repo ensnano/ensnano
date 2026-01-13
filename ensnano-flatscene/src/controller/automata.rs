@@ -1,11 +1,12 @@
 use crate::{
-    AppState,
+    FlatSceneAppState,
     circles2d::CircleInstance,
     controller::{Consequence, Controller},
     data::{ClickResult, helix::HelixHandle, strand::FreeEnd},
     flat_types::{FlatHelix, FlatNucl},
 };
-use ensnano_utils::{consts::CIRCLE2D_GREY, selection::ActionMode};
+use ensnano_design::interaction_modes::ActionMode;
+use ensnano_utils::consts::CIRCLE2D_GREY;
 use std::time::Instant;
 use ultraviolet::Vec2;
 use winit::{
@@ -17,12 +18,12 @@ use winit::{
 
 const WHEEL_RADIUS: f32 = 1.5;
 
-pub(super) struct Transition<S: AppState> {
+pub(super) struct Transition<S: FlatSceneAppState> {
     pub new_state: Option<Box<dyn ControllerState<S>>>,
     pub consequences: Consequence,
 }
 
-impl<S: AppState> Transition<S> {
+impl<S: FlatSceneAppState> Transition<S> {
     pub(super) fn nothing() -> Self {
         Self {
             new_state: None,
@@ -38,7 +39,7 @@ impl<S: AppState> Transition<S> {
     }
 }
 
-pub(super) trait ControllerState<S: AppState> {
+pub(super) trait ControllerState<S: FlatSceneAppState> {
     fn input(
         &mut self,
         event: &WindowEvent,
@@ -66,7 +67,7 @@ pub(super) struct NormalState {
     pub mouse_position: PhysicalPosition<f64>,
 }
 
-impl<S: AppState> ControllerState<S> for NormalState {
+impl<S: FlatSceneAppState> ControllerState<S> for NormalState {
     fn display(&self) -> String {
         String::from("Normal state")
     }
@@ -422,7 +423,7 @@ pub(super) struct Translating {
     translation_pivots: Vec<FlatNucl>,
 }
 
-impl<S: AppState> ControllerState<S> for Translating {
+impl<S: FlatSceneAppState> ControllerState<S> for Translating {
     fn display(&self) -> String {
         String::from("Translating state")
     }
@@ -518,7 +519,7 @@ pub(super) struct MovingCamera {
     clicked_button: MouseButton,
 }
 
-impl<S: AppState> ControllerState<S> for MovingCamera {
+impl<S: FlatSceneAppState> ControllerState<S> for MovingCamera {
     fn display(&self) -> String {
         String::from("Moving camera")
     }
@@ -597,7 +598,7 @@ pub(super) struct ReleasedPivot {
     pub rotation_pivots: Vec<Vec2>,
 }
 
-impl<S: AppState> ControllerState<S> for ReleasedPivot {
+impl<S: FlatSceneAppState> ControllerState<S> for ReleasedPivot {
     fn transition_to(&self, controller: &Controller<S>) {
         let helices = self.translation_pivots.iter().map(|p| p.helix).collect();
         controller.data.borrow_mut().set_selected_helices(helices);
@@ -1000,7 +1001,7 @@ pub(super) struct LeavingPivot {
     mouse_position: PhysicalPosition<f64>,
 }
 
-impl<S: AppState> ControllerState<S> for LeavingPivot {
+impl<S: FlatSceneAppState> ControllerState<S> for LeavingPivot {
     fn transition_to(&self, controller: &Controller<S>) {
         let wheels = self
             .rotation_pivots
@@ -1134,7 +1135,7 @@ impl Rotating {
     }
 }
 
-impl<S: AppState> ControllerState<S> for Rotating {
+impl<S: FlatSceneAppState> ControllerState<S> for Rotating {
     fn transition_to(&self, controller: &Controller<S>) {
         let helices = self.translation_pivots.iter().map(|p| p.helix).collect();
         controller.data.borrow_mut().set_selected_helices(helices);
@@ -1266,7 +1267,7 @@ struct AddOrXover {
     nucl: FlatNucl,
 }
 
-impl<S: AppState> ControllerState<S> for AddOrXover {
+impl<S: FlatSceneAppState> ControllerState<S> for AddOrXover {
     fn transition_from(&self, _controller: &Controller<S>) {}
 
     fn transition_to(&self, _controller: &Controller<S>) {}
@@ -1372,7 +1373,7 @@ struct InitAttachment {
     to: FlatNucl,
 }
 
-impl<S: AppState> ControllerState<S> for InitAttachment {
+impl<S: FlatSceneAppState> ControllerState<S> for InitAttachment {
     fn transition_from(&self, _controller: &Controller<S>) {}
 
     fn transition_to(&self, _controller: &Controller<S>) {}
@@ -1466,7 +1467,7 @@ struct InitBuilding {
     end: Option<bool>,
 }
 
-impl<S: AppState> ControllerState<S> for InitBuilding {
+impl<S: FlatSceneAppState> ControllerState<S> for InitBuilding {
     fn transition_from(&self, _controller: &Controller<S>) {}
 
     fn transition_to(&self, _controller: &Controller<S>) {}
@@ -1620,7 +1621,7 @@ struct MovingFreeEnd {
     prime3: bool,
 }
 
-impl<S: AppState> ControllerState<S> for MovingFreeEnd {
+impl<S: FlatSceneAppState> ControllerState<S> for MovingFreeEnd {
     fn transition_from(&self, _controller: &Controller<S>) {}
 
     fn transition_to(&self, _controller: &Controller<S>) {}
@@ -1742,7 +1743,7 @@ struct Building {
     can_attach: bool,
 }
 
-impl<S: AppState> ControllerState<S> for Building {
+impl<S: FlatSceneAppState> ControllerState<S> for Building {
     fn transition_from(&self, _controller: &Controller<S>) {}
 
     fn transition_to(&self, _controller: &Controller<S>) {}
@@ -1838,7 +1839,7 @@ pub(super) struct Crossing {
     cut: bool,
 }
 
-impl<S: AppState> ControllerState<S> for Crossing {
+impl<S: FlatSceneAppState> ControllerState<S> for Crossing {
     fn transition_to(&self, _controller: &Controller<S>) {}
 
     fn transition_from(&self, _controller: &Controller<S>) {}
@@ -1930,7 +1931,7 @@ struct Cutting {
     whole_strand: bool,
 }
 
-impl<S: AppState> ControllerState<S> for Cutting {
+impl<S: FlatSceneAppState> ControllerState<S> for Cutting {
     fn transition_from(&self, _controller: &Controller<S>) {}
 
     fn transition_to(&self, _controller: &Controller<S>) {}
@@ -2016,7 +2017,7 @@ struct RmHelix {
     mouse_position: PhysicalPosition<f64>,
 }
 
-impl<S: AppState> ControllerState<S> for RmHelix {
+impl<S: FlatSceneAppState> ControllerState<S> for RmHelix {
     fn transition_from(&self, _controller: &Controller<S>) {}
 
     fn transition_to(&self, _controller: &Controller<S>) {}
@@ -2074,7 +2075,7 @@ struct FlipGroup {
     helix: FlatHelix,
 }
 
-impl<S: AppState> ControllerState<S> for FlipGroup {
+impl<S: FlatSceneAppState> ControllerState<S> for FlipGroup {
     fn transition_from(&self, _controller: &Controller<S>) {}
 
     fn transition_to(&self, _controller: &Controller<S>) {}
@@ -2150,7 +2151,7 @@ struct FlipVisibility {
     apply_to_other: bool,
 }
 
-impl<S: AppState> ControllerState<S> for FlipVisibility {
+impl<S: FlatSceneAppState> ControllerState<S> for FlipVisibility {
     fn transition_from(&self, _controller: &Controller<S>) {}
 
     fn transition_to(&self, _controller: &Controller<S>) {}
@@ -2227,7 +2228,7 @@ struct FollowingSuggestion {
     button: MouseButton,
 }
 
-impl<S: AppState> ControllerState<S> for FollowingSuggestion {
+impl<S: FlatSceneAppState> ControllerState<S> for FollowingSuggestion {
     fn transition_from(&self, _controller: &Controller<S>) {}
 
     fn transition_to(&self, _controller: &Controller<S>) {}
@@ -2324,7 +2325,7 @@ struct Pasting {
     nucl: Option<FlatNucl>,
 }
 
-impl<S: AppState> ControllerState<S> for Pasting {
+impl<S: FlatSceneAppState> ControllerState<S> for Pasting {
     fn transition_from(&self, _controller: &Controller<S>) {}
 
     fn transition_to(&self, _controller: &Controller<S>) {}
@@ -2397,7 +2398,7 @@ struct DraggingSelection {
     pub fixed_corner: PhysicalPosition<f64>,
 }
 
-impl<S: AppState> ControllerState<S> for DraggingSelection {
+impl<S: FlatSceneAppState> ControllerState<S> for DraggingSelection {
     fn display(&self) -> String {
         String::from("Dragging Selection")
     }
@@ -2518,7 +2519,7 @@ struct DoubleClicking {
     clicked_position: PhysicalPosition<f64>,
 }
 
-impl<S: AppState> ControllerState<S> for DoubleClicking {
+impl<S: FlatSceneAppState> ControllerState<S> for DoubleClicking {
     fn check_timers(&mut self, controller: &Controller<S>) -> Transition<S> {
         let now = Instant::now();
         if (now - self.clicked_time).as_millis() > 250 {
@@ -2607,7 +2608,7 @@ struct AddCirclePivot {
     click_result: ClickResult,
 }
 
-impl<S: AppState> ControllerState<S> for AddCirclePivot {
+impl<S: FlatSceneAppState> ControllerState<S> for AddCirclePivot {
     fn transition_from(&self, _controller: &Controller<S>) {}
 
     fn transition_to(&self, _controller: &Controller<S>) {}
@@ -2702,7 +2703,7 @@ struct InitHelixTranslation {
     click_result: ClickResult,
 }
 
-impl<S: AppState> ControllerState<S> for InitHelixTranslation {
+impl<S: FlatSceneAppState> ControllerState<S> for InitHelixTranslation {
     fn display(&self) -> String {
         String::from("Init Helix Translation")
     }
@@ -2792,7 +2793,7 @@ impl TranslatingHandle {
     }
 }
 
-impl<S: AppState> ControllerState<S> for TranslatingHandle {
+impl<S: FlatSceneAppState> ControllerState<S> for TranslatingHandle {
     fn display(&self) -> String {
         String::from("Translating state")
     }

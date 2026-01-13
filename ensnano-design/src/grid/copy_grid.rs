@@ -1,12 +1,11 @@
 use crate::{
     Design,
-    collection::Collection as _,
     domains::{Domain, helix_interval::HelixInterval},
     grid::{
         GridDescriptor, GridId, HelixGridPosition,
         grid_collection::{FreeGridId, FreeGrids, FreeGridsMut},
     },
-    helices::{Helix, HelixCollection as _},
+    helices::Helix,
     strands::{DomainJunction, Strand},
 };
 use std::{borrow::Cow, collections::HashMap};

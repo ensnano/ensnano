@@ -10,19 +10,17 @@ workspace = true
 
 [dependencies]
 ensnano_design.workspace = true
-ensnano_organizer.workspace = true
 ensnano_utils.workspace = true
 
+ahash.workspace = true
 bytemuck.workspace = true
 futures.workspace = true
 futures-channel.workspace = true
-gltf.workspace = true
 image.workspace = true
 int-enum.workspace = true
 itertools.workspace = true
 log.workspace = true
 lyon.workspace = true
-nom_stl.workspace = true
 num_enum.workspace = true
 png.workspace = true
 serde.workspace = true

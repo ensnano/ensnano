@@ -1,6 +1,9 @@
-use crate::{AppState, Requests, theme::GuiBackground};
-use ensnano_organizer::keyboard_priority::{PriorityRequest, keyboard_priority};
-use ensnano_utils::{PastingStatus, StrandBuildingStatus, operation::Operation, ui_size::UiSize};
+use crate::{
+    GuiAppState, GuiRequests,
+    keyboard_priority::{PriorityRequest, keyboard_priority},
+    theme::GuiBackground,
+};
+use ensnano_utils::{PastingStatus, operation::Operation, ui_size::UiSize};
 use iced::{
     Alignment, Color, Element, Length,
     widget::{Row, Space, Text, column, container, horizontal_space, row, text, text_input},
@@ -33,7 +36,7 @@ impl StatusParameter {
     }
 }
 
-pub struct StatusBar<R: Requests, S: AppState> {
+pub struct StatusBar<R: GuiRequests, S: GuiAppState> {
     operation: Option<OperationInput>,
     requests: Arc<Mutex<R>>,
     progress: Option<(String, f32)>,
@@ -43,7 +46,7 @@ pub struct StatusBar<R: Requests, S: AppState> {
     logical_size: LogicalSize<f64>,
 }
 
-impl<R: Requests, State: AppState> StatusBar<R, State> {
+impl<R: GuiRequests, State: GuiAppState> StatusBar<R, State> {
     pub fn new(
         requests: Arc<Mutex<R>>,
         state: &State,
@@ -88,7 +91,7 @@ impl<R: Requests, State: AppState> StatusBar<R, State> {
 
 // List of Messages that can be send by the status bar.
 #[derive(Clone, Debug)]
-pub enum Message<S: AppState> {
+pub enum Message<S: GuiAppState> {
     ValueStrChanged(usize, String),
     ValueSet(usize, String),
     Progress(Option<(String, f32)>),
@@ -100,7 +103,7 @@ pub enum Message<S: AppState> {
     SetKeyboardPriority(PriorityRequest),
 }
 
-impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
+impl<R: GuiRequests, S: GuiAppState> Program for StatusBar<R, S> {
     type Message = Message<S>;
     type Theme = iced::Theme;
     type Renderer = iced::Renderer;
@@ -264,7 +267,7 @@ impl OperationInput {
         self.operation = operation;
     }
 
-    fn view<S: AppState>(&self, ui_size: UiSize) -> Row<'_, Message<S>> {
+    fn view<S: GuiAppState>(&self, ui_size: UiSize) -> Row<'_, Message<S>> {
         let mut row = Row::new();
         let op = self.operation.as_ref();
         row = row.push(text(op.description()).size(ui_size.main_text()));
@@ -410,19 +413,6 @@ mod input_color {
             Default::default()
             // Maybe this is not correct. I wrote this to make it compile.
         }
-    }
-}
-
-trait ToInfo {
-    fn to_info(&self) -> String;
-}
-
-impl ToInfo for StrandBuildingStatus {
-    fn to_info(&self) -> String {
-        format!(
-            "Current domain length: {} nt ({:.2} nm). 5': {}, 3': {}",
-            self.nt_length, self.nm_length, self.prime5.position, self.prime3.position
-        )
     }
 }
 

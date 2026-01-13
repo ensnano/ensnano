@@ -1,7 +1,4 @@
-use crate::{
-    collection::{Collection as _, HasMap},
-    grid::{GridDescriptor, GridId},
-};
+use crate::grid::{GridDescriptor, GridId};
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, sync::Arc};
 
@@ -29,14 +26,6 @@ impl FreeGridId {
 /// Collection of free grids descriptor
 pub struct FreeGrids(pub(super) Arc<BTreeMap<FreeGridId, Arc<GridDescriptor>>>);
 
-impl HasMap for FreeGrids {
-    type Key = FreeGridId;
-    type Item = GridDescriptor;
-    fn get_map(&self) -> &BTreeMap<Self::Key, Arc<Self::Item>> {
-        &self.0
-    }
-}
-
 impl FreeGrids {
     pub fn make_mut(&mut self) -> FreeGridsMut<'_> {
         FreeGridsMut {
@@ -60,7 +49,23 @@ impl FreeGrids {
 
     pub fn get_from_g_id(&self, key: &GridId) -> Option<&GridDescriptor> {
         let free_id = FreeGridId::try_from_grid_id(*key)?;
-        self.get(&free_id)
+        self.0.get(&free_id).map(AsRef::as_ref)
+    }
+
+    pub fn get(&self, grid_id: &FreeGridId) -> Option<&GridDescriptor> {
+        self.0.get(grid_id).map(AsRef::as_ref)
+    }
+
+    pub fn keys(&self) -> impl Iterator<Item = &FreeGridId> {
+        self.0.keys()
+    }
+
+    pub fn values(&self) -> impl Iterator<Item = &GridDescriptor> {
+        self.0.values().map(AsRef::as_ref)
+    }
+
+    pub fn len(&self) -> usize {
+        self.0.len()
     }
 }
 

@@ -1,5 +1,5 @@
 use crate::{
-    Requests,
+    FlatSceneRequests,
     data::strand::Strand,
     flat_types::{Flat, FlatHelix, FlatHelixMaps, FlatIdx, FlatNucl, HelixSegment, HelixVec},
     full_isometry::FullIsometry,
@@ -7,7 +7,7 @@ use crate::{
 use ahash::RandomState;
 use ensnano_design::{
     curves::time_nucl_map::AbscissaConverter,
-    helices::{Helices, Helix, HelixCollection as _, NuclCollection},
+    helices::{Helices, Helix, NuclCollection},
     nucl::Nucl,
     strands::Extremity,
 };
@@ -37,13 +37,13 @@ pub(super) struct Design2d<R: FlatSceneDesignReaderExt> {
     pasted_strands: Vec<Strand>,
     last_flip_other: Option<FlatHelix>,
     removed: BTreeSet<FlatIdx>,
-    requests: Arc<Mutex<dyn Requests>>,
+    requests: Arc<Mutex<dyn FlatSceneRequests>>,
     known_helices: HashMap<usize, *const Helix>,
     known_map: *const Helices,
 }
 
 impl<R: FlatSceneDesignReaderExt> Design2d<R> {
-    pub(super) fn new(design: R, requests: Arc<Mutex<dyn Requests>>) -> Self {
+    pub(super) fn new(design: R, requests: Arc<Mutex<dyn FlatSceneRequests>>) -> Self {
         Self {
             design,
             helices: HelixVec::new(),

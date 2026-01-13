@@ -1,7 +1,6 @@
 pub mod import_from_svg;
 
 use crate::{
-    collection::{Collection as _, HasMap},
     curves::{
         Curve,
         bezier::{
@@ -38,14 +37,6 @@ pub struct BezierPlaneId(pub u32);
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct BezierPlanes(Arc<BTreeMap<BezierPlaneId, Arc<BezierPlaneDescriptor>>>);
 
-impl HasMap for BezierPlanes {
-    type Key = BezierPlaneId;
-    type Item = BezierPlaneDescriptor;
-    fn get_map(&self) -> &BTreeMap<Self::Key, Arc<Self::Item>> {
-        &self.0
-    }
-}
-
 impl BezierPlanes {
     pub fn make_mut(&mut self) -> BezierPlanesMut<'_> {
         let new_map = BTreeMap::clone(&self.0);
@@ -53,6 +44,22 @@ impl BezierPlanes {
             source: self,
             new_map,
         }
+    }
+
+    pub fn values(&self) -> impl Iterator<Item = &BezierPlaneDescriptor> {
+        self.0.values().map(AsRef::as_ref)
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = (&BezierPlaneId, &BezierPlaneDescriptor)> {
+        self.0.iter().map(|(id, desc)| (id, desc.as_ref()))
+    }
+
+    pub fn get(&self, plane_id: &BezierPlaneId) -> Option<&BezierPlaneDescriptor> {
+        self.0.get(plane_id).map(AsRef::as_ref)
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
     }
 }
 
@@ -159,14 +166,6 @@ pub struct BezierPathId(pub u32);
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct BezierPaths(Arc<BTreeMap<BezierPathId, Arc<BezierPath>>>);
 
-impl HasMap for BezierPaths {
-    type Key = BezierPathId;
-    type Item = BezierPath;
-    fn get_map(&self) -> &BTreeMap<Self::Key, Arc<Self::Item>> {
-        self.0.as_ref()
-    }
-}
-
 pub struct BezierPathsMut<'a> {
     source: &'a mut BezierPaths,
     new_map: BTreeMap<BezierPathId, Arc<BezierPath>>,
@@ -178,6 +177,18 @@ impl BezierPaths {
             new_map: BTreeMap::clone(&self.0),
             source: self,
         }
+    }
+
+    pub fn get(&self, id: &BezierPathId) -> Option<&BezierPath> {
+        self.0.get(id).map(AsRef::as_ref)
+    }
+
+    pub fn keys(&self) -> impl Iterator<Item = &BezierPathId> {
+        self.0.keys()
+    }
+
+    pub fn values(&self) -> impl Iterator<Item = &BezierPath> {
+        self.0.values().map(AsRef::as_ref)
     }
 }
 
@@ -367,7 +378,7 @@ impl PieceWiseBezierInstantiator<Vec3> for BezierInstantiator {
         let vertex = self.source_path.vertices().get(i)?;
         vertex.position_in.and_then(|position_in| {
             let vec2 = vertex.position - position_in;
-            let plane = self.source_planes.get(&vertex.plane_id)?;
+            let plane = self.source_planes.0.get(&vertex.plane_id)?;
             Some(plane.vec2_angle_to_vec3(vec2, vertex.angle_with_plane))
         })
     }
@@ -376,7 +387,7 @@ impl PieceWiseBezierInstantiator<Vec3> for BezierInstantiator {
         let vertex = self.source_path.vertices().get(i)?;
         vertex.position_out.and_then(|position_out| {
             let vec2 = position_out - vertex.position;
-            let plane = self.source_planes.get(&vertex.plane_id)?;
+            let plane = self.source_planes.0.get(&vertex.plane_id)?;
             Some(plane.vec2_angle_to_vec3(vec2, vertex.angle_with_plane))
         })
     }
@@ -437,8 +448,7 @@ fn path_to_curve_descriptor(
         source_path,
         path_3d,
     };
-    let mut ret =
-        <BezierInstantiator as PieceWiseBezierInstantiator<Vec3>>::instantiate(&instantiator)?;
+    let mut ret = instantiator.instantiate()?;
 
     // This descriptor is only used to draw the path of the curve on the bezier plane. It does not
     // need to be precise, but it is better if we can update it quickly.

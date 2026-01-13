@@ -130,7 +130,6 @@ impl RevolutionSurfaceSystem {
         let len_by_sum =
             (self.total_length(&thetas) / (self.helix_parameters.rise as f64)).floor() as usize;
         println!("total len by sum {len_by_sum}");
-        //let rescaling_factor = self.scaffold_len_target as f64 / total_len as f64;
         self.topology
             .rescale_radius(self.scaffold_len_target, total_len);
         total_len

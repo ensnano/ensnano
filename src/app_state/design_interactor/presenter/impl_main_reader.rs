@@ -1,14 +1,11 @@
 use crate::app_state::design_interactor::DesignInteractor;
-use crate::controller::download_staples::{
-    DownloadStapleError, DownloadStapleOk, StaplesDownloader,
-};
+use crate::controller::download_staples::{DownloadStapleError, DownloadStapleOk};
 use ensnano_design::{
+    MainDesignReaderExt,
     grid::{GridId, HelixGridPosition},
-    helices::HelixCollection as _,
     nucl::Nucl,
     strands::Strand,
 };
-use ensnano_utils::selection::InteractorDesignReaderExt as MainReader;
 use itertools::Itertools as _;
 use rust_xlsxwriter::{Color, Format, Workbook};
 use serde::Serialize;
@@ -18,8 +15,8 @@ use std::{
     path::Path,
 };
 
-impl StaplesDownloader for DesignInteractor {
-    fn download_staples(&self) -> Result<DownloadStapleOk, DownloadStapleError> {
+impl DesignInteractor {
+    pub(crate) fn download_staples(&self) -> Result<DownloadStapleOk, DownloadStapleError> {
         let mut warnings = Vec::new();
         if self.presenter.current_design.scaffold_id.is_none() {
             return Err(DownloadStapleError::NoScaffoldSet);
@@ -62,7 +59,7 @@ impl StaplesDownloader for DesignInteractor {
         Ok(DownloadStapleOk { warnings })
     }
 
-    fn write_staples_xlsx(&self, xlsx_path: &Path) {
+    pub(crate) fn write_staples_xlsx(&self, xlsx_path: &Path) {
         // use simple_excel_writer::{row, Row, Workbook};
 
         let all_group_names: Vec<String> = self.presenter.get_names_of_all_groups();
@@ -253,7 +250,7 @@ impl StaplesDownloader for DesignInteractor {
         // wb.close().expect("close excel error!");
     }
 
-    fn write_intervals(&self, origami_path: &Path) {
+    pub(crate) fn write_intervals(&self, origami_path: &Path) {
         let staples = self
             .presenter
             .content
@@ -285,7 +282,7 @@ impl StaplesDownloader for DesignInteractor {
         }
     }
 
-    fn default_shift(&self) -> Option<usize> {
+    pub(crate) fn default_shift(&self) -> Option<usize> {
         self.presenter.current_design.scaffold_shift
     }
 }
@@ -302,7 +299,7 @@ fn warn_scaffold_seq_mismatch(scaffold_length: usize, sequence_length: usize) ->
     )
 }
 
-impl MainReader for DesignInteractor {
+impl MainDesignReaderExt for DesignInteractor {
     fn get_xover_id(&self, pair: &(Nucl, Nucl)) -> Option<usize> {
         self.presenter.junctions_ids.get_id(pair)
     }

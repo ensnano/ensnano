@@ -4,19 +4,20 @@ pub(crate) mod impl_reader2d;
 pub(crate) mod impl_reader3d;
 pub(crate) mod impl_readergui;
 
-use super::id_generator::IdGenerator;
 use crate::app_state::{address_pointer::AddressPointer, design_interactor::DesignInteractor};
+use ahash::RandomState;
 use design_content::DesignContent;
 use ensnano_design::{
     CameraId, Design,
     bezier_plane::{BezierPath, BezierPathId},
-    collection::Collection as _,
     curves::bezier::InstantiatedPiecewiseBezier,
+    design_element::DesignElementKey,
     domains::Domain,
-    elements::DesignElementKey,
     grid::{Grid, GridId},
-    helices::{Helix, HelixCollection as _, NuclCollection},
+    helices::{Helix, NuclCollection},
+    id_generator::IdGenerator,
     nucl::Nucl,
+    selection::Selection,
     strands::{Extremity, Strand},
 };
 use ensnano_exports::{ExportResult, ExportType, oxdna::BACKBONE_TO_CM};
@@ -25,8 +26,7 @@ use ensnano_utils::{
     Referential, ScaffoldInfo,
     app_state_parameters::suggestion_parameters::SuggestionParameters,
     application::Camera3D,
-    selection::Selection,
-    strand_builder::{NeighborDescriptor, NeighborDescriptorGiver as _},
+    strand_builder::{NeighborDescriptor, get_neighbor_nucl},
 };
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
@@ -81,10 +81,10 @@ impl Presenter {
     }
 
     pub(crate) fn can_start_builder_at(&self, nucl: Nucl) -> bool {
-        let left = self.current_design.get_neighbor_nucl(nucl.left());
-        let right = self.current_design.get_neighbor_nucl(nucl.right());
+        let left = get_neighbor_nucl(&self.current_design, nucl.left());
+        let right = get_neighbor_nucl(&self.current_design, nucl.right());
         if self.content.nucl_collection.contains_nucl(&nucl) {
-            if let Some(desc) = self.current_design.get_neighbor_nucl(nucl) {
+            if let Some(desc) = get_neighbor_nucl(&self.current_design, nucl) {
                 let filter =
                     |d: &NeighborDescriptor| !(d.identifier.is_same_domain_than(&desc.identifier));
                 left.filter(filter)
@@ -753,7 +753,7 @@ pub(crate) trait SimulationUpdate: Send + Sync {
     fn update_positions(
         &self,
         _identifier_nucl: &NuclCollection,
-        _space_position: &mut HashMap<u32, [f32; 3], ahash::RandomState>,
+        _space_position: &mut HashMap<u32, [f32; 3], RandomState>,
     ) {
     }
 

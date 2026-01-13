@@ -1,11 +1,7 @@
-use ensnano_organizer::element::{
-    AttributeDisplay, AttributeWidget, ElementKey, OrganizerAttribute,
-    OrganizerAttributeDiscriminant, OrganizerElement,
-};
+use icondata::Icon;
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use serde::{Deserialize, Serialize};
 
-/// Actual implementation of the OrganizerElement for the LeftPanel.
 #[derive(Clone, Debug)]
 pub enum DesignElement {
     Grid {
@@ -97,12 +93,8 @@ impl std::fmt::Display for BoundedLength {
     }
 }
 
-impl OrganizerElement for DesignElement {
-    type Attribute = DnaAttribute;
-    type Key = DesignElementKey;
-    type AutoGroup = DnaAutoGroup;
-
-    fn key(&self) -> DesignElementKey {
+impl DesignElement {
+    pub fn key(&self) -> DesignElementKey {
         match self {
             Self::Grid { id, .. } => DesignElementKey::Grid(*id),
             Self::Strand { id, .. } => DesignElementKey::Strand(*id),
@@ -122,7 +114,7 @@ impl OrganizerElement for DesignElement {
         }
     }
 
-    fn display_name(&self) -> String {
+    pub fn display_name(&self) -> String {
         match self {
             Self::Grid { id, .. } => format!("Grid {id}"),
             Self::Strand { id, .. } => format!("Strand {id}"),
@@ -146,7 +138,7 @@ impl OrganizerElement for DesignElement {
         }
     }
 
-    fn attributes(&self) -> Vec<DnaAttribute> {
+    pub fn attributes(&self) -> Vec<DnaAttribute> {
         match self {
             Self::Helix {
                 group,
@@ -161,7 +153,7 @@ impl OrganizerElement for DesignElement {
         }
     }
 
-    fn min_max_domain_length_if_strand(&self) -> Option<(usize, usize)> {
+    pub fn min_max_domain_length_if_strand(&self) -> Option<(usize, usize)> {
         match self {
             Self::Strand { domain_lengths, .. } => match (
                 domain_lengths.clone().iter().min().copied(),
@@ -175,7 +167,7 @@ impl OrganizerElement for DesignElement {
         }
     }
 
-    fn auto_groups(&self, last_domain_length_bounds: (usize, usize)) -> Vec<Self::AutoGroup> {
+    pub fn auto_groups(&self, last_domain_length_bounds: (usize, usize)) -> Vec<DnaAutoGroup> {
         match self {
             Self::Strand {
                 length,
@@ -198,6 +190,10 @@ impl OrganizerElement for DesignElement {
             _ => vec![],
         }
     }
+
+    pub fn all_discriminants() -> &'static [DnaAttributeDiscriminant] {
+        DnaAttribute::all_discriminants()
+    }
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Serialize, Deserialize, Hash, Copy)]
@@ -215,6 +211,28 @@ pub enum DesignElementKey {
     },
 }
 
+impl DesignElementKey {
+    pub fn name(section: DesignElementSection) -> String {
+        match section {
+            DesignElementSection::Grid => "Grid".to_owned(),
+            DesignElementSection::Helix => "Helix".to_owned(),
+            DesignElementSection::Strand => "Strand".to_owned(),
+            DesignElementSection::CrossOver => "CrossOver".to_owned(),
+            DesignElementSection::Nucleotide => "Nucleotide".to_owned(),
+        }
+    }
+
+    pub fn section(&self) -> DesignElementSection {
+        match self {
+            Self::Strand(_) => DesignElementSection::Strand,
+            Self::Helix(_) => DesignElementSection::Helix,
+            Self::Nucleotide { .. } => DesignElementSection::Nucleotide,
+            Self::CrossOver { .. } => DesignElementSection::CrossOver,
+            Self::Grid { .. } => DesignElementSection::Grid,
+        }
+    }
+}
+
 /// Default sections of the DesignElement
 ///
 /// NOTE: This enum derives TryFromPrimitive. This allow to get the section from an usize with the
@@ -229,30 +247,6 @@ pub enum DesignElementSection {
     Nucleotide,
 }
 
-impl ElementKey for DesignElementKey {
-    type Section = DesignElementSection;
-
-    fn name(section: DesignElementSection) -> String {
-        match section {
-            DesignElementSection::Grid => "Grid".to_owned(),
-            DesignElementSection::Helix => "Helix".to_owned(),
-            DesignElementSection::Strand => "Strand".to_owned(),
-            DesignElementSection::CrossOver => "CrossOver".to_owned(),
-            DesignElementSection::Nucleotide => "Nucleotide".to_owned(),
-        }
-    }
-
-    fn section(&self) -> DesignElementSection {
-        match self {
-            Self::Strand(_) => DesignElementSection::Strand,
-            Self::Helix(_) => DesignElementSection::Helix,
-            Self::Nucleotide { .. } => DesignElementSection::Nucleotide,
-            Self::CrossOver { .. } => DesignElementSection::CrossOver,
-            Self::Grid { .. } => DesignElementSection::Grid,
-        }
-    }
-}
-
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum DnaAttribute {
     Visible(bool),
@@ -260,30 +254,8 @@ pub enum DnaAttribute {
     LockedForSimulations(bool),
 }
 
-#[derive(Clone, Debug, PartialEq, PartialOrd, Ord, Eq, TryFromPrimitive, IntoPrimitive)]
-#[repr(usize)]
-pub enum DnaAttributeDiscriminant {
-    Visible,
-    XoverGroup,
-    LockedForSimulations,
-}
-
-const ALL_DNA_ATTRIBUTE_DISCRIMINANTS: [DnaAttributeDiscriminant; 3] = [
-    DnaAttributeDiscriminant::Visible,
-    DnaAttributeDiscriminant::XoverGroup,
-    DnaAttributeDiscriminant::LockedForSimulations,
-];
-
-impl OrganizerAttributeDiscriminant for DnaAttributeDiscriminant {
-    fn all_discriminants() -> &'static [Self] {
-        &ALL_DNA_ATTRIBUTE_DISCRIMINANTS
-    }
-}
-
-impl OrganizerAttribute for DnaAttribute {
-    type Discriminant = DnaAttributeDiscriminant;
-
-    fn discriminant(&self) -> DnaAttributeDiscriminant {
+impl DnaAttribute {
+    pub fn discriminant(&self) -> DnaAttributeDiscriminant {
         match self {
             Self::Visible(_) => DnaAttributeDiscriminant::Visible,
             Self::XoverGroup(_) => DnaAttributeDiscriminant::XoverGroup,
@@ -291,7 +263,7 @@ impl OrganizerAttribute for DnaAttribute {
         }
     }
 
-    fn widget(&self) -> AttributeWidget<Self> {
+    pub fn widget(&self) -> AttributeWidget {
         match self {
             Self::Visible(b) => AttributeWidget::new(Self::Visible(!b)),
             Self::LockedForSimulations(b) => AttributeWidget::new(Self::LockedForSimulations(!b)),
@@ -304,7 +276,7 @@ impl OrganizerAttribute for DnaAttribute {
         }
     }
 
-    fn char_repr(&self) -> AttributeDisplay {
+    pub fn char_repr(&self) -> AttributeDisplay {
         match self {
             Self::Visible(b) => AttributeDisplay::Icon(if *b {
                 icondata::BsEyeFill
@@ -322,5 +294,38 @@ impl OrganizerAttribute for DnaAttribute {
                 icondata::BsUnlock
             }),
         }
+    }
+
+    pub fn all_discriminants() -> &'static [DnaAttributeDiscriminant] {
+        DnaAttributeDiscriminant::all_discriminants()
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, PartialOrd, Ord, Eq, TryFromPrimitive, IntoPrimitive)]
+#[repr(usize)]
+pub enum DnaAttributeDiscriminant {
+    Visible,
+    XoverGroup,
+    LockedForSimulations,
+}
+
+impl DnaAttributeDiscriminant {
+    pub fn all_discriminants() -> &'static [Self] {
+        &[Self::Visible, Self::XoverGroup, Self::LockedForSimulations]
+    }
+}
+
+pub enum AttributeDisplay {
+    Icon(Icon),
+    Text(String),
+}
+
+#[derive(Clone)]
+pub struct AttributeWidget {
+    pub value_if_pressed: DnaAttribute,
+}
+impl AttributeWidget {
+    pub fn new(value_if_pressed: DnaAttribute) -> Self {
+        Self { value_if_pressed }
     }
 }

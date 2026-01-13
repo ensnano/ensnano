@@ -1,7 +1,7 @@
 use crate::{
     MainStateView,
     controller::{
-        State, TransitionMessage, YesNo,
+        AutomataState, TransitionMessage, YesNo,
         messages::{
             NO_FILE_RECEIVED_SCAFFOLD, SEQUENCE_FILTERS, invalid_sequence_file,
             optimize_scaffold_position_msg,
@@ -67,8 +67,8 @@ enum Step {
     OptimizeScaffoldPosition { design_id: usize },
 }
 
-impl State for SetScaffoldSequence {
-    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
+impl AutomataState for SetScaffoldSequence {
+    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn AutomataState> {
         match self.step {
             Step::Init => init_set_scaffold_sequence(self.shift, main_state.get_scaffold_length()),
             Step::AskPath { path_input } => ask_path(
@@ -85,7 +85,10 @@ impl State for SetScaffoldSequence {
     }
 }
 
-fn init_set_scaffold_sequence(shift: usize, scaffold_length: Option<usize>) -> Box<dyn State> {
+fn init_set_scaffold_sequence(
+    shift: usize,
+    scaffold_length: Option<usize>,
+) -> Box<dyn AutomataState> {
     let suggested_sequence = scaffold_length
         .map(StandardSequence::from_length)
         .unwrap_or_default();
@@ -105,7 +108,7 @@ fn ask_path<P: AsRef<Path>>(
     path_input: Option<PathInput>,
     shift: usize,
     starting_directory: Option<P>,
-) -> Box<dyn State> {
+) -> Box<dyn AutomataState> {
     if let Some(path_input) = path_input {
         if let Some(result) = path_input.get() {
             if let Some(path) = result {
@@ -139,7 +142,7 @@ fn ask_path<P: AsRef<Path>>(
     }
 }
 
-fn got_path(path: PathBuf, shift: usize) -> Box<dyn State> {
+fn got_path(path: PathBuf, shift: usize) -> Box<dyn AutomataState> {
     let mut content = std::fs::read_to_string(path).unwrap();
     content.make_ascii_uppercase();
     if let Some(n) =
@@ -159,7 +162,7 @@ fn set_sequence(
     sequence: String,
     shift: usize,
     scaffold_setter: &mut MainStateView,
-) -> Box<dyn State> {
+) -> Box<dyn AutomataState> {
     let result = scaffold_setter.set_scaffold_sequence(sequence, shift);
     match result {
         Ok(SetScaffoldSequenceOk {
@@ -196,19 +199,12 @@ fn set_sequence(
     }
 }
 
-fn optimize_scaffold_position(_design_id: usize, main_state: &mut MainStateView) -> Box<dyn State> {
+fn optimize_scaffold_position(
+    _design_id: usize,
+    main_state: &mut MainStateView,
+) -> Box<dyn AutomataState> {
     main_state.optimize_shift();
     Box::new(NormalState)
-}
-
-pub(crate) trait ScaffoldSetter {
-    fn get_scaffold_length(&self) -> Option<usize>;
-    fn set_scaffold_sequence(
-        &mut self,
-        sequence: String,
-        shift: usize,
-    ) -> Result<SetScaffoldSequenceOk, SetScaffoldSequenceError>;
-    fn optimize_shift(&mut self);
 }
 
 pub(crate) struct SetScaffoldSequenceOk {

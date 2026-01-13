@@ -19,12 +19,10 @@ use crate::{
         letter::LetterInstance,
     },
 };
+use ahash::RandomState;
 use ensnano_design::{
-    AdditionalStructure,
-    bezier_plane::{
-        BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, InstantiatedPath,
-    },
-    collection::Collection,
+    AdditionalStructure, MainDesignReaderExt,
+    bezier_plane::{BezierPathId, BezierPlaneId, BezierPlanes, BezierVertex, InstantiatedPath},
     curves::{
         CurveDescriptor, SurfaceInfo, SurfacePoint,
         bezier::{BezierControlPoint, CubicBezierConstructor},
@@ -33,6 +31,9 @@ use ensnano_design::{
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
     nucl::Nucl,
     parameters::HelixParameters,
+    phantom_element::{
+        PHANTOM_RANGE, PhantomElement, phantom_helix_encoder_bond, phantom_helix_encoder_nucl,
+    },
 };
 use ensnano_utils::{
     ObjectType, Referential,
@@ -46,13 +47,9 @@ use ensnano_utils::{
     },
     graphics::{LoopoutBond, LoopoutNucl},
     instance::Instance,
-    selection::{
-        InteractorDesignReaderExt, PHANTOM_RANGE, PhantomElement, phantom_helix_encoder_bond,
-        phantom_helix_encoder_nucl,
-    },
 };
 use std::{
-    collections::{BTreeMap, HashMap, HashSet, hash_map::RandomState},
+    collections::{BTreeMap, HashMap, HashSet},
     f32::consts::TAU,
     rc::Rc,
     sync::Arc,
@@ -1493,7 +1490,7 @@ pub(super) enum ExpandWith {
 
 pub type Scalebar = (f32, f32, fn(f32, f32, f32) -> u32);
 
-pub trait SceneDesignReaderExt: 'static + InteractorDesignReaderExt {
+pub trait SceneDesignReaderExt: 'static + MainDesignReaderExt {
     /// Return the identifier of all the visible nucleotides
     fn get_all_visible_nucl_ids(&self) -> Vec<u32>;
     /// Return the identifier of all the visible bounds
@@ -1565,9 +1562,7 @@ pub trait SceneDesignReaderExt: 'static + InteractorDesignReaderExt {
     fn get_all_loopout_bonds(&self) -> &[LoopoutBond];
     fn get_insertion_length(&self, bond_id: u32) -> usize;
     fn get_expected_bond_length(&self) -> f32;
-    fn get_bezier_planes(
-        &self,
-    ) -> &dyn Collection<Item = BezierPlaneDescriptor, Key = BezierPlaneId>;
+    fn get_bezier_planes(&self) -> &BezierPlanes;
     fn get_parameters(&self) -> HelixParameters;
     fn get_bezier_paths(&self) -> Option<&BTreeMap<BezierPathId, Arc<InstantiatedPath>>>;
     fn get_bezier_vertex(&self, path_id: BezierPathId, vertex_id: usize) -> Option<BezierVertex>;

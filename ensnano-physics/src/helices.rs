@@ -3,7 +3,7 @@
 //! portion of them are fully double helices or made of free nucleotides.
 
 use ahash::HashMap;
-use ensnano_design::{elements::DesignElement, nucl::Nucl};
+use ensnano_design::{design_element::DesignElement, nucl::Nucl};
 use std::ops::Range;
 
 /// Holds the intermediary representation

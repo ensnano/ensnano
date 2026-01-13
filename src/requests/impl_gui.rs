@@ -1,30 +1,30 @@
-//! Implements the [Requests](`ensnano_gui::Requests`) trait for [Requests](`super::Requests`).
+//! Implements the [GuiRequests](`ensnano_gui::GuiRequests`) trait for [Requests](`super::Requests`).
 
-use crate::controller::normal_state::Action;
-use crate::requests::Requests;
+use crate::{controller::normal_state::Action, requests::Requests};
 use ensnano_design::{
     CameraId,
     bezier_plane::{BezierPathId, BezierVertexId},
-    elements::{DesignElementKey, DnaAttribute},
+    design_element::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridTypeDescr},
+    interaction_modes::{ActionMode, SelectionMode},
+    operation::{DesignOperation, HyperboloidRequest, InsertionPoint},
+    organizer_tree::{GroupId, OrganizerTree},
     parameters::HelixParameters,
 };
 use ensnano_exports::ExportType;
-use ensnano_gui::{OverlayType, Requests as GuiRequests, left_panel::RigidBodyParametersRequest};
-use ensnano_organizer::{
-    keyboard_priority::PriorityRequest,
-    tree::{GroupId, OrganizerTree},
+use ensnano_gui::{
+    GuiRequests, OverlayType, keyboard_priority::PriorityRequest,
+    left_panel::RigidBodyParametersRequest,
 };
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
-    DesignOperation, HyperboloidRequest, InsertionPoint, RigidBodyConstants, RollRequest,
+    RigidBodyConstants, RollRequest,
     app_state_parameters::{
         check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
     },
     application::Notification,
     graphics::{Background3D, FogParameters, HBondDisplay, RenderingMode, SplitMode},
     operation::Operation,
-    selection::{ActionMode, SelectionMode},
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
     ui_size::UiSize,
 };
@@ -190,7 +190,7 @@ impl GuiRequests for Requests {
         self.organizer_selection = Some((selection, group_id, new_group));
     }
 
-    fn update_organizer_tree(&mut self, tree: OrganizerTree<DesignElementKey>) {
+    fn update_organizer_tree(&mut self, tree: OrganizerTree) {
         self.new_tree = Some(tree);
     }
 

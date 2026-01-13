@@ -3,7 +3,7 @@ pub mod helix;
 pub mod strand;
 
 use crate::{
-    AppState, CameraPtr, Requests, ViewPtr,
+    CameraPtr, FlatSceneAppState, FlatSceneRequests, ViewPtr,
     camera2d::FitRectangle,
     data::{
         design::FlatSceneDesignReaderExt,
@@ -17,6 +17,9 @@ use crate::{
 };
 use ahash::RandomState;
 use design::Design2d;
+use ensnano_design::{
+    interaction_modes::SelectionMode, phantom_element::PhantomElement, selection::Selection,
+};
 use ensnano_utils::{
     StrandBuildingStatus,
     consts::{
@@ -24,7 +27,6 @@ use ensnano_utils::{
         SELECTED_HELIX2D_COLOR, SELECTED_STRAND_HIGHLIGHT_FACTOR_2D,
         SELECTION_2D_CYCLE_TIME_LIMIT_MS,
     },
-    selection::{PhantomElement, Selection, SelectionMode},
 };
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap, HashSet},
@@ -43,12 +45,17 @@ pub struct Data<R: FlatSceneDesignReaderExt> {
     nb_helices_created: usize,
     suggestions: HashMap<FlatNucl, HashSet<FlatNucl, RandomState>, RandomState>,
     id: u32,
-    requests: Arc<Mutex<dyn Requests>>,
+    requests: Arc<Mutex<dyn FlatSceneRequests>>,
     last_click: LastClick,
 }
 
 impl<R: FlatSceneDesignReaderExt> Data<R> {
-    pub fn new(view: ViewPtr, design: R, id: u32, requests: Arc<Mutex<dyn Requests>>) -> Self {
+    pub fn new(
+        view: ViewPtr,
+        design: R,
+        id: u32,
+        requests: Arc<Mutex<dyn FlatSceneRequests>>,
+    ) -> Self {
         Self {
             view,
             design: Design2d::new(design, requests.clone()),
@@ -76,7 +83,11 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         self.last_click = Default::default();
     }
 
-    pub fn perform_update<S: AppState<Reader = R>>(&mut self, new_state: &S, old_state: &S) {
+    pub fn perform_update<S: FlatSceneAppState<Reader = R>>(
+        &mut self,
+        new_state: &S,
+        old_state: &S,
+    ) {
         if self.instance_reset {
             self.view.borrow_mut().reset();
             self.instance_reset = false;
@@ -107,7 +118,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         self.design.id_map()
     }
 
-    pub fn update_highlight<S: AppState>(&self, new_state: &S) {
+    pub fn update_highlight<S: FlatSceneAppState>(&self, new_state: &S) {
         let mut selected_strands = HashSet::new();
         let mut candidate_strands = HashSet::new();
         let mut selected_xovers = HashSet::new();
@@ -234,7 +245,15 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
     }
 
     fn update_strand_building_info(&self, info: Option<StrandBuildingStatus>) {
-        let flat_info = info.and_then(|info| info.to_flat(self.id_map()));
+        let flat_info = info.and_then(|info| {
+            let flat_nucl = FlatNucl::from_real(&info.dragged_nucl, self.id_map())?;
+            Some(EditionInfo {
+                nt_length: info.nt_length,
+                nm_length: info.nm_length,
+                nucl: flat_nucl,
+            })
+        });
+
         self.view
             .borrow_mut()
             .update_strand_building_info(flat_info);
@@ -341,7 +360,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
             .map(|h| h.visible_center(camera).unwrap_or_else(|| h.center()))
     }
 
-    pub(super) fn add_helix_selection<S: AppState>(
+    pub(super) fn add_helix_selection<S: FlatSceneAppState>(
         &mut self,
         click_result: ClickResult,
         camera: &CameraPtr,
@@ -370,7 +389,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         }
     }
 
-    pub(super) fn set_helix_selection<S: AppState>(
+    pub(super) fn set_helix_selection<S: FlatSceneAppState>(
         &mut self,
         click_result: ClickResult,
         camera: &CameraPtr,
@@ -652,7 +671,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         ret
     }
 
-    pub(super) fn select_rectangle<S: AppState>(
+    pub(super) fn select_rectangle<S: FlatSceneAppState>(
         &mut self,
         c1: Vec2,
         c2: Vec2,
@@ -1124,21 +1143,6 @@ fn apply_symmetric_difference_to_selection(
 
     old_selection.retain(retain_condition);
     new_selection.retain(retain_condition);
-}
-
-trait ToFlatInfo {
-    fn to_flat(self, id_map: &FlatHelixMaps) -> Option<EditionInfo>;
-}
-
-impl ToFlatInfo for StrandBuildingStatus {
-    fn to_flat(self, id_map: &FlatHelixMaps) -> Option<EditionInfo> {
-        let flat_nucl = FlatNucl::from_real(&self.dragged_nucl, id_map)?;
-        Some(EditionInfo {
-            nt_length: self.nt_length,
-            nm_length: self.nm_length,
-            nucl: flat_nucl,
-        })
-    }
 }
 
 struct LastClick {

@@ -1,4 +1,4 @@
-use crate::{AppState, left_panel::Message};
+use crate::{GuiAppState, left_panel::Message};
 use ensnano_exports::ExportType;
 use iced::widget::{button, column, scrollable};
 
@@ -8,7 +8,7 @@ pub(super) struct ExportMenu;
 impl ExportMenu {
     pub(super) fn view<State>(&self) -> iced::Element<'_, Message<State>>
     where
-        State: AppState,
+        State: GuiAppState,
     {
         let content = column![
             button("Cancel").on_press(Message::CancelExport),

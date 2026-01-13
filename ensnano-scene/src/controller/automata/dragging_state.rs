@@ -6,7 +6,7 @@
 //! the camera or moving an object.
 
 use crate::{
-    AppState,
+    SceneAppState,
     controller::{
         Consequence, Controller, Transition, TransitionConsequence,
         automata::{
@@ -29,7 +29,7 @@ use winit::{
     window::CursorIcon,
 };
 
-pub(super) struct DraggedCursor<'a, 'b, S: AppState> {
+pub(super) struct DraggedCursor<'a, 'b, S: SceneAppState> {
     /// The cursor position when the mouse button was pressed
     clicked_position: PhysicalPosition<f64>,
     /// The *normalized* difference between the current cursor position and the position of the
@@ -40,7 +40,7 @@ pub(super) struct DraggedCursor<'a, 'b, S: AppState> {
     context: &'b mut EventContext<'a, S>,
 }
 
-impl<'a, 'b, S: AppState> DraggedCursor<'a, 'b, S> {
+impl<'a, 'b, S: SceneAppState> DraggedCursor<'a, 'b, S> {
     pub(super) fn from_click_cursor(
         clicked_position: PhysicalPosition<f64>,
         current_position: PhysicalPosition<f64>,
@@ -80,7 +80,7 @@ impl ClickInfo {
 /// A object mapping cursor movement to their consequences
 pub(super) trait DraggingTransitionTable {
     /// The consequences of moving the cursor
-    fn on_cursor_moved<S: AppState>(
+    fn on_cursor_moved<S: SceneAppState>(
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence>;
@@ -112,7 +112,7 @@ pub(super) struct DraggingState<Table: DraggingTransitionTable> {
 
 impl<Table: DraggingTransitionTable> DraggingState<Table> {
     /// Register the cursor movement and return an up-to-date DraggedCursor.
-    fn move_cursor<'a, 'b, S: AppState>(
+    fn move_cursor<'a, 'b, S: SceneAppState>(
         &mut self,
         context: &'b mut EventContext<'a, S>,
     ) -> DraggedCursor<'a, 'b, S> {
@@ -162,7 +162,7 @@ macro_rules! no_csq_leaving_or_entering {
     };
 }
 
-impl<S: AppState, Table: DraggingTransitionTable> ControllerState<S> for DraggingState<Table> {
+impl<S: SceneAppState, Table: DraggingTransitionTable> ControllerState<S> for DraggingState<Table> {
     fn display(&self) -> Cow<'static, str> {
         Table::description().into()
     }
@@ -228,7 +228,7 @@ impl DraggingTransitionTable for TranslatingCamera {
         "Translating Camera"
     }
 
-    fn on_cursor_moved<S: AppState>(
+    fn on_cursor_moved<S: SceneAppState>(
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
@@ -281,7 +281,7 @@ impl DraggingTransitionTable for RotatingCamera {
         "Rotating Camera"
     }
 
-    fn on_cursor_moved<S: AppState>(
+    fn on_cursor_moved<S: SceneAppState>(
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
@@ -323,7 +323,7 @@ impl DraggingTransitionTable for TiltingCamera {
         "Tilting Camera"
     }
 
-    fn on_cursor_moved<S: AppState>(
+    fn on_cursor_moved<S: SceneAppState>(
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
@@ -371,7 +371,7 @@ impl DraggingTransitionTable for MakingXover {
         "Making Xover"
     }
 
-    fn on_cursor_moved<S: AppState>(
+    fn on_cursor_moved<S: SceneAppState>(
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
@@ -441,7 +441,7 @@ impl DraggingTransitionTable for BuildingStrands {
         "Moving strands builders"
     }
 
-    fn on_cursor_moved<S: AppState>(
+    fn on_cursor_moved<S: SceneAppState>(
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
@@ -488,7 +488,7 @@ impl DraggingTransitionTable for TranslatingWidget {
         "Translating Widget"
     }
 
-    fn on_cursor_moved<S: AppState>(
+    fn on_cursor_moved<S: SceneAppState>(
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
@@ -548,7 +548,7 @@ impl DraggingTransitionTable for TranslatingGridObject {
         "Translating Grid Object"
     }
 
-    fn on_cursor_moved<S: AppState>(
+    fn on_cursor_moved<S: SceneAppState>(
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
@@ -602,7 +602,7 @@ impl DraggingTransitionTable for RotatingWidget {
         TransitionConsequence::StopRotatingPivot
     }
 
-    fn on_cursor_moved<S: AppState>(
+    fn on_cursor_moved<S: SceneAppState>(
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
@@ -651,7 +651,7 @@ impl DraggingTransitionTable for MovingBezierVertex {
         Some(Consequence::ReleaseBezierVertex)
     }
 
-    fn on_cursor_moved<S: AppState>(
+    fn on_cursor_moved<S: SceneAppState>(
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
@@ -703,7 +703,7 @@ impl DraggingTransitionTable for MovingBezierCorner {
         "Moving Bezier Corner"
     }
 
-    fn on_cursor_moved<S: AppState>(
+    fn on_cursor_moved<S: SceneAppState>(
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
@@ -753,7 +753,7 @@ impl DraggingTransitionTable for MovingBezierTangent {
         Some(Consequence::ReleaseBezierTangent)
     }
 
-    fn on_cursor_moved<S: AppState>(
+    fn on_cursor_moved<S: SceneAppState>(
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
@@ -802,7 +802,7 @@ impl DraggingTransitionTable for MovingRevolutionRadius {
         "Moving revolution radius"
     }
 
-    fn on_cursor_moved<S: AppState>(
+    fn on_cursor_moved<S: SceneAppState>(
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {

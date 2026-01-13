@@ -6,10 +6,8 @@ pub mod hyperboloid;
 use crate::{
     Design,
     bezier_plane::{BezierPathData, BezierPathId, BezierVertexId},
-    collection::Collection as _,
     curves::{
-        CurveCache, CurveDescriptor, CurveInstantiator, InstantiatedCurve,
-        InstantiatedCurveDescriptor,
+        CurveCache, CurveDescriptor, InstantiatedCurve, InstantiatedCurveDescriptor,
         bezier::BezierControlPoint,
         time_nucl_map::{AbscissaConverter, PathTimeMaps, RevolutionCurveTimeMaps},
         torus::CurveDescriptor2D,
@@ -17,7 +15,7 @@ use crate::{
     },
     design_operations::{ErrDesignOperation, MIN_HELICES_TO_MAKE_GRID},
     grid::{grid_collection::FreeGrids, hyperboloid::Hyperboloid},
-    helices::{Axis, Helices, Helix, HelixCollection as _},
+    helices::{Axis, Helices, Helix},
     parameters::HelixParameters,
 };
 use serde::{Deserialize, Serialize};
@@ -752,7 +750,7 @@ impl GridData {
         for (g_id, desc) in paths_data.grids() {
             grids.insert(g_id, desc.to_grid(helix_parameters));
         }
-        for (g_id, desc) in source_grids.iter() {
+        for (g_id, desc) in source_grids.0.iter() {
             let grid = desc.to_grid(helix_parameters);
             grids.insert(GridId::FreeGrid(g_id.0), grid);
         }
@@ -1048,7 +1046,8 @@ impl GridData {
         }
     }
 
-    pub fn translate_by_edge(
+    // TODO: find better function name
+    pub fn translate_by_helix_and_edge(
         &self,
         pos1: &HelixGridPosition,
         edge: &Edge,
@@ -1262,6 +1261,28 @@ impl GridData {
             BezierControlPoint::CubicBezier(_) => Some(GridAwareTranslation(translation)),
         }
     }
+
+    pub fn concrete_grid_position(&self, position: GridPosition) -> Vec3 {
+        if let Some(grid) = self.grids.get(&position.grid) {
+            grid.position_helix(position.x, position.y)
+        } else {
+            log::error!("Attempt to get position on non-existent grid. This is a bug");
+            Vec3::zero()
+        }
+    }
+
+    pub fn source(&self) -> FreeGrids {
+        self.source_free_grids.clone()
+    }
+
+    pub fn translate_by_edge(&self, position: GridPosition, edge: Edge) -> Option<GridPosition> {
+        self.translate_by_helix_and_edge(&position.to_helix_pos(), &edge)
+            .map(|h| h.light())
+    }
+
+    pub fn source_paths(&self) -> Option<BezierPathData> {
+        self.paths_data.clone()
+    }
 }
 
 #[derive(Default, Debug, Clone)]
@@ -1384,30 +1405,6 @@ impl<'a> HelicesTranslator<'a> {
             self.grid_data.reattach_helix(*h_id, true, helices)?;
         }
         Ok(())
-    }
-}
-
-impl CurveInstantiator for GridData {
-    fn concrete_grid_position(&self, position: GridPosition) -> Vec3 {
-        if let Some(grid) = self.grids.get(&position.grid) {
-            grid.position_helix(position.x, position.y)
-        } else {
-            log::error!("Attempt to get position on non-existent grid. This is a bug");
-            Vec3::zero()
-        }
-    }
-
-    fn source(&self) -> FreeGrids {
-        self.source_free_grids.clone()
-    }
-
-    fn translate_by_edge(&self, position: GridPosition, edge: Edge) -> Option<GridPosition> {
-        self.translate_by_edge(&position.to_helix_pos(), &edge)
-            .map(|h| h.light())
-    }
-
-    fn source_paths(&self) -> Option<BezierPathData> {
-        self.paths_data.clone()
     }
 }
 

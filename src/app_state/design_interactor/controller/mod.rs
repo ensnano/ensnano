@@ -24,18 +24,17 @@ use ensnano_design::{
         BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
         import_from_svg::{SvgImportError, read_first_svg_path},
     },
-    collection::Collection as _,
     curves::{
         CurveDescriptor,
         bezier::{BezierControlPoint, BezierEnd},
     },
+    design_element::{DesignElementKey, DnaAttribute},
     design_operations::{
         ErrDesignOperation, attach_object_to_grid, make_grid_from_helices, rotate_helices_3d,
         translate_helices,
     },
     domains::{Domain, helix_interval::HelixInterval},
     drawing_style::{DrawingAttribute, DrawingStyle},
-    elements::{DesignElementKey, DnaAttribute},
     external_3d_objects::{External3DObject, External3DObjectDescriptor},
     grid::{
         Edge, GridDescriptor, GridDivision as _, GridId, GridObject, GridPosition, GridTypeDescr,
@@ -43,22 +42,23 @@ use ensnano_design::{
         hyperboloid::Hyperboloid,
     },
     group_attributes::GroupPivot,
-    helices::{Helices, Helix, HelixCollection as _, NuclCollection},
+    helices::{Helices, Helix, NuclCollection},
     mutate_in_arc, mutate_one_helix,
     nucl::Nucl,
+    operation::{
+        BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
+        HyperboloidOperation, IsometryTarget, NewBezierTangentVector,
+    },
+    organizer_tree::GroupId,
+    selection::{Selection, list_of_helices},
     strands::{DomainJunction, Strand, Strands},
 };
 use ensnano_gui::status_bar::ClipboardContent;
-use ensnano_organizer::tree::GroupId;
 use ensnano_utils::{
-    BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
-    HyperboloidOperation, IsometryTarget, NewBezierTangentVector, PastingStatus, SimulationState,
+    PastingStatus, SimulationState,
     colors::{new_color, random_color_with_shade},
     operation::{Operation, TranslateBezierPathVertex},
-    selection::{Selection, list_of_helices},
-    strand_builder::{
-        DomainIdentifier, NeighborDescriptor, NeighborDescriptorGiver as _, StrandBuilder,
-    },
+    strand_builder::{DomainIdentifier, NeighborDescriptor, StrandBuilder, get_neighbor_nucl},
 };
 use std::{
     borrow::Cow,
@@ -2050,9 +2050,7 @@ impl Controller {
         let ignored_domains: Vec<_> = nucls
             .iter()
             .filter_map(|nucl| {
-                design
-                    .get_neighbor_nucl(*nucl)
-                    .map(|neighbor| neighbor.identifier)
+                get_neighbor_nucl(&design, *nucl).map(|neighbor| neighbor.identifier)
             })
             .collect();
         for nucl in nucls {
@@ -2092,17 +2090,15 @@ impl Controller {
         nucl: Nucl,
         ignored_domains: &[DomainIdentifier],
     ) -> Option<StrandBuilder> {
-        let left = design
-            .get_neighbor_nucl(nucl.left())
+        let left = get_neighbor_nucl(design, nucl.left())
             .filter(|n| !ignored_domains.contains(&n.identifier));
-        let right = design
-            .get_neighbor_nucl(nucl.right())
+        let right = get_neighbor_nucl(design, nucl.right())
             .filter(|n| !ignored_domains.contains(&n.identifier));
         let axis = design
             .helices
             .get(&nucl.helix)
             .map(|h| h.get_axis(&design.helix_parameters.unwrap_or_default()))?;
-        let desc = design.get_neighbor_nucl(nucl)?;
+        let desc = get_neighbor_nucl(design, nucl)?;
         let strand_id = desc.identifier.strand;
         let filter = |d: &NeighborDescriptor| !(d.identifier.is_same_domain_than(&desc.identifier));
         let neighbor_desc = left.filter(filter).or_else(|| right.filter(filter));
@@ -2152,8 +2148,8 @@ impl Controller {
     }
 
     fn new_strand_builder(&mut self, design: &mut Design, nucl: Nucl) -> Option<StrandBuilder> {
-        let left = design.get_neighbor_nucl(nucl.left());
-        let right = design.get_neighbor_nucl(nucl.right());
+        let left = get_neighbor_nucl(design, nucl.left());
+        let right = get_neighbor_nucl(design, nucl.right());
         if left.is_some() && right.is_some() {
             return None;
         }

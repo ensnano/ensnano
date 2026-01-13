@@ -6,11 +6,11 @@ use ahash::RandomState;
 use click_counter::ClickCounter;
 use ensnano_design::{
     Design,
+    design_element::{DesignElement, DesignElementKey},
     domains::Domain,
     drawing_style::{ColorType, DrawingAttribute, DrawingStyle},
-    elements::{DesignElement, DesignElementKey},
     grid::{GridData, GridId, GridObject, GridPosition, HelixGridPosition},
-    helices::{HelixCollection as _, NuclCollection},
+    helices::NuclCollection,
     isometry3_descriptor::Isometry3MissingMethods as _,
     nucl::Nucl,
     strands::DomainJunction,
@@ -83,7 +83,7 @@ pub(crate) struct DesignContent {
 
 impl DesignContent {
     pub(super) fn get_grid_instances(&self) -> BTreeMap<GridId, GridInstance> {
-        self.grid_manager.grid_instances(0)
+        grid_instances(&self.grid_manager, 0)
     }
 
     pub(super) fn get_helices_on_grid(&self, g_id: GridId) -> Option<HashSet<usize>> {
@@ -1402,38 +1402,32 @@ mod tests {
     }
 }
 
-trait GridInstancesMaker {
-    fn grid_instances(&self, design_id: usize) -> BTreeMap<GridId, GridInstance>;
-}
-
-impl GridInstancesMaker for GridData {
-    fn grid_instances(&self, design_id: usize) -> BTreeMap<GridId, GridInstance> {
-        let mut ret = BTreeMap::new();
-        for (g_id, g) in &self.grids {
-            let grid = GridInstance {
-                grid: g.clone(),
-                min_x: -2,
-                max_x: 2,
-                min_y: -2,
-                max_y: 2,
-                color: 0x00_00_FF,
-                design: design_id,
-                id: *g_id,
-                fake: false,
-                visible: !g.invisible,
-            };
-            ret.insert(*g_id, grid);
-        }
-        for grid_position in self.get_all_used_grid_positions() {
-            if let Some(grid) = ret.get_mut(&grid_position.grid) {
-                grid.min_x = grid.min_x.min(grid_position.x as i32 - 2);
-                grid.max_x = grid.max_x.max(grid_position.x as i32 + 2);
-                grid.min_y = grid.min_y.min(grid_position.y as i32 - 2);
-                grid.max_y = grid.max_y.max(grid_position.y as i32 + 2);
-            }
-        }
-        ret
+fn grid_instances(grid_data: &GridData, design_id: usize) -> BTreeMap<GridId, GridInstance> {
+    let mut ret = BTreeMap::new();
+    for (g_id, g) in &grid_data.grids {
+        let grid = GridInstance {
+            grid: g.clone(),
+            min_x: -2,
+            max_x: 2,
+            min_y: -2,
+            max_y: 2,
+            color: 0x00_00_FF,
+            design: design_id,
+            id: *g_id,
+            fake: false,
+            visible: !g.invisible,
+        };
+        ret.insert(*g_id, grid);
     }
+    for grid_position in grid_data.get_all_used_grid_positions() {
+        if let Some(grid) = ret.get_mut(&grid_position.grid) {
+            grid.min_x = grid.min_x.min(grid_position.x as i32 - 2);
+            grid.max_x = grid.max_x.max(grid_position.x as i32 + 2);
+            grid.min_y = grid.min_y.min(grid_position.y as i32 - 2);
+            grid.max_y = grid.max_y.max(grid_position.y as i32 + 2);
+        }
+    }
+    ret
 }
 
 enum StapleDomain {

@@ -3,7 +3,7 @@ use ahash::RandomState;
 use ensnano_design::{
     curves::time_nucl_map::AbscissaConverter,
     domains::{Domain, helix_interval::HelixInterval},
-    helices::{Helices, HelixCollection as _, NuclCollection},
+    helices::{Helices, NuclCollection},
     nucl::Nucl,
     strands::{Extremity, Strand},
 };

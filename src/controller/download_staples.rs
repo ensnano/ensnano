@@ -1,7 +1,8 @@
 use crate::{
     MainStateView,
+    app_state::design_interactor::DesignInteractor,
     controller::{
-        State, TransitionMessage,
+        AutomataState, TransitionMessage,
         messages::{
             NO_FILE_RECEIVED_STAPLE, NO_SCAFFOLD_SEQUENCE_SET, NO_SCAFFOLD_SET, STAPLES_FILTERS,
             successful_staples_export_msg,
@@ -11,7 +12,7 @@ use crate::{
     dialog,
 };
 use dialog::{MustAckMessage, PathInput};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 #[derive(Default)]
 pub(super) struct DownloadStaples {
@@ -34,22 +35,22 @@ enum Step {
     Downloading { path: PathBuf },
 }
 
-impl State for DownloadStaples {
-    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
-        let downloader = main_state.get_staple_downloader();
+impl AutomataState for DownloadStaples {
+    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn AutomataState> {
+        let downloader = main_state.get_design_interactor();
         match self.step {
-            Step::Init => get_design_providing_staples(downloader.as_ref()),
+            Step::Init => get_design_providing_staples(&downloader),
             Step::AskingPath(state) => ask_path(state, main_state),
             Step::PathAsked {
                 path_input,
                 design_id,
             } => poll_path(path_input, design_id),
-            Step::Downloading { path } => download_staples(downloader.as_ref(), path),
+            Step::Downloading { path } => download_staples(&downloader, path),
         }
     }
 }
 
-fn get_design_providing_staples(downloader: &dyn StaplesDownloader) -> Box<dyn State> {
+fn get_design_providing_staples(downloader: &DesignInteractor) -> Box<dyn AutomataState> {
     let result = downloader.download_staples();
     match result {
         Ok(DownloadStapleOk { warnings }) => AskingPath_ {
@@ -115,7 +116,7 @@ impl AskingPath_ {
     }
 }
 
-fn poll_path(path_input: PathInput, design_id: usize) -> Box<dyn State> {
+fn poll_path(path_input: PathInput, design_id: usize) -> Box<dyn AutomataState> {
     if let Some(result) = path_input.get() {
         if let Some(path) = result {
             Box::new(DownloadStaples {
@@ -138,17 +139,10 @@ fn poll_path(path_input: PathInput, design_id: usize) -> Box<dyn State> {
     }
 }
 
-fn download_staples(downloader: &dyn StaplesDownloader, path: PathBuf) -> Box<dyn State> {
+fn download_staples(downloader: &DesignInteractor, path: PathBuf) -> Box<dyn AutomataState> {
     downloader.write_staples_xlsx(&path);
     let msg = successful_staples_export_msg(&path);
     TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(NormalState))
-}
-
-pub(crate) trait StaplesDownloader {
-    fn download_staples(&self) -> Result<DownloadStapleOk, DownloadStapleError>;
-    fn write_staples_xlsx(&self, xlsx_path: &Path);
-    fn write_intervals(&self, origami_path: &Path);
-    fn default_shift(&self) -> Option<usize>;
 }
 
 pub(crate) enum DownloadStapleError {

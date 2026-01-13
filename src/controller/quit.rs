@@ -1,7 +1,7 @@
 use crate::{
     MainStateView,
     controller::{
-        State, TransitionMessage, YesNo,
+        AutomataState, TransitionMessage, YesNo,
         messages::{
             CADNANO_FILTERS, DESIGN_LOAD_FILTERS, DESIGN_WRITE_FILTERS, NO_FILE_RECEIVED_LOAD,
             NO_FILE_RECEIVED_OXDNA, NO_FILE_RECEIVED_SAVE, OBJECT3D_FILTERS,
@@ -44,8 +44,8 @@ impl Quit {
     }
 }
 
-impl State for Quit {
-    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
+impl AutomataState for Quit {
+    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn AutomataState> {
         match self.step {
             QuitStep::Init { need_save } => init_quit(need_save),
             QuitStep::Quitting => {
@@ -56,7 +56,7 @@ impl State for Quit {
     }
 }
 
-fn init_quit(need_save: Option<Option<PathBuf>>) -> Box<dyn State> {
+fn init_quit(need_save: Option<Option<PathBuf>>) -> Box<dyn AutomataState> {
     if let Some(path) = need_save {
         let quitting = Box::new(Quit::quitting());
         Box::new(YesNo::new(
@@ -69,7 +69,7 @@ fn init_quit(need_save: Option<Option<PathBuf>>) -> Box<dyn State> {
     }
 }
 
-fn save_before_quit(path: Option<PathBuf>) -> Box<dyn State> {
+fn save_before_quit(path: Option<PathBuf>) -> Box<dyn AutomataState> {
     let on_success = Box::new(Quit::quitting());
     let on_error = Box::new(NormalState);
     if let Some(path) = path {
@@ -100,7 +100,7 @@ impl Load {
     pub(super) fn init_reload(
         need_save: Option<Option<PathBuf>>,
         path_to_load: PathBuf,
-    ) -> Box<dyn State> {
+    ) -> Box<dyn AutomataState> {
         if let Some(save_path) = need_save {
             let yes = save_before_known_path(save_path, path_to_load.clone());
             let no = Box::new(Self::known_path(path_to_load));
@@ -138,8 +138,8 @@ pub(super) enum LoadType {
     SvgPath,
 }
 
-impl State for Load {
-    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
+impl AutomataState for Load {
+    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn AutomataState> {
         match self.step {
             LoadStep::Init { need_save } => init_load(need_save, self.load_type),
             LoadStep::AskPath { path_input } => ask_path(
@@ -156,7 +156,7 @@ impl State for Load {
     }
 }
 
-fn init_load(path_to_save: Option<Option<PathBuf>>, load_type: LoadType) -> Box<dyn State> {
+fn init_load(path_to_save: Option<Option<PathBuf>>, load_type: LoadType) -> Box<dyn AutomataState> {
     if let Some(path_to_save) = path_to_save {
         let yes = save_before_load(path_to_save, load_type);
         let no = Load::ask_path(load_type);
@@ -166,7 +166,7 @@ fn init_load(path_to_save: Option<Option<PathBuf>>, load_type: LoadType) -> Box<
     }
 }
 
-fn save_before_load(path_to_save: Option<PathBuf>, load_type: LoadType) -> Box<dyn State> {
+fn save_before_load(path_to_save: Option<PathBuf>, load_type: LoadType) -> Box<dyn AutomataState> {
     let on_success = Load::ask_path(load_type);
     let on_error = Box::new(NormalState);
     if let Some(path) = path_to_save {
@@ -180,7 +180,10 @@ fn save_before_load(path_to_save: Option<PathBuf>, load_type: LoadType) -> Box<d
     }
 }
 
-fn save_before_known_path(path_to_save: Option<PathBuf>, path_to_load: PathBuf) -> Box<dyn State> {
+fn save_before_known_path(
+    path_to_save: Option<PathBuf>,
+    path_to_load: PathBuf,
+) -> Box<dyn AutomataState> {
     let on_success = Box::new(Load::known_path(path_to_load));
     let on_error = Box::new(NormalState);
     if let Some(path) = path_to_save {
@@ -198,7 +201,7 @@ fn ask_path<P: AsRef<Path>>(
     path_input: Option<PathInput>,
     starting_directory: Option<P>,
     load_type: LoadType,
-) -> Box<dyn State> {
+) -> Box<dyn AutomataState> {
     if let Some(path_input) = path_input {
         if let Some(result) = path_input.get() {
             if let Some(path) = result {
@@ -237,7 +240,7 @@ fn ask_path<P: AsRef<Path>>(
     }
 }
 
-fn load_design(path: PathBuf, state: &mut MainStateView) -> Box<dyn State> {
+fn load_design(path: PathBuf, state: &mut MainStateView) -> Box<dyn AutomataState> {
     if let Err(err) = state.load_design(path) {
         TransitionMessage::new(
             format!("Error when loading design:\n{err}"),
@@ -249,12 +252,12 @@ fn load_design(path: PathBuf, state: &mut MainStateView) -> Box<dyn State> {
     }
 }
 
-fn load_3d_object(path: PathBuf, state: &mut MainStateView) -> Box<dyn State> {
+fn load_3d_object(path: PathBuf, state: &mut MainStateView) -> Box<dyn AutomataState> {
     state.load_3d_object(path);
     Box::new(NormalState)
 }
 
-fn load_svg(path: PathBuf, state: &mut MainStateView) -> Box<dyn State> {
+fn load_svg(path: PathBuf, state: &mut MainStateView) -> Box<dyn AutomataState> {
     state.load_svg(path);
     Box::new(NormalState)
 }
@@ -275,15 +278,15 @@ impl NewDesign {
         }
     }
 
-    fn make_new_design() -> Box<dyn State> {
+    fn make_new_design() -> Box<dyn AutomataState> {
         Box::new(Self {
             step: NewStep::MakeNewDesign,
         })
     }
 }
 
-impl State for NewDesign {
-    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
+impl AutomataState for NewDesign {
+    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn AutomataState> {
         match self.step {
             NewStep::Init { need_save } => {
                 if let Some(path) = need_save {
@@ -297,18 +300,18 @@ impl State for NewDesign {
     }
 }
 
-fn init_new_design(path_to_save: Option<PathBuf>) -> Box<dyn State> {
+fn init_new_design(path_to_save: Option<PathBuf>) -> Box<dyn AutomataState> {
     let yes = save_before_new(path_to_save);
     let no = NewDesign::make_new_design();
     Box::new(YesNo::new(SAVE_BEFORE_NEW, yes, no))
 }
 
-fn new_design(main_state: &mut MainStateView) -> Box<dyn State> {
+fn new_design(main_state: &mut MainStateView) -> Box<dyn AutomataState> {
     main_state.new_design();
     Box::new(NormalState)
 }
 
-fn save_before_new(path_to_save: Option<PathBuf>) -> Box<dyn State> {
+fn save_before_new(path_to_save: Option<PathBuf>) -> Box<dyn AutomataState> {
     let on_success = NewDesign::make_new_design();
     let on_error = Box::new(NormalState);
     if let Some(path) = path_to_save {
@@ -324,12 +327,15 @@ fn save_before_new(path_to_save: Option<PathBuf>) -> Box<dyn State> {
 
 pub(super) struct SaveAs {
     file_getter: Option<PathInput>,
-    on_success: Box<dyn State>,
-    on_error: Box<dyn State>,
+    on_success: Box<dyn AutomataState>,
+    on_error: Box<dyn AutomataState>,
 }
 
 impl SaveAs {
-    pub(super) fn new(on_success: Box<dyn State>, on_error: Box<dyn State>) -> Self {
+    pub(super) fn new(
+        on_success: Box<dyn AutomataState>,
+        on_error: Box<dyn AutomataState>,
+    ) -> Self {
         Self {
             file_getter: None,
             on_success,
@@ -338,8 +344,11 @@ impl SaveAs {
     }
 }
 
-impl State for SaveAs {
-    fn make_progress(mut self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
+impl AutomataState for SaveAs {
+    fn make_progress(
+        mut self: Box<Self>,
+        main_state: &mut MainStateView,
+    ) -> Box<dyn AutomataState> {
         if let Some(getter) = &self.file_getter {
             if let Some(path_opt) = getter.get() {
                 if let Some(path) = &path_opt {
@@ -380,12 +389,12 @@ impl State for SaveAs {
 
 pub(super) struct SaveWithPath {
     pub path: PathBuf,
-    pub on_error: Box<dyn State>,
-    pub on_success: Box<dyn State>,
+    pub on_error: Box<dyn AutomataState>,
+    pub on_success: Box<dyn AutomataState>,
 }
 
-impl State for SaveWithPath {
-    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
+impl AutomataState for SaveWithPath {
+    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn AutomataState> {
         if let Err(err) = main_state.save_design(&self.path) {
             TransitionMessage::new(
                 format!("Failed to save: {:?}", err.0),
@@ -404,15 +413,15 @@ impl State for SaveWithPath {
 
 pub(super) struct Exporting {
     file_getter: Option<PathInput>,
-    on_success: Box<dyn State>,
-    on_error: Box<dyn State>,
+    on_success: Box<dyn AutomataState>,
+    on_error: Box<dyn AutomataState>,
     export_type: ExportType,
 }
 
 impl Exporting {
     pub(super) fn new(
-        on_success: Box<dyn State>,
-        on_error: Box<dyn State>,
+        on_success: Box<dyn AutomataState>,
+        on_error: Box<dyn AutomataState>,
         export_type: ExportType,
     ) -> Self {
         Self {
@@ -424,8 +433,11 @@ impl Exporting {
     }
 }
 
-impl State for Exporting {
-    fn make_progress(mut self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
+impl AutomataState for Exporting {
+    fn make_progress(
+        mut self: Box<Self>,
+        main_state: &mut MainStateView,
+    ) -> Box<dyn AutomataState> {
         if let Some(getter) = &self.file_getter {
             if let Some(path_opt) = getter.get() {
                 if let Some(path) = &path_opt {

@@ -16,8 +16,9 @@ SHADERS := $(patsubst %.frag,%.frag.spv,$(FRAG_SRCS)) $(patsubst %.vert,%.vert.s
 validate:
 	@$(MAKE) -s format
 	@$(MAKE) -s spell
-	@$(MAKE) -s check
-	@$(MAKE) -s lint
+	@cargo machete
+	@RUSTFLAGS="--deny warnings" $(MAKE) -s check
+	@RUSTFLAGS="--deny warnings" $(MAKE) -s lint
 	@$(MAKE) -s test
 
 check:
@@ -142,8 +143,3 @@ $(WINDOWS_BIN): src
 
 win: 
 	make $(WINDOWS_BIN)
-
-org:
-	@echo Updating organizer...
-	cargo update -p ensnano_organizer
-	@echo ... Done

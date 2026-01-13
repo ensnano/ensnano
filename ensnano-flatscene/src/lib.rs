@@ -31,19 +31,23 @@ use self::{
 };
 use controller::{Consequence, Controller};
 use data::Data;
-use ensnano_design::{consts::ITERATIVE_AXIS_ALGORITHM, nucl::Nucl};
+use ensnano_design::{
+    MainDesignReaderExt,
+    consts::ITERATIVE_AXIS_ALGORITHM,
+    interaction_modes::SelectionMode,
+    nucl::Nucl,
+    operation::DesignOperation,
+    phantom_element::PhantomElement,
+    selection::{Selection, extract_nucls_and_xover_ends},
+};
 use ensnano_utils::{
-    DesignOperation, StrandBuildingStatus,
+    StrandBuildingStatus,
     application::{AppId, Application, Notification},
     buffer_dimensions::BufferDimensions,
     consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE},
     filename::derive_path_with_prefix_and_time_stamp_and_suffix,
     graphics::{DrawArea, PhySize},
     operation::{CrossCut, Cut, Operation, Xover},
-    selection::{
-        InteractorDesignReaderExt, PhantomElement, Selection, SelectionMode,
-        extract_nucls_and_xover_ends,
-    },
     strand_builder::StrandBuilder,
 };
 use itertools::Itertools as _;
@@ -76,7 +80,7 @@ fn png_resolution([w, h]: [f32; 2]) -> [f32; 2] {
 }
 
 /// A Flatscene handles one design at a time
-pub struct FlatScene<S: AppState> {
+pub struct FlatScene<S: FlatSceneAppState> {
     /// Handle the data to send to the GPU.
     view: Vec<ViewPtr>,
     /// Handle the data representing the design.
@@ -97,16 +101,16 @@ pub struct FlatScene<S: AppState> {
     /// Whether the flatscene is split in two.
     is_split: bool,
     old_state: S,
-    requests: Arc<Mutex<dyn Requests>>,
+    requests: Arc<Mutex<dyn FlatSceneRequests>>,
 }
 
-impl<S: AppState> FlatScene<S> {
+impl<S: FlatSceneAppState> FlatScene<S> {
     pub fn new(
         device: Rc<Device>,
         queue: Rc<Queue>,
         window_size: PhySize,
         area: DrawArea,
-        requests: Arc<Mutex<dyn Requests>>,
+        requests: Arc<Mutex<dyn FlatSceneRequests>>,
         initial_state: S,
     ) -> Self {
         let mut ret = Self {
@@ -130,7 +134,7 @@ impl<S: AppState> FlatScene<S> {
     /// Add a design to the scene.
     ///
     /// This creates a new `View`, a new `Data` and a new `Controller`
-    fn add_design(&mut self, reader: S::Reader, requests: Arc<Mutex<dyn Requests>>) {
+    fn add_design(&mut self, reader: S::Reader, requests: Arc<Mutex<dyn FlatSceneRequests>>) {
         let height = if self.is_split {
             self.area.size.height as f32 / 2.
         } else {
@@ -676,7 +680,7 @@ impl<S: AppState> FlatScene<S> {
     }
 }
 
-impl<S: AppState> Application for FlatScene<S> {
+impl<S: FlatSceneAppState> Application for FlatScene<S> {
     type AppState = S;
 
     fn on_notify(&mut self, notification: Notification) {
@@ -816,8 +820,8 @@ impl<S: AppState> Application for FlatScene<S> {
     }
 }
 
-pub trait AppState: Clone {
-    type Reader: FlatSceneDesignReaderExt + InteractorDesignReaderExt;
+pub trait FlatSceneAppState: Clone {
+    type Reader: FlatSceneDesignReaderExt + MainDesignReaderExt;
 
     fn selection_was_updated(&self, other: &Self) -> bool;
     fn candidate_was_updated(&self, other: &Self) -> bool;
@@ -832,7 +836,7 @@ pub trait AppState: Clone {
     fn get_building_state(&self) -> Option<StrandBuildingStatus>;
 }
 
-pub trait Requests {
+pub trait FlatSceneRequests {
     fn xover_request(&mut self, source: Nucl, target: Nucl, design_id: usize);
     fn request_center_selection(&mut self, selection: Selection, app_id: AppId);
     fn new_selection(&mut self, selection: Vec<Selection>);

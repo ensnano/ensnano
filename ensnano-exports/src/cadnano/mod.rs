@@ -5,7 +5,6 @@ mod parity_graph;
 
 use ensnano_design::{
     Design,
-    collection::Collection as _,
     domains::Domain,
     grid::{GridData, GridTypeDescr},
     nucl::Nucl,

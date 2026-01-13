@@ -1,5 +1,5 @@
 use crate::{
-    controller::Data,
+    data::{Data, design3d::SceneDesignReaderExt},
     maths_3d::{Basis3D, FiniteVec3, Plane, cast_ray, unproject_point_on_plane},
     view::uniforms::Stereography,
 };
@@ -381,7 +381,7 @@ impl CameraController {
     }
 
     /// Translate the camera
-    fn translate_camera(&mut self, surface_info_provider: &dyn Data) {
+    fn translate_camera<R: SceneDesignReaderExt>(&mut self, surface_info_provider: &Data<R>) {
         let right = self.mouse_horizontal;
         let up = -self.mouse_vertical;
 
@@ -421,11 +421,11 @@ impl CameraController {
     }
 
     /// Move the camera according to the keyboard input
-    fn move_camera(
+    fn move_camera<R: SceneDesignReaderExt>(
         &mut self,
         dt: Duration,
         modifier: &ModifiersState,
-        surface_info_provider: &dyn Data,
+        surface_info_provider: &Data<R>,
     ) {
         let dt = dt.as_secs_f32();
 
@@ -545,11 +545,11 @@ impl CameraController {
         self.scroll = 0.;
     }
 
-    pub(super) fn update_camera(
+    pub(super) fn update_camera<R: SceneDesignReaderExt>(
         &mut self,
         dt: Duration,
         modifier: &ModifiersState,
-        surface_info_provider: &dyn Data,
+        surface_info_provider: &Data<R>,
     ) {
         if self.processed_move {
             self.translate_camera(surface_info_provider);
@@ -618,7 +618,10 @@ impl CameraController {
         self.surface_point = Some(info.point);
     }
 
-    pub(super) fn reverse_surface_direction(&mut self, surface_info_provider: &dyn Data) {
+    pub(super) fn reverse_surface_direction<R: SceneDesignReaderExt>(
+        &mut self,
+        surface_info_provider: &Data<R>,
+    ) {
         if let Some(point) = self.surface_point.as_mut() {
             point.reversed_direction ^= true;
             if let Some(surface_info) = surface_info_provider.get_surface_info(point.clone()) {

@@ -1,5 +1,5 @@
 use crate::{
-    AppState,
+    GuiAppState,
     color_picker::{ColorPicker, ColorPickerMessage},
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
@@ -9,8 +9,8 @@ use crate::{
         tabs::GuiTab,
     },
 };
-use ensnano_design::elements::DesignElementKey;
-use ensnano_utils::{RollRequest, selection::extract_strands_from_selection, ui_size::UiSize};
+use ensnano_design::{design_element::DesignElementKey, selection::extract_strands_from_selection};
+use ensnano_utils::{RollRequest, ui_size::UiSize};
 use iced::{
     Command,
     widget::{column, row, scrollable},
@@ -18,7 +18,7 @@ use iced::{
 use iced_aw::TabLabel;
 use std::marker::PhantomData;
 
-pub struct EditionTab<State: AppState> {
+pub struct EditionTab<State: GuiAppState> {
     helix_roll_factory: RequestFactory<HelixRoll>,
     color_picker: ColorPicker,
     //_sequence_input: SequenceInput,
@@ -26,7 +26,7 @@ pub struct EditionTab<State: AppState> {
     _state_type: PhantomData<State>,
 }
 
-impl<State: AppState> EditionTab<State> {
+impl<State: GuiAppState> EditionTab<State> {
     pub fn new() -> Self {
         Self {
             helix_roll_factory: RequestFactory::new(FactoryId::HelixRoll, HelixRoll {}),
@@ -72,7 +72,7 @@ impl<State: AppState> EditionTab<State> {
     }
 }
 
-impl<State: AppState> GuiTab<State> for EditionTab<State> {
+impl<State: GuiAppState> GuiTab<State> for EditionTab<State> {
     type Message = Message<State>;
 
     fn label(&self) -> TabLabel {

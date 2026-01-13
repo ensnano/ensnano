@@ -1,5 +1,5 @@
 use crate::{
-    AppState,
+    GuiAppState,
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, icon_button, section, subsection, text_button},
     left_panel::{
@@ -8,9 +8,8 @@ use crate::{
         tabs::GuiTab,
     },
 };
-use ensnano_design::grid::GridTypeDescr;
+use ensnano_design::{grid::GridTypeDescr, operation::HyperboloidRequest};
 use ensnano_utils::{
-    HyperboloidRequest,
     consts::{ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID},
     ui_size::UiSize,
 };
@@ -21,12 +20,12 @@ use iced::{
 use iced_aw::TabLabel;
 use std::marker::PhantomData;
 
-pub struct GridTab<State: AppState> {
+pub struct GridTab<State: GuiAppState> {
     hyperboloid_factory: RequestFactory<Hyperboloid_>,
     _state_type: PhantomData<State>,
 }
 
-impl<State: AppState> GridTab<State> {
+impl<State: GuiAppState> GridTab<State> {
     pub fn new() -> Self {
         Self {
             hyperboloid_factory: RequestFactory::new(FactoryId::Hyperboloid, Hyperboloid_ {}),
@@ -50,7 +49,7 @@ impl<State: AppState> GridTab<State> {
     }
 }
 
-impl<State: AppState> GuiTab<State> for GridTab<State> {
+impl<State: GuiAppState> GuiTab<State> for GridTab<State> {
     type Message = Message<State>;
 
     fn label(&self) -> TabLabel {

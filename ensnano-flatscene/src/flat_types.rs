@@ -5,8 +5,7 @@
 //! converted. For both the flatscene and the design, usize could be used but having distinct types
 //! reduces the confusion, since errors will be detected by the typechecker.
 
-use ensnano_design::nucl::Nucl;
-use ensnano_utils::selection::Selection;
+use ensnano_design::{nucl::Nucl, selection::Selection};
 use std::{
     collections::{BTreeMap, HashMap},
     hash::{Hash, Hasher},
@@ -145,8 +144,8 @@ impl FlatHelixMaps {
         Some(segment.len())
     }
 
-    pub fn iter(&self) -> Box<dyn Iterator<Item = (&HelixSegment, &FlatIdx)> + '_> {
-        Box::new(self.real_to_flat.iter())
+    pub fn iter(&self) -> impl Iterator<Item = (&HelixSegment, &FlatIdx)> {
+        self.real_to_flat.iter()
     }
 
     pub fn len(&self) -> usize {

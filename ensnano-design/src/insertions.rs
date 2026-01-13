@@ -1,6 +1,4 @@
-use crate::{
-    domains::Domain, helices::HelixCollection, parameters::HelixParameters, strands::Strand,
-};
+use crate::{domains::Domain, helices::Helices, parameters::HelixParameters, strands::Strand};
 use rand::Rng as _;
 use rand_distr::StandardNormal;
 use std::{
@@ -207,11 +205,7 @@ impl InstantiatedInsertion {
 }
 
 impl Strand {
-    pub fn update_insertions(
-        &mut self,
-        helices: &dyn HelixCollection,
-        helix_parameters: &HelixParameters,
-    ) {
+    pub fn update_insertions(&mut self, helices: &Helices, helix_parameters: &HelixParameters) {
         let mut to_be_updated = Vec::new();
         let nb_domain = self.domains.len();
         for (d_prev, ((d_id, d), d_next)) in self.domains.iter().cycle().skip(nb_domain - 1).zip(

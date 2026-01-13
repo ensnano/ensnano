@@ -2,48 +2,54 @@ mod color_picker;
 mod contextual_panel;
 mod discrete_value;
 mod export_menu;
+mod organizer;
 pub mod tabs;
 
-use crate::color_picker::ColorPickerMessage;
-use crate::{
-    AppState, OverlayType, Requests,
-    fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
-    left_panel::tabs::{
-        camera_tab::FogChoices,
-        revolution_tab::{CurveDescriptorBuilder, RevolutionParameterId},
+use self::{
+    color_picker::ColorPicker,
+    contextual_panel::{
+        ContextualPanel,
+        value_constructor::{InstantiatedValue, ValueKind},
     },
+    discrete_value::{FactoryId, Requestable, ValueId},
+    export_menu::ExportMenu,
+    organizer::{Organizer, message::OrganizerMessage},
+    tabs::{
+        GuiTab as _, TabId,
+        camera_shortcut::CameraShortcutPanel,
+        camera_tab::{CameraTab, FogChoices},
+        edition_tab::EditionTab,
+        grids_tab::GridTab,
+        parameters_tab::ParametersTab,
+        pen_tab::PenTab,
+        revolution_tab::{CurveDescriptorBuilder, RevolutionParameterId, RevolutionTab},
+        sequence_tab::SequenceTab,
+        simulation_tab::SimulationTab,
+    },
+};
+use crate::{
+    GuiAppState, GuiRequests, OverlayType,
+    color_picker::ColorPickerMessage,
+    fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
+    keyboard_priority::PriorityRequest,
     theme::GuiBackground,
 };
-use color_picker::ColorPicker;
-use contextual_panel::{
-    ContextualPanel,
-    value_constructor::{InstantiatedValue, ValueKind},
-};
-use discrete_value::{FactoryId, Requestable, ValueId};
 use ensnano_design::{
-    CameraId,
-    bezier_plane::BezierPathId,
-    elements::{DesignElement, DesignElementKey},
-    grid::GridTypeDescr,
-    parameters::NamedParameter,
+    CameraId, bezier_plane::BezierPathId, design_element::DesignElementKey, grid::GridTypeDescr,
+    interaction_modes::ActionMode, operation::HyperboloidRequest, organizer_tree::OrganizerTree,
+    parameters::NamedParameter, selection::Selection,
 };
 use ensnano_exports::ExportType;
-use ensnano_organizer::{
-    Organizer, OrganizerMessage, keyboard_priority::PriorityRequest, tree::OrganizerTree,
-};
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
-    HyperboloidRequest,
     app_state_parameters::{
         AppStateParameters, check_xovers_parameter::CheckXoversParameter,
         suggestion_parameters::SuggestionParameters,
     },
     graphics::{Background3D, HBondDisplay, RenderingMode},
-    selection::{ActionMode, Selection, SelectionConversion as _},
     surfaces::EquadiffSolvingMethod,
     ui_size::UiSize,
 };
-use export_menu::ExportMenu;
 use iced::{
     Color, Command, Element, Length,
     widget::{Button, Column, Container, Text, column, container, horizontal_rule, text_input},
@@ -55,24 +61,19 @@ use std::{
     f32::consts::PI,
     sync::{Arc, Mutex},
 };
-use tabs::{
-    GuiTab as _, TabId, camera_shortcut::CameraShortcutPanel, camera_tab::CameraTab,
-    edition_tab::EditionTab, grids_tab::GridTab, parameters_tab::ParametersTab, pen_tab::PenTab,
-    revolution_tab::RevolutionTab, sequence_tab::SequenceTab, simulation_tab::SimulationTab,
-};
 use ultraviolet::Vec3;
 use winit::{
     dpi::{LogicalPosition, LogicalSize},
     event::Modifiers,
 };
 
-pub struct LeftPanel<R: Requests, S: AppState> {
+pub struct LeftPanel<R: GuiRequests, S: GuiAppState> {
     logical_size: LogicalSize<f64>,
     logical_position: LogicalPosition<f64>,
     requests: Arc<Mutex<R>>,
     active_tab: TabId,
     /// Provide an organized view of the object being edited.
-    organizer: Organizer<DesignElement>,
+    organizer: Organizer,
     ui_size: UiSize,
     grid_tab: GridTab<S>,
     edition_tab: EditionTab<S>,
@@ -89,7 +90,7 @@ pub struct LeftPanel<R: Requests, S: AppState> {
 }
 
 #[derive(Debug, Clone)]
-pub enum Message<S: AppState> {
+pub enum Message<S: GuiAppState> {
     Resized(LogicalSize<f64>, LogicalPosition<f64>),
     MakeGrids,
     StrandNameChanged(usize, String),
@@ -123,7 +124,7 @@ pub enum Message<S: AppState> {
     RigidHelicesSimulation(bool),
     VolumeExclusion(bool),
     TabSelected(TabId),
-    OrganizerMessage(OrganizerMessage<DesignElement>),
+    OrganizerMessage(OrganizerMessage),
     ModifiersChanged(Modifiers),
     UiSizeChanged(UiSize),
     UiSizePicked(UiSize),
@@ -205,7 +206,7 @@ pub enum Message<S: AppState> {
     SetFocus(text_input::Id),
 }
 
-impl<R: Requests, S: AppState> LeftPanel<R, S> {
+impl<R: GuiRequests, S: GuiAppState> LeftPanel<R, S> {
     /// Create a new [LeftPanel].
     pub fn new(
         requests: Arc<Mutex<R>>,
@@ -257,7 +258,7 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
     }
 
     /// Convert an [OrganizerMessage] into a LeftPanel [Message].
-    fn organizer_message(&mut self, m: OrganizerMessage<DesignElement>) -> Option<Message<S>> {
+    fn organizer_message(&mut self, m: OrganizerMessage) -> Option<Message<S>> {
         match m {
             OrganizerMessage::InternalMessage(m) => {
                 let selection = self
@@ -319,8 +320,8 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
 
 impl<R, S> Program for LeftPanel<R, S>
 where
-    R: Requests,
-    S: AppState,
+    R: GuiRequests,
+    S: GuiAppState,
 {
     type Theme = iced::Theme;
     type Renderer = iced::Renderer;
@@ -1175,13 +1176,13 @@ where
 
 // TODO: Remove ColorOverlay
 
-pub struct ColorOverlay<R: Requests> {
+pub struct ColorOverlay<R: GuiRequests> {
     logical_size: LogicalSize<f64>,
     color_picker: ColorPicker,
     requests: Arc<Mutex<R>>,
 }
 
-impl<R: Requests> ColorOverlay<R> {
+impl<R: GuiRequests> ColorOverlay<R> {
     pub fn new(requests: Arc<Mutex<R>>, logical_size: LogicalSize<f64>) -> Self {
         Self {
             logical_size,
@@ -1199,7 +1200,7 @@ pub enum ColorMessage {
     Closed,
 }
 
-impl<R: Requests> Program for ColorOverlay<R> {
+impl<R: GuiRequests> Program for ColorOverlay<R> {
     type Renderer = iced::Renderer;
     type Theme = iced::Theme;
     type Message = ColorMessage;

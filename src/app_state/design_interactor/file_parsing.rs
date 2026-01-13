@@ -1,12 +1,7 @@
-pub(crate) mod junctions;
-
-use super::id_generator::IdGenerator;
 use crate::{
     app_state::{
         address_pointer::AddressPointer,
-        design_interactor::{
-            DesignInteractor, file_parsing::junctions::StrandJunction as _, presenter::Presenter,
-        },
+        design_interactor::{DesignInteractor, presenter::Presenter},
     },
     controller::LoadDesignError,
 };
@@ -15,6 +10,7 @@ use ensnano_design::{
     cadnano::CadnanoDesign,
     codenano::CodenanoDesign,
     ensnano_version,
+    id_generator::IdGenerator,
     nucl::Nucl,
     scadnano::{ScadnanoDesign, ScadnanoImportError},
 };
@@ -106,7 +102,6 @@ impl From<ScadnanoImportError> for LoadDesignError {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ensnano_design::helices::HelixCollection as _;
 
     fn one_helix_path() -> PathBuf {
         let mut ret = PathBuf::from(std::env!("CARGO_MANIFEST_DIR"));
