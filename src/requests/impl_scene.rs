@@ -1,8 +1,9 @@
-//! Implements the [Requests](`ensnano_scene::Requests`) trait for [Requests](`super::Requests`).
+//! Implements the [SceneRequests](`ensnano_scene::SceneRequests`) trait for [Requests](`super::Requests`).
 
-use crate::app_state::design_interactor::controller::clipboard::PastePosition;
-use crate::controller::normal_state::Action;
-use crate::requests::Requests;
+use crate::{
+    app_state::design_interactor::controller::clipboard::PastePosition,
+    controller::normal_state::Action, requests::Requests,
+};
 use ensnano_design::{
     grid::GridPosition,
     group_attributes::GroupPivot,

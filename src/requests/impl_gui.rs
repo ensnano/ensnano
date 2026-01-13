@@ -1,7 +1,6 @@
-//! Implements the [Requests](`ensnano_gui::Requests`) trait for [Requests](`super::Requests`).
+//! Implements the [GuiRequests](`ensnano_gui::GuiRequests`) trait for [Requests](`super::Requests`).
 
-use crate::controller::normal_state::Action;
-use crate::requests::Requests;
+use crate::{controller::normal_state::Action, requests::Requests};
 use ensnano_design::{
     CameraId,
     bezier_plane::{BezierPathId, BezierVertexId},
