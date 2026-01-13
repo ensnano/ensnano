@@ -9,7 +9,6 @@ mod color_picker;
 mod consts;
 pub mod fonts;
 mod helpers;
-mod icon;
 pub mod keyboard_priority;
 pub mod left_panel;
 pub mod status_bar;

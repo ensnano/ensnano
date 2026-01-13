@@ -12,7 +12,6 @@ use crate::{
         material_icons::{MaterialIcon, MaterialIconStyle},
     },
     helpers::{fixed_text_button, image_button, material_icon_button, text_button},
-    icon::{HasIcon as _, HasIconDependentOnAxis as _},
     theme::GuiBackground,
 };
 use ensnano_design::interaction_modes::{ActionMode, SelectionMode};

@@ -12,6 +12,7 @@ workspace = true
 [dependencies]
 ahash.workspace = true
 chebyshev_polynomials.workspace = true
+iced.workspace = true
 icondata.workspace = true
 log.workspace = true
 num.workspace = true

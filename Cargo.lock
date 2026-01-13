@@ -1106,6 +1106,7 @@ version = "0.7.0"
 dependencies = [
  "ahash 0.8.12",
  "chebyshev_polynomials",
+ "iced",
  "icondata",
  "log",
  "num",

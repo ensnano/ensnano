@@ -1,3 +1,5 @@
+use iced::widget::image::Handle;
+
 /// Selection modes that can be selected by buttons on the top bar.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub enum SelectionMode {
@@ -34,6 +36,26 @@ impl SelectionMode {
             Self::Helix => "Helix",
             Self::Design => "Design",
         }
+    }
+
+    pub fn icon_on(&self) -> Handle {
+        let bytes = match self {
+            Self::Helix => include_bytes!("../../icons/icons/Helix-on32.png").to_vec(),
+            Self::Nucleotide => include_bytes!("../../icons/icons/Nucleotide-on32.png").to_vec(),
+            Self::Strand => include_bytes!("../../icons/icons/Strand-on32.png").to_vec(),
+            Self::Design => vec![],
+        };
+        Handle::from_memory(bytes)
+    }
+
+    pub fn icon_off(&self) -> Handle {
+        let bytes = match self {
+            Self::Helix => include_bytes!("../../icons/icons/Helix-off32.png").to_vec(),
+            Self::Nucleotide => include_bytes!("../../icons/icons/Nucleotide-off32.png").to_vec(),
+            Self::Strand => include_bytes!("../../icons/icons/Strand-off32.png").to_vec(),
+            Self::Design => vec![],
+        };
+        Handle::from_memory(bytes)
     }
 }
 
@@ -88,5 +110,55 @@ impl ActionMode {
             Self::Cut => "Cut",
             Self::EditBezierPath => "EditBezierPath",
         }
+    }
+
+    pub fn icon_on(&self, axis_aligned: bool) -> Handle {
+        let bytes = match self {
+            Self::BuildHelix { .. } => {
+                include_bytes!("../../icons/icons/NewHelix-on32.png").to_vec()
+            }
+            Self::Normal => include_bytes!("../../icons/icons/Select-on32.png").to_vec(),
+            Self::Translate => {
+                if axis_aligned {
+                    include_bytes!("../../icons/icons/Move-on32.png").to_vec()
+                } else {
+                    include_bytes!("../../icons/icons/Move-on-in32.png").to_vec()
+                }
+            }
+            Self::Rotate => {
+                if axis_aligned {
+                    include_bytes!("../../icons/icons/Rotate-on32.png").to_vec()
+                } else {
+                    include_bytes!("../../icons/icons/Rotate-on-in32.png").to_vec()
+                }
+            }
+            _ => vec![],
+        };
+        Handle::from_memory(bytes)
+    }
+
+    pub fn icon_off(&self, axis_aligned: bool) -> Handle {
+        let bytes = match self {
+            Self::BuildHelix { .. } => {
+                include_bytes!("../../icons/icons/NewHelix-off32.png").to_vec()
+            }
+            Self::Normal => include_bytes!("../../icons/icons/Select-off32.png").to_vec(),
+            Self::Translate => {
+                if axis_aligned {
+                    include_bytes!("../../icons/icons/Move-off32.png").to_vec()
+                } else {
+                    include_bytes!("../../icons/icons/Move-off-in32.png").to_vec()
+                }
+            }
+            Self::Rotate => {
+                if axis_aligned {
+                    include_bytes!("../../icons/icons/Rotate-off32.png").to_vec()
+                } else {
+                    include_bytes!("../../icons/icons/Rotate-off-in32.png").to_vec()
+                }
+            }
+            _ => vec![],
+        };
+        Handle::from_memory(bytes)
     }
 }

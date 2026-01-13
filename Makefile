@@ -16,6 +16,7 @@ SHADERS := $(patsubst %.frag,%.frag.spv,$(FRAG_SRCS)) $(patsubst %.vert,%.vert.s
 validate:
 	@$(MAKE) -s format
 	@$(MAKE) -s spell
+	@cargo machete
 	@RUSTFLAGS="--deny warnings" $(MAKE) -s check
 	@RUSTFLAGS="--deny warnings" $(MAKE) -s lint
 	@$(MAKE) -s test
