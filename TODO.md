@@ -120,9 +120,11 @@
   - `mod` then `use`
 - Remove traits implemented only once:
   - `AdditionalStructure` (ensnano_design)
-  - `AppState` (ensnano_gui, ensnano_scene, ensnano_flatscene)
-  - `Data` (ensnano_scene)
+  - `(Gui|FlatScene|Scene)AppState`
+  - `(Gui|FlatScene|Scene)Requests`
+  - `(Gui|FlatScene|Scene|Main)DesignReaderExt`
   - `Multiplexer`
+  - `RawDrawer`
   - `ScaffoldSetter`
 - Remove enums with one variant -> struct or raw value:
   - `AppOperation`
