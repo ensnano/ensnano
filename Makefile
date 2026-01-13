@@ -16,15 +16,15 @@ SHADERS := $(patsubst %.frag,%.frag.spv,$(FRAG_SRCS)) $(patsubst %.vert,%.vert.s
 validate:
 	@$(MAKE) -s format
 	@$(MAKE) -s spell
-	@$(MAKE) -s check
-	@$(MAKE) -s lint
+	@RUSTFLAGS="--deny warnings" $(MAKE) -s check
+	@RUSTFLAGS="--deny warnings" $(MAKE) -s lint
 	@$(MAKE) -s test
 
 check:
-	@RUSTFLAGS="--deny warnings" cargo check --workspace --all-targets
+	@cargo check --workspace --all-targets
 
 lint:
-	@RUSTFLAGS="--deny warnings" cargo clippy --workspace --all-targets
+	@cargo clippy --workspace --all-targets
 
 # does not include doctests (--doc), but we have none so far
 test:
