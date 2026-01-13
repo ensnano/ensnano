@@ -4,7 +4,6 @@ use crate::organizer::element::{
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use serde::{Deserialize, Serialize};
 
-/// Actual implementation of the OrganizerElement for the LeftPanel.
 #[derive(Clone, Debug)]
 pub enum DesignElement {
     Grid {
