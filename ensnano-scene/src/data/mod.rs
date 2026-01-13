@@ -6,7 +6,6 @@ pub mod design3d;
 use crate::{
     SceneAppState,
     camera::CameraController,
-    controller::Data as ControllerData,
     element_selector::{SceneElement, bezier_vertex_id},
     view::{
         Mesh, View, ViewUpdate,
@@ -1878,14 +1877,43 @@ impl<R: SceneDesignReaderExt> Data<R> {
         }
     }
 
-    pub fn notify_handle_movement(&mut self) {
+    pub(crate) fn notify_handle_movement(&mut self) {
         self.handle_needs_update = true;
     }
 
-    pub(super) fn get_surface_info_nucl(&self, nucl: Nucl) -> Option<SurfaceInfo> {
+    pub(crate) fn get_surface_info_nucl(&self, nucl: Nucl) -> Option<SurfaceInfo> {
         self.designs
             .first()
             .and_then(|d| d.get_surface_info_nucl(nucl))
+    }
+
+    pub(crate) fn get_grid_object(&self, position: GridPosition) -> Option<GridObject> {
+        self.designs
+            .first()
+            .and_then(|d| d.get_grid_object(position))
+    }
+
+    pub(crate) fn notify_rotating_pivot(&mut self) {
+        self.rotating_pivot = true;
+    }
+
+    pub(crate) fn stop_rotating_pivot(&mut self) {
+        self.rotating_pivot = false;
+    }
+
+    pub(crate) fn update_handle_colors(&mut self, colors: HandleColors) {
+        if self.handle_colors != colors {
+            self.handle_needs_update = true;
+            self.handle_colors = colors;
+        }
+    }
+
+    pub(crate) fn get_surface_info(&self, point: SurfacePoint) -> Option<SurfaceInfo> {
+        self.designs.first().and_then(|d| d.get_surface_info(point))
+    }
+
+    pub(crate) fn notify_camera_movement(&mut self, camera: &CameraController) {
+        self.update_surface_pivot(camera.get_current_surface_pivot());
     }
 }
 
@@ -1908,69 +1936,6 @@ fn toggle_selection(mode: SelectionMode) -> SelectionMode {
         SelectionMode::Strand => SelectionMode::Helix,
         SelectionMode::Helix => SelectionMode::Nucleotide,
         SelectionMode::Design => SelectionMode::Design,
-    }
-}
-
-impl<R: SceneDesignReaderExt> ControllerData for Data<R> {
-    fn element_to_nucl(
-        &self,
-        element: Option<&SceneElement>,
-        non_phantom: bool,
-    ) -> Option<(Nucl, usize)> {
-        self.element_to_nucl(element, non_phantom)
-    }
-
-    fn get_nucl_position(&self, nucl: Nucl, design_id: usize) -> Option<Vec3> {
-        self.get_nucl_position(nucl, design_id)
-    }
-
-    fn attempt_xover(
-        &self,
-        source: Option<&SceneElement>,
-        target: Option<&SceneElement>,
-    ) -> Option<(Nucl, Nucl, usize)> {
-        self.attempt_xover(source, target)
-    }
-
-    fn can_start_builder(&self, element: Option<SceneElement>) -> Option<Nucl> {
-        self.can_start_builder(element)
-    }
-
-    fn get_grid_object(&self, position: GridPosition) -> Option<GridObject> {
-        self.designs
-            .first()
-            .and_then(|d| d.get_grid_object(position))
-    }
-
-    fn notify_rotating_pivot(&mut self) {
-        self.rotating_pivot = true;
-    }
-
-    fn stop_rotating_pivot(&mut self) {
-        self.rotating_pivot = false;
-    }
-
-    fn update_handle_colors(&mut self, colors: HandleColors) {
-        if self.handle_colors != colors {
-            self.handle_needs_update = true;
-            self.handle_colors = colors;
-        }
-    }
-
-    fn init_free_xover(&mut self, nucl: Nucl, position: Vec3, design_id: usize) {
-        self.init_free_xover(nucl, position, design_id);
-    }
-
-    fn get_surface_info(&self, point: SurfacePoint) -> Option<SurfaceInfo> {
-        self.designs.first().and_then(|d| d.get_surface_info(point))
-    }
-
-    fn get_surface_info_nucl(&self, nucl: Nucl) -> Option<SurfaceInfo> {
-        self.get_surface_info_nucl(nucl)
-    }
-
-    fn notify_camera_movement(&mut self, camera: &CameraController) {
-        self.update_surface_pivot(camera.get_current_surface_pivot());
     }
 }
 

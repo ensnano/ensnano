@@ -4,6 +4,7 @@ use crate::{
     PhysicalPosition, SceneAppState, ViewPtr, WindowEvent,
     camera::CameraController,
     controller::automata::event_context::EventContext,
+    data::Data,
     element_selector::{ElementSelector, SceneElement},
     maths_3d::FiniteVec3,
     view::{
@@ -16,8 +17,8 @@ use crate::{
 use automata::{NormalState, State, Transition, WidgetTarget};
 use ensnano_design::{
     bezier_plane::{BezierPathId, BezierPlaneId, BezierVertex, BezierVertexId},
-    curves::{SurfaceInfo, SurfacePoint},
-    grid::{GridId, GridObject, GridPosition, HelixGridPosition},
+    curves::SurfaceInfo,
+    grid::{GridId, GridObject, HelixGridPosition},
     nucl::Nucl,
 };
 use ensnano_utils::graphics::PhySize;
@@ -34,7 +35,7 @@ pub(crate) struct Controller<S: SceneAppState> {
     /// A pointer to the View
     view: ViewPtr,
     /// A pointer to the data
-    data: Rc<RefCell<dyn Data>>,
+    data: Rc<RefCell<Data<S::AppStateDesignReader>>>,
     /// The event that modify the camera are forwarded to the camera_controller
     camera_controller: CameraController,
     /// The size of the window
@@ -146,7 +147,7 @@ enum TransitionConsequence {
 impl<S: SceneAppState> Controller<S> {
     pub(super) fn new(
         view: ViewPtr,
-        data: Rc<RefCell<dyn Data>>,
+        data: Rc<RefCell<Data<S::AppStateDesignReader>>>,
         window_size: PhySize,
         area_size: PhySize,
     ) -> Self {
@@ -487,27 +488,4 @@ fn ctrl(modifiers: &ModifiersState) -> bool {
     } else {
         modifiers.control_key()
     }
-}
-
-pub(crate) trait Data {
-    fn element_to_nucl(
-        &self,
-        element: Option<&SceneElement>,
-        non_phantom: bool,
-    ) -> Option<(Nucl, usize)>;
-    fn get_nucl_position(&self, nucl: Nucl, design_id: usize) -> Option<Vec3>;
-    fn attempt_xover(
-        &self,
-        source: Option<&SceneElement>,
-        target: Option<&SceneElement>,
-    ) -> Option<(Nucl, Nucl, usize)>;
-    fn can_start_builder(&self, element: Option<SceneElement>) -> Option<Nucl>;
-    fn get_grid_object(&self, position: GridPosition) -> Option<GridObject>;
-    fn notify_rotating_pivot(&mut self);
-    fn stop_rotating_pivot(&mut self);
-    fn update_handle_colors(&mut self, colors: HandleColors);
-    fn init_free_xover(&mut self, nucl: Nucl, position: Vec3, design_id: usize);
-    fn get_surface_info(&self, point: SurfacePoint) -> Option<SurfaceInfo>;
-    fn get_surface_info_nucl(&self, nucl: Nucl) -> Option<SurfaceInfo>;
-    fn notify_camera_movement(&mut self, camera: &CameraController);
 }
