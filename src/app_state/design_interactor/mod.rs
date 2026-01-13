@@ -407,10 +407,10 @@ mod tests {
         transitions::OkOperation as TopOkOperation,
     };
     use ensnano_design::{
+        MainDesignReaderExt as _,
         grid::{GridDescriptor, GridId, GridTypeDescr, HelixGridPosition},
         nucl::Nucl,
         operation::InsertionPoint,
-        selection::InteractorDesignReaderExt as _,
         strands::{DomainJunction, Strand},
     };
     use ensnano_scene::data::design3d::SceneDesignReaderExt as _;

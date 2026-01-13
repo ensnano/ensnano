@@ -119,7 +119,6 @@
   - `AdditionalStructure` (ensnano_design)
   - `AppState` (ensnano_gui, ensnano_scene, ensnano_flatscene)
   - `Data` (ensnano_scene)
-  - `InteractorDesignReaderExt` (ensnano_design)
   - `Multiplexer`
   - `ScaffoldSetter`
 - Remove enums with one variant -> struct or raw value:

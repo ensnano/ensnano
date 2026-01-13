@@ -3,9 +3,9 @@ use crate::controller::download_staples::{
     DownloadStapleError, DownloadStapleOk, StaplesDownloader,
 };
 use ensnano_design::{
+    MainDesignReaderExt,
     grid::{GridId, HelixGridPosition},
     nucl::Nucl,
-    selection::InteractorDesignReaderExt,
     strands::Strand,
 };
 use itertools::Itertools as _;
@@ -301,7 +301,7 @@ fn warn_scaffold_seq_mismatch(scaffold_length: usize, sequence_length: usize) ->
     )
 }
 
-impl InteractorDesignReaderExt for DesignInteractor {
+impl MainDesignReaderExt for DesignInteractor {
     fn get_xover_id(&self, pair: &(Nucl, Nucl)) -> Option<usize> {
         self.presenter.junctions_ids.get_id(pair)
     }

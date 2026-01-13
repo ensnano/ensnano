@@ -30,8 +30,6 @@ pub mod selection;
 pub mod strands;
 pub mod utils;
 
-use crate::organizer::tree::{GroupId, OrganizerTree};
-
 use self::{
     bezier_plane::{BezierPathData, BezierPaths, BezierPlanes},
     curves::CurveCache,
@@ -46,6 +44,11 @@ use self::{
     nucl::Nucl,
     parameters::HelixParameters,
     strands::Strands,
+};
+use crate::{
+    grid::HelixGridPosition,
+    organizer::tree::{GroupId, OrganizerTree},
+    strands::Strand,
 };
 use serde::{Deserialize, Serialize};
 use serde_with::{DefaultOnError, serde_as};
@@ -524,6 +527,15 @@ impl Design {
     pub fn set_helices(&mut self, helices: BTreeMap<usize, Arc<Helix>>) {
         self.helices = Helices(Arc::new(helices));
     }
+}
+
+pub trait MainDesignReaderExt {
+    fn get_grid_position_of_helix(&self, h_id: usize) -> Option<HelixGridPosition>;
+    fn get_xover_id(&self, pair: &(Nucl, Nucl)) -> Option<usize>;
+    fn get_xover_with_id(&self, id: usize) -> Option<(Nucl, Nucl)>;
+    fn get_strand_with_id(&self, id: usize) -> Option<&Strand>;
+    fn get_helix_grid(&self, h_id: usize) -> Option<GridId>;
+    fn get_domain_ends(&self, s_id: usize) -> Option<Vec<Nucl>>;
 }
 
 pub trait AdditionalStructure: Send + Sync {

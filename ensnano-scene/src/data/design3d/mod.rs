@@ -21,7 +21,7 @@ use crate::{
 };
 use ahash::RandomState;
 use ensnano_design::{
-    AdditionalStructure,
+    AdditionalStructure, MainDesignReaderExt,
     bezier_plane::{BezierPathId, BezierPlaneId, BezierPlanes, BezierVertex, InstantiatedPath},
     curves::{
         CurveDescriptor, SurfaceInfo, SurfacePoint,
@@ -32,8 +32,7 @@ use ensnano_design::{
     nucl::Nucl,
     parameters::HelixParameters,
     selection::{
-        InteractorDesignReaderExt, PHANTOM_RANGE, PhantomElement, phantom_helix_encoder_bond,
-        phantom_helix_encoder_nucl,
+        PHANTOM_RANGE, PhantomElement, phantom_helix_encoder_bond, phantom_helix_encoder_nucl,
     },
 };
 use ensnano_utils::{
@@ -1491,7 +1490,7 @@ pub(super) enum ExpandWith {
 
 pub type Scalebar = (f32, f32, fn(f32, f32, f32) -> u32);
 
-pub trait SceneDesignReaderExt: 'static + InteractorDesignReaderExt {
+pub trait SceneDesignReaderExt: 'static + MainDesignReaderExt {
     /// Return the identifier of all the visible nucleotides
     fn get_all_visible_nucl_ids(&self) -> Vec<u32>;
     /// Return the identifier of all the visible bounds

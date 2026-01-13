@@ -32,13 +32,11 @@ use self::{
 use controller::{Consequence, Controller};
 use data::Data;
 use ensnano_design::{
+    MainDesignReaderExt,
     consts::ITERATIVE_AXIS_ALGORITHM,
     nucl::Nucl,
     operation::DesignOperation,
-    selection::{
-        InteractorDesignReaderExt, PhantomElement, Selection, SelectionMode,
-        extract_nucls_and_xover_ends,
-    },
+    selection::{PhantomElement, Selection, SelectionMode, extract_nucls_and_xover_ends},
 };
 use ensnano_utils::{
     StrandBuildingStatus,
@@ -821,7 +819,7 @@ impl<S: AppState> Application for FlatScene<S> {
 }
 
 pub trait AppState: Clone {
-    type Reader: FlatSceneDesignReaderExt + InteractorDesignReaderExt;
+    type Reader: FlatSceneDesignReaderExt + MainDesignReaderExt;
 
     fn selection_was_updated(&self, other: &Self) -> bool;
     fn candidate_was_updated(&self, other: &Self) -> bool;

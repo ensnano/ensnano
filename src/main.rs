@@ -90,17 +90,16 @@ use controller::{
     },
 };
 use ensnano_design::{
-    Camera, CameraId, SavingInformation,
+    Camera, CameraId, MainDesignReaderExt, SavingInformation,
     bezier_plane::BezierPlaneDescriptor,
     grid::GridId,
     group_attributes::GroupPivot,
     operation::{DesignOperation, DesignRotation, DesignTranslation, IsometryTarget},
     organizer::tree::GroupId,
     selection::{
-        ActionMode, CenterOfSelection, InteractorDesignReaderExt, Selection, SelectionMode,
-        extract_nucls_from_selection, extract_only_grids, extract_strands_from_selection,
-        list_of_bezier_vertices, list_of_free_grids, list_of_helices, list_of_strands,
-        list_of_xover_as_nucl_pairs,
+        ActionMode, CenterOfSelection, Selection, SelectionMode, extract_nucls_from_selection,
+        extract_only_grids, extract_strands_from_selection, list_of_bezier_vertices,
+        list_of_free_grids, list_of_helices, list_of_strands, list_of_xover_as_nucl_pairs,
     },
 };
 use ensnano_exports::{ExportResult, ExportType};
@@ -1812,7 +1811,7 @@ impl MainStateView<'_> {
         Box::new(self.main_state.app_state.get_selection())
     }
 
-    fn get_design_reader(&self) -> Box<dyn InteractorDesignReaderExt> {
+    fn get_design_reader(&self) -> Box<dyn MainDesignReaderExt> {
         Box::new(self.main_state.app_state.get_design_interactor())
     }
 
