@@ -3,11 +3,8 @@
 ## Stabilize `dev_iced`
 
 - Movement is broken when both keyboard and mouse wheel translations (or zoom) are applied
-- Fix text fields in organizer tree
-- Fix text fields in revolution surface tab
 - Click on organizer tree should select and reciprocally (select should highlight in red in organizer tree)
 - Double click on organizer tree should teleport in 2d and 3d scenes
-- Add serialization/deserialization tests to detect regressions based on typo fixes
 
 ## Bugs
 
@@ -87,6 +84,7 @@
 
 ## Long-term
 
+- Add serialization/deserialization tests to detect regressions based on typo fixes
 - Check and accept nix merge request
 - Fix all GitLab issues
 - Update `iced` to 0.14
