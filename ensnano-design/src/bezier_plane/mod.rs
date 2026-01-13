@@ -448,8 +448,7 @@ fn path_to_curve_descriptor(
         source_path,
         path_3d,
     };
-    let mut ret =
-        <BezierInstantiator as PieceWiseBezierInstantiator<Vec3>>::instantiate(&instantiator)?;
+    let mut ret = instantiator.instantiate()?;
 
     // This descriptor is only used to draw the path of the curve on the bezier plane. It does not
     // need to be precise, but it is better if we can update it quickly.

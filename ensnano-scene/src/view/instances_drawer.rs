@@ -516,7 +516,7 @@ pub trait RawDrawer {
 }
 
 impl<D: Instantiable> RawDrawer for InstanceDrawer<D> {
-    type RawInstance = <D as Instantiable>::RawInstance;
+    type RawInstance = D::RawInstance;
 
     fn new_instances_raw(&mut self, instances_raw: &[D::RawInstance]) {
         self.nb_instances = instances_raw.len() as u32;
