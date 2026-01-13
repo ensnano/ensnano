@@ -1,7 +1,6 @@
-use crate::keyboard_priority::PriorityRequest;
-
 use super::{OrganizerNodeId, drag_drop_target::DragIdentifier};
-use ensnano_organizer::{
+use crate::keyboard_priority::PriorityRequest;
+use ensnano_design::organizer::{
     element::OrganizerElement,
     tree::{GroupId, OrganizerTree},
 };

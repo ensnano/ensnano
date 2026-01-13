@@ -1,13 +1,13 @@
 use ensnano_design::operation::{
     BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation, IsometryTarget,
 };
+use ensnano_design::organizer::tree::GroupId;
 use ensnano_design::{
     bezier_plane::{BezierPlaneId, BezierVertexId},
     curves::bezier::BezierControlPoint,
     grid::{GridId, HelixGridPosition},
     nucl::Nucl,
 };
-use ensnano_organizer::tree::GroupId;
 use std::sync::Arc;
 use ultraviolet::{Bivec3, Rotor3, Vec2, Vec3};
 

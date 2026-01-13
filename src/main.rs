@@ -95,6 +95,7 @@ use ensnano_design::{
     grid::GridId,
     group_attributes::GroupPivot,
     operation::{DesignOperation, DesignRotation, DesignTranslation, IsometryTarget},
+    organizer::tree::GroupId,
     selection::{
         ActionMode, CenterOfSelection, InteractorDesignReaderExt, Selection, SelectionMode,
         extract_nucls_from_selection, extract_only_grids, extract_strands_from_selection,
@@ -111,7 +112,6 @@ use ensnano_gui::{
     left_panel::ColorOverlay,
     theme,
 };
-use ensnano_organizer::tree::GroupId;
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_scene::{AppState as _, Scene, SceneKind, data::design3d::SceneDesignReaderExt as _};
 use ensnano_utils::{

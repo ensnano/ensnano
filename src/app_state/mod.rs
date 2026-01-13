@@ -34,10 +34,10 @@ use ensnano_design::{
     domains::Domain,
     group_attributes::GroupPivot,
     operation::DesignOperation,
+    organizer::tree::GroupId,
     selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
 };
 use ensnano_exports::{ExportResult, ExportType};
-use ensnano_organizer::tree::GroupId;
 use ensnano_utils::{
     PastingStatus, SimulationState, StrandBuildingStatus, WidgetBasis,
     app_state_parameters::{

@@ -32,11 +32,11 @@ use ensnano_design::{
     grid::{GridId, GridTypeDescr},
     nucl::Nucl,
     operation::{HyperboloidRequest, InsertionPoint},
+    organizer::tree::{GroupId, OrganizerTree},
     parameters::HelixParameters,
     selection::{ActionMode, Selection, SelectionMode},
 };
 use ensnano_exports::ExportType;
-use ensnano_organizer::tree::{GroupId, OrganizerTree};
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
     PastingStatus, RollRequest, ScaffoldInfo, SimulationState, StrandBuildingStatus,

@@ -20,12 +20,12 @@ use ensnano_design::{
     group_attributes::GroupPivot,
     nucl::Nucl,
     operation::{DesignOperation, NewBezierTangentVector},
+    organizer::tree::GroupId,
     selection::{
         ActionMode, CenterOfSelection, Selection, SelectionMode, extract_control_points,
         list_of_xover_ids, set_of_grids_containing_selection, set_of_helices_containing_selection,
     },
 };
-use ensnano_organizer::tree::GroupId;
 use ensnano_utils::{
     WidgetBasis,
     app_state_parameters::check_xovers_parameter::CheckXoversParameter,

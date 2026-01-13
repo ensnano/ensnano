@@ -40,11 +40,11 @@ use ensnano_design::{
     elements::{DesignElement, DesignElementKey},
     grid::GridTypeDescr,
     operation::HyperboloidRequest,
+    organizer::tree::OrganizerTree,
     parameters::NamedParameter,
     selection::{ActionMode, Selection},
 };
 use ensnano_exports::ExportType;
-use ensnano_organizer::tree::OrganizerTree;
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
     app_state_parameters::{

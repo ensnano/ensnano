@@ -4,7 +4,6 @@ members = [
     "ensnano-exports",
     "ensnano-flatscene",
     "ensnano-gui",
-    "ensnano-organizer",
     "ensnano-physics",
     "ensnano-scene",
     "ensnano-utils",
@@ -29,7 +28,6 @@ ensnano_design = { path = "ensnano-design" }
 ensnano_exports = { path = "ensnano-exports" }
 ensnano_flatscene = { path = "ensnano-flatscene" }
 ensnano_gui = { path = "ensnano-gui" }
-ensnano_organizer = { path = "ensnano-organizer" }
 ensnano_physics = { path = "ensnano-physics" }
 ensnano_scene = { path = "ensnano-scene" }
 ensnano_utils = { path = "ensnano-utils" }
@@ -99,7 +97,6 @@ ensnano_design.workspace = true
 ensnano_exports.workspace = true
 ensnano_flatscene.workspace = true
 ensnano_gui.workspace = true
-ensnano_organizer.workspace = true
 ensnano_physics.workspace = true
 ensnano_scene.workspace = true
 ensnano_utils.workspace = true

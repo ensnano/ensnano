@@ -13,10 +13,10 @@ use ensnano_design::{
     grid::{GridId, GridPosition, GridTypeDescr},
     nucl::Nucl,
     operation::HyperboloidRequest,
+    organizer::tree::{GroupId, OrganizerTree},
     selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
 };
 use ensnano_gui::keyboard_priority::PriorityRequest;
-use ensnano_organizer::tree::{GroupId, OrganizerTree};
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
     RigidBodyConstants, RollRequest,

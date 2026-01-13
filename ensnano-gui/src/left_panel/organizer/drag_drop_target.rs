@@ -1,7 +1,7 @@
 //! Allow your users to drag and drop widgets.
 
 use super::{OrganizerNodeId, message::OrganizerMessage};
-use ensnano_organizer::element::OrganizerElement;
+use ensnano_design::organizer::element::OrganizerElement;
 use iced::{
     Element, Length, Padding, Rectangle, Size, Vector,
     advanced::{

@@ -8,6 +8,7 @@ use ensnano_design::{
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridTypeDescr},
     operation::{DesignOperation, HyperboloidRequest, InsertionPoint},
+    organizer::tree::{GroupId, OrganizerTree},
     parameters::HelixParameters,
     selection::{ActionMode, SelectionMode},
 };
@@ -16,7 +17,6 @@ use ensnano_gui::{
     OverlayType, Requests as GuiRequests, keyboard_priority::PriorityRequest,
     left_panel::RigidBodyParametersRequest,
 };
-use ensnano_organizer::tree::{GroupId, OrganizerTree};
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
     RigidBodyConstants, RollRequest,

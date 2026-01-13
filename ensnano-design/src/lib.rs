@@ -23,11 +23,14 @@ pub mod isometry3_descriptor;
 mod material_colors;
 pub mod nucl;
 pub mod operation;
+pub mod organizer;
 pub mod parameters;
 pub mod scadnano;
 pub mod selection;
 pub mod strands;
 pub mod utils;
+
+use crate::organizer::tree::{GroupId, OrganizerTree};
 
 use self::{
     bezier_plane::{BezierPathData, BezierPaths, BezierPlanes},
@@ -44,7 +47,6 @@ use self::{
     parameters::HelixParameters,
     strands::Strands,
 };
-use ensnano_organizer::tree::{GroupId, OrganizerTree};
 use serde::{Deserialize, Serialize};
 use serde_with::{DefaultOnError, serde_as};
 use std::{

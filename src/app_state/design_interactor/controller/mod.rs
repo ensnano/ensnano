@@ -49,11 +49,11 @@ use ensnano_design::{
         BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
         HyperboloidOperation, IsometryTarget, NewBezierTangentVector,
     },
+    organizer::tree::GroupId,
     selection::{Selection, list_of_helices},
     strands::{DomainJunction, Strand, Strands},
 };
 use ensnano_gui::status_bar::ClipboardContent;
-use ensnano_organizer::tree::GroupId;
 use ensnano_utils::{
     PastingStatus, SimulationState,
     colors::{new_color, random_color_with_shade},

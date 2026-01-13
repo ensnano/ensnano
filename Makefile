@@ -142,8 +142,3 @@ $(WINDOWS_BIN): src
 
 win: 
 	make $(WINDOWS_BIN)
-
-org:
-	@echo Updating organizer...
-	cargo update -p ensnano_organizer
-	@echo ... Done

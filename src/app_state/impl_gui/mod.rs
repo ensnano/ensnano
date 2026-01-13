@@ -5,6 +5,7 @@ use curve_builders::{BEZIER_CURVE_BUILDER, ELLIPSE_BUILDER, TWO_SPHERES_BUILDER}
 use ensnano_design::{
     bezier_plane::BezierPathId,
     elements::DesignElementKey,
+    organizer::tree::GroupId,
     parameters::HelixParameters,
     selection::{ActionMode, Selection, SelectionMode, all_helices_no_grid},
 };
@@ -13,7 +14,6 @@ use ensnano_gui::{
     left_panel::tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
     status_bar::{ClipboardContent, CurrentOpState},
 };
-use ensnano_organizer::tree::GroupId;
 use ensnano_utils::{
     PastingStatus, ScaffoldInfo, SimulationState, StrandBuildingStatus, WidgetBasis,
     app_state_parameters::{

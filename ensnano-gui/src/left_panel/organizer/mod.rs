@@ -4,15 +4,14 @@ mod icon;
 pub(super) mod message;
 mod theme;
 
-use crate::keyboard_priority::keyboard_priority;
-
 use self::{
     drag_drop_target::{DragDropTarget, DragIdentifier},
     hoverable_container::HoverableContainer,
     message::{OrganizerInternalMessage, OrganizerMessage},
     theme::OrganizerTheme,
 };
-use ensnano_organizer::{
+use crate::keyboard_priority::keyboard_priority;
+use ensnano_design::organizer::{
     element::{
         AttributeDisplay, AttributeWidget, ElementKey, OrganizerAttribute, OrganizerElement,
     },

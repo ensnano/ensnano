@@ -20,12 +20,12 @@ use ensnano_design::{
     domains::Domain,
     group_attributes::GroupAttribute,
     operation::DesignOperation,
+    organizer::tree::GroupId,
     parameters::HelixParameters,
     selection::Selection,
 };
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_gui::status_bar::{ClipboardContent, CurrentOpState};
-use ensnano_organizer::tree::GroupId;
 use ensnano_utils::{
     PastingStatus, SimulationState,
     app_state_parameters::suggestion_parameters::SuggestionParameters,

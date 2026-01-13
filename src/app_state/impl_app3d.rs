@@ -3,9 +3,9 @@ use ensnano_design::{
     bezier_plane::BezierVertexId,
     grid::GridId,
     group_attributes::GroupPivot,
+    organizer::tree::GroupId,
     selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
 };
-use ensnano_organizer::tree::GroupId;
 use ensnano_scene::{AppState as App3D, view::DrawOptions};
 use ensnano_utils::{
     WidgetBasis, app_state_parameters::check_xovers_parameter::CheckXoversParameter,

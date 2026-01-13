@@ -13,10 +13,10 @@ use crate::{
     },
     group_attributes::GroupPivot,
     nucl::Nucl,
+    organizer::tree::{GroupId, OrganizerTree},
     parameters::HelixParameters,
     selection::Selection,
 };
-use ensnano_organizer::tree::{GroupId, OrganizerTree};
 use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
 
 /// An operation that can be performed on a design
