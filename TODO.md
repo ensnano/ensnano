@@ -3,18 +3,21 @@
 ## Stabilize `dev_iced`
 
 - Movement is broken when both keyboard and mouse wheel translations (or zoom) are applied
-- Click on organizer tree should select and reciprocally (select should highlight in red in organizer tree)
 - Double click on organizer tree should teleport in 2d and 3d scenes
 
 ## Bugs
 
-- Crash when selecting "Ellipse" or "Two spheres" in "Revolution Surfaces" tab (probably fixed, to test)
 - Increasing the left panel too much crashes ENSnano
 - Clicking "Toggle split of flat scene" twice should do nothing
 - Request fit doesn't work properly anymore, both in 2D and 3D
 - Organizer Tree slider doesn't work with the mouse
 - Movement with mouse wheel doesn't work on some systems (Axel @ 42), both in 2D and 3D
 - Distance fog is broken ([NS message](https://discord.com/channels/689053746604670995/1419689469472411691/1459186505888170035))
+
+## Bugs that should be fixed
+
+- Crash when selecting "Ellipse" or "Two spheres" in "Revolution Surfaces" tab
+- Click on organizer tree should select and reciprocally (select should highlight in red in organizer tree)
 - oxDNA export is broken ([NS message](https://discord.com/channels/689053746604670995/1420320954185416745/1459185179594850396))
 
 ## Hide scientific WIP
