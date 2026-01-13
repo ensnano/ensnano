@@ -1,6 +1,5 @@
 use crate::organizer::element::{
     AttributeDisplay, AttributeWidget, OrganizerAttribute, OrganizerAttributeDiscriminant,
-    OrganizerElement,
 };
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use serde::{Deserialize, Serialize};
@@ -97,11 +96,8 @@ impl std::fmt::Display for BoundedLength {
     }
 }
 
-impl OrganizerElement for DesignElement {
-    type Attribute = DnaAttribute;
-    type AutoGroup = DnaAutoGroup;
-
-    fn key(&self) -> DesignElementKey {
+impl DesignElement {
+    pub fn key(&self) -> DesignElementKey {
         match self {
             Self::Grid { id, .. } => DesignElementKey::Grid(*id),
             Self::Strand { id, .. } => DesignElementKey::Strand(*id),
@@ -121,7 +117,7 @@ impl OrganizerElement for DesignElement {
         }
     }
 
-    fn display_name(&self) -> String {
+    pub fn display_name(&self) -> String {
         match self {
             Self::Grid { id, .. } => format!("Grid {id}"),
             Self::Strand { id, .. } => format!("Strand {id}"),
@@ -145,7 +141,7 @@ impl OrganizerElement for DesignElement {
         }
     }
 
-    fn attributes(&self) -> Vec<DnaAttribute> {
+    pub fn attributes(&self) -> Vec<DnaAttribute> {
         match self {
             Self::Helix {
                 group,
@@ -160,7 +156,7 @@ impl OrganizerElement for DesignElement {
         }
     }
 
-    fn min_max_domain_length_if_strand(&self) -> Option<(usize, usize)> {
+    pub fn min_max_domain_length_if_strand(&self) -> Option<(usize, usize)> {
         match self {
             Self::Strand { domain_lengths, .. } => match (
                 domain_lengths.clone().iter().min().copied(),
@@ -174,7 +170,7 @@ impl OrganizerElement for DesignElement {
         }
     }
 
-    fn auto_groups(&self, last_domain_length_bounds: (usize, usize)) -> Vec<Self::AutoGroup> {
+    pub fn auto_groups(&self, last_domain_length_bounds: (usize, usize)) -> Vec<DnaAutoGroup> {
         match self {
             Self::Strand {
                 length,
@@ -196,6 +192,10 @@ impl OrganizerElement for DesignElement {
             }
             _ => vec![],
         }
+    }
+
+    pub fn all_discriminants() -> &'static [DnaAttributeDiscriminant] {
+        DnaAttribute::all_discriminants()
     }
 }
 

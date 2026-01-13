@@ -1,7 +1,7 @@
 //! Allow your users to drag and drop widgets.
 
 use super::{OrganizerNodeId, message::OrganizerMessage};
-use ensnano_design::{elements::DesignElementKey, organizer::element::OrganizerElement};
+use ensnano_design::elements::{DesignElement, DesignElementKey, DnaAutoGroup};
 use iced::{
     Element, Length, Padding, Rectangle, Size, Vector,
     advanced::{
@@ -39,10 +39,8 @@ impl<'a, Message, E> DragDropTarget<'a, Message, E> {
     }
 }
 
-impl<E> Widget<OrganizerMessage<E>, iced::Theme, iced::Renderer>
-    for DragDropTarget<'_, OrganizerMessage<E>, E::AutoGroup>
-where
-    E: OrganizerElement,
+impl Widget<OrganizerMessage, iced::Theme, iced::Renderer>
+    for DragDropTarget<'_, OrganizerMessage, DnaAutoGroup>
 {
     fn tag(&self) -> widget::tree::Tag {
         self.content.as_widget().tag()
@@ -94,7 +92,7 @@ where
         cursor_position: mouse::Cursor,
         renderer: &iced::Renderer,
         clipboard: &mut dyn Clipboard,
-        shell: &mut Shell<OrganizerMessage<E>>,
+        shell: &mut Shell<OrganizerMessage<DesignElement>>,
         viewport: &Rectangle,
     ) -> event::Status {
         let status = self.content.as_widget_mut().on_event(
@@ -151,7 +149,8 @@ where
         layout: Layout,
         renderer: &iced::Renderer,
         translation: Vector,
-    ) -> Option<overlay::Element<'b, OrganizerMessage<E>, iced::Theme, iced::Renderer>> {
+    ) -> Option<overlay::Element<'b, OrganizerMessage<DesignElement>, iced::Theme, iced::Renderer>>
+    {
         self.content.as_widget_mut().overlay(
             tree,
             layout.children().next().unwrap(),
@@ -161,12 +160,10 @@ where
     }
 }
 
-impl<'a, E> From<DragDropTarget<'a, OrganizerMessage<E>, E::AutoGroup>>
-    for Element<'a, OrganizerMessage<E>>
-where
-    E: OrganizerElement,
+impl<'a> From<DragDropTarget<'a, OrganizerMessage, DnaAutoGroup>>
+    for Element<'a, OrganizerMessage>
 {
-    fn from(value: DragDropTarget<'a, OrganizerMessage<E>, E::AutoGroup>) -> Self {
+    fn from(value: DragDropTarget<'a, OrganizerMessage, DnaAutoGroup>) -> Self {
         Element::new(value)
     }
 }

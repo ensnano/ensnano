@@ -1,33 +1,5 @@
-use crate::elements::DesignElementKey;
 use icondata::Icon;
 use std::fmt::Debug;
-
-/// A root node of the organizer tree.
-pub trait OrganizerElement: Clone + Debug + 'static {
-    /// A type that describes all the attributes of an element that can be changed through
-    /// interaction with the organizer.
-    type Attribute: OrganizerAttribute;
-
-    type AutoGroup: ToString + Ord + Eq + Clone + Debug;
-
-    /// The name that will be displayed to represent the element
-    fn display_name(&self) -> String;
-    /// The key that will be used to store self in a BTreeMap
-    fn key(&self) -> DesignElementKey;
-
-    /// The aliases of the element that can be used to search it
-    fn aliases(&self) -> Vec<String> {
-        vec![self.display_name()]
-    }
-
-    fn attributes(&self) -> Vec<Self::Attribute>;
-
-    fn all_discriminants() -> &'static [<Self::Attribute as OrganizerAttribute>::Discriminant] {
-        Self::Attribute::all_discriminants()
-    }
-    fn min_max_domain_length_if_strand(&self) -> Option<(usize, usize)>;
-    fn auto_groups(&self, last_domain_length_bounds: (usize, usize)) -> Vec<Self::AutoGroup>;
-}
 
 pub trait OrganizerAttributeDiscriminant:
     Ord + Eq + TryFrom<usize> + Into<usize> + Debug + Clone
