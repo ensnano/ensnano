@@ -8,10 +8,9 @@ use crate::{
     elements::DesignElementKey,
     grid::GridId,
     nucl::Nucl,
+    phantom_element::PhantomElement,
 };
 use std::collections::BTreeSet;
-
-pub const PHANTOM_RANGE: i32 = 1000;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Selection {
@@ -401,87 +400,6 @@ pub fn extract_nucls_from_selection(selection: &[Selection]) -> Vec<Nucl> {
     ret
 }
 
-//
-// Encoding of phantom element identifier.
-// The identifier is an integer of the form helix_id * max_pos_id + pos_id;
-//
-// helix_id is the identifier of the helix and pos_id is of the form
-// position * nb_kind + element_kid
-// where element_kind is
-// 0 for forward nucl
-// 1 for backward nucl
-// 2 for forward bond
-// 3 for backward bond
-//
-// and position is a number between -PHANTOM_RANGE and PHANTOM_RANGE that is made positive by
-// adding PHANTOM_RANGE to it
-
-/// Generate the identifier of a phantom nucleotide
-pub fn phantom_helix_encoder_nucl(
-    design_id: u32,
-    helix_id: u32,
-    position: i32,
-    forward: bool,
-) -> u32 {
-    let pos_id = (position + PHANTOM_RANGE) as u32 * 4 + !forward as u32;
-    let max_pos_id = (2 * PHANTOM_RANGE) as u32 * 4 + 3;
-    let helix = helix_id * max_pos_id;
-    assert!(helix <= 0xFF_FF_FF);
-    (helix + pos_id) | (design_id << 24)
-}
-
-/// Generate the identifier of a phantom bond
-pub fn phantom_helix_encoder_bond(
-    design_id: u32,
-    helix_id: u32,
-    position: i32,
-    forward: bool,
-) -> u32 {
-    let pos_id = (position + PHANTOM_RANGE) as u32 * 4 + if forward { 2 } else { 3 };
-    let max_pos_id = (2 * PHANTOM_RANGE) as u32 * 4 + 3;
-    let helix = helix_id * max_pos_id;
-    assert!(helix <= 0xFF_FF_FF);
-    (helix + pos_id) | (design_id << 24)
-}
-
-pub fn phantom_helix_decoder(id: u32) -> PhantomElement {
-    let max_pos_id = (2 * PHANTOM_RANGE) as u32 * 4 + 3;
-    let design_id = id >> 24;
-    let reminder = id & 0xFF_FF_FF;
-    let helix_id = reminder / max_pos_id;
-    let reminder = reminder % max_pos_id;
-    let bond = reminder & 0b10 > 0;
-    let forward = reminder.is_multiple_of(2);
-    let nucl_id = reminder / 4;
-    let position = nucl_id as i32 - PHANTOM_RANGE;
-    PhantomElement {
-        design_id,
-        helix_id,
-        position,
-        bond,
-        forward,
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct PhantomElement {
-    pub design_id: u32,
-    pub helix_id: u32,
-    pub position: i32,
-    pub bond: bool,
-    pub forward: bool,
-}
-
-impl PhantomElement {
-    pub fn to_nucl(self) -> Nucl {
-        Nucl {
-            helix: self.helix_id as usize,
-            position: self.position as isize,
-            forward: self.forward,
-        }
-    }
-}
-
 impl DesignElementKey {
     pub fn from_selection(selection: &Selection, d_id: u32) -> Option<Self> {
         if selection.get_design() != Some(d_id) {
@@ -489,36 +407,37 @@ impl DesignElementKey {
         }
 
         match selection {
-                Selection::Grid(_, GridId::FreeGrid(g_id)) => Some(Self::Grid(*g_id)),
-                Selection::Helix { helix_id, .. } => Some(Self::Helix(*helix_id)),
-                Selection::Strand(_, s_id) => Some(Self::Strand(*s_id as usize)),
-                Selection::Nucleotide(_, nucl) => Some(Self::Nucleotide {
-                    helix: nucl.helix,
-                    position: nucl.position,
-                    forward: nucl.forward,
-                }),
-                Selection::Xover(_, xover_id) => Some(Self::CrossOver {
-                    xover_id: *xover_id,
-                }),
-                Selection::Phantom(pe) => {
-                    if pe.bond {
-                        None
-                    } else {
-                        let nucl = pe.to_nucl();
-                        Some(Self::Nucleotide {
-                            helix: nucl.helix,
-                            position: nucl.position,
-                            forward: nucl.forward,
-                        })
-                    }
+            Selection::Grid(_, GridId::FreeGrid(g_id)) => Some(Self::Grid(*g_id)),
+            Selection::Helix { helix_id, .. } => Some(Self::Helix(*helix_id)),
+            Selection::Strand(_, s_id) => Some(Self::Strand(*s_id as usize)),
+            Selection::Nucleotide(_, nucl) => Some(Self::Nucleotide {
+                helix: nucl.helix,
+                position: nucl.position,
+                forward: nucl.forward,
+            }),
+            Selection::Xover(_, xover_id) => Some(Self::CrossOver {
+                xover_id: *xover_id,
+            }),
+            Selection::Phantom(pe) => {
+                if pe.bond {
+                    None
+                } else {
+                    let nucl = pe.to_nucl();
+                    Some(Self::Nucleotide {
+                        helix: nucl.helix,
+                        position: nucl.position,
+                        forward: nucl.forward,
+                    })
                 }
-                Selection::Grid(_, _)
-                | Selection::Design(_)
-                | Selection::Bond(_, _, _)
-                | Selection::Nothing
-                | Selection::BezierControlPoint { .. } // TODO: make DesignElement out of these
-                | Selection::BezierVertex(_) => None,
             }
+            // TODO: make DesignElement out of these
+            Selection::Grid(_, _)
+            | Selection::Design(_)
+            | Selection::Bond(_, _, _)
+            | Selection::Nothing
+            | Selection::BezierControlPoint { .. }
+            | Selection::BezierVertex(_) => None,
+        }
     }
 
     pub fn to_selection(&self, d_id: u32) -> Selection {

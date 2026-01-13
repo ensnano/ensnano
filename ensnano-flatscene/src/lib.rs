@@ -37,7 +37,8 @@ use ensnano_design::{
     interaction_modes::SelectionMode,
     nucl::Nucl,
     operation::DesignOperation,
-    selection::{PhantomElement, Selection, extract_nucls_and_xover_ends},
+    phantom_element::PhantomElement,
+    selection::{Selection, extract_nucls_and_xover_ends},
 };
 use ensnano_utils::{
     StrandBuildingStatus,

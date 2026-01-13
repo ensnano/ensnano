@@ -3,7 +3,7 @@ use ensnano_design::{
     bezier_plane::{BezierPathId, BezierPlaneId, BezierVertexId},
     curves::bezier::BezierControlPoint,
     grid::{GridId, GridPosition},
-    selection::{PhantomElement, phantom_helix_decoder},
+    phantom_element::{PhantomElement, phantom_helix_decoder},
 };
 use ensnano_utils::{
     buffer_dimensions::BufferDimensions,

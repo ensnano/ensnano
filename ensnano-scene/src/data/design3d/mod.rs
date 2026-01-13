@@ -31,7 +31,7 @@ use ensnano_design::{
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
     nucl::Nucl,
     parameters::HelixParameters,
-    selection::{
+    phantom_element::{
         PHANTOM_RANGE, PhantomElement, phantom_helix_encoder_bond, phantom_helix_encoder_nucl,
     },
 };

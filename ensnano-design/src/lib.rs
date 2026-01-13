@@ -26,6 +26,7 @@ pub mod nucl;
 pub mod operation;
 pub mod organizer;
 pub mod parameters;
+pub mod phantom_element;
 pub mod scadnano;
 pub mod selection;
 pub mod strands;

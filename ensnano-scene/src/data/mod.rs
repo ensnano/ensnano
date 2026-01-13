@@ -30,7 +30,8 @@ use ensnano_design::{
     grid::{GridId, GridObject, GridPosition},
     interaction_modes::{ActionMode, SelectionMode},
     nucl::Nucl,
-    selection::{CenterOfSelection, PhantomElement, Selection, extract_helices_with_controls},
+    phantom_element::PhantomElement,
+    selection::{CenterOfSelection, Selection, extract_helices_with_controls},
 };
 use ensnano_utils::{
     ObjectType, Referential,
