@@ -101,6 +101,10 @@
 
 ## Refactor
 
+- Lift some types from the main crate to a crate above to avoid circular dependencies requiring single-use traits:
+  - `Multiplexer`
+  - `AppState`
+  - ...
 - Remove in-file modules:
   - `abscissa_converter`
   - `input_color`
@@ -110,9 +114,7 @@
   - `gostop`
   - `fog_kind`
 - Rename structs with the same name in different crates, then remove all use aliases (`use ... as ...`):
-  - `Multiplexer as GuiMultiplexer`
   - `AbscissaConverter as AbscissaConverter_`
-  - `controller::Data as ControllerData`
 - kebab-case -> snake_case for the crate directories
 - More consistent styling:
   - Create some `rustfmt.toml` rules?

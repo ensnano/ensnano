@@ -18,7 +18,7 @@ use crate::{controller::normal_state::Action, requests::Requests};
 use ensnano_design::interaction_modes::{ActionMode, SelectionMode};
 use ensnano_utils::{
     graphics::{DrawArea, GuiComponentType, PhySize, SplitMode},
-    multiplexer::Multiplexer as GuiMultiplexer,
+    multiplexer_ext::MultiplexerExt,
     texture::SampledTexture,
     ui_size::UiSize,
 };
@@ -856,7 +856,7 @@ fn control_key(modifiers: &ModifiersState) -> bool {
     }
 }
 
-impl GuiMultiplexer for Multiplexer {
+impl MultiplexerExt for Multiplexer {
     fn get_draw_area(&self, element_type: GuiComponentType) -> Option<DrawArea> {
         self.get_texture_size(element_type)
     }

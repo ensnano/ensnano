@@ -49,7 +49,7 @@ use ensnano_utils::{
         Background3D, DrawArea, FogParameters, GuiComponentType, HBondDisplay, RenderingMode,
         SplitMode,
     },
-    multiplexer::Multiplexer,
+    multiplexer_ext::MultiplexerExt,
     operation::Operation,
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
     ui_size::UiSize,
@@ -393,7 +393,7 @@ impl<R: GuiRequests, S: GuiAppState> GuiComponent<R, S> {
     fn top_bar(
         mut renderer: iced::Renderer,
         window: &Window,
-        multiplexer: &dyn Multiplexer,
+        multiplexer: &dyn MultiplexerExt,
         requests: Arc<Mutex<R>>,
         app_state: S,
         top_bar_state: TopBarState,
@@ -427,7 +427,7 @@ impl<R: GuiRequests, S: GuiAppState> GuiComponent<R, S> {
     fn left_panel(
         mut renderer: iced::Renderer,
         window: &Window,
-        multiplexer: &dyn Multiplexer,
+        multiplexer: &dyn MultiplexerExt,
         requests: Arc<Mutex<R>>,
         first_time: bool,
         state: &S,
@@ -463,7 +463,7 @@ impl<R: GuiRequests, S: GuiAppState> GuiComponent<R, S> {
     fn status_bar(
         mut renderer: iced::Renderer,
         window: &Window,
-        multiplexer: &dyn Multiplexer,
+        multiplexer: &dyn MultiplexerExt,
         requests: Arc<Mutex<R>>,
         state: &S,
         ui_size: UiSize,
@@ -501,7 +501,7 @@ impl<R: GuiRequests, S: GuiAppState> GuiComponent<R, S> {
         &mut self.state
     }
 
-    fn resize(&mut self, window: &Window, multiplexer: &dyn Multiplexer) {
+    fn resize(&mut self, window: &Window, multiplexer: &dyn MultiplexerExt) {
         let area = multiplexer.get_draw_area(self.element_type).unwrap();
         self.state.resize(area, window);
         log::debug!("resizing {area:?}");
@@ -513,7 +513,7 @@ impl<R: GuiRequests, S: GuiAppState> GuiComponent<R, S> {
         window: &Window,
         theme: &iced::Theme,
         style: &renderer::Style,
-        multiplexer: &dyn Multiplexer,
+        multiplexer: &dyn MultiplexerExt,
         resized: bool,
     ) -> bool {
         let area = multiplexer.get_draw_area(self.element_type).unwrap();
@@ -550,7 +550,7 @@ impl<R: GuiRequests, S: GuiAppState> GuiComponent<R, S> {
         encoder: &mut wgpu::CommandEncoder,
         clear_color: Option<iced::Color>,
         window: &Window,
-        multiplexer: &dyn Multiplexer,
+        multiplexer: &dyn MultiplexerExt,
         mouse_interaction: &mut iced::mouse::Interaction,
     ) {
         if self.redraw {
@@ -599,7 +599,7 @@ impl<R: GuiRequests, State: GuiAppState> Gui<R, State> {
         device: Rc<Device>,
         queue: Rc<Queue>,
         window: &Window,
-        multiplexer: &dyn Multiplexer,
+        multiplexer: &dyn MultiplexerExt,
         requests: Arc<Mutex<R>>,
         parameters: AppStateParameters,
         global_state: &State,
@@ -637,7 +637,7 @@ impl<R: GuiRequests, State: GuiAppState> Gui<R, State> {
     fn rebuild_gui(
         &mut self,
         window: &Window,
-        multiplexer: &dyn Multiplexer,
+        multiplexer: &dyn MultiplexerExt,
         state: &State,
         top_bar_state: TopBarState,
     ) {
@@ -765,7 +765,7 @@ impl<R: GuiRequests, State: GuiAppState> Gui<R, State> {
     }
 
     /// Get the new size of each gui component from the multiplexer and forwards them.
-    pub fn resize(&mut self, multiplexer: &dyn Multiplexer, window: &Window) {
+    pub fn resize(&mut self, multiplexer: &dyn MultiplexerExt, window: &Window) {
         for element in self.components.values_mut() {
             element.resize(window, multiplexer);
         }
@@ -778,7 +778,7 @@ impl<R: GuiRequests, State: GuiAppState> Gui<R, State> {
         window: &Window,
         theme: &iced::Theme,
         style: &renderer::Style,
-        multiplexer: &dyn Multiplexer,
+        multiplexer: &dyn MultiplexerExt,
     ) -> bool {
         let mut ret = false;
         for elements in self.components.values_mut() {
@@ -790,7 +790,7 @@ impl<R: GuiRequests, State: GuiAppState> Gui<R, State> {
     /// Ask the gui component to process the event and messages that they have received.
     pub fn update(
         &mut self,
-        multiplexer: &dyn Multiplexer,
+        multiplexer: &dyn MultiplexerExt,
         theme: &iced::Theme,
         style: &renderer::Style,
         window: &Window,
@@ -805,7 +805,7 @@ impl<R: GuiRequests, State: GuiAppState> Gui<R, State> {
         &mut self,
         ui_size: UiSize,
         window: &Window,
-        multiplexer: &dyn Multiplexer,
+        multiplexer: &dyn MultiplexerExt,
         app_state: &State,
         top_bar_state: TopBarState,
     ) {
@@ -818,7 +818,7 @@ impl<R: GuiRequests, State: GuiAppState> Gui<R, State> {
     pub fn notify_scale_factor_change(
         &mut self,
         window: &Window,
-        multiplexer: &dyn Multiplexer,
+        multiplexer: &dyn MultiplexerExt,
         app_state: &State,
         top_bar_state: TopBarState,
     ) {
@@ -839,7 +839,7 @@ impl<R: GuiRequests, State: GuiAppState> Gui<R, State> {
         encoder: &mut wgpu::CommandEncoder,
         clear_color: Option<iced::Color>,
         window: &Window,
-        multiplexer: &dyn Multiplexer,
+        multiplexer: &dyn MultiplexerExt,
         mouse_interaction: &mut iced::mouse::Interaction,
     ) {
         *mouse_interaction = Default::default();

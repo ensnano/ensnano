@@ -10,7 +10,7 @@ pub mod consts;
 pub mod filename;
 pub mod graphics;
 pub mod instance;
-pub mod multiplexer;
+pub mod multiplexer_ext;
 pub mod obj_loader;
 pub mod operation;
 pub mod strand_builder;
