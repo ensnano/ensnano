@@ -245,7 +245,15 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
     }
 
     fn update_strand_building_info(&self, info: Option<StrandBuildingStatus>) {
-        let flat_info = info.and_then(|info| info.to_flat(self.id_map()));
+        let flat_info = info.and_then(|info| {
+            let flat_nucl = FlatNucl::from_real(&info.dragged_nucl, self.id_map())?;
+            Some(EditionInfo {
+                nt_length: info.nt_length,
+                nm_length: info.nm_length,
+                nucl: flat_nucl,
+            })
+        });
+
         self.view
             .borrow_mut()
             .update_strand_building_info(flat_info);
@@ -1135,21 +1143,6 @@ fn apply_symmetric_difference_to_selection(
 
     old_selection.retain(retain_condition);
     new_selection.retain(retain_condition);
-}
-
-trait ToFlatInfo {
-    fn to_flat(self, id_map: &FlatHelixMaps) -> Option<EditionInfo>;
-}
-
-impl ToFlatInfo for StrandBuildingStatus {
-    fn to_flat(self, id_map: &FlatHelixMaps) -> Option<EditionInfo> {
-        let flat_nucl = FlatNucl::from_real(&self.dragged_nucl, id_map)?;
-        Some(EditionInfo {
-            nt_length: self.nt_length,
-            nm_length: self.nm_length,
-            nucl: flat_nucl,
-        })
-    }
 }
 
 struct LastClick {
