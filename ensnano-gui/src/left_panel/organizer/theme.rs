@@ -2,7 +2,7 @@
 use iced::{
     Background, Border, Color, Shadow, Vector,
     border::Radius,
-    theme,
+    theme::{Button, Container},
     widget::{button, container},
 };
 
@@ -65,6 +65,7 @@ pub(super) struct OrganizerTheme {
     gradient: ColorGradient,
     text_color: Color,
     border_color: Color,
+    selected_color: Color,
     max_level: usize,
 }
 
@@ -88,7 +89,7 @@ struct OrganizerThemeSelection {
 
 /// Implements the [Button](button::Button) style sheet for [`OrganizerThemeSelection`]
 impl button::StyleSheet for OrganizerThemeSelection {
-    type Style = ();
+    type Style = iced::Theme;
     //type Style = iced_style::theme::Button;
     // I think the good way to do it is to implement a custom Style.
 
@@ -132,12 +133,6 @@ impl button::StyleSheet for OrganizerThemeSelection {
             },
             ..self.active(style)
         }
-    }
-}
-
-impl From<OrganizerThemeSelection> for theme::Button {
-    fn from(_: OrganizerThemeSelection) -> Self {
-        Default::default()
     }
 }
 
@@ -186,15 +181,9 @@ impl button::StyleSheet for OrganizerThemeLevel {
     }
 }
 
-impl From<OrganizerThemeLevel> for theme::Button {
-    fn from(_: OrganizerThemeLevel) -> Self {
-        Default::default()
-    }
-}
-
 /// Implements the [Container](container::Container) style sheet for [`OrganizerThemeLevel`]
 impl container::StyleSheet for OrganizerThemeLevel {
-    type Style = ();
+    type Style = iced::Theme;
     //type Style = iced_style::theme::Container;
     // I think the good way to do it is to implement a custom Style.
 
@@ -208,21 +197,24 @@ impl container::StyleSheet for OrganizerThemeLevel {
     }
 }
 
-impl From<OrganizerThemeLevel> for theme::Container {
-    fn from(_: OrganizerThemeLevel) -> Self {
-        Default::default()
-    }
-}
-
 impl OrganizerTheme {
-    pub(super) fn level(&self, n: usize) -> OrganizerThemeLevel {
-        OrganizerThemeLevel {
+    pub(super) fn level(&self, n: usize) -> <iced::Theme as container::StyleSheet>::Style {
+        Container::Custom(Box::new(OrganizerThemeLevel {
             gradient: self.gradient,
             text_color: self.text_color,
             border_color: self.border_color,
             gradient_value: n as f32 / self.max_level as f32,
             selected: false,
-        }
+        }))
+    }
+
+    pub(super) fn selected(&self, selected: bool) -> <iced::Theme as button::StyleSheet>::Style {
+        Button::Custom(Box::new(OrganizerThemeSelection {
+            selected,
+            text_color: self.text_color,
+            selected_color: self.selected_color,
+            border_color: self.border_color,
+        }))
     }
 
     pub(super) fn grey() -> Self {
@@ -230,6 +222,7 @@ impl OrganizerTheme {
             gradient: grey_gradient(),
             text_color: Color::WHITE,
             border_color: Color::from_rgb8(0x83, 0x1a, 0x1a),
+            selected_color: Color::from_rgb(1.0, 0.0, 0.0),
             max_level: 5,
         }
     }

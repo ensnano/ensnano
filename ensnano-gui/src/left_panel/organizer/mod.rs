@@ -426,6 +426,7 @@ impl Organizer {
             current_selection.clear();
             current_selection.insert(*key);
         }
+
         current_selection
     }
 
@@ -1297,11 +1298,12 @@ impl ElementView {
 
     fn view(
         &self,
-        _theme: &OrganizerTheme,
+        theme: &OrganizerTheme,
         element: &DesignElement,
-        _selection: &BTreeSet<DesignElementKey>,
+        selection: &BTreeSet<DesignElementKey>,
         deletable: Option<OrganizerNodeId>,
     ) -> DragDropTarget<'_, OrganizerMessage> {
+        let selected = selection.contains(&element.key());
         let mut content = row![text(element.display_name()), horizontal_space(),];
         // [DragIdentifier::Group] are deletable, [DragIdentifier::Section] are not.
         let identifier = match deletable.as_ref() {
@@ -1322,8 +1324,8 @@ impl ElementView {
         let mut content = HoverableContainer::new(
             button(content)
                 .on_press(OrganizerMessage::element_selected(element.key()))
-                .width(Length::Fill),
-            //.style(iced_theme::Button::from(theme.selected(selected)))
+                .width(Length::Fill)
+                .style(theme.selected(selected)),
         );
         content = if let Some(id) = deletable {
             content

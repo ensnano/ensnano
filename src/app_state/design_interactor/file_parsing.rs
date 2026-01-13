@@ -25,7 +25,7 @@ impl DesignInteractor {
     pub(crate) fn new_with_path(json_path: &PathBuf) -> Result<Self, LoadDesignError> {
         let mut xover_ids: IdGenerator<(Nucl, Nucl)> = Default::default();
         let mut design = read_file(json_path)?;
-        println!("Design read");
+        // println!("Design read");
         design.strands.remove_empty_domains();
 
         for s in design.strands.values_mut() {

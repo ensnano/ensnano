@@ -473,7 +473,6 @@ impl DesignContent {
                 .filter(|g| g.starts_with("vars:"))
                 .flat_map(|x| x[5..].split(&[' ', ',']).filter(|y| !y.is_empty()))
                 .collect::<Vec<&str>>();
-            println!("{clone_variables_declaration:?}");
             for x in clone_variables_declaration {
                 let s = x
                     .split('=')
