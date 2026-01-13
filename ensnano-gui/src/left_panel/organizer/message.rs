@@ -1,7 +1,7 @@
 use super::{OrganizerNodeId, drag_drop_target::DragIdentifier};
 use crate::keyboard_priority::PriorityRequest;
 use ensnano_design::{
-    elements::{DesignElement, DesignElementKey, DnaAttribute, DnaAutoGroup},
+    elements::{DesignElement, DesignElementKey, DnaAttribute},
     organizer::tree::{GroupId, OrganizerTree},
 };
 use iced::widget::text_input;
@@ -32,14 +32,14 @@ pub enum OrganizerMessage {
 #[derive(Clone, Debug)]
 pub enum OrganizerInternalMessage {
     Expand {
-        id: OrganizerNodeId<DnaAutoGroup>,
+        id: OrganizerNodeId,
         expanded: bool,
     },
     NodeSelected {
-        id: OrganizerNodeId<DnaAutoGroup>,
+        id: OrganizerNodeId,
     },
     NodeHovered {
-        id: OrganizerNodeId<DnaAutoGroup>,
+        id: OrganizerNodeId,
         hovered_in: bool,
     },
     KeyHovered {
@@ -50,7 +50,7 @@ pub enum OrganizerInternalMessage {
         key: DesignElementKey,
     },
     Edit {
-        id: OrganizerNodeId<DnaAutoGroup>,
+        id: OrganizerNodeId,
     },
     StopEdit,
     NameInput {
@@ -59,30 +59,30 @@ pub enum OrganizerInternalMessage {
     /// Create a new group.
     NewGroup,
     AddSelectionToGroup {
-        id: OrganizerNodeId<DnaAutoGroup>,
+        id: OrganizerNodeId,
     },
     Delete {
-        id: OrganizerNodeId<DnaAutoGroup>,
+        id: OrganizerNodeId,
     },
-    DragDropped(DragIdentifier<DnaAutoGroup>),
-    Dragging(DragIdentifier<DnaAutoGroup>),
+    DragDropped(DragIdentifier),
+    Dragging(DragIdentifier),
     AttributeSelected {
         attribute: DnaAttribute,
-        id: OrganizerNodeId<DnaAutoGroup>,
+        id: OrganizerNodeId,
     },
 }
 
 /// Shorthands to send internal messages.
 impl OrganizerMessage {
-    pub(super) fn expand(id: OrganizerNodeId<DnaAutoGroup>, expanded: bool) -> Self {
+    pub(super) fn expand(id: OrganizerNodeId, expanded: bool) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::Expand { id, expanded })
     }
 
-    pub(super) fn node_selected(id: OrganizerNodeId<DnaAutoGroup>) -> Self {
+    pub(super) fn node_selected(id: OrganizerNodeId) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::NodeSelected { id })
     }
 
-    pub(super) fn node_hovered(id: OrganizerNodeId<DnaAutoGroup>, hovered_in: bool) -> Self {
+    pub(super) fn node_hovered(id: OrganizerNodeId, hovered_in: bool) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::NodeHovered { id, hovered_in })
     }
 
@@ -90,11 +90,11 @@ impl OrganizerMessage {
         Self::InternalMessage(OrganizerInternalMessage::KeyHovered { key, hovered_in })
     }
 
-    pub(super) fn edit(id: OrganizerNodeId<DnaAutoGroup>) -> Self {
+    pub(super) fn edit(id: OrganizerNodeId) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::Edit { id })
     }
 
-    pub(super) fn delete(id: OrganizerNodeId<DnaAutoGroup>) -> Self {
+    pub(super) fn delete(id: OrganizerNodeId) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::Delete { id })
     }
 
@@ -110,7 +110,7 @@ impl OrganizerMessage {
         Self::InternalMessage(OrganizerInternalMessage::ElementSelected { key })
     }
 
-    pub(super) fn add_selection_to_group(id: OrganizerNodeId<DnaAutoGroup>) -> Self {
+    pub(super) fn add_selection_to_group(id: OrganizerNodeId) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::AddSelectionToGroup { id })
     }
 
@@ -118,18 +118,15 @@ impl OrganizerMessage {
         Self::InternalMessage(OrganizerInternalMessage::NewGroup)
     }
 
-    pub(super) fn dragging(key: DragIdentifier<DnaAutoGroup>) -> Self {
+    pub(super) fn dragging(key: DragIdentifier) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::Dragging(key))
     }
 
-    pub(super) fn drag_dropped(key: DragIdentifier<DnaAutoGroup>) -> Self {
+    pub(super) fn drag_dropped(key: DragIdentifier) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::DragDropped(key))
     }
 
-    pub(super) fn attribute_selected(
-        attribute: DnaAttribute,
-        id: OrganizerNodeId<DnaAutoGroup>,
-    ) -> Self {
+    pub(super) fn attribute_selected(attribute: DnaAttribute, id: OrganizerNodeId) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::AttributeSelected { attribute, id })
     }
 }

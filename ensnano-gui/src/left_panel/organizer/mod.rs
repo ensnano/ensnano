@@ -55,12 +55,12 @@ pub(super) struct Organizer {
     width: u16,
     editing: Option<GroupId>,
     modifiers: Modifiers,
-    selected_nodes: BTreeSet<OrganizerNodeId<DnaAutoGroup>>,
-    dragging: BTreeSet<DragIdentifier<DnaAutoGroup>>,
-    hovered_in: Option<OrganizerNodeId<DnaAutoGroup>>,
+    selected_nodes: BTreeSet<OrganizerNodeId>,
+    dragging: BTreeSet<DragIdentifier>,
+    hovered_in: Option<OrganizerNodeId>,
     last_read_tree: *const OrganizerTree<DesignElementKey>,
     must_update_tree: bool,
-    group_to_node: HashMap<GroupId, OrganizerNodeId<DnaAutoGroup>>,
+    group_to_node: HashMap<GroupId, OrganizerNodeId>,
 }
 
 impl Organizer {
@@ -75,7 +75,7 @@ impl Organizer {
         let mut section: Result<DesignElementSection, _> = i.try_into();
         while let Ok(s) = section {
             log::info!("section {i:?}, {s:?}");
-            let new_section: OrganizerSection =
+            let new_section =
                 OrganizerSection::new(OrganizerNodeId::Section(i), DesignElementKey::name(s));
             sections.push(new_section);
             i += 1;
@@ -164,7 +164,7 @@ impl Organizer {
 
     fn add_content_to_group(
         &mut self,
-        id: &OrganizerNodeId<DnaAutoGroup>,
+        id: &OrganizerNodeId,
         content: Vec<DesignElementKey>,
     ) -> Option<()> {
         if let Some(id_local) = get_group_id(id) {
@@ -301,11 +301,7 @@ impl Organizer {
         None
     }
 
-    fn hover(
-        &self,
-        id: &OrganizerNodeId<DnaAutoGroup>,
-        hovered_in: bool,
-    ) -> Option<OrganizerMessage> {
+    fn hover(&self, id: &OrganizerNodeId, hovered_in: bool) -> Option<OrganizerMessage> {
         if hovered_in {
             self.get_group(id)
                 .map(|g| OrganizerMessage::Candidates(g.get_all_elements_below()))
@@ -355,7 +351,7 @@ impl Organizer {
 
     fn select_node(
         &mut self,
-        id: &OrganizerNodeId<DnaAutoGroup>,
+        id: &OrganizerNodeId,
         add: bool,
         mut current_selection: BTreeSet<DesignElementKey>,
     ) -> (BTreeSet<DesignElementKey>, Option<GroupId>) {
@@ -387,7 +383,7 @@ impl Organizer {
         (current_selection, group_id)
     }
 
-    fn get_keys_below(&self, id: &OrganizerNodeId<DnaAutoGroup>) -> Vec<DesignElementKey> {
+    fn get_keys_below(&self, id: &OrganizerNodeId) -> Vec<DesignElementKey> {
         if let Some(group) = self.get_group(id) {
             group.get_all_elements_below()
         } else if let Some(section) = self.get_section_id(id) {
@@ -397,10 +393,7 @@ impl Organizer {
         }
     }
 
-    fn get_section_id<'a>(
-        &'a self,
-        id: &OrganizerNodeId<DnaAutoGroup>,
-    ) -> Option<&'a OrganizerSection> {
+    fn get_section_id<'a>(&'a self, id: &OrganizerNodeId) -> Option<&'a OrganizerSection> {
         if let Some(section_id) = get_section_id(id) {
             self.sections.get(section_id)
         } else {
@@ -408,7 +401,7 @@ impl Organizer {
         }
     }
 
-    fn get_group<'a>(&'a self, id: &OrganizerNodeId<DnaAutoGroup>) -> Option<&'a GroupContent> {
+    fn get_group<'a>(&'a self, id: &OrganizerNodeId) -> Option<&'a GroupContent> {
         if let Some(group_id) = get_group_id(id) {
             if group_id.len() == 1 {
                 self.groups.get(group_id[0])
@@ -472,7 +465,7 @@ impl Organizer {
         }
     }
 
-    fn expand(&mut self, id: &OrganizerNodeId<DnaAutoGroup>, expanded: bool) {
+    fn expand(&mut self, id: &OrganizerNodeId, expanded: bool) {
         if let Some(id) = get_group_id(id) {
             self.groups[id[0]].expand(&id[1..], expanded);
         } else if let Some(id) = get_section_id(id) {
@@ -527,7 +520,7 @@ impl Organizer {
         ret
     }
 
-    fn pop_id(&mut self, id: &OrganizerNodeId<DnaAutoGroup>) -> Option<GroupContent> {
+    fn pop_id(&mut self, id: &OrganizerNodeId) -> Option<GroupContent> {
         if let Some(id) = get_group_id(id) {
             let ret = if id.len() < 2 {
                 (self.groups.len() > id[0]).then(|| self.groups.remove(id[0]))
@@ -553,7 +546,7 @@ impl Organizer {
     }
 
     fn delete_useless_leaves(&mut self, elements: BTreeSet<DesignElementKey>) -> bool {
-        let mut ids_to_remove: Vec<OrganizerNodeId<DnaAutoGroup>> = Vec::new();
+        let mut ids_to_remove: Vec<OrganizerNodeId> = Vec::new();
         for g in &mut self.groups {
             g.delete_useless_leaves(&mut ids_to_remove, &elements);
         }
@@ -579,7 +572,7 @@ impl Organizer {
     }
 
     /// Action performed when dragged content is dropped.
-    fn drag_drop(&mut self, k: &DragIdentifier<DnaAutoGroup>) {
+    fn drag_drop(&mut self, k: &DragIdentifier) {
         if let DragIdentifier::Group { id: id_dest } = k
             && let Some(identifier) = self.dragging.iter().next().cloned()
         {
@@ -596,11 +589,7 @@ impl Organizer {
         self.dragging = BTreeSet::new();
     }
 
-    fn move_id(
-        &mut self,
-        source: &OrganizerNodeId<DnaAutoGroup>,
-        dest: &OrganizerNodeId<DnaAutoGroup>,
-    ) {
+    fn move_id(&mut self, source: &OrganizerNodeId, dest: &OrganizerNodeId) {
         if let (OrganizerNodeId::Tree(source), OrganizerNodeId::Tree(dest)) = (source, dest) {
             if source.len() < dest.len() && dest[..source.len()] == source[..] {
                 println!("prefix");
@@ -683,13 +672,13 @@ impl Organizer {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub enum OrganizerNodeId<AutoGroupId> {
+pub enum OrganizerNodeId {
     Tree(Vec<usize>),
     Section(usize),
-    AutoGroup(AutoGroupId),
+    AutoGroup(DnaAutoGroup),
 }
 
-impl<E: std::fmt::Debug> OrganizerNodeId<E> {
+impl OrganizerNodeId {
     pub fn push(&mut self, x: usize) {
         if let Self::Tree(v) = self {
             v.push(x);
@@ -701,13 +690,13 @@ impl<E: std::fmt::Debug> OrganizerNodeId<E> {
 
 enum GroupContent {
     Leaf {
-        id: OrganizerNodeId<DnaAutoGroup>,
+        id: OrganizerNodeId,
         element: DesignElementKey,
         view: ElementView,
         attributes: Vec<Option<DnaAttribute>>,
     },
     Node {
-        id: OrganizerNodeId<DnaAutoGroup>,
+        id: OrganizerNodeId,
         /// Name of the Group
         name: String,
         expanded: bool,
@@ -837,7 +826,7 @@ impl GroupContent {
     fn new(
         content: Vec<DesignElementKey>,
         name: String,
-        id: OrganizerNodeId<DnaAutoGroup>,
+        id: OrganizerNodeId,
         rng: &mut ThreadRng,
     ) -> Self {
         let children = content
@@ -1008,11 +997,7 @@ impl GroupContent {
         matches!(self, Self::Placeholder)
     }
 
-    fn recompute_id(
-        &mut self,
-        id: OrganizerNodeId<DnaAutoGroup>,
-        map: &mut HashMap<GroupId, OrganizerNodeId<DnaAutoGroup>>,
-    ) {
+    fn recompute_id(&mut self, id: OrganizerNodeId, map: &mut HashMap<GroupId, OrganizerNodeId>) {
         match self {
             Self::Leaf { id: id_ref, .. } => *id_ref = id,
             Self::Node {
@@ -1210,7 +1195,7 @@ impl GroupContent {
     /// true iff all the children need to be removed.
     fn delete_useless_leaves(
         &self,
-        ids_to_remove: &mut Vec<OrganizerNodeId<DnaAutoGroup>>,
+        ids_to_remove: &mut Vec<OrganizerNodeId>,
         elements: &BTreeSet<DesignElementKey>,
     ) -> bool {
         let fake_id = &OrganizerNodeId::Tree(vec![]);
@@ -1235,7 +1220,7 @@ impl GroupContent {
 
 struct OrganizerSection {
     content: BTreeMap<DesignElementKey, DesignElement>,
-    id: OrganizerNodeId<DnaAutoGroup>,
+    id: OrganizerNodeId,
     name: String,
     expanded: bool,
     title_bar: NodeTitleBar,
@@ -1243,7 +1228,7 @@ struct OrganizerSection {
 }
 
 impl OrganizerSection {
-    fn new(id: OrganizerNodeId<DnaAutoGroup>, name: String) -> Self {
+    fn new(id: OrganizerNodeId, name: String) -> Self {
         Self {
             content: BTreeMap::new(),
             id,
@@ -1313,13 +1298,14 @@ impl ElementView {
             ],
         }
     }
+
     fn view(
         &self,
         _theme: &OrganizerTheme,
-        element: &'static DesignElement,
+        element: &DesignElement,
         _selection: &BTreeSet<DesignElementKey>,
-        deletable: Option<OrganizerNodeId<DnaAutoGroup>>,
-    ) -> DragDropTarget<'_, OrganizerMessage, DnaAutoGroup> {
+        deletable: Option<OrganizerNodeId>,
+    ) -> DragDropTarget<'_, OrganizerMessage> {
         let mut content = row![text(element.display_name()), horizontal_space(),];
         // [DragIdentifier::Group] are deletable, [DragIdentifier::Section] are not.
         let identifier = match deletable.as_ref() {
@@ -1363,7 +1349,7 @@ impl ElementView {
 
     fn update_element(&mut self, element: &DesignElement) {
         for e in element.attributes() {
-            self.attribute_displayers[e.discriminant()].update_attribute(Some(e.clone()));
+            self.attribute_displayers[e.discriminant() as usize].update_attribute(Some(e.clone()));
         }
     }
 }
@@ -1407,7 +1393,7 @@ impl NodeTitleBar {
     fn view(
         &self,
         name: &String,
-        id: OrganizerNodeId<DnaAutoGroup>,
+        id: OrganizerNodeId,
         expanded: bool,
     ) -> Element<'_, OrganizerMessage> {
         let title_row = match &self.state {
@@ -1585,7 +1571,7 @@ fn merge_attributes<T: Ord + Clone>(attributes: &[&[Option<T>]]) -> Vec<Option<T
         .collect()
 }
 
-fn get_group_id(id: &OrganizerNodeId<DnaAutoGroup>) -> Option<&[usize]> {
+fn get_group_id(id: &OrganizerNodeId) -> Option<&[usize]> {
     if let OrganizerNodeId::Tree(id) = id {
         Some(id)
     } else {
@@ -1593,7 +1579,7 @@ fn get_group_id(id: &OrganizerNodeId<DnaAutoGroup>) -> Option<&[usize]> {
     }
 }
 
-fn get_section_id(id: &OrganizerNodeId<DnaAutoGroup>) -> Option<usize> {
+fn get_section_id(id: &OrganizerNodeId) -> Option<usize> {
     if let OrganizerNodeId::Section(n) = id {
         Some(*n)
     } else {

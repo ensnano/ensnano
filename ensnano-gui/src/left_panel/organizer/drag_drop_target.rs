@@ -1,7 +1,7 @@
 //! Allow your users to drag and drop widgets.
 
 use super::{OrganizerNodeId, message::OrganizerMessage};
-use ensnano_design::elements::{DesignElement, DesignElementKey, DnaAutoGroup};
+use ensnano_design::elements::DesignElementKey;
 use iced::{
     Element, Length, Padding, Rectangle, Size, Vector,
     advanced::{
@@ -16,22 +16,22 @@ use iced::{
 
 /// Identifier for drag-drop widgets.
 #[derive(Debug, Clone, PartialOrd, PartialEq, Eq, Ord)]
-pub enum DragIdentifier<AutoGroup> {
-    Group { id: OrganizerNodeId<AutoGroup> },
+pub enum DragIdentifier {
+    Group { id: OrganizerNodeId },
     Section { key: DesignElementKey },
 }
 
 /// An widget that can be dragged.
 ///
 /// There is no [Padding], [Size] for this widget. It sticks around its content.
-pub struct DragDropTarget<'a, Message, E> {
+pub struct DragDropTarget<'a, Message> {
     content: Element<'a, Message>,
-    identifier: DragIdentifier<E>,
+    identifier: DragIdentifier,
 }
 
-impl<'a, Message, E> DragDropTarget<'a, Message, E> {
+impl<'a, Message> DragDropTarget<'a, Message> {
     /// Creates a new [`DragDropTarget`] with the given content and identifier.
-    pub fn new(content: impl Into<Element<'a, Message>>, identifier: DragIdentifier<E>) -> Self {
+    pub fn new(content: impl Into<Element<'a, Message>>, identifier: DragIdentifier) -> Self {
         Self {
             content: content.into(),
             identifier,
@@ -40,7 +40,7 @@ impl<'a, Message, E> DragDropTarget<'a, Message, E> {
 }
 
 impl Widget<OrganizerMessage, iced::Theme, iced::Renderer>
-    for DragDropTarget<'_, OrganizerMessage, DnaAutoGroup>
+    for DragDropTarget<'_, OrganizerMessage>
 {
     fn tag(&self) -> widget::tree::Tag {
         self.content.as_widget().tag()
@@ -92,7 +92,7 @@ impl Widget<OrganizerMessage, iced::Theme, iced::Renderer>
         cursor_position: mouse::Cursor,
         renderer: &iced::Renderer,
         clipboard: &mut dyn Clipboard,
-        shell: &mut Shell<OrganizerMessage<DesignElement>>,
+        shell: &mut Shell<OrganizerMessage>,
         viewport: &Rectangle,
     ) -> event::Status {
         let status = self.content.as_widget_mut().on_event(
@@ -149,8 +149,7 @@ impl Widget<OrganizerMessage, iced::Theme, iced::Renderer>
         layout: Layout,
         renderer: &iced::Renderer,
         translation: Vector,
-    ) -> Option<overlay::Element<'b, OrganizerMessage<DesignElement>, iced::Theme, iced::Renderer>>
-    {
+    ) -> Option<overlay::Element<'b, OrganizerMessage, iced::Theme, iced::Renderer>> {
         self.content.as_widget_mut().overlay(
             tree,
             layout.children().next().unwrap(),
@@ -160,10 +159,8 @@ impl Widget<OrganizerMessage, iced::Theme, iced::Renderer>
     }
 }
 
-impl<'a> From<DragDropTarget<'a, OrganizerMessage, DnaAutoGroup>>
-    for Element<'a, OrganizerMessage>
-{
-    fn from(value: DragDropTarget<'a, OrganizerMessage, DnaAutoGroup>) -> Self {
+impl<'a> From<DragDropTarget<'a, OrganizerMessage>> for Element<'a, OrganizerMessage> {
+    fn from(value: DragDropTarget<'a, OrganizerMessage>) -> Self {
         Element::new(value)
     }
 }

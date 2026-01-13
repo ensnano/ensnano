@@ -35,15 +35,9 @@ use crate::{
     theme::GuiBackground,
 };
 use ensnano_design::{
-    CameraId,
-    bezier_plane::BezierPathId,
-    elements::{DesignElement, DesignElementKey},
-    grid::GridTypeDescr,
-    interaction_modes::ActionMode,
-    operation::HyperboloidRequest,
-    organizer::tree::OrganizerTree,
-    parameters::NamedParameter,
-    selection::Selection,
+    CameraId, bezier_plane::BezierPathId, elements::DesignElementKey, grid::GridTypeDescr,
+    interaction_modes::ActionMode, operation::HyperboloidRequest, organizer::tree::OrganizerTree,
+    parameters::NamedParameter, selection::Selection,
 };
 use ensnano_exports::ExportType;
 use ensnano_physics::parameters::RapierParameters;
@@ -79,7 +73,7 @@ pub struct LeftPanel<R: Requests, S: AppState> {
     requests: Arc<Mutex<R>>,
     active_tab: TabId,
     /// Provide an organized view of the object being edited.
-    organizer: Organizer<DesignElement>,
+    organizer: Organizer,
     ui_size: UiSize,
     grid_tab: GridTab<S>,
     edition_tab: EditionTab<S>,
@@ -130,7 +124,7 @@ pub enum Message<S: AppState> {
     RigidHelicesSimulation(bool),
     VolumeExclusion(bool),
     TabSelected(TabId),
-    OrganizerMessage(OrganizerMessage<DesignElement>),
+    OrganizerMessage(OrganizerMessage),
     ModifiersChanged(Modifiers),
     UiSizeChanged(UiSize),
     UiSizePicked(UiSize),
@@ -264,7 +258,7 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
     }
 
     /// Convert an [OrganizerMessage] into a LeftPanel [Message].
-    fn organizer_message(&mut self, m: OrganizerMessage<DesignElement>) -> Option<Message<S>> {
+    fn organizer_message(&mut self, m: OrganizerMessage) -> Option<Message<S>> {
         match m {
             OrganizerMessage::InternalMessage(m) => {
                 let selection = self
