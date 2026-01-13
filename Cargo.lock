@@ -2245,9 +2245,9 @@ dependencies = [
 
 [[package]]
 name = "icondata"
-version = "0.6.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "278d66461d56cdaa2ff2a395e2e0b033330ed0c16171cc3f8f3f3857ea164832"
+checksum = "412c95f764f89aad1a8505aa4273d931b66d5a26d1e6609a37243784a9128ad9"
 dependencies = [
  "icondata_bs",
  "icondata_core",

@@ -54,7 +54,7 @@ iced_graphics = "0.12"
 iced_runtime = "0.12"
 iced_wgpu = "0.12"
 iced_winit = "0.12"
-icondata = { version = "0.6", default-features = false, features = [
+icondata = { version = "0.7", default-features = false, features = [
     "bootstrap-icons",
     "material-design-icons",
 ] }
