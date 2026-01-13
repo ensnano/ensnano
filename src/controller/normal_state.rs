@@ -1,6 +1,6 @@
 use crate::MainStateView;
 use crate::controller::{
-    State, TransitionMessage, YesNo,
+    AutomataState, TransitionMessage, YesNo,
     download_intervals::DownloadIntervals,
     messages::{
         CHANGING_DNA_PARAMETERS_WARNING, OXDNA_EXPORT_FAILED, SAVE_DESIGN_FAILED,
@@ -44,8 +44,8 @@ use ultraviolet::{Rotor3, Vec3};
 /// User is interacting with graphical components.
 pub(crate) struct NormalState;
 
-impl State for NormalState {
-    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
+impl AutomataState for NormalState {
+    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn AutomataState> {
         if let Some(action) = main_state.pop_action() {
             match action {
                 Action::NewDesign => Box::new(NewDesign::init(main_state.need_save())),
@@ -321,8 +321,8 @@ impl State for NormalState {
 
 struct ChangingDnaParameters(HelixParameters);
 
-impl State for ChangingDnaParameters {
-    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
+impl AutomataState for ChangingDnaParameters {
+    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn AutomataState> {
         main_state.apply_operation(DesignOperation::SetGlobalHelixParameters {
             helix_parameters: self.0,
         });
@@ -397,13 +397,13 @@ impl NormalState {
     }
 }
 
-fn save_as() -> Box<dyn State> {
+fn save_as() -> Box<dyn AutomataState> {
     let on_success = Box::new(NormalState);
     let on_error = could_not_save_design();
     Box::new(SaveAs::new(on_success, on_error))
 }
 
-fn could_not_save_design() -> Box<dyn State> {
+fn could_not_save_design() -> Box<dyn AutomataState> {
     TransitionMessage::new(
         SAVE_DESIGN_FAILED,
         rfd::MessageLevel::Error,
@@ -411,7 +411,7 @@ fn could_not_save_design() -> Box<dyn State> {
     )
 }
 
-fn quicksave<P: AsRef<Path>>(starting_path: P) -> Box<dyn State> {
+fn quicksave<P: AsRef<Path>>(starting_path: P) -> Box<dyn AutomataState> {
     Box::new(SaveWithPath {
         path: starting_path.as_ref().to_path_buf(),
         on_success: Box::new(NormalState),
@@ -419,7 +419,7 @@ fn quicksave<P: AsRef<Path>>(starting_path: P) -> Box<dyn State> {
     })
 }
 
-fn export(export_type: ExportType) -> Box<dyn State> {
+fn export(export_type: ExportType) -> Box<dyn AutomataState> {
     let on_success = Box::new(NormalState);
     let on_error = TransitionMessage::new(
         OXDNA_EXPORT_FAILED,

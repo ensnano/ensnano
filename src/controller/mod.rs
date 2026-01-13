@@ -17,7 +17,7 @@ use std::borrow::Cow;
 
 pub(crate) struct Controller {
     /// The sate of the windows
-    state: Box<dyn State + 'static>,
+    state: Box<dyn AutomataState + 'static>,
 }
 
 impl Controller {
@@ -42,9 +42,9 @@ impl Controller {
     }
 }
 
-pub(crate) trait State {
+pub(crate) trait AutomataState {
     /// Operate on [MainStateView] and return the new State of the automata
-    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State>;
+    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn AutomataState>;
 }
 
 /// A dummy state that should never be constructed.
@@ -52,8 +52,8 @@ pub(crate) trait State {
 /// It is used as an argument to `std::mem::take`.
 struct OhNo;
 
-impl State for OhNo {
-    fn make_progress(self: Box<Self>, _: &mut MainStateView) -> Box<dyn State> {
+impl AutomataState for OhNo {
+    fn make_progress(self: Box<Self>, _: &mut MainStateView) -> Box<dyn AutomataState> {
         panic!("Oh No !")
     }
 }
@@ -64,14 +64,14 @@ struct TransitionMessage {
     level: rfd::MessageLevel,
     content: Cow<'static, str>,
     ack: Option<MustAckMessage>,
-    transition_to: Box<dyn State>,
+    transition_to: Box<dyn AutomataState>,
 }
 
 impl TransitionMessage {
     fn new<S: Into<Cow<'static, str>>>(
         content: S,
         level: rfd::MessageLevel,
-        transition_to: Box<dyn State + 'static>,
+        transition_to: Box<dyn AutomataState + 'static>,
     ) -> Box<Self> {
         Box::new(Self {
             level,
@@ -82,8 +82,11 @@ impl TransitionMessage {
     }
 }
 
-impl State for TransitionMessage {
-    fn make_progress(mut self: Box<Self>, _: &mut MainStateView) -> Box<dyn State + 'static> {
+impl AutomataState for TransitionMessage {
+    fn make_progress(
+        mut self: Box<Self>,
+        _: &mut MainStateView,
+    ) -> Box<dyn AutomataState + 'static> {
         if let Some(ack) = self.ack.as_ref() {
             if ack.was_ack() {
                 self.transition_to
@@ -111,15 +114,15 @@ fn clone_msg_level(level: &rfd::MessageLevel) -> rfd::MessageLevel {
 struct YesNo {
     question: Cow<'static, str>,
     answer: Option<YesNoQuestion>,
-    yes: Box<dyn State>,
-    no: Box<dyn State>,
+    yes: Box<dyn AutomataState>,
+    no: Box<dyn AutomataState>,
 }
 
 impl YesNo {
     fn new<S: Into<Cow<'static, str>>>(
         question: S,
-        yes: Box<dyn State>,
-        no: Box<dyn State>,
+        yes: Box<dyn AutomataState>,
+        no: Box<dyn AutomataState>,
     ) -> Self {
         Self {
             question: question.into(),
@@ -130,8 +133,8 @@ impl YesNo {
     }
 }
 
-impl State for YesNo {
-    fn make_progress(mut self: Box<Self>, _: &mut MainStateView) -> Box<dyn State> {
+impl AutomataState for YesNo {
+    fn make_progress(mut self: Box<Self>, _: &mut MainStateView) -> Box<dyn AutomataState> {
         if let Some(ans) = self.answer.as_ref() {
             if let Some(b) = ans.answer() {
                 if b { self.yes } else { self.no }
