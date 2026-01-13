@@ -1,6 +1,5 @@
 pub(crate) mod controller;
 pub(crate) mod file_parsing;
-mod id_generator;
 pub(crate) mod presenter;
 
 use crate::{
@@ -399,16 +398,12 @@ impl InteractorResult {
 mod tests {
     use super::*;
     use crate::app_state::{
-        AppState,
-        design_interactor::{
-            controller::clipboard::PastePosition, file_parsing::junctions::StrandJunction as _,
-            id_generator::IdGenerator,
-        },
-        transitions,
+        AppState, design_interactor::controller::clipboard::PastePosition, transitions,
     };
     use ensnano_design::{
         MainDesignReaderExt as _,
         grid::{GridDescriptor, GridId, GridTypeDescr, HelixGridPosition},
+        id_generator::IdGenerator,
         nucl::Nucl,
         operation::InsertionPoint,
         strands::{DomainJunction, Strand},

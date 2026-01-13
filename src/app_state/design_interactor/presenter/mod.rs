@@ -4,7 +4,6 @@ pub(crate) mod impl_reader2d;
 pub(crate) mod impl_reader3d;
 pub(crate) mod impl_readergui;
 
-use super::id_generator::IdGenerator;
 use crate::app_state::{address_pointer::AddressPointer, design_interactor::DesignInteractor};
 use ahash::RandomState;
 use design_content::DesignContent;
@@ -16,6 +15,7 @@ use ensnano_design::{
     domains::Domain,
     grid::{Grid, GridId},
     helices::{Helix, NuclCollection},
+    id_generator::IdGenerator,
     nucl::Nucl,
     selection::Selection,
     strands::{Extremity, Strand},

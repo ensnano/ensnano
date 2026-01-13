@@ -18,6 +18,7 @@ pub mod external_3d_objects;
 pub mod grid;
 pub mod group_attributes;
 pub mod helices;
+pub mod id_generator;
 mod insertions;
 pub mod interaction_modes;
 pub mod isometry3_descriptor;
