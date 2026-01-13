@@ -81,7 +81,7 @@ pub(crate) struct Requests {
     pub organizer_selection: Option<(Vec<DesignElementKey>, Option<GroupId>, bool)>,
     pub organizer_candidates: Option<Vec<DesignElementKey>>,
     pub new_attribute: Option<(DnaAttribute, Vec<DesignElementKey>)>,
-    pub new_tree: Option<OrganizerTree<DesignElementKey>>,
+    pub new_tree: Option<OrganizerTree>,
     pub split2d: Option<()>,
     pub toggle_visibility: Option<bool>,
     pub all_visible: Option<()>,

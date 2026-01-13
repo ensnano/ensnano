@@ -58,7 +58,7 @@ pub(super) struct Organizer {
     selected_nodes: BTreeSet<OrganizerNodeId>,
     dragging: BTreeSet<DragIdentifier>,
     hovered_in: Option<OrganizerNodeId>,
-    last_read_tree: *const OrganizerTree<DesignElementKey>,
+    last_read_tree: *const OrganizerTree,
     must_update_tree: bool,
     group_to_node: HashMap<GroupId, OrganizerNodeId>,
 }
@@ -485,7 +485,7 @@ impl Organizer {
         }
     }
 
-    pub(super) fn tree(&self) -> OrganizerTree<DesignElementKey> {
+    pub(super) fn tree(&self) -> OrganizerTree {
         let groups = self.groups.iter().filter_map(GroupContent::tree).collect();
         OrganizerTree::Node {
             name: "root".to_owned(),
@@ -496,7 +496,7 @@ impl Organizer {
     }
 
     #[must_use = "If the tree has been updated, the program must be notified"]
-    pub(super) fn read_tree(&mut self, tree: &OrganizerTree<DesignElementKey>) -> bool {
+    pub(super) fn read_tree(&mut self, tree: &OrganizerTree) -> bool {
         if self.last_read_tree != tree {
             self.last_read_tree = tree;
             if let OrganizerTree::Node { children, .. } = tree {
@@ -781,11 +781,7 @@ impl GroupContent {
         }
     }
 
-    fn read_tree(
-        tree: &OrganizerTree<DesignElementKey>,
-        rng: &mut ThreadRng,
-        must_update_tree: &mut bool,
-    ) -> Self {
+    fn read_tree(tree: &OrganizerTree, rng: &mut ThreadRng, must_update_tree: &mut bool) -> Self {
         match tree {
             OrganizerTree::Leaf(k) => Self::Leaf {
                 id: OrganizerNodeId::Tree(vec![]),
@@ -1157,7 +1153,7 @@ impl GroupContent {
         }
     }
 
-    fn tree(&self) -> Option<OrganizerTree<DesignElementKey>> {
+    fn tree(&self) -> Option<OrganizerTree> {
         match self {
             Self::Node {
                 name,

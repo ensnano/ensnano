@@ -146,7 +146,7 @@ pub enum DesignOperation {
         x: isize,
         y: isize,
     },
-    SetOrganizerTree(OrganizerTree<DesignElementKey>),
+    SetOrganizerTree(OrganizerTree),
     SetStrandName {
         s_id: usize,
         name: String,

@@ -35,7 +35,6 @@ pub mod utils;
 use self::{
     bezier_plane::{BezierPathData, BezierPaths, BezierPlanes},
     curves::CurveCache,
-    design_element::DesignElementKey,
     domains::Domain,
     external_3d_objects::External3DObjects,
     grid::grid_collection::FreeGrids,
@@ -123,7 +122,7 @@ pub struct Design {
     pub anchors: HashSet<Nucl>,
 
     #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub organizer_tree: Option<Arc<OrganizerTree<DesignElementKey>>>,
+    pub organizer_tree: Option<Arc<OrganizerTree>>,
 
     #[serde(default)]
     pub ensnano_version: String,

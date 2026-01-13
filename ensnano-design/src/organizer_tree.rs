@@ -1,3 +1,4 @@
+use crate::design_element::DesignElementKey;
 use ahash::RandomState;
 use rand::{
     Rng,
@@ -8,8 +9,8 @@ use std::{collections::HashMap, hash::Hash};
 
 /// A tree-like structure that references and organize all the data being edited.
 #[derive(Clone, Debug, Serialize)]
-pub enum OrganizerTree<K> {
-    Leaf(K),
+pub enum OrganizerTree {
+    Leaf(DesignElementKey),
     Node {
         name: String,
         #[serde(alias = "childrens")] // cspell: disable-line
@@ -20,13 +21,13 @@ pub enum OrganizerTree<K> {
     },
 }
 
-impl<K: PartialEq> OrganizerTree<K> {
-    pub fn get_names_of_groups_having(&self, element: &K) -> Vec<String> {
+impl OrganizerTree {
+    pub fn get_names_of_groups_having(&self, element: &DesignElementKey) -> Vec<String> {
         let mut ret = Vec::new();
         match self {
             Self::Leaf(_) => (),
             Self::Node { children, .. } => {
-                let rename: String = self.get_name_copy_with_id();
+                let rename = self.get_name_copy_with_id();
                 for c in children {
                     match c {
                         Self::Leaf(k) if k == element => ret.push(rename.clone()),
@@ -94,14 +95,11 @@ impl<K: PartialEq> OrganizerTree<K> {
             }
         }
     }
-}
 
-/// Hashmap
-impl<K: Eq + Hash + Copy> OrganizerTree<K> {
     pub fn get_hashmap_to_all_group_names_with_prefix(
         &self,
         prefix: &str,
-    ) -> HashMap<K, Vec<&str>, RandomState> {
+    ) -> HashMap<DesignElementKey, Vec<&str>, RandomState> {
         let mut hashmap = HashMap::default();
 
         match self {
@@ -143,26 +141,26 @@ impl<K: Eq + Hash + Copy> OrganizerTree<K> {
 //       We want to be able to accept both the old format (pre 0.3.0) and the current format.
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-enum OldOrganizerTree<K> {
-    Leaf(K),
-    Node(String, Vec<OrganizerTree<K>>),
+enum OldOrganizerTree {
+    Leaf(DesignElementKey),
+    Node(String, Vec<OrganizerTree>),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-enum NewOrganizerTree<K> {
-    Leaf(K),
+enum NewOrganizerTree {
+    Leaf(DesignElementKey),
     Node {
         name: String,
         #[serde(alias = "childrens")] // cspell: disable-line
-        children: Vec<OrganizerTree<K>>,
+        children: Vec<OrganizerTree>,
         expanded: bool,
         #[serde(default)]
         id: Option<GroupId>,
     },
 }
 
-impl<K> OldOrganizerTree<K> {
-    fn to_real(self) -> OrganizerTree<K> {
+impl OldOrganizerTree {
+    fn to_real(self) -> OrganizerTree {
         match self {
             Self::Leaf(k) => OrganizerTree::Leaf(k),
             Self::Node(name, children) => OrganizerTree::Node {
@@ -175,8 +173,8 @@ impl<K> OldOrganizerTree<K> {
     }
 }
 
-impl<K> NewOrganizerTree<K> {
-    fn to_real(self) -> OrganizerTree<K> {
+impl NewOrganizerTree {
+    fn to_real(self) -> OrganizerTree {
         match self {
             Self::Leaf(k) => OrganizerTree::Leaf(k),
             Self::Node {
@@ -196,12 +194,12 @@ impl<K> NewOrganizerTree<K> {
 
 #[derive(Deserialize)]
 #[serde(untagged)]
-enum NewOrOld<K> {
-    New(NewOrganizerTree<K>),
-    Old(OldOrganizerTree<K>),
+enum NewOrOld {
+    New(NewOrganizerTree),
+    Old(OldOrganizerTree),
 }
 
-impl<'de, K: Deserialize<'de>> Deserialize<'de> for OrganizerTree<K> {
+impl<'de> Deserialize<'de> for OrganizerTree {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,

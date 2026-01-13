@@ -74,7 +74,7 @@ use ultraviolet::{Rotor3, Vec2, Vec3};
 use wgpu::{Device, Queue};
 use winit::{dpi::PhysicalSize, event::Modifiers, window::Window};
 
-pub type EnsnTree = OrganizerTree<DesignElementKey>;
+pub type EnsnTree = OrganizerTree;
 
 pub trait Requests: 'static + Send {
     fn close_overlay(&mut self, overlay_type: OverlayType);
@@ -141,7 +141,7 @@ pub trait Requests: 'static + Send {
         group_id: Option<GroupId>,
         new_group: bool,
     );
-    fn update_organizer_tree(&mut self, tree: OrganizerTree<DesignElementKey>);
+    fn update_organizer_tree(&mut self, tree: OrganizerTree);
     /// Update one attribute of several Dna Elements
     fn update_attribute_of_elements(
         &mut self,

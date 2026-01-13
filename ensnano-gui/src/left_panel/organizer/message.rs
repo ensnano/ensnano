@@ -16,12 +16,12 @@ pub enum OrganizerMessage {
     ElementUpdate(Vec<BTreeMap<DesignElementKey, DesignElement>>),
     NewAttribute(DnaAttribute, Vec<DesignElementKey>),
     /// Publishing a new organizer tree.
-    NewTree(OrganizerTree<DesignElementKey>),
+    NewTree(OrganizerTree),
     /// A new group is created.
     NewGroup {
         group_id: GroupId,
         elements_selected: Vec<DesignElementKey>,
-        new_tree: OrganizerTree<DesignElementKey>,
+        new_tree: OrganizerTree,
     },
     /// Taking or releasing keyboard priority.
     SetKeyboardPriority(PriorityRequest),

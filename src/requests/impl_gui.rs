@@ -191,7 +191,7 @@ impl GuiRequests for Requests {
         self.organizer_selection = Some((selection, group_id, new_group));
     }
 
-    fn update_organizer_tree(&mut self, tree: OrganizerTree<DesignElementKey>) {
+    fn update_organizer_tree(&mut self, tree: OrganizerTree) {
         self.new_tree = Some(tree);
     }
 
