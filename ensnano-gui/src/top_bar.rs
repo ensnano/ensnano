@@ -15,7 +15,7 @@ use crate::{
     icon::{HasIcon as _, HasIconDependentOnAxis as _},
     theme::GuiBackground,
 };
-use ensnano_design::selection::{ActionMode, SelectionMode};
+use ensnano_design::interaction_modes::{ActionMode, SelectionMode};
 use ensnano_utils::{graphics::SplitMode, ui_size::UiSize};
 use iced::{
     Element, Length, Padding, theme,

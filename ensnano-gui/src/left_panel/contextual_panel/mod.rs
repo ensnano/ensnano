@@ -8,9 +8,7 @@ use crate::{
     theme,
 };
 use ensnano_design::{
-    bezier_plane::BezierVertexId,
-    grid::GridId,
-    selection::{ActionMode, Selection},
+    bezier_plane::BezierVertexId, grid::GridId, interaction_modes::ActionMode, selection::Selection,
 };
 use ensnano_utils::{
     SimulationState,

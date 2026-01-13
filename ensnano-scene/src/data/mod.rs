@@ -28,11 +28,9 @@ use ensnano_design::{
     curves::{SurfaceInfo, SurfacePoint},
     external_3d_objects::External3DObjectsStamp,
     grid::{GridId, GridObject, GridPosition},
+    interaction_modes::{ActionMode, SelectionMode},
     nucl::Nucl,
-    selection::{
-        ActionMode, CenterOfSelection, PhantomElement, Selection, SelectionMode,
-        extract_helices_with_controls,
-    },
+    selection::{CenterOfSelection, PhantomElement, Selection, extract_helices_with_controls},
 };
 use ensnano_utils::{
     ObjectType, Referential,

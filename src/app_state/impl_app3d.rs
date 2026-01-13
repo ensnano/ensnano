@@ -3,8 +3,9 @@ use ensnano_design::{
     bezier_plane::BezierVertexId,
     grid::GridId,
     group_attributes::GroupPivot,
+    interaction_modes::{ActionMode, SelectionMode},
     organizer::tree::GroupId,
-    selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
+    selection::{CenterOfSelection, Selection},
 };
 use ensnano_scene::{AppState as App3D, view::DrawOptions};
 use ensnano_utils::{

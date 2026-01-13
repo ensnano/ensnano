@@ -18,7 +18,7 @@ use dragging_state::{
 use ensnano_design::{
     bezier_plane::{BezierVertex, BezierVertexId},
     grid::GridId,
-    selection::ActionMode,
+    interaction_modes::ActionMode,
 };
 use ensnano_utils::consts::{
     DIR_HANDLE_ID, FRONT_CIRCLE_ID, RIGHT_CIRCLE_ID, RIGHT_HANDLE_ID, UP_CIRCLE_ID, UP_HANDLE_ID,

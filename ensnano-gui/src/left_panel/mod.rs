@@ -39,10 +39,11 @@ use ensnano_design::{
     bezier_plane::BezierPathId,
     elements::{DesignElement, DesignElementKey},
     grid::GridTypeDescr,
+    interaction_modes::ActionMode,
     operation::HyperboloidRequest,
     organizer::tree::OrganizerTree,
     parameters::NamedParameter,
-    selection::{ActionMode, Selection},
+    selection::Selection,
 };
 use ensnano_exports::ExportType;
 use ensnano_physics::parameters::RapierParameters;

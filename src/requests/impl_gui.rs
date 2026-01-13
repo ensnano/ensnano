@@ -7,10 +7,10 @@ use ensnano_design::{
     bezier_plane::{BezierPathId, BezierVertexId},
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridTypeDescr},
+    interaction_modes::{ActionMode, SelectionMode},
     operation::{DesignOperation, HyperboloidRequest, InsertionPoint},
     organizer::tree::{GroupId, OrganizerTree},
     parameters::HelixParameters,
-    selection::{ActionMode, SelectionMode},
 };
 use ensnano_exports::ExportType;
 use ensnano_gui::{

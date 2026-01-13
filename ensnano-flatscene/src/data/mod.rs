@@ -17,7 +17,10 @@ use crate::{
 };
 use ahash::RandomState;
 use design::Design2d;
-use ensnano_design::selection::{PhantomElement, Selection, SelectionMode};
+use ensnano_design::{
+    interaction_modes::SelectionMode,
+    selection::{PhantomElement, Selection},
+};
 use ensnano_utils::{
     StrandBuildingStatus,
     consts::{

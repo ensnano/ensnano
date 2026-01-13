@@ -5,9 +5,10 @@ use curve_builders::{BEZIER_CURVE_BUILDER, ELLIPSE_BUILDER, TWO_SPHERES_BUILDER}
 use ensnano_design::{
     bezier_plane::BezierPathId,
     elements::DesignElementKey,
+    interaction_modes::{ActionMode, SelectionMode},
     organizer::tree::GroupId,
     parameters::HelixParameters,
-    selection::{ActionMode, Selection, SelectionMode, all_helices_no_grid},
+    selection::{Selection, all_helices_no_grid},
 };
 use ensnano_gui::{
     AppState as GuiState, GuiDesignReaderExt,

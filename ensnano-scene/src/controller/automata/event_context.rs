@@ -12,8 +12,8 @@ use ensnano_design::{
     },
     grid::{GridId, GridObject, GridPosition},
     helices::Axis,
+    interaction_modes::ActionMode,
     nucl::Nucl,
-    selection::ActionMode,
 };
 use ultraviolet::{Vec2, Vec3};
 use winit::{dpi::PhysicalPosition, keyboard::ModifiersState};

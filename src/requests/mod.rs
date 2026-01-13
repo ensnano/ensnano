@@ -11,10 +11,11 @@ use crate::controller::normal_state::Action;
 use ensnano_design::{
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridPosition, GridTypeDescr},
+    interaction_modes::{ActionMode, SelectionMode},
     nucl::Nucl,
     operation::HyperboloidRequest,
     organizer::tree::{GroupId, OrganizerTree},
-    selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
+    selection::{CenterOfSelection, Selection},
 };
 use ensnano_gui::keyboard_priority::PriorityRequest;
 use ensnano_physics::parameters::RapierParameters;

@@ -34,9 +34,10 @@ use data::Data;
 use ensnano_design::{
     MainDesignReaderExt,
     consts::ITERATIVE_AXIS_ALGORITHM,
+    interaction_modes::SelectionMode,
     nucl::Nucl,
     operation::DesignOperation,
-    selection::{PhantomElement, Selection, SelectionMode, extract_nucls_and_xover_ends},
+    selection::{PhantomElement, Selection, extract_nucls_and_xover_ends},
 };
 use ensnano_utils::{
     StrandBuildingStatus,

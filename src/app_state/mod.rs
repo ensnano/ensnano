@@ -33,9 +33,10 @@ use ensnano_design::{
     bezier_plane::BezierPathId,
     domains::Domain,
     group_attributes::GroupPivot,
+    interaction_modes::{ActionMode, SelectionMode},
     operation::DesignOperation,
     organizer::tree::GroupId,
-    selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
+    selection::{CenterOfSelection, Selection},
 };
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_utils::{

@@ -19,6 +19,7 @@ pub mod grid;
 pub mod group_attributes;
 pub mod helices;
 mod insertions;
+pub mod interaction_modes;
 pub mod isometry3_descriptor;
 mod material_colors;
 pub mod nucl;

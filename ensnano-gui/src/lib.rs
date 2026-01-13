@@ -30,11 +30,12 @@ use ensnano_design::{
     bezier_plane::{BezierPathId, BezierVertexId},
     elements::{DesignElement, DesignElementKey, DnaAttribute},
     grid::{GridId, GridTypeDescr},
+    interaction_modes::{ActionMode, SelectionMode},
     nucl::Nucl,
     operation::{HyperboloidRequest, InsertionPoint},
     organizer::tree::{GroupId, OrganizerTree},
     parameters::HelixParameters,
-    selection::{ActionMode, Selection, SelectionMode},
+    selection::Selection,
 };
 use ensnano_exports::ExportType;
 use ensnano_physics::parameters::RapierParameters;

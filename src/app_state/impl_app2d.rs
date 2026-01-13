@@ -1,5 +1,5 @@
 use crate::app_state::{AppState, design_interactor::DesignInteractor};
-use ensnano_design::selection::{Selection, SelectionMode};
+use ensnano_design::{interaction_modes::SelectionMode, selection::Selection};
 use ensnano_flatscene::AppState as App2D;
 use ensnano_utils::{StrandBuildingStatus, strand_builder::StrandBuilder};
 
