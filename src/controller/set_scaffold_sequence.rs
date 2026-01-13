@@ -207,16 +207,6 @@ fn optimize_scaffold_position(
     Box::new(NormalState)
 }
 
-pub(crate) trait ScaffoldSetter {
-    fn get_scaffold_length(&self) -> Option<usize>;
-    fn set_scaffold_sequence(
-        &mut self,
-        sequence: String,
-        shift: usize,
-    ) -> Result<SetScaffoldSequenceOk, SetScaffoldSequenceError>;
-    fn optimize_shift(&mut self);
-}
-
 pub(crate) struct SetScaffoldSequenceOk {
     pub default_shift: Option<usize>,
     pub target_scaffold_length: TargetScaffoldLength,

@@ -86,7 +86,7 @@ use controller::{
     download_staples::StaplesDownloader,
     normal_state::Action,
     set_scaffold_sequence::{
-        ScaffoldSetter, SetScaffoldSequenceError, SetScaffoldSequenceOk, TargetScaffoldLength,
+        SetScaffoldSequenceError, SetScaffoldSequenceOk, TargetScaffoldLength,
     },
 };
 use ensnano_design::{
@@ -2088,9 +2088,7 @@ impl MainStateView<'_> {
     fn load_svg(&mut self, path: PathBuf) {
         self.apply_operation(DesignOperation::ImportSvgPath { path });
     }
-}
 
-impl ScaffoldSetter for MainStateView<'_> {
     fn set_scaffold_sequence(
         &mut self,
         sequence: String,

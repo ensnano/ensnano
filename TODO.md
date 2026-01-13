@@ -127,7 +127,6 @@
   - `(Gui|FlatScene|Scene|Main)DesignReaderExt`
   - `Multiplexer`
   - `RawDrawer`
-  - `ScaffoldSetter`
 - Remove enums with one variant -> struct or raw value:
   - `AppOperation`
   - `GridPositionBuilder`
