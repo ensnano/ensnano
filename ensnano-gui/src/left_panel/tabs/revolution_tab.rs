@@ -532,7 +532,7 @@ impl<State: GuiAppState> GuiTab<State> for RevolutionTab<State> {
                         .and_then(InstantiatedParameter::get_uint),
                 )
         {
-            let half_nb_helix = self.scaling.as_ref().unwrap().nb_helix / 2;
+            let half_nb_helix = self.scaling.as_ref().map_or(0, |scaling| scaling.nb_helix) / 2;
             self.shift_generator =
                 unrooted_surface.shifts_to_get_n_spirals(half_nb_helix, nb_spiral);
         }
