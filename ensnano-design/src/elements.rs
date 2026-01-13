@@ -1,6 +1,4 @@
-use crate::organizer::element::{
-    AttributeDisplay, AttributeWidget, OrganizerAttribute, OrganizerAttributeDiscriminant,
-};
+use crate::organizer::element::{AttributeDisplay, AttributeWidget, OrganizerAttribute};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use serde::{Deserialize, Serialize};
 
@@ -264,21 +262,13 @@ pub enum DnaAttributeDiscriminant {
     LockedForSimulations,
 }
 
-const ALL_DNA_ATTRIBUTE_DISCRIMINANTS: [DnaAttributeDiscriminant; 3] = [
-    DnaAttributeDiscriminant::Visible,
-    DnaAttributeDiscriminant::XoverGroup,
-    DnaAttributeDiscriminant::LockedForSimulations,
-];
-
-impl OrganizerAttributeDiscriminant for DnaAttributeDiscriminant {
-    fn all_discriminants() -> &'static [Self] {
-        &ALL_DNA_ATTRIBUTE_DISCRIMINANTS
+impl DnaAttributeDiscriminant {
+    pub fn all_discriminants() -> &'static [Self] {
+        &[Self::Visible, Self::XoverGroup, Self::LockedForSimulations]
     }
 }
 
 impl OrganizerAttribute for DnaAttribute {
-    type Discriminant = DnaAttributeDiscriminant;
-
     fn discriminant(&self) -> DnaAttributeDiscriminant {
         match self {
             Self::Visible(_) => DnaAttributeDiscriminant::Visible,
