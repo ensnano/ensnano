@@ -2,6 +2,7 @@
 
 ## Stabilize `dev_iced`
 
+- Movement is broken when both keyboard and mouse wheel translations (or zoom) are applied
 - Fix text fields in organizer tree
 - Fix text fields in revolution surface tab
 - Click on organizer tree should select and reciprocally (select should highlight in red in organizer tree)
@@ -29,7 +30,6 @@
 ## Scene (3D)
 
 - Slider controlling camera focal length
-- Movement is broken when both keyboard and mouse wheel translations (or zoom) are applied
 - Fix rotation with `H`/`J`/`K`/`L` while dragging (copy code from `swing`)
 - Cut plane (toggleable button next to grids)
 - Isometric view
@@ -48,7 +48,7 @@
   - Simply use the normal?
 - Give uniform instead of hardcoding
 - Fix on transparent objects (create a separate pass?)
-- Widget to control the width
+- Slider widget to control the width
 
 ## Flat Scene (2D)
 
@@ -106,6 +106,7 @@
   - `AppState`
   - `DesignInteractor`
   - ...
+- Clean/split `main.rs`
 - Remove in-file modules:
   - `abscissa_converter`
   - `input_color`
@@ -138,4 +139,6 @@
 - `build.rs` for shaders instead of manual compilation
 - Share more code between `ensnano_scene` and `ensnano_flatscene`:
   - e.g. `export_2d_png` and `export_3d_png` are pretty much the same
+- Remove all `println!` and use the `log` crate everywhere
 - Split `src/controller/quit.rs` in multiple files
+- Rename one of the color_picker files (or merge)

@@ -306,7 +306,7 @@ unreachable = "allow"
 unseparated_literal_suffix = "allow"
 unwrap_in_result = "allow"
 unwrap_used = "allow"
-use_debug = "allow" # TODO: warn once log! is used everywhere instead of println!
+use_debug = "allow" 
 wildcard_enum_match_arm = "allow"
 
 # style
