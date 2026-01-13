@@ -412,7 +412,6 @@ fn read_pdb_string(
     if let Some(nucl) = current_nucl.take() {
         ret.present_candidate(nucl)?;
     }
-    println!("{ret:#?}");
     Ok(ret)
 }
 
