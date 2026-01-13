@@ -109,7 +109,10 @@
   - `color_square`
   - `gostop`
   - `fog_kind`
-- Rename structs with the same name in different crates, then remove all use aliases (`use ... as ...`)
+- Rename structs with the same name in different crates, then remove all use aliases (`use ... as ...`):
+  - `Multiplexer as GuiMultiplexer`
+  - `AbscissaConverter as AbscissaConverter_`
+  - `controller::Data as ControllerData`
 - kebab-case -> snake_case for the crate directories
 - More consistent styling:
   - Create some `rustfmt.toml` rules?
