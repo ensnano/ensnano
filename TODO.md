@@ -53,6 +53,7 @@
 ## Flat Scene (2D)
 
 - Vector export (SVG?)
+- When moving a crossover, show the length of the neighbor too
 - Show size of the crossovers
 
 ## GUI
