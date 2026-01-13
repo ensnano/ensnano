@@ -104,6 +104,7 @@
 - Lift some types from the main crate to a crate above to avoid circular dependencies requiring single-use traits:
   - `Multiplexer`
   - `AppState`
+  - `DesignInteractor`
   - ...
 - Remove in-file modules:
   - `abscissa_converter`

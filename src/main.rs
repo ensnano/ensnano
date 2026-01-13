@@ -83,7 +83,6 @@ mod scheduler;
 use controller::{
     Controller, LoadDesignError, SaveDesignError,
     channel_reader::{ChannelReader, ChannelReaderUpdate},
-    download_staples::StaplesDownloader,
     normal_state::Action,
     set_scaffold_sequence::{
         SetScaffoldSequenceError, SetScaffoldSequenceOk, TargetScaffoldLength,
@@ -160,10 +159,13 @@ use winit::{
 
 use crate::app_state::{
     AppState,
-    design_interactor::controller::{
-        ErrOperation, InteractorNotification,
-        clipboard::{CopyOperation, PastePosition},
-        simulations::SimulationOperation,
+    design_interactor::{
+        DesignInteractor,
+        controller::{
+            ErrOperation, InteractorNotification,
+            clipboard::{CopyOperation, PastePosition},
+            simulations::SimulationOperation,
+        },
     },
     transitions::{AppStateTransition, OkOperation, TransitionLabel},
 };
@@ -1761,8 +1763,8 @@ impl MainStateView<'_> {
         self.main_state.redo();
     }
 
-    fn get_staple_downloader(&self) -> Box<dyn StaplesDownloader> {
-        Box::new(self.main_state.app_state.get_design_interactor())
+    fn get_design_interactor(&self) -> DesignInteractor {
+        self.main_state.app_state.get_design_interactor()
     }
 
     fn save_design(&mut self, path: &PathBuf) -> Result<(), SaveDesignError> {
@@ -2106,7 +2108,7 @@ impl MainStateView<'_> {
             Ok(OkOperation::NotUndoable) => (),
             Err(e) => return Err(SetScaffoldSequenceError(format!("{e:?}"))),
         }
-        let default_shift = self.get_staple_downloader().default_shift();
+        let default_shift = self.get_design_interactor().default_shift();
         let scaffold_length = self.get_scaffold_length().unwrap_or(0);
         let target_scaffold_length = if len == scaffold_length {
             TargetScaffoldLength::Ok
