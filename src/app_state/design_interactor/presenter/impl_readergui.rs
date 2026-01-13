@@ -6,10 +6,11 @@ use ensnano_design::{
     grid::GridId,
     nucl::Nucl,
     operation::InsertionPoint,
+    organizer_tree::OrganizerTree,
     selection::Selection,
     strands::Strand,
 };
-use ensnano_gui::{EnsnTree, GuiDesignReaderExt as ReaderGui};
+use ensnano_gui::GuiDesignReaderExt as ReaderGui;
 use std::sync::Arc;
 use ultraviolet::{Rotor3, Vec2, Vec3};
 
@@ -50,7 +51,7 @@ impl ReaderGui for DesignInteractor {
         self.presenter.content.elements.as_slice()
     }
 
-    fn get_organizer_tree(&self) -> Option<Arc<EnsnTree>> {
+    fn get_organizer_tree(&self) -> Option<Arc<OrganizerTree>> {
         self.presenter.get_design().organizer_tree.clone()
     }
 

@@ -74,8 +74,6 @@ use ultraviolet::{Rotor3, Vec2, Vec3};
 use wgpu::{Device, Queue};
 use winit::{dpi::PhysicalSize, event::Modifiers, window::Window};
 
-pub type EnsnTree = OrganizerTree;
-
 pub trait Requests: 'static + Send {
     fn close_overlay(&mut self, overlay_type: OverlayType);
     /// Change the color of the selected strands
@@ -1006,7 +1004,7 @@ pub trait GuiDesignReaderExt: 'static {
     fn length_decomposition(&self, s_id: usize) -> String;
     fn nucl_is_anchor(&self, nucl: Nucl) -> bool;
     fn get_dna_elements(&self) -> &[DesignElement];
-    fn get_organizer_tree(&self) -> Option<Arc<EnsnTree>>;
+    fn get_organizer_tree(&self) -> Option<Arc<OrganizerTree>>;
     fn strand_name(&self, s_id: usize) -> String;
     fn get_all_cameras(&self) -> Vec<(CameraId, &str)>;
     fn get_grid_position_and_orientation(&self, g_id: GridId) -> Option<(Vec3, Rotor3)>;
