@@ -10,10 +10,10 @@ pub mod cadnano;
 pub mod codenano;
 pub mod consts;
 pub mod curves;
+pub mod design_element;
 pub mod design_operations;
 pub mod domains;
 pub mod drawing_style;
-pub mod elements;
 pub mod external_3d_objects;
 pub mod grid;
 pub mod group_attributes;
@@ -24,7 +24,7 @@ pub mod isometry3_descriptor;
 mod material_colors;
 pub mod nucl;
 pub mod operation;
-pub mod organizer;
+pub mod organizer_tree;
 pub mod parameters;
 pub mod phantom_element;
 pub mod scadnano;
@@ -35,8 +35,8 @@ pub mod utils;
 use self::{
     bezier_plane::{BezierPathData, BezierPaths, BezierPlanes},
     curves::CurveCache,
+    design_element::DesignElementKey,
     domains::Domain,
-    elements::DesignElementKey,
     external_3d_objects::External3DObjects,
     grid::grid_collection::FreeGrids,
     grid::{GridData, GridDescriptor, GridId},
@@ -49,7 +49,7 @@ use self::{
 };
 use crate::{
     grid::HelixGridPosition,
-    organizer::tree::{GroupId, OrganizerTree},
+    organizer_tree::{GroupId, OrganizerTree},
     strands::Strand,
 };
 use serde::{Deserialize, Serialize};

@@ -1,4 +1,4 @@
-use crate::organizer::element::{AttributeDisplay, AttributeWidget};
+use icondata::Icon;
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use serde::{Deserialize, Serialize};
 
@@ -312,5 +312,20 @@ pub enum DnaAttributeDiscriminant {
 impl DnaAttributeDiscriminant {
     pub fn all_discriminants() -> &'static [Self] {
         &[Self::Visible, Self::XoverGroup, Self::LockedForSimulations]
+    }
+}
+
+pub enum AttributeDisplay {
+    Icon(Icon),
+    Text(String),
+}
+
+#[derive(Clone)]
+pub struct AttributeWidget {
+    pub value_if_pressed: DnaAttribute,
+}
+impl AttributeWidget {
+    pub fn new(value_if_pressed: DnaAttribute) -> Self {
+        Self { value_if_pressed }
     }
 }

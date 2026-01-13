@@ -4,9 +4,9 @@ use crate::app_state::{AppState, NewHelixStrand};
 use curve_builders::{BEZIER_CURVE_BUILDER, ELLIPSE_BUILDER, TWO_SPHERES_BUILDER};
 use ensnano_design::{
     bezier_plane::BezierPathId,
-    elements::DesignElementKey,
+    design_element::DesignElementKey,
     interaction_modes::{ActionMode, SelectionMode},
-    organizer::tree::GroupId,
+    organizer_tree::GroupId,
     parameters::HelixParameters,
     selection::{Selection, all_helices_no_grid},
 };

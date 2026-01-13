@@ -27,12 +27,12 @@ use crate::{
 use ensnano_design::{
     CameraId,
     bezier_plane::{BezierPathId, BezierVertexId},
-    elements::{DesignElement, DesignElementKey, DnaAttribute},
+    design_element::{DesignElement, DesignElementKey, DnaAttribute},
     grid::{GridId, GridTypeDescr},
     interaction_modes::{ActionMode, SelectionMode},
     nucl::Nucl,
     operation::{HyperboloidRequest, InsertionPoint},
-    organizer::tree::{GroupId, OrganizerTree},
+    organizer_tree::{GroupId, OrganizerTree},
     parameters::HelixParameters,
     selection::Selection,
 };

@@ -4,7 +4,7 @@ use ensnano_design::{
     grid::GridId,
     group_attributes::GroupPivot,
     interaction_modes::{ActionMode, SelectionMode},
-    organizer::tree::GroupId,
+    organizer_tree::GroupId,
     selection::{CenterOfSelection, Selection},
 };
 use ensnano_scene::{AppState as App3D, view::DrawOptions};

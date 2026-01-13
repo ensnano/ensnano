@@ -9,7 +9,7 @@ use crate::{
 };
 use ahash::HashMap;
 use ensnano_design::{
-    elements::DesignElement,
+    design_element::DesignElement,
     helices::{Helices, NuclCollection},
     nucl::Nucl,
     parameters::HelixParameters,

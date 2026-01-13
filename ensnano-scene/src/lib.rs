@@ -21,7 +21,7 @@ use ensnano_design::{
     interaction_modes::{ActionMode, SelectionMode},
     nucl::Nucl,
     operation::{DesignOperation, NewBezierTangentVector},
-    organizer::tree::GroupId,
+    organizer_tree::GroupId,
     selection::{
         CenterOfSelection, Selection, extract_control_points, list_of_xover_ids,
         set_of_grids_containing_selection, set_of_helices_containing_selection,

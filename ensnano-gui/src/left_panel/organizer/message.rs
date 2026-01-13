@@ -1,8 +1,8 @@
 use super::{OrganizerNodeId, drag_drop_target::DragIdentifier};
 use crate::keyboard_priority::PriorityRequest;
 use ensnano_design::{
-    elements::{DesignElement, DesignElementKey, DnaAttribute},
-    organizer::tree::{GroupId, OrganizerTree},
+    design_element::{DesignElement, DesignElementKey, DnaAttribute},
+    organizer_tree::{GroupId, OrganizerTree},
 };
 use iced::widget::text_input;
 use std::collections::BTreeMap;

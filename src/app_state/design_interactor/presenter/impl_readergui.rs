@@ -2,7 +2,7 @@ use crate::app_state::design_interactor::DesignInteractor;
 use ensnano_design::{
     CameraId,
     bezier_plane::{BezierPathId, BezierVertexId},
-    elements::DesignElement,
+    design_element::DesignElement,
     grid::GridId,
     nucl::Nucl,
     operation::InsertionPoint,

@@ -6,14 +6,14 @@ use crate::{
         BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
     },
     curves::bezier::BezierControlPoint,
-    elements::{DesignElementKey, DnaAttribute},
+    design_element::{DesignElementKey, DnaAttribute},
     grid::{
         GridDescriptor, GridId, GridObject, GridTypeDescr, HelixGridPosition,
         hyperboloid::Hyperboloid,
     },
     group_attributes::GroupPivot,
     nucl::Nucl,
-    organizer::tree::{GroupId, OrganizerTree},
+    organizer_tree::{GroupId, OrganizerTree},
     parameters::HelixParameters,
     selection::Selection,
 };

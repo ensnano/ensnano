@@ -12,11 +12,11 @@ use self::{
 };
 use crate::keyboard_priority::keyboard_priority;
 use ensnano_design::{
-    elements::{DesignElement, DesignElementKey, DesignElementSection, DnaAttribute, DnaAutoGroup},
-    organizer::{
-        element::{AttributeDisplay, AttributeWidget},
-        tree::{GroupId, OrganizerTree},
+    design_element::{
+        AttributeDisplay, AttributeWidget, DesignElement, DesignElementKey, DesignElementSection,
+        DnaAttribute, DnaAutoGroup,
     },
+    organizer_tree::{GroupId, OrganizerTree},
 };
 use iced::{
     Element, Length,

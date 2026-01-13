@@ -6,9 +6,9 @@ use ahash::RandomState;
 use click_counter::ClickCounter;
 use ensnano_design::{
     Design,
+    design_element::{DesignElement, DesignElementKey},
     domains::Domain,
     drawing_style::{ColorType, DrawingAttribute, DrawingStyle},
-    elements::{DesignElement, DesignElementKey},
     grid::{GridData, GridId, GridObject, GridPosition, HelixGridPosition},
     helices::NuclCollection,
     isometry3_descriptor::Isometry3MissingMethods as _,

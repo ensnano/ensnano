@@ -20,7 +20,7 @@ use ensnano_design::{
     domains::Domain,
     group_attributes::GroupAttribute,
     operation::DesignOperation,
-    organizer::tree::GroupId,
+    organizer_tree::GroupId,
     parameters::HelixParameters,
     selection::Selection,
 };

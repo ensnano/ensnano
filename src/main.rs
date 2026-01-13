@@ -96,7 +96,7 @@ use ensnano_design::{
     group_attributes::GroupPivot,
     interaction_modes::{ActionMode, SelectionMode},
     operation::{DesignOperation, DesignRotation, DesignTranslation, IsometryTarget},
-    organizer::tree::GroupId,
+    organizer_tree::GroupId,
     selection::{
         CenterOfSelection, Selection, extract_nucls_from_selection, extract_only_grids,
         extract_strands_from_selection, list_of_bezier_vertices, list_of_free_grids,

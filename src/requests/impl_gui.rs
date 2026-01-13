@@ -5,11 +5,11 @@ use crate::requests::Requests;
 use ensnano_design::{
     CameraId,
     bezier_plane::{BezierPathId, BezierVertexId},
-    elements::{DesignElementKey, DnaAttribute},
+    design_element::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridTypeDescr},
     interaction_modes::{ActionMode, SelectionMode},
     operation::{DesignOperation, HyperboloidRequest, InsertionPoint},
-    organizer::tree::{GroupId, OrganizerTree},
+    organizer_tree::{GroupId, OrganizerTree},
     parameters::HelixParameters,
 };
 use ensnano_exports::ExportType;

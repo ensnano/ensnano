@@ -35,8 +35,8 @@ use crate::{
     theme::GuiBackground,
 };
 use ensnano_design::{
-    CameraId, bezier_plane::BezierPathId, elements::DesignElementKey, grid::GridTypeDescr,
-    interaction_modes::ActionMode, operation::HyperboloidRequest, organizer::tree::OrganizerTree,
+    CameraId, bezier_plane::BezierPathId, design_element::DesignElementKey, grid::GridTypeDescr,
+    interaction_modes::ActionMode, operation::HyperboloidRequest, organizer_tree::OrganizerTree,
     parameters::NamedParameter, selection::Selection,
 };
 use ensnano_exports::ExportType;

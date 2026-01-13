@@ -9,12 +9,12 @@ pub(crate) mod poll;
 
 use crate::controller::normal_state::Action;
 use ensnano_design::{
-    elements::{DesignElementKey, DnaAttribute},
+    design_element::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridPosition, GridTypeDescr},
     interaction_modes::{ActionMode, SelectionMode},
     nucl::Nucl,
     operation::HyperboloidRequest,
-    organizer::tree::{GroupId, OrganizerTree},
+    organizer_tree::{GroupId, OrganizerTree},
     selection::{CenterOfSelection, Selection},
 };
 use ensnano_gui::keyboard_priority::PriorityRequest;

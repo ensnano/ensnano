@@ -5,7 +5,7 @@ use crate::{
     left_panel::{Message, tabs::GuiTab},
     theme,
 };
-use ensnano_design::elements::DesignElementKey;
+use ensnano_design::design_element::DesignElementKey;
 use ensnano_utils::{StandardSequence, consts::ICON_ATGC, ui_size::UiSize};
 use iced::{
     Length,

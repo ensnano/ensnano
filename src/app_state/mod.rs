@@ -35,7 +35,7 @@ use ensnano_design::{
     group_attributes::GroupPivot,
     interaction_modes::{ActionMode, SelectionMode},
     operation::DesignOperation,
-    organizer::tree::GroupId,
+    organizer_tree::GroupId,
     selection::{CenterOfSelection, Selection},
 };
 use ensnano_exports::{ExportResult, ExportType};

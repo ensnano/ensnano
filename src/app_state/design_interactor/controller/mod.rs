@@ -28,13 +28,13 @@ use ensnano_design::{
         CurveDescriptor,
         bezier::{BezierControlPoint, BezierEnd},
     },
+    design_element::{DesignElementKey, DnaAttribute},
     design_operations::{
         ErrDesignOperation, attach_object_to_grid, make_grid_from_helices, rotate_helices_3d,
         translate_helices,
     },
     domains::{Domain, helix_interval::HelixInterval},
     drawing_style::{DrawingAttribute, DrawingStyle},
-    elements::{DesignElementKey, DnaAttribute},
     external_3d_objects::{External3DObject, External3DObjectDescriptor},
     grid::{
         Edge, GridDescriptor, GridDivision as _, GridId, GridObject, GridPosition, GridTypeDescr,
@@ -49,7 +49,7 @@ use ensnano_design::{
         BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
         HyperboloidOperation, IsometryTarget, NewBezierTangentVector,
     },
-    organizer::tree::GroupId,
+    organizer_tree::GroupId,
     selection::{Selection, list_of_helices},
     strands::{DomainJunction, Strand, Strands},
 };
