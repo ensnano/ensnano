@@ -6,7 +6,7 @@
 - Fix text fields in organizer tree
 - Fix text fields in revolution surface tab
 - Click on organizer tree should select and reciprocally (select should highlight in red in organizer tree)
-- Double on organizer tree click should teleport in 2d and 3d scenes
+- Double click on organizer tree should teleport in 2d and 3d scenes
 - Add serialization/deserialization tests to detect regressions based on typo fixes
 
 ## Bugs
