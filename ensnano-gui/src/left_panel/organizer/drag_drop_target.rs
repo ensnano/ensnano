@@ -1,7 +1,7 @@
 //! Allow your users to drag and drop widgets.
 
 use super::{OrganizerNodeId, message::OrganizerMessage};
-use ensnano_design::organizer::element::OrganizerElement;
+use ensnano_design::{elements::DesignElementKey, organizer::element::OrganizerElement};
 use iced::{
     Element, Length, Padding, Rectangle, Size, Vector,
     advanced::{
@@ -16,22 +16,22 @@ use iced::{
 
 /// Identifier for drag-drop widgets.
 #[derive(Debug, Clone, PartialOrd, PartialEq, Eq, Ord)]
-pub enum DragIdentifier<K, AutoGroup> {
+pub enum DragIdentifier<AutoGroup> {
     Group { id: OrganizerNodeId<AutoGroup> },
-    Section { key: K },
+    Section { key: DesignElementKey },
 }
 
 /// An widget that can be dragged.
 ///
 /// There is no [Padding], [Size] for this widget. It sticks around its content.
-pub struct DragDropTarget<'a, Message, K, E> {
+pub struct DragDropTarget<'a, Message, E> {
     content: Element<'a, Message>,
-    identifier: DragIdentifier<K, E>,
+    identifier: DragIdentifier<E>,
 }
 
-impl<'a, Message, K, E> DragDropTarget<'a, Message, K, E> {
+impl<'a, Message, E> DragDropTarget<'a, Message, E> {
     /// Creates a new [`DragDropTarget`] with the given content and identifier.
-    pub fn new(content: impl Into<Element<'a, Message>>, identifier: DragIdentifier<K, E>) -> Self {
+    pub fn new(content: impl Into<Element<'a, Message>>, identifier: DragIdentifier<E>) -> Self {
         Self {
             content: content.into(),
             identifier,
@@ -40,7 +40,7 @@ impl<'a, Message, K, E> DragDropTarget<'a, Message, K, E> {
 }
 
 impl<E> Widget<OrganizerMessage<E>, iced::Theme, iced::Renderer>
-    for DragDropTarget<'_, OrganizerMessage<E>, E::Key, E::AutoGroup>
+    for DragDropTarget<'_, OrganizerMessage<E>, E::AutoGroup>
 where
     E: OrganizerElement,
 {
@@ -161,12 +161,12 @@ where
     }
 }
 
-impl<'a, E> From<DragDropTarget<'a, OrganizerMessage<E>, E::Key, E::AutoGroup>>
+impl<'a, E> From<DragDropTarget<'a, OrganizerMessage<E>, E::AutoGroup>>
     for Element<'a, OrganizerMessage<E>>
 where
     E: OrganizerElement,
 {
-    fn from(value: DragDropTarget<'a, OrganizerMessage<E>, E::Key, E::AutoGroup>) -> Self {
+    fn from(value: DragDropTarget<'a, OrganizerMessage<E>, E::AutoGroup>) -> Self {
         Element::new(value)
     }
 }

@@ -1,8 +1,11 @@
 use super::{OrganizerNodeId, drag_drop_target::DragIdentifier};
 use crate::keyboard_priority::PriorityRequest;
-use ensnano_design::organizer::{
-    element::OrganizerElement,
-    tree::{GroupId, OrganizerTree},
+use ensnano_design::{
+    elements::DesignElementKey,
+    organizer::{
+        element::OrganizerElement,
+        tree::{GroupId, OrganizerTree},
+    },
 };
 use iced::widget::text_input;
 use std::collections::BTreeMap;
@@ -11,17 +14,17 @@ use std::collections::BTreeMap;
 #[derive(Clone, Debug)]
 pub enum OrganizerMessage<E: OrganizerElement> {
     InternalMessage(OrganizerInternalMessage<E>),
-    Selection(Vec<E::Key>, Option<GroupId>),
-    Candidates(Vec<E::Key>),
-    ElementUpdate(Vec<BTreeMap<E::Key, E>>),
-    NewAttribute(E::Attribute, Vec<E::Key>),
+    Selection(Vec<DesignElementKey>, Option<GroupId>),
+    Candidates(Vec<DesignElementKey>),
+    ElementUpdate(Vec<BTreeMap<DesignElementKey, E>>),
+    NewAttribute(E::Attribute, Vec<DesignElementKey>),
     /// Publishing a new organizer tree.
-    NewTree(OrganizerTree<E::Key>),
+    NewTree(OrganizerTree<DesignElementKey>),
     /// A new group is created.
     NewGroup {
         group_id: GroupId,
-        elements_selected: Vec<E::Key>,
-        new_tree: OrganizerTree<E::Key>,
+        elements_selected: Vec<DesignElementKey>,
+        new_tree: OrganizerTree<DesignElementKey>,
     },
     /// Taking or releasing keyboard priority.
     SetKeyboardPriority(PriorityRequest),
@@ -43,11 +46,11 @@ pub enum OrganizerInternalMessage<E: OrganizerElement> {
         hovered_in: bool,
     },
     KeyHovered {
-        key: E::Key,
+        key: DesignElementKey,
         hovered_in: bool,
     },
     ElementSelected {
-        key: E::Key,
+        key: DesignElementKey,
     },
     Edit {
         id: OrganizerNodeId<E::AutoGroup>,
@@ -64,8 +67,8 @@ pub enum OrganizerInternalMessage<E: OrganizerElement> {
     Delete {
         id: OrganizerNodeId<E::AutoGroup>,
     },
-    DragDropped(DragIdentifier<E::Key, E::AutoGroup>),
-    Dragging(DragIdentifier<E::Key, E::AutoGroup>),
+    DragDropped(DragIdentifier<E::AutoGroup>),
+    Dragging(DragIdentifier<E::AutoGroup>),
     AttributeSelected {
         attribute: E::Attribute,
         id: OrganizerNodeId<E::AutoGroup>,
@@ -86,7 +89,7 @@ impl<E: OrganizerElement> OrganizerMessage<E> {
         Self::InternalMessage(OrganizerInternalMessage::NodeHovered { id, hovered_in })
     }
 
-    pub(super) fn key_hovered(key: E::Key, hovered_in: bool) -> Self {
+    pub(super) fn key_hovered(key: DesignElementKey, hovered_in: bool) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::KeyHovered { key, hovered_in })
     }
 
@@ -106,7 +109,7 @@ impl<E: OrganizerElement> OrganizerMessage<E> {
         Self::InternalMessage(OrganizerInternalMessage::StopEdit)
     }
 
-    pub(super) fn element_selected(key: E::Key) -> Self {
+    pub(super) fn element_selected(key: DesignElementKey) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::ElementSelected { key })
     }
 
@@ -118,11 +121,11 @@ impl<E: OrganizerElement> OrganizerMessage<E> {
         Self::InternalMessage(OrganizerInternalMessage::NewGroup)
     }
 
-    pub(super) fn dragging(key: DragIdentifier<E::Key, E::AutoGroup>) -> Self {
+    pub(super) fn dragging(key: DragIdentifier<E::AutoGroup>) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::Dragging(key))
     }
 
-    pub(super) fn drag_dropped(key: DragIdentifier<E::Key, E::AutoGroup>) -> Self {
+    pub(super) fn drag_dropped(key: DragIdentifier<E::AutoGroup>) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::DragDropped(key))
     }
 

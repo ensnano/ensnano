@@ -1,30 +1,19 @@
+use crate::elements::DesignElementKey;
 use icondata::Icon;
-use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-
-/// A key identifying an element
-pub trait ElementKey: Clone + Ord + Debug + Serialize + Deserialize<'static> {
-    type Section: Eq + Ord + TryFrom<usize> + Into<usize> + Debug;
-
-    /// Name of the Element
-    fn name(section: Self::Section) -> String;
-    fn section(&self) -> Self::Section;
-}
 
 /// A root node of the organizer tree.
 pub trait OrganizerElement: Clone + Debug + 'static {
     /// A type that describes all the attributes of an element that can be changed through
     /// interaction with the organizer.
     type Attribute: OrganizerAttribute;
-    /// A type that is used to store the elements in a BTreeMap
-    type Key: ElementKey;
 
     type AutoGroup: ToString + Ord + Eq + Clone + Debug;
 
     /// The name that will be displayed to represent the element
     fn display_name(&self) -> String;
     /// The key that will be used to store self in a BTreeMap
-    fn key(&self) -> Self::Key;
+    fn key(&self) -> DesignElementKey;
 
     /// The aliases of the element that can be used to search it
     fn aliases(&self) -> Vec<String> {

@@ -1,10 +1,9 @@
+use crate::organizer::element::{
+    AttributeDisplay, AttributeWidget, OrganizerAttribute, OrganizerAttributeDiscriminant,
+    OrganizerElement,
+};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use serde::{Deserialize, Serialize};
-
-use crate::organizer::element::{
-    AttributeDisplay, AttributeWidget, ElementKey, OrganizerAttribute,
-    OrganizerAttributeDiscriminant, OrganizerElement,
-};
 
 /// Actual implementation of the OrganizerElement for the LeftPanel.
 #[derive(Clone, Debug)]
@@ -100,7 +99,6 @@ impl std::fmt::Display for BoundedLength {
 
 impl OrganizerElement for DesignElement {
     type Attribute = DnaAttribute;
-    type Key = DesignElementKey;
     type AutoGroup = DnaAutoGroup;
 
     fn key(&self) -> DesignElementKey {
@@ -216,6 +214,28 @@ pub enum DesignElementKey {
     },
 }
 
+impl DesignElementKey {
+    pub fn name(section: DesignElementSection) -> String {
+        match section {
+            DesignElementSection::Grid => "Grid".to_owned(),
+            DesignElementSection::Helix => "Helix".to_owned(),
+            DesignElementSection::Strand => "Strand".to_owned(),
+            DesignElementSection::CrossOver => "CrossOver".to_owned(),
+            DesignElementSection::Nucleotide => "Nucleotide".to_owned(),
+        }
+    }
+
+    pub fn section(&self) -> DesignElementSection {
+        match self {
+            Self::Strand(_) => DesignElementSection::Strand,
+            Self::Helix(_) => DesignElementSection::Helix,
+            Self::Nucleotide { .. } => DesignElementSection::Nucleotide,
+            Self::CrossOver { .. } => DesignElementSection::CrossOver,
+            Self::Grid { .. } => DesignElementSection::Grid,
+        }
+    }
+}
+
 /// Default sections of the DesignElement
 ///
 /// NOTE: This enum derives TryFromPrimitive. This allow to get the section from an usize with the
@@ -228,30 +248,6 @@ pub enum DesignElementSection {
     Strand,
     CrossOver,
     Nucleotide,
-}
-
-impl ElementKey for DesignElementKey {
-    type Section = DesignElementSection;
-
-    fn name(section: DesignElementSection) -> String {
-        match section {
-            DesignElementSection::Grid => "Grid".to_owned(),
-            DesignElementSection::Helix => "Helix".to_owned(),
-            DesignElementSection::Strand => "Strand".to_owned(),
-            DesignElementSection::CrossOver => "CrossOver".to_owned(),
-            DesignElementSection::Nucleotide => "Nucleotide".to_owned(),
-        }
-    }
-
-    fn section(&self) -> DesignElementSection {
-        match self {
-            Self::Strand(_) => DesignElementSection::Strand,
-            Self::Helix(_) => DesignElementSection::Helix,
-            Self::Nucleotide { .. } => DesignElementSection::Nucleotide,
-            Self::CrossOver { .. } => DesignElementSection::CrossOver,
-            Self::Grid { .. } => DesignElementSection::Grid,
-        }
-    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
