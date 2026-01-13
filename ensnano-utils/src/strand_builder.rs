@@ -189,8 +189,7 @@ impl StrandBuilder {
             }
         }
         self.moving_end.position += 1;
-        let desc = design
-            .get_neighbor_nucl(self.moving_end.right())
+        let desc = get_neighbor_nucl(design, self.moving_end.right())
             .filter(|neighbor| {
                 !ignored_domains
                     .iter()
@@ -217,8 +216,7 @@ impl StrandBuilder {
             }
         }
         self.moving_end.position -= 1;
-        let desc = design
-            .get_neighbor_nucl(self.moving_end.left())
+        let desc = get_neighbor_nucl(design, self.moving_end.left())
             .filter(|neighbor| {
                 !ignored_domains
                     .iter()
@@ -382,34 +380,28 @@ impl DomainIdentifier {
     }
 }
 
-pub trait NeighborDescriptorGiver {
-    fn get_neighbor_nucl(&self, nucl: Nucl) -> Option<NeighborDescriptor>;
-}
-
-impl NeighborDescriptorGiver for Design {
-    fn get_neighbor_nucl(&self, nucl: Nucl) -> Option<NeighborDescriptor> {
-        for (s_id, s) in self.strands.iter() {
-            for (d_id, d) in s.domains.iter().enumerate() {
-                if let Some(other) = d.other_end(nucl) {
-                    let start = if let Domain::HelixDomain(i) = d {
-                        // if the domain has length one, we are not at a specific end
-                        (d.length() > 1).then_some(i.start)
-                    } else {
-                        None
-                    };
-                    return Some(NeighborDescriptor {
-                        identifier: DomainIdentifier {
-                            strand: *s_id,
-                            domain: d_id,
-                            start: start.map(|s| s == nucl.position),
-                        },
-                        fixed_end: other,
-                        initial_moving_end: nucl.position,
-                        moving_end: nucl.position,
-                    });
-                }
+pub fn get_neighbor_nucl(design: &Design, nucl: Nucl) -> Option<NeighborDescriptor> {
+    for (s_id, s) in design.strands.iter() {
+        for (d_id, d) in s.domains.iter().enumerate() {
+            if let Some(other) = d.other_end(nucl) {
+                let start = if let Domain::HelixDomain(i) = d {
+                    // if the domain has length one, we are not at a specific end
+                    (d.length() > 1).then_some(i.start)
+                } else {
+                    None
+                };
+                return Some(NeighborDescriptor {
+                    identifier: DomainIdentifier {
+                        strand: *s_id,
+                        domain: d_id,
+                        start: start.map(|s| s == nucl.position),
+                    },
+                    fixed_end: other,
+                    initial_moving_end: nucl.position,
+                    moving_end: nucl.position,
+                });
             }
         }
-        None
     }
+    None
 }

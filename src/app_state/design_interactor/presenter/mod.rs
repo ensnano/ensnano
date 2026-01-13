@@ -26,7 +26,7 @@ use ensnano_utils::{
     Referential, ScaffoldInfo,
     app_state_parameters::suggestion_parameters::SuggestionParameters,
     application::Camera3D,
-    strand_builder::{NeighborDescriptor, NeighborDescriptorGiver as _},
+    strand_builder::{NeighborDescriptor, get_neighbor_nucl},
 };
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
@@ -81,10 +81,10 @@ impl Presenter {
     }
 
     pub(crate) fn can_start_builder_at(&self, nucl: Nucl) -> bool {
-        let left = self.current_design.get_neighbor_nucl(nucl.left());
-        let right = self.current_design.get_neighbor_nucl(nucl.right());
+        let left = get_neighbor_nucl(&self.current_design, nucl.left());
+        let right = get_neighbor_nucl(&self.current_design, nucl.right());
         if self.content.nucl_collection.contains_nucl(&nucl) {
-            if let Some(desc) = self.current_design.get_neighbor_nucl(nucl) {
+            if let Some(desc) = get_neighbor_nucl(&self.current_design, nucl) {
                 let filter =
                     |d: &NeighborDescriptor| !(d.identifier.is_same_domain_than(&desc.identifier));
                 left.filter(filter)

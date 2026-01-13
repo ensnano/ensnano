@@ -58,9 +58,7 @@ use ensnano_utils::{
     PastingStatus, SimulationState,
     colors::{new_color, random_color_with_shade},
     operation::{Operation, TranslateBezierPathVertex},
-    strand_builder::{
-        DomainIdentifier, NeighborDescriptor, NeighborDescriptorGiver as _, StrandBuilder,
-    },
+    strand_builder::{DomainIdentifier, NeighborDescriptor, StrandBuilder, get_neighbor_nucl},
 };
 use std::{
     borrow::Cow,
@@ -2052,9 +2050,7 @@ impl Controller {
         let ignored_domains: Vec<_> = nucls
             .iter()
             .filter_map(|nucl| {
-                design
-                    .get_neighbor_nucl(*nucl)
-                    .map(|neighbor| neighbor.identifier)
+                get_neighbor_nucl(&design, *nucl).map(|neighbor| neighbor.identifier)
             })
             .collect();
         for nucl in nucls {
@@ -2094,17 +2090,15 @@ impl Controller {
         nucl: Nucl,
         ignored_domains: &[DomainIdentifier],
     ) -> Option<StrandBuilder> {
-        let left = design
-            .get_neighbor_nucl(nucl.left())
+        let left = get_neighbor_nucl(design, nucl.left())
             .filter(|n| !ignored_domains.contains(&n.identifier));
-        let right = design
-            .get_neighbor_nucl(nucl.right())
+        let right = get_neighbor_nucl(design, nucl.right())
             .filter(|n| !ignored_domains.contains(&n.identifier));
         let axis = design
             .helices
             .get(&nucl.helix)
             .map(|h| h.get_axis(&design.helix_parameters.unwrap_or_default()))?;
-        let desc = design.get_neighbor_nucl(nucl)?;
+        let desc = get_neighbor_nucl(design, nucl)?;
         let strand_id = desc.identifier.strand;
         let filter = |d: &NeighborDescriptor| !(d.identifier.is_same_domain_than(&desc.identifier));
         let neighbor_desc = left.filter(filter).or_else(|| right.filter(filter));
@@ -2154,8 +2148,8 @@ impl Controller {
     }
 
     fn new_strand_builder(&mut self, design: &mut Design, nucl: Nucl) -> Option<StrandBuilder> {
-        let left = design.get_neighbor_nucl(nucl.left());
-        let right = design.get_neighbor_nucl(nucl.right());
+        let left = get_neighbor_nucl(design, nucl.left());
+        let right = get_neighbor_nucl(design, nucl.right());
         if left.is_some() && right.is_some() {
             return None;
         }
