@@ -404,7 +404,7 @@ mod tests {
             controller::clipboard::PastePosition, file_parsing::junctions::StrandJunction as _,
             id_generator::IdGenerator,
         },
-        transitions::OkOperation as TopOkOperation,
+        transitions,
     };
     use ensnano_design::{
         MainDesignReaderExt as _,
@@ -1285,7 +1285,7 @@ mod tests {
             app_state
                 .apply_copy_operation(CopyOperation::Paste)
                 .unwrap(),
-            TopOkOperation::Undoable { .. }
+            transitions::OkOperation::Undoable { .. }
         ));
     }
 

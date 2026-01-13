@@ -74,7 +74,7 @@ use ultraviolet::{Rotor3, Vec2, Vec3};
 use wgpu::{Device, Queue};
 use winit::{dpi::PhysicalSize, event::Modifiers, window::Window};
 
-pub trait Requests: 'static + Send {
+pub trait GuiRequests: 'static + Send {
     fn close_overlay(&mut self, overlay_type: OverlayType);
     /// Change the color of the selected strands
     fn change_strand_color(&mut self, color: u32);
@@ -228,13 +228,13 @@ pub enum OverlayType {
 }
 
 #[expect(clippy::large_enum_variant)]
-enum GuiState<R: Requests, S: AppState> {
+enum GuiState<R: GuiRequests, S: GuiAppState> {
     TopBar(program::State<TopBar<R, S>>),
     LeftPanel(program::State<LeftPanel<R, S>>),
     StatusBar(program::State<StatusBar<R, S>>),
 }
 
-impl<R: Requests, S: AppState> GuiState<R, S> {
+impl<R: GuiRequests, S: GuiAppState> GuiState<R, S> {
     fn queue_event(&mut self, event: Event) {
         if let Event::Keyboard(keyboard::Event::KeyPressed {
             key: keyboard::Key::Named(keyboard::key::Named::Tab),
@@ -380,7 +380,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
 }
 
 /// A Gui component.
-struct GuiComponent<R: Requests, S: AppState> {
+struct GuiComponent<R: GuiRequests, S: GuiAppState> {
     state: GuiState<R, S>,
     debug: Debug,
     redraw: bool,
@@ -388,7 +388,7 @@ struct GuiComponent<R: Requests, S: AppState> {
     renderer: iced::Renderer,
 }
 
-impl<R: Requests, S: AppState> GuiComponent<R, S> {
+impl<R: GuiRequests, S: GuiAppState> GuiComponent<R, S> {
     /// Initialize the top bar gui component
     fn top_bar(
         mut renderer: iced::Renderer,
@@ -580,7 +580,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
 /// The manager of the graphical user interface.
 ///
 /// The manager contains a [`GuiComponent`] for each [`GuiComponentType`] (top_bar, left_panel, etc…)
-pub struct Gui<R: Requests, S: AppState> {
+pub struct Gui<R: GuiRequests, S: GuiAppState> {
     /// WGPU Settings
     wgpu_settings: iced_wgpu::Settings,
     /// WGPU device
@@ -594,7 +594,7 @@ pub struct Gui<R: Requests, S: AppState> {
     components: HashMap<GuiComponentType, GuiComponent<R, S>>,
 }
 
-impl<R: Requests, State: AppState> Gui<R, State> {
+impl<R: GuiRequests, State: GuiAppState> Gui<R, State> {
     pub fn new(
         device: Rc<Device>,
         queue: Rc<Queue>,
@@ -871,7 +871,7 @@ fn convert_size_u32(size: PhysicalSize<u32>) -> Size<u32> {
 }
 
 /// Message sent to the gui component
-pub struct IcedMessages<S: AppState> {
+pub struct IcedMessages<S: GuiAppState> {
     left_panel: VecDeque<left_panel::Message<S>>,
     top_bar: VecDeque<top_bar::Message<S>>,
     status_bar: VecDeque<status_bar::Message<S>>,
@@ -880,7 +880,7 @@ pub struct IcedMessages<S: AppState> {
     redraw: bool,
 }
 
-impl<S: AppState> IcedMessages<S> {
+impl<S: GuiAppState> IcedMessages<S> {
     pub fn new() -> Self {
         Self {
             left_panel: VecDeque::new(),
@@ -952,7 +952,7 @@ impl<S: AppState> IcedMessages<S> {
     }
 }
 
-pub trait AppState:
+pub trait GuiAppState:
     Default + PartialEq + Clone + 'static + Send + std::fmt::Debug + std::fmt::Pointer
 {
     const POSSIBLE_CURVES: &'static [CurveDescriptorBuilder<Self>];

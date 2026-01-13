@@ -11,7 +11,7 @@ use ensnano_design::{
     selection::{Selection, all_helices_no_grid},
 };
 use ensnano_gui::{
-    AppState as GuiState, GuiDesignReaderExt,
+    GuiAppState, GuiDesignReaderExt,
     left_panel::tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
     status_bar::{ClipboardContent, CurrentOpState},
 };
@@ -23,7 +23,7 @@ use ensnano_utils::{
     graphics::HBondDisplay,
 };
 
-impl GuiState for AppState {
+impl GuiAppState for AppState {
     const POSSIBLE_CURVES: &'static [CurveDescriptorBuilder<Self>] =
         &[ELLIPSE_BUILDER, TWO_SPHERES_BUILDER, BEZIER_CURVE_BUILDER];
 

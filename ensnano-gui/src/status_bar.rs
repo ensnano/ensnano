@@ -1,5 +1,5 @@
 use crate::{
-    AppState, Requests,
+    GuiAppState, GuiRequests,
     keyboard_priority::{PriorityRequest, keyboard_priority},
     theme::GuiBackground,
 };
@@ -36,7 +36,7 @@ impl StatusParameter {
     }
 }
 
-pub struct StatusBar<R: Requests, S: AppState> {
+pub struct StatusBar<R: GuiRequests, S: GuiAppState> {
     operation: Option<OperationInput>,
     requests: Arc<Mutex<R>>,
     progress: Option<(String, f32)>,
@@ -46,7 +46,7 @@ pub struct StatusBar<R: Requests, S: AppState> {
     logical_size: LogicalSize<f64>,
 }
 
-impl<R: Requests, State: AppState> StatusBar<R, State> {
+impl<R: GuiRequests, State: GuiAppState> StatusBar<R, State> {
     pub fn new(
         requests: Arc<Mutex<R>>,
         state: &State,
@@ -91,7 +91,7 @@ impl<R: Requests, State: AppState> StatusBar<R, State> {
 
 // List of Messages that can be send by the status bar.
 #[derive(Clone, Debug)]
-pub enum Message<S: AppState> {
+pub enum Message<S: GuiAppState> {
     ValueStrChanged(usize, String),
     ValueSet(usize, String),
     Progress(Option<(String, f32)>),
@@ -103,7 +103,7 @@ pub enum Message<S: AppState> {
     SetKeyboardPriority(PriorityRequest),
 }
 
-impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
+impl<R: GuiRequests, S: GuiAppState> Program for StatusBar<R, S> {
     type Message = Message<S>;
     type Theme = iced::Theme;
     type Renderer = iced::Renderer;
@@ -267,7 +267,7 @@ impl OperationInput {
         self.operation = operation;
     }
 
-    fn view<S: AppState>(&self, ui_size: UiSize) -> Row<'_, Message<S>> {
+    fn view<S: GuiAppState>(&self, ui_size: UiSize) -> Row<'_, Message<S>> {
         let mut row = Row::new();
         let op = self.operation.as_ref();
         row = row.push(text(op.description()).size(ui_size.main_text()));

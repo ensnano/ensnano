@@ -6,7 +6,7 @@
 //! Drawing the top bar, and triggering events from it is handled here.
 
 use crate::{
-    AppState, Requests, TopBarState,
+    GuiAppState, GuiRequests, TopBarState,
     fonts::{
         ENSNANO_FONT,
         material_icons::{MaterialIcon, MaterialIconStyle},
@@ -25,7 +25,7 @@ use std::sync::{Arc, Mutex};
 use winit::dpi::LogicalSize;
 
 /// Top bar object
-pub struct TopBar<R: Requests, S: AppState> {
+pub struct TopBar<R: GuiRequests, S: GuiAppState> {
     /// ENSnano requests handle to which forwards messages.
     requests: Arc<Mutex<R>>,
     /// Area occupied by the top bar.
@@ -39,7 +39,7 @@ pub struct TopBar<R: Requests, S: AppState> {
 }
 
 #[derive(Debug, Clone)]
-pub enum Message<S: AppState> {
+pub enum Message<S: GuiAppState> {
     SceneFitRequested,
     AlignHorizon,
     OpenFileButtonPressed,
@@ -68,7 +68,7 @@ pub enum Message<S: AppState> {
     Import3D,
 }
 
-impl<R: Requests, S: AppState> TopBar<R, S> {
+impl<R: GuiRequests, S: GuiAppState> TopBar<R, S> {
     pub fn new(
         requests: Arc<Mutex<R>>,
         logical_size: LogicalSize<f64>,
@@ -95,7 +95,7 @@ impl<R: Requests, S: AppState> TopBar<R, S> {
     }
 }
 
-impl<R: Requests, S: AppState> Program for TopBar<R, S> {
+impl<R: GuiRequests, S: GuiAppState> Program for TopBar<R, S> {
     type Message = Message<S>;
     type Theme = iced::Theme;
     type Renderer = iced::Renderer;
@@ -483,7 +483,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
     }
 }
 
-fn action_mode_btn<'a, State: AppState>(
+fn action_mode_btn<'a, State: GuiAppState>(
     mode: &ActionMode,
     current_action_mode: ActionMode,
     axis_aligned: bool,
@@ -505,7 +505,7 @@ fn action_mode_btn<'a, State: AppState>(
     // TODO: Use SelectionMode Copy trait.
 }
 
-fn selection_mode_btn<'a, State: AppState>(
+fn selection_mode_btn<'a, State: GuiAppState>(
     mode: &SelectionMode,
     current_mode: SelectionMode,
     ui_size: UiSize,

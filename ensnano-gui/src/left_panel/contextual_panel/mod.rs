@@ -1,7 +1,7 @@
 pub(super) mod value_constructor;
 
 use crate::{
-    AppState, GuiDesignReaderExt, Requests,
+    GuiAppState, GuiDesignReaderExt, GuiRequests,
     helpers::{extra_jump, right_checkbox, section, subsection, text_button},
     keyboard_priority::keyboard_priority,
     left_panel::Message,
@@ -97,7 +97,7 @@ impl ValueRequest {
         }
     }
 
-    pub(super) fn make_request<R: Requests>(&self, request: Arc<Mutex<R>>) {
+    pub(super) fn make_request<R: GuiRequests>(&self, request: Arc<Mutex<R>>) {
         match self {
             Self::HelixGridPosition { grid_id, position } => request
                 .lock()
@@ -126,7 +126,7 @@ impl ValueRequest {
 
 struct InstantiatedBuilder<State>
 where
-    State: AppState,
+    State: GuiAppState,
 {
     selection: Selection,
     builder: Box<dyn Builder<State>>,
@@ -134,7 +134,7 @@ where
 
 impl<State> InstantiatedBuilder<State>
 where
-    State: AppState,
+    State: GuiAppState,
 {
     /// If a builder can be made from the selection, update the builder and return true. Otherwise,
     /// return false.
@@ -192,7 +192,7 @@ where
 
 pub(super) struct ContextualPanel<State>
 where
-    State: AppState,
+    State: GuiAppState,
 {
     width: u16,
     pub force_help: bool,
@@ -204,7 +204,7 @@ where
 
 impl<State> ContextualPanel<State>
 where
-    State: AppState,
+    State: GuiAppState,
 {
     pub(super) fn new(width: u16) -> Self {
         Self {
@@ -400,7 +400,11 @@ where
         // NOTE: I don't really understand why there is a “- 2” here.
     }
 
-    pub(super) fn selection_value_changed<R: Requests>(&self, s: String, requests: Arc<Mutex<R>>) {
+    pub(super) fn selection_value_changed<R: GuiRequests>(
+        &self,
+        s: String,
+        requests: Arc<Mutex<R>>,
+    ) {
         if let Ok(g_id) = s.parse() {
             requests
                 .lock()
@@ -409,11 +413,16 @@ where
         }
     }
 
-    pub(super) fn set_small_sphere<R: Requests>(&self, b: bool, requests: Arc<Mutex<R>>) {
+    pub(super) fn set_small_sphere<R: GuiRequests>(&self, b: bool, requests: Arc<Mutex<R>>) {
         requests.lock().unwrap().set_small_sphere(b);
     }
 
-    pub(super) fn scaffold_id_set<R: Requests>(&self, n: usize, b: bool, requests: Arc<Mutex<R>>) {
+    pub(super) fn scaffold_id_set<R: GuiRequests>(
+        &self,
+        n: usize,
+        b: bool,
+        requests: Arc<Mutex<R>>,
+    ) {
         if b {
             requests.lock().unwrap().set_scaffold_id(Some(n));
         } else {
@@ -499,7 +508,7 @@ enum TwistStatus {
     Twisting,
 }
 
-fn add_grid_content<'a, State: AppState>(
+fn add_grid_content<'a, State: GuiAppState>(
     info_values: Vec<String>,
     ui_size: UiSize,
     twisting: TwistStatus,
@@ -526,7 +535,7 @@ fn add_grid_content<'a, State: AppState>(
     .into()
 }
 
-fn add_strand_content<'a, State: AppState>(
+fn add_strand_content<'a, State: GuiAppState>(
     info_values: Vec<String>,
     ui_size: UiSize,
 ) -> iced::Element<'a, Message<State>> {
@@ -558,7 +567,7 @@ fn bool_to_string(b: bool) -> String {
     }
 }
 
-fn add_help_to_column<'a, State: AppState>(
+fn add_help_to_column<'a, State: GuiAppState>(
     help_title: impl ToString,
     help: Vec<(String, String)>,
     ui_size: UiSize,
@@ -588,7 +597,7 @@ fn add_help_to_column<'a, State: AppState>(
     ]
 }
 
-fn turn_into_help_column<'a, State: AppState>(ui_size: UiSize) -> Column<'a, Message<State>> {
+fn turn_into_help_column<'a, State: GuiAppState>(ui_size: UiSize) -> Column<'a, Message<State>> {
     column![
         section("Help", ui_size)
             .width(Length::Fill)
@@ -848,7 +857,7 @@ impl AddStrandMenu {
         self.text_inputs_are_active = show;
     }
 
-    fn view<State: AppState>(&self, ui_size: UiSize, width: u16) -> Column<'_, Message<State>> {
+    fn view<State: GuiAppState>(&self, ui_size: UiSize, width: u16) -> Column<'_, Message<State>> {
         let color_choose_strand_start_length = if self.text_inputs_are_active {
             iced::theme::Text::Color(theme::GUI_PALETTE.text)
         } else {

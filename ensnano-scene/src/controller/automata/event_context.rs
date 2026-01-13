@@ -1,5 +1,5 @@
 use crate::{
-    AppState,
+    SceneAppState,
     controller::Controller,
     data::design3d::SceneDesignReaderExt as _,
     element_selector::{CornerType, ElementSelector, SceneElement},
@@ -21,14 +21,14 @@ use winit::{dpi::PhysicalPosition, keyboard::ModifiersState};
 const REVOLUTION_AXIS_WIDTH: f32 = 1.;
 
 /// The context in which an event took place.
-pub(crate) struct EventContext<'a, S: AppState> {
+pub(crate) struct EventContext<'a, S: SceneAppState> {
     controller: &'a Controller<S>,
     app_state: &'a S,
     pixel_reader: &'a mut ElementSelector,
     pub cursor_position: PhysicalPosition<f64>,
 }
 
-impl<'a, S: AppState> EventContext<'a, S> {
+impl<'a, S: SceneAppState> EventContext<'a, S> {
     pub(crate) fn new(
         controller: &'a Controller<S>,
         app_state: &'a S,

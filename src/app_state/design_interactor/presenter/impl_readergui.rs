@@ -10,11 +10,11 @@ use ensnano_design::{
     selection::Selection,
     strands::Strand,
 };
-use ensnano_gui::GuiDesignReaderExt as ReaderGui;
+use ensnano_gui::GuiDesignReaderExt;
 use std::sync::Arc;
 use ultraviolet::{Rotor3, Vec2, Vec3};
 
-impl ReaderGui for DesignInteractor {
+impl GuiDesignReaderExt for DesignInteractor {
     fn grid_has_small_spheres(&self, g_id: GridId) -> bool {
         self.presenter.content.grid_has_small_spheres(g_id)
     }

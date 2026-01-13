@@ -28,7 +28,7 @@ use self::{
     },
 };
 use crate::{
-    AppState, OverlayType, Requests,
+    GuiAppState, GuiRequests, OverlayType,
     color_picker::ColorPickerMessage,
     fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
     keyboard_priority::PriorityRequest,
@@ -67,7 +67,7 @@ use winit::{
     event::Modifiers,
 };
 
-pub struct LeftPanel<R: Requests, S: AppState> {
+pub struct LeftPanel<R: GuiRequests, S: GuiAppState> {
     logical_size: LogicalSize<f64>,
     logical_position: LogicalPosition<f64>,
     requests: Arc<Mutex<R>>,
@@ -90,7 +90,7 @@ pub struct LeftPanel<R: Requests, S: AppState> {
 }
 
 #[derive(Debug, Clone)]
-pub enum Message<S: AppState> {
+pub enum Message<S: GuiAppState> {
     Resized(LogicalSize<f64>, LogicalPosition<f64>),
     MakeGrids,
     StrandNameChanged(usize, String),
@@ -206,7 +206,7 @@ pub enum Message<S: AppState> {
     SetFocus(text_input::Id),
 }
 
-impl<R: Requests, S: AppState> LeftPanel<R, S> {
+impl<R: GuiRequests, S: GuiAppState> LeftPanel<R, S> {
     /// Create a new [LeftPanel].
     pub fn new(
         requests: Arc<Mutex<R>>,
@@ -320,8 +320,8 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
 
 impl<R, S> Program for LeftPanel<R, S>
 where
-    R: Requests,
-    S: AppState,
+    R: GuiRequests,
+    S: GuiAppState,
 {
     type Theme = iced::Theme;
     type Renderer = iced::Renderer;
@@ -1176,13 +1176,13 @@ where
 
 // TODO: Remove ColorOverlay
 
-pub struct ColorOverlay<R: Requests> {
+pub struct ColorOverlay<R: GuiRequests> {
     logical_size: LogicalSize<f64>,
     color_picker: ColorPicker,
     requests: Arc<Mutex<R>>,
 }
 
-impl<R: Requests> ColorOverlay<R> {
+impl<R: GuiRequests> ColorOverlay<R> {
     pub fn new(requests: Arc<Mutex<R>>, logical_size: LogicalSize<f64>) -> Self {
         Self {
             logical_size,
@@ -1200,7 +1200,7 @@ pub enum ColorMessage {
     Closed,
 }
 
-impl<R: Requests> Program for ColorOverlay<R> {
+impl<R: GuiRequests> Program for ColorOverlay<R> {
     type Renderer = iced::Renderer;
     type Theme = iced::Theme;
     type Message = ColorMessage;

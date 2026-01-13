@@ -10,7 +10,7 @@ use ensnano_design::{
     operation::DesignOperation,
     selection::{CenterOfSelection, Selection},
 };
-use ensnano_scene::Requests as SceneRequests;
+use ensnano_scene::SceneRequests;
 use ensnano_utils::{application::AppId, operation::Operation};
 use std::sync::Arc;
 use ultraviolet::{Rotor3, Vec3};

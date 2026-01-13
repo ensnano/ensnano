@@ -106,14 +106,16 @@ use ensnano_design::{
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_flatscene::FlatScene;
 use ensnano_gui::{
-    AppState as _, Gui, IcedMessages, OverlayType, TopBarState,
+    Gui, GuiAppState as _, IcedMessages, OverlayType, TopBarState,
     fonts::{INTER_REGULAR_FONT, load_fonts},
     keyboard_priority::KeyboardPriorityId,
     left_panel::ColorOverlay,
     theme,
 };
 use ensnano_physics::parameters::RapierParameters;
-use ensnano_scene::{AppState as _, Scene, SceneKind, data::design3d::SceneDesignReaderExt as _};
+use ensnano_scene::{
+    Scene, SceneAppState as _, SceneKind, data::design3d::SceneDesignReaderExt as _,
+};
 use ensnano_utils::{
     PastingStatus, RigidBodyConstants, TEXTURE_FORMAT,
     app_state_parameters::{

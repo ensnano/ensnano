@@ -8,7 +8,7 @@ pub mod revolution_tab;
 pub mod sequence_tab;
 pub mod simulation_tab;
 
-use crate::{AppState, left_panel::Message};
+use crate::{GuiAppState, left_panel::Message};
 use ensnano_utils::ui_size::UiSize;
 use iced::{Command, Length, widget::container};
 use iced_aw::TabLabel;
@@ -25,7 +25,7 @@ pub enum TabId {
     Revolution,
 }
 
-pub trait GuiTab<State: AppState> {
+pub trait GuiTab<State: GuiAppState> {
     type Message;
 
     fn label(&self) -> TabLabel;
@@ -46,16 +46,16 @@ pub trait GuiTab<State: AppState> {
 
 // TODO: Turn this into a widget
 pub mod gostop {
-    use crate::{AppState, left_panel::Message};
+    use crate::{GuiAppState, left_panel::Message};
     use iced::widget::{button, row, text};
 
-    pub struct GoStop<State: AppState> {
+    pub struct GoStop<State: GuiAppState> {
         pub name: String,
         on_press: Box<dyn Fn(bool) -> Message<State>>,
         // TODO: Use a checkbox-like approach with Option<Box<…>>
     }
 
-    impl<State: AppState> GoStop<State> {
+    impl<State: GuiAppState> GoStop<State> {
         pub fn new<F>(name: String, on_press: F) -> Self
         where
             F: 'static + Fn(bool) -> Message<State>,

@@ -3,7 +3,7 @@ pub(crate) mod event_context;
 mod point_and_click_state;
 
 use crate::{
-    AppState,
+    SceneAppState,
     controller::{Consequence, Controller, TransitionConsequence},
     element_selector::SceneElement,
     view::{
@@ -36,18 +36,18 @@ use winit::{
 
 pub(super) type State<S> = RefCell<Box<dyn ControllerState<S>>>;
 
-pub(super) fn initial_state<S: AppState>() -> State<S> {
+pub(super) fn initial_state<S: SceneAppState>() -> State<S> {
     RefCell::new(Box::new(NormalState {
         mouse_position: PhysicalPosition::new(-1., -1.),
     }))
 }
 
-pub(super) struct Transition<S: AppState> {
+pub(super) struct Transition<S: SceneAppState> {
     pub new_state: Option<Box<dyn ControllerState<S>>>,
     pub consequences: Consequence,
 }
 
-impl<S: AppState> Transition<S> {
+impl<S: SceneAppState> Transition<S> {
     pub(super) fn nothing() -> Self {
         Self {
             new_state: None,
@@ -63,7 +63,7 @@ impl<S: AppState> Transition<S> {
     }
 }
 
-pub(super) trait ControllerState<S: AppState> {
+pub(super) trait ControllerState<S: SceneAppState> {
     fn input(&mut self, event: &WindowEvent, context: EventContext<'_, S>) -> Transition<S>;
 
     fn display(&self) -> Cow<'static, str>;
@@ -95,7 +95,7 @@ pub(crate) struct NormalState {
     pub mouse_position: PhysicalPosition<f64>,
 }
 
-impl<S: AppState> ControllerState<S> for NormalState {
+impl<S: SceneAppState> ControllerState<S> for NormalState {
     fn input(&mut self, event: &WindowEvent, mut context: EventContext<'_, S>) -> Transition<S> {
         match event {
             WindowEvent::CursorMoved { .. } if context.is_pasting() => {

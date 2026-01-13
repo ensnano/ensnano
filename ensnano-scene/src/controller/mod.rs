@@ -1,7 +1,7 @@
 pub(crate) mod automata;
 
 use crate::{
-    AppState, PhysicalPosition, ViewPtr, WindowEvent,
+    PhysicalPosition, SceneAppState, ViewPtr, WindowEvent,
     camera::CameraController,
     controller::automata::event_context::EventContext,
     element_selector::{ElementSelector, SceneElement},
@@ -30,7 +30,7 @@ use winit::{
 };
 
 /// An object handling input and notification for the scene.
-pub(crate) struct Controller<S: AppState> {
+pub(crate) struct Controller<S: SceneAppState> {
     /// A pointer to the View
     view: ViewPtr,
     /// A pointer to the data
@@ -143,7 +143,7 @@ enum TransitionConsequence {
     StartRotatingPivot,
 }
 
-impl<S: AppState> Controller<S> {
+impl<S: SceneAppState> Controller<S> {
     pub(super) fn new(
         view: ViewPtr,
         data: Rc<RefCell<dyn Data>>,

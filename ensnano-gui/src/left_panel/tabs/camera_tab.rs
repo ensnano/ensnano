@@ -1,5 +1,5 @@
 use crate::{
-    AppState,
+    GuiAppState,
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, right_checkbox, section, subsection, text_button},
     left_panel::{Message, tabs::GuiTab},
@@ -20,14 +20,14 @@ use iced::{
 use iced_aw::TabLabel;
 use std::marker::PhantomData;
 
-pub struct CameraTab<State: AppState> {
+pub struct CameraTab<State: GuiAppState> {
     fog: FogGuiParameters,
     pub background3d: Background3D,
     pub rendering_mode: RenderingMode,
     _state_type: PhantomData<State>,
 }
 
-impl<State: AppState> CameraTab<State> {
+impl<State: GuiAppState> CameraTab<State> {
     pub fn new(parameters: &AppStateParameters) -> Self {
         Self {
             fog: Default::default(),
@@ -66,7 +66,7 @@ impl<State: AppState> CameraTab<State> {
     }
 }
 
-impl<State: AppState> GuiTab<State> for CameraTab<State> {
+impl<State: GuiAppState> GuiTab<State> for CameraTab<State> {
     type Message = Message<State>;
 
     fn label(&self) -> TabLabel {
@@ -175,7 +175,7 @@ struct FogGuiParameters {
 }
 
 impl FogGuiParameters {
-    fn view<State: AppState>(&self, ui_size: UiSize) -> iced::Element<'_, Message<State>> {
+    fn view<State: GuiAppState>(&self, ui_size: UiSize) -> iced::Element<'_, Message<State>> {
         let radius_text = if self.is_activated {
             text("Radius")
         } else {

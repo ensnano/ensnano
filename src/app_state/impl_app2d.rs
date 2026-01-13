@@ -1,10 +1,11 @@
 use crate::app_state::{AppState, design_interactor::DesignInteractor};
 use ensnano_design::{interaction_modes::SelectionMode, selection::Selection};
-use ensnano_flatscene::AppState as App2D;
+use ensnano_flatscene::FlatSceneAppState;
 use ensnano_utils::{StrandBuildingStatus, strand_builder::StrandBuilder};
 
-impl App2D for AppState {
+impl FlatSceneAppState for AppState {
     type Reader = DesignInteractor;
+
     fn get_selection(&self) -> &[Selection] {
         self.selection_content().as_slice()
     }

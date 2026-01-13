@@ -1,5 +1,5 @@
 use crate::{
-    AppState,
+    GuiAppState,
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, jump_by, section, subsection, text_button},
     keyboard_priority::keyboard_priority,
@@ -91,7 +91,7 @@ pub struct CurveDescriptorParameter {
 pub type Frame = (Vec3, Rotor3);
 
 #[derive(Clone)]
-pub struct CurveDescriptorBuilder<S: AppState> {
+pub struct CurveDescriptorBuilder<S: GuiAppState> {
     pub curve_name: &'static str,
     pub parameters: &'static [CurveDescriptorParameter],
     pub bezier_path_id: &'static (dyn Fn(&[InstantiatedParameter]) -> Option<usize> + Send + Sync),
@@ -100,7 +100,7 @@ pub struct CurveDescriptorBuilder<S: AppState> {
     pub frame: &'static (dyn Fn(&[InstantiatedParameter], &S) -> Option<Frame> + Send + Sync),
 }
 
-impl<S: AppState> fmt::Debug for CurveDescriptorBuilder<S> {
+impl<S: GuiAppState> fmt::Debug for CurveDescriptorBuilder<S> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("CurveDescriptorBuilder")
             .field("curve_name", &self.curve_name)
@@ -108,19 +108,19 @@ impl<S: AppState> fmt::Debug for CurveDescriptorBuilder<S> {
     }
 }
 
-impl<S: AppState> fmt::Display for CurveDescriptorBuilder<S> {
+impl<S: GuiAppState> fmt::Display for CurveDescriptorBuilder<S> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.curve_name)
     }
 }
 
-impl<S: AppState> PartialEq for CurveDescriptorBuilder<S> {
+impl<S: GuiAppState> PartialEq for CurveDescriptorBuilder<S> {
     fn eq(&self, other: &Self) -> bool {
         self.curve_name == other.curve_name
     }
 }
 
-impl<S: AppState> Eq for CurveDescriptorBuilder<S> {}
+impl<S: GuiAppState> Eq for CurveDescriptorBuilder<S> {}
 
 struct ParameterWidget {
     current_text: String,
@@ -140,7 +140,7 @@ impl ParameterWidget {
         }
     }
 
-    fn input_view<State: AppState>(
+    fn input_view<State: GuiAppState>(
         &self,
         id: RevolutionParameterId,
     ) -> iced::Element<'_, Message<State>> {
@@ -187,13 +187,13 @@ impl ParameterWidget {
     }
 }
 
-struct CurveDescriptorWidget<S: AppState> {
+struct CurveDescriptorWidget<S: GuiAppState> {
     parameters: Vec<(&'static str, ParameterWidget)>,
     curve_name: &'static str,
     builder: CurveDescriptorBuilder<S>,
 }
 
-impl<S: AppState> CurveDescriptorWidget<S> {
+impl<S: GuiAppState> CurveDescriptorWidget<S> {
     fn new(builder: CurveDescriptorBuilder<S>) -> Self {
         let parameters = builder
             .parameters
@@ -252,7 +252,7 @@ impl<S: AppState> CurveDescriptorWidget<S> {
     }
 }
 
-pub(crate) struct RevolutionTab<State: AppState> {
+pub(crate) struct RevolutionTab<State: GuiAppState> {
     curve_descriptor_widget: Option<CurveDescriptorWidget<State>>,
     half_turn_count: ParameterWidget,
     radius_input: ParameterWidget,
@@ -272,7 +272,7 @@ pub(crate) struct RevolutionTab<State: AppState> {
     equadiff_method: EquadiffSolvingMethod,
 }
 
-impl<State: AppState> Default for RevolutionTab<State> {
+impl<State: GuiAppState> Default for RevolutionTab<State> {
     fn default() -> Self {
         let init_parameter = RevolutionSimulationParameters::default();
         Self {
@@ -306,7 +306,7 @@ impl<State: AppState> Default for RevolutionTab<State> {
     }
 }
 
-impl<State: AppState> RevolutionTab<State> {
+impl<State: GuiAppState> RevolutionTab<State> {
     pub(crate) fn set_builder(&mut self, builder: CurveDescriptorBuilder<State>) {
         if self.curve_descriptor_widget.as_ref().map(|w| w.curve_name) != Some(builder.curve_name) {
             self.curve_descriptor_widget = Some(CurveDescriptorWidget::new(builder));
@@ -499,7 +499,7 @@ impl<State: AppState> RevolutionTab<State> {
     }
 }
 
-impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
+impl<State: GuiAppState> GuiTab<State> for RevolutionTab<State> {
     type Message = Message<State>;
 
     fn label(&self) -> TabLabel {

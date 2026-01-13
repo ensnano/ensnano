@@ -14,7 +14,7 @@ use ensnano_design::{
 };
 use ensnano_exports::ExportType;
 use ensnano_gui::{
-    OverlayType, Requests as GuiRequests, keyboard_priority::PriorityRequest,
+    GuiRequests, OverlayType, keyboard_priority::PriorityRequest,
     left_panel::RigidBodyParametersRequest,
 };
 use ensnano_physics::parameters::RapierParameters;

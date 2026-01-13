@@ -8,7 +8,7 @@
 mod automata;
 
 use crate::{
-    AppState, CameraPtr, DataPtr, ViewPtr,
+    CameraPtr, DataPtr, FlatSceneAppState, ViewPtr,
     data::{ClickResult, strand::FreeEnd},
     flat_types::{FlatHelix, FlatNucl},
 };
@@ -24,7 +24,7 @@ use winit::{
     window::CursorIcon,
 };
 
-pub(crate) struct Controller<S: AppState> {
+pub(crate) struct Controller<S: FlatSceneAppState> {
     view: ViewPtr,
     data: DataPtr<S::Reader>,
     window_size: PhySize,
@@ -79,7 +79,7 @@ pub(crate) enum Consequence {
     PngExport(Vec2, Vec2),
 }
 
-impl<S: AppState> Controller<S> {
+impl<S: FlatSceneAppState> Controller<S> {
     pub(crate) fn new(
         view: ViewPtr,
         data: DataPtr<S::Reader>,

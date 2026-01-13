@@ -9,7 +9,7 @@
 //! state, or a specific DraggingState.
 
 use crate::{
-    AppState,
+    SceneAppState,
     controller::{
         Consequence, Controller, Transition,
         automata::{
@@ -39,27 +39,27 @@ const LONG_HOLDING_TIME: std::time::Duration = std::time::Duration::from_millis(
 ///
 /// The state is produced in a function and not stored by the object because `Box<dyn>` cannot be
 /// cloned.
-trait OptionalTransition<S: AppState>:
+trait OptionalTransition<S: SceneAppState>:
     Fn(ClickInfo) -> Option<Box<dyn ControllerState<S>>> + 'static
 {
 }
-impl<S: AppState, F: Fn(ClickInfo) -> Option<Box<dyn ControllerState<S>>> + 'static>
+impl<S: SceneAppState, F: Fn(ClickInfo) -> Option<Box<dyn ControllerState<S>>> + 'static>
     OptionalTransition<S> for F
 {
 }
 
-enum OptionalTransitionPtr<S: AppState> {
+enum OptionalTransitionPtr<S: SceneAppState> {
     Owned(Box<dyn OptionalTransition<S>>),
     Borrowed(&'static dyn OptionalTransition<S>),
 }
 
-impl<S: AppState> Default for OptionalTransitionPtr<S> {
+impl<S: SceneAppState> Default for OptionalTransitionPtr<S> {
     fn default() -> Self {
         Self::Borrowed(&back_to_normal_state)
     }
 }
 
-impl<S: AppState> OptionalTransitionPtr<S> {
+impl<S: SceneAppState> OptionalTransitionPtr<S> {
     fn double_clicking(element: Option<SceneElement>) -> Self {
         let now = Instant::now();
         Self::Owned(Box::new(move |info| {
@@ -72,7 +72,7 @@ impl<S: AppState> OptionalTransitionPtr<S> {
     }
 }
 
-impl<S: AppState> std::ops::Deref for OptionalTransitionPtr<S> {
+impl<S: SceneAppState> std::ops::Deref for OptionalTransitionPtr<S> {
     type Target = dyn OptionalTransition<S> + 'static;
     fn deref(&self) -> &Self::Target {
         match self {
@@ -87,17 +87,17 @@ impl<S: AppState> std::ops::Deref for OptionalTransitionPtr<S> {
 ///
 /// This is useful when the context has an influence on whether a certain event should trigger an
 /// OptionalTransition.
-trait ContextDependentTransition<S: AppState>:
+trait ContextDependentTransition<S: SceneAppState>:
     for<'a, 'b> Fn(&'b mut EventContext<'a, S>, ClickInfo) -> Box<dyn OptionalTransition<S>>
 {
 }
 
-enum ContextDependentTransitionPtr<S: AppState> {
+enum ContextDependentTransitionPtr<S: SceneAppState> {
     Owned(Box<dyn ContextDependentTransition<S>>),
     Borrowed(&'static dyn ContextDependentTransition<S>),
 }
 
-impl<S: AppState> std::ops::Deref for ContextDependentTransitionPtr<S> {
+impl<S: SceneAppState> std::ops::Deref for ContextDependentTransitionPtr<S> {
     type Target = dyn ContextDependentTransition<S> + 'static;
     fn deref(&self) -> &Self::Target {
         match self {
@@ -108,7 +108,7 @@ impl<S: AppState> std::ops::Deref for ContextDependentTransitionPtr<S> {
 }
 
 impl<
-    S: AppState,
+    S: SceneAppState,
     F: for<'a, 'b> Fn(&'b mut EventContext<'a, S>, ClickInfo) -> Box<dyn OptionalTransition<S>>
         + 'static,
 > ContextDependentTransition<S> for F
@@ -119,7 +119,7 @@ impl<
 ///
 /// The controller's automata between the moment the button is pressed and the moment it is
 /// released.
-pub(super) struct PointAndClicking<S: AppState> {
+pub(super) struct PointAndClicking<S: SceneAppState> {
     /// The position of the cursor when the mouse button was pressed
     clicked_position: PhysicalPosition<f64>,
     /// The button that was pressed
@@ -146,7 +146,7 @@ pub(super) struct PointAndClicking<S: AppState> {
     clicked_date: Instant,
 }
 
-impl<S: AppState> PointAndClicking<S> {
+impl<S: SceneAppState> PointAndClicking<S> {
     fn get_click_info(&self, position: PhysicalPosition<f64>) -> ClickInfo {
         ClickInfo {
             button: self.pressed_button,
@@ -156,7 +156,7 @@ impl<S: AppState> PointAndClicking<S> {
     }
 }
 
-impl<S: AppState> ControllerState<S> for PointAndClicking<S> {
+impl<S: SceneAppState> ControllerState<S> for PointAndClicking<S> {
     fn input(&mut self, event: &WindowEvent, mut context: EventContext<'_, S>) -> Transition<S> {
         let position = context.cursor_position;
         match event {
@@ -243,7 +243,7 @@ impl<S: AppState> ControllerState<S> for PointAndClicking<S> {
     }
 }
 
-impl<S: AppState> PointAndClicking<S> {
+impl<S: SceneAppState> PointAndClicking<S> {
     /// A state in which the user is setting the pivot around which camera translation occur.
     ///
     /// If the cursor is moved away from it's initial position, the controller's automata
@@ -273,21 +273,21 @@ impl<S: AppState> PointAndClicking<S> {
     }
 }
 
-fn rotating_camera<S: AppState>(click: ClickInfo) -> Option<Box<dyn ControllerState<S>>> {
+fn rotating_camera<S: SceneAppState>(click: ClickInfo) -> Option<Box<dyn ControllerState<S>>> {
     Some(Box::new(dragging_state::rotating_camera(click)))
 }
 
-fn tilt_camera<S: AppState>(click: ClickInfo) -> Option<Box<dyn ControllerState<S>>> {
+fn tilt_camera<S: SceneAppState>(click: ClickInfo) -> Option<Box<dyn ControllerState<S>>> {
     Some(Box::new(dragging_state::tilting_camera(click)))
 }
 
-fn back_to_normal_state<S: AppState>(click: ClickInfo) -> Option<Box<dyn ControllerState<S>>> {
+fn back_to_normal_state<S: SceneAppState>(click: ClickInfo) -> Option<Box<dyn ControllerState<S>>> {
     Some(Box::new(NormalState {
         mouse_position: click.current_position,
     }))
 }
 
-fn leaving_selection<'a, S: AppState>(
+fn leaving_selection<'a, S: SceneAppState>(
     context: &'a EventContext<'a, S>,
     element: Option<SceneElement>,
 ) -> Box<dyn OptionalTransition<S>> {
@@ -304,7 +304,7 @@ fn leaving_selection<'a, S: AppState>(
     }
 }
 
-fn build_strand<S: AppState>(
+fn build_strand<S: SceneAppState>(
     click: ClickInfo,
     nucl: Option<Nucl>,
 ) -> Option<Box<dyn ControllerState<S>>> {
@@ -312,7 +312,7 @@ fn build_strand<S: AppState>(
     Some(Box::new(dragging_state::building_strands(click, nucls)))
 }
 
-impl<S: AppState> PointAndClicking<S> {
+impl<S: SceneAppState> PointAndClicking<S> {
     /// A state in which the user is selecting an element.
     ///
     /// If the user is clicking on a nucleotide and hold the mouse button for a long time, the
@@ -405,7 +405,7 @@ impl<S: AppState> PointAndClicking<S> {
     }
 }
 
-fn making_xover_maker<S: AppState>(
+fn making_xover_maker<S: SceneAppState>(
     context: &mut EventContext<'_, S>,
     _click: ClickInfo,
 ) -> Box<dyn OptionalTransition<S>> {
@@ -413,7 +413,7 @@ fn making_xover_maker<S: AppState>(
     Box::new(move |click: ClickInfo| making_xover(click, origin.as_ref()))
 }
 
-fn making_xover<S: AppState>(
+fn making_xover<S: SceneAppState>(
     click: ClickInfo,
     origin: Option<&XoverOrigin>,
 ) -> Option<Box<dyn ControllerState<S>>> {

@@ -80,7 +80,7 @@ fn png_resolution([w, h]: [f32; 2]) -> [f32; 2] {
 }
 
 /// A Flatscene handles one design at a time
-pub struct FlatScene<S: AppState> {
+pub struct FlatScene<S: FlatSceneAppState> {
     /// Handle the data to send to the GPU.
     view: Vec<ViewPtr>,
     /// Handle the data representing the design.
@@ -101,16 +101,16 @@ pub struct FlatScene<S: AppState> {
     /// Whether the flatscene is split in two.
     is_split: bool,
     old_state: S,
-    requests: Arc<Mutex<dyn Requests>>,
+    requests: Arc<Mutex<dyn FlatSceneRequests>>,
 }
 
-impl<S: AppState> FlatScene<S> {
+impl<S: FlatSceneAppState> FlatScene<S> {
     pub fn new(
         device: Rc<Device>,
         queue: Rc<Queue>,
         window_size: PhySize,
         area: DrawArea,
-        requests: Arc<Mutex<dyn Requests>>,
+        requests: Arc<Mutex<dyn FlatSceneRequests>>,
         initial_state: S,
     ) -> Self {
         let mut ret = Self {
@@ -134,7 +134,7 @@ impl<S: AppState> FlatScene<S> {
     /// Add a design to the scene.
     ///
     /// This creates a new `View`, a new `Data` and a new `Controller`
-    fn add_design(&mut self, reader: S::Reader, requests: Arc<Mutex<dyn Requests>>) {
+    fn add_design(&mut self, reader: S::Reader, requests: Arc<Mutex<dyn FlatSceneRequests>>) {
         let height = if self.is_split {
             self.area.size.height as f32 / 2.
         } else {
@@ -680,7 +680,7 @@ impl<S: AppState> FlatScene<S> {
     }
 }
 
-impl<S: AppState> Application for FlatScene<S> {
+impl<S: FlatSceneAppState> Application for FlatScene<S> {
     type AppState = S;
 
     fn on_notify(&mut self, notification: Notification) {
@@ -820,7 +820,7 @@ impl<S: AppState> Application for FlatScene<S> {
     }
 }
 
-pub trait AppState: Clone {
+pub trait FlatSceneAppState: Clone {
     type Reader: FlatSceneDesignReaderExt + MainDesignReaderExt;
 
     fn selection_was_updated(&self, other: &Self) -> bool;
@@ -836,7 +836,7 @@ pub trait AppState: Clone {
     fn get_building_state(&self) -> Option<StrandBuildingStatus>;
 }
 
-pub trait Requests {
+pub trait FlatSceneRequests {
     fn xover_request(&mut self, source: Nucl, target: Nucl, design_id: usize);
     fn request_center_selection(&mut self, selection: Selection, app_id: AppId);
     fn new_selection(&mut self, selection: Vec<Selection>);
