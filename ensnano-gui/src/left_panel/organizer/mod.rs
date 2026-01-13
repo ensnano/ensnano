@@ -14,7 +14,7 @@ use crate::keyboard_priority::keyboard_priority;
 use ensnano_design::{
     elements::{DesignElement, DesignElementKey, DesignElementSection, DnaAttribute, DnaAutoGroup},
     organizer::{
-        element::{AttributeDisplay, AttributeWidget, OrganizerAttribute},
+        element::{AttributeDisplay, AttributeWidget},
         tree::{GroupId, OrganizerTree},
     },
 };
@@ -1286,7 +1286,7 @@ impl OrganizerSection {
 
 /// A data structure whose view displays information about an element.
 struct ElementView {
-    attribute_displayers: Vec<AttributeDisplayer<DnaAttribute>>,
+    attribute_displayers: Vec<AttributeDisplayer>,
 }
 
 impl ElementView {
@@ -1357,7 +1357,7 @@ impl ElementView {
 /// A data structure whose view is a "title bar" for a group or a section
 struct NodeTitleBar {
     state: GroupState,
-    attribute_displayers: Vec<AttributeDisplayer<DnaAttribute>>,
+    attribute_displayers: Vec<AttributeDisplayer>,
     name_input_id: text_input::Id,
 }
 
@@ -1505,13 +1505,13 @@ enum GroupState {
 }
 
 #[derive(Default, Clone)]
-struct AttributeDisplayer<A: OrganizerAttribute> {
+struct AttributeDisplayer {
     being_modified: bool,
-    widget: Option<AttributeWidget<A>>,
-    attribute: Option<A>,
+    widget: Option<AttributeWidget>,
+    attribute: Option<DnaAttribute>,
 }
 
-impl<Attrib: OrganizerAttribute> AttributeDisplayer<Attrib> {
+impl AttributeDisplayer {
     fn new() -> Self {
         Self {
             being_modified: false,
@@ -1520,19 +1520,19 @@ impl<Attrib: OrganizerAttribute> AttributeDisplayer<Attrib> {
         }
     }
 
-    fn update_attribute(&mut self, attribute: Option<Attrib>) {
-        self.update_widget(attribute.as_ref().map(OrganizerAttribute::widget));
+    fn update_attribute(&mut self, attribute: Option<DnaAttribute>) {
+        self.update_widget(attribute.as_ref().map(DnaAttribute::widget));
         self.attribute = attribute;
     }
 
-    fn update_widget(&mut self, widget: Option<AttributeWidget<Attrib>>) {
+    fn update_widget(&mut self, widget: Option<AttributeWidget>) {
         self.being_modified = false;
         self.widget = widget;
     }
 
-    fn view(&self) -> Option<Element<'_, Attrib>> {
+    fn view(&self) -> Option<Element<'_, DnaAttribute>> {
         self.widget.as_ref().map(|widget| {
-            match self.attribute.as_ref().map(OrganizerAttribute::char_repr) {
+            match self.attribute.as_ref().map(DnaAttribute::char_repr) {
                 Some(AttributeDisplay::Icon(c)) => button(icon::icon(c)),
                 Some(AttributeDisplay::Text(s)) => button(text(s).size(icon::ICON_SIZE)),
                 _ => button("???"),

@@ -1,4 +1,4 @@
-use crate::organizer::element::{AttributeDisplay, AttributeWidget, OrganizerAttribute};
+use crate::organizer::element::{AttributeDisplay, AttributeWidget};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use serde::{Deserialize, Serialize};
 
@@ -254,22 +254,8 @@ pub enum DnaAttribute {
     LockedForSimulations(bool),
 }
 
-#[derive(Clone, Debug, PartialEq, PartialOrd, Ord, Eq, TryFromPrimitive, IntoPrimitive)]
-#[repr(usize)]
-pub enum DnaAttributeDiscriminant {
-    Visible,
-    XoverGroup,
-    LockedForSimulations,
-}
-
-impl DnaAttributeDiscriminant {
-    pub fn all_discriminants() -> &'static [Self] {
-        &[Self::Visible, Self::XoverGroup, Self::LockedForSimulations]
-    }
-}
-
-impl OrganizerAttribute for DnaAttribute {
-    fn discriminant(&self) -> DnaAttributeDiscriminant {
+impl DnaAttribute {
+    pub fn discriminant(&self) -> DnaAttributeDiscriminant {
         match self {
             Self::Visible(_) => DnaAttributeDiscriminant::Visible,
             Self::XoverGroup(_) => DnaAttributeDiscriminant::XoverGroup,
@@ -277,7 +263,7 @@ impl OrganizerAttribute for DnaAttribute {
         }
     }
 
-    fn widget(&self) -> AttributeWidget<Self> {
+    pub fn widget(&self) -> AttributeWidget {
         match self {
             Self::Visible(b) => AttributeWidget::new(Self::Visible(!b)),
             Self::LockedForSimulations(b) => AttributeWidget::new(Self::LockedForSimulations(!b)),
@@ -290,7 +276,7 @@ impl OrganizerAttribute for DnaAttribute {
         }
     }
 
-    fn char_repr(&self) -> AttributeDisplay {
+    pub fn char_repr(&self) -> AttributeDisplay {
         match self {
             Self::Visible(b) => AttributeDisplay::Icon(if *b {
                 icondata::BsEyeFill
@@ -308,5 +294,23 @@ impl OrganizerAttribute for DnaAttribute {
                 icondata::BsUnlock
             }),
         }
+    }
+
+    pub fn all_discriminants() -> &'static [DnaAttributeDiscriminant] {
+        DnaAttributeDiscriminant::all_discriminants()
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, PartialOrd, Ord, Eq, TryFromPrimitive, IntoPrimitive)]
+#[repr(usize)]
+pub enum DnaAttributeDiscriminant {
+    Visible,
+    XoverGroup,
+    LockedForSimulations,
+}
+
+impl DnaAttributeDiscriminant {
+    pub fn all_discriminants() -> &'static [Self] {
+        &[Self::Visible, Self::XoverGroup, Self::LockedForSimulations]
     }
 }
