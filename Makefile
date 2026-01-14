@@ -15,10 +15,8 @@ SHADERS := $(patsubst %.frag,%.frag.spv,$(FRAG_SRCS)) $(patsubst %.vert,%.vert.s
 
 validate:
 	@$(MAKE) -s format
-	@# If the command fails, install npm
-	@$(MAKE) -s spell
-	@# If the command fails: cargo install cargo-machete
-	@cargo machete
+	@$(MAKE) -s spell # If the command fails, install npm
+	@cargo machete # If the command fails: cargo install cargo-machete
 	@RUSTFLAGS="--deny warnings" $(MAKE) -s check
 	@RUSTFLAGS="--deny warnings" $(MAKE) -s lint
 	@$(MAKE) -s test
