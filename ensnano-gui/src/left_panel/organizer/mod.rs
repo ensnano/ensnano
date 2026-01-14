@@ -112,6 +112,9 @@ impl Organizer {
         &self,
         selection: BTreeSet<DesignElementKey>,
     ) -> Element<'_, OrganizerMessage> {
+        // TODO : have a recursive call first that indicates to elements which are selected
+        // it's depth-first : leaves check if they are in selection, but also anything that
+        // contains something selected is selected
         //self.hovered_in = None;
         // TODO: This comment may break some functionality. Not observed so far.
         let mut content = Column::new().spacing(5.0f32); // TODO: Find a way to use `ui_size` here.
@@ -711,6 +714,13 @@ enum GroupContent {
 }
 
 impl GroupContent {
+    fn is_selected(&self, selection: &BTreeSet<DesignElementKey>) -> bool {
+        match self {
+            Self::Leaf { element, .. } => selection.contains(element),
+            Self::Node { children, .. } => children.iter().any(|node| node.is_selected(selection)),
+            Self::Placeholder => false,
+        }
+    }
     fn view(
         &self,
         theme: &OrganizerTheme,
@@ -732,7 +742,13 @@ impl GroupContent {
                 } else {
                     0
                 };
-                let title_row = view.view(name, id.clone(), *expanded);
+                let title_row = view.view(
+                    theme,
+                    self.is_selected(selection),
+                    name,
+                    id.clone(),
+                    *expanded,
+                );
                 let mut col = column![title_row].spacing(LEVELS_V_SPACING);
                 if *expanded {
                     for c in children {
@@ -1240,14 +1256,22 @@ impl OrganizerSection {
         self.expanded = expanded;
     }
 
+    fn is_selected(&self, selection: &BTreeSet<DesignElementKey>) -> bool {
+        self.content.keys().any(|key| selection.contains(key))
+    }
+
     fn view(
         &self,
         theme: &OrganizerTheme,
         selection: &BTreeSet<DesignElementKey>,
     ) -> Container<'_, OrganizerMessage> {
-        let title_row = self
-            .title_bar
-            .view(&self.name, self.id.clone(), self.expanded);
+        let title_row = self.title_bar.view(
+            theme,
+            self.is_selected(selection),
+            &self.name,
+            self.id.clone(),
+            self.expanded,
+        );
         let mut content = Column::new().spacing(LEVELS_V_SPACING).push(title_row);
         if self.expanded {
             for (e_id, e) in &self.elements {
@@ -1390,6 +1414,8 @@ impl NodeTitleBar {
 
     fn view(
         &self,
+        theme: &OrganizerTheme,
+        is_selected: bool,
         name: &String,
         id: OrganizerNodeId,
         expanded: bool,
@@ -1465,23 +1491,13 @@ impl NodeTitleBar {
             ],
         };
 
-        // let button_theme = if selected {
-        //     theme.level_selected(level)
-        // } else {
-        //     theme.level(level)
-        // };
         let title_button = button(title_row)
             .on_press(OrganizerMessage::node_selected(id.clone()))
-            .width(Length::Fill);
-        let title_button = HoverableContainer::new(
-            title_button,
-            //.style(iced_theme::Button::from(button_theme))
-            //TODO: REACTIVATE ME!
-        )
-        .on_hover(OrganizerMessage::node_hovered(id.clone(), true))
-        .on_unhover(OrganizerMessage::node_hovered(id.clone(), false));
-        //.style(button_theme)
-        //TODO: REACTIVATE ME!
+            .width(Length::Fill)
+            .style(theme.selected(is_selected));
+        let title_button = HoverableContainer::new(title_button)
+            .on_hover(OrganizerMessage::node_hovered(id.clone(), true))
+            .on_unhover(OrganizerMessage::node_hovered(id.clone(), false));
         let title_button = DragDropTarget::new(
             container(title_button).width(Length::Fill),
             DragIdentifier::Group { id },
