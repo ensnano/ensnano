@@ -1,5 +1,7 @@
-use crate::app_state::design_interactor::DesignInteractor;
-use crate::controller::download_staples::{DownloadStapleError, DownloadStapleOk};
+use crate::{
+    app_state::design_interactor::DesignInteractor,
+    controller::download_staples::{DownloadStapleError, DownloadStapleOk},
+};
 use ensnano_design::{
     MainDesignReaderExt,
     grid::{GridId, HelixGridPosition},

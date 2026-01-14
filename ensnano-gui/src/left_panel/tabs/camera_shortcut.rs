@@ -1,5 +1,3 @@
-use std::f32::consts::PI;
-
 use crate::{
     CameraId, GuiAppState,
     fonts::material_icons::{MaterialIcon, MaterialIconStyle},
@@ -16,6 +14,7 @@ use iced::{
     alignment::Horizontal,
     widget::{Column, Space, column, row, scrollable, text, text_input},
 };
+use std::f32::consts::PI;
 use ultraviolet::Vec3;
 
 /// A named camera.

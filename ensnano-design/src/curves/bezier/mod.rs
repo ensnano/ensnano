@@ -6,7 +6,6 @@ use crate::{
     utils::{serde::is_false, ultraviolet::vec_to_dvec},
 };
 use num_enum::{IntoPrimitive, TryFromPrimitive};
-
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use ultraviolet::{DMat3, DVec3, Rotor3, Vec3};

@@ -80,13 +80,30 @@ mod multiplexer;
 mod requests;
 mod scheduler;
 
-use controller::{
-    Controller, LoadDesignError, SaveDesignError,
-    channel_reader::{ChannelReader, ChannelReaderUpdate},
-    normal_state::Action,
-    set_scaffold_sequence::{
-        SetScaffoldSequenceError, SetScaffoldSequenceOk, TargetScaffoldLength,
+use crate::{
+    app_state::{
+        AppState,
+        design_interactor::{
+            DesignInteractor,
+            controller::{
+                ErrOperation, InteractorNotification,
+                clipboard::{CopyOperation, PastePosition},
+                simulations::SimulationOperation,
+            },
+        },
+        transitions::{AppStateTransition, OkOperation, TransitionLabel},
     },
+    controller::{
+        Controller, LoadDesignError, SaveDesignError,
+        channel_reader::{ChannelReader, ChannelReaderUpdate},
+        normal_state::Action,
+        set_scaffold_sequence::{
+            SetScaffoldSequenceError, SetScaffoldSequenceOk, TargetScaffoldLength,
+        },
+    },
+    multiplexer::Multiplexer,
+    requests::Requests,
+    scheduler::Scheduler,
 };
 use ensnano_design::{
     Camera, CameraId, MainDesignReaderExt, SavingInformation,
@@ -138,9 +155,6 @@ use iced::{
 use iced_graphics::{Antialiasing, Viewport};
 use iced_runtime::{Debug, program};
 use iced_wgpu::Settings;
-use multiplexer::Multiplexer;
-use requests::Requests;
-use scheduler::Scheduler;
 use std::{
     collections::{HashMap, VecDeque},
     path::{Component, Path, PathBuf},
@@ -155,19 +169,6 @@ use winit::{
     event_loop::{ControlFlow, EventLoop, EventLoopWindowTarget},
     keyboard::{Key, ModifiersState, NamedKey},
     window::{CursorIcon, Window},
-};
-
-use crate::app_state::{
-    AppState,
-    design_interactor::{
-        DesignInteractor,
-        controller::{
-            ErrOperation, InteractorNotification,
-            clipboard::{CopyOperation, PastePosition},
-            simulations::SimulationOperation,
-        },
-    },
-    transitions::{AppStateTransition, OkOperation, TransitionLabel},
 };
 
 const PROGRAM_NAME: &str = "ENSnano";

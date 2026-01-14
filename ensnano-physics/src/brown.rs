@@ -1,12 +1,10 @@
-use std::f32::consts::PI;
-
+use crate::simulation::RapierPhysicsSystem;
 use rand::Rng;
 use rapier3d::{
     prelude::*,
     rayon::iter::{IntoParallelRefIterator as _, ParallelIterator as _},
 };
-
-use crate::simulation::RapierPhysicsSystem;
+use std::f32::consts::PI;
 
 impl RapierPhysicsSystem {
     pub fn brownian_motion_step(&mut self, delta: f32) {

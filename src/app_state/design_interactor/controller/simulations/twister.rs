@@ -1,9 +1,12 @@
-use crate::app_state::design_interactor::controller::simulations::{
-    SimulationInterface,
-    roller::{DesignData, RollSystem},
-};
 use crate::{
-    app_state::design_interactor::{Presenter, presenter::SimulationUpdate},
+    app_state::design_interactor::{
+        Presenter,
+        controller::simulations::{
+            SimulationInterface,
+            roller::{DesignData, RollSystem},
+        },
+        presenter::SimulationUpdate,
+    },
     controller::channel_reader::ChannelReader,
 };
 use ensnano_design::{

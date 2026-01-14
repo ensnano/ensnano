@@ -8,8 +8,10 @@ pub(crate) mod normal_state;
 mod quit;
 pub(crate) mod set_scaffold_sequence;
 
-use crate::MainStateView;
-use crate::dialog::{self, MustAckMessage, YesNoQuestion};
+use crate::{
+    MainStateView,
+    dialog::{self, MustAckMessage, YesNoQuestion},
+};
 use ensnano_design::scadnano::ScadnanoImportError;
 use ensnano_utils::consts::CANNOT_OPEN_DEFAULT_DIR;
 use normal_state::NormalState;

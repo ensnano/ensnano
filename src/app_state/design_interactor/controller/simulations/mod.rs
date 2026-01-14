@@ -3,10 +3,12 @@ pub(crate) mod revolutions;
 pub(crate) mod roller;
 pub(crate) mod twister;
 
-use crate::app_state::design_interactor::{
-    Presenter, controller::ErrOperation, presenter::SimulationUpdate,
+use crate::{
+    app_state::design_interactor::{
+        Presenter, controller::ErrOperation, presenter::SimulationUpdate,
+    },
+    controller::channel_reader::ChannelReader,
 };
-use crate::controller::channel_reader::ChannelReader;
 use ahash::RandomState;
 use ensnano_design::{
     Design,
@@ -16,8 +18,7 @@ use ensnano_design::{
     parameters::HelixParameters,
 };
 use ensnano_physics::parameters::RapierParameters;
-use ensnano_utils::RigidBodyConstants;
-use ensnano_utils::surfaces::RevolutionSurfaceSystemDescriptor;
+use ensnano_utils::{RigidBodyConstants, surfaces::RevolutionSurfaceSystemDescriptor};
 use mathru::{
     algebra::linear::vector::vector::Vector,
     analysis::differential_equation::ordinary::{

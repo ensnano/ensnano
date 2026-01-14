@@ -16,8 +16,10 @@ use iced::{
     widget::{Column, Space, column, pick_list, row, scrollable, text, text_input},
 };
 use iced_aw::TabLabel;
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
 
 pub struct SimulationTab<State: GuiAppState> {
     rigid_body_factory: RequestFactory<RigidBodyFactory>,

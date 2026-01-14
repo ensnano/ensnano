@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use crate::{
     CameraId,
     bezier_plane::{
@@ -17,6 +15,7 @@ use crate::{
     parameters::HelixParameters,
     selection::Selection,
 };
+use std::path::PathBuf;
 use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
 
 /// An operation that can be performed on a design

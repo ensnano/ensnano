@@ -27,8 +27,10 @@ use ensnano_utils::{
     ObjectType, Referential,
     graphics::{LoopoutBond, LoopoutNucl},
 };
-use std::collections::{BTreeMap, HashMap, HashSet};
-use std::sync::Arc;
+use std::{
+    collections::{BTreeMap, HashMap, HashSet},
+    sync::Arc,
+};
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 
 impl SceneDesignReaderExt for DesignInteractor {

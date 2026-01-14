@@ -1,19 +1,19 @@
-use crate::MainStateView;
-use crate::controller::{
-    AutomataState, TransitionMessage, YesNo,
-    download_intervals::DownloadIntervals,
-    messages::{
-        CHANGING_DNA_PARAMETERS_WARNING, OXDNA_EXPORT_FAILED, SAVE_DESIGN_FAILED,
-        SET_DESIGN_DIRECTORY_FIRST,
-    },
-    quit::{Exporting, Load, LoadType, NewDesign, Quit, SaveAs, SaveWithPath},
-    set_scaffold_sequence::SetScaffoldSequence,
-};
 use crate::{
+    MainStateView,
     app_state::design_interactor::controller::{
         clipboard::PastePosition, simulations::SimulationOperation,
     },
-    controller::download_staples::DownloadStaples,
+    controller::{
+        AutomataState, TransitionMessage, YesNo,
+        download_intervals::DownloadIntervals,
+        download_staples::DownloadStaples,
+        messages::{
+            CHANGING_DNA_PARAMETERS_WARNING, OXDNA_EXPORT_FAILED, SAVE_DESIGN_FAILED,
+            SET_DESIGN_DIRECTORY_FIRST,
+        },
+        quit::{Exporting, Load, LoadType, NewDesign, Quit, SaveAs, SaveWithPath},
+        set_scaffold_sequence::SetScaffoldSequence,
+    },
 };
 use ensnano_design::{
     CameraId,
