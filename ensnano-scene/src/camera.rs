@@ -8,7 +8,6 @@ use ensnano_utils::{
     consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP},
     graphics::PhySize,
 };
-
 use std::{
     cell::RefCell,
     f32::consts::{FRAC_PI_2, PI},
