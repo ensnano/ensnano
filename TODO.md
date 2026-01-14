@@ -3,7 +3,7 @@
 ## Stabilize `dev_iced`
 
 - Movement is broken when both keyboard and mouse wheel translations (or zoom) are applied
-- Double click on organizer tree should teleport in 2d and 3d scenes
+- Double click on organizer tree should teleport in 2D and 3D scenes
 
 ## Bugs
 
@@ -11,7 +11,6 @@
 - Clicking "Toggle split of flat scene" twice should do nothing
 - Request fit doesn't work properly anymore, both in 2D and 3D
 - Organizer Tree slider doesn't work with the mouse
-- Movement with mouse wheel doesn't work on some systems (Axel @ 42), both in 2D and 3D
 - Distance fog is broken ([NS message](https://discord.com/channels/689053746604670995/1419689469472411691/1459186505888170035))
 
 ## Bugs that should be fixed
@@ -72,8 +71,9 @@
 - Finish using `confy` parameters to load saved preferences (`AppStateParameters`)
 - FPS counter
 
-### Keyboard shortcuts
+## Inputs
 
+- Shortcuts should be the same in the 2D and 3D views (e.g. arrows should translate in 2D)
 - Find and eliminate all duplicate keyboard shortcuts:
   - `H` is used for 3D rotation and to switch to the Helix selection mode
   - `K` is used for 3D rotation and to recolor staples
