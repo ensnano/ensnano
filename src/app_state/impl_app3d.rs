@@ -1,29 +1,22 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+use crate::app_state::{AppState, design_interactor::DesignInteractor};
+use ensnano_design::{
+    bezier_plane::BezierVertexId,
+    grid::GridId,
+    group_attributes::GroupPivot,
+    interaction_modes::{ActionMode, SelectionMode},
+    organizer_tree::GroupId,
+    selection::{CenterOfSelection, Selection},
+};
+use ensnano_scene::{SceneAppState, view::DrawOptions};
+use ensnano_utils::{
+    WidgetBasis, app_state_parameters::check_xovers_parameter::CheckXoversParameter,
+    strand_builder::StrandBuilder, surfaces::UnrootedRevolutionSurfaceDescriptor,
+};
+use std::path::PathBuf;
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+impl SceneAppState for AppState {
+    type AppStateDesignReader = DesignInteractor;
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use crate::scene::{AppState as App3D, DrawOptions};
-use ensnano_design::grid::GridId;
-use ensnano_interactor::StrandBuilder;
-
-use super::*;
-
-impl App3D for AppState {
-    type DesignReader = DesignReader;
     fn get_selection(&self) -> &[Selection] {
         self.selection_content().as_slice()
     }
@@ -32,13 +25,13 @@ impl App3D for AppState {
         self.0.candidates.as_slice()
     }
 
-    fn selection_was_updated(&self, other: &AppState) -> bool {
+    fn selection_was_updated(&self, other: &Self) -> bool {
         self.selection_content() != other.selection_content()
             || self.0.center_of_selection != other.0.center_of_selection
             || self.is_changing_color() != other.is_changing_color()
     }
 
-    fn candidates_set_was_updated(&self, other: &AppState) -> bool {
+    fn candidates_set_was_updated(&self, other: &Self) -> bool {
         self.0.candidates != other.0.candidates
     }
 
@@ -60,8 +53,8 @@ impl App3D for AppState {
         (self.0.action_mode, self.0.widget_basis)
     }
 
-    fn get_design_reader(&self) -> Self::DesignReader {
-        self.0.design.get_design_reader()
+    fn get_design_reader(&self) -> Self::AppStateDesignReader {
+        self.0.design.clone_inner()
     }
 
     fn get_strand_builders(&self) -> &[StrandBuilder] {
@@ -71,7 +64,7 @@ impl App3D for AppState {
     fn get_widget_basis(&self) -> WidgetBasis {
         // When the selected object is a grid associated to a bezier vertex, we always want to
         // return WidgetBasis::Object. We do so to enforce that all rotation applied to that grid
-        // happen in a cannonical plane
+        // happen in a canonical plane
         if self.has_selected_a_bezier_grid() {
             WidgetBasis::Object
         } else {
@@ -91,17 +84,17 @@ impl App3D for AppState {
         self.0.center_of_selection
     }
 
-    fn get_current_group_pivot(&self) -> Option<ensnano_design::group_attributes::GroupPivot> {
-        let reader = self.get_design_reader();
+    fn get_current_group_pivot(&self) -> Option<GroupPivot> {
+        let reader = self.get_design_interactor();
         self.0
             .selection
             .selected_group
             .and_then(|g_id| reader.get_group_attributes(g_id))
             .and_then(|attributes| attributes.pivot)
-            .or(*self.0.selection.pivot.read().as_deref().unwrap())
+            .or_else(|| *self.0.selection.pivot.read().as_deref().unwrap())
     }
 
-    fn get_current_group_id(&self) -> Option<ensnano_design::GroupId> {
+    fn get_current_group_id(&self) -> Option<GroupId> {
         self.0.selection.selected_group
     }
 
@@ -133,16 +126,17 @@ impl App3D for AppState {
     }
 
     fn get_scroll_sensitivity(&self) -> f32 {
+        const BASE_SCROLL_SENSITIVITY: f32 = 0.12;
         let sign = if self.0.parameters.inverted_y_scroll {
             -1.0
         } else {
             1.0
         };
-        sign * crate::consts::scroll_sensitivity_convertion(self.0.parameters.scroll_sensitivity)
+        sign * 10f32.powf(self.0.parameters.scroll_sensitivity / 10.) * BASE_SCROLL_SENSITIVITY
     }
 
-    fn show_insertion_representents(&self) -> bool {
-        self.0.show_insertion_representents
+    fn show_insertion_discriminants(&self) -> bool {
+        self.0.show_insertion_discriminants
     }
 
     fn show_bezier_paths(&self) -> bool {
@@ -153,8 +147,8 @@ impl App3D for AppState {
         self.0.path_to_current_design.clone()
     }
 
-    fn get_selected_bezier_vertex(&self) -> Option<ensnano_design::BezierVertexId> {
-        if let Some(Selection::BezierVertex(vertex)) = self.0.selection.selection.get(0) {
+    fn get_selected_bezier_vertex(&self) -> Option<BezierVertexId> {
+        if let Some(Selection::BezierVertex(vertex)) = self.0.selection.selection.first() {
             Some(*vertex)
         } else {
             None
@@ -163,7 +157,7 @@ impl App3D for AppState {
 
     fn has_selected_a_bezier_grid(&self) -> bool {
         matches!(
-            self.get_selection().as_ref().get(0),
+            self.get_selection().as_ref().first(),
             Some(Selection::Grid(_, GridId::BezierPathGrid(_)))
         )
     }
@@ -190,6 +184,7 @@ impl App3D for AppState {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn selection_update() {
         let mut state = AppState::default();

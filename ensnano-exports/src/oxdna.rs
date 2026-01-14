@@ -1,25 +1,8 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::*;
-use ensnano_design::{Domain, Helix, HelixCollection, HelixParameters, Nucl};
-use std::io::Write;
-use std::mem::ManuallyDrop;
-use std::path::Path;
+use crate::{BasisMapper, rand_base};
+use ensnano_design::{
+    Design, domains::Domain, helices::Helix, nucl::Nucl, parameters::HelixParameters,
+};
+use std::{f32::consts::TAU, io::Write as _, mem::ManuallyDrop, path::Path};
 use ultraviolet::{Mat3, Rotor3, Vec3};
 
 pub const OXDNA_LEN_FACTOR: f32 = 1. / 0.8518;
@@ -47,7 +30,7 @@ impl OxDnaNucl {
 pub struct OxDnaConfig {
     time: f32,
     boundaries: [f32; 3],
-    /// Etot, U and K
+    /// total energy, U and K
     kinetic_energies: [f32; 3],
     nucls: Vec<OxDnaNucl>,
 }
@@ -57,13 +40,13 @@ impl OxDnaConfig {
         let mut file = std::fs::File::create(path)?;
         let max = self.boundaries[0].max(self.boundaries[1].max(self.boundaries[2]));
         writeln!(&mut file, "t = {}", self.time)?;
-        writeln!(&mut file, "b = {} {} {}", max, max, max)?;
+        writeln!(&mut file, "b = {max} {max} {max}")?;
         writeln!(
             &mut file,
             "E = {} {} {}",
             self.kinetic_energies[0], self.kinetic_energies[1], self.kinetic_energies[2]
         )?;
-        for n in self.nucls.iter() {
+        for n in &self.nucls {
             writeln!(
                 &mut file,
                 "{} {} {} {} {} {} {} {} {} {} {} {} {} {} {}",
@@ -98,11 +81,17 @@ impl OxDnaTopology {
     pub fn write<P: AsRef<Path>>(&self, path: P) -> Result<(), std::io::Error> {
         let mut file = std::fs::File::create(path)?;
         writeln!(&mut file, "{} {}", self.nb_nucl, self.nb_strand)?;
-        for bond in self.bonds.iter() {
+        for bond in &self.bonds {
+            // We write the strand id starting at 1, as indicated in the format specifications.
+            // Also, this format specifically lists the 3' neighbor first.
+            // https://lorenzo-rovigatti.github.io/oxDNA/configurations.html#classic-format-3-to-5
             writeln!(
                 &mut file,
                 "{} {} {} {}",
-                bond.strand_id, bond.base, bond.prime5, bond.prime3
+                bond.strand_id + 1,
+                bond.base,
+                bond.prime5,
+                bond.prime3
             )?;
         }
         Ok(())
@@ -116,40 +105,29 @@ struct OxDnaBond {
     prime3: isize,
 }
 
-pub trait OxDnaHelix {
-    fn ox_dna_nucl(
-        &self,
-        nucl_idx: isize,
-        forward: bool,
-        helix_parameters: &HelixParameters,
-    ) -> OxDnaNucl;
-}
-
-impl OxDnaHelix for Helix {
-    fn ox_dna_nucl(
-        &self,
-        nucl_idx: isize,
-        forward: bool,
-        helix_parameters: &HelixParameters,
-    ) -> OxDnaNucl {
-        let backbone_position = self.space_pos(helix_parameters, nucl_idx, forward);
-        let a1 = {
-            let other_base = self.space_pos(helix_parameters, nucl_idx, !forward);
-            (other_base - backbone_position).normalized()
-        };
-        let normal = if forward {
-            (self.normal_at_pos(nucl_idx, forward)).normalized()
-        } else {
-            -(self.normal_at_pos(nucl_idx, forward)).normalized()
-        };
-        let cm_position = backbone_position * OXDNA_LEN_FACTOR + a1 * BACKBONE_TO_CM;
-        OxDnaNucl {
-            position: cm_position,
-            backbone_base: a1,
-            normal,
-            velocity: Vec3::zero(),
-            angular_velocity: Vec3::zero(),
-        }
+pub fn oxdna_nucl(
+    helix: &Helix,
+    nucl_idx: isize,
+    forward: bool,
+    helix_parameters: &HelixParameters,
+) -> OxDnaNucl {
+    let backbone_position = helix.space_pos(helix_parameters, nucl_idx, forward);
+    let a1 = {
+        let other_base = helix.space_pos(helix_parameters, nucl_idx, !forward);
+        (other_base - backbone_position).normalized()
+    };
+    let normal = if forward {
+        (helix.normal_at_pos(nucl_idx, forward)).normalized()
+    } else {
+        -(helix.normal_at_pos(nucl_idx, forward)).normalized()
+    };
+    let cm_position = backbone_position * OXDNA_LEN_FACTOR + a1 * BACKBONE_TO_CM;
+    OxDnaNucl {
+        position: cm_position,
+        backbone_base: a1,
+        normal,
+        velocity: Vec3::zero(),
+        angular_velocity: Vec3::zero(),
     }
 }
 
@@ -164,7 +142,7 @@ pub fn free_oxdna_nucl(
     let a1 = {
         let tangent = normal.cross(Vec3::new(-normal.z, normal.x, normal.y));
         let bitangent = normal.cross(tangent);
-        let angle = std::f32::consts::TAU / helix_parameters.bases_per_turn * -(free_idx as f32);
+        let angle = TAU / helix_parameters.bases_per_turn * -(free_idx as f32);
         tangent * angle.sin() + bitangent * angle.cos()
     };
     let cm_position = backbone_position * OXDNA_LEN_FACTOR + a1 * BACKBONE_TO_CM;
@@ -188,7 +166,7 @@ pub(super) struct OxDnaMaker<'a> {
 }
 
 impl<'a> OxDnaMaker<'a> {
-    pub fn new(basis_map: BasisMapper<'a>, helix_parameters: HelixParameters) -> Self {
+    pub(crate) fn new(basis_map: BasisMapper<'a>, helix_parameters: HelixParameters) -> Self {
         Self {
             nucl_id: 0,
             boundaries: Default::default(),
@@ -200,7 +178,10 @@ impl<'a> OxDnaMaker<'a> {
         }
     }
 
-    pub fn new_strand<'b>(&'b mut self, strand_id: usize) -> ManuallyDrop<StrandMaker<'b, 'a>> {
+    pub(crate) fn new_strand<'b>(
+        &'b mut self,
+        strand_id: usize,
+    ) -> ManuallyDrop<StrandMaker<'b, 'a>> {
         self.nb_strand += 1;
         let first_strand_nucl = self.nucl_id;
         ManuallyDrop::new(StrandMaker {
@@ -212,8 +193,8 @@ impl<'a> OxDnaMaker<'a> {
         })
     }
 
-    pub fn end(self) -> (OxDnaConfig, OxDnaTopology) {
-        let topo = OxDnaTopology {
+    pub(crate) fn end(self) -> (OxDnaConfig, OxDnaTopology) {
+        let topology = OxDnaTopology {
             bonds: self.bonds,
             nb_strand: self.nb_strand,
             nb_nucl: self.nucl_id as usize,
@@ -224,7 +205,7 @@ impl<'a> OxDnaMaker<'a> {
             boundaries: self.boundaries,
             nucls: self.nucls,
         };
-        (config, topo)
+        (config, topology)
     }
 }
 
@@ -247,10 +228,10 @@ impl StrandMaker<'_, '_> {
 
         let base = nucl
             .as_ref()
-            .map(|nucl| self.context.basis_map.get_basis(&nucl, 'T'));
+            .map(|nucl| self.context.basis_map.get_basis(nucl, 'T'));
 
         let bond = OxDnaBond {
-            base: base.unwrap_or(super::rand_base()),
+            base: base.unwrap_or_else(rand_base),
             strand_id: self.strand_id,
             prime3: -1,
             prime5: self.prev_nucl.unwrap_or(-1),
@@ -258,7 +239,7 @@ impl StrandMaker<'_, '_> {
         self.context.bonds.push(bond);
 
         if let Some(prev) = self.prev_nucl {
-            self.context.bonds.get_mut(prev as usize).unwrap().prime3 = self.context.nucl_id;
+            self.context.bonds[prev as usize].prime3 = self.context.nucl_id;
         }
 
         self.prev_nucl = Some(self.context.nucl_id);
@@ -272,18 +253,14 @@ impl StrandMaker<'_, '_> {
             free_idx,
             &self.context.helix_parameters,
         );
-        self.add_ox_nucl(ox_nucl, None)
+        self.add_ox_nucl(ox_nucl, None);
     }
 
-    // TODO move the strand maker in a wrapper to force the call to end when droping
+    // TODO move the strand maker in a wrapper to force the call to end when dropping
     pub fn end(self, cyclic: bool) {
         if cyclic {
             self.context.bonds.iter_mut().last().unwrap().prime3 = self.first_strand_nucl;
-            self.context
-                .bonds
-                .get_mut(self.first_strand_nucl as usize)
-                .unwrap()
-                .prime5 = self.context.nucl_id - 1;
+            self.context.bonds[self.first_strand_nucl as usize].prime5 = self.context.nucl_id - 1;
         }
     }
 }
@@ -295,14 +272,11 @@ pub(super) fn to_oxdna(design: &Design, basis_map: BasisMapper) -> (OxDnaConfig,
     for (strand_id, s) in design.strands.values().enumerate() {
         let mut strand_maker = maker.new_strand(strand_id);
 
-        for d in s.domains.iter() {
+        for d in &s.domains {
             if let Domain::HelixDomain(dom) = d {
                 for position in dom.iter() {
-                    let ox_nucl = design.helices.get(&dom.helix).unwrap().ox_dna_nucl(
-                        position,
-                        dom.forward,
-                        &helix_parameters,
-                    );
+                    let helix = design.helices.get(&dom.helix).unwrap();
+                    let ox_nucl = oxdna_nucl(helix, position, dom.forward, &helix_parameters);
                     let nucl = Nucl {
                         position,
                         helix: dom.helix,
@@ -311,11 +285,11 @@ pub(super) fn to_oxdna(design: &Design, basis_map: BasisMapper) -> (OxDnaConfig,
                     strand_maker.add_ox_nucl(ox_nucl, Some(nucl));
                 }
             } else if let Domain::Insertion {
-                instanciation: Some(instanciation),
+                instantiation: Some(instantiation),
                 ..
             } = d
             {
-                for (dom_position, space_position) in instanciation.pos().iter().enumerate() {
+                for (dom_position, space_position) in instantiation.pos().iter().enumerate() {
                     strand_maker.add_free_nucl(*space_position, dom_position);
                 }
             }

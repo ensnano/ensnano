@@ -1,25 +1,12 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::{CameraPtr, Drawable, Drawer, ProjectionPtr, Vertex};
+use crate::{
+    camera::{CameraPtr, ProjectionPtr},
+    view::drawable::{Drawable, Drawer, Vertex},
+};
 use ensnano_design::group_attributes::GroupPivot;
-use ensnano_design::ultraviolet;
-use ensnano_interactor::consts::*;
-use ensnano_utils::wgpu;
+use ensnano_utils::consts::{
+    CYM_HANDLE_COLORS, DIR_HANDLE_ID, RGB_HANDLE_COLORS, RIGHT_HANDLE_ID, SELECT_SCALE_FACTOR,
+    UP_HANDLE_ID,
+};
 use std::rc::Rc;
 use ultraviolet::{Rotor3, Vec3};
 use wgpu::Device;
@@ -27,14 +14,9 @@ use wgpu::Device;
 #[derive(Clone, Debug)]
 pub struct HandlesDescriptor {
     pub origin: Vec3,
-    pub orientation: HandleOrientation,
+    pub orientation: Rotor3,
     pub size: f32,
     pub colors: HandleColors,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum HandleOrientation {
-    Rotor(Rotor3),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -43,21 +25,14 @@ pub enum HandleColors {
     Cym,
 }
 
-impl From<HandleOrientation> for Rotor3 {
-    fn from(orientation: HandleOrientation) -> Self {
-        let HandleOrientation::Rotor(r) = orientation;
-        r
-    }
-}
-
 impl HandlesDescriptor {
     pub fn make_handles(&self, camera: CameraPtr, projection: ProjectionPtr) -> [Handle; 3] {
         let dist = (camera.borrow().position - self.origin).mag();
         let (right, up, dir) = self.make_axis();
         let length = self.size * dist * (projection.borrow().get_fovy() / 2.).tan();
         let colors = match self.colors {
-            HandleColors::Cym => ensnano_interactor::consts::CYM_HANDLE_COLORS,
-            HandleColors::Rgb => ensnano_interactor::consts::RGB_HANDLE_COLORS,
+            HandleColors::Cym => CYM_HANDLE_COLORS,
+            HandleColors::Rgb => RGB_HANDLE_COLORS,
         };
         [
             Handle::new(self.origin, right, up, colors[0], RIGHT_HANDLE_ID, length),
@@ -67,13 +42,11 @@ impl HandlesDescriptor {
     }
 
     fn make_axis(&self) -> (Vec3, Vec3, Vec3) {
-        match self.orientation {
-            HandleOrientation::Rotor(rotor) => (
-                rotor * Vec3::unit_x(),
-                rotor * Vec3::unit_y(),
-                rotor * -Vec3::unit_z(),
-            ),
-        }
+        (
+            self.orientation * Vec3::unit_x(),
+            self.orientation * Vec3::unit_y(),
+            self.orientation * -Vec3::unit_z(),
+        )
     }
 }
 
@@ -129,7 +102,7 @@ impl HandlesDrawer {
         viewer_bind_group_layout: &'a wgpu::BindGroupLayout,
         fake: bool,
     ) {
-        for drawer in self.drawers.iter_mut() {
+        for drawer in &mut self.drawers {
             drawer.draw(
                 render_pass,
                 viewer_bind_group,
@@ -145,7 +118,7 @@ impl HandlesDrawer {
         );
     }
 
-    pub fn update_decriptor(
+    pub fn update_descriptor(
         &mut self,
         descriptor: Option<HandlesDescriptor>,
         camera: CameraPtr,
@@ -170,7 +143,7 @@ impl HandlesDrawer {
     }
 
     pub fn init_translation(&mut self, x: f32, y: f32) {
-        self.origin_translation = Some((x, y))
+        self.origin_translation = Some((x, y));
     }
 
     pub fn get_origin_translation(&self) -> Option<(f32, f32)> {
@@ -188,7 +161,7 @@ impl HandlesDrawer {
             }
         }
         self.select_handle(self.selected);
-        self.big_handle_drawer.new_object(self.big_handle)
+        self.big_handle_drawer.new_object(self.big_handle);
     }
 
     pub fn get_handle(&self, direction: HandleDir) -> Option<(Vec3, Vec3)> {
@@ -227,16 +200,14 @@ impl HandlesDrawer {
     }
 
     pub fn translate(&mut self, translation: Vec3) {
-        self.handles
-            .as_mut()
-            .map(|handles| {
-                for h in handles.iter_mut() {
-                    h.translation = translation;
-                }
-            })
-            .unwrap_or(());
+        if let Some(handles) = self.handles.as_mut() {
+            for h in handles.iter_mut() {
+                h.translation = translation;
+            }
+        }
+
         if let Some(h) = self.big_handle.as_mut() {
-            h.translation = translation
+            h.translation = translation;
         }
         self.update_drawers();
     }
@@ -244,7 +215,7 @@ impl HandlesDrawer {
     pub fn get_pivot_position(&self) -> Option<GroupPivot> {
         self.descriptor.as_ref().map(|d| GroupPivot {
             position: d.origin,
-            orientation: d.orientation.into(),
+            orientation: d.orientation,
         })
     }
 }
@@ -279,6 +250,7 @@ impl Handle {
         }
     }
 
+    #[must_use]
     pub fn bigger_version(&self) -> Self {
         Self {
             length: 1.1 * self.length,
@@ -301,9 +273,9 @@ impl Drawable for Handle {
             length / 30.
         };
         let color = if fake { self.id } else { self.color };
-        for x in [-1f32, 1.].iter() {
-            for y in [-1., 1.].iter() {
-                for z in [0., 1.].iter() {
+        for x in &[-1f32, 1.] {
+            for y in &[-1., 1.] {
+                for z in &[0., 1.] {
                     ret.push(Vertex::new(
                         self.origin
                             + self.normal * *x * width

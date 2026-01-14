@@ -1,0 +1,1602 @@
+mod drag_drop_target;
+mod hoverable_container;
+mod icon;
+pub(super) mod message;
+mod theme;
+
+use self::{
+    drag_drop_target::{DragDropTarget, DragIdentifier},
+    hoverable_container::HoverableContainer,
+    message::{OrganizerInternalMessage, OrganizerMessage},
+    theme::OrganizerTheme,
+};
+use crate::keyboard_priority::keyboard_priority;
+use ensnano_design::{
+    design_element::{
+        AttributeDisplay, AttributeWidget, DesignElement, DesignElementKey, DesignElementSection,
+        DnaAttribute, DnaAutoGroup,
+    },
+    organizer_tree::{GroupId, OrganizerTree},
+};
+use iced::{
+    Element, Length,
+    keyboard::Modifiers,
+    widget::{
+        Column, Container, Row, Space, button, column, container, horizontal_space, mouse_area,
+        row, scrollable, text, text_input, tooltip,
+    },
+};
+use rand::{Rng as _, rngs::ThreadRng};
+use std::{
+    collections::{BTreeMap, BTreeSet, HashMap},
+    convert::TryInto as _,
+};
+
+const LEVELS_V_SPACING: u16 = 2;
+const H_SPACING_IN_UNITS: u16 = 15;
+const UPPER_DOMAIN_LENGTH_BOUND: usize = 100;
+
+/// Tree-like view of the object being edited.
+///
+/// There are three kind of elements:
+///
+/// 1. _Groups_ — User-defined groups of elements.
+/// 2. _Sections_ — Elements organized by category.
+/// 3. _Auto Groups_ — Automatically generated groups of elements.
+pub(super) struct Organizer {
+    rng_thread: ThreadRng,
+    /// List of _groups_.
+    groups: Vec<GroupContent>,
+    /// List of _sections.
+    sections: Vec<OrganizerSection>,
+    /// List of _auto groups.
+    auto_groups: BTreeMap<DnaAutoGroup, OrganizerSection>,
+    theme: OrganizerTheme,
+    width: u16,
+    editing: Option<GroupId>,
+    modifiers: Modifiers,
+    selected_nodes: BTreeSet<OrganizerNodeId>,
+    dragging: BTreeSet<DragIdentifier>,
+    hovered_in: Option<OrganizerNodeId>,
+    last_read_tree: *const OrganizerTree,
+    must_update_tree: bool,
+    group_to_node: HashMap<GroupId, OrganizerNodeId>,
+}
+
+impl Organizer {
+    /// Create a new organizer object with default sections.
+    pub(super) fn new() -> Self {
+        let rng = rand::rng();
+        let mut sections = Vec::new(); // Hold sections that will be added to [Organizer].
+
+        // NOTE: Sections are yielded from their index, implicitly defined in
+        // [ensnano_design::elements::DesignElementKey]
+        let mut i = 0usize;
+        let mut section: Result<DesignElementSection, _> = i.try_into();
+        while let Ok(s) = section {
+            log::info!("section {i:?}, {s:?}");
+            let new_section =
+                OrganizerSection::new(OrganizerNodeId::Section(i), DesignElementKey::name(s));
+            sections.push(new_section);
+            i += 1;
+            section = i.try_into();
+        }
+        Self {
+            rng_thread: rng,
+            groups: vec![],
+            sections,
+            auto_groups: Default::default(),
+            theme: OrganizerTheme::grey(),
+            width: 300,
+            editing: None,
+            modifiers: Modifiers::default(),
+            selected_nodes: BTreeSet::new(),
+            dragging: BTreeSet::new(),
+            hovered_in: None,
+            last_read_tree: std::ptr::null(),
+            must_update_tree: false,
+            group_to_node: HashMap::new(),
+        }
+    }
+
+    pub(super) fn new_modifiers(&mut self, modifiers: Modifiers) {
+        self.modifiers = modifiers;
+    }
+
+    pub(super) fn set_width(&mut self, width: u16) {
+        //self.width = iced::Length::Units(width);
+        self.width = width;
+    }
+
+    pub(super) fn view(
+        &self,
+        selection: BTreeSet<DesignElementKey>,
+    ) -> Element<'_, OrganizerMessage> {
+        // TODO : have a recursive call first that indicates to elements which are selected
+        // it's depth-first : leaves check if they are in selection, but also anything that
+        // contains something selected is selected
+        //self.hovered_in = None;
+        // TODO: This comment may break some functionality. Not observed so far.
+        let mut content = Column::new().spacing(5.0f32); // TODO: Find a way to use `ui_size` here.
+        for c in &self.groups {
+            content = content.push(row![
+                tabulation(),
+                container(c.view(&self.theme, &self.sections, &selection,))
+                    .width(Length::FillPortion(8)),
+            ]);
+        }
+        // Add Sections
+        for s in &self.sections {
+            content = content.push(row![
+                tabulation(),
+                s.view(&self.theme, &selection)
+                    .width(Length::FillPortion(8))
+            ]);
+        }
+
+        // Add Auto groups
+        for s in self.auto_groups.values() {
+            content = content.push(row![
+                tabulation(),
+                s.view(&self.theme, &selection)
+                    .width(Length::FillPortion(8))
+            ]);
+        }
+        let mut new_group_button = button("New Group");
+        if !selection.is_empty() {
+            new_group_button = new_group_button.on_press(OrganizerMessage::new_group());
+        }
+        container(
+            column![
+                // Title row
+                row![
+                    tooltip(
+                        new_group_button,
+                        "Create new_group from selection",
+                        tooltip::Position::FollowCursor,
+                    )
+                    .style(iced::theme::Container::Box)
+                ],
+                scrollable(content).width(self.width)
+            ]
+            .spacing(5.0f32), // TODO: Find a way to use `ui_size` here.
+        )
+        .style(self.theme.level(0))
+        .into()
+    }
+
+    fn add_content_to_group(
+        &mut self,
+        id: &OrganizerNodeId,
+        content: Vec<DesignElementKey>,
+    ) -> Option<()> {
+        if let Some(id_local) = get_group_id(id) {
+            let ret;
+            if id_local.len() < 2 {
+                if self.groups.len() > id_local[0] {
+                    self.groups[id_local[0]].add_content(&id_local[1..], content);
+                    ret = Some(());
+                } else {
+                    ret = None;
+                }
+            } else {
+                ret = self
+                    .groups
+                    .get_mut(id_local[0])
+                    .and_then(|c| c.add_content(&id_local[1..], content));
+            }
+            if ret.is_some() {
+                self.recompute_id();
+            }
+            ret
+        } else {
+            None
+        }
+    }
+
+    fn push_content(&mut self, content: Vec<DesignElementKey>, group_name: String) -> GroupId {
+        let id = OrganizerNodeId::Tree(vec![self.groups.len()]);
+        let new_group = GroupContent::new(content, group_name, id, &mut self.rng_thread);
+        let ret = new_group
+            .get_group_id()
+            .expect("new group should have an Id");
+        self.groups.push(new_group);
+        self.editing = Some(ret);
+        ret
+    }
+
+    pub(super) fn message(
+        &mut self,
+        message: &OrganizerInternalMessage,
+        selection: &BTreeSet<DesignElementKey>,
+    ) -> Option<OrganizerMessage> {
+        log::trace!("{message:?}");
+        match &message {
+            OrganizerInternalMessage::Expand { id, expanded } => {
+                self.expand(id, *expanded);
+                return Some(OrganizerMessage::NewTree(self.tree()));
+            }
+            OrganizerInternalMessage::NodeSelected { id } => {
+                let add = self.modifiers.command() || self.modifiers.shift();
+                let (new_selection, new_group) = self.select_node(id, add, selection.clone());
+                return Some(OrganizerMessage::Selection(
+                    new_selection.into_iter().collect(),
+                    new_group,
+                ));
+            }
+            OrganizerInternalMessage::Edit { id } => {
+                log::info!("Message edit {id:?}");
+                if let Some(group_id) = self.get_group(id).and_then(GroupContent::get_group_id) {
+                    self.start_editing(group_id);
+                    if let Some(GroupContent::Node { view, .. }) = self.get_group(id) {
+                        log::debug!("SetFocus()");
+                        return Some(OrganizerMessage::SetFocus(view.name_input_id.clone()));
+                    }
+                } else {
+                    log::error!("Could not get group id");
+                }
+            }
+            OrganizerInternalMessage::NameInput { name } => self.edit_name(name.clone()),
+            OrganizerInternalMessage::StopEdit => {
+                self.stop_editing();
+                return Some(OrganizerMessage::NewTree(self.tree()));
+            }
+            OrganizerInternalMessage::ElementSelected { key } => {
+                let new_selection = if self.modifiers.command() || self.modifiers.shift() {
+                    let mut new_selection = selection.clone();
+                    Self::add_selection(&mut new_selection, key, true);
+                    new_selection
+                } else {
+                    self.selected_nodes = BTreeSet::new();
+                    self.set_selection(key, selection.clone())
+                };
+                return Some(OrganizerMessage::Selection(
+                    new_selection.into_iter().collect(),
+                    None,
+                ));
+            }
+            OrganizerInternalMessage::AddSelectionToGroup { id } => {
+                log::info!("Add selection to group with id {id:?}");
+                if self
+                    .get_group(id)
+                    .and_then(GroupContent::get_group_id)
+                    .is_some()
+                {
+                    let _ = self.add_content_to_group(id, selection.iter().copied().collect());
+                    return Some(OrganizerMessage::NewTree(self.tree()));
+                }
+
+                log::error!("Could not get group id");
+                // TODO: fill in what to do
+            }
+            OrganizerInternalMessage::NewGroup => {
+                let new_group_id = self.push_content(
+                    selection.iter().copied().collect(),
+                    String::from("New group"),
+                );
+                return Some(OrganizerMessage::NewGroup {
+                    new_tree: self.tree(),
+                    group_id: new_group_id,
+                    elements_selected: selection.iter().copied().collect(),
+                });
+            }
+            OrganizerInternalMessage::Delete { id } => {
+                self.stop_editing();
+                self.pop_id(id);
+                return Some(OrganizerMessage::NewTree(self.tree()));
+            }
+            OrganizerInternalMessage::Dragging(k) => {
+                self.dragging.clear();
+                self.dragging.insert(k.clone());
+            }
+            OrganizerInternalMessage::DragDropped(k) => self.drag_drop(k),
+            OrganizerInternalMessage::NodeHovered { id, hovered_in } => {
+                return self.hover(id, *hovered_in);
+            }
+            OrganizerInternalMessage::KeyHovered { key, hovered_in } => {
+                return self.key_hover(*key, *hovered_in);
+            }
+            OrganizerInternalMessage::AttributeSelected { attribute, id } => {
+                let keys = self.get_keys_below(id);
+                return Some(OrganizerMessage::NewAttribute(attribute.clone(), keys));
+            }
+        }
+        None
+    }
+
+    fn hover(&self, id: &OrganizerNodeId, hovered_in: bool) -> Option<OrganizerMessage> {
+        if hovered_in {
+            self.get_group(id)
+                .map(|g| OrganizerMessage::Candidates(g.get_all_elements_below()))
+                .or_else(|| {
+                    self.get_section_id(id)
+                        .map(|s| OrganizerMessage::Candidates(s.get_all_keys()))
+                })
+        } else if self.hovered_in.is_none() {
+            Some(OrganizerMessage::Candidates(vec![]))
+        } else {
+            None
+        }
+    }
+
+    fn key_hover(&self, key: DesignElementKey, hovered_in: bool) -> Option<OrganizerMessage> {
+        if hovered_in {
+            Some(OrganizerMessage::Candidates(vec![key]))
+        } else if self.hovered_in.is_none() {
+            Some(OrganizerMessage::Candidates(vec![]))
+        } else {
+            None
+        }
+    }
+
+    pub(super) fn notify_selection(&mut self, selected_group: Option<GroupId>) {
+        log::info!("Notified of selection");
+        let selected_node = selected_group.and_then(|g_id| self.group_to_node.get(&g_id).cloned());
+        self.selected_nodes = BTreeSet::new();
+        if let Some(node_id) = selected_node {
+            self.selected_nodes.insert(node_id);
+        }
+    }
+
+    pub(super) fn add_selection(
+        selection: &mut BTreeSet<DesignElementKey>,
+        key: &DesignElementKey,
+        may_remove: bool,
+    ) {
+        if selection.contains(key) {
+            if may_remove {
+                selection.remove(key);
+            }
+        } else {
+            selection.insert(*key);
+        }
+    }
+
+    fn select_node(
+        &mut self,
+        id: &OrganizerNodeId,
+        add: bool,
+        mut current_selection: BTreeSet<DesignElementKey>,
+    ) -> (BTreeSet<DesignElementKey>, Option<GroupId>) {
+        let group_id = if add {
+            let keys: BTreeSet<DesignElementKey> = self.get_keys_below(id).into_iter().collect();
+            if self.selected_nodes.contains(id) {
+                for key in &keys {
+                    current_selection.remove(key);
+                }
+                self.selected_nodes.remove(id);
+            } else {
+                for key in &keys {
+                    Self::add_selection(&mut current_selection, key, false);
+                }
+                self.selected_nodes.insert(id.clone());
+            }
+            None
+        } else if self.selected_nodes.len() == 1 && self.selected_nodes.contains(id) {
+            self.selected_nodes = BTreeSet::new();
+            current_selection = BTreeSet::new();
+            None
+        } else {
+            self.selected_nodes = BTreeSet::new();
+            self.selected_nodes.insert(id.clone());
+            current_selection = self.get_keys_below(id).iter().copied().collect();
+            self.get_group(id).and_then(GroupContent::get_group_id)
+        };
+        log::info!("Selected nodes = {:?}", self.selected_nodes);
+        (current_selection, group_id)
+    }
+
+    fn get_keys_below(&self, id: &OrganizerNodeId) -> Vec<DesignElementKey> {
+        if let Some(group) = self.get_group(id) {
+            group.get_all_elements_below()
+        } else if let Some(section) = self.get_section_id(id) {
+            section.get_all_keys()
+        } else {
+            vec![]
+        }
+    }
+
+    fn get_section_id<'a>(&'a self, id: &OrganizerNodeId) -> Option<&'a OrganizerSection> {
+        if let Some(section_id) = get_section_id(id) {
+            self.sections.get(section_id)
+        } else {
+            None
+        }
+    }
+
+    fn get_group<'a>(&'a self, id: &OrganizerNodeId) -> Option<&'a GroupContent> {
+        if let Some(group_id) = get_group_id(id) {
+            if group_id.len() == 1 {
+                self.groups.get(group_id[0])
+            } else {
+                self.groups
+                    .get(group_id[0])
+                    .and_then(|g| g.get_group(&group_id[1..]))
+            }
+        } else {
+            None
+        }
+    }
+
+    fn set_selection(
+        &self,
+        key: &DesignElementKey,
+        mut current_selection: BTreeSet<DesignElementKey>,
+    ) -> BTreeSet<DesignElementKey> {
+        if current_selection.len() == 1 && current_selection.contains(key) {
+            current_selection.clear();
+        } else {
+            current_selection.clear();
+            current_selection.insert(*key);
+        }
+
+        current_selection
+    }
+
+    fn start_editing(&mut self, id: GroupId) {
+        self.stop_editing();
+        let node_id = self.group_to_node.get(&id);
+        if let Some(id_slice) = node_id.and_then(get_group_id) {
+            log::info!("start editing {id:?}");
+            self.groups[id_slice[0]].start_editing(&id_slice[1..]);
+            self.editing = Some(id);
+            // TODO: Set focus.
+        }
+    }
+
+    fn stop_editing(&mut self) {
+        let node_id = self
+            .editing
+            .as_ref()
+            .and_then(|g_id| self.group_to_node.get(g_id))
+            .cloned();
+        if let Some(id) = node_id.as_ref().and_then(get_group_id) {
+            self.groups[id[0]].stop_editing(&id[1..]);
+        }
+        self.editing = None;
+    }
+
+    fn edit_name(&mut self, name: String) {
+        let node_id = self
+            .editing
+            .as_ref()
+            .and_then(|g_id| self.group_to_node.get(g_id))
+            .cloned();
+        if let Some(id) = node_id.as_ref().and_then(get_group_id) {
+            self.groups[id[0]].edit_name(&id[1..], name);
+        } else {
+            println!("ERROR receive name input but self.editing is None");
+        }
+    }
+
+    fn expand(&mut self, id: &OrganizerNodeId, expanded: bool) {
+        if let Some(id) = get_group_id(id) {
+            self.groups[id[0]].expand(&id[1..], expanded);
+        } else if let Some(id) = get_section_id(id) {
+            self.sections[id].expand(expanded);
+        } else if let OrganizerNodeId::AutoGroup(name) = id
+            && let Some(group) = self.auto_groups.get_mut(name)
+        {
+            group.expand(expanded);
+        }
+    }
+
+    fn recompute_id(&mut self) {
+        self.groups.retain(|c| !c.is_placeholder());
+        self.group_to_node.clear();
+        for (i, c) in self.groups.iter_mut().enumerate() {
+            c.recompute_id(OrganizerNodeId::Tree(vec![i]), &mut self.group_to_node);
+        }
+    }
+
+    pub(super) fn tree(&self) -> OrganizerTree {
+        let groups = self.groups.iter().filter_map(GroupContent::tree).collect();
+        OrganizerTree::Node {
+            name: "root".to_owned(),
+            children: groups,
+            expanded: true,
+            id: None,
+        }
+    }
+
+    #[must_use = "If the tree has been updated, the program must be notified"]
+    pub(super) fn read_tree(&mut self, tree: &OrganizerTree) -> bool {
+        if self.last_read_tree != tree {
+            self.last_read_tree = tree;
+            if let OrganizerTree::Node { children, .. } = tree {
+                self.groups = children
+                    .iter()
+                    .map(|g| {
+                        GroupContent::read_tree(g, &mut self.rng_thread, &mut self.must_update_tree)
+                    })
+                    .collect();
+            } else {
+                self.groups = vec![];
+            }
+            self.recompute_id();
+            self.update_attributes();
+            if let Some(group_id) = self.editing {
+                self.start_editing(group_id);
+            }
+        }
+        let ret = self.must_update_tree;
+        self.must_update_tree = false;
+        ret
+    }
+
+    fn pop_id(&mut self, id: &OrganizerNodeId) -> Option<GroupContent> {
+        if let Some(id) = get_group_id(id) {
+            let ret = if id.len() < 2 {
+                (self.groups.len() > id[0]).then(|| self.groups.remove(id[0]))
+            } else {
+                self.groups.get_mut(id[0]).and_then(|c| c.pop_id(&id[1..]))
+            };
+            if ret.is_some() {
+                self.recompute_id();
+            }
+            ret
+        } else {
+            None
+        }
+    }
+
+    fn pop_id_no_recompute(&mut self, id: &[usize]) -> Option<GroupContent> {
+        if id.len() < 2 {
+            (self.groups.len() > id[0])
+                .then(|| std::mem::replace(&mut self.groups[id[0]], GroupContent::Placeholder))
+        } else {
+            self.groups.get_mut(id[0]).and_then(|c| c.pop_id(&id[1..]))
+        }
+    }
+
+    fn delete_useless_leaves(&mut self, elements: BTreeSet<DesignElementKey>) -> bool {
+        let mut ids_to_remove: Vec<OrganizerNodeId> = Vec::new();
+        for g in &mut self.groups {
+            g.delete_useless_leaves(&mut ids_to_remove, &elements);
+        }
+        ids_to_remove.sort_unstable();
+        if !ids_to_remove.is_empty() {
+            for id in ids_to_remove.iter().filter_map(get_group_id).rev() {
+                self.pop_id_no_recompute(id);
+            }
+            self.recompute_id();
+            true
+        } else {
+            false
+        }
+    }
+
+    fn add_at_id(&mut self, content: GroupContent, id: &[usize], from_top: bool) {
+        if id.len() < 2 {
+            let insertion_point = if from_top { id[0] + 1 } else { id[0] };
+            self.groups.insert(insertion_point, content);
+        } else {
+            self.groups[id[0]].add_at_id(&id[1..], content, from_top);
+        }
+    }
+
+    /// Action performed when dragged content is dropped.
+    fn drag_drop(&mut self, k: &DragIdentifier) {
+        if let DragIdentifier::Group { id: id_dest } = k
+            && let Some(identifier) = self.dragging.iter().next().cloned()
+        {
+            match identifier {
+                id if id == k.clone() => (),
+                DragIdentifier::Group { id } => self.move_id(&id, id_dest),
+                DragIdentifier::Section { key } => {
+                    if let Some(id) = get_group_id(id_dest) {
+                        self.add_key_at(key, id);
+                    }
+                }
+            }
+        }
+        self.dragging = BTreeSet::new();
+    }
+
+    fn move_id(&mut self, source: &OrganizerNodeId, dest: &OrganizerNodeId) {
+        if let (OrganizerNodeId::Tree(source), OrganizerNodeId::Tree(dest)) = (source, dest) {
+            if source.len() < dest.len() && dest[..source.len()] == source[..] {
+                println!("prefix");
+                return;
+            }
+            let from_top = source <= dest;
+            if let Some(content) = self.pop_id_no_recompute(source) {
+                self.add_at_id(content, dest, from_top);
+                self.recompute_id();
+            }
+            self.must_update_tree = true;
+        }
+    }
+
+    fn add_key_at(&mut self, key: DesignElementKey, dest: &[usize]) {
+        if dest.len() < 2 {
+            println!(
+                "I have not decided what to do when moving a key at the root level of the organizer"
+            );
+        } else if let Some(group) = self.groups.get_mut(dest[0]) {
+            group.add_key_at(key, &dest[1..]);
+        }
+        self.recompute_id();
+        self.must_update_tree = true;
+    }
+
+    /// Update the elements in the tree and return true if the tree graph was modified
+    pub(super) fn update_elements(&mut self, elements: &[DesignElement]) -> bool {
+        for s in &mut self.sections {
+            s.elements.clear();
+            s.content.clear();
+        }
+        for g in self.auto_groups.values_mut() {
+            g.content.clear();
+            g.elements.clear();
+        }
+        //second-last element actually
+        let mut min_max_domain_lengths: Vec<(usize, usize)> = elements
+            .iter()
+            .filter_map(DesignElement::min_max_domain_length_if_strand)
+            .collect::<Vec<(usize, usize)>>();
+        min_max_domain_lengths.sort_by_key(|(_, l_max)| *l_max);
+        let upper_domain_length_bounds: (usize, usize) = match min_max_domain_lengths.len() {
+            0 => (UPPER_DOMAIN_LENGTH_BOUND, UPPER_DOMAIN_LENGTH_BOUND),
+            1 => min_max_domain_lengths[0],
+            n => {
+                let last = min_max_domain_lengths[n - 1];
+                let before_last = min_max_domain_lengths[n - 2];
+                ((before_last.1).max(last.0 - 1) + 1, last.1) // in reality, it is not the first length....
+            }
+        };
+        for e in elements {
+            let key = e.key();
+            let section_id: usize = key.section().into();
+            self.sections[section_id].add_element(e.clone());
+            for g in e.auto_groups(upper_domain_length_bounds) {
+                self.auto_groups
+                    .entry(g.clone())
+                    .or_insert_with(|| {
+                        OrganizerSection::new(OrganizerNodeId::AutoGroup(g.clone()), g.to_string())
+                    })
+                    .add_element(e.clone());
+            }
+        }
+        self.auto_groups.retain(|_, g| !g.elements.is_empty());
+
+        let ret = self.delete_useless_leaves(elements.iter().map(DesignElement::key).collect());
+        self.update_attributes();
+        ret
+    }
+
+    fn update_attributes(&mut self) {
+        for g in &mut self.groups {
+            g.update_attributes(&self.sections);
+        }
+        for s in &mut self.sections {
+            s.update_attributes();
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum OrganizerNodeId {
+    Tree(Vec<usize>),
+    Section(usize),
+    AutoGroup(DnaAutoGroup),
+}
+
+impl OrganizerNodeId {
+    pub fn push(&mut self, x: usize) {
+        if let Self::Tree(v) = self {
+            v.push(x);
+        } else {
+            log::error!("Trying to push on {self:?}");
+        }
+    }
+}
+
+enum GroupContent {
+    Leaf {
+        id: OrganizerNodeId,
+        element: DesignElementKey,
+        view: ElementView,
+        attributes: Vec<Option<DnaAttribute>>,
+    },
+    Node {
+        id: OrganizerNodeId,
+        /// Name of the Group
+        name: String,
+        expanded: bool,
+        view: NodeTitleBar,
+        children: Vec<Self>,
+        attributes: Vec<Option<DnaAttribute>>,
+        elements_below: BTreeSet<DesignElementKey>,
+        group_id: GroupId,
+    },
+    Placeholder,
+}
+
+impl GroupContent {
+    fn is_selected(&self, selection: &BTreeSet<DesignElementKey>) -> bool {
+        match self {
+            Self::Leaf { element, .. } => selection.contains(element),
+            Self::Node { children, .. } => children.iter().any(|node| node.is_selected(selection)),
+            Self::Placeholder => false,
+        }
+    }
+    fn view(
+        &self,
+        theme: &OrganizerTheme,
+        sections: &[OrganizerSection],
+        selection: &BTreeSet<DesignElementKey>,
+    ) -> Element<'_, OrganizerMessage> {
+        let level; // Need this variable at this level.
+        let column = match self {
+            Self::Node {
+                name,
+                expanded,
+                children,
+                view,
+                id,
+                ..
+            } => {
+                level = if let OrganizerNodeId::Tree(id) = id {
+                    id.len()
+                } else {
+                    0
+                };
+                let title_row = view.view(
+                    theme,
+                    self.is_selected(selection),
+                    name,
+                    id.clone(),
+                    *expanded,
+                );
+                let mut col = column![title_row].spacing(LEVELS_V_SPACING);
+                if *expanded {
+                    for c in children {
+                        let r = row![
+                            tabulation(),
+                            container(c.view(theme, sections, selection))
+                                .width(Length::FillPortion(8))
+                        ];
+                        col = col.push(r);
+                    }
+                }
+                col
+            }
+            Self::Leaf {
+                view, element, id, ..
+            } => {
+                level = if let OrganizerNodeId::Tree(id) = id {
+                    id.len()
+                } else {
+                    0
+                };
+                if let Some(element) = get_element(sections, element) {
+                    Column::new()
+                        .spacing(LEVELS_V_SPACING)
+                        .push(Element::new(view.view(
+                            theme,
+                            element,
+                            selection,
+                            Some(id.clone()),
+                        )))
+                } else {
+                    println!("WARNING viewing leaf owning deleted element");
+                    Column::new()
+                }
+            }
+            Self::Placeholder => unreachable!("Viewing a placeholder"),
+        };
+        Container::new(column).style(theme.level(level)).into()
+    }
+
+    fn leaf(key: DesignElementKey, id: Vec<usize>) -> Self {
+        Self::Leaf {
+            id: OrganizerNodeId::Tree(id),
+            element: key,
+            view: ElementView::new(),
+            attributes: vec![None; DesignElement::all_discriminants().len()],
+        }
+    }
+
+    fn read_tree(tree: &OrganizerTree, rng: &mut ThreadRng, must_update_tree: &mut bool) -> Self {
+        match tree {
+            OrganizerTree::Leaf(k) => Self::Leaf {
+                id: OrganizerNodeId::Tree(vec![]),
+                element: *k,
+                view: ElementView::new(),
+                attributes: vec![None; DesignElement::all_discriminants().len()],
+            },
+            OrganizerTree::Node {
+                name,
+                children: content,
+                expanded,
+                id,
+            } => {
+                let children = content
+                    .iter()
+                    .map(|c| Self::read_tree(c, rng, must_update_tree))
+                    .collect();
+                let group_id = (*id).unwrap_or_else(|| {
+                    // when we generate a new identifier, we must notify the program that the tree
+                    // is different
+                    *must_update_tree = true;
+                    rng.random()
+                });
+                Self::Node {
+                    children,
+                    id: OrganizerNodeId::Tree(vec![]),
+                    name: name.clone(),
+                    expanded: *expanded,
+                    view: NodeTitleBar::new(),
+                    attributes: vec![None; DesignElement::all_discriminants().len()],
+                    elements_below: BTreeSet::new(),
+                    group_id,
+                }
+            }
+        }
+    }
+
+    fn new(
+        content: Vec<DesignElementKey>,
+        name: String,
+        id: OrganizerNodeId,
+        rng: &mut ThreadRng,
+    ) -> Self {
+        let children = content
+            .into_iter()
+            .enumerate()
+            .map(|(i, e)| {
+                let mut id = id.clone();
+                id.push(i);
+                Self::Leaf {
+                    id,
+                    element: e,
+                    view: ElementView::new(),
+                    attributes: vec![None; DesignElement::all_discriminants().len()],
+                }
+            })
+            .collect();
+        let group_id = rng.random();
+        Self::Node {
+            id,
+            children,
+            name,
+            expanded: false,
+            view: NodeTitleBar::new(),
+            attributes: vec![None; DesignElement::all_discriminants().len()],
+            elements_below: BTreeSet::new(),
+            group_id,
+        }
+    }
+
+    /// Add content to an existing group
+    fn add_content(&mut self, id_local: &[usize], content: Vec<DesignElementKey>) -> Option<()> {
+        match self {
+            Self::Leaf { .. } => {
+                println!("Impossible to add content to leaf");
+                None
+            }
+            Self::Placeholder => unreachable!("Expanding a Placeholder"),
+            Self::Node {
+                children,
+                id: my_id,
+                ..
+            } => {
+                if !id_local.is_empty() {
+                    children
+                        .get_mut(id_local[0])
+                        .and_then(|c| c.add_content(&id_local[1..], content))
+                } else {
+                    let children_content: Vec<DesignElementKey> = children
+                        .iter()
+                        .filter_map(|e| match e {
+                            Self::Leaf { element, .. } => Some(*element),
+                            _ => None,
+                        })
+                        .collect();
+                    let new_leaves = content
+                        .into_iter()
+                        .filter(|e| !children_content.contains(e))
+                        .enumerate()
+                        .map(|(i, e)| {
+                            let mut id = my_id.clone();
+                            id.push(i);
+                            Self::Leaf {
+                                id,
+                                element: e,
+                                view: ElementView::new(),
+                                attributes: vec![None; DesignElement::all_discriminants().len()],
+                            }
+                        });
+                    children.extend(new_leaves);
+                    Some(())
+                }
+            }
+        }
+    }
+
+    fn start_editing(&mut self, id: &[usize]) {
+        if !id.is_empty() {
+            match self {
+                Self::Leaf { .. } => {
+                    println!("ERROR ACCESSING A LEAF WITHOUT EXHAUSTING ID");
+                }
+                Self::Node { children, .. } => children[id[0]].start_editing(&id[1..]),
+                Self::Placeholder => unreachable!("Expanding a Placeholder"),
+            }
+        } else {
+            match self {
+                Self::Leaf { .. } => {
+                    println!("ERROR ACCESSING A LEAF WITHOUT EXHAUSTING ID");
+                }
+                Self::Node { view, .. } => view.start_editing(),
+                Self::Placeholder => unreachable!("Expanding a Placeholder"),
+            }
+        }
+    }
+
+    fn stop_editing(&mut self, id: &[usize]) {
+        if !id.is_empty() {
+            match self {
+                Self::Leaf { .. } => {
+                    println!("ERROR ACCESSING A LEAF WITHOUT EXHAUSTING ID");
+                }
+                Self::Node { children, .. } => children[id[0]].stop_editing(&id[1..]),
+                Self::Placeholder => unreachable!("Expanding a Placeholder"),
+            }
+        } else {
+            match self {
+                Self::Leaf { .. } => {
+                    println!("ERROR ACCESSING A LEAF WITHOUT EXHAUSTING ID");
+                }
+                Self::Node { view, .. } => {
+                    view.stop_editing();
+                }
+                Self::Placeholder => unreachable!("Expanding a Placeholder"),
+            }
+        }
+    }
+
+    fn edit_name(&mut self, id: &[usize], name: String) {
+        if !id.is_empty() {
+            match self {
+                Self::Leaf { .. } => {
+                    println!("ERROR ACCESSING A LEAF WITHOUT EXHAUSTING ID");
+                }
+                Self::Node { children, .. } => children[id[0]].edit_name(&id[1..], name),
+                Self::Placeholder => unreachable!("Expanding a Placeholder"),
+            }
+        } else {
+            match self {
+                Self::Leaf { .. } => {
+                    println!("ERROR ACCESSING A LEAF WITHOUT EXHAUSTING ID");
+                }
+                Self::Node {
+                    name: node_name, ..
+                } => {
+                    *node_name = name;
+                }
+                Self::Placeholder => unreachable!("Expanding a Placeholder"),
+            }
+        }
+    }
+
+    fn expand(&mut self, id: &[usize], expanded: bool) {
+        if !id.is_empty() {
+            match self {
+                Self::Leaf { .. } => {
+                    println!("ERROR ACCESSING A LEAF WITHOUT EXHAUSTING ID");
+                }
+                Self::Node { children, .. } => children[id[0]].expand(&id[1..], expanded),
+                Self::Placeholder => unreachable!("Expanding a Placeholder"),
+            }
+        } else {
+            match self {
+                Self::Leaf { .. } => {
+                    println!("ERROR ACCESSING A LEAF WITHOUT EXHAUSTING ID");
+                }
+                Self::Node {
+                    expanded: expanded_ref,
+                    ..
+                } => {
+                    *expanded_ref = expanded;
+                }
+                Self::Placeholder => unreachable!("Expanding a Placeholder"),
+            }
+        }
+    }
+
+    fn is_placeholder(&self) -> bool {
+        matches!(self, Self::Placeholder)
+    }
+
+    fn recompute_id(&mut self, id: OrganizerNodeId, map: &mut HashMap<GroupId, OrganizerNodeId>) {
+        match self {
+            Self::Leaf { id: id_ref, .. } => *id_ref = id,
+            Self::Node {
+                id: id_ref,
+                children,
+                group_id,
+                ..
+            } => {
+                children.retain(|c| !c.is_placeholder());
+                for (i, c) in children.iter_mut().enumerate() {
+                    let mut id_child = id.clone();
+                    id_child.push(i);
+                    c.recompute_id(id_child, map);
+                }
+                *id_ref = id.clone();
+                map.insert(*group_id, id);
+            }
+            Self::Placeholder => unreachable!("Recomputing id of a placeholder"),
+        }
+    }
+
+    fn pop_id(&mut self, id: &[usize]) -> Option<Self> {
+        match self {
+            Self::Node { children, .. } => {
+                if id.len() > 1 {
+                    children.get_mut(id[0]).and_then(|c| c.pop_id(&id[1..]))
+                } else {
+                    children
+                        .get_mut(id[0])
+                        .map(|c| std::mem::replace(c, Self::Placeholder))
+                }
+            }
+            _ => None,
+        }
+    }
+
+    fn add_at_id(&mut self, id: &[usize], content: Self, from_top: bool) {
+        let content_key = if let Self::Leaf { element, .. } = &content {
+            self.has_key_no_rec(element)
+        } else {
+            false
+        };
+        match self {
+            Self::Node { children, .. } => {
+                if id.len() > 1 {
+                    children[id[0]].add_at_id(&id[1..], content, from_top);
+                } else {
+                    let insertion_point = if from_top { id[0] + 1 } else { id[0] };
+                    if !content_key {
+                        children.insert(insertion_point, content);
+                    }
+                }
+            }
+            Self::Leaf { .. } => unreachable!("Add at Id on Leaf"),
+            Self::Placeholder => unreachable!("Add at Id on Placeholder"),
+        }
+    }
+
+    fn add_key_at(&mut self, key: DesignElementKey, id: &[usize]) {
+        let has_key = self.has_key_no_rec(&key);
+        match self {
+            Self::Node { children, .. } => {
+                if id.len() > 1 {
+                    children[id[0]].add_key_at(key, &id[1..]);
+                } else if !has_key {
+                    let leaf = Self::leaf(key, vec![]);
+                    children.insert(id[0], leaf);
+                }
+            }
+            Self::Leaf { .. } => unreachable!("Add key at Id on Leaf"),
+            Self::Placeholder => unreachable!("Add key Id on Placeholder"),
+        }
+    }
+
+    fn has_key_no_rec(&self, key: &DesignElementKey) -> bool {
+        match self {
+            Self::Node { children, .. } => children.iter().any(|c| c.is_leaf_key(key)),
+            _ => false,
+        }
+    }
+
+    fn is_leaf_key(&self, key: &DesignElementKey) -> bool {
+        match self {
+            Self::Leaf { element, .. } => element == key,
+            _ => false,
+        }
+    }
+
+    fn update_attributes(&mut self, sections: &[OrganizerSection]) {
+        match self {
+            Self::Leaf {
+                element,
+                attributes,
+                view,
+                ..
+            } => {
+                *attributes = vec![None; DesignElement::all_discriminants().len()];
+                if let Some(element) = get_element(sections, element) {
+                    for attr in element.attributes() {
+                        let attr_id: usize = attr.discriminant().into();
+                        attributes[attr_id] = Some(attr.clone());
+                    }
+                }
+                view.update_attributes(attributes);
+            }
+            Self::Node {
+                children,
+                attributes,
+                elements_below,
+                view,
+                ..
+            } => {
+                *elements_below = BTreeSet::new();
+                *attributes = vec![None; DesignElement::all_discriminants().len()];
+                for c in children.iter_mut() {
+                    c.update_attributes(sections);
+                    for elt in &c.get_all_elements_below() {
+                        elements_below.insert(*elt);
+                    }
+                }
+                let attr_children: Vec<_> = children
+                    .iter()
+                    .map(|c| c.get_attributes().as_slice())
+                    .collect();
+                *attributes = merge_attributes(attr_children.as_slice());
+                view.update_attributes(attributes);
+            }
+            Self::Placeholder => (),
+        }
+    }
+
+    fn get_all_elements_below(&self) -> Vec<DesignElementKey> {
+        match self {
+            Self::Leaf { element, .. } => vec![*element],
+            Self::Node { elements_below, .. } => elements_below.iter().copied().collect(),
+            Self::Placeholder => vec![],
+        }
+    }
+
+    fn get_attributes(&self) -> &Vec<Option<DnaAttribute>> {
+        match self {
+            Self::Node { attributes, .. } | Self::Leaf { attributes, .. } => attributes,
+            Self::Placeholder => unreachable!("Getting attributes of a placeholder"),
+        }
+    }
+
+    fn get_group(&self, id: &[usize]) -> Option<&Self> {
+        match self {
+            Self::Node { children, .. } => {
+                if id.len() > 1 {
+                    children[id[0]].get_group(&id[1..])
+                } else {
+                    children.get(id[0])
+                }
+            }
+            Self::Leaf { .. } | Self::Placeholder => None,
+        }
+    }
+
+    fn tree(&self) -> Option<OrganizerTree> {
+        match self {
+            Self::Node {
+                name,
+                children,
+                expanded,
+                group_id,
+                ..
+            } => {
+                let children = children.iter().filter_map(Self::tree).collect();
+                Some(OrganizerTree::Node {
+                    name: name.clone(),
+                    children,
+                    expanded: *expanded,
+                    id: Some(*group_id),
+                })
+            }
+            Self::Leaf { element, .. } => Some(OrganizerTree::Leaf(*element)),
+            Self::Placeholder => None,
+        }
+    }
+
+    fn get_group_id(&self) -> Option<GroupId> {
+        match self {
+            Self::Node { group_id, .. } => Some(*group_id),
+            Self::Leaf { .. } | Self::Placeholder => None,
+        }
+    }
+
+    /// Auxiliary function for deletion of useless leaves.
+    ///
+    /// If self is a Leaf return true iff it owns an element that is *not* in elements.keys(), and
+    /// in this case adds its own node identifier to `ids_to_remove`
+    ///
+    /// If self is a group, apply recursively this process to all its children and then return
+    /// true iff all the children need to be removed.
+    fn delete_useless_leaves(
+        &self,
+        ids_to_remove: &mut Vec<OrganizerNodeId>,
+        elements: &BTreeSet<DesignElementKey>,
+    ) -> bool {
+        let fake_id = &OrganizerNodeId::Tree(vec![]);
+        let (ret, id) = match self {
+            Self::Placeholder => (false, fake_id),
+            Self::Leaf { element, id, .. } => (!elements.contains(element), id),
+            Self::Node { children, id, .. } => {
+                let mut _ret = true;
+                for c in children {
+                    _ret &= c.delete_useless_leaves(ids_to_remove, elements);
+                }
+                // Uncomment this to also remove empty groups (ret, id)
+                (false, id)
+            }
+        };
+        if ret {
+            ids_to_remove.push(id.clone());
+        }
+        ret
+    }
+}
+
+struct OrganizerSection {
+    content: BTreeMap<DesignElementKey, DesignElement>,
+    id: OrganizerNodeId,
+    name: String,
+    expanded: bool,
+    title_bar: NodeTitleBar,
+    elements: BTreeMap<DesignElementKey, ElementView>,
+}
+
+impl OrganizerSection {
+    fn new(id: OrganizerNodeId, name: String) -> Self {
+        Self {
+            content: BTreeMap::new(),
+            id,
+            name,
+            expanded: false,
+            title_bar: NodeTitleBar::new_section(),
+            elements: BTreeMap::new(),
+        }
+    }
+
+    fn expand(&mut self, expanded: bool) {
+        self.expanded = expanded;
+    }
+
+    fn is_selected(&self, selection: &BTreeSet<DesignElementKey>) -> bool {
+        self.content.keys().any(|key| selection.contains(key))
+    }
+
+    fn view(
+        &self,
+        theme: &OrganizerTheme,
+        selection: &BTreeSet<DesignElementKey>,
+    ) -> Container<'_, OrganizerMessage> {
+        let title_row = self.title_bar.view(
+            theme,
+            self.is_selected(selection),
+            &self.name,
+            self.id.clone(),
+            self.expanded,
+        );
+        let mut content = Column::new().spacing(LEVELS_V_SPACING).push(title_row);
+        if self.expanded {
+            for (e_id, e) in &self.elements {
+                content = content.push(row![
+                    tabulation(),
+                    container(e.view(theme, &self.content[e_id], selection, None,))
+                        .style(theme.level(1))
+                        .width(Length::FillPortion(8)),
+                ]);
+            }
+        }
+        container(content).style(theme.level(0))
+    }
+
+    fn add_element(&mut self, element: DesignElement) {
+        let key = element.key();
+        self.content.insert(key, element);
+        self.elements.insert(key, ElementView::new());
+    }
+
+    fn update_attributes(&mut self) {
+        for (k, e) in &self.content {
+            if let Some(view) = self.elements.get_mut(k) {
+                view.update_element(e);
+            }
+        }
+    }
+
+    fn get_all_keys(&self) -> Vec<DesignElementKey> {
+        self.content.keys().copied().collect()
+    }
+}
+
+/// A data structure whose view displays information about an element.
+struct ElementView {
+    attribute_displayers: Vec<AttributeDisplayer>,
+}
+
+impl ElementView {
+    fn new() -> Self {
+        Self {
+            attribute_displayers: vec![
+                AttributeDisplayer::new();
+                DesignElement::all_discriminants().len()
+            ],
+        }
+    }
+
+    fn view(
+        &self,
+        theme: &OrganizerTheme,
+        element: &DesignElement,
+        selection: &BTreeSet<DesignElementKey>,
+        deletable: Option<OrganizerNodeId>,
+    ) -> DragDropTarget<'_, OrganizerMessage> {
+        let selected = selection.contains(&element.key());
+        let mut content = row![text(element.display_name()), horizontal_space(),];
+        // [DragIdentifier::Group] are deletable, [DragIdentifier::Section] are not.
+        let identifier = match deletable.as_ref() {
+            Some(id) => DragIdentifier::Group { id: id.clone() },
+            None => DragIdentifier::Section { key: element.key() },
+        };
+        for ad in &self.attribute_displayers {
+            if let Some(view) = ad.view() {
+                let elt_key = element.key();
+                content = content
+                    .push(view.map(move |m| OrganizerMessage::NewAttribute(m, vec![elt_key])));
+            }
+        }
+        if let Some(id) = deletable.clone() {
+            content = content
+                .push(button(icon::icon(icondata::BsTrash)).on_press(OrganizerMessage::delete(id)));
+        }
+        let mut content = HoverableContainer::new(
+            button(content)
+                .on_press(OrganizerMessage::element_selected(element.key()))
+                .width(Length::Fill)
+                .style(theme.selected(selected)),
+        );
+        content = if let Some(id) = deletable {
+            content
+                .on_hover(OrganizerMessage::node_hovered(id.clone(), true))
+                .on_unhover(OrganizerMessage::node_hovered(id, false))
+        } else {
+            content
+                .on_hover(OrganizerMessage::key_hovered(element.key(), true))
+                .on_unhover(OrganizerMessage::key_hovered(element.key(), false))
+        };
+        DragDropTarget::new(container(content).width(Length::Fill), identifier)
+    }
+
+    fn update_attributes(&mut self, attributes: &[Option<DnaAttribute>]) {
+        for (i, a) in attributes.iter().enumerate() {
+            self.attribute_displayers[i].update_attribute(a.clone());
+        }
+    }
+
+    fn update_element(&mut self, element: &DesignElement) {
+        for e in element.attributes() {
+            self.attribute_displayers[e.discriminant() as usize].update_attribute(Some(e.clone()));
+        }
+    }
+}
+
+/// A data structure whose view is a "title bar" for a group or a section
+struct NodeTitleBar {
+    state: GroupState,
+    attribute_displayers: Vec<AttributeDisplayer>,
+    name_input_id: text_input::Id,
+}
+
+impl NodeTitleBar {
+    fn new() -> Self {
+        Self {
+            state: GroupState::Idle,
+            attribute_displayers: vec![
+                AttributeDisplayer::new();
+                DesignElement::all_discriminants().len()
+            ],
+            name_input_id: text_input::Id::unique(),
+        }
+    }
+
+    fn new_section() -> Self {
+        Self {
+            state: GroupState::NotEditable,
+            attribute_displayers: vec![],
+            name_input_id: text_input::Id::unique(),
+        }
+    }
+
+    fn start_editing(&mut self) {
+        log::info!("reached view");
+        self.state = GroupState::Editing;
+    }
+
+    fn stop_editing(&mut self) {
+        self.state = GroupState::Idle;
+    }
+
+    fn view(
+        &self,
+        theme: &OrganizerTheme,
+        is_selected: bool,
+        name: &String,
+        id: OrganizerNodeId,
+        expanded: bool,
+    ) -> Element<'_, OrganizerMessage> {
+        let title_row = match &self.state {
+            GroupState::Idle => {
+                let mut row: Row<'_, _> = row![
+                    button(icon::expand_icon(expanded))
+                        .on_press(OrganizerMessage::expand(id.clone(), !expanded)),
+                    Space::with_width(5.0),
+                    mouse_area(
+                        text_input("New group name...", name).id(self.name_input_id.clone())
+                    )
+                    .on_press(OrganizerMessage::edit(id.clone())),
+                    horizontal_space(),
+                    button(icon::plus_icon())
+                        .on_press(OrganizerMessage::add_selection_to_group(id.clone())), // TODO: change icon later !!!
+                    button(icon::edit_icon()).on_press(OrganizerMessage::edit(id.clone())),
+                ];
+
+                for ad in &self.attribute_displayers {
+                    if let Some(view) = ad.view() {
+                        let id = id.clone();
+                        row = row.push(
+                            view.map(move |m| OrganizerMessage::attribute_selected(m, id.clone())),
+                        );
+                    }
+                }
+
+                row = row.push(
+                    button(icon::icon(icondata::BsTrash))
+                        .on_press(OrganizerMessage::delete(id.clone())),
+                );
+                row
+            }
+            GroupState::Editing => {
+                let mut row = row![
+                    button(icon::expand_icon(expanded))
+                        .on_press(OrganizerMessage::expand(id.clone(), !expanded)),
+                    Space::with_width(5.0),
+                    keyboard_priority(
+                        "New group name...",
+                        OrganizerMessage::SetKeyboardPriority,
+                        text_input("New group name...", name)
+                            .id(self.name_input_id.clone())
+                            .on_input(|s| { OrganizerMessage::name_input(s) })
+                            .on_submit(OrganizerMessage::stop_edit())
+                    ),
+                    horizontal_space(),
+                    button(icon::plus_icon())
+                        .on_press(OrganizerMessage::add_selection_to_group(id.clone())), // TODO: change icon later !!!
+                    button(icon::edit_icon()).on_press(OrganizerMessage::stop_edit()),
+                ];
+                for ad in &self.attribute_displayers {
+                    if let Some(view) = ad.view() {
+                        let id = id.clone();
+                        row = row.push(
+                            view.map(move |m| OrganizerMessage::attribute_selected(m, id.clone())),
+                        );
+                    }
+                }
+                row = row.push(
+                    button(icon::icon(icondata::BsTrash))
+                        .on_press(OrganizerMessage::delete(id.clone())),
+                );
+                row
+            }
+            GroupState::NotEditable => row![
+                button(icon::expand_icon(expanded))
+                    .on_press(OrganizerMessage::expand(id.clone(), !expanded)),
+                Space::with_width(5.0),
+                text(name),
+            ],
+        };
+
+        let title_button = button(title_row)
+            .on_press(OrganizerMessage::node_selected(id.clone()))
+            .width(Length::Fill)
+            .style(theme.selected(is_selected));
+        let title_button = HoverableContainer::new(title_button)
+            .on_hover(OrganizerMessage::node_hovered(id.clone(), true))
+            .on_unhover(OrganizerMessage::node_hovered(id.clone(), false));
+        let title_button = DragDropTarget::new(
+            container(title_button).width(Length::Fill),
+            DragIdentifier::Group { id },
+        );
+        container(title_button).into()
+    }
+
+    fn update_attributes(&mut self, attributes: &[Option<DnaAttribute>]) {
+        for (i, a) in attributes.iter().enumerate() {
+            self.attribute_displayers[i].update_attribute(a.clone());
+        }
+    }
+}
+
+enum GroupState {
+    Idle,
+    Editing,
+    NotEditable,
+}
+
+#[derive(Default, Clone)]
+struct AttributeDisplayer {
+    being_modified: bool,
+    widget: Option<AttributeWidget>,
+    attribute: Option<DnaAttribute>,
+}
+
+impl AttributeDisplayer {
+    fn new() -> Self {
+        Self {
+            being_modified: false,
+            widget: None,
+            attribute: None,
+        }
+    }
+
+    fn update_attribute(&mut self, attribute: Option<DnaAttribute>) {
+        self.update_widget(attribute.as_ref().map(DnaAttribute::widget));
+        self.attribute = attribute;
+    }
+
+    fn update_widget(&mut self, widget: Option<AttributeWidget>) {
+        self.being_modified = false;
+        self.widget = widget;
+    }
+
+    fn view(&self) -> Option<Element<'_, DnaAttribute>> {
+        self.widget.as_ref().map(|widget| {
+            match self.attribute.as_ref().map(DnaAttribute::char_repr) {
+                Some(AttributeDisplay::Icon(c)) => button(icon::icon(c)),
+                Some(AttributeDisplay::Text(s)) => button(text(s).size(icon::ICON_SIZE)),
+                _ => button("???"),
+            }
+            .on_press(widget.value_if_pressed.clone())
+            .into()
+        })
+    }
+}
+
+fn get_element<'a>(
+    sections: &'a [OrganizerSection],
+    key: &'a DesignElementKey,
+) -> Option<&'a DesignElement> {
+    let s_id: usize = key.section().into();
+    sections.get(s_id).and_then(|s| s.content.get(key))
+}
+
+fn tabulation() -> Space {
+    Space::with_width(H_SPACING_IN_UNITS)
+}
+
+fn merge_attributes<T: Ord + Clone>(attributes: &[&[Option<T>]]) -> Vec<Option<T>> {
+    if attributes.is_empty() {
+        return Vec::new();
+    }
+
+    (0..attributes[0].len())
+        .map(|col| {
+            attributes
+                .iter()
+                .filter_map(|row| row.get(col).and_then(Option::as_ref))
+                .min()
+                .cloned()
+        })
+        .collect()
+}
+
+fn get_group_id(id: &OrganizerNodeId) -> Option<&[usize]> {
+    if let OrganizerNodeId::Tree(id) = id {
+        Some(id)
+    } else {
+        None
+    }
+}
+
+fn get_section_id(id: &OrganizerNodeId) -> Option<usize> {
+    if let OrganizerNodeId::Section(n) = id {
+        Some(*n)
+    } else {
+        None
+    }
+}

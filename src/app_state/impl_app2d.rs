@@ -1,27 +1,11 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+use crate::app_state::{AppState, design_interactor::DesignInteractor};
+use ensnano_design::{interaction_modes::SelectionMode, selection::Selection};
+use ensnano_flatscene::FlatSceneAppState;
+use ensnano_utils::{StrandBuildingStatus, strand_builder::StrandBuilder};
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+impl FlatSceneAppState for AppState {
+    type Reader = DesignInteractor;
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::*;
-use crate::flatscene::AppState as App2D;
-use ensnano_interactor::StrandBuilder;
-
-impl App2D for AppState {
-    type Reader = DesignReader;
     fn get_selection(&self) -> &[Selection] {
         self.selection_content().as_slice()
     }
@@ -43,7 +27,7 @@ impl App2D for AppState {
     }
 
     fn get_design_reader(&self) -> Self::Reader {
-        self.0.design.get_design_reader()
+        self.0.design.clone_inner()
     }
 
     fn get_strand_builders(&self) -> &[StrandBuilder] {
@@ -62,7 +46,7 @@ impl App2D for AppState {
         self.get_pasting_status().is_pasting()
     }
 
-    fn get_building_state(&self) -> Option<ensnano_interactor::StrandBuildingStatus> {
+    fn get_building_state(&self) -> Option<StrandBuildingStatus> {
         self.get_strand_building_state()
     }
 }
@@ -70,6 +54,7 @@ impl App2D for AppState {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn selection_update() {
         let mut state = AppState::default();

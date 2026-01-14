@@ -1,33 +1,35 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 //! Defines states in which the user is "dragging" something.
 //!
 //! In this context dragging means that the user is holding one of the mouse button while moving
 //! the cursor.
-//! In such a state, cursor movement all cursor movement have similar consequences shuch has moving
+//! In such a state, cursor movement all cursor movement have similar consequences such has moving
 //! the camera or moving an object.
 
-use ensnano_design::BezierVertexId;
+use crate::{
+    SceneAppState,
+    controller::{
+        Consequence, Controller, Transition, TransitionConsequence,
+        automata::{
+            ControllerState, NormalState, WidgetTarget, XoverOrigin, event_context::EventContext,
+        },
+    },
+    element_selector::SceneElement,
+    view::handle_drawer::{HandleColors, HandleDir},
+};
+use ensnano_design::{
+    bezier_plane::{BezierPathId, BezierPlaneId, BezierVertexId},
+    grid::{GridId, GridObject},
+    nucl::Nucl,
+};
+use std::borrow::Cow;
+use ultraviolet::Vec2;
+use winit::{
+    dpi::PhysicalPosition,
+    event::{ElementState, MouseButton, WindowEvent},
+    window::CursorIcon,
+};
 
-use super::*;
-
-pub(super) struct DraggedCursor<'a, 'b, S: AppState> {
+pub(super) struct DraggedCursor<'a, 'b, S: SceneAppState> {
     /// The cursor position when the mouse button was pressed
     clicked_position: PhysicalPosition<f64>,
     /// The *normalized* difference between the current cursor position and the position of the
@@ -38,20 +40,20 @@ pub(super) struct DraggedCursor<'a, 'b, S: AppState> {
     context: &'b mut EventContext<'a, S>,
 }
 
-impl<'a, 'b, S: AppState> DraggedCursor<'a, 'b, S> {
+impl<'a, 'b, S: SceneAppState> DraggedCursor<'a, 'b, S> {
     pub(super) fn from_click_cursor(
         clicked_position: PhysicalPosition<f64>,
         current_position: PhysicalPosition<f64>,
         context: &'b mut EventContext<'a, S>,
     ) -> Self {
-        let delta_postion = PhysicalPosition {
+        let delta_position = PhysicalPosition {
             x: current_position.x - clicked_position.x,
             y: current_position.y - clicked_position.y,
         };
 
         Self {
             clicked_position,
-            delta_position: context.normalize_position(delta_postion),
+            delta_position: context.normalize_position(delta_position),
             normalized_position: context.normalize_position(current_position),
             context,
         }
@@ -66,7 +68,7 @@ pub(super) struct ClickInfo {
 }
 
 impl ClickInfo {
-    pub fn new(button: MouseButton, clicked_position: PhysicalPosition<f64>) -> Self {
+    pub(super) fn new(button: MouseButton, clicked_position: PhysicalPosition<f64>) -> Self {
         Self {
             button,
             clicked_position,
@@ -75,10 +77,10 @@ impl ClickInfo {
     }
 }
 
-/// A object maping cursor movement to their consequences
+/// A object mapping cursor movement to their consequences
 pub(super) trait DraggingTransitionTable {
     /// The consequences of moving the cursor
-    fn on_cursor_moved<S: AppState>(
+    fn on_cursor_moved<S: SceneAppState>(
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence>;
@@ -87,21 +89,12 @@ pub(super) trait DraggingTransitionTable {
     fn description() -> &'static str;
     /// If not None, the cursor icon that should be used when the controller's automata is in this
     /// state
-    fn cursor() -> Option<ensnano_interactor::CursorIcon> {
+    fn cursor() -> Option<CursorIcon> {
         None
     }
-    fn on_enterring(&self) -> TransistionConsequence;
-    fn on_leaving(&self) -> TransistionConsequence;
+    fn on_entering(&self) -> TransitionConsequence;
+    fn on_leaving(&self) -> TransitionConsequence;
     fn handles_color_system(&self) -> Option<HandleColors> {
-        None
-    }
-
-    // Currently no type override this method. It was used at some point to make it possible to
-    // reverse the surface direction with a double click.
-    fn out_transition<S: AppState>(
-        &self,
-        _context: EventContext<'_, S>,
-    ) -> Option<Box<dyn ControllerState<S>>> {
         None
     }
 }
@@ -113,13 +106,13 @@ pub(super) struct DraggingState<Table: DraggingTransitionTable> {
     clicked_position: PhysicalPosition<f64>,
     /// The button that was pressed to enter this state
     clicked_button: MouseButton,
-    /// A object maping cursor movement to transitions in the controller's automata.
+    /// A object mapping cursor movement to transitions in the controller's automata.
     transition_table: Table,
 }
 
 impl<Table: DraggingTransitionTable> DraggingState<Table> {
     /// Register the cursor movement and return an up-to-date DraggedCursor.
-    fn move_cursor<'a, 'b, S: AppState>(
+    fn move_cursor<'a, 'b, S: SceneAppState>(
         &mut self,
         context: &'b mut EventContext<'a, S>,
     ) -> DraggedCursor<'a, 'b, S> {
@@ -129,8 +122,8 @@ impl<Table: DraggingTransitionTable> DraggingState<Table> {
 }
 
 macro_rules! dragging_state_constructor {
-    ($contructor_name: ident, $type: tt) => {
-        pub(super) fn $contructor_name(click: ClickInfo) -> DraggingState<$type> {
+    ($constructor_name: ident, $type: tt) => {
+        pub(super) fn $constructor_name(click: ClickInfo) -> DraggingState<$type> {
             DraggingState {
                 current_cursor_position: click.current_position,
                 clicked_button: click.button,
@@ -142,8 +135,8 @@ macro_rules! dragging_state_constructor {
 }
 
 macro_rules! dragging_state_constructor_with_state {
-    ($contructor_name: ident, $type: tt) => {
-        pub(super) fn $contructor_name(
+    ($constructor_name: ident, $type: tt) => {
+        pub(super) fn $constructor_name(
             click: ClickInfo,
             transition_table: $type,
         ) -> DraggingState<$type> {
@@ -159,26 +152,22 @@ macro_rules! dragging_state_constructor_with_state {
 
 macro_rules! no_csq_leaving_or_entering {
     () => {
-        fn on_enterring(&self) -> TransistionConsequence {
-            TransistionConsequence::Nothing
+        fn on_entering(&self) -> TransitionConsequence {
+            TransitionConsequence::Nothing
         }
 
-        fn on_leaving(&self) -> TransistionConsequence {
-            TransistionConsequence::Nothing
+        fn on_leaving(&self) -> TransitionConsequence {
+            TransitionConsequence::Nothing
         }
     };
 }
 
-impl<S: AppState, Table: DraggingTransitionTable> ControllerState<S> for DraggingState<Table> {
+impl<S: SceneAppState, Table: DraggingTransitionTable> ControllerState<S> for DraggingState<Table> {
     fn display(&self) -> Cow<'static, str> {
         Table::description().into()
     }
 
-    fn input<'a>(
-        &mut self,
-        event: &WindowEvent,
-        mut context: EventContext<'a, S>,
-    ) -> Transition<S> {
+    fn input(&mut self, event: &WindowEvent, mut context: EventContext<'_, S>) -> Transition<S> {
         match event {
             WindowEvent::MouseInput {
                 button,
@@ -189,13 +178,11 @@ impl<S: AppState, Table: DraggingTransitionTable> ControllerState<S> for Draggin
                     .transition_table
                     .on_button_released()
                     .unwrap_or(Consequence::Nothing);
-                let new_state = self.transition_table.out_transition(context).or_else(|| {
-                    Some(Box::new(NormalState {
-                        mouse_position: self.current_cursor_position,
-                    }))
-                });
+                let new_state = NormalState {
+                    mouse_position: self.current_cursor_position,
+                };
                 Transition {
-                    new_state,
+                    new_state: Some(Box::new(new_state)),
                     consequences,
                 }
             }
@@ -212,15 +199,15 @@ impl<S: AppState, Table: DraggingTransitionTable> ControllerState<S> for Draggin
         }
     }
 
-    fn cursor(&self) -> Option<ensnano_interactor::CursorIcon> {
+    fn cursor(&self) -> Option<CursorIcon> {
         Table::cursor()
     }
 
-    fn transition_to(&self, _controller: &Controller<S>) -> TransistionConsequence {
-        self.transition_table.on_enterring()
+    fn transition_to(&self, _controller: &Controller<S>) -> TransitionConsequence {
+        self.transition_table.on_entering()
     }
 
-    fn transition_from(&self, _controller: &Controller<S>) -> TransistionConsequence {
+    fn transition_from(&self, _controller: &Controller<S>) -> TransitionConsequence {
         self.transition_table.on_leaving()
     }
 
@@ -241,7 +228,7 @@ impl DraggingTransitionTable for TranslatingCamera {
         "Translating Camera"
     }
 
-    fn on_cursor_moved<S: AppState>(
+    fn on_cursor_moved<S: SceneAppState>(
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
@@ -255,26 +242,19 @@ impl DraggingTransitionTable for TranslatingCamera {
         Some(Consequence::MovementEnded)
     }
 
-    fn on_enterring(&self) -> TransistionConsequence {
-        TransistionConsequence::InitCameraMovement {
+    fn on_entering(&self) -> TransitionConsequence {
+        TransitionConsequence::InitCameraMovement {
             translation: true,
             nucl: self.from_nucl,
         }
     }
 
-    fn on_leaving(&self) -> TransistionConsequence {
-        TransistionConsequence::EndCameraMovement
+    fn on_leaving(&self) -> TransitionConsequence {
+        TransitionConsequence::EndCameraMovement
     }
 
-    fn cursor() -> Option<ensnano_interactor::CursorIcon> {
+    fn cursor() -> Option<CursorIcon> {
         Some(CursorIcon::AllScroll)
-    }
-
-    fn out_transition<S: AppState>(
-        &self,
-        _context: EventContext<'_, S>,
-    ) -> Option<Box<dyn ControllerState<S>>> {
-        None
     }
 }
 
@@ -301,7 +281,7 @@ impl DraggingTransitionTable for RotatingCamera {
         "Rotating Camera"
     }
 
-    fn on_cursor_moved<S: AppState>(
+    fn on_cursor_moved<S: SceneAppState>(
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
@@ -315,19 +295,19 @@ impl DraggingTransitionTable for RotatingCamera {
         Some(Consequence::MovementEnded)
     }
 
-    fn cursor() -> Option<ensnano_interactor::CursorIcon> {
+    fn cursor() -> Option<CursorIcon> {
         Some(CursorIcon::AllScroll)
     }
 
-    fn on_enterring(&self) -> TransistionConsequence {
-        TransistionConsequence::InitCameraMovement {
+    fn on_entering(&self) -> TransitionConsequence {
+        TransitionConsequence::InitCameraMovement {
             translation: false,
             nucl: None,
         }
     }
 
-    fn on_leaving(&self) -> TransistionConsequence {
-        TransistionConsequence::EndCameraMovement
+    fn on_leaving(&self) -> TransitionConsequence {
+        TransitionConsequence::EndCameraMovement
     }
 }
 
@@ -343,32 +323,29 @@ impl DraggingTransitionTable for TiltingCamera {
         "Tilting Camera"
     }
 
-    fn on_cursor_moved<S: AppState>(
+    fn on_cursor_moved<S: SceneAppState>(
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
-        Some(Consequence::Tilt(
-            cursor.delta_position.x,
-            cursor.delta_position.y,
-        ))
+        Some(Consequence::Tilt(cursor.delta_position.x))
     }
 
     fn on_button_released(&self) -> Option<Consequence> {
         Some(Consequence::MovementEnded)
     }
 
-    fn on_enterring(&self) -> TransistionConsequence {
-        TransistionConsequence::InitCameraMovement {
+    fn on_entering(&self) -> TransitionConsequence {
+        TransitionConsequence::InitCameraMovement {
             translation: false,
             nucl: None,
         }
     }
 
-    fn on_leaving(&self) -> TransistionConsequence {
-        TransistionConsequence::EndCameraMovement
+    fn on_leaving(&self) -> TransitionConsequence {
+        TransitionConsequence::EndCameraMovement
     }
 
-    fn cursor() -> Option<ensnano_interactor::CursorIcon> {
+    fn cursor() -> Option<CursorIcon> {
         Some(CursorIcon::ColResize)
     }
 }
@@ -379,13 +356,13 @@ dragging_state_constructor! {tilting_camera, TiltingCamera}
 ///
 /// Cursor movement set the xover target
 pub(super) struct MakingXover {
-    /// The origin of the cross-over beeing made
+    /// The origin of the cross-over being made
     origin: XoverOrigin,
     /// The element that is currently under the cursor
     target_element: Option<SceneElement>,
     /// The xover that will be attempted when releasing the button
     current_xover: Option<(Nucl, Nucl, usize)>,
-    /// Weither the attempted xover should be automatically optimized
+    /// Whether the attempted xover should be automatically optimized
     magic_xover: bool,
 }
 
@@ -394,23 +371,24 @@ impl DraggingTransitionTable for MakingXover {
         "Making Xover"
     }
 
-    fn on_cursor_moved<S: AppState>(
+    fn on_cursor_moved<S: SceneAppState>(
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
         let element = cursor.context.get_element_under_cursor();
-        self.target_element = element.clone();
+        self.target_element = element;
         let projected_position = cursor.context.get_projection_on_plane(self.origin.position);
-        self.current_xover = cursor
-            .context
-            .attempt_xover(&self.origin.scene_element, &self.target_element);
-        self.magic_xover = cursor.context.get_modifiers().shift();
+        self.current_xover = cursor.context.attempt_xover(
+            self.origin.scene_element.as_ref(),
+            self.target_element.as_ref(),
+        );
+        self.magic_xover = cursor.context.get_modifiers().shift_key();
         Some(Consequence::MoveFreeXover(element, projected_position))
     }
 
     fn on_button_released(&self) -> Option<Consequence> {
-        if let Some((source, target, design_id)) = self.current_xover.clone() {
-            Some(Consequence::XoverAtempt(
+        if let Some((source, target, design_id)) = self.current_xover {
+            Some(Consequence::XoverAttempt(
                 source,
                 target,
                 design_id,
@@ -421,15 +399,15 @@ impl DraggingTransitionTable for MakingXover {
         }
     }
 
-    fn on_enterring(&self) -> TransistionConsequence {
-        TransistionConsequence::InitFreeXover(self.origin.nucl, 0, self.origin.position)
+    fn on_entering(&self) -> TransitionConsequence {
+        TransitionConsequence::InitFreeXover(self.origin.nucl, 0, self.origin.position)
     }
 
-    fn on_leaving(&self) -> TransistionConsequence {
-        TransistionConsequence::Nothing
+    fn on_leaving(&self) -> TransitionConsequence {
+        TransitionConsequence::Nothing
     }
 
-    fn cursor() -> Option<ensnano_interactor::CursorIcon> {
+    fn cursor() -> Option<CursorIcon> {
         Some(CursorIcon::Grabbing)
     }
 }
@@ -463,7 +441,7 @@ impl DraggingTransitionTable for BuildingStrands {
         "Moving strands builders"
     }
 
-    fn on_cursor_moved<S: AppState>(
+    fn on_cursor_moved<S: SceneAppState>(
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
@@ -473,7 +451,7 @@ impl DraggingTransitionTable for BuildingStrands {
             cursor
                 .context
                 .get_new_build_position()
-                .map(|p| Consequence::Building(p))
+                .map(Consequence::Building)
         }
     }
 
@@ -510,7 +488,7 @@ impl DraggingTransitionTable for TranslatingWidget {
         "Translating Widget"
     }
 
-    fn on_cursor_moved<S: AppState>(
+    fn on_cursor_moved<S: SceneAppState>(
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
@@ -526,7 +504,7 @@ impl DraggingTransitionTable for TranslatingWidget {
         Some(Consequence::MovementEnded)
     }
 
-    fn cursor() -> Option<ensnano_interactor::CursorIcon> {
+    fn cursor() -> Option<CursorIcon> {
         Some(CursorIcon::Grabbing)
     }
 
@@ -570,7 +548,7 @@ impl DraggingTransitionTable for TranslatingGridObject {
         "Translating Grid Object"
     }
 
-    fn on_cursor_moved<S: AppState>(
+    fn on_cursor_moved<S: SceneAppState>(
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
@@ -594,7 +572,7 @@ impl DraggingTransitionTable for TranslatingGridObject {
         Some(Consequence::MovementEnded)
     }
 
-    fn cursor() -> Option<ensnano_interactor::CursorIcon> {
+    fn cursor() -> Option<CursorIcon> {
         Some(CursorIcon::Grabbing)
     }
 
@@ -616,15 +594,15 @@ impl DraggingTransitionTable for RotatingWidget {
         Some(Consequence::MovementEnded)
     }
 
-    fn on_enterring(&self) -> TransistionConsequence {
-        TransistionConsequence::StartRotatingPivot
+    fn on_entering(&self) -> TransitionConsequence {
+        TransitionConsequence::StartRotatingPivot
     }
 
-    fn on_leaving(&self) -> TransistionConsequence {
-        TransistionConsequence::StopRotatingPivot
+    fn on_leaving(&self) -> TransitionConsequence {
+        TransitionConsequence::StopRotatingPivot
     }
 
-    fn on_cursor_moved<S: AppState>(
+    fn on_cursor_moved<S: SceneAppState>(
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
@@ -635,7 +613,7 @@ impl DraggingTransitionTable for RotatingWidget {
         ))
     }
 
-    fn cursor() -> Option<ensnano_interactor::CursorIcon> {
+    fn cursor() -> Option<CursorIcon> {
         Some(CursorIcon::Grabbing)
     }
 }
@@ -673,7 +651,7 @@ impl DraggingTransitionTable for MovingBezierVertex {
         Some(Consequence::ReleaseBezierVertex)
     }
 
-    fn on_cursor_moved<S: AppState>(
+    fn on_cursor_moved<S: SceneAppState>(
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
@@ -725,22 +703,22 @@ impl DraggingTransitionTable for MovingBezierCorner {
         "Moving Bezier Corner"
     }
 
-    fn on_cursor_moved<S: AppState>(
+    fn on_cursor_moved<S: SceneAppState>(
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
         let moving_corner = cursor
             .context
             .get_current_cursor_intersection_with_bezier_plane(self.plane_id);
-        let origignal_corner_position = cursor
+        let original_corner_position = cursor
             .context
             .get_point_intersection_with_bezier_plane(self.plane_id, cursor.clicked_position);
 
-        moving_corner.zip(origignal_corner_position).map(
-            |(moving_corner, origignal_corner_position)| Consequence::MoveBezierCorner {
+        moving_corner.zip(original_corner_position).map(
+            |(moving_corner, original_corner_position)| Consequence::MoveBezierCorner {
                 plane_id: self.plane_id,
                 moving_corner: moving_corner.position(),
-                original_corner_position: origignal_corner_position.position(),
+                original_corner_position: original_corner_position.position(),
                 fixed_corner_position: self.fixed_corner_position,
             },
         )
@@ -775,12 +753,12 @@ impl DraggingTransitionTable for MovingBezierTangent {
         Some(Consequence::ReleaseBezierTangent)
     }
 
-    fn on_cursor_moved<S: AppState>(
+    fn on_cursor_moved<S: SceneAppState>(
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
-        let translate_only = cursor.context.get_modifiers().shift();
-        let full_symetry_other = cursor.context.get_modifiers().alt();
+        let translate_only = cursor.context.get_modifiers().shift_key();
+        let full_symmetry_other = cursor.context.get_modifiers().alt_key();
 
         let new_tangent = if translate_only {
             // Change the norm without changing the angle
@@ -804,7 +782,7 @@ impl DraggingTransitionTable for MovingBezierTangent {
             Consequence::MoveBezierTangent {
                 vertex_id: self.vertex_id,
                 tangent_in: self.tangent_in,
-                full_symetry_other,
+                full_symmetry_other,
                 new_vector: t,
             }
         })
@@ -824,7 +802,7 @@ impl DraggingTransitionTable for MovingRevolutionRadius {
         "Moving revolution radius"
     }
 
-    fn on_cursor_moved<S: AppState>(
+    fn on_cursor_moved<S: SceneAppState>(
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {

@@ -1,0 +1,226 @@
+use crate::design_element::DesignElementKey;
+use ahash::RandomState;
+use rand::{
+    Rng,
+    distr::{Distribution, StandardUniform},
+};
+use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, hash::Hash};
+
+/// A tree-like structure that references and organize all the data being edited.
+#[derive(Clone, Debug, Serialize)]
+pub enum OrganizerTree {
+    Leaf(DesignElementKey),
+    Node {
+        name: String,
+        #[serde(alias = "childrens")] // cspell: disable-line
+        children: Vec<Self>,
+        expanded: bool,
+        #[serde(default)]
+        id: Option<GroupId>,
+    },
+}
+
+impl OrganizerTree {
+    pub fn get_names_of_groups_having(&self, element: &DesignElementKey) -> Vec<String> {
+        let mut ret = Vec::new();
+        match self {
+            Self::Leaf(_) => (),
+            Self::Node { children, .. } => {
+                let rename = self.get_name_copy_with_id();
+                for c in children {
+                    match c {
+                        Self::Leaf(k) if k == element => ret.push(rename.clone()),
+                        Self::Leaf(_) => (),
+                        node @ Self::Node { .. } => {
+                            ret.extend(node.get_names_of_groups_having(element));
+                        }
+                    }
+                }
+            }
+        }
+        ret.dedup();
+        ret
+    }
+
+    // return the array of the names of all the groups in the tree
+    pub fn get_names_of_all_groups(&self) -> Vec<String> {
+        let mut ret = Vec::new();
+        match self {
+            Self::Leaf(_) => (),
+            Self::Node { children, .. } => {
+                ret.push(self.get_name_copy_with_id());
+                for c in children {
+                    ret.extend(c.get_names_of_all_groups());
+                }
+            }
+        }
+        ret.dedup();
+        ret
+    }
+
+    pub fn get_names_of_all_groups_without_id(&self) -> Vec<String> {
+        let mut ret = Vec::new();
+        match self {
+            Self::Leaf(_) => (),
+            Self::Node { children, .. } => {
+                if let Some(name) = self.get_name_copy() {
+                    ret.push(name);
+                }
+                for c in children {
+                    ret.extend(c.get_names_of_all_groups_without_id());
+                }
+            }
+        }
+        ret.dedup();
+        ret
+    }
+
+    pub fn get_name_copy(&self) -> Option<String> {
+        match self {
+            Self::Leaf(_) => None,
+            Self::Node { name, .. } => Some(name.clone()),
+        }
+    }
+
+    pub fn get_name_copy_with_id(&self) -> String {
+        match self {
+            Self::Leaf(_) => String::new(),
+            Self::Node { name, id, .. } => {
+                if let Some(GroupId(x)) = id {
+                    format!("{name}_{:0X}", x & 0xFFFF)
+                } else {
+                    name.clone()
+                }
+            }
+        }
+    }
+
+    pub fn get_hashmap_to_all_group_names_with_prefix(
+        &self,
+        prefix: &str,
+    ) -> HashMap<DesignElementKey, Vec<&str>, RandomState> {
+        let mut hashmap = HashMap::default();
+
+        match self {
+            Self::Leaf(_) => (),
+            Self::Node { name, children, .. } => {
+                let trimmed_name = name.trim();
+                let has_prefix = trimmed_name.starts_with(prefix);
+                for c in children {
+                    match c {
+                        Self::Leaf(e) => {
+                            let mut e_names: Vec<&str> =
+                                hashmap.get(e).cloned().unwrap_or(Vec::new());
+                            if has_prefix {
+                                e_names.push(trimmed_name);
+                            }
+                            hashmap.insert(*e, e_names);
+                        }
+                        Self::Node { .. } => {
+                            let c_hashmap = c.get_hashmap_to_all_group_names_with_prefix(prefix);
+                            for (e, e_names) in c_hashmap {
+                                let mut new_e_names: Vec<&str> =
+                                    hashmap.get(&e).cloned().unwrap_or(Vec::new());
+                                new_e_names.extend(e_names);
+                                if has_prefix {
+                                    new_e_names.push(trimmed_name);
+                                }
+                                hashmap.insert(e, new_e_names);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        hashmap
+    }
+}
+
+// NOTE: For compatibility reasons, we need to implement Deserialize ourselves for OrganizerTree.
+//       We want to be able to accept both the old format (pre 0.3.0) and the current format.
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+enum OldOrganizerTree {
+    Leaf(DesignElementKey),
+    Node(String, Vec<OrganizerTree>),
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+enum NewOrganizerTree {
+    Leaf(DesignElementKey),
+    Node {
+        name: String,
+        #[serde(alias = "childrens")] // cspell: disable-line
+        children: Vec<OrganizerTree>,
+        expanded: bool,
+        #[serde(default)]
+        id: Option<GroupId>,
+    },
+}
+
+impl OldOrganizerTree {
+    fn to_real(self) -> OrganizerTree {
+        match self {
+            Self::Leaf(k) => OrganizerTree::Leaf(k),
+            Self::Node(name, children) => OrganizerTree::Node {
+                name,
+                children,
+                expanded: false,
+                id: None,
+            },
+        }
+    }
+}
+
+impl NewOrganizerTree {
+    fn to_real(self) -> OrganizerTree {
+        match self {
+            Self::Leaf(k) => OrganizerTree::Leaf(k),
+            Self::Node {
+                name,
+                children,
+                expanded,
+                id,
+            } => OrganizerTree::Node {
+                name,
+                children,
+                expanded,
+                id,
+            },
+        }
+    }
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum NewOrOld {
+    New(NewOrganizerTree),
+    Old(OldOrganizerTree),
+}
+
+impl<'de> Deserialize<'de> for OrganizerTree {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        match NewOrOld::deserialize(deserializer) {
+            Ok(NewOrOld::New(new_tree)) => Ok(new_tree.to_real()),
+            Ok(NewOrOld::Old(old_tree)) => Ok(old_tree.to_real()),
+            Err(e) => Err(e),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+/// The identifier of a group.
+///
+/// Used to map groups to group attributes.
+pub struct GroupId(u64);
+
+impl Distribution<GroupId> for StandardUniform {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> GroupId {
+        let id: u64 = rng.random();
+        GroupId(id)
+    }
+}

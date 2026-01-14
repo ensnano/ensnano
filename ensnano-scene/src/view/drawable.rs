@@ -1,31 +1,13 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::SAMPLE_COUNT;
-use ensnano_design::ultraviolet;
-use ensnano_interactor::consts::*;
-use ensnano_utils::create_buffer_with_data;
-use ensnano_utils::texture::Texture;
-use ensnano_utils::wgpu;
+use ensnano_utils::{
+    consts::{SAMPLE_COUNT, VIEWER_BINDING_ID},
+    create_buffer_with_data,
+    texture::Texture,
+};
 use std::rc::Rc;
 use ultraviolet::Vec3;
-use wgpu::{include_spirv, Device, RenderPass, RenderPipeline};
+use wgpu::{Device, RenderPass, RenderPipeline, include_spirv};
 
-pub trait Drawable {
+pub(super) trait Drawable {
     fn indices() -> Vec<u16>;
     fn vertices(&self, fake: bool) -> Vec<Vertex>;
     fn primitive_topology() -> wgpu::PrimitiveTopology;
@@ -55,7 +37,7 @@ pub trait Drawable {
 }
 
 /// A structure that draw one object
-pub struct Drawer<D: Drawable> {
+pub(super) struct Drawer<D: Drawable> {
     device: Rc<Device>,
     /// An update in the axis defining the planes to be drawn
     new_object: Option<D>,
@@ -72,7 +54,7 @@ pub struct Drawer<D: Drawable> {
 }
 
 impl<D: Drawable> Drawer<D> {
-    pub fn new(device: Rc<Device>) -> Self {
+    pub(super) fn new(device: Rc<Device>) -> Self {
         let index_buffer = create_buffer_with_data(
             device.as_ref(),
             bytemuck::cast_slice(D::indices().as_slice()),
@@ -92,7 +74,7 @@ impl<D: Drawable> Drawer<D> {
         }
     }
 
-    pub fn new_object(&mut self, object: Option<D>) {
+    pub(super) fn new_object(&mut self, object: Option<D>) {
         if object.is_some() {
             self.new_object = object;
         } else {
@@ -101,7 +83,7 @@ impl<D: Drawable> Drawer<D> {
         }
     }
 
-    pub fn draw<'a>(
+    pub(super) fn draw<'a>(
         &'a mut self,
         render_pass: &mut RenderPass<'a>,
         viewer_bind_group: &'a wgpu::BindGroup,
@@ -112,7 +94,7 @@ impl<D: Drawable> Drawer<D> {
         if self.vertex_buffer.is_some() {
             let pipeline = if fake {
                 if self.pipeline_fake.is_none() {
-                    self.pipeline_fake = Some(self.create_pipeline(viewer_bind_group_layout, true))
+                    self.pipeline_fake = Some(self.create_pipeline(viewer_bind_group_layout, true));
                 }
                 self.pipeline_fake.as_ref().unwrap()
             } else {
@@ -151,10 +133,10 @@ impl<D: Drawable> Drawer<D> {
     ) -> RenderPipeline {
         let vertex_module = self
             .device
-            .create_shader_module(&include_spirv!("plane.vert.spv"));
+            .create_shader_module(include_spirv!("plane.vert.spv"));
         let fragment_module = self
             .device
-            .create_shader_module(&include_spirv!("plane.frag.spv"));
+            .create_shader_module(include_spirv!("plane.frag.spv"));
         let render_pipeline_layout =
             self.device
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -177,11 +159,11 @@ impl<D: Drawable> Drawer<D> {
 
         let sample_count = if !fake { SAMPLE_COUNT } else { 1 };
 
-        let targets = &[wgpu::ColorTargetState {
+        let targets = &[Some(wgpu::ColorTargetState {
             format,
             blend: Some(blend_state),
             write_mask: wgpu::ColorWrites::ALL,
-        }];
+        })];
         let strip_index_format = match self.primitive_topology {
             wgpu::PrimitiveTopology::LineStrip | wgpu::PrimitiveTopology::TriangleStrip => {
                 Some(wgpu::IndexFormat::Uint16)
@@ -231,7 +213,7 @@ impl<D: Drawable> Drawer<D> {
 
 #[derive(Debug, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 #[repr(C)]
-pub struct VertexRaw {
+pub(super) struct VertexRaw {
     pub position: [f32; 3],
     pub color: [f32; 4],
 }
@@ -239,23 +221,23 @@ pub struct VertexRaw {
 const VERTEX_ATTR_ARRAY: [wgpu::VertexAttribute; 2] =
     wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x4];
 impl VertexRaw {
-    pub fn buffer_desc<'a>() -> wgpu::VertexBufferLayout<'a> {
+    pub(super) fn buffer_desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         wgpu::VertexBufferLayout {
-            array_stride: std::mem::size_of::<VertexRaw>() as wgpu::BufferAddress,
+            array_stride: size_of::<Self>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &VERTEX_ATTR_ARRAY,
         }
     }
 }
 
-pub struct Vertex {
+pub(super) struct Vertex {
     pub position: Vec3,
     pub color: u32,
     pub fake: bool,
 }
 
 impl Vertex {
-    pub fn to_raw(&self, use_alpha: bool) -> VertexRaw {
+    pub(super) fn to_raw(&self, use_alpha: bool) -> VertexRaw {
         let alpha = if use_alpha || self.fake {
             ((self.color & 0xFF000000) >> 24) as f32 / 255.
         } else {
@@ -272,7 +254,7 @@ impl Vertex {
         }
     }
 
-    pub fn new(position: Vec3, color: u32, fake: bool) -> Self {
+    pub(super) fn new(position: Vec3, color: u32, fake: bool) -> Self {
         Self {
             position,
             color,

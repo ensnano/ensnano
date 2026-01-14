@@ -1,33 +1,21 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::*;
-
-use crate::flatscene::DesignReader as Reader2D;
+use crate::app_state::design_interactor::DesignInteractor;
 use ahash::RandomState;
-use ensnano_design::{Domain, Extremity, Helix, HelixInterval, Strand};
-use ensnano_interactor::{torsion::Torsion, Referential};
-use std::collections::{BTreeMap, HashMap};
-use std::sync::Arc;
-use ultraviolet::{Isometry2, Vec3};
+use ensnano_design::{
+    curves::time_nucl_map::AbscissaConverter,
+    domains::{Domain, helix_interval::HelixInterval},
+    helices::{Helices, NuclCollection},
+    nucl::Nucl,
+    strands::{Extremity, Strand},
+};
+use ensnano_flatscene::data::design::FlatSceneDesignReaderExt;
+use ensnano_utils::{Referential, torsion::Torsion};
+use std::{
+    collections::{BTreeMap, HashMap},
+    sync::Arc,
+};
+use ultraviolet::{Isometry2, Vec2, Vec3};
 
-impl Reader2D for DesignReader {
-    type NuclCollection = super::design_content::NuclCollection;
+impl FlatSceneDesignReaderExt for DesignInteractor {
     fn get_isometry(&self, h_id: usize, segment_idx: usize) -> Option<Isometry2> {
         if segment_idx == 0 {
             self.presenter
@@ -45,11 +33,7 @@ impl Reader2D for DesignReader {
         }
     }
 
-    fn get_helix_segment_symmetry(
-        &self,
-        h_id: usize,
-        segment_idx: usize,
-    ) -> Option<ensnano_design::Vec2> {
+    fn get_helix_segment_symmetry(&self, h_id: usize, segment_idx: usize) -> Option<Vec2> {
         if segment_idx == 0 {
             self.presenter
                 .current_design
@@ -70,13 +54,13 @@ impl Reader2D for DesignReader {
         let strand = self.presenter.current_design.strands.get(&s_id)?;
         let helices = &self.presenter.current_design.helices;
         let mut ret = Vec::new();
-        for domain in strand.domains.iter() {
+        for domain in &strand.domains {
             if let Domain::HelixDomain(domain) = domain {
                 ret.extend(split_domain_into_helices_segment(domain, helices));
             }
         }
         if strand.is_cyclic {
-            ret.push(ret[0])
+            ret.push(ret[0]);
         }
         Some(ret)
     }
@@ -86,7 +70,7 @@ impl Reader2D for DesignReader {
             .current_design
             .strands
             .keys()
-            .cloned()
+            .copied()
             .collect()
     }
 
@@ -102,15 +86,6 @@ impl Reader2D for DesignReader {
         HashMap::new()
     }
 
-    fn get_raw_helix(&self, h_id: usize) -> Option<Arc<Helix>> {
-        self.presenter
-            .current_design
-            .helices
-            .get(&h_id)
-            .cloned()
-            .map(|h| Arc::new(h))
-    }
-
     fn get_basis_map(&self) -> Arc<HashMap<Nucl, char, RandomState>> {
         self.presenter.content.letter_map.clone()
     }
@@ -124,11 +99,7 @@ impl Reader2D for DesignReader {
             .current_design
             .strands
             .get(&s_id)
-            .map(|s| s.get_insertions())
-    }
-
-    fn get_raw_strand(&self, s_id: usize) -> Option<Strand> {
-        self.presenter.current_design.strands.get(&s_id).cloned()
+            .map(Strand::get_insertions)
     }
 
     fn get_copy_points(&self) -> Vec<Vec<Nucl>> {
@@ -148,7 +119,7 @@ impl Reader2D for DesignReader {
             .content
             .nucl_collection
             .get_identifier(nucl)
-            .cloned()
+            .copied()
     }
 
     fn get_visibility_helix(&self, h_id: usize) -> Option<bool> {
@@ -173,7 +144,7 @@ impl Reader2D for DesignReader {
     }
 
     fn get_id_of_strand_containing_elt(&self, e_id: u32) -> Option<usize> {
-        self.presenter.content.strand_map.get(&e_id).cloned()
+        self.presenter.content.strand_map.get(&e_id).copied()
     }
 
     fn get_id_of_strand_containing_nucl(&self, nucl: &Nucl) -> Option<usize> {
@@ -181,7 +152,7 @@ impl Reader2D for DesignReader {
     }
 
     fn get_id_of_of_helix_containing_elt(&self, e_id: u32) -> Option<usize> {
-        self.presenter.content.helix_map.get(&e_id).cloned()
+        self.presenter.content.helix_map.get(&e_id).copied()
     }
 
     fn has_helix(&self, h_id: usize) -> bool {
@@ -200,15 +171,11 @@ impl Reader2D for DesignReader {
         self.prime5_of_which_strand(nucl)
     }
 
-    fn helix_is_empty(&self, h_id: usize) -> Option<bool> {
-        self.helix_is_empty(h_id)
-    }
-
     fn is_xover_end(&self, nucl: &Nucl) -> Extremity {
         self.is_xover_end(nucl)
     }
 
-    fn get_helices_map(&self) -> &ensnano_design::Helices {
+    fn get_helices_map(&self) -> &Helices {
         &self.presenter.current_design.helices
     }
 
@@ -217,16 +184,16 @@ impl Reader2D for DesignReader {
             .current_design
             .strands
             .values()
-            .flat_map(|s| Some([s.get_5prime()?, s.get_3prime()?]))
+            .filter_map(|s| Some([s.get_5prime()?, s.get_3prime()?]))
             .flatten()
             .collect()
     }
 
-    fn get_nucl_collection(&self) -> Arc<super::design_content::NuclCollection> {
+    fn get_nucl_collection(&self) -> Arc<NuclCollection> {
         self.presenter.content.nucl_collection.clone()
     }
 
-    fn get_abscissa_converter(&self, h_id: usize) -> ensnano_design::AbscissaConverter {
+    fn get_abscissa_converter(&self, h_id: usize) -> AbscissaConverter {
         self.presenter
             .current_design
             .try_get_up_to_date()
@@ -235,33 +202,15 @@ impl Reader2D for DesignReader {
     }
 }
 
-impl crate::flatscene::NuclCollection for super::design_content::NuclCollection {
-    fn contains(&self, nucl: &Nucl) -> bool {
-        self.contains_nucl(nucl)
-    }
-
-    fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Nucl> + 'a> {
-        self.iter_nucls()
-    }
-}
-
-fn split_domain_into_helices_segment(
-    domain: &HelixInterval,
-    helices: &ensnano_design::Helices,
-) -> Vec<Nucl> {
+fn split_domain_into_helices_segment(domain: &HelixInterval, helices: &Helices) -> Vec<Nucl> {
     let helix = helices.get(&domain.helix);
     let empty = vec![];
-    let additional_segments = helix.map(|h| &h.additional_isometries).unwrap_or(&empty);
+    let additional_segments = helix.map_or(&empty, |h| &h.additional_isometries);
     let mut ret = Vec::new();
 
-    let intermediate_positions: Vec<isize> = additional_segments
+    let mut iter = additional_segments
         .iter()
-        .map(|s| [s.left - 1, s.left])
-        .flatten()
-        .collect();
-
-    let mut iter = intermediate_positions
-        .into_iter()
+        .flat_map(|s| [s.left - 1, s.left])
         .skip_while(|pos| *pos <= domain.start);
 
     ret.push(Nucl {
@@ -287,25 +236,16 @@ fn split_domain_into_helices_segment(
     ret
 }
 
-#[cfg(test)]
-mod tests {
+// TODO
+// #[cfg(test)]
+// mod tests {
 
-    #[test]
-    #[ignore]
-    fn correct_suggestions() {
-        // TODO: write test, and implement function
-        assert!(false)
-    }
+//     #[test]
+//     fn correct_suggestions() {}
 
-    #[test]
-    #[ignore]
-    fn get_torsions_implemented() {
-        assert!(false)
-    }
+//     #[test]
+//     fn get_torsions_implemented() {}
 
-    #[test]
-    #[ignore]
-    fn get_correct_visibility_helix() {
-        assert!(false)
-    }
-}
+//     #[test]
+//     fn get_correct_visibility_helix() {}
+// }

@@ -1,0 +1,2004 @@
+//! This modules handles internal information about the scene, such as the selected objects etc..
+//! It also communicates with the designs to get the position of the objects to draw on the scene.
+
+pub mod design3d;
+
+use crate::{
+    SceneAppState,
+    camera::CameraController,
+    element_selector::{SceneElement, bezier_vertex_id},
+    view::{
+        Mesh, ViewPtr, ViewUpdate,
+        dna_obj::{RawDnaInstance, StereographicSphereAndPlane},
+        gltf_drawer::ExternalObjects,
+        grid_disc::GridDisc,
+        handle_drawer::{HandleColors, HandlesDescriptor},
+        instances_drawer::Instantiable as _,
+        letter::LetterInstance,
+        rotation_widget::{
+            AvailableRotationAxes, RotationWidgetDescriptor, RotationWidgetOrientation,
+        },
+    },
+};
+use ahash::RandomState;
+use design3d::{Design3D, SceneDesignReaderExt};
+use ensnano_design::{
+    bezier_plane::BezierVertexId,
+    curves::{SurfaceInfo, SurfacePoint},
+    external_3d_objects::External3DObjectsStamp,
+    grid::{GridId, GridObject, GridPosition},
+    interaction_modes::{ActionMode, SelectionMode},
+    nucl::Nucl,
+    phantom_element::PhantomElement,
+    selection::{CenterOfSelection, Selection, extract_helices_with_controls},
+};
+use ensnano_utils::{
+    ObjectType, Referential,
+    application::Camera3D,
+    consts::{
+        BOND_RADIUS, CANDIDATE_COLOR, CANDIDATE_SCALE_FACTOR, SELECT_SCALE_FACTOR, SELECTED_COLOR,
+        SPHERE_RADIUS,
+    },
+    graphics::HBondDisplay,
+};
+use serde::{Deserialize, Serialize};
+use std::{
+    collections::{BTreeMap, HashMap, HashSet},
+    rc::Rc,
+    sync::Arc,
+};
+use ultraviolet::{Rotor3, Vec3};
+
+pub struct Data<R: SceneDesignReaderExt> {
+    view: ViewPtr,
+    /// A `Design3D` is associated to each design.
+    designs: Vec<Design3D<R>>,
+    /// The set of candidates elements
+    candidate_element: Option<SceneElement>,
+    /// The kind of selection being performed if app_state.get_selection_mode() is SelectionMode::Nucl.
+    ///
+    /// Can be toggled by selecting the same element several
+    /// time
+    sub_selection_mode: SelectionMode,
+    /// A position determined by the current selection. If only one nucleotide is selected, it's
+    /// the position of the nucleotide.
+    selected_position: Option<Vec3>,
+    /// The element around which the camera rotates
+    pivot_element: Option<SceneElement>,
+    pivot_update: bool,
+    pivot_position: Option<Vec3>,
+    surface_pivot_position: Option<Vec3>,
+    free_xover: Option<FreeXover>,
+    free_xover_update: bool,
+    handle_needs_update: bool,
+    last_candidate_disc: Option<SceneElement>,
+    rotating_pivot: bool,
+    handle_colors: HandleColors,
+    stereographic_camera: Arc<(Camera3D, f32)>,
+    stereographic_camera_needs_update: bool,
+    external_3d_objects_stamps: Option<External3DObjectsStamp>,
+}
+
+impl<R: SceneDesignReaderExt> Data<R> {
+    pub fn new(reader: R, view: ViewPtr) -> Self {
+        Self {
+            view,
+            designs: vec![Design3D::new(reader, 0)],
+            candidate_element: None,
+            sub_selection_mode: SelectionMode::Nucleotide,
+            selected_position: None,
+            pivot_element: None,
+            pivot_update: false,
+            pivot_position: None,
+            free_xover: None,
+            free_xover_update: false,
+            handle_needs_update: false,
+            last_candidate_disc: None,
+            rotating_pivot: false,
+            handle_colors: HandleColors::Rgb,
+            stereographic_camera: Arc::new((Default::default(), 1.)),
+            stereographic_camera_needs_update: false,
+            external_3d_objects_stamps: None,
+            surface_pivot_position: None,
+        }
+    }
+
+    pub fn update_stereographic_camera(&mut self, camera_ptr: Arc<(Camera3D, f32)>) {
+        if Arc::as_ptr(&camera_ptr) != Arc::as_ptr(&self.stereographic_camera) {
+            self.stereographic_camera = camera_ptr;
+            self.stereographic_camera_needs_update = true;
+        }
+    }
+
+    /// Add a new design to be drawn
+    pub fn update_design_reader(&mut self, design_reader: R) {
+        self.designs[0] = Design3D::new(design_reader, 0);
+    }
+
+    /// Remove all designs to be drawn
+    pub fn clear_designs(&mut self) {
+        self.candidate_element = None;
+        self.reset_selection();
+        self.reset_candidate();
+        self.pivot_element = None;
+        self.pivot_position = None;
+        self.pivot_update = true;
+        self.view.borrow_mut().clear_design();
+    }
+
+    /// Forwards all needed update to the view
+    pub fn update_view<S: SceneAppState>(&mut self, app_state: &S, older_app_state: &S) {
+        if self.discs_need_update(app_state, older_app_state) {
+            self.update_discs(app_state);
+        }
+        if app_state.design_was_modified(older_app_state)
+            || app_state.suggestion_parameters_were_updated(older_app_state)
+            || app_state.draw_options_were_updated(older_app_state)
+            || app_state.insertion_bond_display_was_modified(older_app_state)
+            || app_state.selection_was_updated(older_app_state)
+            || app_state.revolution_bezier_updated(older_app_state)
+        {
+            for d in &mut self.designs {
+                d.all_helices_on_axis = app_state.get_draw_options().all_helices_on_axis;
+            }
+            self.update_instances(app_state);
+        }
+
+        if self.stereographic_camera_needs_update {
+            self.update_stereographic_sphere();
+            self.stereographic_camera_needs_update = false;
+        }
+
+        // If the color of a strand is being modified, we tell the view to highlight nothing.
+        if app_state.is_changing_color() {
+            self.update_selection(&[], app_state);
+        } else if app_state.selection_was_updated(older_app_state)
+            || app_state.design_was_modified(older_app_state)
+            || app_state.get_check_xover_parameters()
+                != older_app_state.get_check_xover_parameters()
+        {
+            self.update_selection(app_state.get_selection(), app_state);
+        }
+        self.handle_needs_update |= app_state.design_was_modified(older_app_state)
+            || app_state.selection_was_updated(older_app_state)
+            || app_state.get_action_mode() != older_app_state.get_action_mode();
+
+        if self.handle_needs_update {
+            self.update_bezier(app_state);
+            self.update_handle(app_state);
+            self.handle_needs_update = false;
+        }
+        if app_state.candidates_set_was_updated(older_app_state) {
+            self.update_candidate(app_state.get_candidates(), app_state);
+        }
+        if self.pivot_update {
+            self.update_pivot();
+            self.pivot_update = false;
+        }
+        if self.free_xover_update || app_state.candidates_set_was_updated(older_app_state) {
+            self.update_free_xover(app_state.get_candidates());
+            self.free_xover_update = false;
+        }
+
+        if app_state.design_model_matrix_was_updated(older_app_state) {
+            self.update_matrices();
+        }
+
+        self.update_external_3d_objects(app_state);
+    }
+
+    fn update_stereographic_sphere(&self) {
+        let instances = Rc::new(vec![
+            StereographicSphereAndPlane {
+                position: self.stereographic_camera.0.position,
+                orientation: self.stereographic_camera.0.orientation.reversed(),
+                ratio: self.stereographic_camera.1,
+            }
+            .to_raw_instance(),
+        ]);
+        self.view
+            .borrow_mut()
+            .update(ViewUpdate::RawDna(Mesh::StereographicSphere, instances));
+    }
+
+    fn update_external_3d_objects<S: SceneAppState>(&mut self, app_state: &S) {
+        let reader = app_state.get_design_reader();
+        let external_objects = reader.get_external_objects();
+        if let Some(new_stamp) = external_objects.was_updated(self.external_3d_objects_stamps) {
+            self.external_3d_objects_stamps = Some(new_stamp);
+            let objects: Vec<_> = external_objects
+                .iter()
+                .map(|(id, obj)| (*id, obj.clone()))
+                .collect();
+            if let Some(mut path_base) = app_state.get_design_path() {
+                path_base.pop();
+                self.view
+                    .borrow_mut()
+                    .update(ViewUpdate::External3DObjects(ExternalObjects {
+                        path_base,
+                        objects,
+                    }));
+            }
+        }
+        let unrooted_surface = app_state.get_current_unrooted_surface();
+        self.view
+            .borrow_mut()
+            .update(ViewUpdate::UnrootedSurface(unrooted_surface));
+    }
+
+    pub fn get_aligned_camera(&self) -> Camera3D {
+        let mut ret = Camera3D::clone(&self.stereographic_camera.0);
+        ret.position += ret.orientation.reversed() * (10. * Vec3::unit_z());
+        ret
+    }
+
+    fn discs_need_update<S: SceneAppState>(&mut self, app_state: &S, older_app_state: &S) -> bool {
+        let ret = app_state.design_was_modified(older_app_state)
+            || app_state.selection_was_updated(older_app_state)
+            || app_state.candidates_set_was_updated(older_app_state)
+            || self.last_candidate_disc != self.candidate_element;
+        self.last_candidate_disc = self.candidate_element;
+        ret
+    }
+
+    fn update_bezier<S: SceneAppState>(&self, app_state: &S) {
+        let selected_helices = extract_helices_with_controls(app_state.get_selection());
+        log::debug!("selected helices {selected_helices:?}");
+        let mut spheres = Vec::new();
+        let mut tubes = Vec::new();
+        for h_id in selected_helices {
+            let (s, t) = self.designs[0].get_bezier_elements(h_id);
+            spheres.extend(s);
+            tubes.extend(t);
+        }
+
+        self.view
+            .borrow_mut()
+            .update(ViewUpdate::RawDna(Mesh::BezierControl, Rc::new(spheres)));
+        self.view
+            .borrow_mut()
+            .update(ViewUpdate::RawDna(Mesh::BezierSkeleton, Rc::new(tubes)));
+    }
+
+    fn update_handle<S: SceneAppState>(&self, app_state: &S) {
+        log::debug!("updating handle {:?} ", self.selected_element(app_state));
+        let pivot = app_state.get_current_group_pivot();
+        let origin = pivot
+            .as_ref()
+            .map(|p| p.position)
+            .or_else(|| self.get_selected_position());
+        let forced_orientation = self.get_forced_widget_basis(app_state);
+        let orientation = forced_orientation.or_else(|| {
+            pivot
+                .as_ref()
+                .map(|p| p.orientation)
+                .or_else(|| self.get_widget_basis(app_state))
+        });
+        let handle_descr =
+            if app_state.get_action_mode().0 == ActionMode::Translate || self.rotating_pivot {
+                let colors = if self.rotating_pivot {
+                    HandleColors::Rgb
+                } else {
+                    self.handle_colors
+                };
+                origin
+                    .zip(orientation)
+                    .map(|(origin, orientation)| HandlesDescriptor {
+                        origin,
+                        orientation,
+                        size: 0.25,
+                        colors,
+                    })
+            } else {
+                None
+            };
+        log::debug!("{handle_descr:?}");
+        self.view
+            .borrow_mut()
+            .update(ViewUpdate::Handles(handle_descr));
+        let available_rotation_axes = if app_state.has_selected_a_bezier_grid() {
+            AvailableRotationAxes::NoZ
+        } else {
+            AvailableRotationAxes::All
+        };
+        let rotation_widget_descr = if app_state.get_action_mode().0 == ActionMode::Rotate {
+            origin
+                .zip(orientation)
+                .map(|(origin, orientation)| RotationWidgetDescriptor {
+                    origin,
+                    orientation: RotationWidgetOrientation::Rotor(orientation),
+                    size: 0.2,
+                    available_rotation_axes,
+                    colors: self.handle_colors,
+                })
+        } else {
+            None
+        };
+        self.view
+            .borrow_mut()
+            .update(ViewUpdate::RotationWidget(rotation_widget_descr));
+    }
+
+    pub fn set_pivot_element<S: SceneAppState>(
+        &mut self,
+        element: Option<SceneElement>,
+        app_state: &S,
+    ) {
+        self.pivot_update |= self.pivot_element != element;
+        self.pivot_element = element;
+        self.update_pivot_position(app_state);
+    }
+
+    pub fn set_pivot_position(&mut self, position: Vec3) {
+        self.pivot_position = Some(position);
+        self.pivot_update = true;
+    }
+
+    /// Convert a selection into a set of elements
+    fn expand_selection(
+        &self,
+        object_type: ObjectType,
+        selection: &Selection,
+    ) -> Vec<SceneElement> {
+        let d_id = selection.get_design();
+        if d_id.is_none() {
+            return vec![];
+        }
+        let d_id = d_id.unwrap() as usize;
+        let mut ret = Vec::new();
+        if let Selection::Nucleotide(d_id, nucl) = selection {
+            if !object_type.is_bond() {
+                if let Some(n_id) = self.designs[*d_id as usize].get_identifier_nucl(nucl) {
+                    ret.push(SceneElement::DesignElement(*d_id, n_id));
+                } else {
+                    ret.push(SceneElement::PhantomElement(PhantomElement {
+                        design_id: *d_id,
+                        helix_id: nucl.helix as u32,
+                        position: nucl.position as i32,
+                        forward: nucl.forward,
+                        bond: false,
+                    }));
+                }
+            }
+        } else if let Selection::Bond(d_id, n1, n2) = selection {
+            if object_type.is_bond() {
+                if let Some(b_id) = self.designs[*d_id as usize].get_identifier_bond(*n1, *n2) {
+                    ret.push(SceneElement::DesignElement(*d_id, b_id));
+                } else {
+                    ret.push(SceneElement::PhantomElement(PhantomElement {
+                        design_id: *d_id,
+                        helix_id: n1.helix as u32,
+                        position: n1.position as i32,
+                        forward: n1.forward,
+                        bond: true,
+                    }));
+                }
+            }
+        } else if let Selection::Xover(d_id, xover_id) = selection {
+            if object_type.is_bond()
+                && let Some(b_id) =
+                    self.designs[*d_id as usize].get_element_identifier_from_xover_id(*xover_id)
+            {
+                ret.push(SceneElement::DesignElement(*d_id, b_id));
+            }
+        } else {
+            let group = self.get_group_member(selection);
+            for elt in &group {
+                if self.designs[d_id]
+                    .get_element_type(*elt)
+                    .is_some_and(|elt| elt.same_type(&object_type))
+                {
+                    ret.push(SceneElement::DesignElement(d_id as u32, *elt));
+                }
+            }
+        }
+        ret
+    }
+
+    /// Return the instances of selected spheres
+    pub fn get_selected_spheres<S: SceneAppState>(
+        &self,
+        selection: &[Selection],
+        app_state: &S,
+    ) -> Vec<RawDnaInstance> {
+        let mut ret = Vec::new();
+        for selection in selection {
+            for element in &self.expand_selection(ObjectType::Nucleotide(0), selection) {
+                match element {
+                    SceneElement::DesignElement(d_id, id) => {
+                        let instances = self.designs[*d_id as usize].make_instance(
+                            *id,
+                            SELECTED_COLOR,
+                            SELECT_SCALE_FACTOR
+                                * self.designs[*d_id as usize]
+                                    .design_reader
+                                    .get_radius(*id)
+                                    .unwrap(),
+                            Some(design3d::ExpandWith::Spheres)
+                                .filter(|_| !app_state.show_insertion_discriminants()),
+                        );
+                        ret.extend(instances.iter());
+                    }
+                    SceneElement::PhantomElement(phantom_element) => {
+                        if let Some(instance) = self
+                            .designs
+                            .get(phantom_element.design_id as usize)
+                            .and_then(|d| {
+                                d.make_instance_phantom(
+                                    phantom_element,
+                                    SELECTED_COLOR,
+                                    SELECT_SCALE_FACTOR * SPHERE_RADIUS,
+                                )
+                            })
+                        {
+                            ret.push(instance);
+                        }
+                    }
+                    _ => unreachable!(),
+                }
+            }
+        }
+        ret
+    }
+
+    /// Return the instances of selected tubes
+    pub fn get_selected_tubes<S: SceneAppState>(
+        &self,
+        selection: &[Selection],
+        app_state: &S,
+    ) -> Rc<Vec<RawDnaInstance>> {
+        let mut ret = Vec::new();
+        for selection in selection {
+            for element in &self.expand_selection(ObjectType::Bond(0, 0), selection) {
+                match element {
+                    SceneElement::DesignElement(d_id, id) => {
+                        let instance = self.designs[*d_id as usize].make_instance(
+                            *id,
+                            SELECTED_COLOR,
+                            SELECT_SCALE_FACTOR
+                                * self.designs[*d_id as usize]
+                                    .design_reader
+                                    .get_radius(*id)
+                                    .unwrap(),
+                            Some(design3d::ExpandWith::Tubes)
+                                .filter(|_| !app_state.show_insertion_discriminants()),
+                        );
+                        ret.extend(instance);
+                    }
+                    SceneElement::PhantomElement(phantom_element) => {
+                        if let Some(instance) = self
+                            .designs
+                            .get(phantom_element.design_id as usize)
+                            .and_then(|d| {
+                                d.make_instance_phantom(
+                                    phantom_element,
+                                    SELECTED_COLOR,
+                                    SELECT_SCALE_FACTOR * BOND_RADIUS,
+                                )
+                            })
+                        {
+                            ret.push(instance);
+                        }
+                    }
+                    _ => unreachable!(),
+                }
+            }
+        }
+        Rc::new(ret)
+    }
+
+    /// Return the instances of candidate spheres
+    pub fn get_candidate_spheres<S: SceneAppState>(
+        &self,
+        candidates: &[Selection],
+        app_state: &S,
+    ) -> Rc<Vec<RawDnaInstance>> {
+        let mut ret = Vec::new();
+        for candidate in candidates {
+            for element in &self.expand_selection(ObjectType::Nucleotide(0), candidate) {
+                match element {
+                    SceneElement::DesignElement(d_id, id) => {
+                        let instances = self.designs[*d_id as usize].make_instance(
+                            *id,
+                            CANDIDATE_COLOR,
+                            CANDIDATE_SCALE_FACTOR
+                                * self.designs[*d_id as usize]
+                                    .design_reader
+                                    .get_radius(*id)
+                                    .unwrap(),
+                            Some(design3d::ExpandWith::Spheres)
+                                .filter(|_| !app_state.show_insertion_discriminants()),
+                        );
+                        ret.extend(instances);
+                    }
+                    SceneElement::PhantomElement(phantom_element) => {
+                        if let Some(instance) = self
+                            .designs
+                            .get(phantom_element.design_id as usize)
+                            .and_then(|d| {
+                                d.make_instance_phantom(
+                                    phantom_element,
+                                    CANDIDATE_COLOR,
+                                    CANDIDATE_SCALE_FACTOR * SPHERE_RADIUS,
+                                )
+                            })
+                        {
+                            ret.push(instance);
+                        }
+                    }
+                    _ => unreachable!(),
+                }
+            }
+        }
+        Rc::new(ret)
+    }
+
+    /// Return the instances of candidate tubes
+    pub fn get_candidate_tubes<S: SceneAppState>(
+        &self,
+        candidates: &[Selection],
+        app_state: &S,
+    ) -> Rc<Vec<RawDnaInstance>> {
+        let mut ret = Vec::new();
+        for candidate in candidates {
+            for element in &self.expand_selection(ObjectType::Bond(0, 0), candidate) {
+                match element {
+                    SceneElement::DesignElement(d_id, id) => {
+                        let instances = self.designs[*d_id as usize].make_instance(
+                            *id,
+                            CANDIDATE_COLOR,
+                            CANDIDATE_SCALE_FACTOR
+                                * self.designs[*d_id as usize]
+                                    .design_reader
+                                    .get_radius(*id)
+                                    .unwrap(),
+                            Some(design3d::ExpandWith::Tubes)
+                                .filter(|_| !app_state.show_insertion_discriminants()),
+                        );
+                        ret.extend(instances);
+                    }
+                    SceneElement::PhantomElement(phantom_element) => {
+                        if let Some(instance) = self
+                            .designs
+                            .get(phantom_element.design_id as usize)
+                            .and_then(|d| {
+                                d.make_instance_phantom(
+                                    phantom_element,
+                                    CANDIDATE_COLOR,
+                                    CANDIDATE_SCALE_FACTOR * BOND_RADIUS,
+                                )
+                            })
+                        {
+                            ret.push(instance);
+                        }
+                    }
+                    _ => unreachable!(),
+                }
+            }
+        }
+        Rc::new(ret)
+    }
+
+    /// Return the identifier of the group of the selected element
+    pub fn get_selected_group<S: SceneAppState>(&self, app_state: &S) -> Option<u32> {
+        match self.selected_element(app_state) {
+            Some(SceneElement::DesignElement(design_id, element_id)) => {
+                let selection_mode = self.get_sub_selection_mode(app_state);
+                self.get_group_identifier(design_id, element_id, selection_mode)
+            }
+            Some(SceneElement::PhantomElement(phantom_element)) => Some(phantom_element.helix_id),
+            Some(SceneElement::Grid(_, GridId::FreeGrid(g_id))) => Some(g_id as u32),
+            Some(SceneElement::Grid(_, GridId::BezierPathGrid(vertex))) => {
+                Some(bezier_vertex_id(vertex.path_id, vertex.vertex_id))
+            }
+            _ => None,
+        }
+    }
+
+    /// Return the group to which an element belongs. The group depends on app_state.get_selection_mode().
+    fn get_group_identifier(
+        &self,
+        design_id: u32,
+        element_id: u32,
+        selection_mode: SelectionMode,
+    ) -> Option<u32> {
+        match selection_mode {
+            SelectionMode::Nucleotide => Some(element_id),
+            SelectionMode::Design => Some(design_id),
+            SelectionMode::Strand => self.designs[design_id as usize]
+                .get_strand(element_id)
+                .map(|x| x as u32),
+            SelectionMode::Helix => self.designs[design_id as usize]
+                .get_helix(element_id)
+                .map(|x| x as u32),
+        }
+    }
+
+    fn get_helix_identifier(&self, design_id: u32, element_id: u32) -> Option<u32> {
+        self.designs[design_id as usize]
+            .get_helix(element_id)
+            .map(|x| x as u32)
+    }
+
+    /// Return the set of elements in a given group
+    fn get_group_member(&self, element: &Selection) -> HashSet<u32> {
+        match element {
+            Selection::Nucleotide(d_id, nucl) => self.designs[*d_id as usize]
+                .get_identifier_nucl(nucl)
+                .iter()
+                .copied()
+                .collect(),
+            Selection::Bond(d_id, n1, n2) => self.designs[*d_id as usize]
+                .get_identifier_bond(*n1, *n2)
+                .iter()
+                .copied()
+                .collect(),
+            Selection::Xover(d_id, xover_id) => self.designs[*d_id as usize]
+                .get_element_identifier_from_xover_id(*xover_id)
+                .iter()
+                .copied()
+                .collect(),
+            Selection::Helix {
+                design_id,
+                helix_id,
+                ..
+            } => self.designs[*design_id as usize].get_helix_elements(*helix_id as u32),
+            Selection::Strand(d_id, s_id) => {
+                self.designs[*d_id as usize].get_strand_elements(*s_id)
+            }
+            // A grid is not made of atomic elements
+            Selection::Design(d_id) => self.designs[*d_id as usize].get_all_elements(),
+            Selection::BezierControlPoint { .. }
+            | Selection::Grid(_, _)
+            | Selection::Phantom(_)
+            | Selection::BezierVertex(_)
+            | Selection::Nothing => HashSet::new(),
+        }
+    }
+
+    /// Return the position of a given element, either in the world pov or in the model pov
+    fn get_element_position(
+        &self,
+        element: &SceneElement,
+        referential: Referential,
+        selection_mode: SelectionMode,
+    ) -> Option<Vec3> {
+        if let SceneElement::BezierControl {
+            helix_id,
+            bezier_control,
+        } = element
+        {
+            self.designs
+                .first()
+                .and_then(|d| d.get_control_point(*helix_id, *bezier_control))
+        } else {
+            let design_id = element.get_design()?;
+            let design = self.designs.get(design_id as usize)?;
+            match selection_mode {
+                SelectionMode::Helix => design
+                    .get_element_axis_position(element, referential)
+                    .or_else(|| design.get_element_position(element, referential)),
+                SelectionMode::Nucleotide | SelectionMode::Strand | SelectionMode::Design => {
+                    design.get_element_position(element, referential)
+                }
+            }
+        }
+    }
+
+    pub fn get_selected_position(&self) -> Option<Vec3> {
+        self.selected_position
+    }
+
+    pub fn try_update_pivot_position<S: SceneAppState>(&mut self, app_state: &S) {
+        if self.pivot_element.is_none() {
+            self.pivot_element = self.selected_element(app_state);
+            self.pivot_update = true;
+            self.update_pivot_position(app_state);
+        }
+    }
+
+    pub fn get_pivot_position(&self) -> Option<Vec3> {
+        self.pivot_position.or(self.selected_position)
+    }
+
+    /// Update the selection by selecting the group to which a given nucleotide belongs. Return the
+    /// selected group
+    pub fn set_selection<S: SceneAppState>(
+        &mut self,
+        element: Option<SceneElement>,
+        app_state: &S,
+    ) -> (Option<Selection>, Option<CenterOfSelection>) {
+        self.handle_needs_update = true;
+        if let Some(SceneElement::WidgetElement(_)) = element {
+            return (None, None);
+        }
+        log::debug!("selected {element:?}");
+        let future_selection = element;
+        let new_center_of_selection =
+            element.and_then(|element| self.scene_element_to_center_of_selection(element));
+        if self.selected_element(app_state) == future_selection {
+            self.sub_selection_mode = toggle_selection(self.sub_selection_mode);
+        } else {
+            self.sub_selection_mode = SelectionMode::Nucleotide;
+        }
+        self.update_selected_position(app_state);
+        log::debug!("selected position: {:?}", self.selected_position);
+        let selection_mode = if app_state.get_selection_mode() == SelectionMode::Nucleotide {
+            self.sub_selection_mode
+        } else {
+            app_state.get_selection_mode()
+        };
+        let selection = if let Some(element) = element.as_ref() {
+            self.element_to_selection(element, selection_mode)
+        } else {
+            Selection::Nothing
+        };
+        (Some(selection), new_center_of_selection)
+    }
+
+    pub fn to_selection<S: SceneAppState>(
+        &self,
+        element: Option<SceneElement>,
+        app_state: &S,
+    ) -> Option<Selection> {
+        if let Some(SceneElement::WidgetElement(_)) = element {
+            return None;
+        }
+        let selection = if let Some(element) = element.as_ref() {
+            self.element_to_selection(element, app_state.get_selection_mode())
+        } else {
+            Selection::Nothing
+        };
+        Some(selection).filter(|s| *s != Selection::Nothing)
+    }
+
+    pub fn add_to_selection<S: SceneAppState>(
+        &mut self,
+        element: Option<SceneElement>,
+        selection: &[Selection],
+        app_state: &S,
+    ) -> Option<(Vec<Selection>, Option<CenterOfSelection>)> {
+        if let Some(SceneElement::WidgetElement(_)) = element {
+            return None;
+        }
+        let mut center_of_selection: Option<CenterOfSelection> = None;
+        self.sub_selection_mode = SelectionMode::Nucleotide;
+        let selected = if let Some(element) = element.as_ref() {
+            self.element_to_selection(element, app_state.get_selection_mode())
+        } else {
+            Selection::Nothing
+        };
+        if let Some(element) = element {
+            center_of_selection = self.scene_element_to_center_of_selection(element);
+        }
+        if selected == Selection::Nothing {
+            None
+        } else {
+            let mut new_selection = selection.to_vec();
+            if let Some(pos) = new_selection.iter().position(|x| *x == selected) {
+                new_selection.remove(pos);
+            } else {
+                new_selection.push(selected);
+            }
+            Some((new_selection, center_of_selection))
+        }
+    }
+
+    /// If source is some nucleotide, target is some nucleotide and both nucleotides are
+    /// on the same design, return the pair of nucleotides. Otherwise return None
+    pub fn attempt_xover(
+        &self,
+        source: Option<&SceneElement>,
+        target: Option<&SceneElement>,
+    ) -> Option<(Nucl, Nucl, usize)> {
+        let design_id;
+        let source_nucl = if let Some(SceneElement::DesignElement(d_id, e_id)) = source {
+            design_id = *d_id;
+            self.designs[*d_id as usize].get_nucl_relax(*e_id)
+        } else {
+            design_id = 0;
+            None
+        }?;
+        let target_nucl = if let Some(SceneElement::DesignElement(d_id, e_id)) = target {
+            if design_id != *d_id {
+                return None;
+            }
+            self.designs[design_id as usize].get_nucl_relax(*e_id)
+        } else {
+            None
+        }?;
+        Some((source_nucl, target_nucl, design_id as usize))
+    }
+
+    fn update_selected_position<S: SceneAppState>(&mut self, app_state: &S) {
+        log::trace!("updating selected position");
+        let selection_mode = self.get_sub_selection_mode(app_state);
+        self.selected_position = {
+            if let Some(element) = self.selected_element(app_state).as_ref() {
+                self.get_element_position(element, Referential::World, selection_mode)
+            } else {
+                None
+            }
+        };
+    }
+
+    fn update_pivot_position<S: SceneAppState>(&mut self, app_state: &S) {
+        self.pivot_position = {
+            if let Some(element) = self.pivot_element.as_ref() {
+                self.get_element_position(
+                    element,
+                    Referential::World,
+                    app_state.get_selection_mode(),
+                )
+            } else {
+                None
+            }
+        };
+    }
+
+    /// Clear self.selected
+    pub fn reset_selection(&mut self) {
+        self.selected_position = None;
+    }
+
+    /// Notify the view that the selected elements have been modified
+    fn update_selection<S: SceneAppState>(&mut self, selection: &[Selection], app_state: &S) {
+        // little hack to avoid going several time through the same helix if several segments are
+        // selected
+        let mut selection_: Vec<_> = selection
+            .iter()
+            .copied()
+            .map(|s| {
+                if let Selection::Helix {
+                    design_id,
+                    helix_id,
+                    ..
+                } = s
+                {
+                    Selection::Helix {
+                        design_id,
+                        helix_id,
+                        segment_id: 0,
+                    }
+                } else {
+                    s
+                }
+            })
+            .collect();
+        selection_.sort();
+        selection_.dedup();
+        let selection = selection_.as_slice();
+
+        log::trace!("Update selection {selection:?}");
+        let mut sphere = self.get_selected_spheres(selection, app_state);
+        let tubes = self.get_selected_tubes(selection, app_state);
+        let pos: Vec3 = sphere
+            .iter()
+            .chain(tubes.iter())
+            .map(|i| i.model.extract_translation())
+            .sum();
+        let total_len = sphere.len() + tubes.len();
+        let non_nucl_selection = selection.len() > 1;
+        if non_nucl_selection && total_len > 1 {
+            log::trace!("Not using center_of_selection");
+            self.selected_position = Some(pos / (total_len as f32));
+        } else {
+            log::trace!("Using center_of_selection for updating self.selected_position");
+            self.update_selected_position(app_state);
+            self.selected_position = self.selected_position.or(Some(pos / (total_len as f32)));
+        }
+        if app_state.get_check_xover_parameters().wants_checked() {
+            sphere.extend(
+                self.designs
+                    .first()
+                    .map(|d| d.get_all_checked_xover_instance(true))
+                    .unwrap_or_default(),
+            );
+        }
+        if app_state.get_check_xover_parameters().wants_unchecked() {
+            sphere.extend(
+                self.designs
+                    .first()
+                    .map(|d| d.get_all_checked_xover_instance(false))
+                    .unwrap_or_default(),
+            );
+        }
+        self.view.borrow_mut().update(ViewUpdate::RawDna(
+            Mesh::SelectedTube,
+            self.get_selected_tubes(selection, app_state),
+        ));
+        self.view
+            .borrow_mut()
+            .update(ViewUpdate::RawDna(Mesh::SelectedSphere, Rc::new(sphere)));
+        let (sphere, vec) = self.get_phantom_instances(app_state);
+        self.view
+            .borrow_mut()
+            .update(ViewUpdate::RawDna(Mesh::PhantomSphere, sphere));
+        self.view
+            .borrow_mut()
+            .update(ViewUpdate::RawDna(Mesh::PhantomTube, vec));
+        let mut grids =
+            if let Some(SceneElement::Grid(d_id, g_id)) = self.selected_element(app_state) {
+                vec![(d_id as usize, g_id)]
+            } else {
+                vec![]
+            };
+        for s in selection {
+            if let Selection::Grid(d_id, g_id) = s {
+                grids.push((*d_id as usize, *g_id));
+            }
+        }
+        self.view.borrow_mut().set_selected_grid(grids);
+    }
+
+    /// Return the sets of elements of the phantom helix
+    pub fn get_phantom_instances<S: SceneAppState>(
+        &self,
+        app_state: &S,
+    ) -> (Rc<Vec<RawDnaInstance>>, Rc<Vec<RawDnaInstance>>) {
+        let phantom_map = self.get_phantom_helices_set(app_state);
+        let mut ret_sphere = Vec::new();
+        let mut ret_tube = Vec::new();
+        for (d_id, set) in &phantom_map {
+            let (spheres, tubes) =
+                self.designs[*d_id as usize].make_phantom_helix_instances_raw(set);
+            for sphere in spheres.iter().copied() {
+                ret_sphere.push(sphere);
+            }
+            for tube in tubes.iter().copied() {
+                ret_tube.push(tube);
+            }
+        }
+        (Rc::new(ret_sphere), Rc::new(ret_tube))
+    }
+
+    /// Return a hashmap, mapping designs identifier to the set of helices whose phantom must be
+    /// drawn.
+    fn get_phantom_helices_set<S: SceneAppState>(
+        &self,
+        app_state: &S,
+    ) -> HashMap<u32, HashMap<u32, bool>> {
+        let mut ret = HashMap::new();
+
+        for (d_id, design) in self.designs.iter().enumerate() {
+            let new_helices = design.get_persistent_phantom_helices();
+            let set = ret.entry(d_id as u32).or_insert_with(HashMap::new);
+            for h_id in &new_helices {
+                set.insert(*h_id, true);
+            }
+        }
+        if self.must_draw_phantom(app_state) {
+            match self.selected_element(app_state) {
+                Some(SceneElement::DesignElement(d_id, elt_id)) => {
+                    let set = ret.entry(d_id).or_insert_with(HashMap::new);
+                    if let Some(h_id) = self.get_helix_identifier(d_id, elt_id) {
+                        set.insert(h_id, false);
+                    }
+                }
+                Some(SceneElement::PhantomElement(phantom_element)) => {
+                    let set = ret
+                        .entry(phantom_element.design_id)
+                        .or_insert_with(HashMap::new);
+                    set.insert(phantom_element.helix_id, false);
+                }
+                Some(SceneElement::Grid(d_id, g_id)) => {
+                    let new_helices = self.designs[d_id as usize]
+                        .get_helices_grid(g_id)
+                        .unwrap_or_default();
+                    let set = ret.entry(d_id).or_insert_with(HashMap::new);
+                    for h_id in &new_helices {
+                        set.insert(*h_id as u32, true);
+                    }
+                }
+                Some(SceneElement::GridCircle(d_id, position)) => {
+                    if let Some(h_id) = self.designs[d_id as usize].get_helix_grid(position) {
+                        let set = ret.entry(d_id).or_insert_with(HashMap::new);
+                        set.insert(h_id, false);
+                    }
+                }
+                Some(SceneElement::BezierControl { helix_id, .. }) => {
+                    let set = ret.entry(0).or_insert_with(HashMap::new);
+                    set.insert(helix_id as u32, false);
+                }
+                Some(SceneElement::WidgetElement(_)) => unreachable!(),
+                Some(
+                    SceneElement::BezierVertex { .. }
+                    | SceneElement::BezierTangent { .. }
+                    | SceneElement::PlaneCorner { .. },
+                )
+                | None => {}
+            }
+        }
+        ret
+    }
+
+    fn must_draw_phantom<S: SceneAppState>(&self, app_state: &S) -> bool {
+        app_state.get_selection_mode() == SelectionMode::Helix
+            || self
+                .selected_element(app_state)
+                .iter()
+                .any(|element| matches!(element, SceneElement::PhantomElement(_)))
+    }
+
+    pub fn element_to_selection(
+        &self,
+        element: &SceneElement,
+        selection_mode: SelectionMode,
+    ) -> Selection {
+        match element {
+            SceneElement::DesignElement(design_id, element_id) => {
+                if let Some(group_id) =
+                    self.get_group_identifier(*design_id, *element_id, selection_mode)
+                {
+                    match selection_mode {
+                        SelectionMode::Design => Selection::Design(*design_id),
+                        SelectionMode::Strand => Selection::Strand(*design_id, group_id),
+                        SelectionMode::Nucleotide => {
+                            let nucl = self.designs[*design_id as usize].get_nucl(group_id);
+                            let bond = self.designs[*design_id as usize].get_bond(group_id);
+                            let xover_id = bond.as_ref().and_then(|xover| {
+                                self.designs[*design_id as usize].get_xover_id(xover)
+                            });
+                            if let Some(nucl) = nucl {
+                                Selection::Nucleotide(*design_id, nucl)
+                            } else if let Some(id) = xover_id {
+                                Selection::Xover(*design_id, id)
+                            } else if let Some((n1, n2)) = bond {
+                                Selection::Bond(*design_id, n1, n2)
+                            } else {
+                                Selection::Nothing
+                            }
+                        }
+                        SelectionMode::Helix => Selection::Helix {
+                            design_id: *design_id,
+                            helix_id: group_id as usize,
+                            segment_id: 0,
+                        },
+                    }
+                } else {
+                    Selection::Nothing
+                }
+            }
+            SceneElement::Grid(d_id, g_id) => Selection::Grid(*d_id, *g_id),
+            SceneElement::GridCircle(d_id, position) => {
+                let helix = self
+                    .designs
+                    .get(*d_id as usize)
+                    .and_then(|d| d.get_helix_grid(*position))
+                    .map(|h_id| Selection::Helix {
+                        design_id: *d_id,
+                        helix_id: h_id as usize,
+                        segment_id: 0,
+                    });
+                helix.unwrap_or(Selection::Grid(*d_id, position.grid))
+            }
+            SceneElement::PhantomElement(phantom) if phantom.bond => Selection::Bond(
+                phantom.design_id,
+                phantom.to_nucl(),
+                phantom.to_nucl().left(),
+            ),
+            SceneElement::PhantomElement(phantom) => {
+                if selection_mode == SelectionMode::Helix {
+                    Selection::Helix {
+                        design_id: phantom.design_id,
+                        helix_id: phantom.to_nucl().helix,
+                        segment_id: 0,
+                    }
+                } else {
+                    Selection::Nucleotide(phantom.design_id, phantom.to_nucl())
+                }
+            }
+            SceneElement::BezierControl {
+                bezier_control,
+                helix_id,
+            } => Selection::BezierControlPoint {
+                bezier_control: *bezier_control,
+                helix_id: *helix_id,
+            },
+            SceneElement::PlaneCorner { .. } | SceneElement::WidgetElement(_) => Selection::Nothing,
+            SceneElement::BezierVertex { path_id, vertex_id } => {
+                Selection::BezierVertex(BezierVertexId {
+                    path_id: *path_id,
+                    vertex_id: *vertex_id,
+                })
+            }
+            SceneElement::BezierTangent {
+                path_id, vertex_id, ..
+            } => Selection::BezierVertex(BezierVertexId {
+                path_id: *path_id,
+                vertex_id: *vertex_id,
+            }),
+        }
+    }
+
+    pub fn selection_to_element(&self, selection: Selection) -> Option<SceneElement> {
+        match selection {
+            Selection::Nucleotide(d_id, nucl) => {
+                let id = self.designs[d_id as usize].get_identifier_nucl(&nucl)?;
+                Some(SceneElement::DesignElement(d_id, id))
+            }
+            Selection::Bond(d_id, n1, n2) => {
+                let id = self.designs[d_id as usize].get_identifier_bond(n1, n2)?;
+                Some(SceneElement::DesignElement(d_id, id))
+            }
+            Selection::Xover(d_id, xover_id) => {
+                let (n1, n2) = self.designs[d_id as usize].get_xover_with_id(xover_id)?;
+                let id = self.designs[d_id as usize].get_identifier_bond(n1, n2)?;
+                Some(SceneElement::DesignElement(d_id, id))
+            }
+            _ => None,
+        }
+    }
+
+    /// Set the set of candidates to a given nucleotide
+    pub fn set_candidate<S: SceneAppState>(
+        &mut self,
+        element: Option<SceneElement>,
+        app_state: &S,
+    ) -> Option<Selection> {
+        if log::log_enabled!(log::Level::Info) && element.is_some() {
+            log::debug!("candidate {element:?}");
+        }
+        self.candidate_element = element;
+        if let Some(element) = element.as_ref() {
+            let selection = self.element_to_selection(element, app_state.get_selection_mode());
+            if selection != Selection::Nothing {
+                return Some(selection);
+            }
+        }
+        None
+    }
+
+    pub fn notify_selection(&mut self, selection: &[Selection]) {
+        if selection.len() == 1 {
+            match selection[0] {
+                Selection::Nucleotide(d_id, nucl) => {
+                    self.selected_position = self.designs[d_id as usize].get_nucl_position(nucl);
+                }
+                Selection::Bond(d_id, n1, n2) => {
+                    let pos1 = self.designs[d_id as usize].get_nucl_position(n1);
+                    let pos2 = self.designs[d_id as usize].get_nucl_position(n2);
+                    self.selected_position = pos1.zip(pos2).map(|(a, b)| (a + b) / 2.);
+                }
+                Selection::Xover(d_id, xover_id) => {
+                    if let Some((n1, n2)) = self.designs[d_id as usize].get_xover_with_id(xover_id)
+                    {
+                        let pos1 = self.designs[d_id as usize].get_nucl_position(n1);
+                        let pos2 = self.designs[d_id as usize].get_nucl_position(n2);
+                        self.selected_position = pos1.zip(pos2).map(|(a, b)| (a + b) / 2.);
+                    }
+                }
+                Selection::BezierControlPoint {
+                    helix_id,
+                    bezier_control,
+                } => {
+                    self.selected_position = self
+                        .designs
+                        .first()
+                        .and_then(|d| d.get_control_point(helix_id, bezier_control));
+                }
+                _ => (),
+            }
+        }
+    }
+
+    /// Clear the set of candidates to a given nucleotide
+    pub fn reset_candidate(&mut self) {
+        self.candidate_element = None;
+    }
+
+    pub fn get_all_raw_instances<S: SceneAppState>(&self, app_state: &S) -> Vec<RawDnaInstance> {
+        let mut instances = vec![];
+        let show_insertion_discriminants = app_state.show_insertion_discriminants();
+        for design in &self.designs {
+            for sphere in design.get_spheres_raw(show_insertion_discriminants).iter() {
+                instances.push(*sphere);
+            }
+            for tube in design.get_tubes_raw(show_insertion_discriminants).iter() {
+                instances.push(*tube);
+            }
+            for cone in design.get_cones_raw(show_insertion_discriminants) {
+                instances.push(cone);
+            }
+            if app_state.get_draw_options().h_bonds != HBondDisplay::No {
+                for h_bond in design.get_all_h_bonds().full_h_bonds {
+                    instances.push(h_bond);
+                }
+                for h_bond in design.get_all_h_bonds().partial_h_bonds {
+                    instances.push(h_bond); // not sure if needed
+                }
+                if app_state.get_draw_options().h_bonds == HBondDisplay::Ellipsoid {
+                    for h_bond in design.get_all_h_bonds().ellipsoids {
+                        instances.push(h_bond); // not sure if needed
+                    }
+                }
+            }
+        }
+        instances
+    }
+
+    pub fn get_nucleotides_positions_by_strands(
+        &self,
+    ) -> Option<HashMap<usize, StrandNucleotidesPositions, RandomState>> {
+        Some(
+            self.designs
+                .first()?
+                .design_reader
+                .get_nucleotides_positions_by_strands(),
+        )
+    }
+
+    /// Notify the view that the instances of candidates have changed
+    fn update_candidate<S: SceneAppState>(&self, candidates: &[Selection], app_state: &S) {
+        self.view.borrow_mut().update(ViewUpdate::RawDna(
+            Mesh::CandidateTube,
+            self.get_candidate_tubes(candidates, app_state),
+        ));
+        self.view.borrow_mut().update(ViewUpdate::RawDna(
+            Mesh::CandidateSphere,
+            self.get_candidate_spheres(candidates, app_state),
+        ));
+        let mut grids =
+            if let Some(SceneElement::Grid(d_id, g_id)) = self.candidate_element.as_ref() {
+                vec![(*d_id as usize, *g_id)]
+            } else {
+                vec![]
+            };
+        for c in candidates {
+            if let Selection::Grid(d_id, g_id) = c {
+                grids.push((*d_id as usize, *g_id));
+            }
+        }
+        self.view.borrow_mut().set_candidate_grid(grids);
+    }
+
+    fn update_pivot(&self) {
+        let mut spheres = vec![];
+        if let Some(pivot) = self.pivot_position {
+            let radius = if let Some(element) = self.pivot_element
+                && let SceneElement::DesignElement(d_id, e_id) = element
+            {
+                self.designs[d_id as usize]
+                    .design_reader
+                    .get_radius(e_id)
+                    .unwrap_or(SPHERE_RADIUS)
+                    .max(SPHERE_RADIUS)
+            } else {
+                SPHERE_RADIUS
+            };
+            spheres.push(Design3D::<R>::pivot_sphere(pivot, radius));
+        }
+        if let Some(position) = self.surface_pivot_position {
+            spheres.push(Design3D::<R>::surface_pivot_sphere(position));
+        }
+        self.view
+            .borrow_mut()
+            .update(ViewUpdate::RawDna(Mesh::PivotSphere, Rc::new(spheres)));
+    }
+
+    pub fn update_surface_pivot(&mut self, position: Option<Vec3>) {
+        self.surface_pivot_position = position;
+        self.pivot_update = true;
+    }
+
+    fn update_free_xover(&self, candidates: &[Selection]) {
+        let mut spheres = vec![];
+        let mut tubes = vec![];
+        let mut pos1 = None;
+        let mut pos2 = None;
+        if let Some(xover) = self
+            .free_xover
+            .clone()
+            .or_else(|| candidate_xover(candidates))
+            .as_ref()
+        {
+            if let Some((pos, sphere)) = self.convert_free_end(&xover.source, xover.design_id) {
+                pos1 = Some(pos);
+                if let Some(s) = sphere {
+                    spheres.push(s);
+                }
+            }
+            if let Some((pos, sphere)) = self.convert_free_end(&xover.target, xover.design_id) {
+                pos2 = Some(pos);
+                if let Some(s) = sphere {
+                    spheres.push(s);
+                }
+            }
+            if let Some((pos1, pos2)) = pos1.zip(pos2) {
+                tubes.push(Design3D::<R>::free_xover_tube(pos1, pos2));
+            }
+        }
+        self.view
+            .borrow_mut()
+            .update(ViewUpdate::RawDna(Mesh::XoverSphere, Rc::new(spheres)));
+        self.view
+            .borrow_mut()
+            .update(ViewUpdate::RawDna(Mesh::XoverTube, Rc::new(tubes)));
+    }
+
+    fn convert_free_end(
+        &self,
+        free_end: &FreeXoverEnd,
+        design_id: usize,
+    ) -> Option<(Vec3, Option<RawDnaInstance>)> {
+        match free_end {
+            FreeXoverEnd::Nucl(nucl) => {
+                let position = self.get_nucl_position(*nucl, design_id)?;
+                Some((position, Some(Design3D::<R>::free_xover_sphere(position))))
+            }
+            FreeXoverEnd::Free(position) => Some((*position, None)),
+        }
+    }
+
+    /// Notify the view that the set of instances have been modified.
+    fn update_instances<S: SceneAppState>(&self, app_state: &S) {
+        let mut spheres = Vec::with_capacity(10_000);
+        let mut tubes = Vec::with_capacity(10_000);
+        let mut tube_lids = Vec::with_capacity(10_000);
+        let mut sliced_tubes = Vec::with_capacity(10_000);
+        let mut plain_rectangles = Vec::with_capacity(1_000);
+        let mut suggested_spheres = Vec::with_capacity(1000);
+        let mut suggested_tubes = Vec::with_capacity(1000);
+        let mut pasted_spheres = Vec::with_capacity(1000);
+        let mut pasted_tubes = Vec::with_capacity(1000);
+
+        let mut letters = Vec::new();
+        let mut grids = BTreeMap::new();
+        let mut cones = Vec::new();
+        for design in &self.designs {
+            for sphere in design
+                .get_spheres_raw(app_state.show_insertion_discriminants())
+                .iter()
+            {
+                spheres.push(*sphere);
+            }
+            for tube in design
+                .get_tubes_raw(app_state.show_insertion_discriminants())
+                .iter()
+            {
+                if tube.mesh == Mesh::TubeLid as u32 {
+                    tube_lids.push(*tube);
+                } else if tube.mesh == Mesh::SlicedTube as u32 {
+                    sliced_tubes.push(*tube);
+                } else {
+                    tubes.push(*tube);
+                }
+            }
+
+            // scalebar
+            plain_rectangles.extend(design.get_scalebar_plain_rectangles_raw());
+
+            if app_state.show_bezier_paths() {
+                let (bezier_spheres, bezier_tubes) = design.get_bezier_paths_elements(app_state);
+                spheres.extend(bezier_spheres);
+                tubes.extend(bezier_tubes);
+            }
+            letters = design.get_letter_instances(app_state.show_insertion_discriminants());
+            for (grid_id, grid) in design.get_grid().iter().filter(|g| g.1.visible) {
+                grids.insert(*grid_id, grid.clone());
+            }
+            for sphere in design.get_suggested_spheres() {
+                suggested_spheres.push(sphere);
+            }
+            for tube in design.get_suggested_tubes() {
+                suggested_tubes.push(tube);
+            }
+            let (spheres, tubes) = design.get_pasted_strand();
+            for sphere in spheres {
+                pasted_spheres.push(sphere);
+            }
+            for tube in tubes {
+                pasted_tubes.push(tube);
+            }
+            for cone in design.get_cones_raw(app_state.show_insertion_discriminants()) {
+                cones.push(cone);
+            }
+        }
+        self.update_free_xover(app_state.get_candidates());
+        let (sheet_instances, corner_spheres) = if app_state.show_bezier_paths() {
+            self.designs[0].get_bezier_sheets(app_state)
+        } else {
+            (Default::default(), Default::default())
+        };
+        spheres.extend(corner_spheres);
+        self.view
+            .borrow_mut()
+            .update(ViewUpdate::BezierSheets(sheet_instances));
+        self.view
+            .borrow_mut()
+            .update(ViewUpdate::RawDna(Mesh::Tube, Rc::new(tubes)));
+        self.view
+            .borrow_mut()
+            .update(ViewUpdate::RawDna(Mesh::TubeLid, Rc::new(tube_lids)));
+        self.view
+            .borrow_mut()
+            .update(ViewUpdate::RawDna(Mesh::SlicedTube, Rc::new(sliced_tubes)));
+        self.view.borrow_mut().update(ViewUpdate::RawDna(
+            Mesh::PlainRectangle,
+            Rc::new(plain_rectangles),
+        ));
+        self.view
+            .borrow_mut()
+            .update(ViewUpdate::RawDna(Mesh::Sphere, Rc::new(spheres)));
+        self.view.borrow_mut().update(ViewUpdate::RawDna(
+            Mesh::SuggestionSphere,
+            Rc::new(suggested_spheres),
+        ));
+        self.view.borrow_mut().update(ViewUpdate::RawDna(
+            Mesh::SuggestionTube,
+            Rc::new(suggested_tubes),
+        ));
+        self.view.borrow_mut().update(ViewUpdate::RawDna(
+            Mesh::PastedSphere,
+            Rc::new(pasted_spheres),
+        ));
+        self.view
+            .borrow_mut()
+            .update(ViewUpdate::RawDna(Mesh::PastedTube, Rc::new(pasted_tubes)));
+        self.view.borrow_mut().update(ViewUpdate::Letter(letters));
+        self.view.borrow_mut().update(ViewUpdate::Grids(grids));
+        self.view
+            .borrow_mut()
+            .update(ViewUpdate::RawDna(Mesh::Prime3Cone, Rc::new(cones)));
+        let bonds = self.designs[0].get_all_h_bonds();
+        if app_state.get_draw_options().h_bonds == HBondDisplay::Ellipsoid {
+            self.view.borrow_mut().update(ViewUpdate::RawDna(
+                Mesh::HBond,
+                Rc::new(bonds.partial_h_bonds),
+            ));
+        } else {
+            self.view
+                .borrow_mut()
+                .update(ViewUpdate::RawDna(Mesh::HBond, Rc::new(bonds.full_h_bonds)));
+        }
+        self.view.borrow_mut().update(ViewUpdate::RawDna(
+            Mesh::BaseEllipsoid,
+            Rc::new(bonds.ellipsoids),
+        ));
+    }
+
+    fn update_discs<S: SceneAppState>(&self, app_state: &S) {
+        let mut discs = Vec::new();
+        let mut letters: Vec<Vec<LetterInstance>> = vec![vec![]; 10];
+        let right = self.view.borrow().get_camera().borrow().right_vec();
+        let up = self.view.borrow().get_camera().borrow().up_vec();
+        let mut selected_discs: Vec<GridPosition> = Vec::new();
+        let mut candidate_discs: Vec<GridPosition> = Vec::new();
+        let design = &self.designs[0];
+        macro_rules! discs {
+            () => {
+                Discs {
+                    design,
+                    selection: &mut selected_discs,
+                    candidates: &mut candidate_discs,
+                    discs: &mut discs,
+                }
+            };
+        }
+
+        // If we are building helices, we want to show candidates grid circle even when they do not
+        // correspond to an existing helix
+        if app_state.get_action_mode().0.is_build()
+            && let Some(SceneElement::GridCircle(0, position)) = self.candidate_element.as_ref()
+        {
+            add_discs(*position, discs!(), DiscLevel::Candidate);
+        }
+
+        for c in app_state.get_candidates() {
+            if let Selection::Helix { helix_id, .. } = c
+                && let Some(pos) = design.get_helix_grid_position(*helix_id as u32)
+            {
+                add_discs(pos.light(), discs!(), DiscLevel::Candidate);
+            }
+        }
+
+        for s in app_state.get_selection() {
+            if let Selection::Helix { helix_id, .. } = s
+                && let Some(pos) = design.get_helix_grid_position(*helix_id as u32)
+            {
+                add_discs(pos.light(), discs!(), DiscLevel::Selection);
+            }
+        }
+        for design in &self.designs {
+            for grid in design.get_grid().values().filter(|g| g.visible) {
+                for (x, y) in design.get_helices_grid_coord(grid.id) {
+                    add_discs(
+                        GridPosition {
+                            grid: grid.id,
+                            x,
+                            y,
+                        },
+                        discs!(),
+                        DiscLevel::Scene,
+                    );
+                }
+                for ((x, y), h_id) in design.get_helices_grid_key_coord(grid.id) {
+                    for g_id in design.get_bezier_grid_used_by_helix(h_id) {
+                        add_discs(
+                            GridPosition { grid: g_id, x, y },
+                            discs!(),
+                            DiscLevel::Scene,
+                        );
+                        if let Some(bezier_grid) = design.get_grid().get(&g_id) {
+                            bezier_grid.letter_instance(x, y, h_id, &mut letters, right, up);
+                        }
+                    }
+                    grid.letter_instance(x, y, h_id, &mut letters, right, up);
+                }
+            }
+        }
+        self.view.borrow_mut().update(ViewUpdate::GridDiscs(discs));
+        self.view
+            .borrow_mut()
+            .update(ViewUpdate::GridLetter(letters));
+    }
+
+    /// Notify the view of an update of the model matrices
+    fn update_matrices(&self) {
+        let mut matrices = Vec::new();
+        for design in &self.designs {
+            matrices.push(design.get_model_matrix());
+        }
+        self.view
+            .borrow_mut()
+            .update(ViewUpdate::ModelMatrices(matrices));
+    }
+
+    pub fn get_fitting_camera_position(&self) -> Option<Vec3> {
+        let view = self.view.borrow();
+        let basis = view.get_camera().borrow().get_basis();
+        let fovy = view.get_projection().borrow().get_fovy();
+        let ratio = view.get_projection().borrow().get_ratio();
+        self.designs
+            .first()
+            .and_then(|d| d.get_fitting_camera_position(basis, fovy, ratio))
+    }
+
+    /// Return the point in the middle of the selected design
+    pub fn get_middle_point(&self, design_id: u32) -> Vec3 {
+        self.designs[design_id as usize].middle_point()
+    }
+
+    pub fn get_widget_basis<S: SceneAppState>(&self, app_state: &S) -> Option<Rotor3> {
+        self.get_selected_basis(app_state).map(|b| {
+            if app_state.get_widget_basis().is_axis_aligned() {
+                Rotor3::identity()
+            } else {
+                b
+            }
+        })
+    }
+
+    fn get_forced_widget_basis<S: SceneAppState>(&self, app_state: &S) -> Option<Rotor3> {
+        (app_state.get_widget_basis().is_axis_aligned()
+            && !(self.handle_colors == HandleColors::Cym
+                && app_state.get_action_mode().0 == ActionMode::Rotate))
+            .then(Rotor3::identity)
+    }
+
+    fn get_selected_basis<S: SceneAppState>(&self, app_state: &S) -> Option<Rotor3> {
+        let from_selected_element = match self.selected_element(app_state) {
+            Some(SceneElement::DesignElement(d_id, _)) => match self
+                .get_sub_selection_mode(app_state)
+            {
+                SelectionMode::Nucleotide | SelectionMode::Design | SelectionMode::Strand => None,
+                SelectionMode::Helix => {
+                    let h_id = self.get_selected_group(app_state)?;
+                    if let Some(grid_position) =
+                        self.designs[d_id as usize].get_helix_grid_position(h_id)
+                    {
+                        self.designs[d_id as usize].get_grid_basis(grid_position.grid)
+                    } else {
+                        self.designs[d_id as usize].get_helix_basis(h_id)
+                    }
+                }
+            },
+            Some(SceneElement::PhantomElement(phantom_element)) => {
+                let d_id = phantom_element.design_id;
+                match self.get_sub_selection_mode(app_state) {
+                    SelectionMode::Nucleotide | SelectionMode::Design | SelectionMode::Strand => {
+                        None
+                    }
+                    SelectionMode::Helix => {
+                        let h_id = phantom_element.helix_id;
+                        self.designs[d_id as usize].get_helix_basis(h_id)
+                    }
+                }
+            }
+            Some(SceneElement::Grid(d_id, g_id)) => {
+                self.designs[d_id as usize].get_grid_basis(g_id)
+            }
+            Some(SceneElement::GridCircle(d_id, position)) => {
+                self.designs[d_id as usize].get_grid_basis(position.grid)
+            }
+            Some(SceneElement::BezierControl {
+                helix_id,
+                bezier_control,
+            }) => self.designs[0].get_bezier_control_basis(helix_id, bezier_control),
+            _ => None,
+        };
+        let from_selection = match app_state.get_selection().first() {
+            Some(Selection::Grid(d_id, g_id)) => self
+                .designs
+                .get(*d_id as usize)
+                .and_then(|d| d.get_grid_basis(*g_id)),
+            Some(Selection::Helix {
+                design_id,
+                helix_id,
+                ..
+            }) => {
+                if let Some(grid_position) =
+                    self.designs[*design_id as usize].get_helix_grid_position(*helix_id as u32)
+                {
+                    self.designs[*design_id as usize].get_grid_basis(grid_position.grid)
+                } else {
+                    self.designs[*design_id as usize].get_helix_basis(*helix_id as u32)
+                }
+            }
+            Some(_) => Some(Rotor3::identity()),
+            None => None,
+        };
+        //from_selection.or(from_selected_element)
+        from_selected_element.or(from_selection)
+    }
+
+    pub fn can_start_builder(&self, element: Option<SceneElement>) -> Option<Nucl> {
+        let selected = element.as_ref()?;
+        let design = selected.get_design()?;
+        self.designs[design as usize].can_start_builder(selected)
+    }
+
+    pub fn element_to_nucl(
+        &self,
+        element: Option<&SceneElement>,
+        non_phantom: bool,
+    ) -> Option<(Nucl, usize)> {
+        match element {
+            Some(SceneElement::DesignElement(d_id, n_id)) => self.designs[*d_id as usize]
+                .get_nucl(*n_id)
+                .zip(Some(*d_id as usize)),
+            Some(SceneElement::PhantomElement(pe)) => {
+                let nucl = pe.to_nucl();
+                if non_phantom {
+                    Some((nucl, pe.design_id as usize))
+                        .filter(|n| self.designs[pe.design_id as usize].has_nucl(&n.0))
+                } else {
+                    Some((nucl, pe.design_id as usize))
+                }
+            }
+            _ => None,
+        }
+    }
+
+    pub fn get_nucl_position(&self, nucl: Nucl, design_id: usize) -> Option<Vec3> {
+        let design = self.designs.get(design_id)?;
+        design.get_nucl_position(nucl)
+    }
+
+    pub fn init_free_xover(&mut self, nucl: Nucl, position: Vec3, design_id: usize) {
+        self.free_xover_update = true;
+        self.free_xover = Some(FreeXover {
+            source: FreeXoverEnd::Nucl(nucl),
+            target: FreeXoverEnd::Free(position),
+            design_id,
+        });
+    }
+
+    pub fn update_free_xover_target(&mut self, element: Option<SceneElement>, position: Vec3) {
+        self.free_xover_update = true;
+        let nucl = self.element_to_nucl(element.as_ref(), true);
+        if let Some(free_xover) = self.free_xover.as_mut() {
+            free_xover.target = FreeXoverEnd::Free(position);
+            if let FreeXoverEnd::Nucl(origin_nucl) = free_xover.source
+                && let Some((nucl, _)) = nucl.filter(|n| n.1 == free_xover.design_id)
+                && !self.designs[free_xover.design_id].both_prime3(origin_nucl, nucl)
+                && !self.designs[free_xover.design_id].both_prime5(origin_nucl, nucl)
+            {
+                free_xover.target = FreeXoverEnd::Nucl(nucl);
+            }
+        }
+    }
+
+    pub fn end_free_xover(&mut self) {
+        self.free_xover_update = true;
+        self.free_xover = None;
+    }
+
+    fn get_sub_selection_mode<S: SceneAppState>(&self, app_state: &S) -> SelectionMode {
+        if app_state.get_selection_mode() == SelectionMode::Nucleotide {
+            self.sub_selection_mode
+        } else {
+            app_state.get_selection_mode()
+        }
+    }
+
+    pub fn get_selected_element<S: SceneAppState>(&self, app_state: &S) -> Selection {
+        if let Some(selection) = self.selected_element(app_state).as_ref() {
+            self.element_to_selection(selection, self.get_sub_selection_mode(app_state))
+        } else {
+            Selection::Nothing
+        }
+    }
+
+    fn selected_element<S: SceneAppState>(&self, app_state: &S) -> Option<SceneElement> {
+        let center_of_selection = app_state.get_selected_element();
+        let provided_center =
+            center_of_selection.and_then(|s| self.center_of_selection_to_element(s));
+        provided_center.or_else(|| self.default_element(app_state))
+    }
+
+    fn center_of_selection_to_element(
+        &self,
+        center_of_selection: CenterOfSelection,
+    ) -> Option<SceneElement> {
+        match center_of_selection {
+            CenterOfSelection::Bond(d_id, n1, n2) => self
+                .designs
+                .get(d_id as usize)
+                .and_then(|d| {
+                    d.get_identifier_bond(n1, n2)
+                        .or_else(|| d.get_identifier_bond(n2, n1))
+                })
+                .map(|id| SceneElement::DesignElement(d_id, id)),
+            CenterOfSelection::Nucleotide(d_id, n1) => self
+                .designs
+                .get(d_id as usize)
+                .and_then(|d| d.get_identifier_nucl(&n1))
+                .map(|id| SceneElement::DesignElement(d_id, id)),
+            CenterOfSelection::HelixGridPosition {
+                design,
+                grid_id,
+                x,
+                y,
+            } => Some(SceneElement::GridCircle(
+                design,
+                GridPosition {
+                    grid: grid_id,
+                    x,
+                    y,
+                },
+            )),
+            CenterOfSelection::BezierControlPoint {
+                helix_id,
+                bezier_control,
+            } => Some(SceneElement::BezierControl {
+                helix_id,
+                bezier_control,
+            }),
+            CenterOfSelection::BezierVertex { path_id, vertex_id } => {
+                Some(SceneElement::BezierVertex { path_id, vertex_id })
+            }
+        }
+    }
+
+    /// Return a default selected element when no center of selection was provided
+    fn default_element<S: SceneAppState>(&self, app_state: &S) -> Option<SceneElement> {
+        log::trace!("Using default element");
+        let selected_object = app_state.get_selection().first()?;
+        let design = selected_object
+            .get_design()
+            .and_then(|d_id| self.designs.get(d_id as usize))?;
+        match selected_object {
+            Selection::Helix {
+                design_id,
+                helix_id,
+                ..
+            } => {
+                if let Some(pos) = design.get_helix_grid_position(*helix_id as u32) {
+                    Some(SceneElement::GridCircle(*design_id, pos.light()))
+                } else {
+                    Some(SceneElement::PhantomElement(PhantomElement {
+                        design_id: *design_id,
+                        helix_id: *helix_id as u32,
+                        forward: true,
+                        bond: false,
+                        position: 0,
+                    }))
+                }
+            }
+            Selection::Bond(d_id, n1, n2) => design
+                .get_identifier_bond(*n1, *n2)
+                .or_else(|| design.get_identifier_bond(*n2, *n1))
+                .map(|bound_id| SceneElement::DesignElement(*d_id, bound_id)),
+            Selection::Nucleotide(d_id, nucl) => design
+                .get_identifier_nucl(nucl)
+                .map(|nucl_id| SceneElement::DesignElement(*d_id, nucl_id)),
+            Selection::Grid(d_id, g_id) => Some(SceneElement::GridCircle(
+                *d_id,
+                GridPosition {
+                    grid: *g_id,
+                    x: 0,
+                    y: 0,
+                },
+            )),
+            Selection::Xover(d_id, xover_id) => design
+                .get_element_identifier_from_xover_id(*xover_id)
+                .map(|e_id| SceneElement::DesignElement(*d_id, e_id)),
+            _ => None,
+        }
+    }
+
+    fn scene_element_to_center_of_selection(
+        &self,
+        element: SceneElement,
+    ) -> Option<CenterOfSelection> {
+        match element {
+            SceneElement::PhantomElement(pe) => {
+                if pe.bond {
+                    Some(CenterOfSelection::Bond(
+                        pe.design_id,
+                        pe.to_nucl(),
+                        pe.to_nucl().prime3(),
+                    ))
+                } else {
+                    Some(CenterOfSelection::Nucleotide(pe.design_id, pe.to_nucl()))
+                }
+            }
+            SceneElement::Grid(design, grid_id) => Some(CenterOfSelection::HelixGridPosition {
+                design,
+                grid_id,
+                x: 0,
+                y: 0,
+            }),
+            SceneElement::GridCircle(design, position) => {
+                Some(CenterOfSelection::HelixGridPosition {
+                    design,
+                    grid_id: position.grid,
+                    x: position.x,
+                    y: position.y,
+                })
+            }
+            SceneElement::DesignElement(d_id, e_id) => {
+                self.designs.get(d_id as usize).and_then(|d| {
+                    d.get_nucl(e_id)
+                        .map(|n| CenterOfSelection::Nucleotide(d_id, n))
+                        .or_else(|| {
+                            d.get_bond(e_id)
+                                .map(|(n1, n2)| CenterOfSelection::Bond(d_id, n1, n2))
+                        })
+                })
+            }
+            SceneElement::BezierControl {
+                helix_id,
+                bezier_control,
+            } => Some(CenterOfSelection::BezierControlPoint {
+                helix_id,
+                bezier_control,
+            }),
+            SceneElement::BezierVertex { vertex_id, path_id } => {
+                Some(CenterOfSelection::BezierVertex { path_id, vertex_id })
+            }
+            SceneElement::WidgetElement(_)
+            | SceneElement::BezierTangent { .. }
+            | SceneElement::PlaneCorner { .. } => None,
+        }
+    }
+
+    pub(crate) fn notify_handle_movement(&mut self) {
+        self.handle_needs_update = true;
+    }
+
+    pub(crate) fn get_surface_info_nucl(&self, nucl: Nucl) -> Option<SurfaceInfo> {
+        self.designs
+            .first()
+            .and_then(|d| d.get_surface_info_nucl(nucl))
+    }
+
+    pub(crate) fn get_grid_object(&self, position: GridPosition) -> Option<GridObject> {
+        self.designs
+            .first()
+            .and_then(|d| d.get_grid_object(position))
+    }
+
+    pub(crate) fn notify_rotating_pivot(&mut self) {
+        self.rotating_pivot = true;
+    }
+
+    pub(crate) fn stop_rotating_pivot(&mut self) {
+        self.rotating_pivot = false;
+    }
+
+    pub(crate) fn update_handle_colors(&mut self, colors: HandleColors) {
+        if self.handle_colors != colors {
+            self.handle_needs_update = true;
+            self.handle_colors = colors;
+        }
+    }
+
+    pub(crate) fn get_surface_info(&self, point: SurfacePoint) -> Option<SurfaceInfo> {
+        self.designs.first().and_then(|d| d.get_surface_info(point))
+    }
+
+    pub(crate) fn notify_camera_movement(&mut self, camera: &CameraController) {
+        self.update_surface_pivot(camera.get_current_surface_pivot());
+    }
+}
+
+#[derive(Clone, Debug)]
+struct FreeXover {
+    source: FreeXoverEnd,
+    target: FreeXoverEnd,
+    design_id: usize,
+}
+
+#[derive(Clone, Debug)]
+enum FreeXoverEnd {
+    Free(Vec3),
+    Nucl(Nucl),
+}
+
+fn toggle_selection(mode: SelectionMode) -> SelectionMode {
+    match mode {
+        SelectionMode::Nucleotide => SelectionMode::Strand,
+        SelectionMode::Strand => SelectionMode::Helix,
+        SelectionMode::Helix => SelectionMode::Nucleotide,
+        SelectionMode::Design => SelectionMode::Design,
+    }
+}
+
+#[derive(Debug, Clone, PartialOrd, PartialEq)]
+enum DiscLevel {
+    Scene,
+    Selection,
+    Candidate,
+}
+
+impl DiscLevel {
+    fn color(&self) -> u32 {
+        match self {
+            Self::Candidate => 0xAA_00_FF_00,
+            Self::Selection => 0xAA_FF_00_00,
+            Self::Scene => 0xAA_FF_FF_FF,
+        }
+    }
+}
+
+struct Discs<'a, R: SceneDesignReaderExt> {
+    discs: &'a mut Vec<GridDisc>,
+    selection: &'a mut Vec<GridPosition>,
+    candidates: &'a mut Vec<GridPosition>,
+    design: &'a Design3D<R>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct StrandNucleotidesPositions {
+    pub is_cyclic: bool,
+    pub positions: Vec<[f32; 3]>,
+    pub curvatures: Vec<f64>,
+    pub torsions: Vec<f64>,
+}
+
+fn add_discs<R: SceneDesignReaderExt>(pos: GridPosition, discs: Discs<R>, level: DiscLevel) {
+    if let Some(grid) = discs.design.get_grid().get(&pos.grid) {
+        let new_disc_instances = match level {
+            DiscLevel::Candidate => {
+                discs.candidates.push(pos);
+                Some(grid.disc(pos.x, pos.y, level.color(), 0))
+            }
+            DiscLevel::Selection => (!discs.candidates.contains(&pos)).then(|| {
+                discs.selection.push(pos);
+                grid.disc(pos.x, pos.y, level.color(), 0)
+            }),
+            DiscLevel::Scene => (!discs.candidates.contains(&pos)
+                && !discs.selection.contains(&pos))
+            .then(|| grid.disc(pos.x, pos.y, level.color(), 0)),
+        };
+        if let Some((d1, d2)) = new_disc_instances {
+            discs.discs.push(d1);
+            discs.discs.push(d2);
+        }
+    } else {
+        log::error!("Could not get grid {:?}", pos.grid);
+    }
+}
+
+fn candidate_xover(candidates: &[Selection]) -> Option<FreeXover> {
+    match candidates {
+        [Selection::Nucleotide(_, n1), Selection::Nucleotide(_, n2)] => Some(FreeXover {
+            source: FreeXoverEnd::Nucl(*n1),
+            target: FreeXoverEnd::Nucl(*n2),
+            design_id: 0,
+        }),
+        _ => None,
+    }
+}

@@ -1,23 +1,27 @@
 [package]
 name = "ensnano_utils"
-version = "0.4.0"
-authors = ["thenlevy <nicolaspierrelevy@gmail.com>"]
-edition = "2018"
-license = "GPL-3.0-or-later"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
 
 [dependencies]
-iced_wgpu = {version = "0.5.1",  features = ["spirv"]}
-iced_winit = "0.4.0"
-bytemuck = "1.2.0"
-color_space = "0.5.2"
-ultraviolet = { git = "https://github.com/termhn/ultraviolet", rev = "b2fb29e" , features = ["bytemuck", "f64", "serde"] }
-ensnano_interactor = { path = "../ensnano-interactor" }
-ensnano_design = { path = "../ensnano-design" }
-log = "0.4"
-fontdue = "0.6.4"
-ahash = "0.8.6" # "0.6.2"
-gltf = "0.16.0"
-nom_stl = "0.2.2"
-rand = "0.8.5"
-chrono = "0.4"
-serde = "1.0.116"
+ensnano_design.workspace = true
+
+bytemuck.workspace = true
+chrono.workspace = true
+color_space.workspace = true
+fontdue.workspace = true
+gltf.workspace = true
+log.workspace = true
+nom_stl.workspace = true
+num.workspace = true
+rand.workspace = true
+rayon.workspace = true
+serde.workspace = true
+ultraviolet.workspace = true
+wgpu.workspace = true
+winit.workspace = true

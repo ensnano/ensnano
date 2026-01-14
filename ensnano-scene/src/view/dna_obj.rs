@@ -1,30 +1,21 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
 //! This modules defines the meshes that are used to draw DNA.
 
-use super::instances_drawer::{Instanciable, Vertexable};
-use ensnano_design::ultraviolet;
-use ensnano_interactor::consts::*;
-use ensnano_utils::{mesh::Mesh, wgpu};
-use std::f32::consts::PI;
+use crate::view::{
+    Mesh,
+    instances_drawer::{Instantiable, Vertexable},
+};
+use ensnano_utils::{
+    consts::{
+        NB_RAY_TUBE, NB_SECTOR_SPHERE, NB_STACK_SPHERE, SPHERE_RADIUS, STEREOGRAPHIC_SPHERE_COLOR,
+        STEREOGRAPHIC_SPHERE_RADIUS,
+    },
+    instance::Instance,
+};
+use std::{
+    f32::consts::{FRAC_1_SQRT_2, PI, TAU},
+    iter::zip,
+};
 use ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
-
-use std::iter::zip;
 
 /// The vertex type for the meshes used to draw DNA.
 #[repr(C)]
@@ -34,23 +25,19 @@ pub struct DnaVertex {
     pub normal: [f32; 3],
 }
 
-pub trait DnaObject:
-    Instanciable<Ressource = (), Vertex = DnaVertex, RawInstance = RawDnaInstance>
-{
-}
-
 const VERTEX_ATTR_ARRAY: [wgpu::VertexAttribute; 2] =
     wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3];
+
 impl Vertexable for DnaVertex {
-    type RawType = DnaVertex;
-    fn to_raw(&self) -> DnaVertex {
+    type RawType = Self;
+
+    fn to_raw(&self) -> Self {
         *self
     }
 
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        use std::mem;
         wgpu::VertexBufferLayout {
-            array_stride: mem::size_of::<DnaVertex>() as wgpu::BufferAddress,
+            array_stride: size_of::<Self>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &VERTEX_ATTR_ARRAY,
         }
@@ -94,20 +81,10 @@ pub struct PlainRectangleInstance {
     pub height: f32,
 }
 
-impl PlainRectangleInstance {
-    pub fn with_size(self: Self, width: f32, height: f32) -> Self {
-        Self {
-            width,
-            height,
-            ..self
-        }
-    }
-}
-
-impl Instanciable for PlainRectangleInstance {
+impl Instantiable for PlainRectangleInstance {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
-    type Ressource = ();
+    type Resource = ();
 
     fn vertices() -> Vec<DnaVertex> {
         let vertices = vec![
@@ -133,8 +110,7 @@ impl Instanciable for PlainRectangleInstance {
     }
 
     fn indices() -> Vec<u16> {
-        let mut indices = vec![0, 1, 2, 3];
-        indices
+        vec![0, 1, 2, 3]
     }
 
     fn primitive_topology() -> wgpu::PrimitiveTopology {
@@ -149,7 +125,7 @@ impl Instanciable for PlainRectangleInstance {
             scale: Vec3::new(self.width, self.height, 1.),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::PlainRectangle as u32,
+            mesh: Mesh::PlainRectangle as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),
@@ -157,27 +133,25 @@ impl Instanciable for PlainRectangleInstance {
     }
 
     fn vertex_module(device: &wgpu::Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&wgpu::include_spirv!("plain_rectangle.vert.spv"))
+        device.create_shader_module(wgpu::include_spirv!("plain_rectangle.vert.spv"))
     }
 
     fn fragment_module(device: &wgpu::Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&wgpu::include_spirv!("plain_rectangle.frag.spv"))
+        device.create_shader_module(wgpu::include_spirv!("plain_rectangle.frag.spv"))
     }
 
-    fn fake_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
+    fn fake_fragment_module(_device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
         None
     }
 
     fn outline_vertex_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
-        Some(device.create_shader_module(&wgpu::include_spirv!("plain_rectangle.vert.spv")))
+        Some(device.create_shader_module(wgpu::include_spirv!("plain_rectangle.vert.spv")))
     }
 
     fn outline_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
-        Some(device.create_shader_module(&wgpu::include_spirv!("plain_rectangle.frag.spv")))
+        Some(device.create_shader_module(wgpu::include_spirv!("plain_rectangle.frag.spv")))
     }
 }
-
-impl DnaObject for PlainRectangleInstance {}
 
 pub struct SphereInstance {
     /// The position in space
@@ -187,22 +161,16 @@ pub struct SphereInstance {
     pub radius: f32, // nm
 }
 
-impl SphereInstance {
-    pub fn with_radius(self, radius: f32) -> Self {
-        Self { radius, ..self }
-    }
-}
-
-impl Instanciable for SphereInstance {
+impl Instantiable for SphereInstance {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
-    type Ressource = ();
+    type Resource = ();
 
     fn vertices() -> Vec<DnaVertex> {
         let mut vertices = Vec::new();
 
         let stack_step = PI / NB_STACK_SPHERE as f32;
-        let sector_step = 2. * PI / NB_SECTOR_SPHERE as f32;
+        let sector_step = TAU / NB_SECTOR_SPHERE as f32;
         for i in 0..=NB_STACK_SPHERE {
             // 0..=x means that x is included
             let stack_angle = PI / 2. - (i as f32) * stack_step;
@@ -218,7 +186,7 @@ impl Instanciable for SphereInstance {
                 let position = [x, y, z];
                 let normal = [x, y, z];
 
-                vertices.push(DnaVertex { position, normal })
+                vertices.push(DnaVertex { position, normal });
             }
         }
         vertices
@@ -228,8 +196,8 @@ impl Instanciable for SphereInstance {
         let mut indices = Vec::new();
 
         for i in 0..NB_STACK_SPHERE {
-            let mut k1: u16 = i * (NB_SECTOR_SPHERE + 1); // begining of ith stack
-            let mut k2: u16 = k1 + NB_SECTOR_SPHERE + 1; // begining of (i + 1)th stack
+            let mut k1: u16 = i * (NB_SECTOR_SPHERE + 1); // start of ith stack
+            let mut k2: u16 = k1 + NB_SECTOR_SPHERE + 1; // start of (i + 1)th stack
 
             for _ in 0..NB_SECTOR_SPHERE {
                 if i > 0 {
@@ -262,7 +230,7 @@ impl Instanciable for SphereInstance {
             scale: Vec3::new(self.radius, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::Sphere as u32,
+            mesh: Mesh::Sphere as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),
@@ -270,27 +238,25 @@ impl Instanciable for SphereInstance {
     }
 
     fn vertex_module(device: &wgpu::Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&wgpu::include_spirv!("dna_obj.vert.spv"))
+        device.create_shader_module(wgpu::include_spirv!("dna_obj.vert.spv"))
     }
 
     fn fragment_module(device: &wgpu::Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&wgpu::include_spirv!("dna_obj.frag.spv"))
+        device.create_shader_module(wgpu::include_spirv!("dna_obj.frag.spv"))
     }
 
     fn fake_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
-        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_fake.frag.spv")))
+        Some(device.create_shader_module(wgpu::include_spirv!("dna_obj_fake.frag.spv")))
     }
 
     fn outline_vertex_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
-        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_outline.vert.spv")))
+        Some(device.create_shader_module(wgpu::include_spirv!("dna_obj_outline.vert.spv")))
     }
 
     fn outline_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
-        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_outline.frag.spv")))
+        Some(device.create_shader_module(wgpu::include_spirv!("dna_obj_outline.frag.spv")))
     }
 }
-
-impl DnaObject for SphereInstance {}
 
 pub struct StereographicSphereAndPlane {
     pub position: Vec3,
@@ -298,10 +264,10 @@ pub struct StereographicSphereAndPlane {
     pub ratio: f32,
 }
 
-impl Instanciable for StereographicSphereAndPlane {
+impl Instantiable for StereographicSphereAndPlane {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
-    type Ressource = ();
+    type Resource = ();
 
     fn vertices() -> Vec<DnaVertex> {
         let mut ret = SphereInstance::vertices();
@@ -343,11 +309,11 @@ impl Instanciable for StereographicSphereAndPlane {
     }
 
     fn vertex_module(device: &wgpu::Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&wgpu::include_spirv!("dna_obj.vert.spv"))
+        device.create_shader_module(wgpu::include_spirv!("dna_obj.vert.spv"))
     }
 
     fn fragment_module(device: &wgpu::Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&wgpu::include_spirv!("dna_obj.frag.spv"))
+        device.create_shader_module(wgpu::include_spirv!("dna_obj.frag.spv"))
     }
 
     fn primitive_topology() -> wgpu::PrimitiveTopology
@@ -358,21 +324,17 @@ impl Instanciable for StereographicSphereAndPlane {
     }
 
     fn to_raw_instance(&self) -> Self::RawInstance {
-        use ensnano_utils::instance::Instance;
-        let color =
-            Instance::color_from_au32(ensnano_interactor::consts::STEREOGRAPHIC_SPHERE_COLOR);
+        let color = Instance::color_from_au32(STEREOGRAPHIC_SPHERE_COLOR);
         let model = Mat4::from_translation(self.position)
             * self.orientation.into_matrix().into_homogeneous();
-        let scale = ensnano_interactor::consts::STEREOGRAPHIC_SPHERE_RADIUS
-            / ensnano_interactor::consts::SPHERE_RADIUS
-            * Vec3::new(self.ratio, 1., 1.);
+        let scale = STEREOGRAPHIC_SPHERE_RADIUS / SPHERE_RADIUS * Vec3::new(self.ratio, 1., 1.);
         RawDnaInstance {
             model,
             color,
             scale,
             id: 0,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::StereographicSphere as u32,
+            mesh: Mesh::StereographicSphere as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),
@@ -390,22 +352,23 @@ pub struct TubeInstance {
 }
 
 impl TubeInstance {
+    #[must_use]
     pub fn with_radius(self, radius: f32) -> Self {
         Self { radius, ..self }
     }
 }
 
-impl Instanciable for TubeInstance {
+impl Instantiable for TubeInstance {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
-    type Ressource = ();
+    type Resource = ();
 
     fn vertices() -> Vec<DnaVertex> {
         (0..(2 * NB_RAY_TUBE))
             .map(|i| {
                 let point = i / 2;
                 let side = if i % 2 == 0 { -0.5 } else { 0.5 };
-                let theta = (point as f32) * 2. * PI / NB_RAY_TUBE as f32;
+                let theta = (point as f32) * TAU / NB_RAY_TUBE as f32;
                 let position = [side, theta.sin(), theta.cos()];
 
                 let normal = [0., theta.sin(), theta.cos()];
@@ -426,35 +389,37 @@ impl Instanciable for TubeInstance {
     }
 
     fn vertex_module(device: &wgpu::Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&wgpu::include_spirv!("dna_obj.vert.spv"))
+        device.create_shader_module(wgpu::include_spirv!("dna_obj.vert.spv"))
     }
 
     fn fragment_module(device: &wgpu::Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&wgpu::include_spirv!("dna_obj.frag.spv"))
+        device.create_shader_module(wgpu::include_spirv!("dna_obj.frag.spv"))
     }
 
     fn fake_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
-        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_fake.frag.spv")))
+        Some(device.create_shader_module(wgpu::include_spirv!("dna_obj_fake.frag.spv")))
     }
 
     fn outline_vertex_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
-        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_outline.vert.spv")))
+        Some(device.create_shader_module(wgpu::include_spirv!("dna_obj_outline.vert.spv")))
     }
 
     fn outline_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
-        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_outline.frag.spv")))
+        Some(device.create_shader_module(wgpu::include_spirv!("dna_obj_outline.frag.spv")))
     }
 
     fn to_raw_instance(&self) -> RawDnaInstance {
+        // Translate to the position and apply rotation so that u_x aligns with the tube’s axis.
         let model =
-            Mat4::from_translation(self.position) * self.rotor.into_matrix().into_homogeneous(); // translation à position et rotation dans la bonne position u_x -> axe du tube
+            Mat4::from_translation(self.position) * self.rotor.into_matrix().into_homogeneous();
+
         RawDnaInstance {
             model,
             color: self.color,
-            scale: Vec3::new(self.length, self.radius, self.radius), // scale.x is the length of the tube
+            scale: Vec3::new(self.length, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::Tube as u32,
+            mesh: Mesh::Tube as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),
@@ -462,10 +427,7 @@ impl Instanciable for TubeInstance {
     }
 }
 
-impl DnaObject for TubeInstance {}
-
 /// TUBE TIP INSTANCE
-
 pub struct TubeLidInstance {
     pub position: Vec3,
     pub rotor: Rotor3,
@@ -474,20 +436,14 @@ pub struct TubeLidInstance {
     pub radius: f32,
 }
 
-impl TubeLidInstance {
-    pub fn with_radius(self, radius: f32) -> Self {
-        Self { radius, ..self }
-    }
-}
-
-impl Instanciable for TubeLidInstance {
+impl Instantiable for TubeLidInstance {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
-    type Ressource = ();
+    type Resource = ();
 
     fn vertices() -> Vec<DnaVertex> {
         let normal = [1., 0., 0.];
-        (-1..(NB_RAY_TUBE as isize + 1))
+        ((-1)..=(NB_RAY_TUBE as isize))
             .map(|i| {
                 if i < 0 {
                     DnaVertex {
@@ -495,8 +451,8 @@ impl Instanciable for TubeLidInstance {
                         normal,
                     }
                 } else {
-                    let φ = i as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
-                    let position = [0., φ.sin(), φ.cos()];
+                    let phi = i as f32 / NB_RAY_TUBE as f32 * TAU;
+                    let position = [0., phi.sin(), phi.cos()];
                     DnaVertex { position, normal }
                 }
             })
@@ -505,8 +461,7 @@ impl Instanciable for TubeLidInstance {
 
     fn indices() -> Vec<u16> {
         (0..NB_RAY_TUBE)
-            .map(|i| [0, i as u16 + 2, i as u16 + 1])
-            .flatten()
+            .flat_map(|i| [0, i as u16 + 2, i as u16 + 1])
             .collect()
     }
 
@@ -515,23 +470,23 @@ impl Instanciable for TubeLidInstance {
     }
 
     fn vertex_module(device: &wgpu::Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&wgpu::include_spirv!("dna_obj.vert.spv"))
+        device.create_shader_module(wgpu::include_spirv!("dna_obj.vert.spv"))
     }
 
     fn fragment_module(device: &wgpu::Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&wgpu::include_spirv!("dna_obj.frag.spv"))
+        device.create_shader_module(wgpu::include_spirv!("dna_obj.frag.spv"))
     }
 
     fn fake_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
-        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_fake.frag.spv")))
+        Some(device.create_shader_module(wgpu::include_spirv!("dna_obj_fake.frag.spv")))
     }
 
     fn outline_vertex_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
-        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_outline.vert.spv")))
+        Some(device.create_shader_module(wgpu::include_spirv!("dna_obj_outline.vert.spv")))
     }
 
     fn outline_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
-        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_outline.frag.spv")))
+        Some(device.create_shader_module(wgpu::include_spirv!("dna_obj_outline.frag.spv")))
     }
 
     fn to_raw_instance(&self) -> RawDnaInstance {
@@ -543,7 +498,7 @@ impl Instanciable for TubeLidInstance {
             scale: Vec3::new(1.0, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::TubeLid as u32,
+            mesh: Mesh::TubeLid as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),
@@ -551,10 +506,7 @@ impl Instanciable for TubeLidInstance {
     }
 }
 
-impl DnaObject for TubeLidInstance {}
-
 /// SLICED TUBE INSTANCE
-
 pub struct SlicedTubeInstance {
     pub position: Vec3,
     pub rotor: Rotor3,
@@ -566,29 +518,29 @@ pub struct SlicedTubeInstance {
     pub next: Vec3, // direction of the next cylinder - Zero if does not exist
 }
 
-impl Instanciable for SlicedTubeInstance {
+impl Instantiable for SlicedTubeInstance {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
-    type Ressource = ();
+    type Resource = ();
 
     fn vertices() -> Vec<DnaVertex> {
         // Precomputation of the cos and sin
         let circle: Vec<[f32; 3]> = (0..3 * NB_RAY_TUBE)
             .map(|i| {
-                let φ = (i % NB_RAY_TUBE) as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
+                let phi = (i % NB_RAY_TUBE) as f32 / NB_RAY_TUBE as f32 * TAU;
                 let x = match i / NB_RAY_TUBE {
                     0 => -0.5,
                     1 => 0.,
                     _ => 0.5,
                 };
-                [x, φ.sin(), φ.cos()]
+                [x, phi.sin(), phi.cos()]
             })
             .collect();
 
         let circle_normal: Vec<[f32; 3]> = (0..3 * NB_RAY_TUBE)
             .map(|i| {
-                let φ = (i % NB_RAY_TUBE) as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
-                [0., φ.sin(), φ.cos()]
+                let phi = (i % NB_RAY_TUBE) as f32 / NB_RAY_TUBE as f32 * TAU;
+                [0., phi.sin(), phi.cos()]
             })
             .collect();
 
@@ -607,20 +559,18 @@ impl Instanciable for SlicedTubeInstance {
     }
 
     fn indices() -> Vec<u16> {
-        let _NB_RAY_TUBE = NB_RAY_TUBE as u16;
-        let left = (0.._NB_RAY_TUBE)
-            .map(|i| [i, i + _NB_RAY_TUBE])
-            .flatten()
+        let nb_ray_tube = NB_RAY_TUBE as u16;
+        let left = (0..nb_ray_tube)
+            .flat_map(|i| [i, i + nb_ray_tube])
             .collect::<Vec<u16>>();
-        let right = (_NB_RAY_TUBE..2 * _NB_RAY_TUBE)
-            .map(|i| [i, i + _NB_RAY_TUBE])
-            .flatten()
+        let right = (nb_ray_tube..2 * nb_ray_tube)
+            .flat_map(|i| [i, i + nb_ray_tube])
             .collect::<Vec<u16>>();
         [
             left,
-            vec![0, _NB_RAY_TUBE],
+            vec![0, nb_ray_tube],
             right,
-            vec![_NB_RAY_TUBE, 2 * _NB_RAY_TUBE],
+            vec![nb_ray_tube, 2 * nb_ray_tube],
         ]
         .into_iter()
         .flatten()
@@ -628,24 +578,24 @@ impl Instanciable for SlicedTubeInstance {
     }
 
     fn vertex_module(device: &wgpu::Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&wgpu::include_spirv!("sliced_tube.vert.spv"))
+        device.create_shader_module(wgpu::include_spirv!("sliced_tube.vert.spv"))
     }
 
     fn fragment_module(device: &wgpu::Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&wgpu::include_spirv!("dna_obj.frag.spv"))
+        device.create_shader_module(wgpu::include_spirv!("dna_obj.frag.spv"))
     }
 
     fn fake_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
-        // note that currently fake sliced tube points to faketube... to be changed
-        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_fake.frag.spv")))
+        // note that currently fake sliced tube points to fake tube... to be changed
+        Some(device.create_shader_module(wgpu::include_spirv!("dna_obj_fake.frag.spv")))
     }
 
     fn outline_vertex_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
-        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_outline.vert.spv")))
+        Some(device.create_shader_module(wgpu::include_spirv!("dna_obj_outline.vert.spv")))
     }
 
     fn outline_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
-        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_outline.frag.spv")))
+        Some(device.create_shader_module(wgpu::include_spirv!("dna_obj_outline.frag.spv")))
     }
 
     fn to_raw_instance(&self) -> RawDnaInstance {
@@ -658,15 +608,13 @@ impl Instanciable for SlicedTubeInstance {
             scale: Vec3::new(self.length, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::SlicedTube as u32,
+            mesh: Mesh::SlicedTube as u32,
             prev: self.prev,
             next: self.next,
             _padding: Default::default(),
         }
     }
 }
-
-impl DnaObject for SlicedTubeInstance {}
 
 /// CONE INSTANCE
 pub struct ConeInstance {
@@ -678,10 +626,10 @@ pub struct ConeInstance {
     pub length: f32,
 }
 
-impl Instanciable for ConeInstance {
+impl Instantiable for ConeInstance {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
-    type Ressource = ();
+    type Resource = ();
 
     fn vertices() -> Vec<DnaVertex> {
         let radius = 1.;
@@ -690,9 +638,8 @@ impl Instanciable for ConeInstance {
                 let point = i / 2 + i % 2;
                 let side = if i % 2 == 0 { 0. } else { 1. };
                 let height = if i % 2 == 0 { radius } else { 0. };
-                let theta = (point as f32) * 2. * PI / NB_RAY_TUBE as f32;
+                let theta = (point as f32) * TAU / NB_RAY_TUBE as f32;
                 let position = [side, theta.sin() * height, theta.cos() * height];
-                use std::f32::consts::FRAC_1_SQRT_2;
 
                 let normal = [
                     FRAC_1_SQRT_2,
@@ -706,7 +653,7 @@ impl Instanciable for ConeInstance {
         for i in 0..(2 * NB_RAY_TUBE) {
             let point = i / 2 + i % 2;
             let height = if i % 2 == 0 { radius } else { 0. };
-            let theta = (point as f32) * 2. * PI / NB_RAY_TUBE as f32;
+            let theta = (point as f32) * TAU / NB_RAY_TUBE as f32;
             let position = [0., theta.sin() * height, theta.cos() * height];
             let normal = [1., 0., 0.];
             ret.push(DnaVertex { position, normal });
@@ -730,23 +677,23 @@ impl Instanciable for ConeInstance {
     }
 
     fn vertex_module(device: &wgpu::Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&wgpu::include_spirv!("dna_obj.vert.spv"))
+        device.create_shader_module(wgpu::include_spirv!("dna_obj.vert.spv"))
     }
 
     fn fragment_module(device: &wgpu::Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&wgpu::include_spirv!("dna_obj.frag.spv"))
+        device.create_shader_module(wgpu::include_spirv!("dna_obj.frag.spv"))
     }
 
     fn fake_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
-        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_fake.frag.spv")))
+        Some(device.create_shader_module(wgpu::include_spirv!("dna_obj_fake.frag.spv")))
     }
 
     fn outline_vertex_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
-        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_outline.vert.spv")))
+        Some(device.create_shader_module(wgpu::include_spirv!("dna_obj_outline.vert.spv")))
     }
 
     fn outline_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
-        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_outline.frag.spv")))
+        Some(device.create_shader_module(wgpu::include_spirv!("dna_obj_outline.frag.spv")))
     }
 
     fn primitive_topology() -> wgpu::PrimitiveTopology {
@@ -762,7 +709,7 @@ impl Instanciable for ConeInstance {
             scale: Vec3::new(self.length, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::Prime3Cone as u32,
+            mesh: Mesh::Prime3Cone as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),
@@ -770,18 +717,16 @@ impl Instanciable for ConeInstance {
     }
 }
 
-impl DnaObject for ConeInstance {}
-
 pub struct Ellipsoid {
     pub scale: Vec3,
     pub orientation: Rotor3,
     pub sphere: SphereInstance,
 }
 
-impl Instanciable for Ellipsoid {
+impl Instantiable for Ellipsoid {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
-    type Ressource = ();
+    type Resource = ();
 
     fn vertices() -> Vec<Self::Vertex> {
         SphereInstance::vertices()

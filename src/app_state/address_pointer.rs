@@ -1,28 +1,10 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+//! A wrapper around an `Arc<T>` that uses `Arc::ptr_eq` to test for equality.
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+use std::{ops::Deref as _, sync::Arc};
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-//! A wrapper arround an `Arc<T>` that uses `Arc::ptr_eq` to test for equality.
-
-use std::sync::Arc;
-
-/// A wrapper arround an `Arc<T>` that uses `Arc::ptr_eq` to test for equality.
+/// A wrapper around an `Arc<T>` that uses `Arc::ptr_eq` to test for equality.
 #[derive(Default)]
-pub(super) struct AddressPointer<T: Default>(Arc<T>);
+pub(crate) struct AddressPointer<T: Default>(Arc<T>);
 
 impl<T: Default> Clone for AddressPointer<T> {
     fn clone(&self) -> Self {
@@ -59,36 +41,35 @@ impl<T: Default> std::ops::Deref for AddressPointer<T> {
 }
 
 impl<T: Default> AddressPointer<T> {
-    pub fn new(content: T) -> Self {
+    pub(crate) fn new(content: T) -> Self {
         Self(Arc::new(content))
     }
 
-    pub fn show_address(&self) {
-        println!("{:p}", Arc::as_ptr(&self.0))
+    pub(crate) fn show_address(&self) {
+        println!("{:p}", Arc::as_ptr(&self.0));
     }
 
-    pub fn get_ptr(&self) -> *const T {
+    pub(crate) fn get_ptr(&self) -> *const T {
         Arc::as_ptr(&self.0)
     }
 }
 
 impl<T: Default + Clone> AddressPointer<T> {
-    pub fn make_mut(&mut self) -> &mut T {
+    pub(crate) fn make_mut(&mut self) -> &mut T {
         Arc::make_mut(&mut self.0)
     }
 }
 
-use std::ops::Deref;
 impl<T: Clone + Default> AddressPointer<T> {
     /// Return a clone of the pointed value.
-    pub fn clone_inner(&self) -> T {
+    pub(crate) fn clone_inner(&self) -> T {
         self.0.deref().clone()
     }
 }
 
 impl<T: Default + PartialEq> AddressPointer<T> {
     /// Test the content of two pointers for equality
-    pub fn content_equal(&self, content: &T) -> bool {
+    pub(crate) fn content_equal(&self, content: &T) -> bool {
         self.0.as_ref() == content
     }
 }
@@ -100,7 +81,7 @@ impl<T: Default> From<Arc<T>> for AddressPointer<T> {
 }
 
 impl<T: Default> std::fmt::Pointer for AddressPointer<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let ptr = Arc::as_ptr(&self.0);
         std::fmt::Pointer::fmt(&ptr, f)
     }

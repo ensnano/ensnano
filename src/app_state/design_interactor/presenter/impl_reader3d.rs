@@ -1,46 +1,45 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::*;
+use crate::app_state::design_interactor::DesignInteractor;
 use ahash::RandomState;
 use ensnano_design::{
+    AdditionalStructure,
+    bezier_plane::{
+        BezierPathId, BezierPlaneId, BezierPlanes, BezierVertex, BezierVertexId, InstantiatedPath,
+    },
+    curves::{
+        CurveDescriptor, SurfaceInfo, SurfacePoint,
+        bezier::{BezierControlPoint, CubicBezierConstructor},
+    },
+    domains::Domain,
+    external_3d_objects::External3DObjects,
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
-    BezierPlaneDescriptor, BezierPlaneId, BezierVertexId, Collection, CurveDescriptor, Domain,
-    Nucl,
+    helices::Helix,
+    nucl::Nucl,
+    parameters::HelixParameters,
 };
-use ensnano_interactor::{
+use ensnano_scene::{
+    data::{
+        StrandNucleotidesPositions,
+        design3d::{HBond, Scalebar, SceneDesignReaderExt},
+    },
+    view::grid::GridInstance,
+};
+use ensnano_utils::{
+    ObjectType, Referential,
     graphics::{LoopoutBond, LoopoutNucl},
-    BezierControlPoint, ObjectType, Referential,
 };
-use std::collections::HashSet;
+use std::{
+    collections::{BTreeMap, HashMap, HashSet},
+    sync::Arc,
+};
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 
-use crate::scene::{DesignReader as Reader3D, GridInstance, SurfaceInfo};
-
-use ensnano_utils::StrandNucleotidesPositions;
-
-impl Reader3D for DesignReader {
+impl SceneDesignReaderExt for DesignInteractor {
     fn get_color(&self, e_id: u32) -> Option<u32> {
-        self.presenter.content.color_map.get(&e_id).cloned()
+        self.presenter.content.color_map.get(&e_id).copied()
     }
 
     fn get_radius(&self, e_id: u32) -> Option<f32> {
-        self.presenter.content.radius_map.get(&e_id).cloned()
+        self.presenter.content.radius_map.get(&e_id).copied()
     }
 
     fn get_xover_coloring(&self, e_id: u32) -> Option<bool> {
@@ -48,15 +47,11 @@ impl Reader3D for DesignReader {
             .content
             .xover_coloring_map
             .get(&e_id)
-            .cloned()
+            .copied()
     }
 
     fn get_with_cones(&self, e_id: u32) -> Option<bool> {
-        self.presenter.content.with_cones_map.get(&e_id).cloned()
-    }
-
-    fn get_basis(&self) -> Rotor3 {
-        self.presenter.model_matrix.extract_rotation()
+        self.presenter.content.with_cones_map.get(&e_id).copied()
     }
 
     fn get_symbol(&self, e_id: u32) -> Option<char> {
@@ -65,7 +60,7 @@ impl Reader3D for DesignReader {
             .nucleotide
             .get(&e_id)
             .and_then(|nucl| self.presenter.content.letter_map.get(nucl))
-            .cloned()
+            .copied()
     }
 
     fn get_grid_basis(&self, g_id: GridId) -> Option<Rotor3> {
@@ -100,7 +95,7 @@ impl Reader3D for DesignReader {
     }
 
     fn get_all_nucl_ids(&self) -> Vec<u32> {
-        self.presenter.content.nucleotide.keys().cloned().collect()
+        self.presenter.content.nucleotide.keys().copied().collect()
     }
 
     fn get_model_matrix(&self) -> Mat4 {
@@ -109,7 +104,7 @@ impl Reader3D for DesignReader {
     }
 
     fn get_nucl_with_id(&self, e_id: u32) -> Option<Nucl> {
-        self.presenter.content.nucleotide.get(&e_id).cloned()
+        self.presenter.content.nucleotide.get(&e_id).copied()
     }
 
     fn get_all_bond_ids(&self) -> Vec<u32> {
@@ -117,7 +112,7 @@ impl Reader3D for DesignReader {
             .content
             .nucleotides_involved
             .keys()
-            .cloned()
+            .copied()
             .collect()
     }
 
@@ -147,7 +142,7 @@ impl Reader3D for DesignReader {
             .content
             .nucl_collection
             .get_identifier(nucl)
-            .cloned()
+            .copied()
     }
 
     fn get_position_of_nucl_on_helix(
@@ -174,27 +169,6 @@ impl Reader3D for DesignReader {
         self.presenter.content.get_helices_on_grid(g_id)
     }
 
-    fn get_all_prime3_nucl(&self) -> Vec<(Vec3, Vec3, u32)> {
-        let locate_nucl = |nucl| {
-            let pos_start_opt = self
-                .get_identifier_nucl(&nucl)
-                .and_then(|nucl_id| self.get_element_position(nucl_id, Referential::World));
-            pos_start_opt.or(self.get_position_of_nucl_on_helix(nucl, Referential::World, false))
-        };
-
-        self.presenter
-            .content
-            .prime3_set
-            .iter()
-            .filter(|prime3| !self.presenter.invisible_nucls.contains(&prime3.nucl))
-            .filter_map(|prime3| {
-                let start = locate_nucl(prime3.nucl)?;
-                let end = locate_nucl(prime3.nucl.prime3())?;
-                Some((start, end, prime3.color))
-            })
-            .collect()
-    }
-
     fn get_element_position(&self, e_id: u32, referential: Referential) -> Option<Vec3> {
         let position = self.presenter.content.get_element_position(e_id)?;
         Some(self.presenter.in_referential(position, referential))
@@ -210,7 +184,7 @@ impl Reader3D for DesignReader {
             .content
             .identifier_bond
             .get(&(n1, n2))
-            .cloned()
+            .copied()
     }
 
     fn get_helix_grid_position(&self, h_id: u32) -> Option<HelixGridPosition> {
@@ -226,17 +200,18 @@ impl Reader3D for DesignReader {
         )
     }
 
-    fn get_grid_latice_position(&self, position: GridPosition) -> Option<Vec3> {
-        self.presenter.content.get_grid_latice_position(position)
+    fn get_grid_lattice_position(&self, position: GridPosition) -> Option<Vec3> {
+        self.presenter.content.get_grid_lattice_position(position)
     }
 
     fn get_nucl_with_id_relaxed(&self, e_id: u32) -> Option<Nucl> {
-        self.get_nucl_with_id(e_id).or(self
-            .presenter
-            .content
-            .nucleotides_involved
-            .get(&e_id)
-            .map(|t| t.0))
+        self.get_nucl_with_id(e_id).or_else(|| {
+            self.presenter
+                .content
+                .nucleotides_involved
+                .get(&e_id)
+                .map(|t| t.0)
+        })
     }
 
     fn get_all_visible_bond_ids(&self) -> Vec<u32> {
@@ -246,18 +221,17 @@ impl Reader3D for DesignReader {
         )
     }
 
-    fn get_scalebar(&self) -> Option<(f32, f32, fn(f32, f32, f32) -> u32)> {
-        self.presenter.content.scalebar.clone()
+    fn get_scalebar(&self) -> Option<Scalebar> {
+        self.presenter.content.scalebar
     }
 
     fn get_element_axis_position(&self, e_id: u32, referential: Referential) -> Option<Vec3> {
         if let Some(pos) = self.presenter.content.axis_space_position.get(&e_id) {
-            return Some(
+            Some(
                 self.presenter
                     .in_referential(Vec3::new(pos[0], pos[1], pos[2]), referential),
-            );
-        }
-        if let Some(nucl) = self.get_nucl_with_id(e_id) {
+            )
+        } else if let Some(nucl) = self.get_nucl_with_id(e_id) {
             self.get_position_of_nucl_on_helix(nucl, referential, true)
         } else if let Some((n1, n2)) = self.presenter.content.nucleotides_involved.get(&e_id) {
             let a = self.get_position_of_nucl_on_helix(*n1, referential, true);
@@ -268,24 +242,11 @@ impl Reader3D for DesignReader {
         }
     }
 
-    fn get_ids_of_all_helices(&self) -> Vec<u32> {
-        self.presenter
-            .content
-            .helix_map
-            .keys()
-            .map(|&k| k)
-            .collect()
-    }
-
     fn get_id_of_helix_containing(&self, e_id: u32) -> Option<usize> {
         if let Some(nucl) = self.get_nucl_with_id(e_id) {
             Some(nucl.helix)
         } else if let Some((n1, n2)) = self.presenter.content.nucleotides_involved.get(&e_id) {
-            if n1.helix == n2.helix {
-                Some(n1.helix)
-            } else {
-                None
-            }
+            (n1.helix == n2.helix).then_some(n1.helix)
         } else {
             None
         }
@@ -303,7 +264,7 @@ impl Reader3D for DesignReader {
     }
 
     fn get_id_of_strand_containing(&self, e_id: u32) -> Option<usize> {
-        self.presenter.content.strand_map.get(&e_id).cloned()
+        self.presenter.content.strand_map.get(&e_id).copied()
     }
 
     fn get_used_coordinates_on_grid(&self, g_id: GridId) -> Option<Vec<(isize, isize)>> {
@@ -329,7 +290,7 @@ impl Reader3D for DesignReader {
             .iter()
             .filter(|(_k, (n1, n2))| n1.helix == h_id && n2.helix == h_id)
             .map(|t| t.0);
-        nucls.chain(bonds).cloned().collect()
+        nucls.chain(bonds).copied().collect()
     }
 
     fn get_ids_of_elements_belonging_to_strand(&self, s_id: usize) -> Vec<u32> {
@@ -346,7 +307,7 @@ impl Reader3D for DesignReader {
             .nucleotides_involved
             .keys()
             .filter(belong_to_strand);
-        nucls.chain(bonds).cloned().collect()
+        nucls.chain(bonds).copied().collect()
     }
 
     fn prime5_of_which_strand(&self, nucl: Nucl) -> Option<usize> {
@@ -359,18 +320,6 @@ impl Reader3D for DesignReader {
 
     fn can_start_builder_at(&self, nucl: &Nucl) -> bool {
         self.presenter.can_start_builder_at(*nucl)
-    }
-
-    fn has_small_spheres_nucl_id(&self, e_id: u32) -> bool {
-        if let Some(nucl) = self.get_nucl_with_id(e_id) {
-            if let Some(grid_pos) = self.get_helix_grid_position(nucl.helix as u32) {
-                self.presenter.content.grid_has_small_spheres(grid_pos.grid)
-            } else {
-                false
-            }
-        } else {
-            false
-        }
     }
 
     fn get_all_loopout_nucl(&self) -> &[LoopoutNucl] {
@@ -388,7 +337,7 @@ impl Reader3D for DesignReader {
             .content
             .insertion_length
             .get(&bond_id)
-            .cloned()
+            .copied()
             .unwrap_or(0)
     }
 
@@ -412,14 +361,14 @@ impl Reader3D for DesignReader {
         let helix = self.presenter.current_design.helices.get(&helix)?;
         if let BezierControlPoint::PiecewiseBezier(n) = control {
             let points = helix.piecewise_bezier_points()?;
-            points.get(n).cloned()
+            points.get(n).copied()
         } else {
             let points = helix.cubic_bezier_points()?;
             match control {
                 BezierControlPoint::CubicBezier(point) => points.get(usize::from(point)),
                 BezierControlPoint::PiecewiseBezier { .. } => None,
             }
-            .cloned()
+            .copied()
         }
     }
 
@@ -428,7 +377,7 @@ impl Reader3D for DesignReader {
             .current_design
             .helices
             .get(&h_id)
-            .and_then(|h| h.get_curve_range())
+            .and_then(Helix::get_curve_range)
     }
 
     fn get_checked_xovers_ids(&self, checked: bool) -> Vec<u32> {
@@ -447,10 +396,7 @@ impl Reader3D for DesignReader {
         self.presenter.content.get_grid_object(position)
     }
 
-    fn get_cubic_bezier_controls(
-        &self,
-        helix: usize,
-    ) -> Option<ensnano_design::CubicBezierConstructor> {
+    fn get_cubic_bezier_controls(&self, helix: usize) -> Option<CubicBezierConstructor> {
         let helix = self.presenter.current_design.helices.get(&helix)?;
         if let Some(CurveDescriptor::Bezier(constructor)) = helix.curve.as_ref().map(Arc::as_ref) {
             Some(constructor.clone())
@@ -469,20 +415,15 @@ impl Reader3D for DesignReader {
         helix.curve.as_ref().map(Arc::as_ref)
     }
 
-    fn get_bezier_planes(
-        &self,
-    ) -> &dyn Collection<Key = BezierPlaneId, Item = BezierPlaneDescriptor> {
+    fn get_bezier_planes(&self) -> &BezierPlanes {
         &self.presenter.current_design.bezier_planes
     }
 
-    fn get_bezier_paths(
-        &self,
-    ) -> Option<&BTreeMap<ensnano_design::BezierPathId, Arc<ensnano_design::InstanciatedPath>>>
-    {
+    fn get_bezier_paths(&self) -> Option<&BTreeMap<BezierPathId, Arc<InstantiatedPath>>> {
         self.presenter
             .current_design
             .try_get_up_to_date()
-            .map(|data| data.paths_data.instanciated_paths.as_ref())
+            .map(|data| data.paths_data.instantiated_paths.as_ref())
     }
 
     fn get_parameters(&self) -> HelixParameters {
@@ -492,17 +433,13 @@ impl Reader3D for DesignReader {
             .unwrap_or_default()
     }
 
-    fn get_bezier_vertex(
-        &self,
-        path_id: ensnano_design::BezierPathId,
-        vertex_id: usize,
-    ) -> Option<ensnano_design::BezierVertex> {
+    fn get_bezier_vertex(&self, path_id: BezierPathId, vertex_id: usize) -> Option<BezierVertex> {
         self.presenter
             .current_design
             .bezier_paths
             .get(&path_id)
             .and_then(|p| p.vertices().get(vertex_id))
-            .cloned()
+            .copied()
     }
 
     fn get_corners_of_plane(&self, plane_id: BezierPlaneId) -> [Vec2; 4] {
@@ -529,7 +466,7 @@ impl Reader3D for DesignReader {
         ]
     }
 
-    fn get_optimal_xover_arround(&self, source: Nucl, target: Nucl) -> Option<(Nucl, Nucl)> {
+    fn get_optimal_xover_around(&self, source: Nucl, target: Nucl) -> Option<(Nucl, Nucl)> {
         let source_id = self.get_id_of_strand_containing_nucl(&source)?;
         let target_id = self.get_id_of_strand_containing_nucl(&target)?;
         let mut opt_pair = (source, target);
@@ -540,7 +477,7 @@ impl Reader3D for DesignReader {
             .current_design
             .helix_parameters
             .unwrap_or_default();
-        let mut opt_dist = std::f32::INFINITY;
+        let mut opt_dist = f32::INFINITY;
         for i in -2..2 {
             let source_candidate = Nucl {
                 position: source.position + i,
@@ -579,25 +516,22 @@ impl Reader3D for DesignReader {
         let helix = self.presenter.current_design.helices.get(&h_id);
         if let Some(CurveDescriptor::TranslatedPath { path_id, .. }) =
             helix.and_then(|h| h.curve.as_ref().map(Arc::as_ref))
+            && let Some(path) = self.presenter.current_design.bezier_paths.get(path_id)
         {
-            if let Some(path) = self.presenter.current_design.bezier_paths.get(path_id) {
-                (0..(path.vertices().len()))
-                    .map(|i| {
-                        GridId::BezierPathGrid(BezierVertexId {
-                            path_id: *path_id,
-                            vertex_id: i,
-                        })
+            (0..(path.vertices().len()))
+                .map(|i| {
+                    GridId::BezierPathGrid(BezierVertexId {
+                        path_id: *path_id,
+                        vertex_id: i,
                     })
-                    .collect()
-            } else {
-                vec![]
-            }
+                })
+                .collect()
         } else {
             vec![]
         }
     }
 
-    fn get_external_objects(&self) -> &ensnano_design::External3DObjects {
+    fn get_external_objects(&self) -> &External3DObjects {
         &self.presenter.current_design.external_3d_objects
     }
 
@@ -606,12 +540,12 @@ impl Reader3D for DesignReader {
         helix.get_surface_info_nucl(nucl)
     }
 
-    fn get_surface_info(&self, point: ensnano_design::SurfacePoint) -> Option<SurfaceInfo> {
+    fn get_surface_info(&self, point: SurfacePoint) -> Option<SurfaceInfo> {
         let helix = self.presenter.current_design.helices.get(&point.helix_id)?;
         helix.get_surface_info(point)
     }
 
-    fn get_additional_structure(&self) -> Option<&dyn ensnano_design::AdditionalStructure> {
+    fn get_additional_structure(&self) -> Option<&dyn AdditionalStructure> {
         self.presenter
             .current_design
             .additional_structure
@@ -619,8 +553,10 @@ impl Reader3D for DesignReader {
             .map(Arc::as_ref)
     }
 
-    fn get_nucleotides_positions_by_strands(&self) -> HashMap<usize, StrandNucleotidesPositions> {
-        let mut nucl_pos = HashMap::new();
+    fn get_nucleotides_positions_by_strands(
+        &self,
+    ) -> HashMap<usize, StrandNucleotidesPositions, RandomState> {
+        let mut nucl_pos = HashMap::default();
         let design = self.presenter.current_design.as_ref();
         let content = self.presenter.content.as_ref();
 
@@ -629,12 +565,12 @@ impl Reader3D for DesignReader {
             let mut pos_seq = Vec::new();
             let mut curvatures: Vec<f64> = Vec::new();
             let mut torsions: Vec<f64> = Vec::new();
-            for (i, domain) in strand.domains.iter().enumerate() {
+            for domain in &strand.domains {
                 // Real domain or Insertion
                 if let Domain::HelixDomain(domain) = domain {
                     // Real helix domain
                     // Iterate along the domain
-                    for (dom_position, nucl_position) in domain.iter().enumerate() {
+                    for nucl_position in domain.iter() {
                         let nucl: Nucl = Nucl {
                             position: nucl_position,
                             forward: domain.forward,
@@ -646,7 +582,7 @@ impl Reader3D for DesignReader {
                             .unwrap_or_else(|| {
                                 unreachable!("nucleotide does not belong to the design content!")
                             });
-                        let position = content.space_position.get(nucl_id).unwrap().clone();
+                        let position = content.space_position[nucl_id];
                         pos_seq.push(position);
                         curvatures.push(
                             design
@@ -677,29 +613,20 @@ impl Reader3D for DesignReader {
                 },
             );
         }
-        return nucl_pos;
+        nucl_pos
     }
 }
 
-#[cfg(test)]
-mod tests {
+// TODO
+// #[cfg(test)]
+// mod tests {
 
-    #[test]
-    #[ignore]
-    fn correct_suggestions() {
-        // TODO: write test, and implement function
-        assert!(false)
-    }
+//     #[test]
+//     fn correct_suggestions() {}
 
-    #[test]
-    #[ignore]
-    fn correct_pasted_position() {
-        assert!(false)
-    }
+//     #[test]
+//     fn correct_pasted_position() {}
 
-    #[test]
-    #[ignore]
-    fn nucls_are_filtered_by_visibility() {
-        assert!(false)
-    }
-}
+//     #[test]
+//     fn nucls_are_filtered_by_visibility() {}
+// }

@@ -1,26 +1,17 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::{dialog, messages, MainState, State, TransitionMessage, YesNo};
-use ensnano_interactor::StandardSequence;
-
-use dialog::PathInput;
-use std::path::Path;
+use crate::{
+    MainStateView,
+    controller::{
+        AutomataState, TransitionMessage, YesNo,
+        messages::{
+            NO_FILE_RECEIVED_SCAFFOLD, SEQUENCE_FILTERS, invalid_sequence_file,
+            optimize_scaffold_position_msg,
+        },
+        normal_state::NormalState,
+    },
+    dialog::{self, PathInput},
+};
+use ensnano_utils::StandardSequence;
+use std::path::{Path, PathBuf};
 
 /// User is in the process of setting the sequence of the scaffold
 pub(super) struct SetScaffoldSequence {
@@ -42,17 +33,9 @@ impl SetScaffoldSequence {
             step: Step::OptimizeScaffoldPosition { design_id: 0 },
         }
     }
-}
 
-impl Default for Step {
-    fn default() -> Self {
-        Self::Init
-    }
-}
-
-impl SetScaffoldSequence {
     fn use_default(shift: usize, sequence: StandardSequence) -> Self {
-        let sequence = sequence.sequence().to_string();
+        let sequence = sequence.sequence().to_owned();
         Self {
             step: Step::SetSequence(sequence),
             shift,
@@ -67,10 +50,11 @@ impl SetScaffoldSequence {
     }
 }
 
-use std::path::PathBuf;
+#[derive(Default)]
 enum Step {
     /// The request to set the sequence of the scaffold has been acknowledged. User is asked to
     /// chose between the default m13 scaffold or a custom one.
+    #[default]
     Init,
     /// The user has chosen to use a custom scaffold, and is asked a path the sequence file.
     AskPath { path_input: Option<PathInput> },
@@ -83,8 +67,8 @@ enum Step {
     OptimizeScaffoldPosition { design_id: usize },
 }
 
-impl State for SetScaffoldSequence {
-    fn make_progress(self: Box<Self>, main_state: &mut dyn MainState) -> Box<dyn State> {
+impl AutomataState for SetScaffoldSequence {
+    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn AutomataState> {
         match self.step {
             Step::Init => init_set_scaffold_sequence(self.shift, main_state.get_scaffold_length()),
             Step::AskPath { path_input } => ask_path(
@@ -101,7 +85,10 @@ impl State for SetScaffoldSequence {
     }
 }
 
-fn init_set_scaffold_sequence(shift: usize, scaffold_length: Option<usize>) -> Box<dyn State> {
+fn init_set_scaffold_sequence(
+    shift: usize,
+    scaffold_length: Option<usize>,
+) -> Box<dyn AutomataState> {
     let suggested_sequence = scaffold_length
         .map(StandardSequence::from_length)
         .unwrap_or_default();
@@ -121,7 +108,7 @@ fn ask_path<P: AsRef<Path>>(
     path_input: Option<PathInput>,
     shift: usize,
     starting_directory: Option<P>,
-) -> Box<dyn State> {
+) -> Box<dyn AutomataState> {
     if let Some(path_input) = path_input {
         if let Some(result) = path_input.get() {
             if let Some(path) = result {
@@ -131,9 +118,9 @@ fn ask_path<P: AsRef<Path>>(
                 })
             } else {
                 TransitionMessage::new(
-                    messages::NO_FILE_RECIEVED_SCAFFOLD,
+                    NO_FILE_RECEIVED_SCAFFOLD,
                     rfd::MessageLevel::Error,
-                    Box::new(super::NormalState),
+                    Box::new(NormalState),
                 )
             }
         } else {
@@ -145,7 +132,7 @@ fn ask_path<P: AsRef<Path>>(
             })
         }
     } else {
-        let path_input = dialog::load(starting_directory, messages::SEQUENCE_FILTERS);
+        let path_input = dialog::load(starting_directory, SEQUENCE_FILTERS);
         Box::new(SetScaffoldSequence {
             step: Step::AskPath {
                 path_input: Some(path_input),
@@ -155,14 +142,14 @@ fn ask_path<P: AsRef<Path>>(
     }
 }
 
-fn got_path(path: PathBuf, shift: usize) -> Box<dyn State> {
+fn got_path(path: PathBuf, shift: usize) -> Box<dyn AutomataState> {
     let mut content = std::fs::read_to_string(path).unwrap();
     content.make_ascii_uppercase();
     if let Some(n) =
         content.find(|c: char| c != 'A' && c != 'T' && c != 'G' && c != 'C' && !c.is_whitespace())
     {
-        let msg = messages::invalid_sequence_file(n);
-        TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(super::NormalState))
+        let msg = invalid_sequence_file(n);
+        TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(NormalState))
     } else {
         Box::new(SetScaffoldSequence {
             step: Step::SetSequence(content),
@@ -174,8 +161,8 @@ fn got_path(path: PathBuf, shift: usize) -> Box<dyn State> {
 fn set_sequence(
     sequence: String,
     shift: usize,
-    scaffold_setter: &mut dyn MainState,
-) -> Box<dyn State> {
+    scaffold_setter: &mut MainStateView,
+) -> Box<dyn AutomataState> {
     let result = scaffold_setter.set_scaffold_sequence(sequence, shift);
     match result {
         Ok(SetScaffoldSequenceOk {
@@ -183,12 +170,12 @@ fn set_sequence(
             target_scaffold_length,
         }) => match target_scaffold_length {
             TargetScaffoldLength::Ok => {
-                let message = messages::optimize_scaffold_position_msg(default_shift.unwrap_or(0));
+                let message = optimize_scaffold_position_msg(default_shift.unwrap_or(0));
                 let yes = Box::new(SetScaffoldSequence {
                     step: Step::OptimizeScaffoldPosition { design_id: 0 },
                     shift,
                 });
-                let no = Box::new(super::NormalState);
+                let no = Box::new(NormalState);
                 Box::new(YesNo::new(message, yes, no))
             }
             TargetScaffoldLength::NotOk {
@@ -201,38 +188,31 @@ fn set_sequence(
                 Input sequence length: {input_scaffold_length}"
                 ),
                 rfd::MessageLevel::Warning,
-                Box::new(super::NormalState),
+                Box::new(NormalState),
             ),
         },
         Err(err) => TransitionMessage::new(
-            format!("{:?}", err),
+            format!("{err:?}"),
             rfd::MessageLevel::Error,
-            Box::new(super::NormalState),
+            Box::new(NormalState),
         ),
     }
 }
 
-fn optimize_scaffold_position(_design_id: usize, main_state: &mut dyn MainState) -> Box<dyn State> {
+fn optimize_scaffold_position(
+    _design_id: usize,
+    main_state: &mut MainStateView,
+) -> Box<dyn AutomataState> {
     main_state.optimize_shift();
-    Box::new(super::NormalState)
+    Box::new(NormalState)
 }
 
-pub trait ScaffoldSetter {
-    fn get_scaffold_length(&self) -> Option<usize>;
-    fn set_scaffold_sequence(
-        &mut self,
-        sequence: String,
-        shift: usize,
-    ) -> Result<SetScaffoldSequenceOk, SetScaffoldSequenceError>;
-    fn optimize_shift(&mut self);
-}
-
-pub struct SetScaffoldSequenceOk {
+pub(crate) struct SetScaffoldSequenceOk {
     pub default_shift: Option<usize>,
     pub target_scaffold_length: TargetScaffoldLength,
 }
 
-pub enum TargetScaffoldLength {
+pub(crate) enum TargetScaffoldLength {
     Ok,
     NotOk {
         design_length: usize,
@@ -241,4 +221,4 @@ pub enum TargetScaffoldLength {
 }
 
 #[derive(Debug)]
-pub struct SetScaffoldSequenceError(pub String);
+pub(crate) struct SetScaffoldSequenceError(#[expect(unused)] pub String);

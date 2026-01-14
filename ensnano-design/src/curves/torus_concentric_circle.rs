@@ -1,27 +1,6 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use crate::{parameters, HelixParameters};
-
-use super::circle_curve::CircleCurve;
-use super::Curved;
-use std::f64::consts::{PI, TAU};
-use ultraviolet::{DRotor3, DVec3, Vec3};
+use crate::{curves::circle_curve::CircleCurve, parameters::HelixParameters};
+use serde::{Deserialize, Serialize};
+use std::f64::consts::TAU;
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct TorusConcentricCircleDescriptor {
@@ -34,21 +13,17 @@ pub struct TorusConcentricCircleDescriptor {
     pub inter_helix_center_gap: Option<f64>, // in nm, by default 2.65nm
 }
 
-fn default_number_of_helices() -> usize {
-    6
-}
-
 impl TorusConcentricCircleDescriptor {
     pub(super) fn with_helix_parameters(self, helix_parameters: &HelixParameters) -> CircleCurve {
         let inter_helix_center_gap = self
             .inter_helix_center_gap
-            .unwrap_or(helix_parameters.inter_helix_axis_gap() as f64);
+            .unwrap_or_else(|| helix_parameters.inter_helix_axis_gap() as f64);
         let inter_helix_angle = TAU / (self.number_of_helices as f64);
         let section_radius = inter_helix_center_gap / 2. / (inter_helix_angle / 2.).sin();
-        let φ =
+        let phi =
             inter_helix_angle * (self.helix_index as f64 + self.helix_index_shift.unwrap_or(0.));
-        let circle_radius = self.radius - section_radius * φ.cos();
-        let z = section_radius * φ.sin();
+        let circle_radius = self.radius - section_radius * phi.cos();
+        let z = section_radius * phi.sin();
         let perimeter = TAU * circle_radius;
         let abscissa_converter_factor = Some(
             circle_radius / (self.radius + section_radius)
@@ -56,7 +31,7 @@ impl TorusConcentricCircleDescriptor {
                 / helix_parameters.rise as f64,
         ); // better <= 1
 
-        let mut circle_helix_parameters = helix_parameters.clone();
+        let mut circle_helix_parameters = *helix_parameters;
         circle_helix_parameters.inter_helix_gap = inter_helix_center_gap as f32;
 
         CircleCurve {
@@ -96,7 +71,7 @@ impl EllipticTorusConcentricCircleDescriptor {
                 / helix_parameters.rise as f64,
         ); // better <= 1
 
-        let mut circle_helix_parameters = helix_parameters.clone();
+        let circle_helix_parameters = *helix_parameters;
 
         CircleCurve {
             _parameters: circle_helix_parameters,

@@ -1,20 +1,13 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+use crate::{
+    app_state::design_interactor::controller::ErrOperation,
+    controller::channel_reader::ChannelReader,
+};
+use ensnano_design::{Design, domains::Domain, helices::NuclCollection, nucl::Nucl};
+use std::{
+    collections::BTreeMap,
+    fmt::Write as _,
+    sync::{Arc, mpsc},
+};
 
 macro_rules! log_err {
     ($x:expr) => {
@@ -24,18 +17,13 @@ macro_rules! log_err {
     };
 }
 
-use crate::app_state::design_interactor::presenter::NuclCollection;
-
-use super::*;
-use std::sync::mpsc;
-
 fn read_scaffold_seq(
     design: &Design,
-    nucl_collection: &dyn NuclCollection,
+    nucl_collection: &NuclCollection,
     shift: usize,
 ) -> Result<BTreeMap<Nucl, char>, ErrOperation> {
     let nb_skip = if let Some(sequence) = design.scaffold_sequence.as_ref() {
-        if sequence.len() == 0 {
+        if sequence.is_empty() {
             return Err(ErrOperation::EmptyScaffoldSequence);
         }
         sequence.len() - (shift % sequence.len())
@@ -90,14 +78,14 @@ fn read_scaffold_seq(
     }
 }
 
-/// Shift the scaffold at an optimized poisition and return the corresponding score
-pub fn optimize_shift<Nc: NuclCollection>(
+/// Shift the scaffold at an optimized position and return the corresponding score
+pub(crate) fn optimize_shift(
     design: Arc<Design>,
-    nucl_collection: Arc<Nc>,
-    chanel_reader: &mut dyn ShiftOptimizerReader,
+    nucl_collection: Arc<NuclCollection>,
+    chanel_reader: &mut ChannelReader,
 ) {
-    let (progress_snd, progress_rcv) = std::sync::mpsc::channel();
-    let (result_snd, result_rcv) = std::sync::mpsc::channel();
+    let (progress_snd, progress_rcv) = mpsc::channel();
+    let (result_snd, result_rcv) = mpsc::channel();
     chanel_reader.attach_result_chanel(result_rcv);
     chanel_reader.attach_progress_chanel(progress_rcv);
     std::thread::spawn(move || {
@@ -109,27 +97,27 @@ pub fn optimize_shift<Nc: NuclCollection>(
 
 fn get_shift_optimization_result(
     design: &Design,
-    progress_channel: std::sync::mpsc::Sender<f32>,
-    nucl_collection: &dyn NuclCollection,
+    progress_channel: mpsc::Sender<f32>,
+    nucl_collection: &NuclCollection,
 ) -> ShiftOptimizationResult {
     let mut best_score = usize::MAX;
-    let mut best_shfit = 0;
+    let mut best_shift = 0;
     let mut best_result = String::new();
     let len = design
         .scaffold_sequence
         .as_ref()
-        .map(|s| s.len())
+        .map(String::len)
         .ok_or(ErrOperation::NoScaffoldSet)?;
     for shift in 0..len {
         if shift % 100 == 0 {
-            log_err!(progress_channel.send(shift as f32 / len as f32))
+            log_err!(progress_channel.send(shift as f32 / len as f32));
         }
         let char_map = read_scaffold_seq(design, nucl_collection, shift)?;
         let (score, result) = evaluate_shift(design, &char_map);
         if score < best_score {
-            println!("shift {} score {}", shift, score);
+            println!("shift {shift} score {score}");
             best_score = score;
-            best_shfit = shift;
+            best_shift = shift;
             best_result = result;
         }
         if score == 0 {
@@ -137,20 +125,21 @@ fn get_shift_optimization_result(
         }
     }
     Ok(ShiftOptimizationOk {
-        position: best_shfit,
+        position: best_shift,
         score: best_result,
     })
 }
+
 /// Evaluate a scaffold position. The score of the position is given by
 /// score = nb((A|T)^7) + 10 nb(G^4 | C ^4) + 100 nb (G^5 | C^5) + 1000 nb (G^6 | C^6)
+#[expect(clippy::needless_raw_strings)]
 fn evaluate_shift(design: &Design, basis_map: &BTreeMap<Nucl, char>) -> (usize, String) {
-    use std::fmt::Write;
     let mut ret = 0;
     let mut shown = false;
     let bad = regex::Regex::new(r"[AT]{7,}?").unwrap();
-    let verybad = regex::Regex::new(r"G{4,}?|C{4,}?").unwrap();
-    let ultimatelybad = regex::Regex::new(r"G{5,}|C{5,}").unwrap();
-    let ultimatelybad2 = regex::Regex::new(r"G{6,}|C{6,}").unwrap();
+    let very_bad = regex::Regex::new(r"G{4,}?|C{4,}?").unwrap();
+    let ultimately_bad = regex::Regex::new(r"G{5,}|C{5,}").unwrap();
+    let ultimately_bad2 = regex::Regex::new(r"G{6,}|C{6,}").unwrap();
     for (s_id, strand) in design.strands.iter() {
         if strand.length() == 0 || design.scaffold_id == Some(*s_id) {
             continue;
@@ -175,21 +164,21 @@ fn evaluate_shift(design: &Design, basis_map: &BTreeMap<Nucl, char>) -> (usize, 
             }
             ret += 1;
         }
-        let mut matches = verybad.find_iter(&sequence);
+        let mut matches = very_bad.find_iter(&sequence);
         while matches.next().is_some() {
             if !shown {
                 shown = true;
             }
             ret += 100;
         }
-        let mut matches = ultimatelybad.find_iter(&sequence);
+        let mut matches = ultimately_bad.find_iter(&sequence);
         while matches.next().is_some() {
             if !shown {
                 shown = true;
             }
             ret += 10_000;
         }
-        let mut matches = ultimatelybad2.find_iter(&sequence);
+        let mut matches = ultimately_bad2.find_iter(&sequence);
         while matches.next().is_some() {
             if !shown {
                 shown = true;
@@ -220,7 +209,7 @@ fn evaluate_shift(design: &Design, basis_map: &BTreeMap<Nucl, char>) -> (usize, 
         }
         result
     };
-    log::debug!("ret {}, {}", ret, result);
+    log::debug!("ret {ret}, {result}");
     (ret, result)
 }
 
@@ -234,14 +223,9 @@ fn compl(c: Option<char>) -> Option<char> {
     }
 }
 
-pub struct ShiftOptimizationOk {
+pub(crate) struct ShiftOptimizationOk {
     pub position: usize,
     pub score: String,
 }
 
-pub type ShiftOptimizationResult = Result<ShiftOptimizationOk, ErrOperation>;
-
-pub trait ShiftOptimizerReader: Send {
-    fn attach_progress_chanel(&mut self, chanel: mpsc::Receiver<f32>);
-    fn attach_result_chanel(&mut self, chanel: mpsc::Receiver<ShiftOptimizationResult>);
-}
+pub(crate) type ShiftOptimizationResult = Result<ShiftOptimizationOk, ErrOperation>;

@@ -1,269 +1,243 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::*;
-use ensnano_interactor::graphics::{
-    Background3D, RenderingMode, ALL_BACKGROUND3D, ALL_RENDERING_MODE,
+use crate::{
+    GuiAppState,
+    fonts::material_icons::{MaterialIcon, icon_to_char},
+    helpers::{extra_jump, right_checkbox, section, subsection, text_button},
+    left_panel::{Message, tabs::GuiTab},
+    theme,
 };
+use ensnano_utils::{
+    app_state_parameters::{AppStateParameters, check_xovers_parameter::CheckXoversParameter},
+    graphics::{
+        ALL_BACKGROUND3D, ALL_RENDERING_MODE, Background3D, FogParameters, HBondDisplay,
+        RenderingMode, fog_kind,
+    },
+    ui_size::UiSize,
+};
+use iced::{
+    Alignment, Length,
+    widget::{checkbox, column, pick_list, row, scrollable, slider, text},
+};
+use iced_aw::TabLabel;
+use std::marker::PhantomData;
 
-pub struct CameraTab {
-    fog: FogParameters,
-    scroll: scrollable::State,
-    selection_visibility_btn: button::State,
-    compl_visibility_btn: button::State,
-    all_visible_btn: button::State,
+pub struct CameraTab<State: GuiAppState> {
+    fog: FogGuiParameters,
     pub background3d: Background3D,
-    background3d_picklist: pick_list::State<Background3D>,
     pub rendering_mode: RenderingMode,
-    rendering_mode_picklist: pick_list::State<RenderingMode>,
-    check_xover_picklist: pick_list::State<CheckXoversParameter>,
-    h_bonds_picklist: pick_list::State<HBondDisplay>,
+    _state_type: PhantomData<State>,
 }
 
-impl CameraTab {
-    pub fn new() -> Self {
+impl<State: GuiAppState> CameraTab<State> {
+    pub fn new(parameters: &AppStateParameters) -> Self {
         Self {
             fog: Default::default(),
-            scroll: Default::default(),
-            selection_visibility_btn: Default::default(),
-            compl_visibility_btn: Default::default(),
-            all_visible_btn: Default::default(),
-            background3d: Default::default(),
-            background3d_picklist: Default::default(),
-            rendering_mode: Default::default(),
-            rendering_mode_picklist: Default::default(),
-            check_xover_picklist: Default::default(),
-            h_bonds_picklist: Default::default(),
+            background3d: parameters.background3d,
+            rendering_mode: parameters.rendering_mode,
+            _state_type: PhantomData,
         }
     }
 
-    pub fn view<'a, S: AppState>(
-        &'a mut self,
-        ui_size: UiSize,
-        app_state: &S,
-    ) -> Element<'a, Message<S>> {
-        let mut ret = Column::new().spacing(5);
-        section!(ret, ui_size, "Camera");
-        subsection!(ret, ui_size, "Visibility");
-        ret = ret.push(
-            text_btn(
-                &mut self.selection_visibility_btn,
-                "Toggle Selected Visibility",
-                ui_size.clone(),
-            )
-            .on_press(Message::ToggleVisibility(false)),
-        );
-        ret = ret.push(
-            text_btn(
-                &mut self.compl_visibility_btn,
-                "Toggle NonSelected Visibility",
-                ui_size.clone(),
-            )
-            .on_press(Message::ToggleVisibility(true)),
-        );
-        ret = ret.push(
-            text_btn(
-                &mut self.all_visible_btn,
-                "Everything visible",
-                ui_size.clone(),
-            )
-            .on_press(Message::AllVisible),
-        );
-        ret = ret.push(self.fog.view(&ui_size));
-
-        let h_bond_column = Column::new()
-            .push(Text::new("Show H-Bonds").size(ui_size.intermediate_text()))
-            .push(PickList::new(
-                &mut self.h_bonds_picklist,
-                [
-                    HBondDisplay::No,
-                    HBondDisplay::Stick,
-                    HBondDisplay::Ellipsoid,
-                ]
-                .as_slice(),
-                Some(app_state.get_h_bonds_display()),
-                Message::ShowHBonds,
-            ));
-
-        ret = ret.push(h_bond_column);
-
-        ret = ret.push(right_checkbox(
-            app_state.show_stereographic_camera(),
-            "Show stereographic camera",
-            Message::ShowStereographicCamera,
-            ui_size,
-        ));
-
-        ret = ret.push(right_checkbox(
-            app_state.follow_stereographic_camera(),
-            "Follow stereographic camera",
-            Message::FollowStereographicCamera,
-            ui_size,
-        ));
-
-        subsection!(ret, ui_size, "Highlight Xovers");
-        ret = ret.push(PickList::new(
-            &mut self.check_xover_picklist,
-            CheckXoversParameter::ALL,
-            Some(app_state.get_checked_xovers_parameters()),
-            Message::CheckXoversParameter,
-        ));
-
-        subsection!(ret, ui_size, "Rendering");
-        ret = ret.push(Text::new("Style"));
-        ret = ret.push(PickList::new(
-            &mut self.rendering_mode_picklist,
-            &ALL_RENDERING_MODE[..],
-            Some(self.rendering_mode),
-            Message::RenderingMode,
-        ));
-        ret = ret.push(Text::new("Background"));
-        ret = ret.push(PickList::new(
-            &mut self.background3d_picklist,
-            &ALL_BACKGROUND3D[..],
-            Some(self.background3d),
-            Message::Background3D,
-        ));
-        ret = ret.push(Checkbox::new(
-            app_state.expand_insertions(),
-            "Expand insertions",
-            Message::SetExpandInsertions,
-        ));
-
-        Scrollable::new(&mut self.scroll).push(ret).into()
-    }
-
     pub fn fog_visible(&mut self, visible: bool) {
-        self.fog.visible = visible
+        self.fog.is_activated = visible;
     }
 
     pub fn fog_dark(&mut self, dark: bool) {
-        self.fog.dark = dark
+        self.fog.dark = dark;
     }
 
     pub fn fog_reversed(&mut self, reversed: bool) {
-        self.fog.reversed = reversed
+        self.fog.is_reversed = reversed;
     }
 
     pub fn fog_length(&mut self, length: f32) {
-        self.fog.length = length
+        self.fog.length = length;
     }
 
     pub fn fog_radius(&mut self, radius: f32) {
-        self.fog.radius = radius
+        self.fog.softness = radius;
     }
 
     pub fn fog_camera(&mut self, from_camera: bool) {
         self.fog.from_camera = from_camera;
     }
 
-    pub fn get_fog_request(&self) -> Fog {
+    pub fn get_fog_request(&self) -> FogParameters {
         self.fog.request()
     }
 }
 
-struct FogParameters {
-    visible: bool,
-    from_camera: bool,
-    dark: bool,
-    radius: f32,
-    radius_slider: slider::State,
-    length: f32,
-    length_slider: slider::State,
-    picklist: pick_list::State<FogChoice>,
-    reversed: bool,
-}
+impl<State: GuiAppState> GuiTab<State> for CameraTab<State> {
+    type Message = Message<State>;
 
-impl FogParameters {
-    fn view<S: AppState>(&mut self, ui_size: &UiSize) -> Column<Message<S>> {
-        let mut column = Column::new()
-            .push(Text::new("Fog").size(ui_size.intermediate_text()))
-            .push(PickList::new(
-                &mut self.picklist,
-                &ALL_FOG_CHOICE[..],
-                Some(FogChoice::from_param(
-                    self.visible,
-                    self.from_camera,
-                    self.dark,
-                    self.reversed,
-                )),
-                Message::FogChoice,
-            ));
-
-        let radius_text = if self.visible {
-            Text::new("Radius")
-        } else {
-            Text::new("Radius").color([0.6, 0.6, 0.6])
-        };
-
-        let gradient_text = if self.visible {
-            Text::new("Softness")
-        } else {
-            Text::new("Softness").color([0.6, 0.6, 0.6])
-        };
-
-        let length_slider = if self.visible {
-            Slider::new(
-                &mut self.length_slider,
-                0f32..=100f32,
-                self.length,
-                Message::FogLength,
-            )
-        } else {
-            Slider::new(&mut self.length_slider, 0f32..=100f32, self.length, |_| {
-                Message::Nothing
-            })
-            .style(DesactivatedSlider)
-        };
-
-        let softness_slider = if self.visible {
-            Slider::new(
-                &mut self.radius_slider,
-                0f32..=100f32,
-                self.radius,
-                Message::FogRadius,
-            )
-        } else {
-            Slider::new(&mut self.radius_slider, 0f32..=100f32, self.radius, |_| {
-                Message::Nothing
-            })
-            .style(DesactivatedSlider)
-        };
-
-        column = column
-            .push(Row::new().spacing(5).push(radius_text).push(length_slider))
-            .push(
-                Row::new()
-                    .spacing(5)
-                    .push(gradient_text)
-                    .push(softness_slider),
-            );
-        column
+    fn label(&self) -> TabLabel {
+        TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Videocam)))
     }
 
-    fn request(&self) -> Fog {
-        Fog {
-            radius: self.radius,
-            fog_kind: FogChoice::from_param(
-                self.visible,
+    fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Message<State>> {
+        let content = column![
+            section("Camera", ui_size),
+            subsection("Toggle visibility", ui_size),
+            row![
+                text_button("Selected", ui_size).on_press(Message::ToggleVisibility(false)),
+                text_button("Non-selected", ui_size).on_press(Message::ToggleVisibility(true)),
+                text_button("All", ui_size).on_press(Message::AllVisible),
+            ]
+            .width(Length::Fill)
+            .spacing(ui_size.button_spacing()),
+            self.fog.view(ui_size),
+            extra_jump(),
+            row![
+                subsection("Visibility", ui_size),
+                pick_list(
+                    vec![
+                        HBondDisplay::No,
+                        HBondDisplay::Stick,
+                        HBondDisplay::Ellipsoid,
+                    ],
+                    Some(app_state.get_h_bonds_display()),
+                    Message::ShowHBonds,
+                ),
+            ]
+            .align_items(Alignment::Center)
+            .spacing(5),
+            right_checkbox(
+                app_state.show_stereographic_camera(),
+                "Show stereographic camera",
+                Message::ShowStereographicCamera,
+                ui_size,
+            ),
+            right_checkbox(
+                app_state.follow_stereographic_camera(),
+                "Follow stereographic camera",
+                Message::FollowStereographicCamera,
+                ui_size,
+            ),
+            extra_jump(),
+            row![
+                subsection("Highlight Xovers", ui_size),
+                pick_list(
+                    CheckXoversParameter::ALL,
+                    Some(app_state.get_checked_xovers_parameters()),
+                    Message::CheckXoversParameter,
+                ),
+            ]
+            .align_items(Alignment::Center)
+            .spacing(5),
+            extra_jump(),
+            subsection("Rendering", ui_size),
+            row![
+                row![
+                    "Style",
+                    pick_list(
+                        ALL_RENDERING_MODE,
+                        Some(self.rendering_mode),
+                        Message::RenderingMode,
+                    ),
+                ]
+                .align_items(Alignment::Center)
+                .spacing(5)
+                .width(Length::FillPortion(1)),
+                row![
+                    "Background",
+                    pick_list(
+                        ALL_BACKGROUND3D,
+                        Some(self.background3d),
+                        Message::Background3D,
+                    ),
+                ]
+                .align_items(Alignment::Center)
+                .spacing(5)
+                .width(Length::FillPortion(1)),
+            ],
+            checkbox("Expand insertions", app_state.expand_insertions())
+                .on_toggle(Message::SetExpandInsertions),
+        ]
+        .spacing(5);
+
+        scrollable(content).into()
+    }
+}
+
+/// Parameters for the Distance Fog in the 3D view.
+struct FogGuiParameters {
+    // Is the Distance Fog activated or not.
+    is_activated: bool,
+    // Compute Distance Fog from the camera or pivot position.
+    from_camera: bool,
+    // Turn object into dark instead of disappearing.
+    dark: bool,
+    // Deepness of the Distance Fog.
+    length: f32,
+    // Softness of the Distance Fog cutoff.
+    softness: f32,
+    // Reverse the effect.
+    is_reversed: bool,
+}
+
+impl FogGuiParameters {
+    fn view<State: GuiAppState>(&self, ui_size: UiSize) -> iced::Element<'_, Message<State>> {
+        let radius_text = if self.is_activated {
+            text("Radius")
+        } else {
+            text("Radius").style(theme::DISABLED_TEXT)
+        };
+
+        let gradient_text = if self.is_activated {
+            text("Softness")
+        } else {
+            text("Softness").style(theme::DISABLED_TEXT)
+        };
+
+        let length_slider = if self.is_activated {
+            slider(0f32..=100f32, self.length, Message::FogLength)
+        } else {
+            slider(0f32..=100f32, self.length, |_| Message::Nothing).style(theme::DeactivatedSlider)
+        };
+
+        let softness_slider = if self.is_activated {
+            slider(0f32..=100f32, self.softness, Message::FogRadius)
+        } else {
+            slider(0f32..=100f32, self.softness, |_| Message::Nothing)
+                .style(theme::DeactivatedSlider)
+        };
+
+        // Hand method to
+        let label_width = 65.0f32;
+
+        column![
+            extra_jump(),
+            row![
+                subsection("Distance Fog", ui_size),
+                pick_list(
+                    ALL_FOG_CHOICES,
+                    Some(FogChoices::from_param(
+                        self.is_activated,
+                        self.from_camera,
+                        self.dark,
+                        self.is_reversed,
+                    )),
+                    Message::FogChoice,
+                )
+                .padding(ui_size.button_spacing()),
+            ]
+            .align_items(Alignment::Center)
+            .spacing(5),
+            row![radius_text.width(label_width), length_slider,].spacing(5),
+            row![gradient_text.width(label_width), softness_slider,].spacing(5),
+        ]
+        .spacing(5)
+        .into()
+    }
+
+    /// Compute Distance Fog parameters from GUI values.
+    fn request(&self) -> FogParameters {
+        FogParameters {
+            softness: self.softness,
+            fog_kind: FogChoices::from_param(
+                self.is_activated,
                 self.from_camera,
                 self.dark,
-                self.reversed,
+                self.is_reversed,
             )
             .fog_kind(),
             length: self.length,
@@ -273,24 +247,22 @@ impl FogParameters {
     }
 }
 
-impl Default for FogParameters {
+impl Default for FogGuiParameters {
     fn default() -> Self {
         Self {
-            visible: false,
+            is_activated: false,
             dark: false,
             length: 10.,
-            radius: 10.,
-            length_slider: Default::default(),
-            radius_slider: Default::default(),
+            softness: 10.,
             from_camera: true,
-            picklist: Default::default(),
-            reversed: false,
+            is_reversed: false,
         }
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Copy)]
-pub enum FogChoice {
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum FogChoices {
+    #[default]
     None,
     FromCamera,
     FromPivot,
@@ -299,23 +271,17 @@ pub enum FogChoice {
     ReversedFromPivot,
 }
 
-impl Default for FogChoice {
-    fn default() -> Self {
-        Self::None
-    }
-}
-
-const ALL_FOG_CHOICE: &'static [FogChoice] = &[
-    FogChoice::None,
-    FogChoice::FromCamera,
-    FogChoice::FromPivot,
-    FogChoice::DarkFromCamera,
-    FogChoice::DarkFromPivot,
-    FogChoice::ReversedFromPivot,
+const ALL_FOG_CHOICES: &[FogChoices] = &[
+    FogChoices::None,
+    FogChoices::FromCamera,
+    FogChoices::FromPivot,
+    FogChoices::DarkFromCamera,
+    FogChoices::DarkFromPivot,
+    FogChoices::ReversedFromPivot,
 ];
 
-impl std::fmt::Display for FogChoice {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl std::fmt::Display for FogChoices {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let ret = match self {
             Self::None => "None",
             Self::FromCamera => "From Camera",
@@ -324,11 +290,11 @@ impl std::fmt::Display for FogChoice {
             Self::DarkFromPivot => "Dark from Pivot",
             Self::ReversedFromPivot => "Reversed from Pivot",
         };
-        write!(f, "{}", ret)
+        write!(f, "{ret}")
     }
 }
 
-impl FogChoice {
+impl FogChoices {
     fn from_param(visible: bool, from_camera: bool, dark: bool, reversed: bool) -> Self {
         Self::None
             .visible(visible)
@@ -337,7 +303,7 @@ impl FogChoice {
             .reversed(reversed)
     }
 
-    pub fn to_param(&self) -> (bool, bool, bool, bool) {
+    pub fn to_param(self) -> (bool, bool, bool, bool) {
         (
             self.is_visible(),
             self.is_from_camera(),
@@ -348,7 +314,7 @@ impl FogChoice {
 
     fn visible(self, visible: bool) -> Self {
         if visible {
-            if let Self::None = self {
+            if self == Self::None {
                 Self::FromPivot
             } else {
                 self
@@ -415,7 +381,6 @@ impl FogChoice {
     }
 
     fn fog_kind(&self) -> u32 {
-        use ensnano_interactor::graphics::fog_kind;
         match self {
             Self::None => fog_kind::NO_FOG,
             Self::FromCamera | Self::FromPivot => fog_kind::TRANSPARENT_FOG,

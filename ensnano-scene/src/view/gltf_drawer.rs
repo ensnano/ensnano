@@ -1,29 +1,18 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::wgpu;
-use ensnano_design::{External3DObject, External3DObjectId, PointOnSurface};
-use ensnano_interactor::consts;
-use ensnano_interactor::UnrootedRevolutionSurfaceDescriptor;
-use ensnano_utils::{create_buffer_with_data, obj_loader::*, texture::Texture, TEXTURE_FORMAT};
-use std::ffi::OsStr;
-use std::path::PathBuf;
-use std::rc::Rc;
-use std::{collections::BTreeMap, path::Path};
+use ensnano_design::external_3d_objects::{External3DObject, External3DObjectId};
+use ensnano_utils::{
+    TEXTURE_FORMAT,
+    consts::SAMPLE_COUNT,
+    create_buffer_with_data,
+    obj_loader::{GltfMesh, ModelVertex, load_gltf, load_stl},
+    surfaces::UnrootedRevolutionSurfaceDescriptor,
+    texture::Texture,
+};
+use std::{
+    collections::BTreeMap,
+    ffi::OsStr,
+    path::{Path, PathBuf},
+    rc::Rc,
+};
 use wgpu::{BindGroupLayoutDescriptor, Device};
 
 struct DesiredRevolutionShapeDrawer {
@@ -47,28 +36,20 @@ impl Object3DDrawer {
             desired_revolution_shape_drawer: None,
         }
     }
-}
 
-#[derive(Debug)]
-pub struct ExternalObjects {
-    pub path_base: PathBuf,
-    pub objects: Vec<(External3DObjectId, External3DObject)>,
-}
-
-impl Object3DDrawer {
     pub fn draw<'a>(
         &'a mut self,
         render_pass: &mut wgpu::RenderPass<'a>,
         viewer_bind_group: &'a wgpu::BindGroup,
     ) {
         for d in self.gltf_drawers.values_mut() {
-            d.draw(render_pass, viewer_bind_group)
+            d.draw(render_pass, viewer_bind_group);
         }
         for d in self.stl_drawers.values_mut() {
-            d.draw(render_pass, viewer_bind_group)
+            d.draw(render_pass, viewer_bind_group);
         }
         if let Some(ref mut d) = self.desired_revolution_shape_drawer {
-            d.drawer.draw(render_pass, viewer_bind_group)
+            d.drawer.draw(render_pass, viewer_bind_group);
         }
     }
 
@@ -77,16 +58,11 @@ impl Object3DDrawer {
         objects: ExternalObjects,
         bg_desc: &BindGroupLayoutDescriptor,
     ) {
-        for (obj_id, object) in objects.objects.into_iter() {
+        for (obj_id, object) in objects.objects {
             if !self.stl_drawers.contains_key(&obj_id) && !self.gltf_drawers.contains_key(&obj_id) {
                 self.add_object(obj_id, object, &objects.path_base, bg_desc);
             }
         }
-    }
-
-    #[allow(dead_code)]
-    fn update_object(&mut self, _id: External3DObjectId, _object: External3DObject) {
-        todo!("update object's attributes")
     }
 
     fn add_object(
@@ -97,7 +73,7 @@ impl Object3DDrawer {
         bg_desc: &BindGroupLayoutDescriptor,
     ) {
         let path = object.get_path_to_source_file(base_path);
-        println!("{:?}", path);
+        println!("{}", path.display());
         if path.extension() == Some(OsStr::new("stl")) {
             let mut drawer = StlDrawer::new(self.device.as_ref(), bg_desc);
             drawer.add_stl(self.device.as_ref(), path);
@@ -112,8 +88,8 @@ impl Object3DDrawer {
     pub fn update_desired_revolution_shape(
         &mut self,
         shape: Option<UnrootedRevolutionSurfaceDescriptor>,
-        device: &wgpu::Device,
-        view_bg_layout_desc: &wgpu::BindGroupLayoutDescriptor,
+        device: &Device,
+        view_bg_layout_desc: &BindGroupLayoutDescriptor,
     ) -> bool {
         if self
             .desired_revolution_shape_drawer
@@ -141,70 +117,10 @@ impl Object3DDrawer {
     }
 }
 
-trait MeshGenerator {
-    fn meshes(&self) -> Vec<GltfMesh>;
-}
-
-const NB_STRIP: usize = 100;
-const STRIP_WIDTH: f64 = 0.3;
-const NB_SECTION_PER_STRIP: usize = 1_000;
-
-impl MeshGenerator for UnrootedRevolutionSurfaceDescriptor {
-    fn meshes(&self) -> Vec<GltfMesh> {
-        use ensnano_design::utils::dvec_to_vec;
-        let frame = self.get_frame();
-
-        (0..NB_STRIP)
-            .map(|strip_idx| {
-                let s_high = strip_idx as f64 / NB_STRIP as f64;
-                let s_low = s_high + STRIP_WIDTH / NB_STRIP as f64;
-
-                let vertices: Vec<ModelVertex> = (0..=(NB_SECTION_PER_STRIP + 1))
-                    .flat_map(|section_idx| {
-                        [s_high, s_low].into_iter().map(move |s| {
-                            use std::f64::consts::TAU;
-                            let revolution_fract = section_idx as f64 / NB_SECTION_PER_STRIP as f64;
-
-                            let revolution_angle = TAU * revolution_fract;
-
-                            let surface_point = PointOnSurface {
-                                revolution_angle,
-                                section_parameter: s,
-                                revolution_axis_position: self.get_revolution_axis_position(),
-                                section_half_turn_per_revolution: self.half_turn_count,
-                                curve_scale_factor: 1.,
-                            };
-                            let position = frame.transform_vec(dvec_to_vec(
-                                self.curve.point_on_surface(&surface_point),
-                            ));
-
-                            let normal = frame.transform_vec(dvec_to_vec(
-                                self.curve.normal_of_surface(&surface_point),
-                            ));
-
-                            let vertex_color = ensnano_utils::colors::hsv_color(
-                                revolution_angle.to_degrees(),
-                                0.7,
-                                0.7,
-                            );
-                            let color =
-                                ensnano_utils::instance::Instance::color_from_u32(vertex_color);
-
-                            ModelVertex {
-                                position: position.into(),
-                                normal: normal.into(),
-                                color: color.into(),
-                            }
-                        })
-                    })
-                    .collect();
-                GltfMesh {
-                    vertices,
-                    indices: (0u32..=(2 * (NB_SECTION_PER_STRIP + 1) as u32)).collect(),
-                }
-            })
-            .collect()
-    }
+#[derive(Debug)]
+pub struct ExternalObjects {
+    pub path_base: PathBuf,
+    pub objects: Vec<(External3DObjectId, External3DObject)>,
 }
 
 pub struct GltfDrawer {
@@ -215,10 +131,7 @@ pub struct GltfDrawer {
 }
 
 impl GltfDrawer {
-    pub fn new(
-        device: &wgpu::Device,
-        view_bg_layout_desc: &wgpu::BindGroupLayoutDescriptor,
-    ) -> Self {
+    pub fn new(device: &Device, view_bg_layout_desc: &BindGroupLayoutDescriptor) -> Self {
         let primitive_topology = wgpu::PrimitiveTopology::TriangleStrip;
         let render_pipeline =
             build_render_pipeline(device, view_bg_layout_desc, primitive_topology);
@@ -232,7 +145,7 @@ impl GltfDrawer {
     }
 
     pub fn draw<'a>(
-        &'a mut self,
+        &'a self,
         render_pass: &mut wgpu::RenderPass<'a>,
         viewer_bind_group: &'a wgpu::BindGroup,
     ) {
@@ -245,18 +158,18 @@ impl GltfDrawer {
         }
     }
 
-    pub fn add_gltf<P: AsRef<Path>>(&mut self, device: &wgpu::Device, path: P) {
+    pub fn add_gltf<P: AsRef<Path>>(&mut self, device: &Device, path: P) {
         match load_gltf(path) {
             Ok(file) => {
                 self.set_meshes(device, file.meshes);
             }
             Err(err) => {
-                log::error!("Could not read gltf file: {:?}", err);
+                log::error!("Could not read gltf file: {err:?}");
             }
         }
     }
 
-    pub fn set_meshes(&mut self, device: &wgpu::Device, meshes: Vec<GltfMesh>) {
+    pub fn set_meshes(&mut self, device: &Device, meshes: Vec<GltfMesh>) {
         self.nb_idx.clear();
         self.vbos.clear();
         self.ibos.clear();
@@ -285,10 +198,7 @@ pub struct StlDrawer {
 }
 
 impl StlDrawer {
-    pub fn new(
-        device: &wgpu::Device,
-        view_bg_layout_desc: &wgpu::BindGroupLayoutDescriptor,
-    ) -> Self {
+    pub fn new(device: &Device, view_bg_layout_desc: &BindGroupLayoutDescriptor) -> Self {
         let primitive_topology = wgpu::PrimitiveTopology::TriangleList;
         let render_pipeline =
             build_render_pipeline(device, view_bg_layout_desc, primitive_topology);
@@ -301,7 +211,7 @@ impl StlDrawer {
     }
 
     pub fn draw<'a>(
-        &'a mut self,
+        &'a self,
         render_pass: &mut wgpu::RenderPass<'a>,
         viewer_bind_group: &'a wgpu::BindGroup,
     ) {
@@ -313,7 +223,7 @@ impl StlDrawer {
         }
     }
 
-    pub fn add_stl<P: AsRef<Path>>(&mut self, device: &wgpu::Device, path: P) {
+    pub fn add_stl<P: AsRef<Path>>(&mut self, device: &Device, path: P) {
         match load_stl(path) {
             Ok(mesh) => {
                 self.nb_idx.push(mesh.vertices.len() as u32);
@@ -325,32 +235,30 @@ impl StlDrawer {
                 ));
             }
             Err(err) => {
-                log::error!("Could not read stl file: {:?}", err);
+                log::error!("Could not read stl file: {err:?}");
             }
         }
     }
 }
 
 fn build_render_pipeline(
-    device: &wgpu::Device,
-    view_bg_layout_desc: &wgpu::BindGroupLayoutDescriptor,
+    device: &Device,
+    view_bg_layout_desc: &BindGroupLayoutDescriptor,
     primitive_topology: wgpu::PrimitiveTopology,
 ) -> wgpu::RenderPipeline {
     let viewer_bg_layout = device.create_bind_group_layout(view_bg_layout_desc);
 
-    let vertex_module = device.create_shader_module(&wgpu::include_spirv!("gltf_obj.vert.spv"));
-    let fragment_module = device.create_shader_module(&wgpu::include_spirv!("gltf_obj.frag.spv"));
+    let vertex_module = device.create_shader_module(wgpu::include_spirv!("gltf_obj.vert.spv"));
+    let fragment_module = device.create_shader_module(wgpu::include_spirv!("gltf_obj.frag.spv"));
     let format = TEXTURE_FORMAT;
     let blend_state = wgpu::BlendState::ALPHA_BLENDING;
-    let sample_count = consts::SAMPLE_COUNT;
+    let sample_count = SAMPLE_COUNT;
 
     let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("Gltf Drawer"),
         bind_group_layouts: &[&viewer_bg_layout],
         push_constant_ranges: &[],
     });
-
-    let depth_compare = wgpu::CompareFunction::Less;
 
     let strip_index_format = match primitive_topology {
         wgpu::PrimitiveTopology::LineStrip | wgpu::PrimitiveTopology::TriangleStrip => {
@@ -367,11 +275,11 @@ fn build_render_pipeline(
         ..Default::default()
     };
 
-    let targets = &[wgpu::ColorTargetState {
+    let targets = &[Some(wgpu::ColorTargetState {
         format,
         blend: Some(blend_state),
         write_mask: wgpu::ColorWrites::ALL,
-    }];
+    })];
 
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         layout: Some(&render_pipeline_layout),
@@ -389,7 +297,7 @@ fn build_render_pipeline(
         depth_stencil: Some(wgpu::DepthStencilState {
             format: Texture::DEPTH_FORMAT,
             depth_write_enabled: true,
-            depth_compare,
+            depth_compare: wgpu::CompareFunction::Less,
             stencil: Default::default(),
             bias: Default::default(),
         }),
