@@ -1,14 +1,10 @@
 # TODO
 
-## Stabilize `dev_iced`
-
-- Double click on organizer tree should teleport in 2D and 3D scenes
-
 ## Bugs
 
 - Moving/scrolling and rotating at the same time make the camera go crazy
 - Increasing the left panel too much crashes ENSnano
-- Clicking "Toggle split of flat scene" twice should do nothing
+- Clicking "Toggle split of flat scene" twice should go back to the same state
 - Request fit doesn't work properly anymore, both in 2D and 3D
 - Organizer Tree slider doesn't work with the mouse
 - Distance fog is broken ([NS message](https://discord.com/channels/689053746604670995/1419689469472411691/1459186505888170035))
@@ -57,6 +53,7 @@
 
 ## GUI
 
+- Double click on organizer tree should teleport in 2D and 3D scenes
 - Better looking tabs (and show active)
 - `3D`, `2D` and `3D+2D` should be "radio buttons" with the active one shown like the selection 
 
