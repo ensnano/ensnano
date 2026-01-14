@@ -8,7 +8,7 @@ use crate::{
     camera::CameraController,
     element_selector::{SceneElement, bezier_vertex_id},
     view::{
-        Mesh, View, ViewUpdate,
+        Mesh, ViewPtr, ViewUpdate,
         dna_obj::{RawDnaInstance, StereographicSphereAndPlane},
         gltf_drawer::ExternalObjects,
         grid_disc::GridDisc,
@@ -43,14 +43,11 @@ use ensnano_utils::{
 };
 use serde::{Deserialize, Serialize};
 use std::{
-    cell::RefCell,
     collections::{BTreeMap, HashMap, HashSet},
     rc::Rc,
     sync::Arc,
 };
 use ultraviolet::{Rotor3, Vec3};
-
-type ViewPtr = Rc<RefCell<View>>;
 
 pub struct Data<R: SceneDesignReaderExt> {
     view: ViewPtr,

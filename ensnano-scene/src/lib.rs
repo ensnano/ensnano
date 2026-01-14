@@ -8,10 +8,12 @@ mod sausage_rosary;
 mod stl;
 pub mod view;
 
-use crate::controller::automata::WidgetTarget;
-use controller::{Consequence, Controller};
-use data::{Data, design3d::SceneDesignReaderExt};
-use element_selector::{ElementSelector, SceneElement};
+use crate::{
+    controller::{Consequence, Controller, automata::WidgetTarget},
+    data::{Data, design3d::SceneDesignReaderExt},
+    element_selector::{ElementSelector, SceneElement},
+    view::{DrawOptions, DrawType, View, ViewPtr, ViewUpdate},
+};
 use ensnano_design::{
     bezier_plane::BezierVertexId,
     consts::ITERATIVE_AXIS_ALGORITHM,
@@ -54,11 +56,8 @@ use std::{
     time::Duration,
 };
 use ultraviolet::{Rotor3, Vec3};
-use view::{DrawOptions, DrawType, View, ViewUpdate};
 use wgpu::{Device, Queue};
 use winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon};
-
-type ViewPtr = Rc<RefCell<View>>;
 
 const PNG_SIZE: u32 = 8192;
 
@@ -109,7 +108,7 @@ impl<S: SceneAppState> Scene<S> {
         scene_kind: SceneKind,
     ) -> Self {
         let update = SceneUpdate::default();
-        let view: ViewPtr = Rc::new(RefCell::new(View::new(
+        let view = Rc::new(RefCell::new(View::new(
             window_size,
             area.size,
             device.clone(),

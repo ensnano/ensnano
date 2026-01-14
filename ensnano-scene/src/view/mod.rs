@@ -69,6 +69,8 @@ const CAMERA_FAR: f32 = 1000.0;
 // Focal in mm of the camera lense based on a 24x36mm camera from which the Field of View Y fovy is computed in view/mod.rs - default was 17mm
 const CAMERA_FOCAL_LENGTH: f32 = 50.0;
 
+pub(crate) type ViewPtr = Rc<RefCell<View>>;
+
 /// An object that handles the communication with the GPU to draw the scene.
 pub struct View {
     /// The camera, that is in charge of producing the view and projection matrices.

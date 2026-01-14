@@ -1,4 +1,4 @@
-use crate::{ViewPtr, view::DrawType};
+use crate::view::{DrawType, ViewPtr};
 use ensnano_design::{
     bezier_plane::{BezierPathId, BezierPlaneId, BezierVertexId},
     curves::bezier::BezierControlPoint,

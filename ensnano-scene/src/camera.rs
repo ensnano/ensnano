@@ -25,6 +25,9 @@ const DEFAULT_DIST_TO_SURFACE: f32 = 20.;
 const SURFACE_ABSCISSA_FACTOR: f64 = 1.;
 const SURFACE_REVOLUTION_ANGLE_FACTOR: f64 = 1.;
 
+pub(crate) type CameraPtr = Rc<RefCell<Camera>>;
+pub(crate) type ProjectionPtr = Rc<RefCell<Projection>>;
+
 #[derive(Debug, Clone)]
 pub struct Camera {
     /// The eye of the camera
@@ -36,8 +39,6 @@ pub struct Camera {
     /// pointing up.
     pub rotor: Rotor3,
 }
-
-pub(crate) type CameraPtr = Rc<RefCell<Camera>>;
 
 impl Camera {
     pub fn new(position: Vec3, rotor: Rotor3) -> Self {
@@ -80,8 +81,6 @@ pub struct Projection {
     zfar: f32,
     pub stereographic_zoom: f32,
 }
-
-pub(crate) type ProjectionPtr = Rc<RefCell<Projection>>;
 
 impl Projection {
     pub fn new(width: u32, height: u32, fovy: f32, znear: f32, zfar: f32) -> Self {
@@ -545,7 +544,7 @@ impl CameraController {
         self.scroll = 0.;
     }
 
-    pub(super) fn update_camera<R: SceneDesignReaderExt>(
+    pub(crate) fn update_camera<R: SceneDesignReaderExt>(
         &mut self,
         dt: Duration,
         modifier: &ModifiersState,
@@ -618,7 +617,7 @@ impl CameraController {
         self.surface_point = Some(info.point);
     }
 
-    pub(super) fn reverse_surface_direction<R: SceneDesignReaderExt>(
+    pub(crate) fn reverse_surface_direction<R: SceneDesignReaderExt>(
         &mut self,
         surface_info_provider: &Data<R>,
     ) {
