@@ -10,7 +10,7 @@ use self::{
     message::{OrganizerInternalMessage, OrganizerMessage},
     theme::OrganizerTheme,
 };
-use crate::keyboard_priority::keyboard_priority;
+use crate::{keyboard_priority::keyboard_priority, left_panel::organizer::theme::SelectionType};
 use ensnano_design::{
     design_element::{
         AttributeDisplay, AttributeWidget, DesignElement, DesignElementKey, DesignElementSection,
@@ -714,13 +714,34 @@ enum GroupContent {
 }
 
 impl GroupContent {
-    fn is_selected(&self, selection: &BTreeSet<DesignElementKey>) -> bool {
+    fn is_selected(&self, selection: &BTreeSet<DesignElementKey>) -> SelectionType {
         match self {
-            Self::Leaf { element, .. } => selection.contains(element),
-            Self::Node { children, .. } => children.iter().any(|node| node.is_selected(selection)),
-            Self::Placeholder => false,
+            Self::Leaf { element, .. } => {
+                if selection.contains(element) {
+                    SelectionType::Full
+                } else {
+                    SelectionType::None
+                }
+            }
+            Self::Node { children, .. } => {
+                if children
+                    .iter()
+                    .all(|node| node.is_selected(selection) == SelectionType::None)
+                {
+                    SelectionType::None
+                } else if children
+                    .iter()
+                    .all(|node| node.is_selected(selection) == SelectionType::Full)
+                {
+                    SelectionType::Full
+                } else {
+                    SelectionType::Partial
+                }
+            }
+            Self::Placeholder => SelectionType::None,
         }
     }
+
     fn view(
         &self,
         theme: &OrganizerTheme,
@@ -1256,8 +1277,20 @@ impl OrganizerSection {
         self.expanded = expanded;
     }
 
-    fn is_selected(&self, selection: &BTreeSet<DesignElementKey>) -> bool {
-        self.content.keys().any(|key| selection.contains(key))
+    fn is_selected(&self, selection: &BTreeSet<DesignElementKey>) -> SelectionType {
+        if self.content.is_empty() {
+            return SelectionType::None;
+        }
+
+        if self.content.keys().all(|key| selection.contains(key)) {
+            return SelectionType::Full;
+        }
+
+        if self.content.keys().any(|key| selection.contains(key)) {
+            return SelectionType::Partial;
+        }
+
+        SelectionType::None
     }
 
     fn view(
@@ -1327,7 +1360,11 @@ impl ElementView {
         selection: &BTreeSet<DesignElementKey>,
         deletable: Option<OrganizerNodeId>,
     ) -> DragDropTarget<'_, OrganizerMessage> {
-        let selected = selection.contains(&element.key());
+        let selected = if selection.contains(&element.key()) {
+            SelectionType::Full
+        } else {
+            SelectionType::None
+        };
         let mut content = row![text(element.display_name()), horizontal_space(),];
         // [DragIdentifier::Group] are deletable, [DragIdentifier::Section] are not.
         let identifier = match deletable.as_ref() {
@@ -1415,7 +1452,7 @@ impl NodeTitleBar {
     fn view(
         &self,
         theme: &OrganizerTheme,
-        is_selected: bool,
+        is_selected: SelectionType,
         name: &String,
         id: OrganizerNodeId,
         expanded: bool,

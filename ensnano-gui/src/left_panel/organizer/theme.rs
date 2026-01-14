@@ -65,7 +65,7 @@ pub(super) struct OrganizerTheme {
     gradient: ColorGradient,
     text_color: Color,
     border_color: Color,
-    selected_color: Color,
+    partial_select_color: Color,
     max_level: usize,
 }
 
@@ -79,11 +79,18 @@ pub(super) struct OrganizerThemeLevel {
     selected: bool,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub(crate) enum SelectionType {
+    None,
+    Partial,
+    Full,
+}
+
 /// “Selection” theme
 struct OrganizerThemeSelection {
-    selected: bool,
+    selected: SelectionType,
     text_color: Color,
-    selected_color: Color,
+    partial_select_color: Color,
     border_color: Color,
 }
 
@@ -97,14 +104,17 @@ impl button::StyleSheet for OrganizerThemeSelection {
         button::Appearance {
             shadow_offset: Vector::new(0., 0.),
             background: None,
-            text_color: if self.selected {
-                self.selected_color
-            } else {
-                self.text_color
-            },
+            text_color: self.text_color,
             border: Border {
-                color: self.border_color,
-                width: if self.selected { 4. } else { 0. },
+                color: match self.selected {
+                    SelectionType::Partial => self.partial_select_color,
+                    SelectionType::None | SelectionType::Full => self.border_color,
+                },
+                width: if self.selected != SelectionType::None {
+                    4.
+                } else {
+                    0.
+                },
                 radius: Radius::from(0),
             },
             shadow: Shadow {
@@ -208,11 +218,14 @@ impl OrganizerTheme {
         }))
     }
 
-    pub(super) fn selected(&self, selected: bool) -> <iced::Theme as button::StyleSheet>::Style {
+    pub(super) fn selected(
+        &self,
+        selected: SelectionType,
+    ) -> <iced::Theme as button::StyleSheet>::Style {
         Button::Custom(Box::new(OrganizerThemeSelection {
             selected,
             text_color: self.text_color,
-            selected_color: self.selected_color,
+            partial_select_color: self.partial_select_color,
             border_color: self.border_color,
         }))
     }
@@ -222,7 +235,7 @@ impl OrganizerTheme {
             gradient: grey_gradient(),
             text_color: Color::WHITE,
             border_color: Color::from_rgb8(0x83, 0x1a, 0x1a),
-            selected_color: Color::from_rgb(1.0, 0.0, 0.0),
+            partial_select_color: Color::from_rgb(0.9, 0.5, 0.0),
             max_level: 5,
         }
     }
