@@ -42,6 +42,7 @@ impl RapierPhysicalSystem {
         let interface = Arc::new(Mutex::new(RapierInterface {
             space_position: system.get_positions(),
             force_stop: false,
+            parameters,
         }));
 
         let result = Self {
@@ -59,8 +60,11 @@ impl RapierPhysicalSystem {
     pub(crate) fn run(mut self) {
         std::thread::spawn(move || {
             while let Some(interface) = self.interface.upgrade() {
+                let Ok(parameters) = interface.try_lock().map(|i| i.parameters) else {
+                    continue;
+                };
                 // we update the physics
-                self.system.step();
+                self.system.step(&parameters);
                 // we get the positions
                 if let Ok(mut guard) = interface.try_lock() {
                     guard.space_position = self.system.get_positions();
@@ -72,6 +76,7 @@ impl RapierPhysicalSystem {
 
 #[derive(Default, Clone)]
 pub(crate) struct RapierInterface {
+    pub parameters: RapierParameters,
     space_position: Vec<(u32, [f32; 3])>,
     pub force_stop: bool,
 }

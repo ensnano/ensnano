@@ -1,6 +1,6 @@
 //! This module defines the repulsion force which is an important part of the simulation.
 
-use crate::simulation::RapierPhysicsSystem;
+use crate::{parameters::RapierParameters, simulation::RapierPhysicsSystem};
 use rapier3d::{
     parry::query::DefaultQueryDispatcher,
     prelude::*,
@@ -8,8 +8,8 @@ use rapier3d::{
 };
 
 impl RapierPhysicsSystem {
-    pub fn repulsion_step(&mut self, delta: f32) {
-        repulsion_step(self, delta);
+    pub fn repulsion_step(&mut self, parameters: &RapierParameters, delta: f32) {
+        repulsion_step(self, parameters, delta);
     }
 }
 
@@ -21,12 +21,9 @@ fn simple_kernel_2(r: f32, h: f32) -> f32 {
 
 /// Operates a repulsion between all rigid bodies
 /// based on colliders at proximity.
-fn repulsion_step(system: &mut RapierPhysicsSystem, delta: f32) {
+fn repulsion_step(system: &mut RapierPhysicsSystem, parameters: &RapierParameters, delta: f32) {
     let handles = system.nucleotide_body_map.values().collect::<Vec<_>>();
 
-    // let forces = system
-    //     .collider_set
-    //     .iter()
     let forces = handles
         .clone()
         .par_iter()
@@ -35,8 +32,8 @@ fn repulsion_step(system: &mut RapierPhysicsSystem, delta: f32) {
             let helix_id = collider.user_data;
             let position = *collider.position();
 
-            let force_range = system.rapier_parameters.repulsion_range;
-            let force_strength = system.rapier_parameters.repulsion_strength;
+            let force_range = parameters.repulsion_range;
+            let force_strength = parameters.repulsion_strength;
 
             let query_pipeline = system.broad_phase.as_query_pipeline(
                 &DefaultQueryDispatcher,

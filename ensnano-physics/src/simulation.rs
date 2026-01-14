@@ -30,8 +30,7 @@ pub struct RapierPhysicsSystem {
     pub multibody_join_set: MultibodyJointSet,
     pub ccd_solver: CCDSolver,
 
-    pub rapier_parameters: RapierParameters,
-
+    // pub rapier_parameters: RapierParameters,
     pub crossovers: Vec<(ColliderHandle, ColliderHandle)>,
     pub nucleotide_body_map: HashMap<u32, ColliderHandle>,
 }
@@ -93,10 +92,19 @@ impl RapierPhysicsSystem {
         }
     }
 
-    pub fn step(&mut self) {
-        self.repulsion_step(1.0 / 24.0);
+    fn reset_forces(&mut self) {
+        for (_, rigid_body) in self.rigid_body_set.iter_mut() {
+            rigid_body.reset_forces(true);
+            rigid_body.reset_torques(true);
+        }
+    }
 
-        self.brownian_motion_step(1.0 / 24.0);
+    pub fn step(&mut self, parameters: &RapierParameters) {
+        self.reset_forces();
+        self.repulsion_step(parameters, 1.0 / 24.0);
+        self.squish_step(parameters, 1.0 / 24.0);
+
+        self.brownian_motion_step(parameters, 1.0 / 24.0);
 
         self.physics_pipeline.step(
             &Vector3::new(0.0, 0.0, 0.0),

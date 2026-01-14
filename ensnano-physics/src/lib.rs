@@ -8,6 +8,7 @@ pub mod parameters;
 mod repulsion;
 mod setup;
 pub mod simulation;
+mod squish;
 
 use rapier3d::{
     na::{Const, OVector},
