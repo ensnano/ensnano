@@ -70,6 +70,8 @@ use std::{
 };
 use ultraviolet::{Isometry2, Rotor2, Rotor3, Vec2, Vec3};
 
+const ALLOW_SAME_HELIX_CROSSOVERS: bool = true;
+
 type DuplicationEdge = (Edge, isize);
 
 #[derive(Clone, Default)]
@@ -3009,10 +3011,9 @@ impl Controller {
                 }
             }
             (Some(b), None) => {
-                // We can cut cross directly, but only if the target and source's helices are
-                // different
                 let target_3prime = b;
-                if source_nucl.helix != target_nucl.helix {
+                // NS: allow xover within the same helix
+                if ALLOW_SAME_HELIX_CROSSOVERS || source_nucl.helix != target_nucl.helix {
                     Self::cross_cut(
                         strands,
                         source_id,
@@ -3024,9 +3025,9 @@ impl Controller {
                 }
             }
             (None, Some(b)) => {
-                // We can cut cross directly but we need to reverse the xover
                 let target_3prime = b;
-                if source_nucl.helix != target_nucl.helix {
+                // NS: allow xover within the same helix
+                if ALLOW_SAME_HELIX_CROSSOVERS || source_nucl.helix != target_nucl.helix {
                     Self::cross_cut(
                         strands,
                         target_id,
@@ -3038,7 +3039,8 @@ impl Controller {
                 }
             }
             (None, None) => {
-                if source_nucl.helix != target_nucl.helix {
+                // NS: allow xover within the same helix
+                if ALLOW_SAME_HELIX_CROSSOVERS || source_nucl.helix != target_nucl.helix {
                     if source_id != target_id {
                         Self::split_strand(strands, &source_nucl, None, &mut self.color_idx)?;
                         Self::cross_cut(
