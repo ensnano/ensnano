@@ -2,11 +2,11 @@
 
 ## Stabilize `dev_iced`
 
-- Movement is broken when both keyboard and mouse wheel translations (or zoom) are applied
 - Double click on organizer tree should teleport in 2D and 3D scenes
 
 ## Bugs
 
+- Moving and rotating at the same time make the camera go crazy
 - Increasing the left panel too much crashes ENSnano
 - Clicking "Toggle split of flat scene" twice should do nothing
 - Request fit doesn't work properly anymore, both in 2D and 3D
