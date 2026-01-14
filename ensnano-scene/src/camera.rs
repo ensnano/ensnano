@@ -574,7 +574,7 @@ impl CameraController {
         ));
     }
 
-    pub(crate) fn end_constrained_rotation(&mut self) {
+    fn end_constrained_rotation(&mut self) {
         self.current_constrained_rotation = None;
     }
 
@@ -683,7 +683,7 @@ impl CameraController {
 
     /// Rotate the camera around a point.
     /// `point` is given in the world's coordinates.
-    pub(crate) fn rotate_camera_around(
+    fn rotate_camera_around(
         &mut self,
         delta_xz_angle: f32,
         delta_yz_angle: f32,
@@ -717,7 +717,7 @@ impl CameraController {
 
     /// Modify the camera's rotor so that the camera looks at `point`.
     /// `point` is given in the world's coordinates
-    pub(crate) fn look_at_point(&self, point: Vec3, up: Vec3) {
+    fn look_at_point(&self, point: Vec3, up: Vec3) {
         let new_direction = (point - self.camera.borrow().position).normalized();
         let right = new_direction.cross(up);
         let matrix = Mat3::new(right, up, -new_direction);
