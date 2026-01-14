@@ -49,7 +49,7 @@ impl FreeGrids {
 
     pub fn get_from_g_id(&self, key: &GridId) -> Option<&GridDescriptor> {
         let free_id = FreeGridId::try_from_grid_id(*key)?;
-        self.0.get(&free_id).map(AsRef::as_ref)
+        self.get(&free_id)
     }
 
     pub fn get(&self, grid_id: &FreeGridId) -> Option<&GridDescriptor> {
@@ -62,6 +62,10 @@ impl FreeGrids {
 
     pub fn values(&self) -> impl Iterator<Item = &GridDescriptor> {
         self.0.values().map(AsRef::as_ref)
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = (&FreeGridId, &GridDescriptor)> {
+        self.0.iter().map(|(k, v)| (k, v.as_ref()))
     }
 
     pub fn len(&self) -> usize {

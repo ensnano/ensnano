@@ -750,7 +750,7 @@ impl GridData {
         for (g_id, desc) in paths_data.grids() {
             grids.insert(g_id, desc.to_grid(helix_parameters));
         }
-        for (g_id, desc) in source_grids.0.iter() {
+        for (g_id, desc) in source_grids.iter() {
             let grid = desc.to_grid(helix_parameters);
             grids.insert(GridId::FreeGrid(g_id.0), grid);
         }
