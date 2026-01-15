@@ -1227,7 +1227,6 @@ pub(crate) struct IntervalResult {
     intervals: Vec<(isize, isize)>,
 }
 
-#[expect(clippy::large_enum_variant)]
 pub(crate) enum SimulationOperation<'pres, 'reader> {
     StartHelices {
         presenter: &'pres Presenter,

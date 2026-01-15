@@ -9,7 +9,9 @@ use crate::{
     },
     theme,
 };
-use ensnano_physics::parameters::{RapierParameters, RapierSimulationType};
+use ensnano_physics::parameters::{
+    RAPIER_FLOAT_PARAMETERS_COUNT, RapierParameters, RapierSimulationType,
+};
 use ensnano_utils::{RollRequest, SimulationState, consts::ICON_PHYSICAL_ENGINE, ui_size::UiSize};
 use iced::{
     Alignment,
@@ -183,7 +185,7 @@ impl<State: GuiAppState> GuiTab<State> for SimulationTab<State> {
                 self.brownian_factory
                     .view(brownian_motion, ui_size.main_text())
             ),
-            section("Rapier Simulation", ui_size),
+            section("Relaxation", ui_size),
             column![
                 row![pick_list(
                     [
@@ -200,7 +202,7 @@ impl<State: GuiAppState> GuiTab<State> for SimulationTab<State> {
                 )],
                 row![
                     text_button("Start", ui_size).on_press_maybe(
-                        if self.rapier_parameters.is_simulation_running || sim_state.is_paused() {
+                        if self.rapier_parameters.is_simulation_running {
                             None
                         } else {
                             Some(Message::UpdateRapierParameters(apply_parameter_fields(
@@ -286,7 +288,7 @@ fn kcut_threshold_editor<State: GuiAppState>(
     .into()
 }
 
-const PARAMETER_FIELD_NAMES: [&str; 15] = [
+const PARAMETER_FIELD_NAMES: [&str; RAPIER_FLOAT_PARAMETERS_COUNT] = [
     "Linear damping",
     "Angular damping",
     "Interbase spring stiffness",
@@ -302,6 +304,9 @@ const PARAMETER_FIELD_NAMES: [&str; 15] = [
     "Brownian motion strength",
     "Entropic springs strength",
     "Entropic springs damping",
+    "Planar squish strength",
+    "Planar squish damping",
+    "Planar squish soft cutoff",
 ];
 
 fn apply_parameter_fields(
@@ -342,19 +347,19 @@ fn rapier_parameters_field_editor<State: GuiAppState>(
         keyboard_priority(
             "Rapier parameters ".to_owned() + &description,
             Message::<State>::SetKeyboardPriority,
-            if parameters.is_simulation_running {
-                text_input(current_value, current_value)
-            } else {
-                text_input(current_value, current_value)
-                    .on_input(move |str| {
-                        Message::UpdateRapierParameterField(description.clone(), str)
-                    })
-                    .on_submit(Message::UpdateRapierParameters(apply_parameter_fields(
-                        fields, parameters,
-                    )))
-            }
-            .width(70)
-            .style(theme::BadValue(true)),
+            // if parameters.is_simulation_running {
+            //     text_input(current_value, current_value)
+            // } else {
+            text_input(current_value, current_value)
+                .on_input(move |str| {
+                    Message::UpdateRapierParameterField(description.clone(), str)
+                })
+                .on_submit(Message::UpdateRapierParameters(apply_parameter_fields(
+                    fields, parameters,
+                )))
+                // }
+                .width(70)
+                .style(theme::BadValue(true)),
         )
     ]
     .align_items(Alignment::Center)

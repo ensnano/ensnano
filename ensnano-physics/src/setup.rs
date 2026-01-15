@@ -295,9 +295,8 @@ pub(crate) fn build_simulation<S: SimulationSetup>(
         rigid_body_set,
         collider_set,
         impulse_joint_set,
-        nucleotide_body_map,
-        rapier_parameters: *rapier_parameters,
         crossovers,
+        nucleotide_body_map,
         ..Default::default()
     }
 }

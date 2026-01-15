@@ -1,4 +1,4 @@
-use crate::simulation::RapierPhysicsSystem;
+use crate::{parameters::RapierParameters, simulation::RapierPhysicsSystem};
 use rand::Rng;
 use rapier3d::{
     prelude::*,
@@ -7,8 +7,8 @@ use rapier3d::{
 use std::f32::consts::PI;
 
 impl RapierPhysicsSystem {
-    pub fn brownian_motion_step(&mut self, delta: f32) {
-        brownian_motion_step(self, delta);
+    pub fn brownian_motion_step(&mut self, parameters: &RapierParameters, delta: f32) {
+        brownian_motion_step(self, parameters, delta);
     }
 }
 
@@ -32,10 +32,14 @@ fn random_force(max_magnitude: f32, rng: &mut impl Rng) -> Vector<f32> {
 }
 
 /// Applies a random force to each nucleotide
-fn brownian_motion_step(system: &mut RapierPhysicsSystem, delta: f32) {
+fn brownian_motion_step(
+    system: &mut RapierPhysicsSystem,
+    parameters: &RapierParameters,
+    delta: f32,
+) {
     let handles = system.nucleotide_body_map.values().collect::<Vec<_>>();
 
-    let max_magnitude = system.rapier_parameters.brownian_motion_strength;
+    let max_magnitude = parameters.brownian_motion_strength;
 
     if max_magnitude <= 0.0 {
         return;

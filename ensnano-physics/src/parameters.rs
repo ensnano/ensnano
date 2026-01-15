@@ -22,7 +22,12 @@ pub struct RapierParameters {
     pub brownian_motion_strength: f32,
     pub entropic_spring_strength: f32,
     pub entropic_spring_damping: f32,
+    pub squish_strenght: f32,
+    pub squish_damping: f32,
+    pub squish_soft_cutoff: f32,
 }
+
+pub const RAPIER_FLOAT_PARAMETERS_COUNT: usize = 18;
 
 impl RapierParameters {
     const DEFAULT: Self = Self {
@@ -40,13 +45,16 @@ impl RapierParameters {
         free_nucleotide_damping: 40.0,
         free_nucleotide_rest_length: 0.7,
         repulsion_strength: 0.2,
-        repulsion_range: 1.3,
+        repulsion_range: 10.0,
         brownian_motion_strength: 0.0,
         entropic_spring_strength: 3.0,
         entropic_spring_damping: 40.0,
+        squish_strenght: 0.0,
+        squish_damping: 1.0,
+        squish_soft_cutoff: 3.0,
     };
 
-    pub fn parameters_array(&self) -> [f32; 15] {
+    pub fn parameters_array(&self) -> [f32; RAPIER_FLOAT_PARAMETERS_COUNT] {
         [
             self.linear_damping,
             self.angular_damping,
@@ -63,11 +71,15 @@ impl RapierParameters {
             self.brownian_motion_strength,
             self.entropic_spring_strength,
             self.entropic_spring_damping,
+            self.squish_strenght,
+            self.squish_damping,
+            self.squish_soft_cutoff,
         ]
     }
 
+    #[expect(clippy::missing_asserts_for_indexing)]
     pub fn set_parameters_array(&mut self, array: &[f32]) {
-        assert!(array.len() > 14);
+        assert!(array.len() >= RAPIER_FLOAT_PARAMETERS_COUNT);
 
         self.linear_damping = array[0];
         self.angular_damping = array[1];
@@ -84,6 +96,9 @@ impl RapierParameters {
         self.brownian_motion_strength = array[12];
         self.entropic_spring_strength = array[13];
         self.entropic_spring_damping = array[14];
+        self.squish_strenght = array[15];
+        self.squish_damping = array[16];
+        self.squish_soft_cutoff = array[17];
     }
 }
 
