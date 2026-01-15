@@ -10,28 +10,40 @@ use crate::{
         letter::LetterInstance,
     },
 };
-use ensnano_design::grid::{Grid, GridDivision as _, GridId, GridPosition, GridType};
+use ensnano_design::grid::{GridDivision as _, GridId, GridInstance, GridPosition, GridType};
 use ensnano_utils::instance::Instance;
 use std::collections::BTreeMap;
 use ultraviolet::{Mat4, Vec2, Vec3, Vec4};
 use wgpu::{Device, RenderPass, include_spirv};
 
-#[derive(Debug, Clone)]
-pub struct GridInstance {
-    pub grid: Grid,
-    pub min_x: i32,
-    pub max_x: i32,
-    pub min_y: i32,
-    pub max_y: i32,
-    pub color: u32,
-    pub design: usize,
-    pub id: GridId,
-    pub fake: bool,
-    pub visible: bool,
+pub trait GridInstanceExt {
+    fn disc(&self, x: isize, y: isize, color: u32, model_id: u32) -> (GridDisc, GridDisc);
+
+    fn letter_instance(
+        &self,
+        x: isize,
+        y: isize,
+        h_id: usize,
+        instances: &mut [Vec<LetterInstance>],
+        right: Vec3,
+        up: Vec3,
+    );
+
+    #[must_use]
+    fn to_fake(&self) -> Self;
+
+    fn to_raw(&self) -> GridInstanceRaw;
+
+    /// Return x >= 0 so that origin + x axis is on the grid, or None if such an x does not exist.
+    fn ray_intersection(&self, origin: Vec3, axis: Vec3) -> Option<GridIntersection>;
+
+    fn convert_coord(&self, x: f32, y: f32) -> (f32, f32);
+
+    fn contains_point(&self, x: f32, y: f32) -> bool;
 }
 
-impl GridInstance {
-    pub fn disc(&self, x: isize, y: isize, color: u32, model_id: u32) -> (GridDisc, GridDisc) {
+impl GridInstanceExt for GridInstance {
+    fn disc(&self, x: isize, y: isize, color: u32, model_id: u32) -> (GridDisc, GridDisc) {
         let position = self.grid.position_helix(x, y);
         let orientation = self.grid.orientation;
         let gd = GridDisc {
@@ -53,7 +65,7 @@ impl GridInstance {
         )
     }
 
-    pub fn letter_instance(
+    fn letter_instance(
         &self,
         x: isize,
         y: isize,

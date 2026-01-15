@@ -28,7 +28,10 @@ use dna_obj::{
     StereographicSphereAndPlane, TubeInstance, TubeLidInstance,
 };
 use ensnano_design::{
-    grid::GridId, group_attributes::GroupPivot, helices::Axis, utils::ultraviolet::dvec_to_vec,
+    grid::{GridId, GridInstance},
+    group_attributes::GroupPivot,
+    helices::Axis,
+    utils::ultraviolet::dvec_to_vec,
 };
 use ensnano_utils::{
     bindgroup_manager::{DynamicBindGroup, UniformBindGroup},
@@ -39,7 +42,7 @@ use ensnano_utils::{
     texture::Texture,
 };
 use gltf_drawer::{ExternalObjects, Object3DDrawer};
-use grid::{GridInstance, GridIntersection, GridManager, GridTextures};
+use grid::{GridIntersection, GridManager, GridTextures};
 use grid_disc::GridDisc;
 use handle_drawer::{HandleDir, HandlesDescriptor, HandlesDrawer};
 use instances_drawer::{InstanceDrawer, RawDrawer};
