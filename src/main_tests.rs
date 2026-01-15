@@ -1,9 +1,33 @@
 //! Test suite for the `MainState` structure
 
-use super::*;
-use ensnano_design::nucl::Nucl;
-use ensnano_utils::graphics::DrawArea;
-use winit::dpi::PhysicalPosition;
+use std::{
+    path::PathBuf,
+    sync::{Arc, Mutex},
+    time::Duration,
+};
+
+use crate::{
+    app_state::{
+        AppState,
+        design_interactor::controller::clipboard::{CopyOperation, PastePosition},
+    },
+    state::MainState,
+};
+
+use ensnano_design::{nucl::Nucl, operation::DesignOperation, selection::Selection};
+use ensnano_gui::IcedMessages;
+use ensnano_scene::data::design3d::SceneDesignReaderExt as _;
+use ensnano_utils::{
+    PastingStatus,
+    application::{Application, Camera3D, Notification},
+    graphics::{DrawArea, GuiComponentType},
+};
+use ultraviolet::{Rotor3, Vec3};
+use winit::{
+    dpi::{PhysicalPosition, PhysicalSize},
+    event::WindowEvent,
+    window::CursorIcon,
+};
 
 struct DummyScene;
 

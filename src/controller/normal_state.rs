@@ -1,5 +1,4 @@
 use crate::{
-    MainStateView,
     app_state::design_interactor::controller::{
         clipboard::PastePosition, simulations::SimulationOperation,
     },
@@ -14,6 +13,7 @@ use crate::{
         quit::{Exporting, Load, LoadType, NewDesign, Quit, SaveAs, SaveWithPath},
         set_scaffold_sequence::SetScaffoldSequence,
     },
+    state::MainStateView,
 };
 use ensnano_design::{
     CameraId,

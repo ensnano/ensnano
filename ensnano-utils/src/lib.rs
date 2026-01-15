@@ -23,6 +23,8 @@ pub mod ui_size;
 use ensnano_design::{grid::GridId, nucl::Nucl};
 use wgpu::util::{BufferInitDescriptor, DeviceExt as _};
 
+use crate::graphics::PhySize;
+
 pub const TEXTURE_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8UnormSrgb;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -255,4 +257,20 @@ pub fn create_buffer_with_data(
         usage,
     };
     device.create_buffer_init(&descriptor)
+}
+
+pub fn apply_update<T: Clone, F>(obj: &mut T, update_func: F)
+where
+    F: FnOnce(T) -> T,
+{
+    let tmp = obj.clone();
+    *obj = update_func(tmp);
+}
+
+pub fn convert_size_f32(size: PhySize) -> iced::Size<f32> {
+    iced::Size::new(size.width as f32, size.height as f32)
+}
+
+pub fn convert_size_u32(size: PhySize) -> iced::Size<u32> {
+    iced::Size::new(size.width, size.height)
 }
