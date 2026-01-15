@@ -25,13 +25,13 @@ use ensnano_design::{
     selection::{all_helices_no_grid, extract_grids, extract_strands_from_selection},
 };
 use ensnano_exports::ExportType;
-use ensnano_gui::OverlayType;
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
     RigidBodyConstants, RollRequest,
     application::Notification,
     consts::ENS_EXTENSION,
     graphics::{FogParameters, SplitMode},
+    overlay::OverlayType,
     surfaces::RevolutionSurfaceSystemDescriptor,
     ui_size::UiSize,
 };

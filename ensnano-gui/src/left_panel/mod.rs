@@ -28,7 +28,7 @@ use self::{
     },
 };
 use crate::{
-    GuiAppState, GuiRequests, OverlayType,
+    GuiAppState, GuiRequests,
     color_picker::ColorPickerMessage,
     fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
     theme::GuiBackground,
@@ -47,6 +47,7 @@ use ensnano_utils::{
     },
     graphics::{Background3D, HBondDisplay, RenderingMode},
     keyboard_priority::PriorityRequest,
+    overlay::OverlayType,
     surfaces::EquadiffSolvingMethod,
     ui_size::UiSize,
 };

@@ -92,7 +92,7 @@ use crate::{
 use ensnano_design::operation::DesignOperation;
 use ensnano_flatscene::FlatScene;
 use ensnano_gui::{
-    Gui, IcedMessages, OverlayType,
+    Gui, IcedMessages,
     fonts::{INTER_REGULAR_FONT, load_fonts},
     left_panel::ColorOverlay,
     theme,
@@ -105,6 +105,7 @@ use ensnano_utils::{
     consts::{APP_NAME, NO_DESIGN_TITLE, WELCOME_MSG},
     convert_size_f32, convert_size_u32,
     graphics::{GuiComponentType, PhySize, SplitMode},
+    overlay::OverlayType,
 };
 use iced::{
     advanced::{clipboard, renderer},

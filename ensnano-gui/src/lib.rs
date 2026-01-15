@@ -50,6 +50,7 @@ use ensnano_utils::{
     keyboard_priority::PriorityRequest,
     multiplexer_ext::MultiplexerExt,
     operation::Operation,
+    overlay::OverlayType,
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
     ui_size::UiSize,
 };
@@ -219,11 +220,6 @@ pub trait GuiRequests: 'static + Send {
     fn request_stl_export(&mut self);
     /// Set keyboard priority, i.e. whether activate keyboard shortcuts.
     fn set_keyboard_priority(&mut self, priority: PriorityRequest);
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum OverlayType {
-    Color,
 }
 
 #[expect(clippy::large_enum_variant)]

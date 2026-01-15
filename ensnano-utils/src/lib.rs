@@ -14,6 +14,7 @@ pub mod keyboard_priority;
 pub mod multiplexer_ext;
 pub mod obj_loader;
 pub mod operation;
+pub mod overlay;
 pub mod strand_builder;
 pub mod surfaces;
 pub mod text;
