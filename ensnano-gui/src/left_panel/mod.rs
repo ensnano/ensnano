@@ -31,7 +31,6 @@ use crate::{
     GuiAppState, GuiRequests, OverlayType,
     color_picker::ColorPickerMessage,
     fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
-    keyboard_priority::PriorityRequest,
     theme::GuiBackground,
 };
 use ensnano_design::{
@@ -47,6 +46,7 @@ use ensnano_utils::{
         suggestion_parameters::SuggestionParameters,
     },
     graphics::{Background3D, HBondDisplay, RenderingMode},
+    keyboard_priority::PriorityRequest,
     surfaces::EquadiffSolvingMethod,
     ui_size::UiSize,
 };

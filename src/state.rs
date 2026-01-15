@@ -21,9 +21,7 @@ use ensnano_design::{
     },
 };
 use ensnano_exports::{ExportResult, ExportType};
-use ensnano_gui::{
-    Gui, GuiAppState as _, IcedMessages, TopBarState, keyboard_priority::KeyboardPriorityId,
-};
+use ensnano_gui::{Gui, GuiAppState as _, IcedMessages, TopBarState};
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_scene::{SceneAppState as _, data::design3d::SceneDesignReaderExt as _};
 use ensnano_utils::{
@@ -34,6 +32,7 @@ use ensnano_utils::{
     application::{Application, Camera3D, Notification},
     consts::{ENS_BACKUP_EXTENSION, ENS_UNNAMED_FILE_NAME, SEC_BETWEEN_BACKUPS, SEC_PER_YEAR},
     graphics::{Background3D, GuiComponentType, HBondDisplay, RenderingMode, SplitMode},
+    keyboard_priority::KeyboardPriorityId,
     operation::Operation,
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
     ui_size::UiSize,

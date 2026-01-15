@@ -10,7 +10,7 @@ use self::{
     message::{OrganizerInternalMessage, OrganizerMessage},
     theme::OrganizerTheme,
 };
-use crate::{keyboard_priority::keyboard_priority, left_panel::organizer::theme::SelectionType};
+use crate::left_panel::organizer::theme::SelectionType;
 use ensnano_design::{
     design_element::{
         AttributeDisplay, AttributeWidget, DesignElement, DesignElementKey, DesignElementSection,
@@ -18,6 +18,7 @@ use ensnano_design::{
     },
     organizer_tree::{GroupId, OrganizerTree},
 };
+use ensnano_utils::keyboard_priority::keyboard_priority;
 use iced::{
     Element, Length,
     keyboard::Modifiers,

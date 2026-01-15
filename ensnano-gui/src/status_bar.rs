@@ -1,9 +1,10 @@
-use crate::{
-    GuiAppState, GuiRequests,
+use crate::{GuiAppState, GuiRequests, theme::GuiBackground};
+use ensnano_utils::{
+    PastingStatus,
     keyboard_priority::{PriorityRequest, keyboard_priority},
-    theme::GuiBackground,
+    operation::Operation,
+    ui_size::UiSize,
 };
-use ensnano_utils::{PastingStatus, operation::Operation, ui_size::UiSize};
 use iced::{
     Alignment, Color, Element, Length,
     widget::{Row, Space, Text, column, container, horizontal_space, row, text, text_input},

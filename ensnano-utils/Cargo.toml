@@ -17,6 +17,7 @@ color_space.workspace = true
 fontdue.workspace = true
 gltf.workspace = true
 iced.workspace = true
+iced_graphics.workspace = true
 log.workspace = true
 nom_stl.workspace = true
 num.workspace = true

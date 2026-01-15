@@ -17,7 +17,6 @@ use ensnano_design::{
     organizer_tree::{GroupId, OrganizerTree},
     selection::{CenterOfSelection, Selection},
 };
-use ensnano_gui::keyboard_priority::PriorityRequest;
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
     RigidBodyConstants, RollRequest,
@@ -26,6 +25,7 @@ use ensnano_utils::{
     },
     application::AppId,
     graphics::{Background3D, FogParameters, HBondDisplay, RenderingMode},
+    keyboard_priority::PriorityRequest,
     operation::Operation,
     surfaces::UnrootedRevolutionSurfaceDescriptor,
 };

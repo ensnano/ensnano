@@ -9,7 +9,6 @@ mod color_picker;
 mod consts;
 pub mod fonts;
 mod helpers;
-pub mod keyboard_priority;
 pub mod left_panel;
 pub mod status_bar;
 pub mod theme;
@@ -18,7 +17,6 @@ mod widgets;
 
 use crate::{
     fonts::{INTER_REGULAR_FONT, load_fonts},
-    keyboard_priority::PriorityRequest,
     left_panel::{
         LeftPanel, RigidBodyParametersRequest,
         tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
@@ -49,6 +47,7 @@ use ensnano_utils::{
         Background3D, DrawArea, FogParameters, GuiComponentType, HBondDisplay, RenderingMode,
         SplitMode,
     },
+    keyboard_priority::PriorityRequest,
     multiplexer_ext::MultiplexerExt,
     operation::Operation,
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},

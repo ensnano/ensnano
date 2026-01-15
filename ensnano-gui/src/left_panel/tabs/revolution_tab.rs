@@ -2,13 +2,13 @@ use crate::{
     GuiAppState,
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, jump_by, section, subsection, text_button},
-    keyboard_priority::keyboard_priority,
     left_panel::{Message, tabs::GuiTab},
     theme,
 };
 use ensnano_design::curves::torus::CurveDescriptor2D;
 use ensnano_utils::{
     SimulationState,
+    keyboard_priority::keyboard_priority,
     surfaces::{
         EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceRadius,
         RevolutionSurfaceSystemDescriptor, RootingParameters, ShiftGenerator,
