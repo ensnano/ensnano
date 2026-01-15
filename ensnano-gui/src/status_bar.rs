@@ -1,9 +1,10 @@
-use crate::{
-    GuiAppState, GuiRequests,
+use crate::{GuiAppState, GuiRequests, theme::GuiBackground};
+use ensnano_utils::{
+    PastingStatus,
     keyboard_priority::{PriorityRequest, keyboard_priority},
-    theme::GuiBackground,
+    operation::{CurrentOpState, Operation},
+    ui_size::UiSize,
 };
-use ensnano_utils::{PastingStatus, operation::Operation, ui_size::UiSize};
 use iced::{
     Alignment, Color, Element, Length,
     widget::{Row, Space, Text, column, container, horizontal_space, row, text, text_input},
@@ -196,12 +197,6 @@ impl<R: GuiRequests, S: GuiAppState> Program for StatusBar<R, S> {
             .into()
     }
 }
-
-pub struct CurrentOpState {
-    pub current_operation: Arc<dyn Operation>,
-    pub operation_id: usize,
-}
-
 struct OperationInput {
     /// The values obtained with Operation::values
     values: Vec<String>,
@@ -412,26 +407,6 @@ mod input_color {
         fn from(_value: InputValueState) -> Self {
             Default::default()
             // Maybe this is not correct. I wrote this to make it compile.
-        }
-    }
-}
-
-pub enum ClipboardContent {
-    Empty,
-    Xovers(usize),
-    Strands(usize),
-    Grids(usize),
-    Helices(usize),
-}
-
-impl std::fmt::Display for ClipboardContent {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Empty => write!(f, "Empty"),
-            Self::Xovers(n) => write!(f, "{n} {}", if *n < 2 { "xover" } else { "xovers" }),
-            Self::Strands(n) => write!(f, "{n} {}", if *n < 2 { "strand" } else { "strands" }),
-            Self::Grids(n) => write!(f, "{n} {}", if *n < 2 { "grid" } else { "grids" }),
-            Self::Helices(n) => write!(f, "{n} {}", if *n < 2 { "helix" } else { "helices" }),
         }
     }
 }

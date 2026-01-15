@@ -14,7 +14,6 @@ use crate::{
             ConeInstance, Ellipsoid, PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance,
             SphereInstance, TubeInstance, TubeLidInstance,
         },
-        grid::GridInstance,
         instances_drawer::Instantiable as _,
         letter::LetterInstance,
     },
@@ -28,7 +27,8 @@ use ensnano_design::{
         bezier::{BezierControlPoint, CubicBezierConstructor},
     },
     external_3d_objects::External3DObjects,
-    grid::{GridId, GridObject, GridPosition, HelixGridPosition},
+    grid::{GridId, GridInstance, GridObject, GridPosition, HelixGridPosition},
+    helices::HBond,
     nucl::Nucl,
     parameters::HelixParameters,
     phantom_element::{
@@ -1467,20 +1467,6 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
     pub fn get_surface_info(&self, point: SurfacePoint) -> Option<SurfaceInfo> {
         self.design_reader.get_surface_info(point)
     }
-}
-
-#[derive(Debug, Clone)]
-pub struct HalfHBond {
-    pub backbone: Vec3,
-    pub center_of_mass: Vec3,
-    pub base: Option<char>,
-    pub backbone_color: u32,
-}
-
-#[derive(Debug, Clone)]
-pub struct HBond {
-    pub forward: HalfHBond,
-    pub backward: HalfHBond,
 }
 
 pub(super) enum ExpandWith {

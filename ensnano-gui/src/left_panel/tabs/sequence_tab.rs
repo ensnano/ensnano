@@ -1,12 +1,13 @@
 use crate::{
     GuiAppState,
     helpers::{extra_jump, right_checkbox, section, text_button},
-    keyboard_priority::keyboard_priority,
     left_panel::{Message, tabs::GuiTab},
     theme,
 };
 use ensnano_design::design_element::DesignElementKey;
-use ensnano_utils::{StandardSequence, consts::ICON_ATGC, ui_size::UiSize};
+use ensnano_utils::{
+    StandardSequence, consts::ICON_ATGC, keyboard_priority::keyboard_priority, ui_size::UiSize,
+};
 use iced::{
     Length,
     widget::{column, row, scrollable, text, text_input},

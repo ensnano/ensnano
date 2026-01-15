@@ -9,13 +9,13 @@ use ensnano_design::{
     design_element::{DesignElement, DesignElementKey},
     domains::Domain,
     drawing_style::{ColorType, DrawingAttribute, DrawingStyle},
-    grid::{GridData, GridId, GridObject, GridPosition, HelixGridPosition},
+    grid::{GridData, GridId, GridInstance, GridObject, GridPosition, HelixGridPosition},
     helices::NuclCollection,
     isometry3_descriptor::Isometry3MissingMethods as _,
     nucl::Nucl,
     strands::DomainJunction,
 };
-use ensnano_scene::{data::design3d::Scalebar, view::grid::GridInstance};
+use ensnano_scene::data::design3d::Scalebar;
 use ensnano_utils::{
     ObjectType,
     app_state_parameters::suggestion_parameters::SuggestionParameters,

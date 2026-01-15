@@ -2,8 +2,8 @@
 //! object.
 
 use crate::{
-    MainState, app_state::design_interactor::controller::clipboard::PastePosition,
-    controller::normal_state::Action, requests::Requests,
+    app_state::design_interactor::controller::clipboard::PastePosition,
+    controller::normal_state::Action, requests::Requests, state::MainState,
 };
 use ensnano_design::operation::{DesignOperation, HyperboloidOperation};
 use ensnano_utils::application::Notification;

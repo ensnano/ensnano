@@ -12,10 +12,7 @@ use ensnano_design::{
     parameters::HelixParameters,
 };
 use ensnano_exports::ExportType;
-use ensnano_gui::{
-    GuiRequests, OverlayType, keyboard_priority::PriorityRequest,
-    left_panel::RigidBodyParametersRequest,
-};
+use ensnano_gui::{GuiRequests, left_panel::RigidBodyParametersRequest};
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
     RigidBodyConstants, RollRequest,
@@ -24,7 +21,9 @@ use ensnano_utils::{
     },
     application::Notification,
     graphics::{Background3D, FogParameters, HBondDisplay, RenderingMode, SplitMode},
+    keyboard_priority::PriorityRequest,
     operation::Operation,
+    overlay::OverlayType,
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
     ui_size::UiSize,
 };

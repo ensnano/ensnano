@@ -5,14 +5,17 @@ pub mod app_state_parameters;
 pub mod application;
 pub mod bindgroup_manager;
 pub mod buffer_dimensions;
+pub mod clipboard;
 pub mod colors;
 pub mod consts;
 pub mod filename;
 pub mod graphics;
 pub mod instance;
+pub mod keyboard_priority;
 pub mod multiplexer_ext;
 pub mod obj_loader;
 pub mod operation;
+pub mod overlay;
 pub mod strand_builder;
 pub mod surfaces;
 pub mod text;
@@ -22,6 +25,8 @@ pub mod ui_size;
 
 use ensnano_design::{grid::GridId, nucl::Nucl};
 use wgpu::util::{BufferInitDescriptor, DeviceExt as _};
+
+use crate::graphics::PhySize;
 
 pub const TEXTURE_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8UnormSrgb;
 
@@ -255,4 +260,20 @@ pub fn create_buffer_with_data(
         usage,
     };
     device.create_buffer_init(&descriptor)
+}
+
+pub fn apply_update<T: Clone, F>(obj: &mut T, update_func: F)
+where
+    F: FnOnce(T) -> T,
+{
+    let tmp = obj.clone();
+    *obj = update_func(tmp);
+}
+
+pub fn convert_size_f32(size: PhySize) -> iced::Size<f32> {
+    iced::Size::new(size.width as f32, size.height as f32)
+}
+
+pub fn convert_size_u32(size: PhySize) -> iced::Size<u32> {
+    iced::Size::new(size.width, size.height)
 }

@@ -23,7 +23,6 @@ use crate::{
         },
         presenter::SimulationUpdate,
     },
-    apply_update,
     controller::{LoadDesignError, SaveDesignError, channel_reader::ChannelReader},
 };
 use address_pointer::AddressPointer;
@@ -45,6 +44,7 @@ use ensnano_utils::{
         AppStateParameters, check_xovers_parameter::CheckXoversParameter,
         suggestion_parameters::SuggestionParameters,
     },
+    apply_update,
     consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION},
     graphics::{Background3D, HBondDisplay, RenderingMode},
     operation::Operation,

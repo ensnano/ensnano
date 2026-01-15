@@ -1232,6 +1232,8 @@ dependencies = [
  "ensnano_design",
  "fontdue",
  "gltf",
+ "iced",
+ "iced_graphics",
  "log",
  "nom_stl",
  "num",

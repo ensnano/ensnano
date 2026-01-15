@@ -1,5 +1,4 @@
 use crate::{
-    MainStateView,
     controller::{
         AutomataState, TransitionMessage, YesNo,
         messages::{
@@ -9,6 +8,7 @@ use crate::{
         normal_state::NormalState,
     },
     dialog::{self, PathInput},
+    state::MainStateView,
 };
 use ensnano_utils::StandardSequence;
 use std::path::{Path, PathBuf};

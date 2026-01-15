@@ -1,9 +1,9 @@
 use super::{OrganizerNodeId, drag_drop_target::DragIdentifier};
-use crate::keyboard_priority::PriorityRequest;
 use ensnano_design::{
     design_element::{DesignElement, DesignElementKey, DnaAttribute},
     organizer_tree::{GroupId, OrganizerTree},
 };
+use ensnano_utils::keyboard_priority::PriorityRequest;
 use iced::widget::text_input;
 use std::collections::BTreeMap;
 

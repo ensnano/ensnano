@@ -9,7 +9,6 @@ mod color_picker;
 mod consts;
 pub mod fonts;
 mod helpers;
-pub mod keyboard_priority;
 pub mod left_panel;
 pub mod status_bar;
 pub mod theme;
@@ -18,7 +17,6 @@ mod widgets;
 
 use crate::{
     fonts::{INTER_REGULAR_FONT, load_fonts},
-    keyboard_priority::PriorityRequest,
     left_panel::{
         LeftPanel, RigidBodyParametersRequest,
         tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
@@ -45,12 +43,15 @@ use ensnano_utils::{
         AppStateParameters, check_xovers_parameter::CheckXoversParameter,
         suggestion_parameters::SuggestionParameters,
     },
+    clipboard::ClipboardContent,
     graphics::{
         Background3D, DrawArea, FogParameters, GuiComponentType, HBondDisplay, RenderingMode,
         SplitMode,
     },
+    keyboard_priority::PriorityRequest,
     multiplexer_ext::MultiplexerExt,
-    operation::Operation,
+    operation::{CurrentOpState, Operation},
+    overlay::OverlayType,
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
     ui_size::UiSize,
 };
@@ -63,7 +64,7 @@ use iced::{
 };
 use iced_runtime::{Debug, program};
 use iced_wgpu::Backend;
-use status_bar::{ClipboardContent, CurrentOpState, StatusBar};
+use status_bar::StatusBar;
 use std::{
     collections::{BTreeSet, HashMap, VecDeque},
     rc::Rc,
@@ -220,11 +221,6 @@ pub trait GuiRequests: 'static + Send {
     fn request_stl_export(&mut self);
     /// Set keyboard priority, i.e. whether activate keyboard shortcuts.
     fn set_keyboard_priority(&mut self, priority: PriorityRequest);
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum OverlayType {
-    Color,
 }
 
 #[expect(clippy::large_enum_variant)]

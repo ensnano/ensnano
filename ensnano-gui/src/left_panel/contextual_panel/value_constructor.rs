@@ -1,11 +1,10 @@
 use crate::{
     GuiAppState,
     consts::{MAX_NB_TURN, MIN_NB_TURN, NB_TURN_SLIDER_SPACING, NB_TURN_STEP},
-    keyboard_priority::keyboard_priority,
     left_panel::Message,
 };
 use ensnano_design::selection::Selection;
-use ensnano_utils::ui_size::UiSize;
+use ensnano_utils::{keyboard_priority::keyboard_priority, ui_size::UiSize};
 use iced::{
     Alignment, Length,
     widget::{Column, Space, column, row, slider, text, text_input},

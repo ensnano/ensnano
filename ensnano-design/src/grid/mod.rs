@@ -1410,3 +1410,17 @@ impl<'a> HelicesTranslator<'a> {
 
 #[derive(Clone, Copy)]
 pub struct GridAwareTranslation(pub Vec3);
+
+#[derive(Debug, Clone)]
+pub struct GridInstance {
+    pub grid: Grid,
+    pub min_x: i32,
+    pub max_x: i32,
+    pub min_y: i32,
+    pub max_y: i32,
+    pub color: u32,
+    pub design: usize,
+    pub id: GridId,
+    pub fake: bool,
+    pub visible: bool,
+}

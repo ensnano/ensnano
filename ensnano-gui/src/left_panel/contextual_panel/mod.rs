@@ -3,7 +3,6 @@ pub(super) mod value_constructor;
 use crate::{
     GuiAppState, GuiDesignReaderExt, GuiRequests,
     helpers::{extra_jump, right_checkbox, section, subsection, text_button},
-    keyboard_priority::keyboard_priority,
     left_panel::Message,
     theme,
 };
@@ -17,6 +16,7 @@ use ensnano_utils::{
         M_CLICK, MOVE_CHAR, NUCL_CHAR, R_CLICK, ROT_CHAR, SELECT_CHAR, SHIFT, STRAND_CHAR,
         SUPPR_CHAR,
     },
+    keyboard_priority::keyboard_priority,
     ui_size::UiSize,
 };
 use iced::{

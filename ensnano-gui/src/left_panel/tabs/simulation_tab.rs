@@ -1,7 +1,6 @@
 use crate::{
     GuiAppState, GuiRequests,
     helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
-    keyboard_priority::keyboard_priority,
     left_panel::{
         BrownianParametersFactory, Message, RigidBodyFactory, RigidBodyParametersRequest,
         discrete_value::{FactoryId, RequestFactory, ValueId},
@@ -12,7 +11,10 @@ use crate::{
 use ensnano_physics::parameters::{
     RAPIER_FLOAT_PARAMETERS_COUNT, RapierParameters, RapierSimulationType,
 };
-use ensnano_utils::{RollRequest, SimulationState, consts::ICON_PHYSICAL_ENGINE, ui_size::UiSize};
+use ensnano_utils::{
+    RollRequest, SimulationState, consts::ICON_PHYSICAL_ENGINE,
+    keyboard_priority::keyboard_priority, ui_size::UiSize,
+};
 use iced::{
     Alignment,
     widget::{Column, Space, column, pick_list, row, scrollable, text, text_input},

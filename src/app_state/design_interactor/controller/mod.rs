@@ -53,9 +53,9 @@ use ensnano_design::{
     selection::{Selection, list_of_helices},
     strands::{DomainJunction, Strand, Strands},
 };
-use ensnano_gui::status_bar::ClipboardContent;
 use ensnano_utils::{
     PastingStatus, SimulationState,
+    clipboard::ClipboardContent,
     colors::{new_color, random_color_with_shade},
     operation::{Operation, TranslateBezierPathVertex},
     strand_builder::{DomainIdentifier, NeighborDescriptor, StrandBuilder, get_neighbor_nucl},

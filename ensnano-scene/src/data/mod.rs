@@ -11,6 +11,7 @@ use crate::{
         Mesh, ViewPtr, ViewUpdate,
         dna_obj::{RawDnaInstance, StereographicSphereAndPlane},
         gltf_drawer::ExternalObjects,
+        grid::GridInstanceExt as _,
         grid_disc::GridDisc,
         handle_drawer::{HandleColors, HandlesDescriptor},
         instances_drawer::Instantiable as _,

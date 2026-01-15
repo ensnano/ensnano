@@ -11,17 +11,14 @@ use ensnano_design::{
     },
     domains::Domain,
     external_3d_objects::External3DObjects,
-    grid::{GridId, GridObject, GridPosition, HelixGridPosition},
-    helices::Helix,
+    grid::{GridId, GridInstance, GridObject, GridPosition, HelixGridPosition},
+    helices::{HBond, Helix},
     nucl::Nucl,
     parameters::HelixParameters,
 };
-use ensnano_scene::{
-    data::{
-        StrandNucleotidesPositions,
-        design3d::{HBond, Scalebar, SceneDesignReaderExt},
-    },
-    view::grid::GridInstance,
+use ensnano_scene::data::{
+    StrandNucleotidesPositions,
+    design3d::{Scalebar, SceneDesignReaderExt},
 };
 use ensnano_utils::{
     ObjectType, Referential,
