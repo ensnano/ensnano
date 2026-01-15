@@ -1,14 +1,3 @@
-use crate::controller::set_scaffold_sequence::SetScaffoldSequenceError;
-use crate::controller::set_scaffold_sequence::SetScaffoldSequenceOk;
-use crate::controller::set_scaffold_sequence::TargetScaffoldLength;
-use ensnano_design::CameraId;
-use ensnano_design::group_attributes::GroupPivot;
-use ensnano_design::operation::DesignRotation;
-use ensnano_design::operation::DesignTranslation;
-use ensnano_design::operation::IsometryTarget;
-use ensnano_design::selection::extract_nucls_from_selection;
-use ensnano_gui::GuiAppState as _;
-use ensnano_scene::data::design3d::SceneDesignReaderExt as _;
 use std::{
     collections::VecDeque,
     path::{Path, PathBuf},
@@ -18,22 +7,25 @@ use std::{
 
 use ahash::HashMap;
 use ensnano_design::{
-    Camera, MainDesignReaderExt, SavingInformation,
+    Camera, CameraId, MainDesignReaderExt, SavingInformation,
     bezier_plane::BezierPlaneDescriptor,
     grid::GridId,
+    group_attributes::GroupPivot,
     interaction_modes::{ActionMode, SelectionMode},
-    operation::DesignOperation,
+    operation::{DesignOperation, DesignRotation, DesignTranslation, IsometryTarget},
     organizer_tree::GroupId,
     selection::{
-        CenterOfSelection, Selection, extract_only_grids, extract_strands_from_selection,
-        list_of_bezier_vertices, list_of_free_grids, list_of_helices, list_of_strands,
-        list_of_xover_as_nucl_pairs,
+        CenterOfSelection, Selection, extract_nucls_from_selection, extract_only_grids,
+        extract_strands_from_selection, list_of_bezier_vertices, list_of_free_grids,
+        list_of_helices, list_of_strands, list_of_xover_as_nucl_pairs,
     },
 };
 use ensnano_exports::{ExportResult, ExportType};
-use ensnano_gui::{Gui, IcedMessages, TopBarState, keyboard_priority::KeyboardPriorityId};
+use ensnano_gui::{
+    Gui, GuiAppState as _, IcedMessages, TopBarState, keyboard_priority::KeyboardPriorityId,
+};
 use ensnano_physics::parameters::RapierParameters;
-use ensnano_scene::SceneAppState as _;
+use ensnano_scene::{SceneAppState as _, data::design3d::SceneDesignReaderExt as _};
 use ensnano_utils::{
     PastingStatus, RigidBodyConstants,
     app_state_parameters::{
@@ -66,7 +58,12 @@ use crate::{
         transitions::{AppStateTransition, OkOperation, TransitionLabel},
     },
     controller::{
-        LoadDesignError, SaveDesignError, channel_reader::ChannelReader, normal_state::Action,
+        LoadDesignError, SaveDesignError,
+        channel_reader::ChannelReader,
+        normal_state::Action,
+        set_scaffold_sequence::{
+            SetScaffoldSequenceError, SetScaffoldSequenceOk, TargetScaffoldLength,
+        },
     },
     multiplexer::Multiplexer,
     requests::Requests,
