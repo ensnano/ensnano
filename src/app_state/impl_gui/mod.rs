@@ -13,7 +13,7 @@ use ensnano_design::{
 use ensnano_gui::{
     GuiAppState, GuiDesignReaderExt,
     left_panel::tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
-    status_bar::{ClipboardContent, CurrentOpState},
+    status_bar::ClipboardContent,
 };
 use ensnano_utils::{
     PastingStatus, ScaffoldInfo, SimulationState, StrandBuildingStatus, WidgetBasis,
@@ -21,6 +21,7 @@ use ensnano_utils::{
         check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
     },
     graphics::HBondDisplay,
+    operation::CurrentOpState,
 };
 
 impl GuiAppState for AppState {

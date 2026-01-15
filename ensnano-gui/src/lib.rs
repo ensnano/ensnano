@@ -49,7 +49,7 @@ use ensnano_utils::{
     },
     keyboard_priority::PriorityRequest,
     multiplexer_ext::MultiplexerExt,
-    operation::Operation,
+    operation::{CurrentOpState, Operation},
     overlay::OverlayType,
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
     ui_size::UiSize,
@@ -63,7 +63,7 @@ use iced::{
 };
 use iced_runtime::{Debug, program};
 use iced_wgpu::Backend;
-use status_bar::{ClipboardContent, CurrentOpState, StatusBar};
+use status_bar::{ClipboardContent, StatusBar};
 use std::{
     collections::{BTreeSet, HashMap, VecDeque},
     rc::Rc,

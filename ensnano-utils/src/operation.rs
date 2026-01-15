@@ -39,6 +39,11 @@ pub trait Operation: std::fmt::Debug + Sync + Send {
     }
 }
 
+pub struct CurrentOpState {
+    pub current_operation: Arc<dyn Operation>,
+    pub operation_id: usize,
+}
+
 #[derive(Clone, Debug)]
 pub struct GridRotation {
     pub origin: Vec3,

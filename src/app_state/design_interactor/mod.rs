@@ -24,11 +24,13 @@ use ensnano_design::{
     selection::Selection,
 };
 use ensnano_exports::{ExportResult, ExportType};
-use ensnano_gui::status_bar::{ClipboardContent, CurrentOpState};
+use ensnano_gui::status_bar::ClipboardContent;
 use ensnano_utils::{
     PastingStatus, SimulationState,
     app_state_parameters::suggestion_parameters::SuggestionParameters,
-    consts::UPDATE_VISIBILITY_SIEVE_LABEL, operation::Operation, strand_builder::StrandBuilder,
+    consts::UPDATE_VISIBILITY_SIEVE_LABEL,
+    operation::{CurrentOpState, Operation},
+    strand_builder::StrandBuilder,
 };
 use presenter::{Presenter, SimulationUpdate, apply_simulation_update, update_presenter};
 use std::{io::Write as _, path::PathBuf, sync::Arc};

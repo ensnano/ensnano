@@ -2,7 +2,7 @@ use crate::{GuiAppState, GuiRequests, theme::GuiBackground};
 use ensnano_utils::{
     PastingStatus,
     keyboard_priority::{PriorityRequest, keyboard_priority},
-    operation::Operation,
+    operation::{CurrentOpState, Operation},
     ui_size::UiSize,
 };
 use iced::{
@@ -197,12 +197,6 @@ impl<R: GuiRequests, S: GuiAppState> Program for StatusBar<R, S> {
             .into()
     }
 }
-
-pub struct CurrentOpState {
-    pub current_operation: Arc<dyn Operation>,
-    pub operation_id: usize,
-}
-
 struct OperationInput {
     /// The values obtained with Operation::values
     values: Vec<String>,
