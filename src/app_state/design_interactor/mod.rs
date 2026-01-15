@@ -24,10 +24,10 @@ use ensnano_design::{
     selection::Selection,
 };
 use ensnano_exports::{ExportResult, ExportType};
-use ensnano_gui::status_bar::ClipboardContent;
 use ensnano_utils::{
     PastingStatus, SimulationState,
     app_state_parameters::suggestion_parameters::SuggestionParameters,
+    clipboard::ClipboardContent,
     consts::UPDATE_VISIBILITY_SIEVE_LABEL,
     operation::{CurrentOpState, Operation},
     strand_builder::StrandBuilder,

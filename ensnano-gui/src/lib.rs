@@ -43,6 +43,7 @@ use ensnano_utils::{
         AppStateParameters, check_xovers_parameter::CheckXoversParameter,
         suggestion_parameters::SuggestionParameters,
     },
+    clipboard::ClipboardContent,
     graphics::{
         Background3D, DrawArea, FogParameters, GuiComponentType, HBondDisplay, RenderingMode,
         SplitMode,
@@ -63,7 +64,7 @@ use iced::{
 };
 use iced_runtime::{Debug, program};
 use iced_wgpu::Backend;
-use status_bar::{ClipboardContent, StatusBar};
+use status_bar::StatusBar;
 use std::{
     collections::{BTreeSet, HashMap, VecDeque},
     rc::Rc,

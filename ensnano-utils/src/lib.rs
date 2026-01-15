@@ -5,6 +5,7 @@ pub mod app_state_parameters;
 pub mod application;
 pub mod bindgroup_manager;
 pub mod buffer_dimensions;
+pub mod clipboard;
 pub mod colors;
 pub mod consts;
 pub mod filename;

@@ -13,13 +13,13 @@ use ensnano_design::{
 use ensnano_gui::{
     GuiAppState, GuiDesignReaderExt,
     left_panel::tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
-    status_bar::ClipboardContent,
 };
 use ensnano_utils::{
     PastingStatus, ScaffoldInfo, SimulationState, StrandBuildingStatus, WidgetBasis,
     app_state_parameters::{
         check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
     },
+    clipboard::ClipboardContent,
     graphics::HBondDisplay,
     operation::CurrentOpState,
 };
