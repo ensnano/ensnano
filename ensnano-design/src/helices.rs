@@ -923,3 +923,17 @@ pub struct AdditionalHelix2D {
     pub additional_isometry: Option<Isometry2>,
     pub additional_symmetry: Option<Vec2>,
 }
+
+#[derive(Debug, Clone)]
+pub struct HalfHBond {
+    pub backbone: Vec3,
+    pub center_of_mass: Vec3,
+    pub base: Option<char>,
+    pub backbone_color: u32,
+}
+
+#[derive(Debug, Clone)]
+pub struct HBond {
+    pub forward: HalfHBond,
+    pub backward: HalfHBond,
+}

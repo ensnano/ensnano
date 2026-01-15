@@ -12,14 +12,14 @@ use ensnano_design::{
     domains::Domain,
     external_3d_objects::External3DObjects,
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
-    helices::Helix,
+    helices::{HBond, Helix},
     nucl::Nucl,
     parameters::HelixParameters,
 };
 use ensnano_scene::{
     data::{
         StrandNucleotidesPositions,
-        design3d::{HBond, Scalebar, SceneDesignReaderExt},
+        design3d::{Scalebar, SceneDesignReaderExt},
     },
     view::grid::GridInstance,
 };

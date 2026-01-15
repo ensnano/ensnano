@@ -14,14 +14,13 @@ use ensnano_design::{
     design_element::DesignElementKey,
     domains::Domain,
     grid::{Grid, GridId},
-    helices::{Helix, NuclCollection},
+    helices::{HBond, HalfHBond, Helix, NuclCollection},
     id_generator::IdGenerator,
     nucl::Nucl,
     selection::Selection,
     strands::{Extremity, Strand},
 };
 use ensnano_exports::{ExportResult, ExportType, oxdna::BACKBONE_TO_CM};
-use ensnano_scene::data::design3d::{HBond, HalfHBond};
 use ensnano_utils::{
     Referential, ScaffoldInfo,
     app_state_parameters::suggestion_parameters::SuggestionParameters,
