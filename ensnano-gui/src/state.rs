@@ -165,3 +165,17 @@ impl<R: GuiRequests, S: GuiAppState> GuiState<R, S> {
         }
     }
 }
+
+/// Some main application state, mostly related with top bar buttons.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct TopBarState {
+    /// Whether the Undo operation is possible.
+    pub can_undo: bool,
+    /// Whether the Redo operation is possible.
+    pub can_redo: bool,
+    pub need_save: bool,
+    pub can_reload: bool,
+    pub can_split_2d: bool,
+    pub can_toggle_2d: bool,
+    pub is_split_2d: bool,
+}

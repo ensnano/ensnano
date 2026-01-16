@@ -18,7 +18,7 @@ pub mod top_bar;
 mod widgets;
 
 use crate::requests::GuiRequests;
-use crate::state::GuiState;
+use crate::state::{GuiState, TopBarState};
 use crate::{
     fonts::{INTER_REGULAR_FONT, load_fonts},
     left_panel::{
@@ -53,8 +53,8 @@ use ensnano_utils::{
     operation::CurrentOpState,
     ui_size::UiSize,
 };
+use ensnano_utils::{convert_size_f32, convert_size_u32};
 use iced::{
-    Size,
     advanced::{mouse, renderer},
     event::Event,
     mouse::Cursor,
@@ -68,7 +68,7 @@ use std::{
 };
 use ultraviolet::{Rotor3, Vec2, Vec3};
 use wgpu::{Device, Queue};
-use winit::{dpi::PhysicalSize, event::Modifiers, window::Window};
+use winit::{event::Modifiers, window::Window};
 
 /// A Gui component.
 struct GuiComponent<R: GuiRequests, S: GuiAppState> {
@@ -101,7 +101,7 @@ impl<R: GuiRequests, S: GuiAppState> GuiComponent<R, S> {
         let mut top_bar_debug = Debug::new();
         let top_bar_state = program::State::new(
             top_bar,
-            convert_size(top_bar_area.size),
+            convert_size_f32(top_bar_area.size),
             &mut renderer,
             &mut top_bar_debug,
         );
@@ -138,7 +138,7 @@ impl<R: GuiRequests, S: GuiAppState> GuiComponent<R, S> {
         let mut left_panel_debug = Debug::new();
         let left_panel_state = program::State::new(
             left_panel,
-            convert_size(left_panel_area.size),
+            convert_size_f32(left_panel_area.size),
             &mut renderer,
             &mut left_panel_debug,
         );
@@ -171,7 +171,7 @@ impl<R: GuiRequests, S: GuiAppState> GuiComponent<R, S> {
         let mut status_bar_debug = Debug::new();
         let status_bar_state = program::State::new(
             status_bar,
-            convert_size(status_bar_area.size),
+            convert_size_f32(status_bar_area.size),
             &mut renderer,
             &mut status_bar_debug,
         );
@@ -221,7 +221,7 @@ impl<R: GuiRequests, S: GuiAppState> GuiComponent<R, S> {
             // We update iced
             self.redraw = true;
             self.state.update(
-                convert_size(area.size),
+                convert_size_f32(area.size),
                 cursor,
                 &mut self.renderer,
                 theme,
@@ -549,18 +549,6 @@ impl<R: GuiRequests, State: GuiAppState> Gui<R, State> {
     }
 }
 
-// NOTE: It would be nice to implement `From<PhysicalSize>`,
-//       but Rust wouldn't allow it for types defined outside
-//       the crate.
-
-fn convert_size(size: PhysicalSize<u32>) -> Size<f32> {
-    Size::new(size.width as f32, size.height as f32)
-}
-
-fn convert_size_u32(size: PhysicalSize<u32>) -> Size<u32> {
-    Size::new(size.width, size.height)
-}
-
 /// Message sent to the gui component
 pub struct IcedMessages<S: GuiAppState> {
     left_panel: VecDeque<left_panel::Message<S>>,
@@ -710,19 +698,3 @@ pub trait GuiDesignReaderExt: 'static {
     fn get_scaffold_sequence(&self) -> Option<&str>;
     fn get_current_length_of_relaxed_shape(&self) -> Option<usize>;
 }
-
-/// Some main application state, mostly related with top bar buttons.
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
-pub struct TopBarState {
-    /// Whether the Undo operation is possible.
-    pub can_undo: bool,
-    /// Whether the Redo operation is possible.
-    pub can_redo: bool,
-    pub need_save: bool,
-    pub can_reload: bool,
-    pub can_split_2d: bool,
-    pub can_toggle_2d: bool,
-    pub is_split_2d: bool,
-}
-// NOTE: This was called “MainState”. I am not sure that “TopBarState” is the best name for this.
-//       Maybe this would be more like a “GuiState”.
