@@ -92,7 +92,7 @@ use crate::{
 use ensnano_design::operation::DesignOperation;
 use ensnano_flatscene::FlatScene;
 use ensnano_gui::{
-    Gui,
+    GuiManager,
     fonts::{INTER_REGULAR_FONT, load_fonts},
     left_panel::ColorOverlay,
     messages::IcedMessages,
@@ -363,7 +363,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialize the UI
     let mut main_state = MainState::new(messages.clone());
 
-    let mut gui = Gui::new(
+    let mut gui = GuiManager::new(
         Rc::clone(&device),
         Rc::clone(&queue),
         &window,

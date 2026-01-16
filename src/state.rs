@@ -22,7 +22,7 @@ use ensnano_design::{
 };
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_gui::{
-    Gui,
+    GuiManager,
     messages::IcedMessages,
     state::{GuiAppState as _, TopBarState},
 };
@@ -726,7 +726,7 @@ pub(crate) struct MainStateView<'a> {
     pub(crate) window_target: &'a EventLoopWindowTarget<()>,
     pub(crate) multiplexer: &'a mut Multiplexer,
     pub(crate) scheduler: &'a mut Scheduler,
-    pub(crate) gui: &'a mut Gui<Requests, AppState>,
+    pub(crate) gui: &'a mut GuiManager<Requests, AppState>,
     pub(crate) window: &'a Window,
     pub(crate) resized: bool,
 }

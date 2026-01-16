@@ -41,12 +41,12 @@ use iced::{
 use iced_runtime::{Debug, program};
 use iced_wgpu::Backend;
 use std::{
-    collections::{HashMap, VecDeque},
+    collections::HashMap,
     rc::Rc,
     sync::{Arc, Mutex},
 };
 use wgpu::{Device, Queue};
-use winit::{event::Modifiers, window::Window};
+use winit::window::Window;
 
 /// A Gui component.
 struct GuiComponent<R: GuiRequests, S: GuiAppState> {
@@ -249,7 +249,7 @@ impl<R: GuiRequests, S: GuiAppState> GuiComponent<R, S> {
 /// The manager of the graphical user interface.
 ///
 /// The manager contains a [`GuiComponent`] for each [`GuiComponentType`] (top_bar, left_panel, etc…)
-pub struct Gui<R: GuiRequests, S: GuiAppState> {
+pub struct GuiManager<R: GuiRequests, S: GuiAppState> {
     /// WGPU Settings
     wgpu_settings: iced_wgpu::Settings,
     /// WGPU device
@@ -263,7 +263,7 @@ pub struct Gui<R: GuiRequests, S: GuiAppState> {
     components: HashMap<GuiComponentType, GuiComponent<R, S>>,
 }
 
-impl<R: GuiRequests, State: GuiAppState> Gui<R, State> {
+impl<R: GuiRequests, State: GuiAppState> GuiManager<R, State> {
     pub fn new(
         device: Rc<Device>,
         queue: Rc<Queue>,
