@@ -30,11 +30,9 @@ use self::{
 use crate::{
     color_picker::ColorPickerMessage,
     fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
-    theme::GuiBackground,
-};
-use crate::{
     requests::{GuiRequests, RigidBodyParametersRequest},
     state::GuiAppState,
+    theme::GuiBackground,
 };
 use ensnano_design::{
     CameraId, bezier_plane::BezierPathId, design_element::DesignElementKey, grid::GridTypeDescr,

@@ -1,5 +1,3 @@
-use crate::requests::GuiRequests;
-use crate::state::GuiAppState;
 use crate::{
     helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
     left_panel::{
@@ -7,6 +5,8 @@ use crate::{
         discrete_value::{FactoryId, RequestFactory, ValueId},
         tabs::{GuiTab, gostop::GoStop},
     },
+    requests::GuiRequests,
+    state::GuiAppState,
     theme,
 };
 use ensnano_physics::parameters::{

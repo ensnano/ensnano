@@ -1,13 +1,11 @@
-use std::collections::VecDeque;
-
-use ensnano_utils::ui_size::UiSize;
-use winit::event::Modifiers;
-
 use crate::{
     left_panel,
     state::{GuiAppState, TopBarState},
     status_bar, top_bar,
 };
+use ensnano_utils::ui_size::UiSize;
+use std::collections::VecDeque;
+use winit::event::Modifiers;
 
 /// Message sent to the gui component
 pub struct GuiMessages<S: GuiAppState> {

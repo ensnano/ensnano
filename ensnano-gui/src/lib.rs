@@ -19,20 +19,19 @@ pub mod theme;
 pub mod top_bar;
 mod widgets;
 
-use crate::messages::GuiMessages;
-use crate::requests::GuiRequests;
-use crate::state::{GuiAppState, GuiState, TopBarState};
 use crate::{
     fonts::{INTER_REGULAR_FONT, load_fonts},
     left_panel::LeftPanel,
+    messages::GuiMessages,
+    requests::GuiRequests,
+    state::{GuiAppState, GuiState, TopBarState},
     status_bar::StatusBar,
     top_bar::TopBar,
 };
 use ensnano_utils::{
-    TEXTURE_FORMAT, app_state_parameters::AppStateParameters, graphics::GuiComponentType,
-    multiplexer_ext::MultiplexerExt, ui_size::UiSize,
+    TEXTURE_FORMAT, app_state_parameters::AppStateParameters, convert_size_f32, convert_size_u32,
+    graphics::GuiComponentType, multiplexer_ext::MultiplexerExt, ui_size::UiSize,
 };
-use ensnano_utils::{convert_size_f32, convert_size_u32};
 use iced::{
     advanced::{mouse, renderer},
     event::Event,
