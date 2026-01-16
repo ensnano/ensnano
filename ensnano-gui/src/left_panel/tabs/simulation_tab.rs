@@ -1,5 +1,6 @@
+use crate::requests::GuiRequests;
 use crate::{
-    GuiAppState, GuiRequests,
+    GuiAppState,
     helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
     left_panel::{
         BrownianParametersFactory, Message, RigidBodyFactory, RigidBodyParametersRequest,

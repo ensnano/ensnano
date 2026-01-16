@@ -194,8 +194,6 @@ impl button::StyleSheet for OrganizerThemeLevel {
 /// Implements the [Container](container::Container) style sheet for [`OrganizerThemeLevel`]
 impl container::StyleSheet for OrganizerThemeLevel {
     type Style = iced::Theme;
-    //type Style = iced_style::theme::Container;
-    // I think the good way to do it is to implement a custom Style.
 
     fn appearance(&self, _style: &Self::Style) -> container::Appearance {
         container::Appearance {

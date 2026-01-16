@@ -10,370 +10,65 @@ mod consts;
 pub mod fonts;
 mod helpers;
 pub mod left_panel;
+pub mod requests;
+pub mod state;
 pub mod status_bar;
 pub mod theme;
 pub mod top_bar;
 mod widgets;
 
+use crate::requests::GuiRequests;
+use crate::state::GuiState;
 use crate::{
     fonts::{INTER_REGULAR_FONT, load_fonts},
     left_panel::{
-        LeftPanel, RigidBodyParametersRequest,
+        LeftPanel,
         tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
     },
+    status_bar::StatusBar,
+    top_bar::TopBar,
 };
 use ensnano_design::{
     CameraId,
     bezier_plane::{BezierPathId, BezierVertexId},
-    design_element::{DesignElement, DesignElementKey, DnaAttribute},
-    grid::{GridId, GridTypeDescr},
+    design_element::{DesignElement, DesignElementKey},
+    grid::GridId,
     interaction_modes::{ActionMode, SelectionMode},
     nucl::Nucl,
-    operation::{HyperboloidRequest, InsertionPoint},
+    operation::InsertionPoint,
     organizer_tree::{GroupId, OrganizerTree},
     parameters::HelixParameters,
     selection::Selection,
 };
-use ensnano_exports::ExportType;
-use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
-    PastingStatus, RollRequest, ScaffoldInfo, SimulationState, StrandBuildingStatus,
-    TEXTURE_FORMAT, WidgetBasis,
+    PastingStatus, ScaffoldInfo, SimulationState, StrandBuildingStatus, TEXTURE_FORMAT,
+    WidgetBasis,
     app_state_parameters::{
         AppStateParameters, check_xovers_parameter::CheckXoversParameter,
         suggestion_parameters::SuggestionParameters,
     },
     clipboard::ClipboardContent,
-    graphics::{
-        Background3D, DrawArea, FogParameters, GuiComponentType, HBondDisplay, RenderingMode,
-        SplitMode,
-    },
-    keyboard_priority::PriorityRequest,
+    graphics::{GuiComponentType, HBondDisplay},
     multiplexer_ext::MultiplexerExt,
-    operation::{CurrentOpState, Operation},
-    overlay::OverlayType,
-    surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
+    operation::CurrentOpState,
     ui_size::UiSize,
 };
 use iced::{
     Size,
-    advanced::{clipboard, mouse, renderer},
+    advanced::{mouse, renderer},
     event::Event,
-    keyboard,
     mouse::Cursor,
 };
 use iced_runtime::{Debug, program};
 use iced_wgpu::Backend;
-use status_bar::StatusBar;
 use std::{
-    collections::{BTreeSet, HashMap, VecDeque},
+    collections::{HashMap, VecDeque},
     rc::Rc,
     sync::{Arc, Mutex},
 };
-use top_bar::TopBar;
 use ultraviolet::{Rotor3, Vec2, Vec3};
 use wgpu::{Device, Queue};
 use winit::{dpi::PhysicalSize, event::Modifiers, window::Window};
-
-pub trait GuiRequests: 'static + Send {
-    fn close_overlay(&mut self, overlay_type: OverlayType);
-    /// Change the color of the selected strands
-    fn change_strand_color(&mut self, color: u32);
-    /// Change the background of the 3D scene
-    fn change_3d_background(&mut self, bg: Background3D);
-    /// Change the rendering mode
-    fn change_3d_rendering_mode(&mut self, rendering_mode: RenderingMode);
-    /// Set the selected strand as the scaffold
-    fn set_scaffold_from_selection(&mut self);
-    /// Cancel the current hyperboloid construction
-    fn cancel_hyperboloid(&mut self);
-    /// Change the scrolling direction
-    fn invert_scroll(&mut self, invert: bool);
-    /// Resize all the 2D helices, or only the selected ones
-    fn resize_2d_helices(&mut self, all: bool);
-    /// Make all elements of the design visible
-    fn make_all_elements_visible(&mut self);
-    /// Toggle the visibility of the selected elements
-    fn toggle_visibility(&mut self, visible: bool);
-    fn change_action_mode(&mut self, action_mode: ActionMode);
-    fn change_selection_mode(&mut self, selection_mode: SelectionMode);
-    /// Switch widget basis between world and object
-    fn toggle_widget_basis(&mut self);
-    /// Show/hide the DNA sequences
-    fn set_dna_sequences_visibility(&mut self, visible: bool);
-    /// Download the staples as an xlsx file
-    fn download_staples(&mut self);
-    fn set_scaffold_sequence(&mut self, shift: usize);
-    fn set_scaffold_shift(&mut self, shift: usize);
-    /// Change the size of the UI components
-    fn set_ui_size(&mut self, size: UiSize);
-    /// Finalize the currently edited hyperboloid grid
-    fn finalize_hyperboloid(&mut self);
-    fn stop_roll_simulation(&mut self);
-    fn start_roll_simulation(&mut self, roll_request: RollRequest);
-    /// Request a Rapier simulation of the current design
-    fn request_rapier_simulation(&mut self, parameters: RapierParameters);
-    /// Make a grid from the set of selected helices
-    fn make_grid_from_selection(&mut self);
-    /// Start of Update the rigid helices simulation
-    fn update_rigid_helices_simulation(&mut self, parameters: RigidBodyParametersRequest);
-    /// Start of Update the rigid grids simulation
-    fn update_rigid_grids_simulation(&mut self, parameters: RigidBodyParametersRequest);
-    fn start_twist_simulation(&mut self, grid_id: GridId);
-    /// Update the parameters of the current simulation (rigid grids or helices)
-    fn update_rigid_body_simulation_parameters(&mut self, parameters: RigidBodyParametersRequest);
-    fn create_new_hyperboloid(&mut self, parameters: HyperboloidRequest);
-    /// Update the parameters of the currently edited hyperboloid grid
-    fn update_current_hyperboloid(&mut self, parameters: HyperboloidRequest);
-    fn update_roll_of_selected_helices(&mut self, roll: f32);
-    fn update_scroll_sensitivity(&mut self, sensitivity: f32);
-    fn set_fog_parameters(&mut self, parameters: FogParameters);
-    /// Set the direction and up vector of the 3D camera
-    fn set_camera_dir_up_vec(&mut self, direction: Vec3, up: Vec3);
-    fn perform_camera_rotation(&mut self, x: f32, y: f32, z: f32);
-    /// Create a new grid in front of the 3D camera
-    fn create_grid(&mut self, grid_type_descriptor: GridTypeDescr);
-    fn set_candidates_keys(&mut self, candidates: Vec<DesignElementKey>);
-    fn set_selected_keys(
-        &mut self,
-        selection: Vec<DesignElementKey>,
-        group_id: Option<GroupId>,
-        new_group: bool,
-    );
-    fn update_organizer_tree(&mut self, tree: OrganizerTree);
-    /// Update one attribute of several Dna Elements
-    fn update_attribute_of_elements(
-        &mut self,
-        attribute: DnaAttribute,
-        keys: BTreeSet<DesignElementKey>,
-    );
-    fn change_split_mode(&mut self, split_mode: SplitMode);
-    fn export(&mut self, export_type: ExportType);
-    /// Split/Unsplit the 2D view
-    fn toggle_2d_view_split(&mut self);
-    fn undo(&mut self);
-    fn redo(&mut self);
-    /// Display the help message in the contextual panel, regardless of the selection
-    fn force_help(&mut self);
-    /// Show tutorial in the contextual panel
-    fn show_tutorial(&mut self);
-    fn new_design(&mut self);
-    fn save_as(&mut self);
-    fn save(&mut self);
-    fn open_file(&mut self);
-    /// Adjust the 2D and 3D cameras so that the design fit in screen
-    fn fit_design_in_scenes(&mut self);
-    /// Update the parameters of the current operation
-    fn update_current_operation(&mut self, operation: Arc<dyn Operation>);
-    /// Set the scaffold to be the some strand with id `s_id`, or none
-    fn set_scaffold_id(&mut self, s_id: Option<usize>);
-    /// make the spheres of the currently selected grid large/small
-    fn toggle_helices_persistence_of_grid(&mut self, persistent: bool);
-    /// make the spheres of the currently selected grid large/small
-    fn set_small_sphere(&mut self, small: bool);
-    fn finish_changing_color(&mut self);
-    fn stop_simulations(&mut self);
-    fn reset_simulations(&mut self);
-    fn reload_file(&mut self);
-    fn add_double_strand_on_new_helix(&mut self, parameters: Option<(isize, usize)>);
-    fn set_strand_name(&mut self, s_id: usize, name: String);
-    fn create_new_camera(&mut self);
-    fn delete_camera(&mut self, camera_id: CameraId);
-    fn select_camera(&mut self, camera_id: CameraId);
-    fn set_camera_name(&mut self, camera_id: CameraId, name: String);
-    fn set_suggestion_parameters(&mut self, param: SuggestionParameters);
-    fn set_grid_position(&mut self, grid_id: GridId, position: Vec3);
-    fn set_grid_orientation(&mut self, grid_id: GridId, orientation: Rotor3);
-    fn toggle_2d(&mut self);
-    fn set_nb_turn(&mut self, grid_id: GridId, nb_turn: f32);
-    fn set_check_xover_parameters(&mut self, parameters: CheckXoversParameter);
-    fn follow_stereographic_camera(&mut self, follow: bool);
-    fn set_show_stereographic_camera(&mut self, show: bool);
-    fn set_show_h_bonds(&mut self, show: HBondDisplay);
-    fn flip_split_views(&mut self);
-    fn set_rainbow_scaffold(&mut self, rainbow: bool);
-    fn set_all_helices_on_axis(&mut self, off_axis: bool);
-    fn align_horizon(&mut self);
-    fn download_origamis(&mut self);
-    fn set_dna_parameters(&mut self, param: HelixParameters);
-    fn set_expand_insertions(&mut self, expand: bool);
-    fn set_insertion_length(&mut self, insertion_point: InsertionPoint, length: usize);
-    fn create_bezier_plane(&mut self);
-    fn turn_path_into_grid(&mut self, path_id: BezierPathId, grid_type: GridTypeDescr);
-    fn set_show_bezier_paths(&mut self, show: bool);
-    fn make_bezier_path_cyclic(&mut self, path_id: BezierPathId, cyclic: bool);
-    fn set_exporting(&mut self, exporting: bool);
-    fn import_3d_object(&mut self);
-    fn set_position_of_bezier_vertex(&mut self, vertex_id: BezierVertexId, position: Vec2);
-    fn optimize_scaffold_shift(&mut self);
-    fn start_revolution_relaxation(&mut self, desc: RevolutionSurfaceSystemDescriptor);
-    fn finish_revolution_relaxation(&mut self);
-    fn load_svg(&mut self);
-    fn set_bezier_revolution_radius(&mut self, radius: f64);
-    fn set_bezier_revolution_id(&mut self, id: Option<usize>);
-    fn set_unrooted_surface(&mut self, surface: Option<UnrootedRevolutionSurfaceDescriptor>);
-    /// Make a screenshot of the 2D flatscene.
-    fn request_screenshot_2d(&mut self);
-    /// Make a screenshot of the 3D scene.
-    fn request_screenshot_3d(&mut self);
-    fn request_save_nucleotides_positions(&mut self);
-    fn notify_revolution_tab(&mut self);
-    fn request_stl_export(&mut self);
-    /// Set keyboard priority, i.e. whether activate keyboard shortcuts.
-    fn set_keyboard_priority(&mut self, priority: PriorityRequest);
-}
-
-#[expect(clippy::large_enum_variant)]
-enum GuiState<R: GuiRequests, S: GuiAppState> {
-    TopBar(program::State<TopBar<R, S>>),
-    LeftPanel(program::State<LeftPanel<R, S>>),
-    StatusBar(program::State<StatusBar<R, S>>),
-}
-
-impl<R: GuiRequests, S: GuiAppState> GuiState<R, S> {
-    fn queue_event(&mut self, event: Event) {
-        if let Event::Keyboard(keyboard::Event::KeyPressed {
-            key: keyboard::Key::Named(keyboard::key::Named::Tab),
-            ..
-        }) = event
-        {
-            match self {
-                Self::StatusBar(_) => {
-                    self.queue_status_bar_message(status_bar::Message::TabPressed);
-                }
-                Self::TopBar(_) | Self::LeftPanel(_) => (),
-            }
-        } else {
-            match self {
-                Self::TopBar(state) => state.queue_event(event),
-                Self::LeftPanel(state) => state.queue_event(event),
-                Self::StatusBar(state) => state.queue_event(event),
-            }
-        }
-    }
-
-    fn queue_top_bar_message(&mut self, message: top_bar::Message<S>) {
-        log::trace!("Queue top bar {message:?}");
-        if let Self::TopBar(state) = self {
-            state.queue_message(message);
-        } else {
-            panic!("wrong message type")
-        }
-    }
-
-    fn queue_left_panel_message(&mut self, message: left_panel::Message<S>) {
-        log::trace!("Queue left panel {message:?}");
-        if let Self::LeftPanel(state) = self {
-            state.queue_message(message);
-        } else {
-            panic!("wrong message type")
-        }
-    }
-
-    fn queue_status_bar_message(&mut self, message: status_bar::Message<S>) {
-        log::trace!("Queue status_bar {message:?}");
-        if let Self::StatusBar(state) = self {
-            state.queue_message(message);
-        } else {
-            panic!("wrong message type")
-        }
-    }
-
-    fn resize(&mut self, area: DrawArea, window: &Window) {
-        match self {
-            Self::TopBar(state) => state.queue_message(top_bar::Message::Resize(
-                area.size.to_logical(window.scale_factor()),
-            )),
-            Self::LeftPanel(state) => state.queue_message(left_panel::Message::Resized(
-                area.size.to_logical(window.scale_factor()),
-                area.position.to_logical(window.scale_factor()),
-            )),
-            Self::StatusBar(state) => state.queue_message(status_bar::Message::Resize(
-                area.size.to_logical(window.scale_factor()),
-            )),
-        }
-    }
-
-    fn is_queue_empty(&self) -> bool {
-        match self {
-            Self::TopBar(state) => state.is_queue_empty(),
-            Self::LeftPanel(state) => state.is_queue_empty(),
-            Self::StatusBar(state) => state.is_queue_empty(),
-        }
-    }
-
-    fn update(
-        &mut self,
-        size: Size,
-        cursor: Cursor,
-        renderer: &mut iced::Renderer,
-        theme: &iced::Theme,
-        style: &renderer::Style,
-        debug: &mut Debug,
-    ) {
-        let mut clipboard = clipboard::Null;
-        match self {
-            Self::TopBar(state) => {
-                let _ = state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
-            }
-            Self::LeftPanel(state) => {
-                let _ = state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
-            }
-            Self::StatusBar(state) => {
-                let _ = state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
-            }
-        }
-    }
-
-    fn render(
-        &mut self,
-        renderer: &mut iced::Renderer,
-        device: &Device,
-        queue: &Queue,
-        encoder: &mut wgpu::CommandEncoder,
-        clear_color: Option<iced::Color>,
-        format: wgpu::TextureFormat,
-        frame: &wgpu::TextureView,
-        viewport: &iced_graphics::Viewport,
-        debug: &Debug,
-        mouse_interaction: &mut mouse::Interaction,
-    ) {
-        match renderer {
-            iced::Renderer::Wgpu(wgpu_renderer) => {
-                wgpu_renderer.with_primitives(|backend, primitives| {
-                    backend.present(
-                        device,
-                        queue,
-                        encoder,
-                        clear_color,
-                        format,
-                        frame,
-                        primitives,
-                        viewport,
-                        &debug.overlay(),
-                    );
-                });
-            }
-            iced::Renderer::TinySkia(_) => panic!("Unhandled renderer"),
-        }
-
-        match self {
-            Self::TopBar(state) => *mouse_interaction = state.mouse_interaction(),
-            Self::LeftPanel(state) => {
-                let icon = state.mouse_interaction();
-                if icon > *mouse_interaction {
-                    *mouse_interaction = icon;
-                }
-            }
-            Self::StatusBar(state) => {
-                let icon = state.mouse_interaction();
-                if icon > *mouse_interaction {
-                    *mouse_interaction = icon;
-                }
-            }
-        }
-    }
-}
 
 /// A Gui component.
 struct GuiComponent<R: GuiRequests, S: GuiAppState> {

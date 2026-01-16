@@ -12,7 +12,7 @@ use ensnano_design::{
     parameters::HelixParameters,
 };
 use ensnano_exports::ExportType;
-use ensnano_gui::{GuiRequests, left_panel::RigidBodyParametersRequest};
+use ensnano_gui::requests::{GuiRequests, RigidBodyParametersRequest};
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
     RigidBodyConstants, RollRequest,
