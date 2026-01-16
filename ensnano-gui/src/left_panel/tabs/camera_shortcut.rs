@@ -1,5 +1,4 @@
 use crate::{
-    CameraId,
     fonts::material_icons::{MaterialIcon, MaterialIconStyle},
     helpers::{
         button_text_wrapper, extra_jump, fixed_text_button, material_icon, material_icon_button,
@@ -8,6 +7,7 @@ use crate::{
     left_panel::Message,
     state::GuiAppState,
 };
+use ensnano_design::CameraId;
 use ensnano_utils::{keyboard_priority::keyboard_priority, ui_size::UiSize};
 use iced::{
     Alignment, Command, Length,

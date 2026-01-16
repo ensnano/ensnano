@@ -10,7 +10,7 @@ use ensnano_design::{
     selection::Selection,
     strands::Strand,
 };
-use ensnano_gui::GuiDesignReaderExt;
+use ensnano_gui::design_reader::GuiDesignReaderExt;
 use std::sync::Arc;
 use ultraviolet::{Rotor3, Vec2, Vec3};
 

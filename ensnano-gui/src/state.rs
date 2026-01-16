@@ -26,7 +26,7 @@ use wgpu::{Device, Queue};
 use winit::window::Window;
 
 use crate::{
-    GuiDesignReaderExt,
+    design_reader::GuiDesignReaderExt,
     left_panel::{
         LeftPanel,
         tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
