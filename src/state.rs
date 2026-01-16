@@ -23,7 +23,7 @@ use ensnano_design::{
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_gui::{
     GuiManager,
-    messages::IcedMessages,
+    messages::GuiMessages,
     state::{GuiAppState as _, TopBarState},
 };
 use ensnano_physics::parameters::RapierParameters;
@@ -80,7 +80,7 @@ pub(crate) struct MainState {
     pub undo_stack: Vec<AppStateTransition>,
     pub redo_stack: Vec<AppStateTransition>,
     pub channel_reader: ChannelReader,
-    pub messages: Arc<Mutex<IcedMessages<AppState>>>,
+    pub messages: Arc<Mutex<GuiMessages<AppState>>>,
     pub applications: HashMap<GuiComponentType, Arc<Mutex<dyn Application<AppState = AppState>>>>,
     pub focused_component: Option<GuiComponentType>,
     /// Disable the interception of keyboard events, to let the user input text.
@@ -104,7 +104,7 @@ pub(crate) struct MainState {
 }
 
 impl MainState {
-    pub(crate) fn new(messages: Arc<Mutex<IcedMessages<AppState>>>) -> Self {
+    pub(crate) fn new(messages: Arc<Mutex<GuiMessages<AppState>>>) -> Self {
         let app_state = AppState::with_preferred_parameters().unwrap_or_else(|e| {
             log::error!("Could not load preferences {e}");
             AppState::default()

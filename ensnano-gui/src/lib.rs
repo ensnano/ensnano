@@ -19,7 +19,7 @@ pub mod theme;
 pub mod top_bar;
 mod widgets;
 
-use crate::messages::IcedMessages;
+use crate::messages::GuiMessages;
 use crate::requests::GuiRequests;
 use crate::state::{GuiAppState, GuiState, TopBarState};
 use crate::{
@@ -409,7 +409,7 @@ impl<R: GuiRequests, State: GuiAppState> GuiManager<R, State> {
     }
 
     /// Forward a message to the appropriate gui component
-    pub fn forward_messages(&mut self, messages: &mut IcedMessages<State>) {
+    pub fn forward_messages(&mut self, messages: &mut GuiMessages<State>) {
         for m in messages.top_bar.drain(..) {
             self.components
                 .get_mut(&GuiComponentType::TopBar)

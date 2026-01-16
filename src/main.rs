@@ -95,7 +95,7 @@ use ensnano_gui::{
     GuiManager,
     fonts::{INTER_REGULAR_FONT, load_fonts},
     left_panel::ColorOverlay,
-    messages::IcedMessages,
+    messages::GuiMessages,
     theme,
 };
 use ensnano_scene::{Scene, SceneKind};
@@ -301,7 +301,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Initialize the Scheduler
     let requests = Arc::new(Mutex::new(Requests::default()));
-    let messages = Arc::new(Mutex::new(IcedMessages::new()));
+    let messages = Arc::new(Mutex::new(GuiMessages::new()));
     let mut scheduler = Scheduler::new();
 
     // Initialize the layout
@@ -925,7 +925,7 @@ impl OverlayManager {
         }
     }
 
-    fn forward_messages(&self, _messages: &mut IcedMessages<AppState>) {}
+    fn forward_messages(&self, _messages: &mut GuiMessages<AppState>) {}
 
     fn fetch_change(
         &mut self,

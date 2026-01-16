@@ -15,7 +15,7 @@ use crate::{
 };
 
 use ensnano_design::{nucl::Nucl, operation::DesignOperation, selection::Selection};
-use ensnano_gui::messages::IcedMessages;
+use ensnano_gui::messages::GuiMessages;
 use ensnano_scene::data::design3d::SceneDesignReaderExt as _;
 use ensnano_utils::{
     PastingStatus,
@@ -75,7 +75,7 @@ impl Application for DummyScene {
 }
 
 fn new_state() -> MainState {
-    let messages = Arc::new(Mutex::new(IcedMessages::new()));
+    let messages = Arc::new(Mutex::new(GuiMessages::new()));
     let mut ret = MainState::new(messages);
     ret.applications
         .insert(GuiComponentType::Scene, Arc::new(Mutex::new(DummyScene {})));

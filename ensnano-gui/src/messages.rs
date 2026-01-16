@@ -10,7 +10,7 @@ use crate::{
 };
 
 /// Message sent to the gui component
-pub struct IcedMessages<S: GuiAppState> {
+pub struct GuiMessages<S: GuiAppState> {
     pub left_panel: VecDeque<left_panel::Message<S>>,
     pub top_bar: VecDeque<top_bar::Message<S>>,
     pub status_bar: VecDeque<status_bar::Message<S>>,
@@ -19,7 +19,7 @@ pub struct IcedMessages<S: GuiAppState> {
     pub redraw: bool,
 }
 
-impl<S: GuiAppState> IcedMessages<S> {
+impl<S: GuiAppState> GuiMessages<S> {
     pub fn new() -> Self {
         Self {
             left_panel: VecDeque::new(),
