@@ -1,10 +1,28 @@
-use std::{
-    collections::VecDeque,
-    path::{Path, PathBuf},
-    sync::{Arc, Mutex},
-    time::{Duration, Instant},
+use crate::{
+    app_state::{
+        AppState,
+        design_interactor::{
+            DesignInteractor,
+            controller::{
+                ErrOperation, InteractorNotification,
+                clipboard::{CopyOperation, PastePosition},
+                simulations::SimulationOperation,
+            },
+        },
+        transitions::{AppStateTransition, OkOperation, TransitionLabel},
+    },
+    controller::{
+        LoadDesignError, SaveDesignError,
+        channel_reader::ChannelReader,
+        normal_state::Action,
+        set_scaffold_sequence::{
+            SetScaffoldSequenceError, SetScaffoldSequenceOk, TargetScaffoldLength,
+        },
+    },
+    multiplexer::Multiplexer,
+    requests::Requests,
+    scheduler::Scheduler,
 };
-
 use ahash::HashMap;
 use ensnano_design::{
     Camera, CameraId, MainDesignReaderExt, SavingInformation,
@@ -41,36 +59,16 @@ use ensnano_utils::{
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
     ui_size::UiSize,
 };
+use std::{
+    collections::VecDeque,
+    path::{Path, PathBuf},
+    sync::{Arc, Mutex},
+    time::{Duration, Instant},
+};
 use ultraviolet::{Rotor3, Vec3};
 use winit::{
     event_loop::EventLoopWindowTarget,
     window::{CursorIcon, Window},
-};
-
-use crate::{
-    app_state::{
-        AppState,
-        design_interactor::{
-            DesignInteractor,
-            controller::{
-                ErrOperation, InteractorNotification,
-                clipboard::{CopyOperation, PastePosition},
-                simulations::SimulationOperation,
-            },
-        },
-        transitions::{AppStateTransition, OkOperation, TransitionLabel},
-    },
-    controller::{
-        LoadDesignError, SaveDesignError,
-        channel_reader::ChannelReader,
-        normal_state::Action,
-        set_scaffold_sequence::{
-            SetScaffoldSequenceError, SetScaffoldSequenceOk, TargetScaffoldLength,
-        },
-    },
-    multiplexer::Multiplexer,
-    requests::Requests,
-    scheduler::Scheduler,
 };
 
 /// The state of the main event loop.

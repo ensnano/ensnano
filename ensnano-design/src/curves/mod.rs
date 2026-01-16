@@ -53,7 +53,6 @@ use std::{
     f64::consts::{PI, TAU},
     sync::Arc,
 };
-
 use time_nucl_map::AbscissaConverter;
 use torus::TwistedTorus;
 use ultraviolet::{DMat3, DVec3, Isometry2, Rotor3, Vec2, Vec3};

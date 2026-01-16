@@ -1,9 +1,8 @@
+use crate::{parameters::RapierParameters, simulation::RapierPhysicsSystem};
 use rapier3d::{
     prelude::*,
     rayon::iter::{IntoParallelRefIterator as _, ParallelIterator as _},
 };
-
-use crate::{parameters::RapierParameters, simulation::RapierPhysicsSystem};
 
 impl RapierPhysicsSystem {
     pub fn squish_step(&mut self, parameters: &RapierParameters, delta: f32) {
@@ -15,7 +14,7 @@ impl RapierPhysicsSystem {
 fn squish_step(system: &mut RapierPhysicsSystem, parameters: &RapierParameters, delta: f32) {
     let handles = system.nucleotide_body_map.values().collect::<Vec<_>>();
 
-    if parameters.squish_strenght <= f32::EPSILON {
+    if parameters.squish_strength <= f32::EPSILON {
         return;
     }
 
@@ -40,7 +39,7 @@ fn squish_step(system: &mut RapierPhysicsSystem, parameters: &RapierParameters, 
                 parameters.squish_soft_cutoff,
             );
             let strength =
-                delta * parameters.squish_strenght * strength / parameters.squish_soft_cutoff;
+                delta * parameters.squish_strength * strength / parameters.squish_soft_cutoff;
 
             let damping = -body.linvel()[1];
             let damping = damping * parameters.squish_damping * delta;

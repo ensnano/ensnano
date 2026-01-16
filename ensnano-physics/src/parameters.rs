@@ -22,7 +22,7 @@ pub struct RapierParameters {
     pub brownian_motion_strength: f32,
     pub entropic_spring_strength: f32,
     pub entropic_spring_damping: f32,
-    pub squish_strenght: f32,
+    pub squish_strength: f32,
     pub squish_damping: f32,
     pub squish_soft_cutoff: f32,
 }
@@ -49,7 +49,7 @@ impl RapierParameters {
         brownian_motion_strength: 0.0,
         entropic_spring_strength: 3.0,
         entropic_spring_damping: 40.0,
-        squish_strenght: 0.0,
+        squish_strength: 0.0,
         squish_damping: 1.0,
         squish_soft_cutoff: 3.0,
     };
@@ -71,7 +71,7 @@ impl RapierParameters {
             self.brownian_motion_strength,
             self.entropic_spring_strength,
             self.entropic_spring_damping,
-            self.squish_strenght,
+            self.squish_strength,
             self.squish_damping,
             self.squish_soft_cutoff,
         ]
@@ -96,7 +96,7 @@ impl RapierParameters {
         self.brownian_motion_strength = array[12];
         self.entropic_spring_strength = array[13];
         self.entropic_spring_damping = array[14];
-        self.squish_strenght = array[15];
+        self.squish_strength = array[15];
         self.squish_damping = array[16];
         self.squish_soft_cutoff = array[17];
     }
