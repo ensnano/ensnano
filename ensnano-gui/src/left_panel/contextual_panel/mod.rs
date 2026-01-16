@@ -5,7 +5,7 @@ use crate::requests::GuiRequests;
 use crate::state::GuiAppState;
 use crate::{
     helpers::{extra_jump, right_checkbox, section, subsection, text_button},
-    left_panel::Message,
+    left_panel::LeftPanelMessage,
     theme,
 };
 use ensnano_design::{
@@ -223,7 +223,7 @@ where
         self.width = width;
     }
 
-    pub(super) fn update(&mut self, app_state: &State) -> Command<Message<State>> {
+    pub(super) fn update(&mut self, app_state: &State) -> Command<LeftPanelMessage<State>> {
         let selection = app_state
             .get_selection()
             .first()
@@ -265,7 +265,7 @@ where
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> iced::Element<'_, Message<State>> {
+    ) -> iced::Element<'_, LeftPanelMessage<State>> {
         let selection = app_state
             .get_selection()
             .first()
@@ -301,7 +301,7 @@ where
                 row![
                     text(link),
                     Space::with_width(Length::Fill),
-                    text_button("Go", ui_size).on_press(Message::OpenLink(link)),
+                    text_button("Go", ui_size).on_press(LeftPanelMessage::OpenLink(link)),
                 ],
             ]
         } else if self.force_help && xover_len.is_none() {
@@ -322,7 +322,7 @@ where
             column = column.push(
                 row![
                     Space::with_width(Length::FillPortion(1)),
-                    column![text_button("Help", ui_size).on_press(Message::ForceHelp),]
+                    column![text_button("Help", ui_size).on_press(LeftPanelMessage::ForceHelp),]
                         .width(Length::FillPortion(1)),
                     Space::with_width(Length::FillPortion(1)),
                 ]
@@ -390,10 +390,10 @@ where
                 "Loopout",
                 keyboard_priority(
                     "Loopout",
-                    Message::SetKeyboardPriority,
+                    LeftPanelMessage::SetKeyboardPriority,
                     text_input("", text_input_content)
-                        .on_input(Message::InsertionLengthInput)
-                        .on_submit(Message::InsertionLengthSubmitted)
+                        .on_input(LeftPanelMessage::InsertionLengthInput)
+                        .on_submit(LeftPanelMessage::InsertionLengthSubmitted)
                 )
             ]);
         }
@@ -514,23 +514,23 @@ fn add_grid_content<'a, State: GuiAppState>(
     info_values: Vec<String>,
     ui_size: UiSize,
     twisting: TwistStatus,
-) -> iced::Element<'a, Message<State>> {
+) -> iced::Element<'a, LeftPanelMessage<State>> {
     column![
         // twist_button
         match twisting {
-            TwistStatus::Twisting => text_button("Stop", ui_size).on_press(Message::StopSimulation),
-            TwistStatus::CanTwist => text_button("Twist", ui_size).on_press(Message::StartTwist),
+            TwistStatus::Twisting => text_button("Stop", ui_size).on_press(LeftPanelMessage::StopSimulation),
+            TwistStatus::CanTwist => text_button("Twist", ui_size).on_press(LeftPanelMessage::StartTwist),
             TwistStatus::CannotTwist => text_button("Twist", ui_size),
         },
         checkbox(
             "Persistent phantoms",
             info_values[0].parse::<bool>().unwrap()
         )
-        .on_toggle(|b| Message::SelectionValueChanged(bool_to_string(b)),)
+        .on_toggle(|b| LeftPanelMessage::SelectionValueChanged(bool_to_string(b)),)
         .size(ui_size.checkbox())
         .text_size(ui_size.main_text()),
         checkbox("No sphere", info_values[1].parse::<bool>().unwrap())
-            .on_toggle(|b| { Message::SetSmallSpheres(b) })
+            .on_toggle(|b| { LeftPanelMessage::SetSmallSpheres(b) })
             .size(ui_size.checkbox())
             .text_size(ui_size.main_text()),
     ]
@@ -540,22 +540,22 @@ fn add_grid_content<'a, State: GuiAppState>(
 fn add_strand_content<'a, State: GuiAppState>(
     info_values: Vec<String>,
     ui_size: UiSize,
-) -> iced::Element<'a, Message<State>> {
+) -> iced::Element<'a, LeftPanelMessage<State>> {
     let s_id = info_values[2].parse::<usize>().unwrap();
     column![
         row![
             text("Name").size(ui_size.main_text()),
             keyboard_priority(
                 "Name",
-                Message::SetKeyboardPriority,
+                LeftPanelMessage::SetKeyboardPriority,
                 text_input("Name", &info_values[4])
-                    .on_input(move |new_name| { Message::StrandNameChanged(s_id, new_name) })
+                    .on_input(move |new_name| { LeftPanelMessage::StrandNameChanged(s_id, new_name) })
                     .size(ui_size.main_text())
             )
         ],
         text(format!("length {}", info_values[0])).size(ui_size.main_text()),
         checkbox("Scaffold", info_values[1].parse().unwrap())
-            .on_toggle(move |b| { Message::ScaffoldIdSet(s_id, b) }),
+            .on_toggle(move |b| { LeftPanelMessage::ScaffoldIdSet(s_id, b) }),
         text(info_values[3].as_str()).size(ui_size.main_text()),
     ]
     .into()
@@ -573,7 +573,7 @@ fn add_help_to_column<'a, State: GuiAppState>(
     help_title: impl ToString,
     help: Vec<(String, String)>,
     ui_size: UiSize,
-) -> Column<'a, Message<State>> {
+) -> Column<'a, LeftPanelMessage<State>> {
     column![
         text(help_title).size(ui_size.intermediate_text()),
         column(help.iter().map(|(l, r)| {
@@ -599,7 +599,7 @@ fn add_help_to_column<'a, State: GuiAppState>(
     ]
 }
 
-fn turn_into_help_column<'a, State: GuiAppState>(ui_size: UiSize) -> Column<'a, Message<State>> {
+fn turn_into_help_column<'a, State: GuiAppState>(ui_size: UiSize) -> Column<'a, LeftPanelMessage<State>> {
     column![
         section("Help", ui_size)
             .width(Length::Fill)
@@ -859,7 +859,7 @@ impl AddStrandMenu {
         self.text_inputs_are_active = show;
     }
 
-    fn view<State: GuiAppState>(&self, ui_size: UiSize, width: u16) -> Column<'_, Message<State>> {
+    fn view<State: GuiAppState>(&self, ui_size: UiSize, width: u16) -> Column<'_, LeftPanelMessage<State>> {
         let color_choose_strand_start_length = if self.text_inputs_are_active {
             iced::theme::Text::Color(theme::GUI_PALETTE.text)
         } else {
@@ -870,7 +870,7 @@ impl AddStrandMenu {
             right_checkbox(
                 self.text_inputs_are_active,
                 "Add double strand on helix",
-                Message::AddDoubleStrandHelix,
+                LeftPanelMessage::AddDoubleStrandHelix,
                 ui_size,
             ),
             row![
@@ -879,9 +879,9 @@ impl AddStrandMenu {
                     // position_input
                     keyboard_priority(
                         "Starting nt",
-                        Message::SetKeyboardPriority,
+                        LeftPanelMessage::SetKeyboardPriority,
                         text_input("Position", &self.pos_str)
-                            .on_input(Message::PositionHelicesChanged)
+                            .on_input(LeftPanelMessage::PositionHelicesChanged)
                             .style(theme::BadValue(self.pos_str == self.helix_pos.to_string()))
                     )
                 ]
@@ -891,9 +891,9 @@ impl AddStrandMenu {
                     // length_input
                     keyboard_priority(
                         "Length (nt)",
-                        Message::SetKeyboardPriority,
+                        LeftPanelMessage::SetKeyboardPriority,
                         text_input("Length", &self.length_str)
-                            .on_input(Message::LengthHelicesChanged)
+                            .on_input(LeftPanelMessage::LengthHelicesChanged)
                             .style(theme::BadValue(
                                 self.length_str == self.helix_length.to_string()
                             ))

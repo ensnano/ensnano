@@ -24,7 +24,7 @@ use ensnano_exports::{ExportResult, ExportType};
 use ensnano_gui::{
     GuiManager,
     messages::GuiMessages,
-    state::{GuiAppState as _, TopBarState},
+    state::{GuiAppState as _, TopBarStateFlags},
 };
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_scene::{SceneAppState as _, data::design3d::SceneDesignReaderExt as _};
@@ -681,8 +681,8 @@ impl MainState {
         self.modify_state(|s| s.with_inverted_y_scroll(inverted), None);
     }
 
-    pub(crate) fn gui_state(&self, multiplexer: &Multiplexer) -> TopBarState {
-        TopBarState {
+    pub(crate) fn gui_state(&self, multiplexer: &Multiplexer) -> TopBarStateFlags {
+        TopBarStateFlags {
             can_undo: !self.undo_stack.is_empty(),
             can_redo: !self.redo_stack.is_empty(),
             need_save: self.need_save(),

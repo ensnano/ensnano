@@ -71,7 +71,7 @@ use winit::{
     event::Modifiers,
 };
 
-pub struct LeftPanel<R: GuiRequests, S: GuiAppState> {
+pub struct LeftPanelState<R: GuiRequests, S: GuiAppState> {
     logical_size: LogicalSize<f64>,
     logical_position: LogicalPosition<f64>,
     requests: Arc<Mutex<R>>,
@@ -94,7 +94,7 @@ pub struct LeftPanel<R: GuiRequests, S: GuiAppState> {
 }
 
 #[derive(Debug, Clone)]
-pub enum Message<S: GuiAppState> {
+pub enum LeftPanelMessage<S: GuiAppState> {
     Resized(LogicalSize<f64>, LogicalPosition<f64>),
     MakeGrids,
     StrandNameChanged(usize, String),
@@ -210,7 +210,7 @@ pub enum Message<S: GuiAppState> {
     SetFocus(text_input::Id),
 }
 
-impl<R: GuiRequests, S: GuiAppState> LeftPanel<R, S> {
+impl<R: GuiRequests, S: GuiAppState> LeftPanelState<R, S> {
     /// Create a new [LeftPanel].
     pub fn new(
         requests: Arc<Mutex<R>>,
@@ -262,7 +262,7 @@ impl<R: GuiRequests, S: GuiAppState> LeftPanel<R, S> {
     }
 
     /// Convert an [OrganizerMessage] into a LeftPanel [Message].
-    fn organizer_message(&mut self, m: OrganizerMessage) -> Option<Message<S>> {
+    fn organizer_message(&mut self, m: OrganizerMessage) -> Option<LeftPanelMessage<S>> {
         match m {
             OrganizerMessage::InternalMessage(m) => {
                 let selection = self
@@ -274,7 +274,7 @@ impl<R: GuiRequests, S: GuiAppState> LeftPanel<R, S> {
                 return self
                     .organizer
                     .message(&m, &selection)
-                    .map(|m_| Message::OrganizerMessage(m_));
+                    .map(|m_| LeftPanelMessage::OrganizerMessage(m_));
             }
             OrganizerMessage::Selection(s, group_id) => self
                 .requests
@@ -315,28 +315,28 @@ impl<R: GuiRequests, S: GuiAppState> LeftPanel<R, S> {
                 .lock()
                 .unwrap()
                 .set_keyboard_priority(priority),
-            OrganizerMessage::SetFocus(id) => return Some(Message::SetFocus(id)),
+            OrganizerMessage::SetFocus(id) => return Some(LeftPanelMessage::SetFocus(id)),
             OrganizerMessage::ElementUpdate(_) => (),
         }
         None
     }
 }
 
-impl<R, S> Program for LeftPanel<R, S>
+impl<R, S> Program for LeftPanelState<R, S>
 where
     R: GuiRequests,
     S: GuiAppState,
 {
     type Theme = iced::Theme;
     type Renderer = iced::Renderer;
-    type Message = Message<S>;
+    type Message = LeftPanelMessage<S>;
 
     // BUG: Increasing the left panel too much crashes ENSnano.
 
     // NOTE: The Command feature of Iced has not been used in ENSnan.
     // NOTE: Trying it, it seems that commands are not executed.
 
-    fn update(&mut self, message: Message<S>) -> Command<Message<S>> {
+    fn update(&mut self, message: LeftPanelMessage<S>) -> Command<LeftPanelMessage<S>> {
         let notify_new_tree =
             if let Some(tree) = self.application_state.get_reader().get_organizer_tree() {
                 self.organizer.read_tree(tree.as_ref())
@@ -356,11 +356,11 @@ where
         }
         log::debug!("Message: {:?}", &message);
         let command = match message {
-            Message::StrandNameChanged(s_id, name) => {
+            LeftPanelMessage::StrandNameChanged(s_id, name) => {
                 self.requests.lock().unwrap().set_strand_name(s_id, name);
                 Command::none()
             }
-            Message::ColorPickerMessage(message) => {
+            LeftPanelMessage::ColorPickerMessage(message) => {
                 self.edition_tab.update_color_picker(message);
                 // Forward action to Requests.
                 match message {
@@ -376,11 +376,11 @@ where
                 }
                 Command::none()
             }
-            Message::Resized(size, position) => {
+            LeftPanelMessage::Resized(size, position) => {
                 self.resize(size, position);
                 Command::none()
             }
-            Message::NewGrid(grid_type) => {
+            LeftPanelMessage::NewGrid(grid_type) => {
                 self.requests.lock().unwrap().create_grid(grid_type);
                 let action_mode = self.contextual_panel.get_build_helix_mode();
                 self.requests
@@ -389,21 +389,21 @@ where
                     .change_action_mode(action_mode);
                 Command::none()
             }
-            Message::RotateCam(x, y, z) => {
+            LeftPanelMessage::RotateCam(x, y, z) => {
                 self.requests
                     .lock()
                     .unwrap()
                     .perform_camera_rotation(x, y, z);
                 Command::none()
             }
-            Message::FixPoint(point, up) => {
+            LeftPanelMessage::FixPoint(point, up) => {
                 self.requests
                     .lock()
                     .unwrap()
                     .set_camera_dir_up_vec(point, up);
                 Command::none()
             }
-            Message::LengthHelicesChanged(length_str) => {
+            LeftPanelMessage::LengthHelicesChanged(length_str) => {
                 let new_strand_parameters = self.contextual_panel.update_length_str(length_str);
                 self.requests
                     .lock()
@@ -411,7 +411,7 @@ where
                     .add_double_strand_on_new_helix(Some(new_strand_parameters));
                 Command::none()
             }
-            Message::PositionHelicesChanged(position_str) => {
+            LeftPanelMessage::PositionHelicesChanged(position_str) => {
                 let new_strand_parameters = self.contextual_panel.update_pos_str(position_str);
                 self.requests
                     .lock()
@@ -419,25 +419,25 @@ where
                     .add_double_strand_on_new_helix(Some(new_strand_parameters));
                 Command::none()
             }
-            Message::ScaffoldPositionInput(position_str) => {
+            LeftPanelMessage::ScaffoldPositionInput(position_str) => {
                 if let Some(n) = self.sequence_tab.update_pos_str(position_str) {
                     self.requests.lock().unwrap().set_scaffold_shift(n);
                 }
                 Command::none()
             }
-            Message::FogLength(length) => {
+            LeftPanelMessage::FogLength(length) => {
                 self.camera_tab.fog_length(length);
                 let request = self.camera_tab.get_fog_request();
                 self.requests.lock().unwrap().set_fog_parameters(request);
                 Command::none()
             }
-            Message::FogRadius(radius) => {
+            LeftPanelMessage::FogRadius(radius) => {
                 self.camera_tab.fog_radius(radius);
                 let request = self.camera_tab.get_fog_request();
                 self.requests.lock().unwrap().set_fog_parameters(request);
                 Command::none()
             }
-            Message::RollSimulationRequest => {
+            LeftPanelMessage::RollSimulationRequest => {
                 if self.application_state.get_simulation_state().is_rolling() {
                     self.requests.lock().unwrap().stop_simulations();
                 } else {
@@ -446,7 +446,7 @@ where
                 }
                 Command::none()
             }
-            Message::UpdateRapierParameters(parameters) => {
+            LeftPanelMessage::UpdateRapierParameters(parameters) => {
                 self.simulation_tab.rapier_parameters = parameters;
                 self.requests
                     .lock()
@@ -454,13 +454,13 @@ where
                     .request_rapier_simulation(parameters);
                 Command::none()
             }
-            Message::UpdateRapierParameterField(key, value) => {
+            LeftPanelMessage::UpdateRapierParameterField(key, value) => {
                 self.simulation_tab
                     .rapier_parameter_fields
                     .insert(key, value);
                 Command::none()
             }
-            Message::FogChoice(choice) => {
+            LeftPanelMessage::FogChoice(choice) => {
                 let (visible, from_camera, dark, reversed) = choice.to_param();
                 self.camera_tab.fog_camera(from_camera);
                 self.camera_tab.fog_visible(visible);
@@ -470,7 +470,7 @@ where
                 self.requests.lock().unwrap().set_fog_parameters(request);
                 Command::none()
             }
-            Message::DiscreteValue {
+            LeftPanelMessage::DiscreteValue {
                 factory_id,
                 value_id,
                 value,
@@ -536,7 +536,7 @@ where
                     Command::none()
                 }
             },
-            Message::VolumeExclusion(b) => {
+            LeftPanelMessage::VolumeExclusion(b) => {
                 self.simulation_tab.set_volume_exclusion(b);
                 let mut request: Option<RigidBodyParametersRequest> = None;
                 self.simulation_tab.make_rigid_body_request(&mut request);
@@ -548,7 +548,7 @@ where
                 }
                 Command::none()
             }
-            Message::BrownianMotion(b) => {
+            LeftPanelMessage::BrownianMotion(b) => {
                 self.simulation_tab.set_brownian_motion(b);
                 let mut request: Option<RigidBodyParametersRequest> = None;
                 self.simulation_tab.make_rigid_body_request(&mut request);
@@ -560,7 +560,7 @@ where
                 }
                 Command::none()
             }
-            Message::NewHyperboloid => {
+            LeftPanelMessage::NewHyperboloid => {
                 let mut request: Option<HyperboloidRequest> = None;
                 self.grid_tab.new_hyperboloid(&mut request);
                 if let Some(request) = request {
@@ -571,11 +571,11 @@ where
                 }
                 Command::none()
             }
-            Message::FinalizeHyperboloid => {
+            LeftPanelMessage::FinalizeHyperboloid => {
                 self.requests.lock().unwrap().finalize_hyperboloid();
                 Command::none()
             }
-            Message::RigidGridSimulation(start) => {
+            LeftPanelMessage::RigidGridSimulation(start) => {
                 if start {
                     let mut request: Option<RigidBodyParametersRequest> = None;
                     self.simulation_tab.make_rigid_body_request(&mut request);
@@ -590,7 +590,7 @@ where
                 }
                 Command::none()
             }
-            Message::RigidHelicesSimulation(start) => {
+            LeftPanelMessage::RigidHelicesSimulation(start) => {
                 if start {
                     let mut request: Option<RigidBodyParametersRequest> = None;
                     self.simulation_tab.make_rigid_body_request(&mut request);
@@ -605,11 +605,11 @@ where
                 }
                 Command::none()
             }
-            Message::MakeGrids => {
+            LeftPanelMessage::MakeGrids => {
                 self.requests.lock().unwrap().make_grid_from_selection();
                 Command::none()
             }
-            Message::RollTargeted(b) => {
+            LeftPanelMessage::RollTargeted(b) => {
                 let selection = self.application_state.get_selection_as_design_element();
                 if b {
                     if let Some(simulation_request) = self.edition_tab.get_roll_request(&selection)
@@ -624,7 +624,7 @@ where
                 }
                 Command::none()
             }
-            Message::TabSelected(tab_id) => {
+            LeftPanelMessage::TabSelected(tab_id) => {
                 if let ActionMode::BuildHelix { .. } = self.application_state.get_action_mode()
                     && tab_id != TabId::Grid
                 {
@@ -647,7 +647,7 @@ where
                 self.active_tab = tab_id;
                 Command::none()
             }
-            Message::OrganizerMessage(m) => {
+            LeftPanelMessage::OrganizerMessage(m) => {
                 let next_message = self.organizer_message(m);
                 if let Some(message) = next_message {
                     self.update(message)
@@ -655,35 +655,35 @@ where
                     Command::none()
                 }
             }
-            Message::ModifiersChanged(modifiers) => {
+            LeftPanelMessage::ModifiersChanged(modifiers) => {
                 self.organizer
                     .new_modifiers(iced_winit::conversion::modifiers(modifiers.state()));
                 Command::none()
             }
-            Message::UiSizePicked(ui_size) => {
+            LeftPanelMessage::UiSizePicked(ui_size) => {
                 self.requests.lock().unwrap().set_ui_size(ui_size);
                 Command::none()
             }
-            Message::UiSizeChanged(ui_size) => {
+            LeftPanelMessage::UiSizeChanged(ui_size) => {
                 self.ui_size = ui_size;
                 Command::none()
             }
-            Message::SetScaffoldSeqButtonPressed => {
+            LeftPanelMessage::SetScaffoldSeqButtonPressed => {
                 self.requests
                     .lock()
                     .unwrap()
                     .set_scaffold_sequence(self.sequence_tab.get_scaffold_shift());
                 Command::none()
             }
-            Message::OptimizeScaffoldShiftPressed => {
+            LeftPanelMessage::OptimizeScaffoldShiftPressed => {
                 self.requests.lock().unwrap().optimize_scaffold_shift();
                 Command::none()
             }
-            Message::StaplesRequested => {
+            LeftPanelMessage::StaplesRequested => {
                 self.requests.lock().unwrap().download_staples();
                 Command::none()
             }
-            Message::ToggleText(b) => {
+            LeftPanelMessage::ToggleText(b) => {
                 self.requests
                     .lock()
                     .unwrap()
@@ -691,7 +691,7 @@ where
                 self.sequence_tab.toggle_text_value(b);
                 Command::none()
             }
-            Message::AddDoubleStrandHelix(b) => {
+            LeftPanelMessage::AddDoubleStrandHelix(b) => {
                 self.contextual_panel.set_show_strand(b);
                 let new_strand_parameters = self.contextual_panel.get_new_strand_parameters();
                 self.requests
@@ -700,71 +700,71 @@ where
                     .add_double_strand_on_new_helix(new_strand_parameters);
                 Command::none()
             }
-            Message::ToggleVisibility(b) => {
+            LeftPanelMessage::ToggleVisibility(b) => {
                 self.requests.lock().unwrap().toggle_visibility(b);
                 Command::none()
             }
-            Message::AllVisible => {
+            LeftPanelMessage::AllVisible => {
                 self.requests.lock().unwrap().make_all_elements_visible();
                 Command::none()
             }
-            Message::Redim2dHelices(b) => {
+            LeftPanelMessage::Redim2dHelices(b) => {
                 self.requests.lock().unwrap().resize_2d_helices(b);
                 Command::none()
             }
-            Message::InvertScroll(b) => {
+            LeftPanelMessage::InvertScroll(b) => {
                 self.requests.lock().unwrap().invert_scroll(b);
                 Command::none()
             }
-            Message::CancelHyperboloid => {
+            LeftPanelMessage::CancelHyperboloid => {
                 self.requests.lock().unwrap().cancel_hyperboloid();
                 Command::none()
             }
-            Message::SelectionValueChanged(s) => {
+            LeftPanelMessage::SelectionValueChanged(s) => {
                 self.contextual_panel
                     .selection_value_changed(s, Arc::clone(&self.requests));
                 Command::none()
             }
-            Message::SetSmallSpheres(b) => {
+            LeftPanelMessage::SetSmallSpheres(b) => {
                 self.contextual_panel
                     .set_small_sphere(b, Arc::clone(&self.requests));
                 Command::none()
             }
-            Message::ScaffoldIdSet(n, b) => {
+            LeftPanelMessage::ScaffoldIdSet(n, b) => {
                 self.contextual_panel
                     .scaffold_id_set(n, b, Arc::clone(&self.requests));
                 Command::none()
             }
-            Message::SelectScaffold => {
+            LeftPanelMessage::SelectScaffold => {
                 self.requests.lock().unwrap().set_scaffold_from_selection();
                 Command::none()
             }
-            Message::RenderingMode(mode) => {
+            LeftPanelMessage::RenderingMode(mode) => {
                 self.requests.lock().unwrap().change_3d_rendering_mode(mode);
                 self.camera_tab.rendering_mode = mode;
                 Command::none()
             }
-            Message::Background3D(bg) => {
+            LeftPanelMessage::Background3D(bg) => {
                 self.requests.lock().unwrap().change_3d_background(bg);
                 self.camera_tab.background3d = bg;
                 Command::none()
             }
-            Message::ForceHelp => {
+            LeftPanelMessage::ForceHelp => {
                 self.contextual_panel.force_help = true;
                 self.contextual_panel.show_tutorial = false;
                 Command::none()
             }
-            Message::ShowTutorial => {
+            LeftPanelMessage::ShowTutorial => {
                 self.contextual_panel.show_tutorial ^= true;
                 self.contextual_panel.force_help = false;
                 Command::none()
             }
-            Message::OpenLink(link) => {
+            LeftPanelMessage::OpenLink(link) => {
                 // ATM we continue even in case of error, later any error will be prompted to user
                 let _ = open::that(link);
                 Command::none()
             }
-            Message::NewApplicationState(state) => {
+            LeftPanelMessage::NewApplicationState(state) => {
                 if state.design_was_modified(&self.application_state) {
                     let reader = state.get_reader();
                     self.organizer.update_elements(reader.get_dna_elements());
@@ -789,93 +789,93 @@ where
                 let _ = self.revolution_tab.update(&mut self.application_state);
                 Command::none()
             }
-            Message::ResetSimulation => {
+            LeftPanelMessage::ResetSimulation => {
                 self.requests.lock().unwrap().reset_simulations();
                 Command::none()
             }
-            Message::Nothing => Command::none(),
-            Message::SubmitCameraName => {
+            LeftPanelMessage::Nothing => Command::none(),
+            LeftPanelMessage::SubmitCameraName => {
                 if let Some((id, name)) = self.camera_shortcut.stop_editing() {
                     self.requests.lock().unwrap().set_camera_name(id, name);
                 }
                 Command::none()
             }
-            Message::EditCameraName(name) => {
+            LeftPanelMessage::EditCameraName(name) => {
                 self.camera_shortcut.set_camera_input_name(name);
                 Command::none()
             }
-            Message::StartEditCameraName(camera_id) => {
+            LeftPanelMessage::StartEditCameraName(camera_id) => {
                 self.camera_shortcut.start_editing(camera_id);
                 Command::none()
             }
-            Message::DeleteCamera(camera_id) => {
+            LeftPanelMessage::DeleteCamera(camera_id) => {
                 self.requests.lock().unwrap().delete_camera(camera_id);
                 Command::none()
             }
-            Message::SelectCamera(camera_id) => {
+            LeftPanelMessage::SelectCamera(camera_id) => {
                 self.requests.lock().unwrap().select_camera(camera_id);
                 Command::none()
             }
-            Message::NewCustomCamera => {
+            LeftPanelMessage::NewCustomCamera => {
                 self.requests.lock().unwrap().create_new_camera();
                 self.camera_shortcut.scroll_down();
                 Command::none()
             }
-            Message::NewSuggestionParameters(param) => {
+            LeftPanelMessage::NewSuggestionParameters(param) => {
                 self.requests
                     .lock()
                     .unwrap()
                     .set_suggestion_parameters(param);
                 Command::none()
             }
-            Message::ContextualValueSubmitted(kind) => {
+            LeftPanelMessage::ContextualValueSubmitted(kind) => {
                 if let Some(request) = self.contextual_panel.submit_value(kind) {
                     request.make_request(Arc::clone(&self.requests));
                 }
                 Command::none()
             }
-            Message::ContextualValueChanged(kind, n, val) => {
+            LeftPanelMessage::ContextualValueChanged(kind, n, val) => {
                 self.contextual_panel.update_builder_value(kind, n, val);
                 Command::none()
             }
-            Message::InstantiatedValueSubmitted(value) => {
+            LeftPanelMessage::InstantiatedValueSubmitted(value) => {
                 if let Some(request) = self.contextual_panel.request_from_value(value) {
                     request.make_request(Arc::clone(&self.requests));
                 }
                 Command::none()
             }
-            Message::CheckXoversParameter(parameters) => {
+            LeftPanelMessage::CheckXoversParameter(parameters) => {
                 self.requests
                     .lock()
                     .unwrap()
                     .set_check_xover_parameters(parameters);
                 Command::none()
             }
-            Message::FollowStereographicCamera(b) => {
+            LeftPanelMessage::FollowStereographicCamera(b) => {
                 self.requests.lock().unwrap().follow_stereographic_camera(b);
                 Command::none()
             }
-            Message::ShowStereographicCamera(b) => {
+            LeftPanelMessage::ShowStereographicCamera(b) => {
                 self.requests
                     .lock()
                     .unwrap()
                     .set_show_stereographic_camera(b);
                 Command::none()
             }
-            Message::ShowHBonds(b) => {
+            LeftPanelMessage::ShowHBonds(b) => {
                 self.requests.lock().unwrap().set_show_h_bonds(b);
                 Command::none()
             }
-            Message::RainbowScaffold(b) => {
+            LeftPanelMessage::RainbowScaffold(b) => {
                 self.requests.lock().unwrap().set_rainbow_scaffold(b);
                 Command::none()
             }
-            Message::StopSimulation => {
+            LeftPanelMessage::StopSimulation => {
                 self.simulation_tab.rapier_parameters.is_simulation_running = false;
                 self.requests.lock().unwrap().stop_simulations();
                 Command::none()
             }
-            Message::StartTwist => {
+            LeftPanelMessage::StartTwist => {
                 if let Some(Selection::Grid(_, g_id)) =
                     self.application_state.get_selection().first()
                 {
@@ -883,26 +883,26 @@ where
                 }
                 Command::none()
             }
-            Message::OrigamisRequested => {
+            LeftPanelMessage::OrigamisRequested => {
                 self.requests.lock().unwrap().download_origamis();
                 Command::none()
             }
-            Message::NewDnaParameters(parameters) => {
+            LeftPanelMessage::NewDnaParameters(parameters) => {
                 self.requests
                     .lock()
                     .unwrap()
                     .set_dna_parameters(parameters.value);
                 Command::none()
             }
-            Message::SetExpandInsertions(b) => {
+            LeftPanelMessage::SetExpandInsertions(b) => {
                 self.requests.lock().unwrap().set_expand_insertions(b);
                 Command::none()
             }
-            Message::InsertionLengthInput(s) => {
+            LeftPanelMessage::InsertionLengthInput(s) => {
                 self.contextual_panel.update_insertion_length_input(s);
                 Command::none()
             }
-            Message::InsertionLengthSubmitted => {
+            LeftPanelMessage::InsertionLengthSubmitted => {
                 if let Some(request) = self.contextual_panel.get_insertion_request() {
                     if let Some(insertion_point) = self
                         .application_state
@@ -919,44 +919,44 @@ where
                 }
                 Command::none()
             }
-            Message::NewBezierPlane => {
+            LeftPanelMessage::NewBezierPlane => {
                 self.requests.lock().unwrap().create_bezier_plane();
                 Command::none()
             }
-            Message::StartBezierPath => {
+            LeftPanelMessage::StartBezierPath => {
                 self.requests
                     .lock()
                     .unwrap()
                     .change_action_mode(ActionMode::EditBezierPath);
                 Command::none()
             }
-            Message::TurnPathIntoGrid { path_id, grid_type } => {
+            LeftPanelMessage::TurnPathIntoGrid { path_id, grid_type } => {
                 self.requests
                     .lock()
                     .unwrap()
                     .turn_path_into_grid(path_id, grid_type);
                 Command::none()
             }
-            Message::SetShowBezierPaths(b) => {
+            LeftPanelMessage::SetShowBezierPaths(b) => {
                 self.requests.lock().unwrap().set_show_bezier_paths(b);
                 Command::none()
             }
-            Message::MakeBezierPathCyclic { path_id, cyclic } => {
+            LeftPanelMessage::MakeBezierPathCyclic { path_id, cyclic } => {
                 self.requests
                     .lock()
                     .unwrap()
                     .make_bezier_path_cyclic(path_id, cyclic);
                 Command::none()
             }
-            Message::Export(export_type) => {
+            LeftPanelMessage::Export(export_type) => {
                 self.requests.lock().unwrap().export(export_type);
                 Command::none()
             }
-            Message::CancelExport => {
+            LeftPanelMessage::CancelExport => {
                 self.requests.lock().unwrap().set_exporting(false);
                 Command::none()
             }
-            Message::CurveBuilderPicked(builder) => {
+            LeftPanelMessage::CurveBuilderPicked(builder) => {
                 self.revolution_tab.set_builder(builder);
                 let bezier_path_id = self.revolution_tab.get_current_bezier_path_id();
                 self.requests
@@ -972,11 +972,11 @@ where
                     .set_unrooted_surface(unrooted_surface);
                 Command::none()
             }
-            Message::RevolutionEquadiffSolvingMethodPicked(method) => {
+            LeftPanelMessage::RevolutionEquadiffSolvingMethodPicked(method) => {
                 self.revolution_tab.set_method(method);
                 Command::none()
             }
-            Message::RevolutionParameterUpdate { parameter_id, text } => {
+            LeftPanelMessage::RevolutionParameterUpdate { parameter_id, text } => {
                 if matches!(parameter_id, RevolutionParameterId::RevolutionRadius)
                     && let Some(radius) = text.parse::<f64>().ok()
                 {
@@ -1002,7 +1002,7 @@ where
                     .set_unrooted_surface(unrooted_surface);
                 Command::none()
             }
-            Message::InitRevolutionRelaxation => {
+            LeftPanelMessage::InitRevolutionRelaxation => {
                 if let Some(desc) = self
                     .revolution_tab
                     .get_revolution_system(&self.application_state, true)
@@ -1014,49 +1014,49 @@ where
                 }
                 Command::none()
             }
-            Message::FinishRelaxation => {
+            LeftPanelMessage::FinishRelaxation => {
                 self.requests.lock().unwrap().finish_revolution_relaxation();
                 Command::none()
             }
-            Message::LoadSvgFile => {
+            LeftPanelMessage::LoadSvgFile => {
                 self.requests.lock().unwrap().load_svg();
                 Command::none()
             }
-            Message::StlExport => {
+            LeftPanelMessage::StlExport => {
                 self.requests.lock().unwrap().request_stl_export();
                 Command::none()
             }
-            Message::ScreenShot2D => {
+            LeftPanelMessage::ScreenShot2D => {
                 self.requests.lock().unwrap().request_screenshot_2d();
                 Command::none()
             }
-            Message::ScreenShot3D => {
+            LeftPanelMessage::ScreenShot3D => {
                 self.requests.lock().unwrap().request_screenshot_3d();
                 Command::none()
             }
-            Message::SaveNucleotidesPositions => {
+            LeftPanelMessage::SaveNucleotidesPositions => {
                 self.requests
                     .lock()
                     .unwrap()
                     .request_save_nucleotides_positions();
                 Command::none()
             }
-            Message::IncrRevolutionShift => {
+            LeftPanelMessage::IncrRevolutionShift => {
                 self.revolution_tab.shift_idx += 1;
                 Command::none()
             }
-            Message::DecrRevolutionShift => {
+            LeftPanelMessage::DecrRevolutionShift => {
                 self.revolution_tab.shift_idx -= 1;
                 Command::none()
             }
-            Message::SetKeyboardPriority(priority) => {
+            LeftPanelMessage::SetKeyboardPriority(priority) => {
                 self.requests
                     .lock()
                     .unwrap()
                     .set_keyboard_priority(priority);
                 Command::none()
             }
-            Message::SetFocus(id) => text_input::focus(id),
+            LeftPanelMessage::SetFocus(id) => text_input::focus(id),
         };
 
         let command = Command::batch(vec![
@@ -1078,7 +1078,7 @@ where
 
     fn view(&self) -> Element<'_, Self::Message> {
         let width = self.logical_size.cast::<u16>().width;
-        let tabs = Tabs::new(Message::TabSelected)
+        let tabs = Tabs::new(LeftPanelMessage::TabSelected)
             .push(
                 TabId::Grid,
                 self.grid_tab.label(),
@@ -1151,7 +1151,7 @@ where
         let organizer = self
             .organizer
             .view(selection)
-            .map(|m| Message::OrganizerMessage(m));
+            .map(|m| LeftPanelMessage::OrganizerMessage(m));
 
         let first_container = if self.application_state.is_exporting() {
             container(self.exports_menu.view())

@@ -6,7 +6,7 @@
 //! Drawing the top bar, and triggering events from it is handled here.
 
 use crate::{
-    GuiAppState, GuiRequests, TopBarState,
+    GuiAppState, GuiRequests, TopBarStateFlags,
     fonts::{
         ENSNANO_FONT,
         material_icons::{MaterialIcon, MaterialIconStyle},
@@ -25,7 +25,7 @@ use std::sync::{Arc, Mutex};
 use winit::dpi::LogicalSize;
 
 /// Top bar object
-pub struct TopBar<R: GuiRequests, S: GuiAppState> {
+pub struct TopBarState<R: GuiRequests, S: GuiAppState> {
     /// ENSnano requests handle to which forwards messages.
     requests: Arc<Mutex<R>>,
     /// Area occupied by the top bar.
@@ -35,11 +35,11 @@ pub struct TopBar<R: GuiRequests, S: GuiAppState> {
     /// State of the whole application.
     app_state: S,
     /// More local state stuff.
-    state: TopBarState,
+    state: TopBarStateFlags,
 }
 
 #[derive(Debug, Clone)]
-pub enum Message<S: GuiAppState> {
+pub enum TopBarMessage<S: GuiAppState> {
     SceneFitRequested,
     AlignHorizon,
     OpenFileButtonPressed,
@@ -53,7 +53,7 @@ pub enum Message<S: GuiAppState> {
     ExportRequested,
     Split2D,
     // Receive an new application state.
-    NewApplicationState((S, TopBarState)),
+    NewApplicationState((S, TopBarStateFlags)),
     ForceHelp,
     ShowTutorial,
     Undo,
@@ -68,12 +68,12 @@ pub enum Message<S: GuiAppState> {
     Import3D,
 }
 
-impl<R: GuiRequests, S: GuiAppState> TopBar<R, S> {
+impl<R: GuiRequests, S: GuiAppState> TopBarState<R, S> {
     pub fn new(
         requests: Arc<Mutex<R>>,
         logical_size: LogicalSize<f64>,
         app_state: S,
-        state: TopBarState,
+        state: TopBarStateFlags,
         ui_size: UiSize,
     ) -> Self {
         Self {
@@ -95,41 +95,43 @@ impl<R: GuiRequests, S: GuiAppState> TopBar<R, S> {
     }
 }
 
-impl<R: GuiRequests, S: GuiAppState> Program for TopBar<R, S> {
-    type Message = Message<S>;
+impl<R: GuiRequests, S: GuiAppState> Program for TopBarState<R, S> {
+    type Message = TopBarMessage<S>;
     type Theme = iced::Theme;
     type Renderer = iced::Renderer;
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
-            Message::SceneFitRequested => {
+            TopBarMessage::SceneFitRequested => {
                 self.requests.lock().unwrap().fit_design_in_scenes();
             }
-            Message::OpenFileButtonPressed => {
+            TopBarMessage::OpenFileButtonPressed => {
                 self.requests.lock().unwrap().open_file();
             }
-            Message::FileSaveRequested => {
+            TopBarMessage::FileSaveRequested => {
                 self.requests.lock().unwrap().save();
             }
-            Message::SaveAsRequested => {
+            TopBarMessage::SaveAsRequested => {
                 self.requests.lock().unwrap().save_as();
             }
-            Message::Resize(size) => self.resize(size),
-            Message::ToggleView(b) => self.requests.lock().unwrap().change_split_mode(b),
-            Message::UiSizeChanged(ui_size) => self.ui_size = ui_size,
-            Message::ExportRequested => self.requests.lock().unwrap().set_exporting(true),
-            Message::Split2D => self.requests.lock().unwrap().toggle_2d_view_split(),
-            Message::NewApplicationState((app_state, state)) => {
+            TopBarMessage::Resize(size) => self.resize(size),
+            TopBarMessage::ToggleView(b) => self.requests.lock().unwrap().change_split_mode(b),
+            TopBarMessage::UiSizeChanged(ui_size) => self.ui_size = ui_size,
+            TopBarMessage::ExportRequested => self.requests.lock().unwrap().set_exporting(true),
+            TopBarMessage::Split2D => self.requests.lock().unwrap().toggle_2d_view_split(),
+            TopBarMessage::NewApplicationState((app_state, state)) => {
                 self.app_state = app_state;
                 self.state = state;
             }
-            Message::Undo => self.requests.lock().unwrap().undo(),
-            Message::Redo => self.requests.lock().unwrap().redo(),
-            Message::ForceHelp => self.requests.lock().unwrap().force_help(),
-            Message::ShowTutorial => self.requests.lock().unwrap().show_tutorial(),
-            Message::ButtonNewEmptyDesignPressed => self.requests.lock().unwrap().new_design(),
-            Message::Reload => self.requests.lock().unwrap().reload_file(),
-            Message::SelectionModeChanged(selection_mode) => {
+            TopBarMessage::Undo => self.requests.lock().unwrap().undo(),
+            TopBarMessage::Redo => self.requests.lock().unwrap().redo(),
+            TopBarMessage::ForceHelp => self.requests.lock().unwrap().force_help(),
+            TopBarMessage::ShowTutorial => self.requests.lock().unwrap().show_tutorial(),
+            TopBarMessage::ButtonNewEmptyDesignPressed => {
+                self.requests.lock().unwrap().new_design()
+            }
+            TopBarMessage::Reload => self.requests.lock().unwrap().reload_file(),
+            TopBarMessage::SelectionModeChanged(selection_mode) => {
                 if selection_mode != self.app_state.get_selection_mode() {
                     self.requests
                         .lock()
@@ -137,7 +139,7 @@ impl<R: GuiRequests, S: GuiAppState> Program for TopBar<R, S> {
                         .change_selection_mode(selection_mode);
                 }
             }
-            Message::ActionModeChanged(action_mode) => {
+            TopBarMessage::ActionModeChanged(action_mode) => {
                 if self.app_state.get_action_mode() != action_mode {
                     self.requests
                         .lock()
@@ -152,14 +154,16 @@ impl<R: GuiRequests, S: GuiAppState> Program for TopBar<R, S> {
                     }
                 }
             }
-            Message::Toggle2D => {
+            TopBarMessage::Toggle2D => {
                 self.requests.lock().unwrap().toggle_2d();
             }
-            Message::FlipSplitViews => self.requests.lock().unwrap().flip_split_views(),
-            Message::ThickHelices(b) => self.requests.lock().unwrap().set_all_helices_on_axis(b),
+            TopBarMessage::FlipSplitViews => self.requests.lock().unwrap().flip_split_views(),
+            TopBarMessage::ThickHelices(b) => {
+                self.requests.lock().unwrap().set_all_helices_on_axis(b)
+            }
             // TODO: Consider rename message ThickHelices → AllHelicesOnAxis
-            Message::AlignHorizon => self.requests.lock().unwrap().align_horizon(),
-            Message::Import3D => self.requests.lock().unwrap().import_3d_object(),
+            TopBarMessage::AlignHorizon => self.requests.lock().unwrap().align_horizon(),
+            TopBarMessage::Import3D => self.requests.lock().unwrap().import_3d_object(),
         }
         Command::none()
     }
@@ -173,7 +177,7 @@ impl<R: GuiRequests, S: GuiAppState> Program for TopBar<R, S> {
                 MaterialIconStyle::Light,
                 self.ui_size,
             )
-            .on_press(Message::ButtonNewEmptyDesignPressed),
+            .on_press(TopBarMessage::ButtonNewEmptyDesignPressed),
             "Start a new design",
             tooltip::Position::FollowCursor,
         )
@@ -185,7 +189,7 @@ impl<R: GuiRequests, S: GuiAppState> Program for TopBar<R, S> {
                 MaterialIconStyle::Light,
                 self.ui_size,
             )
-            .on_press(Message::OpenFileButtonPressed),
+            .on_press(TopBarMessage::OpenFileButtonPressed),
             "Open file…",
             tooltip::Position::FollowCursor,
         )
@@ -197,7 +201,7 @@ impl<R: GuiRequests, S: GuiAppState> Program for TopBar<R, S> {
                 MaterialIconStyle::Light,
                 self.ui_size,
             )
-            .on_press_maybe(self.state.can_reload.then_some(Message::Reload)),
+            .on_press_maybe(self.state.can_reload.then_some(TopBarMessage::Reload)),
             "Reload file",
             tooltip::Position::FollowCursor,
         )
@@ -213,7 +217,7 @@ impl<R: GuiRequests, S: GuiAppState> Program for TopBar<R, S> {
                 },
                 self.ui_size,
             )
-            .on_press(Message::FileSaveRequested),
+            .on_press(TopBarMessage::FileSaveRequested),
             "Save design…",
             tooltip::Position::FollowCursor,
         )
@@ -229,7 +233,7 @@ impl<R: GuiRequests, S: GuiAppState> Program for TopBar<R, S> {
                 },
                 self.ui_size,
             )
-            .on_press(Message::SaveAsRequested),
+            .on_press(TopBarMessage::SaveAsRequested),
             "Save design to…",
             tooltip::Position::FollowCursor,
         )
@@ -237,7 +241,7 @@ impl<R: GuiRequests, S: GuiAppState> Program for TopBar<R, S> {
 
         let button_oxdna = tooltip(
             material_icon_button(MaterialIcon::Upload, MaterialIconStyle::Light, self.ui_size)
-                .on_press(Message::ExportRequested),
+                .on_press(TopBarMessage::ExportRequested),
             "Export",
             tooltip::Position::FollowCursor,
         )
@@ -251,7 +255,7 @@ impl<R: GuiRequests, S: GuiAppState> Program for TopBar<R, S> {
                 MaterialIconStyle::Light,
                 self.ui_size,
             )
-            .on_press(Message::Import3D),
+            .on_press(TopBarMessage::Import3D),
             "Import 3D",
             tooltip::Position::FollowCursor,
         )
@@ -259,7 +263,7 @@ impl<R: GuiRequests, S: GuiAppState> Program for TopBar<R, S> {
 
         let button_2d = tooltip(
             fixed_text_button("2D", 1.0, self.ui_size)
-                .on_press(Message::ToggleView(SplitMode::Flat)),
+                .on_press(TopBarMessage::ToggleView(SplitMode::Flat)),
             "Switch to flatscene only view",
             tooltip::Position::FollowCursor,
         )
@@ -267,7 +271,7 @@ impl<R: GuiRequests, S: GuiAppState> Program for TopBar<R, S> {
 
         let button_3d = tooltip(
             fixed_text_button("3D", 1.0, self.ui_size)
-                .on_press(Message::ToggleView(SplitMode::Scene3D)),
+                .on_press(TopBarMessage::ToggleView(SplitMode::Scene3D)),
             "Switch to scene only view",
             tooltip::Position::FollowCursor,
         )
@@ -277,10 +281,10 @@ impl<R: GuiRequests, S: GuiAppState> Program for TopBar<R, S> {
         let button_thick_helices = tooltip(
             if self.app_state.want_all_helices_on_axis() {
                 material_icon_button(MaterialIcon::Dehaze, MaterialIconStyle::Light, self.ui_size)
-                    .on_press(Message::ThickHelices(false))
+                    .on_press(TopBarMessage::ThickHelices(false))
             } else {
                 material_icon_button(MaterialIcon::Water, MaterialIconStyle::Light, self.ui_size)
-                    .on_press(Message::ThickHelices(true))
+                    .on_press(TopBarMessage::ThickHelices(true))
             },
             "Toggle helices",
             tooltip::Position::FollowCursor,
@@ -294,7 +298,7 @@ impl<R: GuiRequests, S: GuiAppState> Program for TopBar<R, S> {
         //       to find an elegant way to do this.
 
         let button_split = tooltip(
-            text_button("3D+2D", self.ui_size).on_press(Message::ToggleView(SplitMode::Both)),
+            text_button("3D+2D", self.ui_size).on_press(TopBarMessage::ToggleView(SplitMode::Both)),
             "Switch to both flat and 3d view",
             tooltip::Position::FollowCursor,
         )
@@ -310,7 +314,7 @@ impl<R: GuiRequests, S: GuiAppState> Program for TopBar<R, S> {
                 MaterialIconStyle::Light,
                 self.ui_size,
             )
-            .on_press_maybe(self.state.can_split_2d.then_some(Message::Split2D)),
+            .on_press_maybe(self.state.can_split_2d.then_some(TopBarMessage::Split2D)),
             "Toggle split of flat scene",
             tooltip::Position::FollowCursor,
         )
@@ -318,7 +322,7 @@ impl<R: GuiRequests, S: GuiAppState> Program for TopBar<R, S> {
 
         let button_toggle_2d = tooltip(
             text_button("Toggle 2D", self.ui_size)
-                .on_press_maybe(self.state.can_toggle_2d.then_some(Message::Toggle2D)),
+                .on_press_maybe(self.state.can_toggle_2d.then_some(TopBarMessage::Toggle2D)),
             "Toggle flat view",
             tooltip::Position::FollowCursor,
         )
@@ -330,7 +334,11 @@ impl<R: GuiRequests, S: GuiAppState> Program for TopBar<R, S> {
                 MaterialIconStyle::Light,
                 self.ui_size,
             )
-            .on_press_maybe(self.state.is_split_2d.then_some(Message::FlipSplitViews)),
+            .on_press_maybe(
+                self.state
+                    .is_split_2d
+                    .then_some(TopBarMessage::FlipSplitViews),
+            ),
             "Swap flat views",
             tooltip::Position::FollowCursor,
         )
@@ -342,7 +350,7 @@ impl<R: GuiRequests, S: GuiAppState> Program for TopBar<R, S> {
                 MaterialIconStyle::Light,
                 self.ui_size,
             )
-            .on_press(Message::SceneFitRequested),
+            .on_press(TopBarMessage::SceneFitRequested),
             "Request fit",
             tooltip::Position::FollowCursor,
         )
@@ -354,7 +362,7 @@ impl<R: GuiRequests, S: GuiAppState> Program for TopBar<R, S> {
                 MaterialIconStyle::Light,
                 self.ui_size,
             )
-            .on_press(Message::AlignHorizon),
+            .on_press(TopBarMessage::AlignHorizon),
             "Align horizon",
             tooltip::Position::FollowCursor,
         )
@@ -362,7 +370,7 @@ impl<R: GuiRequests, S: GuiAppState> Program for TopBar<R, S> {
 
         let button_undo = tooltip(
             material_icon_button(MaterialIcon::Undo, MaterialIconStyle::Dark, self.ui_size)
-                .on_press_maybe(self.state.can_undo.then_some(Message::Undo)),
+                .on_press_maybe(self.state.can_undo.then_some(TopBarMessage::Undo)),
             "Undo",
             tooltip::Position::FollowCursor,
         )
@@ -370,7 +378,7 @@ impl<R: GuiRequests, S: GuiAppState> Program for TopBar<R, S> {
 
         let button_redo = tooltip(
             material_icon_button(MaterialIcon::Redo, MaterialIconStyle::Dark, self.ui_size)
-                .on_press_maybe(self.state.can_redo.then_some(Message::Redo)),
+                .on_press_maybe(self.state.can_redo.then_some(TopBarMessage::Redo)),
             "Redo",
             tooltip::Position::FollowCursor,
         )
@@ -423,10 +431,10 @@ impl<R: GuiRequests, S: GuiAppState> Program for TopBar<R, S> {
             })
             .collect();
 
-        let button_help = text_button("Help", self.ui_size).on_press(Message::ForceHelp);
+        let button_help = text_button("Help", self.ui_size).on_press(TopBarMessage::ForceHelp);
 
         let button_tutorial =
-            text_button("Tutorials", self.ui_size).on_press(Message::ShowTutorial);
+            text_button("Tutorials", self.ui_size).on_press(TopBarMessage::ShowTutorial);
 
         let bar = row![
             // “File” group
@@ -488,7 +496,7 @@ fn action_mode_btn<'a, State: GuiAppState>(
     current_action_mode: ActionMode,
     axis_aligned: bool,
     ui_size: UiSize,
-) -> Button<'a, Message<State>> {
+) -> Button<'a, TopBarMessage<State>> {
     let icon_path = if current_action_mode == *mode {
         mode.icon_on(axis_aligned)
     } else {
@@ -496,7 +504,7 @@ fn action_mode_btn<'a, State: GuiAppState>(
     };
 
     image_button(image(icon_path), ui_size)
-        .on_press(Message::ActionModeChanged(*mode))
+        .on_press(TopBarMessage::ActionModeChanged(*mode))
         .style(if current_action_mode == *mode {
             theme::Button::Positive
         } else {
@@ -509,7 +517,7 @@ fn selection_mode_btn<'a, State: GuiAppState>(
     mode: &SelectionMode,
     current_mode: SelectionMode,
     ui_size: UiSize,
-) -> Button<'a, Message<State>> {
+) -> Button<'a, TopBarMessage<State>> {
     let icon_path = if current_mode == *mode {
         mode.icon_on()
     } else {
@@ -517,7 +525,7 @@ fn selection_mode_btn<'a, State: GuiAppState>(
     };
 
     image_button(image(icon_path), ui_size)
-        .on_press(Message::SelectionModeChanged(*mode))
+        .on_press(TopBarMessage::SelectionModeChanged(*mode))
         .style(if current_mode == *mode {
             theme::Button::Positive
         } else {

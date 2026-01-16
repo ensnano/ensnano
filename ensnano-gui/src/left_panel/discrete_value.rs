@@ -3,7 +3,7 @@
 // TODO: Make it an independent object like ensnano_gui::color_picker ?
 
 use crate::state::GuiAppState;
-use crate::{left_panel::Message, theme};
+use crate::{left_panel::LeftPanelMessage, theme};
 use iced::{
     Alignment, Length, Pixels,
     widget::{Space, button, row, slider, text},
@@ -79,7 +79,7 @@ impl<R: Requestable> RequestFactory<R> {
         &self,
         active: bool,
         size: impl Into<Pixels>,
-    ) -> Vec<iced::Element<'_, Message<State>>> {
+    ) -> Vec<iced::Element<'_, LeftPanelMessage<State>>> {
         let s = size.into();
         self.values
             .values()
@@ -157,9 +157,9 @@ impl DiscreteValue {
         &self,
         active: bool,
         name_size: impl Into<Pixels>,
-    ) -> iced::Element<'_, Message<State>> {
+    ) -> iced::Element<'_, LeftPanelMessage<State>> {
         let decr_button = if active && self.value - self.step >= self.min_val {
-            button("-").on_press(Message::DiscreteValue {
+            button("-").on_press(LeftPanelMessage::DiscreteValue {
                 factory_id: self.owner_id,
                 value_id: self.value_id,
                 value: self.value - self.step,
@@ -168,7 +168,7 @@ impl DiscreteValue {
             button("-")
         };
         let incr_button = if active && self.value + self.step <= self.max_val {
-            button("+").on_press(Message::DiscreteValue {
+            button("+").on_press(LeftPanelMessage::DiscreteValue {
                 factory_id: self.owner_id,
                 value_id: self.value_id,
                 value: self.value + self.step,
@@ -180,7 +180,7 @@ impl DiscreteValue {
         let value_id = self.value_id;
         let slider = if active {
             slider(self.min_val..=self.max_val, self.value, move |value| {
-                Message::DiscreteValue {
+                LeftPanelMessage::DiscreteValue {
                     factory_id,
                     value_id,
                     value,
@@ -189,7 +189,7 @@ impl DiscreteValue {
             .step(self.step)
         } else {
             slider(self.min_val..=self.max_val, self.value, |_| {
-                Message::Nothing
+                LeftPanelMessage::Nothing
             })
             .style(theme::DeactivatedSlider)
         };

@@ -3,7 +3,7 @@ use crate::{
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
     left_panel::{
-        HelixRoll, Message, color_to_u32,
+        HelixRoll, LeftPanelMessage, color_to_u32,
         discrete_value::{FactoryId, RequestFactory, ValueId},
         tabs::GuiTab,
     },
@@ -73,7 +73,7 @@ impl<State: GuiAppState> EditionTab<State> {
 }
 
 impl<State: GuiAppState> GuiTab<State> for EditionTab<State> {
-    type Message = Message<State>;
+    type Message = LeftPanelMessage<State>;
 
     fn label(&self) -> TabLabel {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Edit)))
@@ -94,7 +94,7 @@ impl<State: GuiAppState> GuiTab<State> for EditionTab<State> {
         let mut tighten_helices_button = text_button("Selected", ui_size);
         if !roll_target_helices.is_empty() {
             tighten_helices_button =
-                tighten_helices_button.on_press(Message::Redim2dHelices(false));
+                tighten_helices_button.on_press(LeftPanelMessage::Redim2dHelices(false));
         }
 
         let content = column![
@@ -108,7 +108,7 @@ impl<State: GuiAppState> GuiTab<State> for EditionTab<State> {
             start_stop_button(
                 "Autoroll selected helices",
                 ui_size,
-                autoroll_is_active.then_some(Message::RollTargeted),
+                autoroll_is_active.then_some(LeftPanelMessage::RollTargeted),
                 sim_state.is_rolling()
             ),
             // add_color_square!
@@ -116,7 +116,7 @@ impl<State: GuiAppState> GuiTab<State> for EditionTab<State> {
                 row![
                     self.color_picker
                         .view()
-                        .map(|m| Message::ColorPickerMessage(m)),
+                        .map(|m| LeftPanelMessage::ColorPickerMessage(m)),
                     //self.color_picker.color_square(),
                     // memory_color_column(&self.memory_color_squares, 4),
                 ]
@@ -129,14 +129,14 @@ impl<State: GuiAppState> GuiTab<State> for EditionTab<State> {
                 suggestion_parameters.include_scaffold,
                 "Include scaffold",
                 move |b| {
-                    Message::NewSuggestionParameters(suggestion_parameters.with_include_scaffold(b))
+                    LeftPanelMessage::NewSuggestionParameters(suggestion_parameters.with_include_scaffold(b))
                 },
                 ui_size,
             ),
             right_checkbox(
                 suggestion_parameters.include_intra_strand,
                 "Intra strand suggestions",
-                move |b| Message::NewSuggestionParameters(
+                move |b| LeftPanelMessage::NewSuggestionParameters(
                     suggestion_parameters.with_intra_strand(b)
                 ),
                 ui_size,
@@ -144,13 +144,13 @@ impl<State: GuiAppState> GuiTab<State> for EditionTab<State> {
             right_checkbox(
                 suggestion_parameters.include_xover_ends,
                 "Include Xover ends",
-                move |b| Message::NewSuggestionParameters(suggestion_parameters.with_xover_ends(b)),
+                move |b| LeftPanelMessage::NewSuggestionParameters(suggestion_parameters.with_xover_ends(b)),
                 ui_size,
             ),
             right_checkbox(
                 suggestion_parameters.ignore_groups,
                 "All helices",
-                move |b| Message::NewSuggestionParameters(
+                move |b| LeftPanelMessage::NewSuggestionParameters(
                     suggestion_parameters.with_ignore_groups(b)
                 ),
                 ui_size,
@@ -159,7 +159,7 @@ impl<State: GuiAppState> GuiTab<State> for EditionTab<State> {
             // add_tighten_helices_button!
             row![
                 tighten_helices_button,
-                text_button("All", ui_size).on_press(Message::Redim2dHelices(true)),
+                text_button("All", ui_size).on_press(LeftPanelMessage::Redim2dHelices(true)),
             ]
             .spacing(ui_size.button_spacing()),
         ]

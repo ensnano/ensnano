@@ -1,7 +1,7 @@
 use crate::{
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, jump_by, section, subsection, text_button},
-    left_panel::{Message, tabs::GuiTab},
+    left_panel::{LeftPanelMessage, tabs::GuiTab},
     state::GuiAppState,
     theme,
 };
@@ -143,12 +143,12 @@ impl ParameterWidget {
     fn input_view<State: GuiAppState>(
         &self,
         id: RevolutionParameterId,
-    ) -> iced::Element<'_, Message<State>> {
+    ) -> iced::Element<'_, LeftPanelMessage<State>> {
         keyboard_priority(
             format!("Revolution tab {id:?}"),
-            Message::SetKeyboardPriority,
+            LeftPanelMessage::SetKeyboardPriority,
             text_input("", &self.current_text)
-                .on_input(move |s| Message::RevolutionParameterUpdate {
+                .on_input(move |s| LeftPanelMessage::RevolutionParameterUpdate {
                     parameter_id: id,
                     text: s,
                 })
@@ -208,7 +208,7 @@ impl<S: GuiAppState> CurveDescriptorWidget<S> {
         }
     }
 
-    fn view(&self, ui_size: UiSize) -> iced::Element<'_, Message<S>> {
+    fn view(&self, ui_size: UiSize) -> iced::Element<'_, LeftPanelMessage<S>> {
         container(column(self.parameters.iter().enumerate().map(
             |(param_id, param)| {
                 row![
@@ -500,13 +500,13 @@ impl<State: GuiAppState> RevolutionTab<State> {
 }
 
 impl<State: GuiAppState> GuiTab<State> for RevolutionTab<State> {
-    type Message = Message<State>;
+    type Message = LeftPanelMessage<State>;
 
     fn label(&self) -> TabLabel {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::AutoMode)))
     }
 
-    fn update(&mut self, app_state: &mut State) -> Command<Message<State>> {
+    fn update(&mut self, app_state: &mut State) -> Command<LeftPanelMessage<State>> {
         if let Some(r) = app_state.get_current_revolution_radius()
             && !self.modifying_radius()
         {
@@ -546,8 +546,8 @@ impl<State: GuiAppState> GuiTab<State> for RevolutionTab<State> {
             let buttons = (button("-"), button("+"));
             if let Some(shift) = self.get_shift_per_turn(app_state) {
                 row![
-                    buttons.0.on_press(Message::DecrRevolutionShift),
-                    buttons.1.on_press(Message::IncrRevolutionShift),
+                    buttons.0.on_press(LeftPanelMessage::DecrRevolutionShift),
+                    buttons.1.on_press(LeftPanelMessage::IncrRevolutionShift),
                     Space::with_width(ui_size.checkbox_spacing()),
                     text(format!("Nb shift: {shift}")),
                 ]
@@ -563,7 +563,7 @@ impl<State: GuiAppState> GuiTab<State> for RevolutionTab<State> {
 
         let simulation_buttons = if SimulationState::Relaxing == app_state.get_simulation_state() {
             column![
-                text_button("Abort", ui_size).on_press(Message::StopSimulation),
+                text_button("Abort", ui_size).on_press(LeftPanelMessage::StopSimulation),
                 jump_by(2),
                 text(
                     app_state
@@ -571,12 +571,12 @@ impl<State: GuiAppState> GuiTab<State> for RevolutionTab<State> {
                         .get_current_length_of_relaxed_shape()
                         .map_or(String::new(), |l| format!("Current total length: {l}"))
                 ),
-                text_button("Finish", ui_size).on_press(Message::FinishRelaxation),
+                text_button("Finish", ui_size).on_press(LeftPanelMessage::FinishRelaxation),
             ]
         } else {
             let mut button = text_button("Start", ui_size);
             if SimulationState::None == app_state.get_simulation_state() && desc.is_some() {
-                button = button.on_press(Message::InitRevolutionRelaxation);
+                button = button.on_press(LeftPanelMessage::InitRevolutionRelaxation);
             }
             column![button]
         };
@@ -584,7 +584,7 @@ impl<State: GuiAppState> GuiTab<State> for RevolutionTab<State> {
         let content = column![
             section("Revolution Surfaces", ui_size),
             checkbox("Show bezier paths", app_state.get_show_bezier_paths())
-                .on_toggle(Message::SetShowBezierPaths),
+                .on_toggle(LeftPanelMessage::SetShowBezierPaths),
             column![
                 extra_jump(),
                 subsection("Section parameters", ui_size),
@@ -596,7 +596,7 @@ impl<State: GuiAppState> GuiTab<State> for RevolutionTab<State> {
                         self.curve_descriptor_widget
                             .as_ref()
                             .map(|w| w.builder.clone()),
-                        Message::CurveBuilderPicked,
+                        LeftPanelMessage::CurveBuilderPicked,
                     )
                     .placeholder("Pick.."),
                 ]
@@ -693,7 +693,7 @@ impl<State: GuiAppState> GuiTab<State> for RevolutionTab<State> {
                     pick_list(
                         EquadiffSolvingMethod::ALL_METHODS,
                         Some(self.equadiff_method),
-                        Message::RevolutionEquadiffSolvingMethodPicked,
+                        LeftPanelMessage::RevolutionEquadiffSolvingMethodPicked,
                     ),
                 ]
                 .align_items(Alignment::Center),

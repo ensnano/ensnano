@@ -1,7 +1,7 @@
 use crate::{
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, right_checkbox, section, subsection, text_button},
-    left_panel::{Message, tabs::GuiTab},
+    left_panel::{LeftPanelMessage, tabs::GuiTab},
     state::GuiAppState,
     theme,
 };
@@ -67,20 +67,26 @@ impl<State: GuiAppState> CameraTab<State> {
 }
 
 impl<State: GuiAppState> GuiTab<State> for CameraTab<State> {
-    type Message = Message<State>;
+    type Message = LeftPanelMessage<State>;
 
     fn label(&self) -> TabLabel {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Videocam)))
     }
 
-    fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Message<State>> {
+    fn content(
+        &self,
+        ui_size: UiSize,
+        app_state: &State,
+    ) -> iced::Element<'_, LeftPanelMessage<State>> {
         let content = column![
             section("Camera", ui_size),
             subsection("Toggle visibility", ui_size),
             row![
-                text_button("Selected", ui_size).on_press(Message::ToggleVisibility(false)),
-                text_button("Non-selected", ui_size).on_press(Message::ToggleVisibility(true)),
-                text_button("All", ui_size).on_press(Message::AllVisible),
+                text_button("Selected", ui_size)
+                    .on_press(LeftPanelMessage::ToggleVisibility(false)),
+                text_button("Non-selected", ui_size)
+                    .on_press(LeftPanelMessage::ToggleVisibility(true)),
+                text_button("All", ui_size).on_press(LeftPanelMessage::AllVisible),
             ]
             .width(Length::Fill)
             .spacing(ui_size.button_spacing()),
@@ -95,7 +101,7 @@ impl<State: GuiAppState> GuiTab<State> for CameraTab<State> {
                         HBondDisplay::Ellipsoid,
                     ],
                     Some(app_state.get_h_bonds_display()),
-                    Message::ShowHBonds,
+                    LeftPanelMessage::ShowHBonds,
                 ),
             ]
             .align_items(Alignment::Center)
@@ -103,13 +109,13 @@ impl<State: GuiAppState> GuiTab<State> for CameraTab<State> {
             right_checkbox(
                 app_state.show_stereographic_camera(),
                 "Show stereographic camera",
-                Message::ShowStereographicCamera,
+                LeftPanelMessage::ShowStereographicCamera,
                 ui_size,
             ),
             right_checkbox(
                 app_state.follow_stereographic_camera(),
                 "Follow stereographic camera",
-                Message::FollowStereographicCamera,
+                LeftPanelMessage::FollowStereographicCamera,
                 ui_size,
             ),
             extra_jump(),
@@ -118,7 +124,7 @@ impl<State: GuiAppState> GuiTab<State> for CameraTab<State> {
                 pick_list(
                     CheckXoversParameter::ALL,
                     Some(app_state.get_checked_xovers_parameters()),
-                    Message::CheckXoversParameter,
+                    LeftPanelMessage::CheckXoversParameter,
                 ),
             ]
             .align_items(Alignment::Center)
@@ -131,7 +137,7 @@ impl<State: GuiAppState> GuiTab<State> for CameraTab<State> {
                     pick_list(
                         ALL_RENDERING_MODE,
                         Some(self.rendering_mode),
-                        Message::RenderingMode,
+                        LeftPanelMessage::RenderingMode,
                     ),
                 ]
                 .align_items(Alignment::Center)
@@ -142,7 +148,7 @@ impl<State: GuiAppState> GuiTab<State> for CameraTab<State> {
                     pick_list(
                         ALL_BACKGROUND3D,
                         Some(self.background3d),
-                        Message::Background3D,
+                        LeftPanelMessage::Background3D,
                     ),
                 ]
                 .align_items(Alignment::Center)
@@ -150,7 +156,7 @@ impl<State: GuiAppState> GuiTab<State> for CameraTab<State> {
                 .width(Length::FillPortion(1)),
             ],
             checkbox("Expand insertions", app_state.expand_insertions())
-                .on_toggle(Message::SetExpandInsertions),
+                .on_toggle(LeftPanelMessage::SetExpandInsertions),
         ]
         .spacing(5);
 
@@ -175,7 +181,10 @@ struct FogGuiParameters {
 }
 
 impl FogGuiParameters {
-    fn view<State: GuiAppState>(&self, ui_size: UiSize) -> iced::Element<'_, Message<State>> {
+    fn view<State: GuiAppState>(
+        &self,
+        ui_size: UiSize,
+    ) -> iced::Element<'_, LeftPanelMessage<State>> {
         let radius_text = if self.is_activated {
             text("Radius")
         } else {
@@ -189,15 +198,16 @@ impl FogGuiParameters {
         };
 
         let length_slider = if self.is_activated {
-            slider(0f32..=100f32, self.length, Message::FogLength)
+            slider(0f32..=100f32, self.length, LeftPanelMessage::FogLength)
         } else {
-            slider(0f32..=100f32, self.length, |_| Message::Nothing).style(theme::DeactivatedSlider)
+            slider(0f32..=100f32, self.length, |_| LeftPanelMessage::Nothing)
+                .style(theme::DeactivatedSlider)
         };
 
         let softness_slider = if self.is_activated {
-            slider(0f32..=100f32, self.softness, Message::FogRadius)
+            slider(0f32..=100f32, self.softness, LeftPanelMessage::FogRadius)
         } else {
-            slider(0f32..=100f32, self.softness, |_| Message::Nothing)
+            slider(0f32..=100f32, self.softness, |_| LeftPanelMessage::Nothing)
                 .style(theme::DeactivatedSlider)
         };
 
@@ -216,7 +226,7 @@ impl FogGuiParameters {
                         self.dark,
                         self.is_reversed,
                     )),
-                    Message::FogChoice,
+                    LeftPanelMessage::FogChoice,
                 )
                 .padding(ui_size.button_spacing()),
             ]

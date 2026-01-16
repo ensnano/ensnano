@@ -2,7 +2,7 @@ use crate::{
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, icon_button, section, subsection, text_button},
     left_panel::{
-        Hyperboloid_, Message,
+        Hyperboloid_, LeftPanelMessage,
         discrete_value::{FactoryId, RequestFactory, ValueId},
         tabs::GuiTab,
     },
@@ -50,7 +50,7 @@ impl<State: GuiAppState> GridTab<State> {
 }
 
 impl<State: GuiAppState> GuiTab<State> for GridTab<State> {
-    type Message = Message<State>;
+    type Message = LeftPanelMessage<State>;
 
     fn label(&self) -> TabLabel {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::GridOn)))
@@ -62,11 +62,11 @@ impl<State: GuiAppState> GuiTab<State> for GridTab<State> {
             subsection("New Grid", ui_size),
             // add_grid_buttons!
             row![
-                icon_button(ICON_SQUARE_GRID, ui_size).on_press(Message::<State>::NewGrid(
+                icon_button(ICON_SQUARE_GRID, ui_size).on_press(LeftPanelMessage::<State>::NewGrid(
                     GridTypeDescr::Square { twist: None }
                 )),
                 icon_button(ICON_HONEYCOMB_GRID, ui_size)
-                    .on_press(Message::NewGrid(GridTypeDescr::Honeycomb { twist: None })),
+                    .on_press(LeftPanelMessage::NewGrid(GridTypeDescr::Honeycomb { twist: None })),
             ]
             .spacing(ui_size.button_spacing()),
             extra_jump(),
@@ -75,15 +75,15 @@ impl<State: GuiAppState> GuiTab<State> for GridTab<State> {
             if app_state.is_building_hyperboloid() {
                 row![
                     text_button("Cancel", ui_size)
-                        .on_press(Message::CancelHyperboloid)
+                        .on_press(LeftPanelMessage::CancelHyperboloid)
                         .style(iced::theme::Button::Destructive),
                     text_button("Finish", ui_size)
-                        .on_press(Message::FinalizeHyperboloid)
+                        .on_press(LeftPanelMessage::FinalizeHyperboloid)
                         .style(iced::theme::Button::Positive),
                 ]
                 .spacing(ui_size.button_spacing())
             } else {
-                row![icon_button(ICON_NANOTUBE, ui_size).on_press(Message::NewHyperboloid),]
+                row![icon_button(ICON_NANOTUBE, ui_size).on_press(LeftPanelMessage::NewHyperboloid),]
                     .spacing(ui_size.button_spacing())
             },
             // add hyperboloid sliders!
@@ -96,7 +96,7 @@ impl<State: GuiAppState> GuiTab<State> for GridTab<State> {
             // add_guess_grid_button!
             tooltip(
                 text_button("From Selection", ui_size)
-                    .on_press_maybe(app_state.can_make_grid().then_some(Message::MakeGrids)),
+                    .on_press_maybe(app_state.can_make_grid().then_some(LeftPanelMessage::MakeGrids)),
                 text("Select ≥4 unattached helices").size(ui_size.main_text()),
                 tooltip::Position::FollowCursor,
             )

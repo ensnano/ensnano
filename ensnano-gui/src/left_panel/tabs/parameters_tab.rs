@@ -2,7 +2,7 @@ use crate::{
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, jump_by, right_checkbox, section, subsection},
     left_panel::{
-        Message, ScrollSensitivity,
+        LeftPanelMessage, ScrollSensitivity,
         discrete_value::{FactoryId, RequestFactory, ValueId},
         tabs::GuiTab,
     },
@@ -46,7 +46,7 @@ impl<State: GuiAppState> ParametersTab<State> {
 }
 
 impl<State: GuiAppState> GuiTab<State> for ParametersTab<State> {
-    type Message = Message<State>;
+    type Message = LeftPanelMessage<State>;
 
     fn label(&self) -> TabLabel {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Settings)))
@@ -59,7 +59,7 @@ impl<State: GuiAppState> GuiTab<State> for ParametersTab<State> {
             section("Parameters", ui_size),
             extra_jump(),
             subsection("Font size", ui_size),
-            pick_list(&ALL_UI_SIZES[..], Some(ui_size), Message::UiSizePicked,),
+            pick_list(&ALL_UI_SIZES[..], Some(ui_size), LeftPanelMessage::UiSizePicked,),
             extra_jump(),
             subsection("Scrolling", ui_size),
             column(
@@ -69,7 +69,7 @@ impl<State: GuiAppState> GuiTab<State> for ParametersTab<State> {
             right_checkbox(
                 app_state.get_invert_y_scroll(),
                 "Inverse direction",
-                Message::InvertScroll,
+                LeftPanelMessage::InvertScroll,
                 ui_size,
             ),
             jump_by(10),
@@ -77,7 +77,7 @@ impl<State: GuiAppState> GuiTab<State> for ParametersTab<State> {
             pick_list(
                 &NAMED_DNA_PARAMETERS[..],
                 Some(app_state.get_dna_parameters().name().clone()),
-                Message::NewDnaParameters,
+                LeftPanelMessage::NewDnaParameters,
             ),
             column![
                 text(format!("  Radius: {:.3} nm", dna_params.helix_radius)),

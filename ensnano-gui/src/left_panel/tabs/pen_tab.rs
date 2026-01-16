@@ -1,7 +1,7 @@
 use crate::{
     fonts::material_icons::{MaterialIcon, MaterialIconStyle, icon_to_char},
     helpers::{extra_jump, icon_button, material_icon_button, section},
-    left_panel::{Message, tabs::GuiTab},
+    left_panel::{LeftPanelMessage, tabs::GuiTab},
     state::GuiAppState,
 };
 use ensnano_design::grid::GridTypeDescr;
@@ -22,7 +22,7 @@ pub struct PenTab<State: GuiAppState> {
 }
 
 impl<State: GuiAppState> GuiTab<State> for PenTab<State> {
-    type Message = Message<State>;
+    type Message = LeftPanelMessage<State>;
 
     fn label(&self) -> TabLabel {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Draw)))
@@ -39,13 +39,13 @@ impl<State: GuiAppState> GuiTab<State> for PenTab<State> {
             section("Bezier Planes", ui_size),
             column![
                 material_icon_button(MaterialIcon::FileOpen, MaterialIconStyle::Light, ui_size)
-                    .on_press(Message::LoadSvgFile),
+                    .on_press(LeftPanelMessage::LoadSvgFile),
                 // add_buttons!
                 row![
                     material_icon_button(NEW_BEZIER_PLANE_ICON, MaterialIconStyle::Light, ui_size)
-                        .on_press(Message::NewBezierPlane),
+                        .on_press(LeftPanelMessage::NewBezierPlane),
                     material_icon_button(EDIT_BEZIER_PATH_ICON, MaterialIconStyle::Light, ui_size)
-                        .on_press(Message::StartBezierPath),
+                        .on_press(LeftPanelMessage::StartBezierPath),
                 ]
                 .spacing(ui_size.button_spacing()),
             ]
@@ -53,11 +53,11 @@ impl<State: GuiAppState> GuiTab<State> for PenTab<State> {
             // add_grid_buttons!
             if let Some(path_id) = app_state.get_selected_bezier_path() {
                 row![
-                    icon_button(ICON_SQUARE_GRID, ui_size).on_press(Message::TurnPathIntoGrid {
+                    icon_button(ICON_SQUARE_GRID, ui_size).on_press(LeftPanelMessage::TurnPathIntoGrid {
                         path_id,
                         grid_type: GridTypeDescr::Square { twist: None },
                     }),
-                    icon_button(ICON_HONEYCOMB_GRID, ui_size).on_press(Message::TurnPathIntoGrid {
+                    icon_button(ICON_HONEYCOMB_GRID, ui_size).on_press(LeftPanelMessage::TurnPathIntoGrid {
                         path_id,
                         grid_type: GridTypeDescr::Honeycomb { twist: None },
                     }),
@@ -71,7 +71,7 @@ impl<State: GuiAppState> GuiTab<State> for PenTab<State> {
                 selected_path_id.and_then(|p_id| app_state.get_reader().is_bezier_path_cyclic(p_id))
             {
                 row![checkbox("Cyclic", b).on_toggle(move |cyclic| {
-                    Message::MakeBezierPathCyclic {
+                    LeftPanelMessage::MakeBezierPathCyclic {
                         path_id: selected_path_id.unwrap(),
                         cyclic,
                     }
@@ -81,7 +81,7 @@ impl<State: GuiAppState> GuiTab<State> for PenTab<State> {
             },
             extra_jump(),
             checkbox("Show bezier paths", app_state.get_show_bezier_paths())
-                .on_toggle(Message::SetShowBezierPaths,),
+                .on_toggle(LeftPanelMessage::SetShowBezierPaths,),
         ]
         .spacing(5);
         content.into()

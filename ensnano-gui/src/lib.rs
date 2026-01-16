@@ -21,12 +21,12 @@ mod widgets;
 
 use crate::messages::GuiMessages;
 use crate::requests::GuiRequests;
-use crate::state::{GuiAppState, GuiState, TopBarState};
+use crate::state::{GuiAppState, GuiState, TopBarStateFlags};
 use crate::{
     fonts::{INTER_REGULAR_FONT, load_fonts},
-    left_panel::LeftPanel,
-    status_bar::StatusBar,
-    top_bar::TopBar,
+    left_panel::LeftPanelState,
+    status_bar::StatusBarState,
+    top_bar::TopBarState,
 };
 use ensnano_utils::{
     TEXTURE_FORMAT, app_state_parameters::AppStateParameters, graphics::GuiComponentType,
@@ -65,11 +65,11 @@ impl<R: GuiRequests, S: GuiAppState> GuiComponent<R, S> {
         multiplexer: &dyn MultiplexerExt,
         requests: Arc<Mutex<R>>,
         app_state: S,
-        top_bar_state: TopBarState,
+        top_bar_state: TopBarStateFlags,
         ui_size: UiSize,
     ) -> Self {
         let top_bar_area = multiplexer.get_draw_area(GuiComponentType::TopBar).unwrap();
-        let top_bar = TopBar::new(
+        let top_bar = TopBarState::new(
             requests,
             top_bar_area.size.to_logical(window.scale_factor()),
             app_state,
@@ -105,7 +105,7 @@ impl<R: GuiRequests, S: GuiAppState> GuiComponent<R, S> {
         let left_panel_area = multiplexer
             .get_draw_area(GuiComponentType::LeftPanel)
             .unwrap();
-        let left_panel = LeftPanel::new(
+        let left_panel = LeftPanelState::new(
             requests,
             left_panel_area.size.to_logical(window.scale_factor()),
             left_panel_area.position.to_logical(window.scale_factor()),
@@ -140,7 +140,7 @@ impl<R: GuiRequests, S: GuiAppState> GuiComponent<R, S> {
         let status_bar_area = multiplexer
             .get_draw_area(GuiComponentType::StatusBar)
             .unwrap();
-        let status_bar = StatusBar::new(
+        let status_bar = StatusBarState::new(
             requests,
             state,
             status_bar_area.size.to_logical(window.scale_factor()),
@@ -272,7 +272,7 @@ impl<R: GuiRequests, State: GuiAppState> GuiManager<R, State> {
         requests: Arc<Mutex<R>>,
         parameters: AppStateParameters,
         global_state: &State,
-        top_bar_state: TopBarState,
+        top_bar_state: TopBarStateFlags,
     ) -> Self {
         let wgpu_settings = iced_wgpu::Settings {
             antialiasing: Some(iced_graphics::Antialiasing::MSAAx4),
@@ -308,7 +308,7 @@ impl<R: GuiRequests, State: GuiAppState> GuiManager<R, State> {
         window: &Window,
         multiplexer: &dyn MultiplexerExt,
         state: &State,
-        top_bar_state: TopBarState,
+        top_bar_state: TopBarStateFlags,
     ) {
         // NOTE: Wow…
         //       Argument 'state' is called 'global_state' when called above, and it is used
@@ -476,7 +476,7 @@ impl<R: GuiRequests, State: GuiAppState> GuiManager<R, State> {
         window: &Window,
         multiplexer: &dyn MultiplexerExt,
         app_state: &State,
-        top_bar_state: TopBarState,
+        top_bar_state: TopBarStateFlags,
     ) {
         self.set_text_size(ui_size.main_text());
         self.parameters.ui_size = ui_size;
@@ -489,7 +489,7 @@ impl<R: GuiRequests, State: GuiAppState> GuiManager<R, State> {
         window: &Window,
         multiplexer: &dyn MultiplexerExt,
         app_state: &State,
-        top_bar_state: TopBarState,
+        top_bar_state: TopBarStateFlags,
     ) {
         self.set_text_size(self.parameters.ui_size.main_text());
         self.rebuild_gui(window, multiplexer, app_state, top_bar_state);
