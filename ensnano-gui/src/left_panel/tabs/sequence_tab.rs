@@ -1,7 +1,7 @@
 use crate::{
-    GuiAppState,
     helpers::{extra_jump, right_checkbox, section, text_button},
     left_panel::{Message, tabs::GuiTab},
+    state::GuiAppState,
     theme,
 };
 use ensnano_design::design_element::DesignElementKey;

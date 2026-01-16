@@ -1,8 +1,8 @@
 use crate::{
-    GuiAppState,
     fonts::material_icons::{MaterialIcon, MaterialIconStyle, icon_to_char},
     helpers::{extra_jump, icon_button, material_icon_button, section},
     left_panel::{Message, tabs::GuiTab},
+    state::GuiAppState,
 };
 use ensnano_design::grid::GridTypeDescr;
 use ensnano_utils::{

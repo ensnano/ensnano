@@ -10,6 +10,7 @@ mod consts;
 pub mod fonts;
 mod helpers;
 pub mod left_panel;
+pub mod messages;
 pub mod requests;
 pub mod state;
 pub mod status_bar;
@@ -18,40 +19,26 @@ pub mod top_bar;
 mod widgets;
 
 use crate::requests::GuiRequests;
-use crate::state::{GuiState, TopBarState};
+use crate::state::{GuiAppState, GuiState, TopBarState};
 use crate::{
     fonts::{INTER_REGULAR_FONT, load_fonts},
-    left_panel::{
-        LeftPanel,
-        tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
-    },
+    left_panel::LeftPanel,
     status_bar::StatusBar,
     top_bar::TopBar,
 };
 use ensnano_design::{
     CameraId,
     bezier_plane::{BezierPathId, BezierVertexId},
-    design_element::{DesignElement, DesignElementKey},
+    design_element::DesignElement,
     grid::GridId,
-    interaction_modes::{ActionMode, SelectionMode},
     nucl::Nucl,
     operation::InsertionPoint,
-    organizer_tree::{GroupId, OrganizerTree},
-    parameters::HelixParameters,
+    organizer_tree::OrganizerTree,
     selection::Selection,
 };
 use ensnano_utils::{
-    PastingStatus, ScaffoldInfo, SimulationState, StrandBuildingStatus, TEXTURE_FORMAT,
-    WidgetBasis,
-    app_state_parameters::{
-        AppStateParameters, check_xovers_parameter::CheckXoversParameter,
-        suggestion_parameters::SuggestionParameters,
-    },
-    clipboard::ClipboardContent,
-    graphics::{GuiComponentType, HBondDisplay},
-    multiplexer_ext::MultiplexerExt,
-    operation::CurrentOpState,
-    ui_size::UiSize,
+    TEXTURE_FORMAT, app_state_parameters::AppStateParameters, graphics::GuiComponentType,
+    multiplexer_ext::MultiplexerExt, ui_size::UiSize,
 };
 use ensnano_utils::{convert_size_f32, convert_size_u32};
 use iced::{
@@ -629,50 +616,6 @@ impl<S: GuiAppState> IcedMessages<S> {
                 .push_back(status_bar::Message::NewApplicationState(state));
         }
     }
-}
-
-pub trait GuiAppState:
-    Default + PartialEq + Clone + 'static + Send + std::fmt::Debug + std::fmt::Pointer
-{
-    const POSSIBLE_CURVES: &'static [CurveDescriptorBuilder<Self>];
-
-    fn get_selection_mode(&self) -> SelectionMode;
-    fn get_action_mode(&self) -> ActionMode;
-    fn get_build_helix_mode(&self) -> ActionMode;
-    fn get_widget_basis(&self) -> WidgetBasis;
-    fn get_simulation_state(&self) -> SimulationState;
-    fn get_dna_parameters(&self) -> HelixParameters;
-    fn is_building_hyperboloid(&self) -> bool;
-    fn get_scaffold_info(&self) -> Option<ScaffoldInfo>;
-    fn get_selection(&self) -> &[Selection];
-    fn get_selection_as_design_element(&self) -> Vec<DesignElementKey>;
-    fn can_make_grid(&self) -> bool;
-    fn get_reader(&self) -> Box<dyn GuiDesignReaderExt>;
-    fn design_was_modified(&self, other: &Self) -> bool;
-    fn selection_was_updated(&self, other: &Self) -> bool;
-    fn get_current_operation_state(&self) -> Option<CurrentOpState>;
-    fn get_strand_building_state(&self) -> Option<StrandBuildingStatus>;
-    fn get_selected_group(&self) -> Option<GroupId>;
-    fn get_suggestion_parameters(&self) -> &SuggestionParameters;
-    fn get_checked_xovers_parameters(&self) -> CheckXoversParameter;
-    fn follow_stereographic_camera(&self) -> bool;
-    fn show_stereographic_camera(&self) -> bool;
-    fn get_h_bonds_display(&self) -> HBondDisplay;
-    fn get_scroll_sensitivity(&self) -> f32;
-    fn get_invert_y_scroll(&self) -> bool;
-    fn want_all_helices_on_axis(&self) -> bool;
-    fn expand_insertions(&self) -> bool;
-    fn get_show_bezier_paths(&self) -> bool;
-    fn get_selected_bezier_path(&self) -> Option<BezierPathId>;
-    fn is_exporting(&self) -> bool;
-    fn is_transitory(&self) -> bool;
-    fn get_current_revolution_radius(&self) -> Option<f64>;
-    fn get_recommended_scaling_revolution_surface(
-        &self,
-        scaffold_len: usize,
-    ) -> Option<RevolutionScaling>;
-    fn get_clipboard_content(&self) -> ClipboardContent;
-    fn get_pasting_status(&self) -> PastingStatus;
 }
 
 pub trait GuiDesignReaderExt: 'static {

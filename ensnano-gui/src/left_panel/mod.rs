@@ -27,12 +27,14 @@ use self::{
         simulation_tab::SimulationTab,
     },
 };
-use crate::requests::{GuiRequests, RigidBodyParametersRequest};
 use crate::{
-    GuiAppState,
     color_picker::ColorPickerMessage,
     fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
     theme::GuiBackground,
+};
+use crate::{
+    requests::{GuiRequests, RigidBodyParametersRequest},
+    state::GuiAppState,
 };
 use ensnano_design::{
     CameraId, bezier_plane::BezierPathId, design_element::DesignElementKey, grid::GridTypeDescr,

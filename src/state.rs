@@ -21,7 +21,10 @@ use ensnano_design::{
     },
 };
 use ensnano_exports::{ExportResult, ExportType};
-use ensnano_gui::{Gui, GuiAppState as _, IcedMessages, state::TopBarState};
+use ensnano_gui::{
+    Gui, IcedMessages,
+    state::{GuiAppState as _, TopBarState},
+};
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_scene::{SceneAppState as _, data::design3d::SceneDesignReaderExt as _};
 use ensnano_utils::{

@@ -1,5 +1,4 @@
 use crate::{
-    GuiAppState,
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, icon_button, section, subsection, text_button},
     left_panel::{
@@ -7,6 +6,7 @@ use crate::{
         discrete_value::{FactoryId, RequestFactory, ValueId},
         tabs::GuiTab,
     },
+    state::GuiAppState,
 };
 use ensnano_design::{grid::GridTypeDescr, operation::HyperboloidRequest};
 use ensnano_utils::{

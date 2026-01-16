@@ -1,8 +1,9 @@
 pub(super) mod value_constructor;
 
 use crate::requests::GuiRequests;
+use crate::state::GuiAppState;
 use crate::{
-    GuiAppState, GuiDesignReaderExt,
+    GuiDesignReaderExt,
     helpers::{extra_jump, right_checkbox, section, subsection, text_button},
     left_panel::Message,
     theme,

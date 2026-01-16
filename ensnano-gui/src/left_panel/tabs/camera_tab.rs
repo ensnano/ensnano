@@ -1,8 +1,8 @@
 use crate::{
-    GuiAppState,
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, right_checkbox, section, subsection, text_button},
     left_panel::{Message, tabs::GuiTab},
+    state::GuiAppState,
     theme,
 };
 use ensnano_utils::{

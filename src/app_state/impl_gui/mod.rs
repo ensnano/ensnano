@@ -11,8 +11,9 @@ use ensnano_design::{
     selection::{Selection, all_helices_no_grid},
 };
 use ensnano_gui::{
-    GuiAppState, GuiDesignReaderExt,
+    GuiDesignReaderExt,
     left_panel::tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
+    state::GuiAppState,
 };
 use ensnano_utils::{
     PastingStatus, ScaffoldInfo, SimulationState, StrandBuildingStatus, WidgetBasis,

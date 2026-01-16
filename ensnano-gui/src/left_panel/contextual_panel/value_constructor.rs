@@ -1,5 +1,5 @@
+use crate::state::GuiAppState;
 use crate::{
-    GuiAppState,
     consts::{MAX_NB_TURN, MIN_NB_TURN, NB_TURN_SLIDER_SPACING, NB_TURN_STEP},
     left_panel::Message,
 };

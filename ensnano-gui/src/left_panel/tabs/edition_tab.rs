@@ -1,5 +1,4 @@
 use crate::{
-    GuiAppState,
     color_picker::{ColorPicker, ColorPickerMessage},
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
@@ -8,6 +7,7 @@ use crate::{
         discrete_value::{FactoryId, RequestFactory, ValueId},
         tabs::GuiTab,
     },
+    state::GuiAppState,
 };
 use ensnano_design::{design_element::DesignElementKey, selection::extract_strands_from_selection};
 use ensnano_utils::{RollRequest, ui_size::UiSize};

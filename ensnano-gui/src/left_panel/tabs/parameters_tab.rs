@@ -1,5 +1,4 @@
 use crate::{
-    GuiAppState,
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, jump_by, right_checkbox, section, subsection},
     left_panel::{
@@ -7,6 +6,7 @@ use crate::{
         discrete_value::{FactoryId, RequestFactory, ValueId},
         tabs::GuiTab,
     },
+    state::GuiAppState,
 };
 use ensnano_design::{ensnano_version, parameters::NAMED_DNA_PARAMETERS};
 use ensnano_utils::ui_size::{ALL_UI_SIZES, UiSize};

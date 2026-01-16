@@ -1,8 +1,8 @@
 use crate::{
-    GuiAppState,
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, jump_by, section, subsection, text_button},
     left_panel::{Message, tabs::GuiTab},
+    state::GuiAppState,
     theme,
 };
 use ensnano_design::curves::torus::CurveDescriptor2D;
