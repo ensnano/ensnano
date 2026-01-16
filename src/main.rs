@@ -92,9 +92,10 @@ use crate::{
 use ensnano_design::operation::DesignOperation;
 use ensnano_flatscene::FlatScene;
 use ensnano_gui::{
-    Gui, IcedMessages,
+    Gui,
     fonts::{INTER_REGULAR_FONT, load_fonts},
     left_panel::ColorOverlay,
+    messages::IcedMessages,
     theme,
 };
 use ensnano_scene::{Scene, SceneKind};

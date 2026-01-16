@@ -22,7 +22,8 @@ use ensnano_design::{
 };
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_gui::{
-    Gui, IcedMessages,
+    Gui,
+    messages::IcedMessages,
     state::{GuiAppState as _, TopBarState},
 };
 use ensnano_physics::parameters::RapierParameters;

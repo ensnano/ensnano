@@ -15,7 +15,7 @@ use crate::{
 };
 
 use ensnano_design::{nucl::Nucl, operation::DesignOperation, selection::Selection};
-use ensnano_gui::IcedMessages;
+use ensnano_gui::messages::IcedMessages;
 use ensnano_scene::data::design3d::SceneDesignReaderExt as _;
 use ensnano_utils::{
     PastingStatus,
