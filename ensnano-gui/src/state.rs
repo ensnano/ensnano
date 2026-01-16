@@ -1,3 +1,4 @@
+use crate::messages::TopBarMessage;
 use ensnano_design::{
     bezier_plane::BezierPathId,
     design_element::DesignElementKey,
@@ -66,7 +67,7 @@ impl<R: GuiRequests, S: GuiAppState> GuiState<R, S> {
         }
     }
 
-    pub fn queue_top_bar_message(&mut self, message: crate::top_bar::TopBarMessage<S>) {
+    pub fn queue_top_bar_message(&mut self, message: TopBarMessage<S>) {
         log::trace!("Queue top bar {message:?}");
         if let Self::TopBar(state) = self {
             state.queue_message(message);
@@ -95,7 +96,7 @@ impl<R: GuiRequests, S: GuiAppState> GuiState<R, S> {
 
     pub fn resize(&mut self, area: DrawArea, window: &Window) {
         match self {
-            Self::TopBar(state) => state.queue_message(crate::top_bar::TopBarMessage::Resize(
+            Self::TopBar(state) => state.queue_message(TopBarMessage::Resize(
                 area.size.to_logical(window.scale_factor()),
             )),
             Self::LeftPanel(state) => state.queue_message(LeftPanelMessage::Resized(

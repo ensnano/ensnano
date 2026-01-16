@@ -12,6 +12,7 @@ use crate::{
         material_icons::{MaterialIcon, MaterialIconStyle},
     },
     helpers::{fixed_text_button, image_button, material_icon_button, text_button},
+    messages::TopBarMessage,
     theme::GuiBackground,
 };
 use ensnano_design::interaction_modes::{ActionMode, SelectionMode};
@@ -36,36 +37,6 @@ pub struct TopBarState<R: GuiRequests, S: GuiAppState> {
     app_state: S,
     /// More local state stuff.
     state: TopBarStateFlags,
-}
-
-#[derive(Debug, Clone)]
-pub enum TopBarMessage<S: GuiAppState> {
-    SceneFitRequested,
-    AlignHorizon,
-    OpenFileButtonPressed,
-    /// Request to save file, e.g. clicked on “Save” button
-    FileSaveRequested,
-    /// Request to save file as, e.g. clicked on “Save As” button
-    SaveAsRequested,
-    Resize(LogicalSize<f64>),
-    ToggleView(SplitMode),
-    UiSizeChanged(UiSize),
-    ExportRequested,
-    Split2D,
-    // Receive an new application state.
-    NewApplicationState((S, TopBarStateFlags)),
-    ForceHelp,
-    ShowTutorial,
-    Undo,
-    Redo,
-    ButtonNewEmptyDesignPressed,
-    ActionModeChanged(ActionMode),
-    SelectionModeChanged(SelectionMode),
-    Toggle2D,
-    Reload,
-    FlipSplitViews,
-    ThickHelices(bool),
-    Import3D,
 }
 
 impl<R: GuiRequests, S: GuiAppState> TopBarState<R, S> {
