@@ -2,10 +2,9 @@ use crate::{
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, jump_by, right_checkbox, section, subsection},
     left_panel::{
-        LeftPanelMessage, ScrollSensitivity,
-        discrete_value::{FactoryId, RequestFactory, ValueId},
-        tabs::GuiTab,
+        LeftPanelMessage, ScrollSensitivity, discrete_value::RequestFactory, tabs::GuiTab,
     },
+    messages::{FactoryId, ValueId},
     state::GuiAppState,
 };
 use ensnano_design::{ensnano_version, parameters::NAMED_DNA_PARAMETERS};
@@ -59,7 +58,11 @@ impl<State: GuiAppState> GuiTab<State> for ParametersTab<State> {
             section("Parameters", ui_size),
             extra_jump(),
             subsection("Font size", ui_size),
-            pick_list(&ALL_UI_SIZES[..], Some(ui_size), LeftPanelMessage::UiSizePicked,),
+            pick_list(
+                &ALL_UI_SIZES[..],
+                Some(ui_size),
+                LeftPanelMessage::UiSizePicked,
+            ),
             extra_jump(),
             subsection("Scrolling", ui_size),
             column(

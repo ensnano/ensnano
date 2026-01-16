@@ -1,8 +1,6 @@
+use crate::consts::{MAX_NB_TURN, MIN_NB_TURN, NB_TURN_SLIDER_SPACING, NB_TURN_STEP};
+use crate::messages::{InstantiatedValue, LeftPanelMessage, ValueKind};
 use crate::state::GuiAppState;
-use crate::{
-    consts::{MAX_NB_TURN, MIN_NB_TURN, NB_TURN_SLIDER_SPACING, NB_TURN_STEP},
-    left_panel::LeftPanelMessage,
-};
 use ensnano_design::selection::Selection;
 use ensnano_utils::{keyboard_priority::keyboard_priority, ui_size::UiSize};
 use iced::{
@@ -143,21 +141,6 @@ type_builder!(
     z: f32 % FloatFormatter,
     angle: f32 % DegreeAngleFormatter
 );
-
-#[derive(Clone, Copy, Debug)]
-pub enum ValueKind {
-    HelixGridPosition,
-    GridOrientation,
-    BezierVertexPosition,
-}
-
-#[derive(Debug, Clone)]
-pub enum InstantiatedValue {
-    HelixGridPosition(Vec3),
-    GridOrientation(Rotor3),
-    GridNbTurn(f32),
-    BezierVertexPosition(Vec2),
-}
 
 pub(crate) enum GridPositionBuilder {
     Cartesian(Vec3Builder),

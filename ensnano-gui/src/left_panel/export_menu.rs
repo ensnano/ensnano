@@ -1,4 +1,4 @@
-use crate::left_panel::LeftPanelMessage;
+use crate::messages::LeftPanelMessage;
 use crate::state::GuiAppState;
 use ensnano_exports::ExportType;
 use iced::widget::{button, column, scrollable};

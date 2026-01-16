@@ -2,16 +2,14 @@
 
 // TODO: Make it an independent object like ensnano_gui::color_picker ?
 
-use crate::state::GuiAppState;
-use crate::{left_panel::LeftPanelMessage, theme};
+use crate::messages::{FactoryId, ValueId};
+use crate::theme;
+use crate::{messages::LeftPanelMessage, state::GuiAppState};
 use iced::{
     Alignment, Length, Pixels,
     widget::{Space, button, row, slider, text},
 };
 use std::collections::BTreeMap;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct ValueId(pub usize);
 
 pub(super) trait Requestable {
     type Request;
@@ -35,15 +33,6 @@ pub(super) trait Requestable {
 pub(super) struct RequestFactory<R: Requestable> {
     values: BTreeMap<ValueId, DiscreteValue>,
     pub requestable: R,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, Copy)]
-pub enum FactoryId {
-    HelixRoll,
-    Hyperboloid,
-    Scroll,
-    RigidBody,
-    Brownian,
 }
 
 impl<R: Requestable> RequestFactory<R> {

@@ -8,6 +8,7 @@
 mod color_picker;
 mod consts;
 pub mod design_reader;
+pub mod drag_drop_target;
 pub mod fonts;
 mod helpers;
 pub mod left_panel;

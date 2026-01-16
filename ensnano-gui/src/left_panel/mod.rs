@@ -7,22 +7,19 @@ pub mod tabs;
 
 use self::{
     color_picker::ColorPicker,
-    contextual_panel::{
-        ContextualPanel,
-        value_constructor::{InstantiatedValue, ValueKind},
-    },
-    discrete_value::{FactoryId, Requestable, ValueId},
+    contextual_panel::ContextualPanel,
+    discrete_value::Requestable,
     export_menu::ExportMenu,
-    organizer::{Organizer, message::OrganizerMessage},
+    organizer::Organizer,
     tabs::{
         GuiTab as _, TabId,
         camera_shortcut::CameraShortcutPanel,
-        camera_tab::{CameraTab, FogChoices},
+        camera_tab::CameraTab,
         edition_tab::EditionTab,
         grids_tab::GridTab,
         parameters_tab::ParametersTab,
         pen_tab::PenTab,
-        revolution_tab::{CurveDescriptorBuilder, RevolutionParameterId, RevolutionTab},
+        revolution_tab::{RevolutionParameterId, RevolutionTab},
         sequence_tab::SequenceTab,
         simulation_tab::SimulationTab,
     },
@@ -30,6 +27,7 @@ use self::{
 use crate::{
     color_picker::ColorPickerMessage,
     fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
+    messages::{FactoryId, LeftPanelMessage, OrganizerMessage},
     theme::GuiBackground,
 };
 use crate::{
@@ -37,22 +35,11 @@ use crate::{
     state::GuiAppState,
 };
 use ensnano_design::{
-    CameraId, bezier_plane::BezierPathId, design_element::DesignElementKey, grid::GridTypeDescr,
-    interaction_modes::ActionMode, operation::HyperboloidRequest, organizer_tree::OrganizerTree,
-    parameters::NamedParameter, selection::Selection,
+    design_element::DesignElementKey, interaction_modes::ActionMode, operation::HyperboloidRequest,
+    organizer_tree::OrganizerTree, selection::Selection,
 };
-use ensnano_exports::ExportType;
-use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
-    app_state_parameters::{
-        AppStateParameters, check_xovers_parameter::CheckXoversParameter,
-        suggestion_parameters::SuggestionParameters,
-    },
-    graphics::{Background3D, HBondDisplay, RenderingMode},
-    keyboard_priority::PriorityRequest,
-    overlay::OverlayType,
-    surfaces::EquadiffSolvingMethod,
-    ui_size::UiSize,
+    app_state_parameters::AppStateParameters, overlay::OverlayType, ui_size::UiSize,
 };
 use iced::{
     Color, Command, Element, Length,
@@ -65,11 +52,7 @@ use std::{
     f32::consts::PI,
     sync::{Arc, Mutex},
 };
-use ultraviolet::Vec3;
-use winit::{
-    dpi::{LogicalPosition, LogicalSize},
-    event::Modifiers,
-};
+use winit::dpi::{LogicalPosition, LogicalSize};
 
 pub struct LeftPanelState<R: GuiRequests, S: GuiAppState> {
     logical_size: LogicalSize<f64>,
@@ -91,123 +74,6 @@ pub struct LeftPanelState<R: GuiRequests, S: GuiAppState> {
     camera_shortcut: CameraShortcutPanel,
     application_state: S,
     exports_menu: ExportMenu,
-}
-
-#[derive(Debug, Clone)]
-pub enum LeftPanelMessage<S: GuiAppState> {
-    Resized(LogicalSize<f64>, LogicalPosition<f64>),
-    MakeGrids,
-    StrandNameChanged(usize, String),
-    ColorPickerMessage(ColorPickerMessage),
-    NewGrid(GridTypeDescr),
-    /// Set camera to fixed position.
-    FixPoint(Vec3, Vec3),
-    /// Rotate camera.
-    RotateCam(f32, f32, f32),
-    PositionHelicesChanged(String),
-    LengthHelicesChanged(String),
-    ScaffoldPositionInput(String),
-    FogRadius(f32),
-    FogLength(f32),
-    RollSimulationRequest,
-    /// Changes rapier parameters, including
-    /// if a simulation is running.
-    UpdateRapierParameters(RapierParameters),
-    UpdateRapierParameterField(String, String),
-    DiscreteValue {
-        factory_id: FactoryId,
-        value_id: ValueId,
-        value: f32,
-    },
-    NewHyperboloid,
-    FinalizeHyperboloid,
-    RollTargeted(bool),
-    /// Start or Stop Rigid Grid simulation.
-    RigidGridSimulation(bool),
-    /// Start or Stop Rigid Helices simulation.
-    RigidHelicesSimulation(bool),
-    VolumeExclusion(bool),
-    TabSelected(TabId),
-    OrganizerMessage(OrganizerMessage),
-    ModifiersChanged(Modifiers),
-    UiSizeChanged(UiSize),
-    UiSizePicked(UiSize),
-    StaplesRequested,
-    OrigamisRequested,
-    ToggleText(bool),
-    AddDoubleStrandHelix(bool),
-    ToggleVisibility(bool),
-    AllVisible,
-    Redim2dHelices(bool),
-    InvertScroll(bool),
-    BrownianMotion(bool),
-    Nothing,
-    CancelHyperboloid,
-    SelectionValueChanged(String),
-    SetSmallSpheres(bool),
-    ScaffoldIdSet(usize, bool),
-    SelectScaffold,
-    ForceHelp,
-    ShowTutorial,
-    RenderingMode(RenderingMode),
-    Background3D(Background3D),
-    OpenLink(&'static str),
-    NewApplicationState(S),
-    FogChoice(FogChoices),
-    SetScaffoldSeqButtonPressed,
-    OptimizeScaffoldShiftPressed,
-    ResetSimulation,
-    EditCameraName(String),
-    SubmitCameraName,
-    StartEditCameraName(CameraId),
-    DeleteCamera(CameraId),
-    SelectCamera(CameraId),
-    NewCustomCamera,
-    NewSuggestionParameters(SuggestionParameters),
-    ContextualValueChanged(ValueKind, usize, String),
-    ContextualValueSubmitted(ValueKind),
-    InstantiatedValueSubmitted(InstantiatedValue),
-    CheckXoversParameter(CheckXoversParameter),
-    FollowStereographicCamera(bool),
-    ShowStereographicCamera(bool),
-    ShowHBonds(HBondDisplay),
-    RainbowScaffold(bool),
-    StopSimulation,
-    FinishRelaxation,
-    StartTwist,
-    NewDnaParameters(NamedParameter),
-    SetExpandInsertions(bool),
-    InsertionLengthInput(String),
-    InsertionLengthSubmitted,
-    NewBezierPlane,
-    StartBezierPath,
-    TurnPathIntoGrid {
-        path_id: BezierPathId,
-        grid_type: GridTypeDescr,
-    },
-    SetShowBezierPaths(bool),
-    MakeBezierPathCyclic {
-        path_id: BezierPathId,
-        cyclic: bool,
-    },
-    Export(ExportType),
-    StlExport,
-    CurveBuilderPicked(CurveDescriptorBuilder<S>),
-    RevolutionEquadiffSolvingMethodPicked(EquadiffSolvingMethod),
-    RevolutionParameterUpdate {
-        parameter_id: RevolutionParameterId,
-        text: String,
-    },
-    InitRevolutionRelaxation,
-    CancelExport,
-    LoadSvgFile,
-    ScreenShot2D,
-    ScreenShot3D,
-    SaveNucleotidesPositions,
-    IncrRevolutionShift,
-    DecrRevolutionShift,
-    SetKeyboardPriority(PriorityRequest),
-    SetFocus(text_input::Id),
 }
 
 impl<R: GuiRequests, S: GuiAppState> LeftPanelState<R, S> {

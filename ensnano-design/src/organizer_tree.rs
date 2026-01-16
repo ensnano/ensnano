@@ -1,4 +1,4 @@
-use crate::design_element::DesignElementKey;
+use crate::design_element::{DesignElementKey, DnaAutoGroup};
 use ahash::RandomState;
 use rand::{
     Rng,
@@ -222,5 +222,22 @@ impl Distribution<GroupId> for StandardUniform {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> GroupId {
         let id: u64 = rng.random();
         GroupId(id)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum OrganizerNodeId {
+    Tree(Vec<usize>),
+    Section(usize),
+    AutoGroup(DnaAutoGroup),
+}
+
+impl OrganizerNodeId {
+    pub fn push(&mut self, x: usize) {
+        if let Self::Tree(v) = self {
+            v.push(x);
+        } else {
+            log::error!("Trying to push on {self:?}");
+        }
     }
 }

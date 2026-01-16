@@ -1,11 +1,11 @@
 pub(super) mod value_constructor;
 
 use crate::design_reader::GuiDesignReaderExt;
+use crate::messages::{InstantiatedValue, LeftPanelMessage, ValueKind};
 use crate::requests::GuiRequests;
 use crate::state::GuiAppState;
 use crate::{
     helpers::{extra_jump, right_checkbox, section, subsection, text_button},
-    left_panel::LeftPanelMessage,
     theme,
 };
 use ensnano_design::{
@@ -28,7 +28,7 @@ use iced::{
 };
 use std::sync::{Arc, Mutex};
 use ultraviolet::{Rotor3, Vec2, Vec3};
-use value_constructor::{BezierVertexBuilder, Builder, GridBuilder, InstantiatedValue, ValueKind};
+use value_constructor::{BezierVertexBuilder, Builder, GridBuilder};
 
 pub(super) enum ValueRequest {
     HelixGridPosition {
@@ -518,8 +518,10 @@ fn add_grid_content<'a, State: GuiAppState>(
     column![
         // twist_button
         match twisting {
-            TwistStatus::Twisting => text_button("Stop", ui_size).on_press(LeftPanelMessage::StopSimulation),
-            TwistStatus::CanTwist => text_button("Twist", ui_size).on_press(LeftPanelMessage::StartTwist),
+            TwistStatus::Twisting =>
+                text_button("Stop", ui_size).on_press(LeftPanelMessage::StopSimulation),
+            TwistStatus::CanTwist =>
+                text_button("Twist", ui_size).on_press(LeftPanelMessage::StartTwist),
             TwistStatus::CannotTwist => text_button("Twist", ui_size),
         },
         checkbox(
@@ -549,7 +551,9 @@ fn add_strand_content<'a, State: GuiAppState>(
                 "Name",
                 LeftPanelMessage::SetKeyboardPriority,
                 text_input("Name", &info_values[4])
-                    .on_input(move |new_name| { LeftPanelMessage::StrandNameChanged(s_id, new_name) })
+                    .on_input(move |new_name| {
+                        LeftPanelMessage::StrandNameChanged(s_id, new_name)
+                    })
                     .size(ui_size.main_text())
             )
         ],
@@ -599,7 +603,9 @@ fn add_help_to_column<'a, State: GuiAppState>(
     ]
 }
 
-fn turn_into_help_column<'a, State: GuiAppState>(ui_size: UiSize) -> Column<'a, LeftPanelMessage<State>> {
+fn turn_into_help_column<'a, State: GuiAppState>(
+    ui_size: UiSize,
+) -> Column<'a, LeftPanelMessage<State>> {
     column![
         section("Help", ui_size)
             .width(Length::Fill)
@@ -859,7 +865,11 @@ impl AddStrandMenu {
         self.text_inputs_are_active = show;
     }
 
-    fn view<State: GuiAppState>(&self, ui_size: UiSize, width: u16) -> Column<'_, LeftPanelMessage<State>> {
+    fn view<State: GuiAppState>(
+        &self,
+        ui_size: UiSize,
+        width: u16,
+    ) -> Column<'_, LeftPanelMessage<State>> {
         let color_choose_strand_start_length = if self.text_inputs_are_active {
             iced::theme::Text::Color(theme::GUI_PALETTE.text)
         } else {

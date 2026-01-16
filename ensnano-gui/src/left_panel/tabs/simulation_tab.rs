@@ -1,10 +1,11 @@
+use crate::messages::{FactoryId, ValueId};
 use crate::requests::GuiRequests;
 use crate::state::GuiAppState;
 use crate::{
     helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
     left_panel::{
         BrownianParametersFactory, LeftPanelMessage, RigidBodyFactory, RigidBodyParametersRequest,
-        discrete_value::{FactoryId, RequestFactory, ValueId},
+        discrete_value::RequestFactory,
         tabs::{GuiTab, gostop::GoStop},
     },
     theme,
@@ -208,13 +209,15 @@ impl<State: GuiAppState> GuiTab<State> for SimulationTab<State> {
                         if self.rapier_parameters.is_simulation_running {
                             None
                         } else {
-                            Some(LeftPanelMessage::UpdateRapierParameters(apply_parameter_fields(
-                                &self.rapier_parameter_fields,
-                                &RapierParameters {
-                                    is_simulation_running: true,
-                                    ..self.rapier_parameters
-                                },
-                            )))
+                            Some(LeftPanelMessage::UpdateRapierParameters(
+                                apply_parameter_fields(
+                                    &self.rapier_parameter_fields,
+                                    &RapierParameters {
+                                        is_simulation_running: true,
+                                        ..self.rapier_parameters
+                                    },
+                                ),
+                            ))
                         }
                     ),
                     Space::with_width(ui_size.button_spacing()),
@@ -226,8 +229,11 @@ impl<State: GuiAppState> GuiTab<State> for SimulationTab<State> {
                         }
                     ),
                     Space::with_width(ui_size.button_spacing()),
-                    text_button("Reset", ui_size)
-                        .on_press_maybe(sim_state.is_paused().then(|| LeftPanelMessage::ResetSimulation)),
+                    text_button("Reset", ui_size).on_press_maybe(
+                        sim_state
+                            .is_paused()
+                            .then(|| LeftPanelMessage::ResetSimulation)
+                    ),
                 ],
             ]
             .spacing(ui_size.button_spacing()),
@@ -357,9 +363,9 @@ fn rapier_parameters_field_editor<State: GuiAppState>(
                 .on_input(move |str| {
                     LeftPanelMessage::UpdateRapierParameterField(description.clone(), str)
                 })
-                .on_submit(LeftPanelMessage::UpdateRapierParameters(apply_parameter_fields(
-                    fields, parameters,
-                )))
+                .on_submit(LeftPanelMessage::UpdateRapierParameters(
+                    apply_parameter_fields(fields, parameters,)
+                ))
                 // }
                 .width(70)
                 .style(theme::BadValue(true)),

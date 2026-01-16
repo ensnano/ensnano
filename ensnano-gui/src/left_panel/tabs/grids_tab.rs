@@ -1,11 +1,8 @@
 use crate::{
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, icon_button, section, subsection, text_button},
-    left_panel::{
-        Hyperboloid_, LeftPanelMessage,
-        discrete_value::{FactoryId, RequestFactory, ValueId},
-        tabs::GuiTab,
-    },
+    left_panel::{Hyperboloid_, LeftPanelMessage, discrete_value::RequestFactory, tabs::GuiTab},
+    messages::{FactoryId, ValueId},
     state::GuiAppState,
 };
 use ensnano_design::{grid::GridTypeDescr, operation::HyperboloidRequest};
@@ -62,11 +59,12 @@ impl<State: GuiAppState> GuiTab<State> for GridTab<State> {
             subsection("New Grid", ui_size),
             // add_grid_buttons!
             row![
-                icon_button(ICON_SQUARE_GRID, ui_size).on_press(LeftPanelMessage::<State>::NewGrid(
-                    GridTypeDescr::Square { twist: None }
+                icon_button(ICON_SQUARE_GRID, ui_size).on_press(
+                    LeftPanelMessage::<State>::NewGrid(GridTypeDescr::Square { twist: None })
+                ),
+                icon_button(ICON_HONEYCOMB_GRID, ui_size).on_press(LeftPanelMessage::NewGrid(
+                    GridTypeDescr::Honeycomb { twist: None }
                 )),
-                icon_button(ICON_HONEYCOMB_GRID, ui_size)
-                    .on_press(LeftPanelMessage::NewGrid(GridTypeDescr::Honeycomb { twist: None })),
             ]
             .spacing(ui_size.button_spacing()),
             extra_jump(),
@@ -83,7 +81,10 @@ impl<State: GuiAppState> GuiTab<State> for GridTab<State> {
                 ]
                 .spacing(ui_size.button_spacing())
             } else {
-                row![icon_button(ICON_NANOTUBE, ui_size).on_press(LeftPanelMessage::NewHyperboloid),]
+                row![
+                        icon_button(ICON_NANOTUBE, ui_size)
+                            .on_press(LeftPanelMessage::NewHyperboloid),
+                    ]
                     .spacing(ui_size.button_spacing())
             },
             // add hyperboloid sliders!
@@ -95,8 +96,11 @@ impl<State: GuiAppState> GuiTab<State> for GridTab<State> {
             subsection("Guess grid", ui_size),
             // add_guess_grid_button!
             tooltip(
-                text_button("From Selection", ui_size)
-                    .on_press_maybe(app_state.can_make_grid().then_some(LeftPanelMessage::MakeGrids)),
+                text_button("From Selection", ui_size).on_press_maybe(
+                    app_state
+                        .can_make_grid()
+                        .then_some(LeftPanelMessage::MakeGrids)
+                ),
                 text("Select ≥4 unattached helices").size(ui_size.main_text()),
                 tooltip::Position::FollowCursor,
             )

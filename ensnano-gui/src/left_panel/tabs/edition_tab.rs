@@ -3,10 +3,9 @@ use crate::{
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
     left_panel::{
-        HelixRoll, LeftPanelMessage, color_to_u32,
-        discrete_value::{FactoryId, RequestFactory, ValueId},
-        tabs::GuiTab,
+        HelixRoll, LeftPanelMessage, color_to_u32, discrete_value::RequestFactory, tabs::GuiTab,
     },
+    messages::{FactoryId, ValueId},
     state::GuiAppState,
 };
 use ensnano_design::{design_element::DesignElementKey, selection::extract_strands_from_selection};
@@ -129,7 +128,9 @@ impl<State: GuiAppState> GuiTab<State> for EditionTab<State> {
                 suggestion_parameters.include_scaffold,
                 "Include scaffold",
                 move |b| {
-                    LeftPanelMessage::NewSuggestionParameters(suggestion_parameters.with_include_scaffold(b))
+                    LeftPanelMessage::NewSuggestionParameters(
+                        suggestion_parameters.with_include_scaffold(b),
+                    )
                 },
                 ui_size,
             ),
@@ -144,7 +145,9 @@ impl<State: GuiAppState> GuiTab<State> for EditionTab<State> {
             right_checkbox(
                 suggestion_parameters.include_xover_ends,
                 "Include Xover ends",
-                move |b| LeftPanelMessage::NewSuggestionParameters(suggestion_parameters.with_xover_ends(b)),
+                move |b| LeftPanelMessage::NewSuggestionParameters(
+                    suggestion_parameters.with_xover_ends(b)
+                ),
                 ui_size,
             ),
             right_checkbox(

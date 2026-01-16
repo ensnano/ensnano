@@ -1,18 +1,14 @@
 //! Allow your users to drag and drop widgets.
 
-use super::{OrganizerNodeId, message::OrganizerMessage};
-use ensnano_design::design_element::DesignElementKey;
+use ensnano_design::{design_element::DesignElementKey, organizer_tree::OrganizerNodeId};
 use iced::{
     Element, Length, Padding, Rectangle, Size, Vector,
-    advanced::{
-        layout::{self, Layout},
-        renderer,
-        widget::{self, Widget},
-        {Clipboard, Shell, mouse},
-    },
-    alignment, event, overlay,
-    widget::container,
+    advanced::{Clipboard, Layout, Shell, Widget, layout, mouse, overlay, renderer, widget},
+    alignment, event,
+    widget::container::layout,
 };
+
+use crate::messages::OrganizerMessage;
 
 /// Identifier for drag-drop widgets.
 #[derive(Debug, Clone, PartialOrd, PartialEq, Eq, Ord)]
@@ -25,8 +21,8 @@ pub enum DragIdentifier {
 ///
 /// There is no [Padding], [Size] for this widget. It sticks around its content.
 pub struct DragDropTarget<'a, Message> {
-    content: Element<'a, Message>,
-    identifier: DragIdentifier,
+    pub content: Element<'a, Message>,
+    pub identifier: DragIdentifier,
 }
 
 impl<'a, Message> DragDropTarget<'a, Message> {
@@ -71,7 +67,7 @@ impl Widget<OrganizerMessage, iced::Theme, iced::Renderer>
         renderer: &iced::Renderer,
         limits: &layout::Limits,
     ) -> layout::Node {
-        container::layout(
+        layout(
             limits,
             Length::Shrink,
             Length::Shrink,

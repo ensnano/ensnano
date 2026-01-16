@@ -31,7 +31,7 @@ use crate::{
         LeftPanelState,
         tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
     },
-    messages::StatusBarMessage,
+    messages::{LeftPanelMessage, StatusBarMessage},
     requests::GuiRequests,
     status_bar::StatusBarState,
     top_bar::TopBarState,
@@ -75,7 +75,7 @@ impl<R: GuiRequests, S: GuiAppState> GuiState<R, S> {
         }
     }
 
-    pub fn queue_left_panel_message(&mut self, message: crate::left_panel::LeftPanelMessage<S>) {
+    pub fn queue_left_panel_message(&mut self, message: LeftPanelMessage<S>) {
         log::trace!("Queue left panel {message:?}");
         if let Self::LeftPanel(state) = self {
             state.queue_message(message);
@@ -98,12 +98,10 @@ impl<R: GuiRequests, S: GuiAppState> GuiState<R, S> {
             Self::TopBar(state) => state.queue_message(crate::top_bar::TopBarMessage::Resize(
                 area.size.to_logical(window.scale_factor()),
             )),
-            Self::LeftPanel(state) => {
-                state.queue_message(crate::left_panel::LeftPanelMessage::Resized(
-                    area.size.to_logical(window.scale_factor()),
-                    area.position.to_logical(window.scale_factor()),
-                ))
-            }
+            Self::LeftPanel(state) => state.queue_message(LeftPanelMessage::Resized(
+                area.size.to_logical(window.scale_factor()),
+                area.position.to_logical(window.scale_factor()),
+            )),
             Self::StatusBar(state) => state.queue_message(StatusBarMessage::Resize(
                 area.size.to_logical(window.scale_factor()),
             )),
