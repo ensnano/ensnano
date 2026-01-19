@@ -1,7 +1,7 @@
 use crate::{
-    SceneAppState,
     data::design3d::{Design3D, SceneDesignReaderExt, create_dna_bond},
     element_selector,
+    state::SceneAppState,
     view::{
         dna_obj::{RawDnaInstance, SphereInstance, TubeInstance},
         instances_drawer::Instantiable as _,

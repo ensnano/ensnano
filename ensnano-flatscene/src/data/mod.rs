@@ -6,10 +6,10 @@ use crate::{
     CameraPtr, ViewPtr,
     camera2d::FitRectangle,
     data::{
-        design::FlatSceneDesignReaderExt,
         helix::{Helix, HelixHandle},
         strand::FreeEnd,
     },
+    design_reader::FlatSceneDesignReaderExt,
     flat_types::{
         FlatHelix, FlatHelixMaps, FlatIdx, FlatNucl, FlatSelection, HelixSegment, HelixVec,
     },

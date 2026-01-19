@@ -1,12 +1,13 @@
 pub(crate) mod automata;
 
 use crate::{
-    PhysicalPosition, SceneAppState, ViewPtr, WindowEvent,
+    PhysicalPosition, ViewPtr, WindowEvent,
     camera::CameraController,
     controller::automata::event_context::EventContext,
     data::Data,
     element_selector::{ElementSelector, SceneElement},
     maths_3d::FiniteVec3,
+    state::SceneAppState,
     view::{
         ViewUpdate,
         handle_drawer::{HandleColors, HandleDir},

@@ -3,9 +3,9 @@ pub(crate) mod event_context;
 mod point_and_click_state;
 
 use crate::{
-    SceneAppState,
     controller::{Consequence, Controller, TransitionConsequence},
     element_selector::SceneElement,
+    state::SceneAppState,
     view::{
         handle_drawer::{HandleColors, HandleDir},
         rotation_widget::RotationMode,

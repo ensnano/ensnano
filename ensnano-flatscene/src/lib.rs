@@ -19,6 +19,7 @@ mod chars2d;
 mod circles2d;
 mod controller;
 pub mod data;
+pub mod design_reader;
 mod flat_types;
 mod full_isometry;
 mod ndc;

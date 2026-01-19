@@ -1,5 +1,5 @@
 use crate::app_state::design_interactor::DesignInteractor;
-use ahash::RandomState;
+use ahash::HashMap;
 use ensnano_design::{
     curves::time_nucl_map::AbscissaConverter,
     domains::{Domain, helix_interval::HelixInterval},
@@ -7,12 +7,9 @@ use ensnano_design::{
     nucl::Nucl,
     strands::{Extremity, Strand},
 };
-use ensnano_flatscene::data::design::FlatSceneDesignReaderExt;
+use ensnano_flatscene::design_reader::FlatSceneDesignReaderExt;
 use ensnano_utils::{Referential, torsion::Torsion};
-use std::{
-    collections::{BTreeMap, HashMap},
-    sync::Arc,
-};
+use std::{collections::BTreeMap, sync::Arc};
 use ultraviolet::{Isometry2, Vec2, Vec3};
 
 impl FlatSceneDesignReaderExt for DesignInteractor {
@@ -83,10 +80,10 @@ impl FlatSceneDesignReaderExt for DesignInteractor {
     }
 
     fn get_torsions(&self) -> HashMap<(Nucl, Nucl), Torsion> {
-        HashMap::new()
+        HashMap::default()
     }
 
-    fn get_basis_map(&self) -> Arc<HashMap<Nucl, char, RandomState>> {
+    fn get_basis_map(&self) -> Arc<HashMap<Nucl, char>> {
         self.presenter.content.letter_map.clone()
     }
 

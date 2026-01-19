@@ -1,8 +1,8 @@
 use crate::{
-    SceneAppState,
     controller::Controller,
     data::design3d::SceneDesignReaderExt as _,
     element_selector::{CornerType, ElementSelector, SceneElement},
+    state::SceneAppState,
     view::grid::GridIntersection,
 };
 use ensnano_design::{

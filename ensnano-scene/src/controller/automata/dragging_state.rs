@@ -6,7 +6,6 @@
 //! the camera or moving an object.
 
 use crate::{
-    SceneAppState,
     controller::{
         Consequence, Controller, Transition, TransitionConsequence,
         automata::{
@@ -14,6 +13,7 @@ use crate::{
         },
     },
     element_selector::SceneElement,
+    state::SceneAppState,
     view::handle_drawer::{HandleColors, HandleDir},
 };
 use ensnano_design::{

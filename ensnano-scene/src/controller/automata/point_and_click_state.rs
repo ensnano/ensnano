@@ -9,7 +9,6 @@
 //! state, or a specific DraggingState.
 
 use crate::{
-    SceneAppState,
     controller::{
         Consequence, Controller, Transition,
         automata::{
@@ -18,6 +17,7 @@ use crate::{
         },
     },
     element_selector::SceneElement,
+    state::SceneAppState,
 };
 use ensnano_design::nucl::Nucl;
 use std::{borrow::Cow, time::Instant};

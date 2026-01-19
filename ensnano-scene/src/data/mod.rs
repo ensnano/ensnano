@@ -4,9 +4,9 @@
 pub mod design3d;
 
 use crate::{
-    SceneAppState,
     camera::CameraController,
     element_selector::{SceneElement, bezier_vertex_id},
+    state::SceneAppState,
     view::{
         Mesh, ViewPtr, ViewUpdate,
         dna_obj::{RawDnaInstance, StereographicSphereAndPlane},

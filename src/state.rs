@@ -27,7 +27,7 @@ use ensnano_gui::{
     state::GuiAppState as _,
 };
 use ensnano_physics::parameters::RapierParameters;
-use ensnano_scene::{SceneAppState as _, data::design3d::SceneDesignReaderExt as _};
+use ensnano_scene::{data::design3d::SceneDesignReaderExt as _, state::SceneAppState as _};
 use ensnano_utils::{
     PastingStatus, RigidBodyConstants,
     app_state_parameters::{
