@@ -5,7 +5,7 @@ use crate::{
     controller::normal_state::Action, requests::Requests,
 };
 use ensnano_design::{nucl::Nucl, operation::DesignOperation, selection::Selection};
-use ensnano_flatscene::FlatSceneRequests;
+use ensnano_flatscene::requests::FlatSceneRequests;
 use ensnano_utils::{application::AppId, operation::Operation};
 use std::sync::Arc;
 use ultraviolet::Isometry2;

@@ -22,12 +22,15 @@ pub mod data;
 mod flat_types;
 mod full_isometry;
 mod ndc;
+pub mod requests;
+pub mod state;
 mod view;
 
-use self::{
+use crate::{
     camera2d::{Camera2D, FitRectangle},
     data::design::FlatSceneDesignReaderExt,
     flat_types::FlatNucl,
+    requests::FlatSceneRequests,
 };
 use controller::{Consequence, Controller};
 use data::Data;
@@ -35,7 +38,6 @@ use ensnano_design::{
     MainDesignReaderExt,
     consts::ITERATIVE_AXIS_ALGORITHM,
     interaction_modes::SelectionMode,
-    nucl::Nucl,
     operation::DesignOperation,
     phantom_element::PhantomElement,
     selection::{Selection, extract_nucls_and_xover_ends},
@@ -47,7 +49,7 @@ use ensnano_utils::{
     consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE},
     filename::derive_path_with_prefix_and_time_stamp_and_suffix,
     graphics::{DrawArea, PhySize},
-    operation::{CrossCut, Cut, Operation, Xover},
+    operation::{CrossCut, Cut, Xover},
     strand_builder::StrandBuilder,
 };
 use itertools::Itertools as _;
@@ -59,7 +61,6 @@ use std::{
     sync::{Arc, Mutex},
     time::{Duration, Instant},
 };
-use ultraviolet::Isometry2;
 use view::View;
 use wgpu::{Device, Queue};
 use winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon};
@@ -834,19 +835,4 @@ pub trait FlatSceneAppState: Clone {
     fn is_changing_color(&self) -> bool;
     fn is_pasting(&self) -> bool;
     fn get_building_state(&self) -> Option<StrandBuildingStatus>;
-}
-
-pub trait FlatSceneRequests {
-    fn xover_request(&mut self, source: Nucl, target: Nucl, design_id: usize);
-    fn request_center_selection(&mut self, selection: Selection, app_id: AppId);
-    fn new_selection(&mut self, selection: Vec<Selection>);
-    fn new_candidates(&mut self, candidates: Vec<Selection>);
-    fn attempt_paste(&mut self, nucl: Option<Nucl>);
-    fn update_operation(&mut self, operation: Arc<dyn Operation>);
-    fn set_isometry(&mut self, helix: usize, segment_idx: usize, isometry: Isometry2);
-    fn set_visibility_helix(&mut self, helix: usize, visibility: bool);
-    fn flip_group(&mut self, helix: usize);
-    fn suspend_op(&mut self);
-    fn apply_design_operation(&mut self, op: DesignOperation);
-    fn set_paste_candidate(&mut self, candidate: Option<Nucl>);
 }

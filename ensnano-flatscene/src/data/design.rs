@@ -1,8 +1,8 @@
 use crate::{
-    FlatSceneRequests,
     data::strand::Strand,
     flat_types::{Flat, FlatHelix, FlatHelixMaps, FlatIdx, FlatNucl, HelixSegment, HelixVec},
     full_isometry::FullIsometry,
+    requests::FlatSceneRequests,
 };
 use ahash::RandomState;
 use ensnano_design::{
