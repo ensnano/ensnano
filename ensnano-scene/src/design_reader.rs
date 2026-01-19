@@ -20,7 +20,7 @@ use ensnano_utils::{
 };
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 
-use crate::data::{StrandNucleotidesPositions, design3d::Scalebar};
+use crate::data::StrandNucleotidesPositions;
 
 pub trait SceneDesignReaderExt: 'static + MainDesignReaderExt {
     /// Return the identifier of all the visible nucleotides
@@ -107,3 +107,5 @@ pub trait SceneDesignReaderExt: 'static + MainDesignReaderExt {
     fn get_additional_structure(&self) -> Option<&dyn AdditionalStructure>;
     fn get_nucleotides_positions_by_strands(&self) -> HashMap<usize, StrandNucleotidesPositions>;
 }
+
+pub type Scalebar = (f32, f32, fn(f32, f32, f32) -> u32);

@@ -17,8 +17,8 @@ use ensnano_design::{
     parameters::HelixParameters,
 };
 use ensnano_scene::{
-    data::{StrandNucleotidesPositions, design3d::Scalebar},
-    design_reader::SceneDesignReaderExt,
+    data::StrandNucleotidesPositions,
+    design_reader::{Scalebar, SceneDesignReaderExt},
 };
 use ensnano_utils::{
     ObjectType, Referential,

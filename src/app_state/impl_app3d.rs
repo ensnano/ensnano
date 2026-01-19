@@ -7,10 +7,11 @@ use ensnano_design::{
     organizer_tree::GroupId,
     selection::{CenterOfSelection, Selection},
 };
-use ensnano_scene::{state::SceneAppState, view::DrawOptions};
+use ensnano_scene::state::SceneAppState;
 use ensnano_utils::{
     WidgetBasis, app_state_parameters::check_xovers_parameter::CheckXoversParameter,
-    strand_builder::StrandBuilder, surfaces::UnrootedRevolutionSurfaceDescriptor,
+    graphics::DrawOptions, strand_builder::StrandBuilder,
+    surfaces::UnrootedRevolutionSurfaceDescriptor,
 };
 use std::path::PathBuf;
 

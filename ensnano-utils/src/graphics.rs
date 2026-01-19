@@ -178,3 +178,13 @@ pub struct LoopoutBond {
     /// The identifier of the bond representing the whole loopout involving this bond
     pub repr_bond_identifier: u32,
 }
+
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DrawOptions {
+    pub rendering_mode: RenderingMode,
+    pub background3d: Background3D,
+    pub show_stereographic_camera: bool,
+    pub all_helices_on_axis: bool,
+    pub h_bonds: HBondDisplay,
+    pub show_bezier_planes: bool,
+}

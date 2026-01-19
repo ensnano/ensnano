@@ -9,10 +9,11 @@ use ensnano_design::{
 };
 use ensnano_utils::{
     WidgetBasis, app_state_parameters::check_xovers_parameter::CheckXoversParameter,
-    strand_builder::StrandBuilder, surfaces::UnrootedRevolutionSurfaceDescriptor,
+    graphics::DrawOptions, strand_builder::StrandBuilder,
+    surfaces::UnrootedRevolutionSurfaceDescriptor,
 };
 
-use crate::{design_reader::SceneDesignReaderExt, view::DrawOptions};
+use crate::design_reader::SceneDesignReaderExt;
 
 pub trait SceneAppState: Clone + 'static {
     type AppStateDesignReader: SceneDesignReaderExt;

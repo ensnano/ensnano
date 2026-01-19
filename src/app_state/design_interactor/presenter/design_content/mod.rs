@@ -15,7 +15,7 @@ use ensnano_design::{
     nucl::Nucl,
     strands::DomainJunction,
 };
-use ensnano_scene::data::design3d::Scalebar;
+use ensnano_scene::design_reader::Scalebar;
 use ensnano_utils::{
     ObjectType,
     app_state_parameters::suggestion_parameters::SuggestionParameters,

@@ -1461,8 +1461,6 @@ pub(super) enum ExpandWith {
     Tubes,
 }
 
-pub type Scalebar = (f32, f32, fn(f32, f32, f32) -> u32);
-
 pub(super) struct HBondsInstances {
     pub full_h_bonds: Vec<RawDnaInstance>,
     pub partial_h_bonds: Vec<RawDnaInstance>,
