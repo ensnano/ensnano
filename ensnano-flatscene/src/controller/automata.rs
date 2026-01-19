@@ -1,9 +1,9 @@
 use crate::{
-    FlatSceneAppState,
     circles2d::CircleInstance,
     controller::{Consequence, Controller},
     data::{ClickResult, helix::HelixHandle, strand::FreeEnd},
     flat_types::{FlatHelix, FlatNucl},
+    state::FlatSceneAppState,
 };
 use ensnano_design::interaction_modes::ActionMode;
 use ensnano_utils::consts::CIRCLE2D_GREY;

@@ -8,9 +8,10 @@
 mod automata;
 
 use crate::{
-    CameraPtr, DataPtr, FlatSceneAppState, ViewPtr,
+    CameraPtr, DataPtr, ViewPtr,
     data::{ClickResult, strand::FreeEnd},
     flat_types::{FlatHelix, FlatNucl},
+    state::FlatSceneAppState,
 };
 use automata::{ControllerState, NormalState, Transition, ctrl};
 use ensnano_design::{interaction_modes::ActionMode, selection::Selection};

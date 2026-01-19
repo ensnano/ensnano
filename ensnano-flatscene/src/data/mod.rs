@@ -3,7 +3,7 @@ pub mod helix;
 pub mod strand;
 
 use crate::{
-    CameraPtr, FlatSceneAppState, ViewPtr,
+    CameraPtr, ViewPtr,
     camera2d::FitRectangle,
     data::{
         design::FlatSceneDesignReaderExt,
@@ -14,6 +14,7 @@ use crate::{
         FlatHelix, FlatHelixMaps, FlatIdx, FlatNucl, FlatSelection, HelixSegment, HelixVec,
     },
     requests::FlatSceneRequests,
+    state::FlatSceneAppState,
     view::EditionInfo,
 };
 use ahash::RandomState;

@@ -28,29 +28,25 @@ mod view;
 
 use crate::{
     camera2d::{Camera2D, FitRectangle},
-    data::design::FlatSceneDesignReaderExt,
     flat_types::FlatNucl,
     requests::FlatSceneRequests,
+    state::FlatSceneAppState,
 };
 use controller::{Consequence, Controller};
 use data::Data;
 use ensnano_design::{
-    MainDesignReaderExt,
     consts::ITERATIVE_AXIS_ALGORITHM,
-    interaction_modes::SelectionMode,
     operation::DesignOperation,
     phantom_element::PhantomElement,
     selection::{Selection, extract_nucls_and_xover_ends},
 };
 use ensnano_utils::{
-    StrandBuildingStatus,
     application::{AppId, Application, Notification},
     buffer_dimensions::BufferDimensions,
     consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE},
     filename::derive_path_with_prefix_and_time_stamp_and_suffix,
     graphics::{DrawArea, PhySize},
     operation::{CrossCut, Cut, Xover},
-    strand_builder::StrandBuilder,
 };
 use itertools::Itertools as _;
 use std::{
@@ -819,20 +815,4 @@ impl<S: FlatSceneAppState> Application for FlatScene<S> {
     fn is_split(&self) -> bool {
         self.is_split
     }
-}
-
-pub trait FlatSceneAppState: Clone {
-    type Reader: FlatSceneDesignReaderExt + MainDesignReaderExt;
-
-    fn selection_was_updated(&self, other: &Self) -> bool;
-    fn candidate_was_updated(&self, other: &Self) -> bool;
-    fn get_selection(&self) -> &[Selection];
-    fn get_candidates(&self) -> &[Selection];
-    fn get_selection_mode(&self) -> SelectionMode;
-    fn get_design_reader(&self) -> Self::Reader;
-    fn get_strand_builders(&self) -> &[StrandBuilder];
-    fn design_was_updated(&self, other: &Self) -> bool;
-    fn is_changing_color(&self) -> bool;
-    fn is_pasting(&self) -> bool;
-    fn get_building_state(&self) -> Option<StrandBuildingStatus>;
 }
