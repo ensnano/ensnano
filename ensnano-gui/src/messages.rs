@@ -30,13 +30,10 @@ use winit::{
 
 use crate::{
     color_picker::ColorPickerMessage,
+    curve::CurveDescriptorBuilder,
     drag_drop_target::DragIdentifier,
-    left_panel::tabs::{
-        TabId,
-        camera_tab::FogChoices,
-        revolution_tab::{CurveDescriptorBuilder, RevolutionParameterId},
-    },
-    state::GuiAppState,
+    fog::FogChoices,
+    state::{GuiAppState, RevolutionParameterId},
 };
 
 /// Some main application state, mostly related with top bar buttons.
@@ -441,3 +438,15 @@ pub enum FactoryId {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ValueId(pub usize);
+
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub enum TabId {
+    Grid,
+    Edition,
+    Camera,
+    Simulation,
+    Sequence,
+    Parameters,
+    Pen,
+    Revolution,
+}

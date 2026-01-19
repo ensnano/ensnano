@@ -11,8 +11,8 @@ use ensnano_design::{
     selection::{Selection, all_helices_no_grid},
 };
 use ensnano_gui::{
+    curve::{CurveDescriptorBuilder, RevolutionScaling},
     design_reader::GuiDesignReaderExt,
-    left_panel::tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
     state::GuiAppState,
 };
 use ensnano_utils::{

@@ -17,8 +17,8 @@ use ensnano_utils::{
 };
 
 use crate::{
+    curve::{CurveDescriptorBuilder, RevolutionScaling},
     design_reader::GuiDesignReaderExt,
-    left_panel::tabs::revolution_tab::{CurveDescriptorBuilder, RevolutionScaling},
 };
 
 pub trait GuiAppState:
@@ -63,4 +63,20 @@ pub trait GuiAppState:
     ) -> Option<RevolutionScaling>;
     fn get_clipboard_content(&self) -> ClipboardContent;
     fn get_pasting_status(&self) -> PastingStatus;
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum RevolutionParameterId {
+    SectionParameter(usize),
+    HalfTurnCount,
+    RevolutionRadius,
+    NbSpiral,
+    NbSectionPerSegment,
+    ScaffoldLenTarget,
+    SpringStiffness,
+    TorsionStiffness,
+    FluidFriction,
+    BallMass,
+    TimeSpan,
+    SimulationStep,
 }

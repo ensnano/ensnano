@@ -12,27 +12,19 @@ use self::{
     export_menu::ExportMenu,
     organizer::Organizer,
     tabs::{
-        GuiTab as _, TabId,
-        camera_shortcut::CameraShortcutPanel,
-        camera_tab::CameraTab,
-        edition_tab::EditionTab,
-        grids_tab::GridTab,
-        parameters_tab::ParametersTab,
-        pen_tab::PenTab,
-        revolution_tab::{RevolutionParameterId, RevolutionTab},
-        sequence_tab::SequenceTab,
+        GuiTab as _, camera_shortcut::CameraShortcutPanel, camera_tab::CameraTab,
+        edition_tab::EditionTab, grids_tab::GridTab, parameters_tab::ParametersTab,
+        pen_tab::PenTab, revolution_tab::RevolutionTab, sequence_tab::SequenceTab,
         simulation_tab::SimulationTab,
     },
 };
 use crate::{
     color_picker::ColorPickerMessage,
     fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
-    messages::{FactoryId, LeftPanelMessage, OrganizerMessage},
-    theme::GuiBackground,
-};
-use crate::{
+    messages::{FactoryId, LeftPanelMessage, OrganizerMessage, TabId},
     requests::{GuiRequests, RigidBodyParametersRequest},
-    state::GuiAppState,
+    state::{GuiAppState, RevolutionParameterId},
+    theme::GuiBackground,
 };
 use ensnano_design::{
     design_element::DesignElementKey, interaction_modes::ActionMode, operation::HyperboloidRequest,

@@ -13,18 +13,6 @@ use ensnano_utils::ui_size::UiSize;
 use iced::{Command, Length, widget::container};
 use iced_aw::TabLabel;
 
-#[derive(Clone, PartialEq, Eq, Debug)]
-pub enum TabId {
-    Grid,
-    Edition,
-    Camera,
-    Simulation,
-    Sequence,
-    Parameters,
-    Pen,
-    Revolution,
-}
-
 pub trait GuiTab<State: GuiAppState> {
     type Message;
 
@@ -66,7 +54,11 @@ pub mod gostop {
             }
         }
 
-        pub fn view(&self, active: bool, running: bool) -> iced::Element<'_, LeftPanelMessage<State>> {
+        pub fn view(
+            &self,
+            active: bool,
+            running: bool,
+        ) -> iced::Element<'_, LeftPanelMessage<State>> {
             let button_str = if running {
                 "Stop".to_owned()
             } else {
