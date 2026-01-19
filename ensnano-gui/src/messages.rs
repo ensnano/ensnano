@@ -36,8 +36,22 @@ use crate::{
         camera_tab::FogChoices,
         revolution_tab::{CurveDescriptorBuilder, RevolutionParameterId},
     },
-    state::{GuiAppState, TopBarStateFlags},
+    state::GuiAppState,
 };
+
+/// Some main application state, mostly related with top bar buttons.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct TopBarStateFlags {
+    /// Whether the Undo operation is possible.
+    pub can_undo: bool,
+    /// Whether the Redo operation is possible.
+    pub can_redo: bool,
+    pub need_save: bool,
+    pub can_reload: bool,
+    pub can_split_2d: bool,
+    pub can_toggle_2d: bool,
+    pub is_split_2d: bool,
+}
 
 /// Message sent to the gui component
 pub struct GuiMessages<S: GuiAppState> {

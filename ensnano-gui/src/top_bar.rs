@@ -99,7 +99,7 @@ impl<R: GuiRequests, S: GuiAppState> Program for TopBarState<R, S> {
             TopBarMessage::ForceHelp => self.requests.lock().unwrap().force_help(),
             TopBarMessage::ShowTutorial => self.requests.lock().unwrap().show_tutorial(),
             TopBarMessage::ButtonNewEmptyDesignPressed => {
-                self.requests.lock().unwrap().new_design()
+                self.requests.lock().unwrap().new_design();
             }
             TopBarMessage::Reload => self.requests.lock().unwrap().reload_file(),
             TopBarMessage::SelectionModeChanged(selection_mode) => {
@@ -130,7 +130,7 @@ impl<R: GuiRequests, S: GuiAppState> Program for TopBarState<R, S> {
             }
             TopBarMessage::FlipSplitViews => self.requests.lock().unwrap().flip_split_views(),
             TopBarMessage::ThickHelices(b) => {
-                self.requests.lock().unwrap().set_all_helices_on_axis(b)
+                self.requests.lock().unwrap().set_all_helices_on_axis(b);
             }
             // TODO: Consider rename message ThickHelices → AllHelicesOnAxis
             TopBarMessage::AlignHorizon => self.requests.lock().unwrap().align_horizon(),

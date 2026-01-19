@@ -23,8 +23,8 @@ use ensnano_design::{
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_gui::{
     GuiManager,
-    messages::GuiMessages,
-    state::{GuiAppState as _, TopBarStateFlags},
+    messages::{GuiMessages, TopBarStateFlags},
+    state::GuiAppState as _,
 };
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_scene::{SceneAppState as _, data::design3d::SceneDesignReaderExt as _};
