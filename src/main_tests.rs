@@ -16,7 +16,7 @@ use crate::{
 
 use ensnano_design::{nucl::Nucl, operation::DesignOperation, selection::Selection};
 use ensnano_gui::messages::GuiMessages;
-use ensnano_scene::data::design3d::SceneDesignReaderExt as _;
+use ensnano_scene::design_reader::SceneDesignReaderExt as _;
 use ensnano_utils::{
     PastingStatus,
     application::{Application, Camera3D, Notification},

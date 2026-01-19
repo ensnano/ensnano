@@ -13,7 +13,8 @@ pub mod view;
 
 use crate::{
     controller::{Consequence, Controller, automata::WidgetTarget},
-    data::{Data, design3d::SceneDesignReaderExt as _},
+    data::Data,
+    design_reader::SceneDesignReaderExt as _,
     element_selector::{ElementSelector, SceneElement},
     requests::SceneRequests,
     state::SceneAppState,

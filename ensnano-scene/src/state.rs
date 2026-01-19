@@ -12,7 +12,7 @@ use ensnano_utils::{
     strand_builder::StrandBuilder, surfaces::UnrootedRevolutionSurfaceDescriptor,
 };
 
-use crate::{data::design3d::SceneDesignReaderExt, view::DrawOptions};
+use crate::{design_reader::SceneDesignReaderExt, view::DrawOptions};
 
 pub trait SceneAppState: Clone + 'static {
     type AppStateDesignReader: SceneDesignReaderExt;

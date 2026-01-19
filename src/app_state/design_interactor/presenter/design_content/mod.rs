@@ -2,7 +2,7 @@ mod click_counter;
 mod xover_suggestions;
 
 use crate::app_state::design_interactor::presenter::{JunctionsIds, Presenter, SimulationUpdate};
-use ahash::RandomState;
+use ahash::{HashMap, HashSet};
 use click_counter::ClickCounter;
 use ensnano_design::{
     Design,
@@ -27,13 +27,7 @@ use ensnano_utils::{
     instance::Instance,
 };
 use serde::Serialize;
-use std::{
-    borrow::Cow,
-    collections::{BTreeMap, HashMap, HashSet},
-    fmt::Write as _,
-    str::FromStr as _,
-    sync::Arc,
-};
+use std::{borrow::Cow, collections::BTreeMap, fmt::Write as _, str::FromStr as _, sync::Arc};
 use ultraviolet::{Isometry3, Vec3};
 use xover_suggestions::XoverSuggestions;
 
@@ -42,41 +36,41 @@ const PRINTOUT_NUCL_POSITIONS: bool = false; // true;
 #[derive(Default, Clone)]
 pub(crate) struct DesignContent {
     /// Maps identifier of elements to their object type
-    pub object_type: HashMap<u32, ObjectType, RandomState>,
+    pub object_type: HashMap<u32, ObjectType>,
     /// Maps identifier of nucleotide to Nucleotide objects
-    pub nucleotide: HashMap<u32, Nucl, RandomState>,
+    pub nucleotide: HashMap<u32, Nucl>,
     /// Maps identifier of bonds to the pair of nucleotides involved in the bond
-    pub nucleotides_involved: HashMap<u32, (Nucl, Nucl), RandomState>,
+    pub nucleotides_involved: HashMap<u32, (Nucl, Nucl)>,
     /// Maps identifier of element to their position in the Model's coordinates
-    pub space_position: HashMap<u32, [f32; 3], RandomState>,
+    pub space_position: HashMap<u32, [f32; 3]>,
     /// Maps identifier of nucl element to their axis position in the Model's coordinates
-    pub axis_space_position: HashMap<u32, [f32; 3], RandomState>,
+    pub axis_space_position: HashMap<u32, [f32; 3]>,
     /// Maps identifier of nucl element to whether the element is on axis or not in the Model's coordinates
-    pub on_axis: HashMap<u32, bool, RandomState>,
+    pub on_axis: HashMap<u32, bool>,
     /// Maps a Nucl object to its identifier
     pub nucl_collection: Arc<NuclCollection>,
     /// Maps a pair of nucleotide forming a bond to the identifier of the bond
-    pub identifier_bond: HashMap<(Nucl, Nucl), u32, RandomState>,
+    pub identifier_bond: HashMap<(Nucl, Nucl), u32>,
     /// Maps the identifier of a element to the identifier of the strands to which it belongs
-    pub strand_map: HashMap<u32, usize, RandomState>,
+    pub strand_map: HashMap<u32, usize>,
     /// Maps the identifier of a element to the identifier of the helix to which it belongs
-    pub helix_map: HashMap<u32, usize, RandomState>,
+    pub helix_map: HashMap<u32, usize>,
     /// Maps the identifier of an element to its color
-    pub color_map: HashMap<u32, u32, RandomState>,
+    pub color_map: HashMap<u32, u32>,
     /// Maps the identifier of an element to its radius
-    pub radius_map: HashMap<u32, f32, RandomState>,
-    pub letter_map: Arc<HashMap<Nucl, char, RandomState>>,
+    pub radius_map: HashMap<u32, f32>,
+    pub letter_map: Arc<HashMap<Nucl, char>>,
     // Maps each nucleotide to if it is the result of a virtual clone
-    pub is_clone_map: HashMap<u32, bool, RandomState>,
+    pub is_clone_map: HashMap<u32, bool>,
     pub elements: Vec<DesignElement>,
     pub suggestions: Vec<(Nucl, Nucl)>,
     pub(super) grid_manager: GridData,
     pub loopout_nucls: Vec<LoopoutNucl>,
     pub loopout_bonds: Vec<LoopoutBond>,
     /// Maps bonds identifier to the length of the corresponding insertion.
-    pub insertion_length: HashMap<u32, usize, RandomState>,
-    pub xover_coloring_map: HashMap<u32, bool, RandomState>,
-    pub with_cones_map: HashMap<u32, bool, RandomState>,
+    pub insertion_length: HashMap<u32, usize>,
+    pub xover_coloring_map: HashMap<u32, bool>,
+    pub with_cones_map: HashMap<u32, bool>,
     // min value, max value and rainbow fn(t, min, max) -> color
     pub scalebar: Option<Scalebar>,
 }
@@ -437,11 +431,11 @@ impl DesignContent {
         let mut suggestion_maker = XoverSuggestions::default();
         let mut insertion_length = HashMap::default();
         let mut xover_coloring_map = HashMap::default();
-        let mut clone_variables: HashMap<String, f32> = HashMap::new();
+        let mut clone_variables: HashMap<String, f32> = HashMap::default();
         let mut scalebar: Option<Scalebar> = None;
 
         // Maps identifiers to drawing styles
-        let mut drawing_styles = HashMap::<DesignElementKey, DrawingStyle, RandomState>::default();
+        let mut drawing_styles = HashMap::<DesignElementKey, DrawingStyle>::default();
         let mut clone_transformations = Vec::<Isometry3>::new();
 
         xover_ids.copy_next_id_to(&mut new_junctions);
@@ -918,7 +912,7 @@ impl DesignContent {
                 a.push(i);
                 hash_b.insert(h, a);
             }
-            let mut hash_intersection = HashMap::<usize, Vec<isize>>::new();
+            let mut hash_intersection = HashMap::<usize, Vec<isize>>::default();
             for (h, f) in hash_f {
                 if let Some(b) = hash_b.get(&h) {
                     let mut inter = Vec::new();
@@ -954,7 +948,7 @@ impl DesignContent {
                 }
             }
 
-            let mut hash_intervals = HashMap::<usize, Vec<(isize, isize)>>::new();
+            let mut hash_intervals = HashMap::<usize, Vec<(isize, isize)>>::default();
             for (h, a) in hash_intersection {
                 let mut b = Vec::new();
                 let mut last_i = None;
@@ -1079,7 +1073,7 @@ impl DesignContent {
 
             // Cloned Nucleotide
             for isometry3 in &clone_transformations {
-                let mut nucleotides_clones = HashMap::new();
+                let mut nucleotides_clones = HashMap::default();
                 for (nucl, nucl_id) in &nucl_collection.identifier {
                     let clone_nucl_id = id_click_counter.inc();
                     nucleotides_clones.insert(nucl, clone_nucl_id);

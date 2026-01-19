@@ -1,5 +1,6 @@
 use crate::{
-    data::{Data, design3d::SceneDesignReaderExt},
+    data::Data,
+    design_reader::SceneDesignReaderExt,
     maths_3d::{Basis3D, FiniteVec3, Plane, cast_ray, unproject_point_on_plane},
     view::uniforms::Stereography,
 };

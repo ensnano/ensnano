@@ -410,7 +410,7 @@ mod tests {
         operation::InsertionPoint,
         strands::{DomainJunction, Strand},
     };
-    use ensnano_scene::data::design3d::SceneDesignReaderExt as _;
+    use ensnano_scene::design_reader::SceneDesignReaderExt as _;
     use ensnano_utils::operation::GridHelixCreation;
     use regex::Regex;
     use ultraviolet::{Rotor3, Vec3};

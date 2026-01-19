@@ -1,5 +1,5 @@
 use crate::app_state::design_interactor::DesignInteractor;
-use ahash::RandomState;
+use ahash::{HashMap, HashSet};
 use ensnano_design::{
     AdditionalStructure,
     bezier_plane::{
@@ -16,18 +16,15 @@ use ensnano_design::{
     nucl::Nucl,
     parameters::HelixParameters,
 };
-use ensnano_scene::data::{
-    StrandNucleotidesPositions,
-    design3d::{Scalebar, SceneDesignReaderExt},
+use ensnano_scene::{
+    data::{StrandNucleotidesPositions, design3d::Scalebar},
+    design_reader::SceneDesignReaderExt,
 };
 use ensnano_utils::{
     ObjectType, Referential,
     graphics::{LoopoutBond, LoopoutNucl},
 };
-use std::{
-    collections::{BTreeMap, HashMap, HashSet},
-    sync::Arc,
-};
+use std::{collections::BTreeMap, sync::Arc};
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 
 impl SceneDesignReaderExt for DesignInteractor {
@@ -550,9 +547,7 @@ impl SceneDesignReaderExt for DesignInteractor {
             .map(Arc::as_ref)
     }
 
-    fn get_nucleotides_positions_by_strands(
-        &self,
-    ) -> HashMap<usize, StrandNucleotidesPositions, RandomState> {
+    fn get_nucleotides_positions_by_strands(&self) -> HashMap<usize, StrandNucleotidesPositions> {
         let mut nucl_pos = HashMap::default();
         let design = self.presenter.current_design.as_ref();
         let content = self.presenter.content.as_ref();

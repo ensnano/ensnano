@@ -52,12 +52,10 @@ use crate::{
     organizer_tree::{GroupId, OrganizerTree},
     strands::Strand,
 };
+use ahash::{HashMap, HashSet};
 use serde::{Deserialize, Serialize};
 use serde_with::{DefaultOnError, serde_as};
-use std::{
-    collections::{BTreeMap, HashMap, HashSet},
-    sync::Arc,
-};
+use std::{collections::BTreeMap, sync::Arc};
 use ultraviolet::{Rotor3, Similarity3, Vec3};
 
 /// The `ensnano` Design structure.

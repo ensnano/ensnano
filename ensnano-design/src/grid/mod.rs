@@ -18,9 +18,10 @@ use crate::{
     helices::{Axis, Helices, Helix},
     parameters::HelixParameters,
 };
+use ahash::{HashMap, HashSet};
 use serde::{Deserialize, Serialize};
 use std::{
-    collections::{BTreeMap, HashMap, HashSet},
+    collections::BTreeMap,
     f32::consts::{FRAC_PI_2, PI},
     sync::Arc,
 };
@@ -742,8 +743,8 @@ impl GridData {
 
     pub fn new_by_updating_design(design: &mut Design) -> Self {
         let mut grids = BTreeMap::new();
-        let mut object_to_pos = HashMap::new();
-        let mut pos_to_object = HashMap::new();
+        let mut object_to_pos = HashMap::default();
+        let mut pos_to_object = HashMap::default();
         let helix_parameters = design.helix_parameters.unwrap_or_default();
         let source_grids = design.free_grids.clone();
         let paths_data = design.get_up_to_date_paths().clone();

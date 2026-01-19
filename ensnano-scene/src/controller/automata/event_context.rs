@@ -1,6 +1,6 @@
 use crate::{
     controller::Controller,
-    data::design3d::SceneDesignReaderExt as _,
+    design_reader::SceneDesignReaderExt as _,
     element_selector::{CornerType, ElementSelector, SceneElement},
     state::SceneAppState,
     view::grid::GridIntersection,

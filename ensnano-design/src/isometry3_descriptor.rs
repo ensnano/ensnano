@@ -1,6 +1,7 @@
 use crate::drawing_style::ParsePointError;
+use ahash::HashMap;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, f32::consts::PI, str::FromStr};
+use std::{f32::consts::PI, str::FromStr};
 use ultraviolet::{Isometry3, Rotor3, Vec3};
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug)]

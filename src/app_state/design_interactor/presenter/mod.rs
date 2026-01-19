@@ -5,7 +5,7 @@ pub(crate) mod impl_reader3d;
 pub(crate) mod impl_readergui;
 
 use crate::app_state::{address_pointer::AddressPointer, design_interactor::DesignInteractor};
-use ahash::RandomState;
+use ahash::{HashMap, HashSet};
 use design_content::DesignContent;
 use ensnano_design::{
     CameraId, Design,
@@ -27,12 +27,7 @@ use ensnano_utils::{
     application::Camera3D,
     strand_builder::{NeighborDescriptor, get_neighbor_nucl},
 };
-use std::{
-    collections::{BTreeMap, HashMap, HashSet},
-    fmt::Write as _,
-    path::PathBuf,
-    sync::Arc,
-};
+use std::{collections::BTreeMap, fmt::Write as _, path::PathBuf, sync::Arc};
 use ultraviolet::{Mat4, Rotor3, Vec3};
 
 type JunctionsIds = IdGenerator<(Nucl, Nucl)>;
@@ -315,7 +310,7 @@ impl Presenter {
     }
 
     fn update_visibility(&mut self) {
-        let mut new_invisible_nucls = HashSet::new();
+        let mut new_invisible_nucls = HashSet::default();
         if let Some(VisibilitySieve {
             selection,
             compl,
@@ -455,7 +450,7 @@ impl Presenter {
     }
 
     pub(crate) fn get_unchecked_xovers_ids(&self) -> Vec<u32> {
-        let mut checked_nucl = HashSet::new();
+        let mut checked_nucl = HashSet::default();
         let mut unchecked_pairs = Vec::new();
         for (xover_id, (n1, n2)) in self.junctions_ids.get_all_elements() {
             if self.current_design.checked_xovers.contains(&xover_id) {
@@ -752,7 +747,7 @@ pub(crate) trait SimulationUpdate: Send + Sync {
     fn update_positions(
         &self,
         _identifier_nucl: &NuclCollection,
-        _space_position: &mut HashMap<u32, [f32; 3], RandomState>,
+        _space_position: &mut HashMap<u32, [f32; 3]>,
     ) {
     }
 

@@ -5,6 +5,7 @@ pub mod design3d;
 
 use crate::{
     camera::CameraController,
+    design_reader::SceneDesignReaderExt,
     element_selector::{SceneElement, bezier_vertex_id},
     state::SceneAppState,
     view::{
@@ -21,8 +22,8 @@ use crate::{
         },
     },
 };
-use ahash::RandomState;
-use design3d::{Design3D, SceneDesignReaderExt};
+use ahash::{HashMap, HashSet};
+use design3d::Design3D;
 use ensnano_design::{
     bezier_plane::BezierVertexId,
     curves::{SurfaceInfo, SurfacePoint},
@@ -43,11 +44,7 @@ use ensnano_utils::{
     graphics::HBondDisplay,
 };
 use serde::{Deserialize, Serialize};
-use std::{
-    collections::{BTreeMap, HashMap, HashSet},
-    rc::Rc,
-    sync::Arc,
-};
+use std::{collections::BTreeMap, rc::Rc, sync::Arc};
 use ultraviolet::{Rotor3, Vec3};
 
 pub struct Data<R: SceneDesignReaderExt> {
@@ -653,7 +650,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
             | Selection::Grid(_, _)
             | Selection::Phantom(_)
             | Selection::BezierVertex(_)
-            | Selection::Nothing => HashSet::new(),
+            | Selection::Nothing => HashSet::default(),
         }
     }
 
@@ -959,11 +956,11 @@ impl<R: SceneDesignReaderExt> Data<R> {
         &self,
         app_state: &S,
     ) -> HashMap<u32, HashMap<u32, bool>> {
-        let mut ret = HashMap::new();
+        let mut ret = HashMap::default();
 
         for (d_id, design) in self.designs.iter().enumerate() {
             let new_helices = design.get_persistent_phantom_helices();
-            let set = ret.entry(d_id as u32).or_insert_with(HashMap::new);
+            let set = ret.entry(d_id as u32).or_insert_with(HashMap::default);
             for h_id in &new_helices {
                 set.insert(*h_id, true);
             }
@@ -971,7 +968,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         if self.must_draw_phantom(app_state) {
             match self.selected_element(app_state) {
                 Some(SceneElement::DesignElement(d_id, elt_id)) => {
-                    let set = ret.entry(d_id).or_insert_with(HashMap::new);
+                    let set = ret.entry(d_id).or_insert_with(HashMap::default);
                     if let Some(h_id) = self.get_helix_identifier(d_id, elt_id) {
                         set.insert(h_id, false);
                     }
@@ -979,26 +976,26 @@ impl<R: SceneDesignReaderExt> Data<R> {
                 Some(SceneElement::PhantomElement(phantom_element)) => {
                     let set = ret
                         .entry(phantom_element.design_id)
-                        .or_insert_with(HashMap::new);
+                        .or_insert_with(HashMap::default);
                     set.insert(phantom_element.helix_id, false);
                 }
                 Some(SceneElement::Grid(d_id, g_id)) => {
                     let new_helices = self.designs[d_id as usize]
                         .get_helices_grid(g_id)
                         .unwrap_or_default();
-                    let set = ret.entry(d_id).or_insert_with(HashMap::new);
+                    let set = ret.entry(d_id).or_insert_with(HashMap::default);
                     for h_id in &new_helices {
                         set.insert(*h_id as u32, true);
                     }
                 }
                 Some(SceneElement::GridCircle(d_id, position)) => {
                     if let Some(h_id) = self.designs[d_id as usize].get_helix_grid(position) {
-                        let set = ret.entry(d_id).or_insert_with(HashMap::new);
+                        let set = ret.entry(d_id).or_insert_with(HashMap::default);
                         set.insert(h_id, false);
                     }
                 }
                 Some(SceneElement::BezierControl { helix_id, .. }) => {
-                    let set = ret.entry(0).or_insert_with(HashMap::new);
+                    let set = ret.entry(0).or_insert_with(HashMap::default);
                     set.insert(helix_id as u32, false);
                 }
                 Some(SceneElement::WidgetElement(_)) => unreachable!(),
@@ -1220,7 +1217,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
 
     pub fn get_nucleotides_positions_by_strands(
         &self,
-    ) -> Option<HashMap<usize, StrandNucleotidesPositions, RandomState>> {
+    ) -> Option<HashMap<usize, StrandNucleotidesPositions>> {
         Some(
             self.designs
                 .first()?

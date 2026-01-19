@@ -1,5 +1,6 @@
 use crate::{
-    data::design3d::{Design3D, SceneDesignReaderExt, create_dna_bond},
+    data::design3d::{Design3D, create_dna_bond},
+    design_reader::SceneDesignReaderExt,
     element_selector,
     state::SceneAppState,
     view::{
