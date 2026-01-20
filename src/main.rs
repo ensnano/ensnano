@@ -840,7 +840,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 struct OverlayManager {
-    color_state: program::State<ColorOverlay<Requests>>,
+    color_state: program::State<ColorOverlay>,
     color_debug: Debug,
     overlay_types: Vec<OverlayType>,
 }
@@ -1023,7 +1023,7 @@ pub(crate) struct MainStateView<'a> {
     pub(crate) window_target: &'a EventLoopWindowTarget<()>,
     pub(crate) multiplexer: &'a mut Multiplexer,
     pub(crate) scheduler: &'a mut Scheduler,
-    pub(crate) gui: &'a mut GuiManager<Requests>,
+    pub(crate) gui: &'a mut GuiManager,
     pub(crate) window: &'a Window,
     pub(crate) resized: bool,
 }

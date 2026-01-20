@@ -18,12 +18,10 @@ mod widgets;
 
 use ensnano_state::{
     app_state::AppState,
-    gui::{
-        messages::{
-            GuiMessages, LeftPanelMessage, StatusBarMessage, TopBarMessage, TopBarStateFlags,
-        },
-        requests::GuiRequests,
+    gui::messages::{
+        GuiMessages, LeftPanelMessage, StatusBarMessage, TopBarMessage, TopBarStateFlags,
     },
+    requests::Requests,
 };
 use ensnano_utils::{
     TEXTURE_FORMAT,
@@ -57,13 +55,13 @@ use crate::{
 };
 
 #[expect(clippy::large_enum_variant)]
-pub enum GuiState<R: GuiRequests> {
-    TopBar(program::State<TopBarState<R>>),
-    LeftPanel(program::State<LeftPanelState<R>>),
-    StatusBar(program::State<StatusBarState<R>>),
+pub enum GuiState {
+    TopBar(program::State<TopBarState>),
+    LeftPanel(program::State<LeftPanelState>),
+    StatusBar(program::State<StatusBarState>),
 }
 
-impl<R: GuiRequests> GuiState<R> {
+impl GuiState {
     pub fn queue_event(&mut self, event: Event) {
         if let Event::Keyboard(keyboard::Event::KeyPressed {
             key: keyboard::Key::Named(keyboard::key::Named::Tab),
@@ -209,21 +207,21 @@ impl<R: GuiRequests> GuiState<R> {
 }
 
 /// A Gui component.
-struct GuiComponent<R: GuiRequests> {
-    state: GuiState<R>,
+struct GuiComponent {
+    state: GuiState,
     debug: Debug,
     redraw: bool,
     element_type: GuiComponentType,
     renderer: iced::Renderer,
 }
 
-impl<R: GuiRequests> GuiComponent<R> {
+impl GuiComponent {
     /// Initialize the top bar gui component
     fn top_bar(
         mut renderer: iced::Renderer,
         window: &Window,
         multiplexer: &dyn MultiplexerExt,
-        requests: Arc<Mutex<R>>,
+        requests: Arc<Mutex<Requests>>,
         app_state: AppState,
         top_bar_state: TopBarStateFlags,
         ui_size: UiSize,
@@ -257,7 +255,7 @@ impl<R: GuiRequests> GuiComponent<R> {
         mut renderer: iced::Renderer,
         window: &Window,
         multiplexer: &dyn MultiplexerExt,
-        requests: Arc<Mutex<R>>,
+        requests: Arc<Mutex<Requests>>,
         first_time: bool,
         state: &AppState,
         parameters: &AppStateParameters,
@@ -293,7 +291,7 @@ impl<R: GuiRequests> GuiComponent<R> {
         mut renderer: iced::Renderer,
         window: &Window,
         multiplexer: &dyn MultiplexerExt,
-        requests: Arc<Mutex<R>>,
+        requests: Arc<Mutex<Requests>>,
         state: &AppState,
         ui_size: UiSize,
     ) -> Self {
@@ -326,7 +324,7 @@ impl<R: GuiRequests> GuiComponent<R> {
         self.state.queue_event(event);
     }
 
-    fn get_state(&mut self) -> &mut GuiState<R> {
+    fn get_state(&mut self) -> &mut GuiState {
         &mut self.state
     }
 
@@ -409,7 +407,7 @@ impl<R: GuiRequests> GuiComponent<R> {
 /// The manager of the graphical user interface.
 ///
 /// The manager contains a [`GuiComponent`] for each [`GuiComponentType`] (top_bar, left_panel, etc…)
-pub struct GuiManager<R: GuiRequests> {
+pub struct GuiManager {
     /// WGPU Settings
     wgpu_settings: iced_wgpu::Settings,
     /// WGPU device
@@ -417,19 +415,19 @@ pub struct GuiManager<R: GuiRequests> {
     /// WGPU queue
     queue: Rc<Queue>,
     resized: bool,
-    requests: Arc<Mutex<R>>,
+    requests: Arc<Mutex<Requests>>,
     parameters: AppStateParameters,
     /// [`GuiComponent`] mapped by [`GuiComponentType`]
-    components: HashMap<GuiComponentType, GuiComponent<R>>,
+    components: HashMap<GuiComponentType, GuiComponent>,
 }
 
-impl<R: GuiRequests> GuiManager<R> {
+impl GuiManager {
     pub fn new(
         device: Rc<Device>,
         queue: Rc<Queue>,
         window: &Window,
         multiplexer: &dyn MultiplexerExt,
-        requests: Arc<Mutex<R>>,
+        requests: Arc<Mutex<Requests>>,
         parameters: AppStateParameters,
         global_state: &AppState,
         top_bar_state: TopBarStateFlags,

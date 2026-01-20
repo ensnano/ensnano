@@ -11,8 +11,9 @@ use ensnano_design::{
 use ensnano_state::gui::messages::{
     ColorPickerMessage, FactoryId, LeftPanelMessage, OrganizerMessage, TabId,
 };
-use ensnano_state::gui::requests::{GuiRequests, RigidBodyParametersRequest};
+use ensnano_state::gui::requests::RigidBodyParametersRequest;
 use ensnano_state::gui::state::RevolutionParameterId;
+use ensnano_state::requests::Requests;
 use ensnano_state::{
     app_state::AppState,
     design::{
@@ -54,10 +55,10 @@ use crate::{
     theme::GuiBackground,
 };
 
-pub struct LeftPanelState<R: GuiRequests> {
+pub struct LeftPanelState {
     logical_size: LogicalSize<f64>,
     logical_position: LogicalPosition<f64>,
-    requests: Arc<Mutex<R>>,
+    requests: Arc<Mutex<Requests>>,
     active_tab: TabId,
     /// Provide an organized view of the object being edited.
     organizer: Organizer,
@@ -76,10 +77,10 @@ pub struct LeftPanelState<R: GuiRequests> {
     exports_menu: ExportMenu,
 }
 
-impl<R: GuiRequests> LeftPanelState<R> {
+impl LeftPanelState {
     /// Create a new [LeftPanel].
     pub fn new(
-        requests: Arc<Mutex<R>>,
+        requests: Arc<Mutex<Requests>>,
         logical_size: LogicalSize<f64>,
         logical_position: LogicalPosition<f64>,
         first_time: bool,
@@ -188,10 +189,7 @@ impl<R: GuiRequests> LeftPanelState<R> {
     }
 }
 
-impl<R> Program for LeftPanelState<R>
-where
-    R: GuiRequests,
-{
+impl Program for LeftPanelState {
     type Theme = iced::Theme;
     type Renderer = iced::Renderer;
     type Message = LeftPanelMessage;
@@ -1045,14 +1043,14 @@ where
 
 // TODO: Remove ColorOverlay
 
-pub struct ColorOverlay<R: GuiRequests> {
+pub struct ColorOverlay {
     logical_size: LogicalSize<f64>,
     color_picker: HueColorPicker,
-    requests: Arc<Mutex<R>>,
+    requests: Arc<Mutex<Requests>>,
 }
 
-impl<R: GuiRequests> ColorOverlay<R> {
-    pub fn new(requests: Arc<Mutex<R>>, logical_size: LogicalSize<f64>) -> Self {
+impl ColorOverlay {
+    pub fn new(requests: Arc<Mutex<Requests>>, logical_size: LogicalSize<f64>) -> Self {
         Self {
             logical_size,
             color_picker: HueColorPicker::new(),
@@ -1069,7 +1067,7 @@ pub enum ColorMessage {
     Closed,
 }
 
-impl<R: GuiRequests> Program for ColorOverlay<R> {
+impl Program for ColorOverlay {
     type Renderer = iced::Renderer;
     type Theme = iced::Theme;
     type Message = ColorMessage;

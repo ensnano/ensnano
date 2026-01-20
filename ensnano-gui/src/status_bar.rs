@@ -1,7 +1,8 @@
-use crate::{GuiRequests, theme::GuiBackground};
+use crate::theme::GuiBackground;
 use ensnano_state::{
     app_state::AppState,
     gui::messages::StatusBarMessage,
+    requests::Requests,
     utils::operation::{CurrentOpState, Operation},
 };
 use ensnano_utils::{PastingStatus, keyboard_priority::keyboard_priority, ui_size::UiSize};
@@ -37,9 +38,9 @@ impl StatusParameter {
     }
 }
 
-pub struct StatusBarState<R: GuiRequests> {
+pub struct StatusBarState {
     operation: Option<OperationInput>,
-    requests: Arc<Mutex<R>>,
+    requests: Arc<Mutex<Requests>>,
     progress: Option<(String, f32)>,
     app_state: AppState,
     ui_size: UiSize,
@@ -47,9 +48,9 @@ pub struct StatusBarState<R: GuiRequests> {
     logical_size: LogicalSize<f64>,
 }
 
-impl<R: GuiRequests> StatusBarState<R> {
+impl StatusBarState {
     pub fn new(
-        requests: Arc<Mutex<R>>,
+        requests: Arc<Mutex<Requests>>,
         state: &AppState,
         logical_size: LogicalSize<f64>,
         ui_size: UiSize,
@@ -90,7 +91,7 @@ impl<R: GuiRequests> StatusBarState<R> {
     }
 }
 
-impl<R: GuiRequests> Program for StatusBarState<R> {
+impl Program for StatusBarState {
     type Message = StatusBarMessage;
     type Theme = iced::Theme;
     type Renderer = iced::Renderer;

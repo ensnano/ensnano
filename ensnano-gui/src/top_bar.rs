@@ -6,7 +6,7 @@
 //! Drawing the top bar, and triggering events from it is handled here.
 
 use crate::{
-    GuiRequests, TopBarStateFlags,
+    TopBarStateFlags,
     fonts::{
         ENSNANO_FONT,
         material_icons::{MaterialIcon, MaterialIconStyle},
@@ -15,7 +15,7 @@ use crate::{
     theme::GuiBackground,
 };
 use ensnano_design::interaction_modes::{ActionMode, SelectionMode};
-use ensnano_state::{app_state::AppState, gui::messages::TopBarMessage};
+use ensnano_state::{app_state::AppState, gui::messages::TopBarMessage, requests::Requests};
 use ensnano_utils::{graphics::SplitMode, ui_size::UiSize};
 use iced::{
     Element, Length, Padding, theme,
@@ -26,9 +26,9 @@ use std::sync::{Arc, Mutex};
 use winit::dpi::LogicalSize;
 
 /// Top bar object
-pub struct TopBarState<R: GuiRequests> {
+pub struct TopBarState {
     /// ENSnano requests handle to which forwards messages.
-    requests: Arc<Mutex<R>>,
+    requests: Arc<Mutex<Requests>>,
     /// Area occupied by the top bar.
     logical_size: LogicalSize<f64>,
     /// A copy of the UI sizes.
@@ -39,9 +39,9 @@ pub struct TopBarState<R: GuiRequests> {
     state: TopBarStateFlags,
 }
 
-impl<R: GuiRequests> TopBarState<R> {
+impl TopBarState {
     pub fn new(
-        requests: Arc<Mutex<R>>,
+        requests: Arc<Mutex<Requests>>,
         logical_size: LogicalSize<f64>,
         app_state: AppState,
         state: TopBarStateFlags,
@@ -66,7 +66,7 @@ impl<R: GuiRequests> TopBarState<R> {
     }
 }
 
-impl<R: GuiRequests> Program for TopBarState<R> {
+impl Program for TopBarState {
     type Message = TopBarMessage;
     type Theme = iced::Theme;
     type Renderer = iced::Renderer;

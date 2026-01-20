@@ -8,10 +8,8 @@ use ensnano_design::{bezier_plane::BezierVertexId, grid::GridId, interaction_mod
 use ensnano_state::{
     app_state::{AppState, design_interactor::DesignInteractor},
     design::selection::Selection,
-    gui::{
-        messages::{InstantiatedValue, LeftPanelMessage, ValueKind},
-        requests::GuiRequests,
-    },
+    gui::messages::{InstantiatedValue, LeftPanelMessage, ValueKind},
+    requests::Requests,
 };
 use ensnano_utils::{
     SimulationState,
@@ -101,7 +99,7 @@ impl ValueRequest {
         }
     }
 
-    pub(super) fn make_request<R: GuiRequests>(&self, request: Arc<Mutex<R>>) {
+    pub(super) fn make_request(&self, request: Arc<Mutex<Requests>>) {
         match self {
             Self::HelixGridPosition { grid_id, position } => request
                 .lock()
@@ -392,11 +390,7 @@ impl ContextualPanel {
         // NOTE: I don't really understand why there is a “- 2” here.
     }
 
-    pub(super) fn selection_value_changed<R: GuiRequests>(
-        &self,
-        s: String,
-        requests: Arc<Mutex<R>>,
-    ) {
+    pub(super) fn selection_value_changed(&self, s: String, requests: Arc<Mutex<Requests>>) {
         if let Ok(g_id) = s.parse() {
             requests
                 .lock()
@@ -405,16 +399,11 @@ impl ContextualPanel {
         }
     }
 
-    pub(super) fn set_small_sphere<R: GuiRequests>(&self, b: bool, requests: Arc<Mutex<R>>) {
+    pub(super) fn set_small_sphere(&self, b: bool, requests: Arc<Mutex<Requests>>) {
         requests.lock().unwrap().set_small_sphere(b);
     }
 
-    pub(super) fn scaffold_id_set<R: GuiRequests>(
-        &self,
-        n: usize,
-        b: bool,
-        requests: Arc<Mutex<R>>,
-    ) {
+    pub(super) fn scaffold_id_set(&self, n: usize, b: bool, requests: Arc<Mutex<Requests>>) {
         if b {
             requests.lock().unwrap().set_scaffold_id(Some(n));
         } else {

@@ -12,10 +12,8 @@ use ensnano_physics::parameters::{
 };
 use ensnano_state::{
     app_state::AppState,
-    gui::{
-        messages::{FactoryId, ValueId},
-        requests::GuiRequests,
-    },
+    gui::messages::{FactoryId, ValueId},
+    requests::Requests,
 };
 use ensnano_utils::{
     RollRequest, SimulationState, consts::ICON_PHYSICAL_ENGINE,
@@ -105,7 +103,7 @@ impl SimulationTab {
         self.physical_simulation.request()
     }
 
-    pub fn leave_tab<R: GuiRequests>(&self, requests: Arc<Mutex<R>>, app_state: &AppState) {
+    pub fn leave_tab(&self, requests: Arc<Mutex<Requests>>, app_state: &AppState) {
         if SimulationState::RigidGrid == app_state.get_simulation_state() {
             self.request_stop_rigid_body_simulation(requests);
             println!("stop grids");
@@ -115,7 +113,7 @@ impl SimulationTab {
         }
     }
 
-    fn request_stop_rigid_body_simulation<R: GuiRequests>(&self, requests: Arc<Mutex<R>>) {
+    fn request_stop_rigid_body_simulation(&self, requests: Arc<Mutex<Requests>>) {
         let mut request = None;
         self.make_rigid_body_request(&mut request);
         if let Some(request) = request {

@@ -69,23 +69,11 @@ impl Requests {
         self.center_selection = Some((selection, app_id));
     }
 
-    pub fn undo(&mut self) {
-        self.undo = Some(());
-    }
-
-    pub fn redo(&mut self) {
-        self.redo = Some(());
-    }
-
     pub fn update_builder_position(&mut self, position: isize) {
         self.keep_proceed
             .push_back(Action::DesignOperation(DesignOperation::MoveBuilders(
                 position,
             )));
-    }
-
-    pub fn toggle_widget_basis(&mut self) {
-        self.toggle_widget_basis = Some(());
     }
 
     pub fn apply_design_operation(&mut self, op: DesignOperation) {
