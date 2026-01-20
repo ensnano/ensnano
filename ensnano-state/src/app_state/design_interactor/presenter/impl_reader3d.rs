@@ -1,5 +1,5 @@
 use crate::app_state::design_interactor::DesignInteractor;
-use crate::scene::design_reader::{Scalebar, SceneDesignReaderExt, StrandNucleotidesPositions};
+use crate::scene::design_reader::{Scalebar, StrandNucleotidesPositions};
 use ahash::{HashMap, HashSet};
 use ensnano_design::{
     AdditionalStructure,
@@ -24,16 +24,16 @@ use ensnano_utils::{
 use std::{collections::BTreeMap, sync::Arc};
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 
-impl SceneDesignReaderExt for DesignInteractor {
-    fn get_color(&self, e_id: u32) -> Option<u32> {
+impl DesignInteractor {
+    pub fn get_color(&self, e_id: u32) -> Option<u32> {
         self.presenter.content.color_map.get(&e_id).copied()
     }
 
-    fn get_radius(&self, e_id: u32) -> Option<f32> {
+    pub fn get_radius(&self, e_id: u32) -> Option<f32> {
         self.presenter.content.radius_map.get(&e_id).copied()
     }
 
-    fn get_xover_coloring(&self, e_id: u32) -> Option<bool> {
+    pub fn get_xover_coloring(&self, e_id: u32) -> Option<bool> {
         self.presenter
             .content
             .xover_coloring_map
@@ -41,11 +41,11 @@ impl SceneDesignReaderExt for DesignInteractor {
             .copied()
     }
 
-    fn get_with_cones(&self, e_id: u32) -> Option<bool> {
+    pub fn get_with_cones(&self, e_id: u32) -> Option<bool> {
         self.presenter.content.with_cones_map.get(&e_id).copied()
     }
 
-    fn get_symbol(&self, e_id: u32) -> Option<char> {
+    pub fn get_symbol(&self, e_id: u32) -> Option<char> {
         self.presenter
             .content
             .nucleotide
@@ -54,7 +54,7 @@ impl SceneDesignReaderExt for DesignInteractor {
             .copied()
     }
 
-    fn get_grid_basis(&self, g_id: GridId) -> Option<Rotor3> {
+    pub fn get_grid_basis(&self, g_id: GridId) -> Option<Rotor3> {
         match g_id {
             GridId::FreeGrid(_) => self
                 .presenter
@@ -69,15 +69,15 @@ impl SceneDesignReaderExt for DesignInteractor {
         }
     }
 
-    fn get_suggestions(&self) -> Vec<(Nucl, Nucl)> {
+    pub fn get_suggestions(&self) -> Vec<(Nucl, Nucl)> {
         self.presenter.content.suggestions.clone()
     }
 
-    fn get_object_type(&self, id: u32) -> Option<ObjectType> {
+    pub fn get_object_type(&self, id: u32) -> Option<ObjectType> {
         self.presenter.content.object_type.get(&id).cloned()
     }
 
-    fn get_helix_basis(&self, h_id: u32) -> Option<Rotor3> {
+    pub fn get_helix_basis(&self, h_id: u32) -> Option<Rotor3> {
         self.presenter
             .current_design
             .helices
@@ -85,20 +85,20 @@ impl SceneDesignReaderExt for DesignInteractor {
             .map(|h| h.orientation)
     }
 
-    fn get_all_nucl_ids(&self) -> Vec<u32> {
+    pub fn get_all_nucl_ids(&self) -> Vec<u32> {
         self.presenter.content.nucleotide.keys().copied().collect()
     }
 
-    fn get_model_matrix(&self) -> Mat4 {
+    pub fn get_model_matrix(&self) -> Mat4 {
         // Mat4 is Copy
         *self.presenter.model_matrix
     }
 
-    fn get_nucl_with_id(&self, e_id: u32) -> Option<Nucl> {
+    pub fn get_nucl_with_id(&self, e_id: u32) -> Option<Nucl> {
         self.presenter.content.nucleotide.get(&e_id).copied()
     }
 
-    fn get_all_bond_ids(&self) -> Vec<u32> {
+    pub fn get_all_bond_ids(&self) -> Vec<u32> {
         self.presenter
             .content
             .nucleotides_involved
@@ -107,7 +107,7 @@ impl SceneDesignReaderExt for DesignInteractor {
             .collect()
     }
 
-    fn get_grid_position(&self, g_id: GridId) -> Option<Vec3> {
+    pub fn get_grid_position(&self, g_id: GridId) -> Option<Vec3> {
         self.presenter
             .current_design
             .free_grids
@@ -115,20 +115,20 @@ impl SceneDesignReaderExt for DesignInteractor {
             .map(|g| g.position)
     }
 
-    fn get_grid_instances(&self) -> BTreeMap<GridId, GridInstance> {
+    pub fn get_grid_instances(&self) -> BTreeMap<GridId, GridInstance> {
         self.presenter.content.get_grid_instances()
     }
 
-    fn get_pasted_position(&self) -> Vec<(Vec<Vec3>, bool)> {
+    pub fn get_pasted_position(&self) -> Vec<(Vec<Vec3>, bool)> {
         self.controller.get_pasted_position()
     }
 
-    fn get_symbol_position(&self, e_id: u32) -> Option<Vec3> {
+    pub fn get_symbol_position(&self, e_id: u32) -> Option<Vec3> {
         let nucl = self.get_nucl_with_id(e_id)?;
         self.get_position_of_nucl_on_helix(nucl, Referential::World, false)
     }
 
-    fn get_identifier_nucl(&self, nucl: &Nucl) -> Option<u32> {
+    pub fn get_identifier_nucl(&self, nucl: &Nucl) -> Option<u32> {
         self.presenter
             .content
             .nucl_collection
@@ -136,41 +136,25 @@ impl SceneDesignReaderExt for DesignInteractor {
             .copied()
     }
 
-    fn get_position_of_nucl_on_helix(
-        &self,
-        nucl: Nucl,
-        referential: Referential,
-        on_axis: bool,
-    ) -> Option<Vec3> {
-        let helix = self.presenter.current_design.helices.get(&nucl.helix)?;
-        let helix_parameters = self
-            .presenter
-            .current_design
-            .helix_parameters
-            .unwrap_or_default();
-        let position = if on_axis {
-            helix.axis_position(&helix_parameters, nucl.position, nucl.forward)
-        } else {
-            helix.space_pos(&helix_parameters, nucl.position, nucl.forward)
-        };
-        Some(self.presenter.in_referential(position, referential))
-    }
-
-    fn get_helices_on_grid(&self, g_id: GridId) -> Option<HashSet<usize>> {
+    pub fn get_helices_on_grid(&self, g_id: GridId) -> Option<HashSet<usize>> {
         self.presenter.content.get_helices_on_grid(g_id)
     }
 
-    fn get_element_position(&self, e_id: u32, referential: Referential) -> Option<Vec3> {
+    pub fn get_element_position(&self, e_id: u32, referential: Referential) -> Option<Vec3> {
         let position = self.presenter.content.get_element_position(e_id)?;
         Some(self.presenter.in_referential(position, referential))
     }
 
-    fn get_element_graphic_position(&self, e_id: u32, referential: Referential) -> Option<Vec3> {
+    pub fn get_element_graphic_position(
+        &self,
+        e_id: u32,
+        referential: Referential,
+    ) -> Option<Vec3> {
         let position = self.presenter.content.get_element_graphic_position(e_id)?;
         Some(self.presenter.in_referential(position, referential))
     }
 
-    fn get_identifier_bond(&self, n1: Nucl, n2: Nucl) -> Option<u32> {
+    pub fn get_identifier_bond(&self, n1: Nucl, n2: Nucl) -> Option<u32> {
         self.presenter
             .content
             .identifier_bond
@@ -178,24 +162,24 @@ impl SceneDesignReaderExt for DesignInteractor {
             .copied()
     }
 
-    fn get_helix_grid_position(&self, h_id: u32) -> Option<HelixGridPosition> {
+    pub fn get_helix_grid_position(&self, h_id: u32) -> Option<HelixGridPosition> {
         self.presenter
             .content
             .get_helix_grid_position(h_id as usize)
     }
 
-    fn get_all_visible_nucl_ids(&self) -> Vec<u32> {
+    pub fn get_all_visible_nucl_ids(&self) -> Vec<u32> {
         self.presenter.content.get_all_visible_nucl_ids(
             &self.presenter.current_design,
             &self.presenter.invisible_nucls,
         )
     }
 
-    fn get_grid_lattice_position(&self, position: GridPosition) -> Option<Vec3> {
+    pub fn get_grid_lattice_position(&self, position: GridPosition) -> Option<Vec3> {
         self.presenter.content.get_grid_lattice_position(position)
     }
 
-    fn get_nucl_with_id_relaxed(&self, e_id: u32) -> Option<Nucl> {
+    pub fn get_nucl_with_id_relaxed(&self, e_id: u32) -> Option<Nucl> {
         self.get_nucl_with_id(e_id).or_else(|| {
             self.presenter
                 .content
@@ -205,18 +189,18 @@ impl SceneDesignReaderExt for DesignInteractor {
         })
     }
 
-    fn get_all_visible_bond_ids(&self) -> Vec<u32> {
+    pub fn get_all_visible_bond_ids(&self) -> Vec<u32> {
         self.presenter.content.get_all_visible_bonds(
             &self.presenter.current_design,
             &self.presenter.invisible_nucls,
         )
     }
 
-    fn get_scalebar(&self) -> Option<Scalebar> {
+    pub fn get_scalebar(&self) -> Option<Scalebar> {
         self.presenter.content.scalebar
     }
 
-    fn get_element_axis_position(&self, e_id: u32, referential: Referential) -> Option<Vec3> {
+    pub fn get_element_axis_position(&self, e_id: u32, referential: Referential) -> Option<Vec3> {
         if let Some(pos) = self.presenter.content.axis_space_position.get(&e_id) {
             Some(
                 self.presenter
@@ -233,7 +217,7 @@ impl SceneDesignReaderExt for DesignInteractor {
         }
     }
 
-    fn get_id_of_helix_containing(&self, e_id: u32) -> Option<usize> {
+    pub fn get_id_of_helix_containing(&self, e_id: u32) -> Option<usize> {
         if let Some(nucl) = self.get_nucl_with_id(e_id) {
             Some(nucl.helix)
         } else if let Some((n1, n2)) = self.presenter.content.nucleotides_involved.get(&e_id) {
@@ -243,30 +227,30 @@ impl SceneDesignReaderExt for DesignInteractor {
         }
     }
 
-    fn get_helices_grid_key_coord(&self, g_id: GridId) -> Option<Vec<((isize, isize), usize)>> {
+    pub fn get_helices_grid_key_coord(&self, g_id: GridId) -> Option<Vec<((isize, isize), usize)>> {
         Some(self.presenter.content.get_helices_grid_key_coord(g_id))
     }
 
-    fn get_helix_id_at_grid_coord(&self, position: GridPosition) -> Option<u32> {
+    pub fn get_helix_id_at_grid_coord(&self, position: GridPosition) -> Option<u32> {
         self.presenter
             .content
             .get_helix_id_at_grid_coord(position)
             .map(|h_id| h_id as u32)
     }
 
-    fn get_id_of_strand_containing(&self, e_id: u32) -> Option<usize> {
+    pub fn get_id_of_strand_containing(&self, e_id: u32) -> Option<usize> {
         self.presenter.content.strand_map.get(&e_id).copied()
     }
 
-    fn get_used_coordinates_on_grid(&self, g_id: GridId) -> Option<Vec<(isize, isize)>> {
+    pub fn get_used_coordinates_on_grid(&self, g_id: GridId) -> Option<Vec<(isize, isize)>> {
         Some(self.presenter.content.get_used_coordinates_on_grid(g_id))
     }
 
-    fn get_persistent_phantom_helices_id(&self) -> HashSet<u32> {
+    pub fn get_persistent_phantom_helices_id(&self) -> HashSet<u32> {
         self.presenter.content.get_persistent_phantom_helices_id()
     }
 
-    fn get_ids_of_elements_belonging_to_helix(&self, h_id: usize) -> Vec<u32> {
+    pub fn get_ids_of_elements_belonging_to_helix(&self, h_id: usize) -> Vec<u32> {
         let nucls = self
             .presenter
             .content
@@ -284,7 +268,7 @@ impl SceneDesignReaderExt for DesignInteractor {
         nucls.chain(bonds).copied().collect()
     }
 
-    fn get_ids_of_elements_belonging_to_strand(&self, s_id: usize) -> Vec<u32> {
+    pub fn get_ids_of_elements_belonging_to_strand(&self, s_id: usize) -> Vec<u32> {
         let belong_to_strand = |k: &&u32| self.presenter.content.strand_map.get(*k) == Some(&s_id);
         let nucls = self
             .presenter
@@ -301,27 +285,19 @@ impl SceneDesignReaderExt for DesignInteractor {
         nucls.chain(bonds).copied().collect()
     }
 
-    fn prime5_of_which_strand(&self, nucl: Nucl) -> Option<usize> {
-        self.prime5_of_which_strand(nucl)
-    }
-
-    fn prime3_of_which_strand(&self, nucl: Nucl) -> Option<usize> {
-        self.prime3_of_which_strand(nucl)
-    }
-
-    fn can_start_builder_at(&self, nucl: &Nucl) -> bool {
+    pub fn can_start_builder_at(&self, nucl: &Nucl) -> bool {
         self.presenter.can_start_builder_at(*nucl)
     }
 
-    fn get_all_loopout_nucl(&self) -> &[LoopoutNucl] {
+    pub fn get_all_loopout_nucl(&self) -> &[LoopoutNucl] {
         &self.presenter.content.loopout_nucls
     }
 
-    fn get_all_loopout_bonds(&self) -> &[LoopoutBond] {
+    pub fn get_all_loopout_bonds(&self) -> &[LoopoutBond] {
         &self.presenter.content.loopout_bonds
     }
 
-    fn get_insertion_length(&self, bond_id: u32) -> usize {
+    pub fn get_insertion_length(&self, bond_id: u32) -> usize {
         // If the bond is not is the keys of insertion_length it means that it does not represent
         // an insertion
         self.presenter
@@ -332,7 +308,7 @@ impl SceneDesignReaderExt for DesignInteractor {
             .unwrap_or(0)
     }
 
-    fn get_expected_bond_length(&self) -> f32 {
+    pub fn get_expected_bond_length(&self) -> f32 {
         self.presenter
             .current_design
             .helix_parameters
@@ -340,11 +316,11 @@ impl SceneDesignReaderExt for DesignInteractor {
             .dist_ac()
     }
 
-    fn get_all_h_bonds(&self) -> &[HBond] {
+    pub fn get_all_h_bonds(&self) -> &[HBond] {
         self.presenter.h_bonds.as_ref()
     }
 
-    fn get_position_of_bezier_control(
+    pub fn get_position_of_bezier_control(
         &self,
         helix: usize,
         control: BezierControlPoint,
@@ -363,7 +339,7 @@ impl SceneDesignReaderExt for DesignInteractor {
         }
     }
 
-    fn get_curve_range(&self, h_id: usize) -> Option<std::ops::RangeInclusive<isize>> {
+    pub fn get_curve_range(&self, h_id: usize) -> Option<std::ops::RangeInclusive<isize>> {
         self.presenter
             .current_design
             .helices
@@ -371,7 +347,7 @@ impl SceneDesignReaderExt for DesignInteractor {
             .and_then(Helix::get_curve_range)
     }
 
-    fn get_checked_xovers_ids(&self, checked: bool) -> Vec<u32> {
+    pub fn get_checked_xovers_ids(&self, checked: bool) -> Vec<u32> {
         if checked {
             self.presenter.get_checked_xovers_ids()
         } else {
@@ -379,15 +355,15 @@ impl SceneDesignReaderExt for DesignInteractor {
         }
     }
 
-    fn get_id_of_xover_involving_nucl(&self, nucl: Nucl) -> Option<usize> {
+    pub fn get_id_of_xover_involving_nucl(&self, nucl: Nucl) -> Option<usize> {
         self.presenter.get_id_of_xover_involving_nucl(nucl)
     }
 
-    fn get_grid_object(&self, position: GridPosition) -> Option<GridObject> {
+    pub fn get_grid_object(&self, position: GridPosition) -> Option<GridObject> {
         self.presenter.content.get_grid_object(position)
     }
 
-    fn get_cubic_bezier_controls(&self, helix: usize) -> Option<CubicBezierConstructor> {
+    pub fn get_cubic_bezier_controls(&self, helix: usize) -> Option<CubicBezierConstructor> {
         let helix = self.presenter.current_design.helices.get(&helix)?;
         if let Some(CurveDescriptor::Bezier(constructor)) = helix.curve.as_ref().map(Arc::as_ref) {
             Some(constructor.clone())
@@ -396,35 +372,39 @@ impl SceneDesignReaderExt for DesignInteractor {
         }
     }
 
-    fn get_piecewise_bezier_controls(&self, helix: usize) -> Option<Vec<Vec3>> {
+    pub fn get_piecewise_bezier_controls(&self, helix: usize) -> Option<Vec<Vec3>> {
         let helix = self.presenter.current_design.helices.get(&helix)?;
         helix.piecewise_bezier_points()
     }
 
-    fn get_curve_descriptor(&self, helix: usize) -> Option<&CurveDescriptor> {
+    pub fn get_curve_descriptor(&self, helix: usize) -> Option<&CurveDescriptor> {
         let helix = self.presenter.current_design.helices.get(&helix)?;
         helix.curve.as_ref().map(Arc::as_ref)
     }
 
-    fn get_bezier_planes(&self) -> &BezierPlanes {
+    pub fn get_bezier_planes(&self) -> &BezierPlanes {
         &self.presenter.current_design.bezier_planes
     }
 
-    fn get_bezier_paths(&self) -> Option<&BTreeMap<BezierPathId, Arc<InstantiatedPath>>> {
+    pub fn get_bezier_paths(&self) -> Option<&BTreeMap<BezierPathId, Arc<InstantiatedPath>>> {
         self.presenter
             .current_design
             .try_get_up_to_date()
             .map(|data| data.paths_data.instantiated_paths.as_ref())
     }
 
-    fn get_parameters(&self) -> HelixParameters {
+    pub fn get_parameters(&self) -> HelixParameters {
         self.presenter
             .current_design
             .helix_parameters
             .unwrap_or_default()
     }
 
-    fn get_bezier_vertex(&self, path_id: BezierPathId, vertex_id: usize) -> Option<BezierVertex> {
+    pub fn get_bezier_vertex(
+        &self,
+        path_id: BezierPathId,
+        vertex_id: usize,
+    ) -> Option<BezierVertex> {
         self.presenter
             .current_design
             .bezier_paths
@@ -433,7 +413,7 @@ impl SceneDesignReaderExt for DesignInteractor {
             .copied()
     }
 
-    fn get_corners_of_plane(&self, plane_id: BezierPlaneId) -> [Vec2; 4] {
+    pub fn get_corners_of_plane(&self, plane_id: BezierPlaneId) -> [Vec2; 4] {
         let mut top = f32::INFINITY;
         let mut bottom = f32::NEG_INFINITY;
         let mut left = f32::INFINITY;
@@ -457,7 +437,7 @@ impl SceneDesignReaderExt for DesignInteractor {
         ]
     }
 
-    fn get_optimal_xover_around(&self, source: Nucl, target: Nucl) -> Option<(Nucl, Nucl)> {
+    pub fn get_optimal_xover_around(&self, source: Nucl, target: Nucl) -> Option<(Nucl, Nucl)> {
         let source_id = self.get_id_of_strand_containing_nucl(&source)?;
         let target_id = self.get_id_of_strand_containing_nucl(&target)?;
         let mut opt_pair = (source, target);
@@ -503,7 +483,7 @@ impl SceneDesignReaderExt for DesignInteractor {
         Some(opt_pair)
     }
 
-    fn get_bezier_grid_used_by_helix(&self, h_id: usize) -> Vec<GridId> {
+    pub fn get_bezier_grid_used_by_helix(&self, h_id: usize) -> Vec<GridId> {
         let helix = self.presenter.current_design.helices.get(&h_id);
         if let Some(CurveDescriptor::TranslatedPath { path_id, .. }) =
             helix.and_then(|h| h.curve.as_ref().map(Arc::as_ref))
@@ -522,21 +502,21 @@ impl SceneDesignReaderExt for DesignInteractor {
         }
     }
 
-    fn get_external_objects(&self) -> &External3DObjects {
+    pub fn get_external_objects(&self) -> &External3DObjects {
         &self.presenter.current_design.external_3d_objects
     }
 
-    fn get_surface_info_nucl(&self, nucl: Nucl) -> Option<SurfaceInfo> {
+    pub fn get_surface_info_nucl(&self, nucl: Nucl) -> Option<SurfaceInfo> {
         let helix = self.presenter.current_design.helices.get(&nucl.helix)?;
         helix.get_surface_info_nucl(nucl)
     }
 
-    fn get_surface_info(&self, point: SurfacePoint) -> Option<SurfaceInfo> {
+    pub fn get_surface_info(&self, point: SurfacePoint) -> Option<SurfaceInfo> {
         let helix = self.presenter.current_design.helices.get(&point.helix_id)?;
         helix.get_surface_info(point)
     }
 
-    fn get_additional_structure(&self) -> Option<&dyn AdditionalStructure> {
+    pub fn get_additional_structure(&self) -> Option<&dyn AdditionalStructure> {
         self.presenter
             .current_design
             .additional_structure
@@ -544,7 +524,9 @@ impl SceneDesignReaderExt for DesignInteractor {
             .map(Arc::as_ref)
     }
 
-    fn get_nucleotides_positions_by_strands(&self) -> HashMap<usize, StrandNucleotidesPositions> {
+    pub fn get_nucleotides_positions_by_strands(
+        &self,
+    ) -> HashMap<usize, StrandNucleotidesPositions> {
         let mut nucl_pos = HashMap::default();
         let design = self.presenter.current_design.as_ref();
         let content = self.presenter.content.as_ref();

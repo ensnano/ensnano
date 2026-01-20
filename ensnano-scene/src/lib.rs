@@ -29,9 +29,7 @@ use ensnano_state::{
             set_of_grids_containing_selection, set_of_helices_containing_selection,
         },
     },
-    scene::{
-        design_reader::SceneDesignReaderExt as _, requests::SceneRequests, state::SceneAppState,
-    },
+    scene::{requests::SceneRequests, state::SceneAppState},
     utils::{
         application::{AppId, Application, Camera3D, Notification},
         operation::{
@@ -72,7 +70,7 @@ pub struct Scene<S: SceneAppState> {
     /// The Object that handles the drawing to the 3d texture
     view: ViewPtr,
     /// The Object that handles the designs data
-    data: Rc<RefCell<Data<S::AppStateDesignReader>>>,
+    data: Rc<RefCell<Data>>,
     /// The Object that handles input and notifications
     controller: Controller<S>,
     /// The limits of the area on which the scene is displayed
@@ -119,7 +117,7 @@ impl<S: SceneAppState> Scene<S> {
             queue.clone(),
             encoder,
         )));
-        let data: Rc<RefCell<Data<S::AppStateDesignReader>>> = Rc::new(RefCell::new(Data::new(
+        let data: Rc<RefCell<Data>> = Rc::new(RefCell::new(Data::new(
             initial_state.get_design_reader(),
             view.clone(),
         )));

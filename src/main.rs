@@ -119,11 +119,10 @@ use ensnano_state::{
     design::{
         operation::{DesignOperation, DesignRotation, DesignTranslation, IsometryTarget},
         selection::{
-            MainDesignReaderExt, Selection, extract_nucls_from_selection, list_of_bezier_vertices,
-            list_of_free_grids, list_of_helices, list_of_strands, list_of_xover_as_nucl_pairs,
+            Selection, extract_nucls_from_selection, list_of_bezier_vertices, list_of_free_grids,
+            list_of_helices, list_of_strands, list_of_xover_as_nucl_pairs,
         },
     },
-    flatscene::design_reader::FlatSceneDesignReaderExt as _,
     gui::{messages::GuiMessages, state::GuiAppState as _},
     requests::Requests,
     utils::application::{Camera3D, Notification},
@@ -1165,8 +1164,8 @@ impl MainStateView<'_> {
         Box::new(self.main_state.app_state.get_selection())
     }
 
-    pub(crate) fn get_design_reader(&self) -> Box<dyn MainDesignReaderExt> {
-        Box::new(self.main_state.app_state.get_design_interactor())
+    pub(crate) fn get_design_reader(&self) -> DesignInteractor {
+        self.main_state.app_state.get_design_interactor()
     }
 
     pub(crate) fn get_grid_creation_position(&self) -> Option<(Vec3, Rotor3)> {
@@ -1209,10 +1208,9 @@ impl MainStateView<'_> {
 
     pub(crate) fn delete_selection(&mut self) {
         let selection = self.get_selection();
-        if let Some((_, nucl_pairs)) = list_of_xover_as_nucl_pairs(
-            selection.as_ref().as_ref(),
-            self.get_design_reader().as_ref(),
-        ) {
+        if let Some((_, nucl_pairs)) =
+            list_of_xover_as_nucl_pairs(selection.as_ref().as_ref(), &self.get_design_reader())
+        {
             self.main_state.update_selection(vec![], None);
             self.main_state
                 .apply_operation(DesignOperation::RmXovers { xovers: nucl_pairs });

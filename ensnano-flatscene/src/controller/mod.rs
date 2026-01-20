@@ -27,7 +27,7 @@ use winit::{
 
 pub(crate) struct Controller<S: FlatSceneAppState> {
     view: ViewPtr,
-    data: DataPtr<S::Reader>,
+    data: DataPtr,
     window_size: PhySize,
     area_size: PhySize,
     camera_top: CameraPtr,
@@ -83,7 +83,7 @@ pub(crate) enum Consequence {
 impl<S: FlatSceneAppState> Controller<S> {
     pub(crate) fn new(
         view: ViewPtr,
-        data: DataPtr<S::Reader>,
+        data: DataPtr,
         window_size: PhySize,
         area_size: PhySize,
         camera_top: CameraPtr,

@@ -32,11 +32,9 @@ use ensnano_design::{
     phantom_element::PhantomElement,
 };
 use ensnano_state::{
+    app_state::design_interactor::DesignInteractor,
     design::selection::{CenterOfSelection, Selection, extract_helices_with_controls},
-    scene::{
-        design_reader::{SceneDesignReaderExt, StrandNucleotidesPositions},
-        state::SceneAppState,
-    },
+    scene::{design_reader::StrandNucleotidesPositions, state::SceneAppState},
     utils::application::Camera3D,
 };
 use ensnano_utils::{
@@ -50,10 +48,10 @@ use ensnano_utils::{
 use std::{collections::BTreeMap, rc::Rc, sync::Arc};
 use ultraviolet::{Rotor3, Vec3};
 
-pub struct Data<R: SceneDesignReaderExt> {
+pub struct Data {
     view: ViewPtr,
     /// A `Design3D` is associated to each design.
-    designs: Vec<Design3D<R>>,
+    designs: Vec<Design3D>,
     /// The set of candidates elements
     candidate_element: Option<SceneElement>,
     /// The kind of selection being performed if app_state.get_selection_mode() is SelectionMode::Nucl.
@@ -80,8 +78,8 @@ pub struct Data<R: SceneDesignReaderExt> {
     external_3d_objects_stamps: Option<External3DObjectsStamp>,
 }
 
-impl<R: SceneDesignReaderExt> Data<R> {
-    pub fn new(reader: R, view: ViewPtr) -> Self {
+impl Data {
+    pub fn new(reader: DesignInteractor, view: ViewPtr) -> Self {
         Self {
             view,
             designs: vec![Design3D::new(reader, 0)],
@@ -112,7 +110,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
     }
 
     /// Add a new design to be drawn
-    pub fn update_design_reader(&mut self, design_reader: R) {
+    pub fn update_design_reader(&mut self, design_reader: DesignInteractor) {
         self.designs[0] = Design3D::new(design_reader, 0);
     }
 
@@ -1267,10 +1265,10 @@ impl<R: SceneDesignReaderExt> Data<R> {
             } else {
                 SPHERE_RADIUS
             };
-            spheres.push(Design3D::<R>::pivot_sphere(pivot, radius));
+            spheres.push(Design3D::pivot_sphere(pivot, radius));
         }
         if let Some(position) = self.surface_pivot_position {
-            spheres.push(Design3D::<R>::surface_pivot_sphere(position));
+            spheres.push(Design3D::surface_pivot_sphere(position));
         }
         self.view
             .borrow_mut()
@@ -1306,7 +1304,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
                 }
             }
             if let Some((pos1, pos2)) = pos1.zip(pos2) {
-                tubes.push(Design3D::<R>::free_xover_tube(pos1, pos2));
+                tubes.push(Design3D::free_xover_tube(pos1, pos2));
             }
         }
         self.view
@@ -1325,7 +1323,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         match free_end {
             FreeXoverEnd::Nucl(nucl) => {
                 let position = self.get_nucl_position(*nucl, design_id)?;
-                Some((position, Some(Design3D::<R>::free_xover_sphere(position))))
+                Some((position, Some(Design3D::free_xover_sphere(position))))
             }
             FreeXoverEnd::Free(position) => Some((*position, None)),
         }
@@ -1954,13 +1952,14 @@ impl DiscLevel {
     }
 }
 
-struct Discs<'a, R: SceneDesignReaderExt> {
+struct Discs<'a> {
     discs: &'a mut Vec<GridDisc>,
     selection: &'a mut Vec<GridPosition>,
     candidates: &'a mut Vec<GridPosition>,
-    design: &'a Design3D<R>,
+    design: &'a Design3D,
 }
-fn add_discs<R: SceneDesignReaderExt>(pos: GridPosition, discs: Discs<R>, level: DiscLevel) {
+
+fn add_discs(pos: GridPosition, discs: Discs, level: DiscLevel) {
     if let Some(grid) = discs.design.get_grid().get(&pos.grid) {
         let new_disc_instances = match level {
             DiscLevel::Candidate => {

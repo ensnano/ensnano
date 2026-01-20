@@ -13,7 +13,7 @@ use ensnano_design::{
     interaction_modes::ActionMode,
     nucl::Nucl,
 };
-use ensnano_state::scene::{design_reader::SceneDesignReaderExt as _, state::SceneAppState};
+use ensnano_state::scene::state::SceneAppState;
 use ultraviolet::{Vec2, Vec3};
 use winit::{dpi::PhysicalPosition, keyboard::ModifiersState};
 

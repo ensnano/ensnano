@@ -394,11 +394,7 @@ mod tests {
     use crate::app_state::{
         AppState, design_interactor::controller::clipboard::PastePosition, transitions,
     };
-    use crate::{
-        design::{operation::InsertionPoint, selection::MainDesignReaderExt as _},
-        scene::design_reader::SceneDesignReaderExt as _,
-        utils::operation::GridHelixCreation,
-    };
+    use crate::{design::operation::InsertionPoint, utils::operation::GridHelixCreation};
     use ensnano_design::{
         grid::{GridDescriptor, GridId, GridTypeDescr, HelixGridPosition},
         id_generator::IdGenerator,

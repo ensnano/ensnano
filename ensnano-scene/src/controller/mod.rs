@@ -36,7 +36,7 @@ pub(crate) struct Controller<S: SceneAppState> {
     /// A pointer to the View
     view: ViewPtr,
     /// A pointer to the data
-    data: Rc<RefCell<Data<S::AppStateDesignReader>>>,
+    data: Rc<RefCell<Data>>,
     /// The event that modify the camera are forwarded to the camera_controller
     camera_controller: CameraController,
     /// The size of the window
@@ -148,7 +148,7 @@ enum TransitionConsequence {
 impl<S: SceneAppState> Controller<S> {
     pub(super) fn new(
         view: ViewPtr,
-        data: Rc<RefCell<Data<S::AppStateDesignReader>>>,
+        data: Rc<RefCell<Data>>,
         window_size: PhySize,
         area_size: PhySize,
     ) -> Self {

@@ -1,5 +1,4 @@
 use crate::app_state::design_interactor::DesignInteractor;
-use crate::design::selection::MainDesignReaderExt;
 use ensnano_design::{
     grid::{GridId, HelixGridPosition},
     nucl::Nucl,
@@ -295,6 +294,42 @@ impl DesignInteractor {
     pub fn default_shift(&self) -> Option<usize> {
         self.presenter.current_design.scaffold_shift
     }
+
+    pub fn get_xover_id(&self, pair: &(Nucl, Nucl)) -> Option<usize> {
+        self.presenter.junctions_ids.get_id(pair)
+    }
+
+    pub fn get_xover_with_id(&self, id: usize) -> Option<(Nucl, Nucl)> {
+        self.presenter.junctions_ids.get_element(id)
+    }
+
+    pub fn get_grid_position_of_helix(&self, h_id: usize) -> Option<HelixGridPosition> {
+        self.presenter
+            .current_design
+            .helices
+            .get(&h_id)
+            .and_then(|h| h.grid_position)
+    }
+
+    pub fn get_strand_with_id(&self, id: usize) -> Option<&Strand> {
+        self.presenter.current_design.strands.get(&id)
+    }
+
+    pub fn get_helix_grid(&self, h_id: usize) -> Option<GridId> {
+        self.presenter
+            .current_design
+            .helices
+            .get(&h_id)
+            .and_then(|h| h.grid_position.map(|pos| pos.grid))
+    }
+
+    pub fn get_domain_ends(&self, s_id: usize) -> Option<Vec<Nucl>> {
+        self.presenter
+            .current_design
+            .strands
+            .get(&s_id)
+            .map(Strand::domain_ends)
+    }
 }
 
 fn warn_all_staples_not_paired(first_unpaired: Nucl) -> String {
@@ -307,44 +342,6 @@ fn warn_scaffold_seq_mismatch(scaffold_length: usize, sequence_length: usize) ->
         length of the scaffold: {scaffold_length}\n
         length of the sequence: {sequence_length}",
     )
-}
-
-impl MainDesignReaderExt for DesignInteractor {
-    fn get_xover_id(&self, pair: &(Nucl, Nucl)) -> Option<usize> {
-        self.presenter.junctions_ids.get_id(pair)
-    }
-
-    fn get_xover_with_id(&self, id: usize) -> Option<(Nucl, Nucl)> {
-        self.presenter.junctions_ids.get_element(id)
-    }
-
-    fn get_grid_position_of_helix(&self, h_id: usize) -> Option<HelixGridPosition> {
-        self.presenter
-            .current_design
-            .helices
-            .get(&h_id)
-            .and_then(|h| h.grid_position)
-    }
-
-    fn get_strand_with_id(&self, id: usize) -> Option<&Strand> {
-        self.presenter.current_design.strands.get(&id)
-    }
-
-    fn get_helix_grid(&self, h_id: usize) -> Option<GridId> {
-        self.presenter
-            .current_design
-            .helices
-            .get(&h_id)
-            .and_then(|h| h.grid_position.map(|pos| pos.grid))
-    }
-
-    fn get_domain_ends(&self, s_id: usize) -> Option<Vec<Nucl>> {
-        self.presenter
-            .current_design
-            .strands
-            .get(&s_id)
-            .map(Strand::domain_ends)
-    }
 }
 
 #[derive(Serialize)]

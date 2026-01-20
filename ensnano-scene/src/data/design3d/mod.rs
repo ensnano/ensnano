@@ -27,7 +27,7 @@ use ensnano_design::{
         PHANTOM_RANGE, PhantomElement, phantom_helix_encoder_bond, phantom_helix_encoder_nucl,
     },
 };
-use ensnano_state::scene::design_reader::SceneDesignReaderExt;
+use ensnano_state::app_state::design_interactor::DesignInteractor;
 use ensnano_utils::{
     ObjectType, Referential,
     colors::{new_color, purple_to_blue_gradient_color_in_range},
@@ -44,16 +44,16 @@ use std::{collections::BTreeMap, f32::consts::TAU, rc::Rc};
 use ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
 
 /// An object that handles the 3d graphical representation of a `Design`
-pub struct Design3D<R: SceneDesignReaderExt> {
-    pub design_reader: R,
+pub struct Design3D {
+    pub design_reader: DesignInteractor,
     id: u32,
     symbol_map: HashMap<char, usize>,
     /// indicate if all helices must be on axis (helices_off_axis = false)
     pub all_helices_on_axis: bool,
 }
 
-impl<R: SceneDesignReaderExt> Design3D<R> {
-    pub fn new(design_reader: R, id: u32) -> Self {
+impl Design3D {
+    pub fn new(design_reader: DesignInteractor, id: u32) -> Self {
         let mut symbol_map = HashMap::default();
         for (s_id, s) in PRINTABLE_CHARS.iter().enumerate() {
             symbol_map.insert(*s, s_id);

@@ -17,7 +17,7 @@ use ensnano_state::{
         },
     },
     gui::messages::{GuiMessages, TopBarStateFlags},
-    scene::{design_reader::SceneDesignReaderExt as _, state::SceneAppState as _},
+    scene::state::SceneAppState as _,
     utils::{
         application::{Application, Camera3D, Notification},
         operation::Operation,

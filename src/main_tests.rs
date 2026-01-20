@@ -16,7 +16,6 @@ use ensnano_state::{
     },
     design::{operation::DesignOperation, selection::Selection},
     gui::messages::GuiMessages,
-    scene::design_reader::SceneDesignReaderExt as _,
     utils::application::{Application, Camera3D, Notification},
 };
 use ensnano_utils::{

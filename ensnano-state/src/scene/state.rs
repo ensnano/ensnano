@@ -1,8 +1,8 @@
 use std::path::PathBuf;
 
 use crate::{
+    app_state::design_interactor::DesignInteractor,
     design::selection::{CenterOfSelection, Selection},
-    scene::design_reader::SceneDesignReaderExt,
 };
 use ensnano_design::{
     bezier_plane::BezierVertexId,
@@ -17,7 +17,6 @@ use ensnano_utils::{
 };
 
 pub trait SceneAppState: Clone + 'static {
-    type AppStateDesignReader: SceneDesignReaderExt;
     fn get_selection(&self) -> &[Selection];
     fn get_candidates(&self) -> &[Selection];
     fn selection_was_updated(&self, other: &Self) -> bool;
@@ -26,7 +25,7 @@ pub trait SceneAppState: Clone + 'static {
     fn design_model_matrix_was_updated(&self, other: &Self) -> bool;
     fn get_selection_mode(&self) -> SelectionMode;
     fn get_action_mode(&self) -> (ActionMode, WidgetBasis);
-    fn get_design_reader(&self) -> Self::AppStateDesignReader;
+    fn get_design_reader(&self) -> DesignInteractor;
     fn get_strand_builders(&self) -> &[StrandBuilder];
     fn get_widget_basis(&self) -> WidgetBasis;
     fn is_changing_color(&self) -> bool;

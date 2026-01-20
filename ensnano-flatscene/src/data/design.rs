@@ -8,8 +8,8 @@ use ensnano_design::{
     helices::{Helices, Helix},
     nucl::Nucl,
 };
-use ensnano_state::flatscene::{
-    design_reader::FlatSceneDesignReaderExt, requests::FlatSceneRequests,
+use ensnano_state::{
+    app_state::design_interactor::DesignInteractor, flatscene::requests::FlatSceneRequests,
 };
 use ensnano_utils::{
     Referential,
@@ -24,7 +24,7 @@ use std::{
 };
 use ultraviolet::{Isometry2, Rotor2, Vec2};
 
-pub(super) struct Design2d<R: FlatSceneDesignReaderExt> {
+pub(super) struct Design2d {
     /// The 2d helices
     helices: HelixVec<Helix2d>,
     /// Maps id of helices in design to location in self.helices
@@ -32,7 +32,7 @@ pub(super) struct Design2d<R: FlatSceneDesignReaderExt> {
     /// the 2d strands
     strands: Vec<Strand>,
     /// A pointer to the design
-    design: R,
+    design: DesignInteractor,
     /// The strand being pasted,
     pasted_strands: Vec<Strand>,
     last_flip_other: Option<FlatHelix>,
@@ -42,8 +42,11 @@ pub(super) struct Design2d<R: FlatSceneDesignReaderExt> {
     known_map: *const Helices,
 }
 
-impl<R: FlatSceneDesignReaderExt> Design2d<R> {
-    pub(super) fn new(design: R, requests: Arc<Mutex<dyn FlatSceneRequests>>) -> Self {
+impl Design2d {
+    pub(super) fn new(
+        design: DesignInteractor,
+        requests: Arc<Mutex<dyn FlatSceneRequests>>,
+    ) -> Self {
         Self {
             design,
             helices: HelixVec::new(),
@@ -70,7 +73,7 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
     }
 
     /// Re-read the design and update the 2d data accordingly
-    pub(super) fn update(&mut self, design: R) {
+    pub(super) fn update(&mut self, design: DesignInteractor) {
         self.design = design;
         log::trace!("updating design");
         // At the moment we rebuild the strands from scratch. If needed, this might be an optimization
@@ -346,7 +349,7 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
     }
 
     pub(super) fn can_start_builder_at(&self, nucl: Nucl) -> bool {
-        self.design.can_start_builder_at(nucl)
+        self.design.can_start_builder_at(&nucl)
     }
 
     pub(super) fn prime3_of(&self, nucl: Nucl) -> Option<usize> {

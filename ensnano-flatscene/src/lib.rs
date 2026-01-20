@@ -32,6 +32,7 @@ use controller::{Consequence, Controller};
 use data::Data;
 use ensnano_design::{consts::ITERATIVE_AXIS_ALGORITHM, phantom_element::PhantomElement};
 use ensnano_state::{
+    app_state::design_interactor::DesignInteractor,
     design::{
         operation::DesignOperation,
         selection::{Selection, extract_nucls_and_xover_ends},
@@ -62,7 +63,7 @@ use wgpu::{Device, Queue};
 use winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon};
 
 type ViewPtr = Rc<RefCell<View>>;
-type DataPtr<R> = Rc<RefCell<Data<R>>>;
+type DataPtr = Rc<RefCell<Data>>;
 type CameraPtr = Rc<RefCell<Camera2D>>;
 
 fn png_resolution([w, h]: [f32; 2]) -> [f32; 2] {
@@ -81,7 +82,7 @@ pub struct FlatScene<S: FlatSceneAppState> {
     /// Handle the data to send to the GPU.
     view: Vec<ViewPtr>,
     /// Handle the data representing the design.
-    data: Vec<DataPtr<S::Reader>>,
+    data: Vec<DataPtr>,
     /// Handle inputs.
     controller: Vec<Controller<S>>,
     /// The area on which the flatscene is displayed.
@@ -131,7 +132,11 @@ impl<S: FlatSceneAppState> FlatScene<S> {
     /// Add a design to the scene.
     ///
     /// This creates a new `View`, a new `Data` and a new `Controller`
-    fn add_design(&mut self, reader: S::Reader, requests: Arc<Mutex<dyn FlatSceneRequests>>) {
+    fn add_design(
+        &mut self,
+        reader: DesignInteractor,
+        requests: Arc<Mutex<dyn FlatSceneRequests>>,
+    ) {
         let height = if self.is_split {
             self.area.size.height as f32 / 2.
         } else {

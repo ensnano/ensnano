@@ -18,11 +18,9 @@ use ahash::RandomState;
 use design::Design2d;
 use ensnano_design::{interaction_modes::SelectionMode, phantom_element::PhantomElement};
 use ensnano_state::{
+    app_state::design_interactor::DesignInteractor,
     design::selection::Selection,
-    flatscene::{
-        design_reader::FlatSceneDesignReaderExt, requests::FlatSceneRequests,
-        state::FlatSceneAppState,
-    },
+    flatscene::{requests::FlatSceneRequests, state::FlatSceneAppState},
 };
 use ensnano_utils::{
     StrandBuildingStatus,
@@ -39,9 +37,9 @@ use std::{
 };
 use ultraviolet::Vec2;
 
-pub struct Data<R: FlatSceneDesignReaderExt> {
+pub struct Data {
     view: ViewPtr,
-    design: Design2d<R>,
+    design: Design2d,
     instance_update: bool,
     instance_reset: bool,
     helices: HelixVec<Helix>,
@@ -53,10 +51,10 @@ pub struct Data<R: FlatSceneDesignReaderExt> {
     last_click: LastClick,
 }
 
-impl<R: FlatSceneDesignReaderExt> Data<R> {
+impl Data {
     pub fn new(
         view: ViewPtr,
-        design: R,
+        design: DesignInteractor,
         id: u32,
         requests: Arc<Mutex<dyn FlatSceneRequests>>,
     ) -> Self {
@@ -87,11 +85,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         self.last_click = Default::default();
     }
 
-    pub fn perform_update<S: FlatSceneAppState<Reader = R>>(
-        &mut self,
-        new_state: &S,
-        old_state: &S,
-    ) {
+    pub fn perform_update<S: FlatSceneAppState>(&mut self, new_state: &S, old_state: &S) {
         if self.instance_reset {
             self.view.borrow_mut().reset();
             self.instance_reset = false;
@@ -263,7 +257,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
             .update_strand_building_info(flat_info);
     }
 
-    fn fetch_helices(&mut self, design: R) {
+    fn fetch_helices(&mut self, design: DesignInteractor) {
         let removed_helices = self.design.get_removed_helices();
         for h in removed_helices.iter().rev() {
             self.helices.remove(*h);

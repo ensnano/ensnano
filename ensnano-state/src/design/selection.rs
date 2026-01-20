@@ -3,21 +3,13 @@ use ensnano_design::{
     curves::bezier::BezierControlPoint,
     design_element::DesignElementKey,
     domains::Domain,
-    grid::{GridId, HelixGridPosition},
+    grid::GridId,
     nucl::Nucl,
     phantom_element::PhantomElement,
-    strands::Strand,
 };
 use std::collections::BTreeSet;
 
-pub trait MainDesignReaderExt {
-    fn get_grid_position_of_helix(&self, h_id: usize) -> Option<HelixGridPosition>;
-    fn get_xover_id(&self, pair: &(Nucl, Nucl)) -> Option<usize>;
-    fn get_xover_with_id(&self, id: usize) -> Option<(Nucl, Nucl)>;
-    fn get_strand_with_id(&self, id: usize) -> Option<&Strand>;
-    fn get_helix_grid(&self, h_id: usize) -> Option<GridId>;
-    fn get_domain_ends(&self, s_id: usize) -> Option<Vec<Nucl>>;
-}
+use crate::app_state::design_interactor::DesignInteractor;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Selection {
@@ -82,7 +74,7 @@ impl Selection {
         format!("{self:?}")
     }
 
-    fn get_helices_containing_self(&self, reader: &dyn MainDesignReaderExt) -> Option<Vec<usize>> {
+    fn get_helices_containing_self(&self, reader: &DesignInteractor) -> Option<Vec<usize>> {
         match self {
             Self::Helix { helix_id, .. } => Some(vec![(*helix_id)]),
             Self::Nucleotide(_, nucl) => Some(vec![nucl.helix]),
@@ -104,7 +96,7 @@ impl Selection {
         }
     }
 
-    fn get_grids_containing_self(&self, reader: &dyn MainDesignReaderExt) -> Option<Vec<GridId>> {
+    fn get_grids_containing_self(&self, reader: &DesignInteractor) -> Option<Vec<GridId>> {
         if let Self::Grid(_, g_id) = self {
             Some(vec![*g_id])
         } else {
@@ -121,7 +113,7 @@ impl Selection {
 
 pub fn extract_nucls_and_xover_ends(
     selection: &[Selection],
-    reader: &dyn MainDesignReaderExt,
+    reader: &DesignInteractor,
 ) -> Vec<Nucl> {
     let mut ret = Vec::with_capacity(2 * selection.len());
     for s in selection {
@@ -202,7 +194,7 @@ pub fn list_of_strands(selection: &[Selection]) -> Option<(usize, Vec<usize>)> {
 /// Convert a selection of bonds into a list of cross-overs
 pub fn list_of_xover_ids(
     selection: &[Selection],
-    reader: &dyn MainDesignReaderExt,
+    reader: &DesignInteractor,
 ) -> Option<(usize, Vec<usize>)> {
     let design_id = selection.first().and_then(Selection::get_design)?;
     let mut xovers = BTreeSet::new();
@@ -231,7 +223,7 @@ pub fn list_of_xover_ids(
 /// Convert a selection of bonds into a list of cross-overs
 pub fn list_of_xover_as_nucl_pairs(
     selection: &[Selection],
-    reader: &dyn MainDesignReaderExt,
+    reader: &DesignInteractor,
 ) -> Option<(usize, Vec<(Nucl, Nucl)>)> {
     let design_id = selection.first().and_then(Selection::get_design)?;
     let mut xovers = BTreeSet::new();
@@ -339,7 +331,7 @@ pub fn extract_control_points(selection: &[Selection]) -> Vec<(usize, BezierCont
 
 pub fn set_of_helices_containing_selection(
     selection: &[Selection],
-    reader: &dyn MainDesignReaderExt,
+    reader: &DesignInteractor,
 ) -> Option<Vec<usize>> {
     let mut ret = Vec::new();
     for s in selection {
@@ -353,7 +345,7 @@ pub fn set_of_helices_containing_selection(
 
 pub fn set_of_grids_containing_selection(
     selection: &[Selection],
-    reader: &dyn MainDesignReaderExt,
+    reader: &DesignInteractor,
 ) -> Option<Vec<GridId>> {
     let mut ret = Vec::new();
     for s in selection {
@@ -366,7 +358,7 @@ pub fn set_of_grids_containing_selection(
 }
 
 /// Return true iff the selection is only made of helices that are not attached to a grid
-pub fn all_helices_no_grid(selection: &[Selection], reader: &dyn MainDesignReaderExt) -> bool {
+pub fn all_helices_no_grid(selection: &[Selection], reader: &DesignInteractor) -> bool {
     let design_id = selection.first().and_then(Selection::get_design);
     let mut nb_helices = 0;
     if design_id.is_none() {

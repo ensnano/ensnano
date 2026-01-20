@@ -18,8 +18,6 @@ use ensnano_utils::{
 use std::path::PathBuf;
 
 impl SceneAppState for AppState {
-    type AppStateDesignReader = DesignInteractor;
-
     fn get_selection(&self) -> &[Selection] {
         self.selection_content().as_slice()
     }
@@ -56,7 +54,7 @@ impl SceneAppState for AppState {
         (self.0.action_mode, self.0.widget_basis)
     }
 
-    fn get_design_reader(&self) -> Self::AppStateDesignReader {
+    fn get_design_reader(&self) -> DesignInteractor {
         self.0.design.clone_inner()
     }
 

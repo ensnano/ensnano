@@ -4,8 +4,6 @@ use ensnano_design::interaction_modes::SelectionMode;
 use ensnano_utils::{StrandBuildingStatus, strand_builder::StrandBuilder};
 
 impl FlatSceneAppState for AppState {
-    type Reader = DesignInteractor;
-
     fn get_selection(&self) -> &[Selection] {
         self.selection_content().as_slice()
     }
@@ -26,7 +24,7 @@ impl FlatSceneAppState for AppState {
         self.0.selection_mode
     }
 
-    fn get_design_reader(&self) -> Self::Reader {
+    fn get_design_reader(&self) -> DesignInteractor {
         self.0.design.clone_inner()
     }
 

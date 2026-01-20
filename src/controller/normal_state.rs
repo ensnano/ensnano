@@ -321,10 +321,7 @@ impl AutomataState for ChangingDnaParameters {
 impl NormalState {
     fn turn_selection_into_grid(self: Box<Self>, main_state: &mut MainStateView) -> Box<Self> {
         let selection = main_state.get_selection();
-        if all_helices_no_grid(
-            selection.as_ref().as_ref(),
-            main_state.get_design_reader().as_ref(),
-        ) {
+        if all_helices_no_grid(selection.as_ref().as_ref(), &main_state.get_design_reader()) {
             let selection = selection.as_ref().as_ref().to_vec();
             main_state.apply_operation(DesignOperation::HelicesToGrid(selection));
         }

@@ -15,10 +15,7 @@ use ensnano_design::{
     },
     parameters::HelixParameters,
 };
-use ensnano_state::{
-    design::selection::Selection,
-    scene::{design_reader::SceneDesignReaderExt, state::SceneAppState},
-};
+use ensnano_state::{design::selection::Selection, scene::state::SceneAppState};
 use ensnano_utils::{
     consts::{
         BEZIER_CONTROL_RADIUS, BEZIER_CONTROL1_COLOR, BEZIER_CONTROL2_COLOR, BEZIER_END_COLOR,
@@ -30,7 +27,7 @@ use ensnano_utils::{
 };
 use ultraviolet::{Rotor3, Vec2, Vec3};
 
-impl<R: SceneDesignReaderExt> Design3D<R> {
+impl Design3D {
     pub fn get_bezier_elements(&self, h_id: usize) -> (Vec<RawDnaInstance>, Vec<RawDnaInstance>) {
         let mut spheres = Vec::new();
         let mut tubes = Vec::new();

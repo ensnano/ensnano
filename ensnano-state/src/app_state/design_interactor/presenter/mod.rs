@@ -613,7 +613,7 @@ pub(super) fn apply_simulation_update(
 }
 
 impl DesignInteractor {
-    pub(super) fn get_position_of_nucl_on_helix(
+    pub fn get_position_of_nucl_on_helix(
         &self,
         nucl: Nucl,
         referential: Referential,
@@ -633,7 +633,7 @@ impl DesignInteractor {
         Some(self.presenter.in_referential(position, referential))
     }
 
-    pub(super) fn prime5_of_which_strand(&self, nucl: Nucl) -> Option<usize> {
+    pub fn prime5_of_which_strand(&self, nucl: Nucl) -> Option<usize> {
         for (s_id, s) in self.presenter.current_design.strands.iter() {
             if !s.is_cyclic && s.get_5prime() == Some(nucl) {
                 return Some(*s_id);
@@ -642,7 +642,7 @@ impl DesignInteractor {
         None
     }
 
-    pub(super) fn prime3_of_which_strand(&self, nucl: Nucl) -> Option<usize> {
+    pub fn prime3_of_which_strand(&self, nucl: Nucl) -> Option<usize> {
         for (s_id, s) in self.presenter.current_design.strands.iter() {
             if !s.is_cyclic && s.get_3prime() == Some(nucl) {
                 return Some(*s_id);
@@ -651,7 +651,7 @@ impl DesignInteractor {
         None
     }
 
-    pub(super) fn get_id_of_strand_containing_nucl(&self, nucl: &Nucl) -> Option<usize> {
+    pub fn get_id_of_strand_containing_nucl(&self, nucl: &Nucl) -> Option<usize> {
         let e_id = self
             .presenter
             .content
