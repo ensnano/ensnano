@@ -1,9 +1,7 @@
-use crate::{
-    app_state::{
-        address_pointer::AddressPointer,
-        design_interactor::{DesignInteractor, presenter::Presenter},
-    },
-    controller::LoadDesignError,
+use crate::app_state::{
+    LoadDesignError,
+    address_pointer::AddressPointer,
+    design_interactor::{DesignInteractor, presenter::Presenter},
 };
 use ensnano_design::{
     Design,

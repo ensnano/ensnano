@@ -2,15 +2,13 @@ pub(crate) mod controller;
 pub(crate) mod file_parsing;
 pub(crate) mod presenter;
 
-use crate::{
-    app_state::{
-        address_pointer::AddressPointer,
-        channel_reader::ChannelReader,
-        design_interactor::controller::{
-            OkOperation, clipboard::CopyOperation, simulations::SimulationOperation,
-        },
+use crate::app_state::{
+    SaveDesignError,
+    address_pointer::AddressPointer,
+    channel_reader::ChannelReader,
+    design_interactor::controller::{
+        OkOperation, clipboard::CopyOperation, simulations::SimulationOperation,
     },
-    controller::SaveDesignError,
 };
 use controller::{Controller, ErrOperation, InteractorNotification};
 use ensnano_design::{

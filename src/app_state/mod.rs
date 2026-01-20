@@ -25,14 +25,11 @@ use ensnano_state::{
 };
 
 use crate::app_state::channel_reader::ChannelReader;
-use crate::{
-    app_state::design_interactor::{
-        controller::{
-            InteractorNotification, clipboard::CopyOperation, simulations::SimulationOperation,
-        },
-        presenter::SimulationUpdate,
+use crate::app_state::design_interactor::{
+    controller::{
+        InteractorNotification, clipboard::CopyOperation, simulations::SimulationOperation,
     },
-    controller::{LoadDesignError, SaveDesignError},
+    presenter::SimulationUpdate,
 };
 use address_pointer::AddressPointer;
 use design_interactor::{DesignInteractor, InteractorResult, controller::ErrOperation};
@@ -43,6 +40,7 @@ use ensnano_design::{
     group_attributes::GroupPivot,
     interaction_modes::{ActionMode, SelectionMode},
     organizer_tree::GroupId,
+    scadnano::ScadnanoImportError,
 };
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_utils::{
@@ -52,7 +50,7 @@ use ensnano_utils::{
         suggestion_parameters::SuggestionParameters,
     },
     apply_update,
-    consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION},
+    consts::{APP_NAME, CANNOT_OPEN_DEFAULT_DIR, ENS_BACKUP_EXTENSION, ENS_EXTENSION},
     graphics::{Background3D, HBondDisplay, RenderingMode},
     surfaces::{RevolutionSurfaceRadius, UnrootedRevolutionSurfaceDescriptor},
     ui_size::UiSize,
@@ -728,4 +726,47 @@ pub(crate) struct AppStateSelection {
 pub(crate) struct NewHelixStrand {
     length: usize,
     start: isize,
+}
+pub(crate) enum LoadDesignError {
+    JsonError(serde_json::Error),
+    ScadnanoImportError(ScadnanoImportError),
+    IncompatibleVersion { current: String, required: String },
+}
+
+impl std::fmt::Display for LoadDesignError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Self::JsonError(e) => write!(f, "Json error: {e}"),
+            Self::ScadnanoImportError(e) => {
+                write!(
+                    f,
+                    "Scadnano file detected but the following error was encountered:
+                {e:?}",
+                )
+            }
+            Self::IncompatibleVersion { current, required } => {
+                write!(
+                    f,
+                    "Your ENSnano version is too old to load this design.
+                Your version: {current},
+                Required version: {required}"
+                )
+            }
+        }
+    }
+}
+
+#[derive(Debug)]
+pub(crate) struct SaveDesignError(pub String);
+
+impl<E: std::error::Error> From<E> for SaveDesignError {
+    fn from(e: E) -> Self {
+        Self(format!("{e}"))
+    }
+}
+
+impl SaveDesignError {
+    pub(crate) fn cannot_open_default_dir() -> Self {
+        Self(CANNOT_OPEN_DEFAULT_DIR.to_owned())
+    }
 }

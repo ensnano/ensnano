@@ -73,7 +73,7 @@
 #[cfg(test)]
 mod main_tests;
 
-mod app_state;
+pub mod app_state;
 mod controller;
 mod dialog;
 mod multiplexer;
@@ -83,7 +83,7 @@ mod state;
 
 use crate::{
     app_state::{
-        AppState,
+        AppState, LoadDesignError, SaveDesignError,
         channel_reader::ChannelReaderUpdate,
         design_interactor::{
             DesignInteractor,
@@ -96,7 +96,7 @@ use crate::{
         transitions::OkOperation,
     },
     controller::{
-        Controller, LoadDesignError, SaveDesignError,
+        Controller,
         normal_state::Action,
         set_scaffold_sequence::{
             SetScaffoldSequenceError, SetScaffoldSequenceOk, TargetScaffoldLength,
