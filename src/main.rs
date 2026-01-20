@@ -73,7 +73,6 @@
 #[cfg(test)]
 mod main_tests;
 
-pub mod app_state;
 mod controller;
 mod dialog;
 mod multiplexer;
@@ -82,20 +81,6 @@ mod scheduler;
 mod state;
 
 use crate::{
-    app_state::{
-        AppState, LoadDesignError, SaveDesignError,
-        action::Action,
-        channel_reader::ChannelReaderUpdate,
-        design_interactor::{
-            DesignInteractor,
-            controller::{
-                InteractorNotification,
-                clipboard::{CopyOperation, PastePosition},
-                simulations::SimulationOperation,
-            },
-        },
-        transitions::OkOperation,
-    },
     controller::{
         Controller,
         set_scaffold_sequence::{
@@ -103,7 +88,6 @@ use crate::{
         },
     },
     multiplexer::Multiplexer,
-    requests::Requests,
     scheduler::Scheduler,
     state::MainState,
 };
@@ -118,6 +102,20 @@ use ensnano_gui::{
 };
 use ensnano_scene::{Scene, SceneKind};
 use ensnano_state::{
+    app_state::{
+        AppState, LoadDesignError, SaveDesignError,
+        action::Action,
+        channel_reader::ChannelReaderUpdate,
+        design_interactor::{
+            DesignInteractor,
+            controller::{
+                InteractorNotification,
+                clipboard::{CopyOperation, PastePosition},
+                simulations::SimulationOperation,
+            },
+        },
+        transitions::OkOperation,
+    },
     design::{
         operation::{DesignOperation, DesignRotation, DesignTranslation, IsometryTarget},
         selection::{
@@ -127,6 +125,7 @@ use ensnano_state::{
     },
     flatscene::design_reader::FlatSceneDesignReaderExt as _,
     gui::{messages::GuiMessages, state::GuiAppState as _},
+    requests::Requests,
     utils::application::{Camera3D, Notification},
 };
 use ensnano_utils::{

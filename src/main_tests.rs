@@ -6,16 +6,14 @@ use std::{
     time::Duration,
 };
 
-use crate::{
+use crate::state::MainState;
+
+use ensnano_design::nucl::Nucl;
+use ensnano_state::{
     app_state::{
         AppState,
         design_interactor::controller::clipboard::{CopyOperation, PastePosition},
     },
-    state::MainState,
-};
-
-use ensnano_design::nucl::Nucl;
-use ensnano_state::{
     design::{operation::DesignOperation, selection::Selection},
     gui::messages::GuiMessages,
     scene::design_reader::SceneDesignReaderExt as _,

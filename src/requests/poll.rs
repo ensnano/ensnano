@@ -2,18 +2,16 @@
 //! object.
 
 use ensnano_state::{
+    app_state::{action::Action, design_interactor::controller::clipboard::PastePosition},
     design::{
         operation::{DesignOperation, HyperboloidOperation},
         selection::DesignElementKeySelection as _,
     },
+    requests::Requests,
     utils::application::Notification,
 };
 
-use crate::{
-    app_state::{action::Action, design_interactor::controller::clipboard::PastePosition},
-    requests::Requests,
-    state::MainState,
-};
+use crate::state::MainState;
 use std::ops::DerefMut;
 
 pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(

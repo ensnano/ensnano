@@ -42,18 +42,17 @@ use ensnano_utils::{
 use ultraviolet::{Rotor3, Vec3};
 use winit::window::CursorIcon;
 
-use crate::{
-    app_state::{
-        AppState, SaveDesignError,
-        action::Action,
-        channel_reader::ChannelReader,
-        design_interactor::controller::{
-            ErrOperation, InteractorNotification, clipboard::CopyOperation,
-            simulations::SimulationOperation,
-        },
-        transitions::{AppStateTransition, OkOperation, TransitionLabel},
+use crate::multiplexer::Multiplexer;
+
+use ensnano_state::app_state::{
+    AppState, SaveDesignError,
+    action::Action,
+    channel_reader::ChannelReader,
+    design_interactor::controller::{
+        ErrOperation, InteractorNotification, clipboard::CopyOperation,
+        simulations::SimulationOperation,
     },
-    multiplexer::Multiplexer,
+    transitions::{AppStateTransition, OkOperation, TransitionLabel},
 };
 
 /// The state of the main event loop.

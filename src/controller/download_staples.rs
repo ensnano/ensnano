@@ -1,6 +1,5 @@
 use crate::{
     MainStateView,
-    app_state::design_interactor::DesignInteractor,
     controller::{
         AutomataState, TransitionMessage,
         messages::{
@@ -12,10 +11,14 @@ use crate::{
     dialog,
 };
 use dialog::{MustAckMessage, PathInput};
+use ensnano_state::app_state::design_interactor::{
+    DesignInteractor,
+    presenter::impl_main_reader::{DownloadStapleError, DownloadStapleOk},
+};
 use std::path::PathBuf;
 
 #[derive(Default)]
-pub(super) struct DownloadStaples {
+pub(crate) struct DownloadStaples {
     step: Step,
 }
 
@@ -143,15 +146,4 @@ fn download_staples(downloader: &DesignInteractor, path: PathBuf) -> Box<dyn Aut
     downloader.write_staples_xlsx(&path);
     let msg = successful_staples_export_msg(&path);
     TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(NormalState))
-}
-
-pub(crate) enum DownloadStapleError {
-    /// No strand is set as the scaffold
-    NoScaffoldSet,
-    /// There is no sequence set for the scaffold
-    ScaffoldSequenceNotSet,
-}
-
-pub(crate) struct DownloadStapleOk {
-    pub warnings: Vec<String>,
 }

@@ -1,6 +1,5 @@
 use crate::{
     MainStateView,
-    app_state::{action::Action, design_interactor::controller::simulations::SimulationOperation},
     controller::{
         AutomataState, TransitionMessage, YesNo,
         download_intervals::DownloadIntervals,
@@ -20,6 +19,7 @@ use ensnano_design::{
 };
 use ensnano_exports::ExportType;
 use ensnano_state::{
+    app_state::{action::Action, design_interactor::controller::simulations::SimulationOperation},
     design::{
         operation::{DesignOperation, HyperboloidOperation},
         selection::{all_helices_no_grid, extract_grids, extract_strands_from_selection},

@@ -1,5 +1,5 @@
-use crate::{app_state::AppState, multiplexer::Multiplexer};
-use ensnano_state::utils::application::Application;
+use crate::multiplexer::Multiplexer;
+use ensnano_state::{app_state::AppState, utils::application::Application};
 use ensnano_utils::graphics::GuiComponentType;
 use std::{
     collections::HashMap,
