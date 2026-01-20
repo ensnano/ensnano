@@ -6,8 +6,9 @@ use std::{
 };
 
 use ahash::HashMap;
+use ensnano_design::selection::MainDesignReaderExt;
 use ensnano_design::{
-    Camera, CameraId, MainDesignReaderExt, SavingInformation,
+    Camera, CameraId, SavingInformation,
     bezier_plane::BezierPlaneDescriptor,
     grid::GridId,
     group_attributes::GroupPivot,

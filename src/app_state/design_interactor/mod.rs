@@ -403,11 +403,11 @@ mod tests {
         AppState, design_interactor::controller::clipboard::PastePosition, transitions,
     };
     use ensnano_design::{
-        MainDesignReaderExt as _,
         grid::{GridDescriptor, GridId, GridTypeDescr, HelixGridPosition},
         id_generator::IdGenerator,
         nucl::Nucl,
         operation::InsertionPoint,
+        selection::MainDesignReaderExt as _,
         strands::{DomainJunction, Strand},
     };
     use ensnano_scene::design_reader::SceneDesignReaderExt as _;

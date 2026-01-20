@@ -1,16 +1,25 @@
 // TODO: find a better place for everything in this file
 
 use crate::{
-    MainDesignReaderExt,
     bezier_plane::{BezierPathId, BezierVertexId},
     curves::bezier::BezierControlPoint,
     design_element::DesignElementKey,
     domains::Domain,
-    grid::GridId,
+    grid::{GridId, HelixGridPosition},
     nucl::Nucl,
     phantom_element::PhantomElement,
+    strands::Strand,
 };
 use std::collections::BTreeSet;
+
+pub trait MainDesignReaderExt {
+    fn get_grid_position_of_helix(&self, h_id: usize) -> Option<HelixGridPosition>;
+    fn get_xover_id(&self, pair: &(Nucl, Nucl)) -> Option<usize>;
+    fn get_xover_with_id(&self, id: usize) -> Option<(Nucl, Nucl)>;
+    fn get_strand_with_id(&self, id: usize) -> Option<&Strand>;
+    fn get_helix_grid(&self, h_id: usize) -> Option<GridId>;
+    fn get_domain_ends(&self, s_id: usize) -> Option<Vec<Nucl>>;
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Selection {

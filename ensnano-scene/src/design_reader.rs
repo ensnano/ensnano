@@ -2,7 +2,7 @@ use std::{collections::BTreeMap, sync::Arc};
 
 use ahash::{HashMap, HashSet};
 use ensnano_design::{
-    AdditionalStructure, MainDesignReaderExt,
+    AdditionalStructure,
     bezier_plane::{BezierPathId, BezierPlaneId, BezierPlanes, BezierVertex, InstantiatedPath},
     curves::{
         CurveDescriptor, SurfaceInfo, SurfacePoint,
@@ -13,6 +13,7 @@ use ensnano_design::{
     helices::HBond,
     nucl::Nucl,
     parameters::HelixParameters,
+    selection::MainDesignReaderExt,
 };
 use ensnano_utils::{
     ObjectType, Referential,

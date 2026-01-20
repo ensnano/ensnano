@@ -3,9 +3,9 @@ use crate::{
     controller::download_staples::{DownloadStapleError, DownloadStapleOk},
 };
 use ensnano_design::{
-    MainDesignReaderExt,
     grid::{GridId, HelixGridPosition},
     nucl::Nucl,
+    selection::MainDesignReaderExt,
     strands::Strand,
 };
 use itertools::Itertools as _;
