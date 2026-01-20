@@ -6,6 +6,7 @@ members = [
     "ensnano-gui",
     "ensnano-physics",
     "ensnano-scene",
+    "ensnano-state",
     "ensnano-utils",
 ]
 
@@ -30,6 +31,7 @@ ensnano_flatscene = { path = "ensnano-flatscene" }
 ensnano_gui = { path = "ensnano-gui" }
 ensnano_physics = { path = "ensnano-physics" }
 ensnano_scene = { path = "ensnano-scene" }
+ensnano_state = { path = "ensnano-scene" }
 ensnano_utils = { path = "ensnano-utils" }
 
 ahash = "0.8.6"
@@ -99,6 +101,7 @@ ensnano_flatscene.workspace = true
 ensnano_gui.workspace = true
 ensnano_physics.workspace = true
 ensnano_scene.workspace = true
+ensnano_state.workspace = true
 ensnano_utils.workspace = true
 
 ahash.workspace = true
