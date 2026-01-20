@@ -1,10 +1,3 @@
-use std::{
-    collections::VecDeque,
-    path::{Path, PathBuf},
-    sync::{Arc, Mutex},
-    time::{Duration, Instant},
-};
-
 use ahash::HashMap;
 use ensnano_design::{
     Camera, SavingInformation,
@@ -14,6 +7,7 @@ use ensnano_design::{
     organizer_tree::GroupId,
 };
 use ensnano_physics::parameters::RapierParameters;
+
 use ensnano_state::{
     design::{
         operation::DesignOperation,
@@ -38,6 +32,12 @@ use ensnano_utils::{
     graphics::{Background3D, GuiComponentType, HBondDisplay, RenderingMode},
     keyboard_priority::KeyboardPriorityId,
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
+};
+use std::{
+    collections::VecDeque,
+    path::{Path, PathBuf},
+    sync::{Arc, Mutex},
+    time::{Duration, Instant},
 };
 use ultraviolet::{Rotor3, Vec3};
 use winit::window::CursorIcon;

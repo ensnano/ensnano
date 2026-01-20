@@ -5,23 +5,6 @@ mod export_menu;
 mod organizer;
 pub mod tabs;
 
-use crate::{
-    fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
-    left_panel::{
-        color_picker::HueColorPicker,
-        contextual_panel::ContextualPanel,
-        discrete_value::Requestable,
-        export_menu::ExportMenu,
-        organizer::Organizer,
-        tabs::{
-            GuiTab as _, camera_shortcut::CameraShortcutPanel, camera_tab::CameraTab,
-            edition_tab::EditionTab, grids_tab::GridTab, parameters_tab::ParametersTab,
-            pen_tab::PenTab, revolution_tab::RevolutionTab, sequence_tab::SequenceTab,
-            simulation_tab::SimulationTab,
-        },
-    },
-    theme::GuiBackground,
-};
 use ensnano_design::{
     design_element::DesignElementKey, interaction_modes::ActionMode, organizer_tree::OrganizerTree,
 };
@@ -50,6 +33,24 @@ use std::{
     sync::{Arc, Mutex},
 };
 use winit::dpi::{LogicalPosition, LogicalSize};
+
+use crate::{
+    fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
+    left_panel::{
+        color_picker::HueColorPicker,
+        contextual_panel::ContextualPanel,
+        discrete_value::Requestable,
+        export_menu::ExportMenu,
+        organizer::Organizer,
+        tabs::{
+            GuiTab as _, camera_shortcut::CameraShortcutPanel, camera_tab::CameraTab,
+            edition_tab::EditionTab, grids_tab::GridTab, parameters_tab::ParametersTab,
+            pen_tab::PenTab, revolution_tab::RevolutionTab, sequence_tab::SequenceTab,
+            simulation_tab::SimulationTab,
+        },
+    },
+    theme::GuiBackground,
+};
 
 pub struct LeftPanelState<R: GuiRequests, S: GuiAppState> {
     logical_size: LogicalSize<f64>,

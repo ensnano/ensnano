@@ -16,12 +16,6 @@ pub mod theme;
 pub mod top_bar;
 mod widgets;
 
-use crate::{
-    fonts::{INTER_REGULAR_FONT, load_fonts},
-    left_panel::LeftPanelState,
-    status_bar::StatusBarState,
-    top_bar::TopBarState,
-};
 use ensnano_state::gui::{
     messages::{GuiMessages, LeftPanelMessage, StatusBarMessage, TopBarMessage, TopBarStateFlags},
     requests::GuiRequests,
@@ -50,6 +44,13 @@ use std::{
 };
 use wgpu::{Device, Queue};
 use winit::window::Window;
+
+use crate::{
+    fonts::{INTER_REGULAR_FONT, load_fonts},
+    left_panel::LeftPanelState,
+    status_bar::StatusBarState,
+    top_bar::TopBarState,
+};
 
 #[expect(clippy::large_enum_variant)]
 pub enum GuiState<R: GuiRequests, S: GuiAppState> {
