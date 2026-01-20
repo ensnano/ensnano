@@ -321,7 +321,7 @@ impl AutomataState for ChangingDnaParameters {
 impl NormalState {
     fn turn_selection_into_grid(self: Box<Self>, main_state: &mut MainStateView) -> Box<Self> {
         let selection = main_state.get_selection();
-        if all_helices_no_grid(selection.as_ref().as_ref(), &main_state.get_design_reader()) {
+        if all_helices_no_grid(selection, &main_state.get_design_reader()) {
             let selection = selection.as_ref().as_ref().to_vec();
             main_state.apply_operation(DesignOperation::HelicesToGrid(selection));
         }
@@ -349,7 +349,7 @@ impl NormalState {
     }
 
     fn change_color(self: Box<Self>, main_state: &mut MainStateView, color: u32) -> Box<Self> {
-        let strands = extract_strands_from_selection(main_state.get_selection().as_ref().as_ref());
+        let strands = extract_strands_from_selection(main_state.get_selection());
         main_state.apply_operation(DesignOperation::ChangeColor { color, strands });
         self
     }
@@ -359,7 +359,7 @@ impl NormalState {
         main_state: &mut MainStateView,
         small: bool,
     ) -> Box<Self> {
-        let grid_ids = extract_grids(main_state.get_selection().as_ref().as_ref());
+        let grid_ids = extract_grids(main_state.get_selection());
         if !grid_ids.is_empty() {
             main_state.apply_operation(DesignOperation::SetSmallSpheres { grid_ids, small });
         }
@@ -371,7 +371,7 @@ impl NormalState {
         main_state: &mut MainStateView,
         persistent: bool,
     ) -> Box<Self> {
-        let grid_ids = extract_grids(main_state.get_selection().as_ref().as_ref());
+        let grid_ids = extract_grids(main_state.get_selection());
         if !grid_ids.is_empty() {
             main_state.apply_operation(DesignOperation::SetHelicesPersistence {
                 grid_ids,

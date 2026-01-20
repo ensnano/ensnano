@@ -330,7 +330,7 @@ impl MainState {
     }
 
     pub(crate) fn set_roll_of_selected_helices(&mut self, roll: f32) {
-        if let Some((_, helices)) = list_of_helices(self.app_state.get_selection().as_ref()) {
+        if let Some((_, helices)) = list_of_helices(self.app_state.get_selection()) {
             self.apply_operation(DesignOperation::SetRollHelices { helices, roll });
         }
     }
@@ -425,15 +425,14 @@ impl MainState {
     pub(crate) fn request_copy(&mut self) {
         let reader = self.app_state.get_design_interactor();
         let selection = self.app_state.get_selection();
-        if let Some((_, xover_ids)) = list_of_xover_as_nucl_pairs(selection.as_ref(), &reader) {
+        if let Some((_, xover_ids)) = list_of_xover_as_nucl_pairs(selection, &reader) {
             self.apply_copy_operation(CopyOperation::CopyXovers(xover_ids));
-        } else if let Some(grid_ids) = extract_only_grids(selection.as_ref()) {
+        } else if let Some(grid_ids) = extract_only_grids(selection) {
             self.apply_copy_operation(CopyOperation::CopyGrids(grid_ids));
-        } else if let Some((_, helices)) = list_of_helices(selection.as_ref()) {
+        } else if let Some((_, helices)) = list_of_helices(selection) {
             self.apply_copy_operation(CopyOperation::CopyHelices(helices));
         } else {
-            let strand_ids =
-                extract_strands_from_selection(self.app_state.get_selection().as_ref());
+            let strand_ids = extract_strands_from_selection(self.app_state.get_selection());
             self.apply_copy_operation(CopyOperation::CopyStrands(strand_ids));
         }
     }
@@ -451,16 +450,14 @@ impl MainState {
         if self.app_state.can_iterate_duplication() {
             self.apply_copy_operation(CopyOperation::Duplicate);
         } else if let Some((_, nucl_pairs)) = list_of_xover_as_nucl_pairs(
-            self.app_state.get_selection().as_ref(),
+            self.app_state.get_selection(),
             &self.app_state.get_design_interactor(),
         ) {
             self.apply_copy_operation(CopyOperation::InitXoverDuplication(nucl_pairs));
-        } else if let Some((_, helices)) = list_of_helices(self.app_state.get_selection().as_ref())
-        {
+        } else if let Some((_, helices)) = list_of_helices(self.app_state.get_selection()) {
             self.apply_copy_operation(CopyOperation::InitHelicesDuplication(helices));
         } else {
-            let strand_ids =
-                extract_strands_from_selection(self.app_state.get_selection().as_ref());
+            let strand_ids = extract_strands_from_selection(self.app_state.get_selection());
             self.apply_copy_operation(CopyOperation::InitStrandsDuplication(strand_ids));
         }
     }

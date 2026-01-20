@@ -1,50 +1,42 @@
 use crate::app_state::{AppState, design_interactor::DesignInteractor};
-use crate::{design::selection::Selection, flatscene::state::FlatSceneAppState};
+use crate::design::selection::Selection;
 use ensnano_design::interaction_modes::SelectionMode;
 use ensnano_utils::{StrandBuildingStatus, strand_builder::StrandBuilder};
 
-impl FlatSceneAppState for AppState {
-    fn get_selection(&self) -> &[Selection] {
-        self.selection_content().as_slice()
-    }
-
-    fn get_candidates(&self) -> &[Selection] {
+impl AppState {
+    pub fn get_candidates(&self) -> &[Selection] {
         self.0.candidates.as_slice()
     }
 
-    fn selection_was_updated(&self, other: &Self) -> bool {
+    pub fn selection_was_updated(&self, other: &Self) -> bool {
         self.selection_content() != other.selection_content()
     }
 
-    fn candidate_was_updated(&self, other: &Self) -> bool {
+    pub fn candidate_was_updated(&self, other: &Self) -> bool {
         self.0.candidates != other.0.candidates
     }
 
-    fn get_selection_mode(&self) -> SelectionMode {
+    pub fn get_selection_mode(&self) -> SelectionMode {
         self.0.selection_mode
     }
 
-    fn get_design_reader(&self) -> DesignInteractor {
+    pub fn get_design_reader(&self) -> DesignInteractor {
         self.0.design.clone_inner()
     }
 
-    fn get_strand_builders(&self) -> &[StrandBuilder] {
+    pub fn get_strand_builders(&self) -> &[StrandBuilder] {
         self.0.design.get_strand_builders()
     }
 
-    fn design_was_updated(&self, other: &Self) -> bool {
+    pub fn design_was_updated(&self, other: &Self) -> bool {
         self.0.design.has_different_design_than(&other.0.design)
     }
 
-    fn is_changing_color(&self) -> bool {
-        self.is_changing_color()
-    }
-
-    fn is_pasting(&self) -> bool {
+    pub fn is_pasting(&self) -> bool {
         self.get_pasting_status().is_pasting()
     }
 
-    fn get_building_state(&self) -> Option<StrandBuildingStatus> {
+    pub fn get_building_state(&self) -> Option<StrandBuildingStatus> {
         self.get_strand_building_state()
     }
 }

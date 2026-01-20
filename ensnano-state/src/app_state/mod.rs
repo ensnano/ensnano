@@ -421,11 +421,11 @@ impl AppState {
             .export(export_path, export_type)
     }
 
-    pub fn get_selection(&self) -> impl AsRef<[Selection]> + use<> {
-        self.0.selection.selection.clone()
+    pub fn get_selection(&self) -> &[Selection] {
+        &self.0.selection.selection
     }
 
-    fn is_changing_color(&self) -> bool {
+    pub fn is_changing_color(&self) -> bool {
         self.0.design.as_ref().is_changing_color()
     }
 

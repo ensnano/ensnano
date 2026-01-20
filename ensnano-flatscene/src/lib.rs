@@ -32,12 +32,12 @@ use controller::{Consequence, Controller};
 use data::Data;
 use ensnano_design::{consts::ITERATIVE_AXIS_ALGORITHM, phantom_element::PhantomElement};
 use ensnano_state::{
-    app_state::design_interactor::DesignInteractor,
+    app_state::{AppState, design_interactor::DesignInteractor},
     design::{
         operation::DesignOperation,
         selection::{Selection, extract_nucls_and_xover_ends},
     },
-    flatscene::{requests::FlatSceneRequests, state::FlatSceneAppState},
+    flatscene::requests::FlatSceneRequests,
     utils::{
         application::{AppId, Application, Notification},
         operation::{CrossCut, Cut, Xover},
@@ -78,13 +78,13 @@ fn png_resolution([w, h]: [f32; 2]) -> [f32; 2] {
 }
 
 /// A Flatscene handles one design at a time
-pub struct FlatScene<S: FlatSceneAppState> {
+pub struct FlatScene {
     /// Handle the data to send to the GPU.
     view: Vec<ViewPtr>,
     /// Handle the data representing the design.
     data: Vec<DataPtr>,
     /// Handle inputs.
-    controller: Vec<Controller<S>>,
+    controller: Vec<Controller>,
     /// The area on which the flatscene is displayed.
     area: DrawArea,
     /// The size of the window on which the flatscene is displayed.
@@ -98,18 +98,18 @@ pub struct FlatScene<S: FlatSceneAppState> {
     last_update: Instant,
     /// Whether the flatscene is split in two.
     is_split: bool,
-    old_state: S,
+    old_state: AppState,
     requests: Arc<Mutex<dyn FlatSceneRequests>>,
 }
 
-impl<S: FlatSceneAppState> FlatScene<S> {
+impl FlatScene {
     pub fn new(
         device: Rc<Device>,
         queue: Rc<Queue>,
         window_size: PhySize,
         area: DrawArea,
         requests: Arc<Mutex<dyn FlatSceneRequests>>,
-        initial_state: S,
+        initial_state: AppState,
     ) -> Self {
         let mut ret = Self {
             view: Vec::new(),
@@ -212,7 +212,7 @@ impl<S: FlatSceneAppState> FlatScene<S> {
         &mut self,
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
-        app_state: &S,
+        app_state: &AppState,
     ) -> Option<CursorIcon> {
         if let Some(controller) = self.controller.get_mut(self.selected_design) {
             let consequence = controller.input(event, cursor_position, app_state);
@@ -224,7 +224,7 @@ impl<S: FlatSceneAppState> FlatScene<S> {
         }
     }
 
-    fn read_consequence(&self, consequence: Consequence, new_state: Option<&S>) {
+    fn read_consequence(&self, consequence: Consequence, new_state: Option<&AppState>) {
         let app_state = new_state.unwrap_or(&self.old_state);
         match consequence {
             Consequence::Xover(nucl1, nucl2) => {
@@ -507,7 +507,7 @@ impl<S: FlatSceneAppState> FlatScene<S> {
     }
 
     /// Ask the view if it has been modified since the last drawing
-    fn needs_redraw_(&mut self, new_state: S) -> bool {
+    fn needs_redraw_(&mut self, new_state: AppState) -> bool {
         self.check_timers();
         if let Some(view) = self.view.get(self.selected_design) {
             self.data[self.selected_design]
@@ -682,8 +682,8 @@ impl<S: FlatSceneAppState> FlatScene<S> {
     }
 }
 
-impl<S: FlatSceneAppState> Application for FlatScene<S> {
-    type AppState = S;
+impl Application for FlatScene {
+    type AppState = AppState;
 
     fn on_notify(&mut self, notification: Notification) {
         match notification {
@@ -794,7 +794,7 @@ impl<S: FlatSceneAppState> Application for FlatScene<S> {
         &mut self,
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
-        app_state: &S,
+        app_state: &AppState,
     ) -> Option<CursorIcon> {
         self.input(event, cursor_position, app_state)
     }
@@ -807,7 +807,7 @@ impl<S: FlatSceneAppState> Application for FlatScene<S> {
         self.draw_view(encoder, target);
     }
 
-    fn needs_redraw(&mut self, _: Duration, app_state: S) -> bool {
+    fn needs_redraw(&mut self, _: Duration, app_state: AppState) -> bool {
         let now = Instant::now();
         if (now - self.last_update).as_millis() < 25 {
             false

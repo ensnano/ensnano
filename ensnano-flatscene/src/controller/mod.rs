@@ -14,7 +14,7 @@ use crate::{
 };
 use automata::{ControllerState, NormalState, Transition, ctrl};
 use ensnano_design::interaction_modes::ActionMode;
-use ensnano_state::{design::selection::Selection, flatscene::state::FlatSceneAppState};
+use ensnano_state::{app_state::AppState, design::selection::Selection};
 use ensnano_utils::graphics::PhySize;
 use std::cell::RefCell;
 use ultraviolet::Vec2;
@@ -25,7 +25,7 @@ use winit::{
     window::CursorIcon,
 };
 
-pub(crate) struct Controller<S: FlatSceneAppState> {
+pub(crate) struct Controller {
     view: ViewPtr,
     data: DataPtr,
     window_size: PhySize,
@@ -33,7 +33,7 @@ pub(crate) struct Controller<S: FlatSceneAppState> {
     camera_top: CameraPtr,
     camera_bottom: CameraPtr,
     is_split: bool,
-    state: RefCell<Box<dyn ControllerState<S>>>,
+    state: RefCell<Box<dyn ControllerState>>,
     action_mode: ActionMode,
     modifiers: ModifiersState,
     mouse_position: PhysicalPosition<f64>,
@@ -80,7 +80,7 @@ pub(crate) enum Consequence {
     PngExport(Vec2, Vec2),
 }
 
-impl<S: FlatSceneAppState> Controller<S> {
+impl Controller {
     pub(crate) fn new(
         view: ViewPtr,
         data: DataPtr,
@@ -178,7 +178,7 @@ impl<S: FlatSceneAppState> Controller<S> {
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
-        app_state: &S,
+        app_state: &AppState,
     ) -> Consequence {
         self.update_hovered_nucl(position);
         self.mouse_position = position;

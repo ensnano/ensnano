@@ -18,9 +18,9 @@ use ahash::RandomState;
 use design::Design2d;
 use ensnano_design::{interaction_modes::SelectionMode, phantom_element::PhantomElement};
 use ensnano_state::{
-    app_state::design_interactor::DesignInteractor,
+    app_state::{AppState, design_interactor::DesignInteractor},
     design::selection::Selection,
-    flatscene::{requests::FlatSceneRequests, state::FlatSceneAppState},
+    flatscene::requests::FlatSceneRequests,
 };
 use ensnano_utils::{
     StrandBuildingStatus,
@@ -85,7 +85,7 @@ impl Data {
         self.last_click = Default::default();
     }
 
-    pub fn perform_update<S: FlatSceneAppState>(&mut self, new_state: &S, old_state: &S) {
+    pub fn perform_update(&mut self, new_state: &AppState, old_state: &AppState) {
         if self.instance_reset {
             self.view.borrow_mut().reset();
             self.instance_reset = false;
@@ -116,7 +116,7 @@ impl Data {
         self.design.id_map()
     }
 
-    pub fn update_highlight<S: FlatSceneAppState>(&self, new_state: &S) {
+    pub fn update_highlight(&self, new_state: &AppState) {
         let mut selected_strands = HashSet::new();
         let mut candidate_strands = HashSet::new();
         let mut selected_xovers = HashSet::new();
@@ -358,11 +358,11 @@ impl Data {
             .map(|h| h.visible_center(camera).unwrap_or_else(|| h.center()))
     }
 
-    pub(super) fn add_helix_selection<S: FlatSceneAppState>(
+    pub(super) fn add_helix_selection(
         &mut self,
         click_result: ClickResult,
         camera: &CameraPtr,
-        app_state: &S,
+        app_state: &AppState,
     ) -> GraphicalSelection {
         let mut new_selection = app_state.get_selection().to_vec();
         self.add_selection(
@@ -387,11 +387,11 @@ impl Data {
         }
     }
 
-    pub(super) fn set_helix_selection<S: FlatSceneAppState>(
+    pub(super) fn set_helix_selection(
         &mut self,
         click_result: ClickResult,
         camera: &CameraPtr,
-        app_state: &S,
+        app_state: &AppState,
     ) -> GraphicalSelection {
         let mut new_selection = app_state.get_selection().to_vec();
         self.add_selection(
@@ -669,13 +669,13 @@ impl Data {
         ret
     }
 
-    pub(super) fn select_rectangle<S: FlatSceneAppState>(
+    pub(super) fn select_rectangle(
         &mut self,
         c1: Vec2,
         c2: Vec2,
         camera: &CameraPtr,
         adding: bool,
-        app_state: &S,
+        app_state: &AppState,
     ) -> GraphicalSelection {
         // Initialize the new selection with the current one. It will be cleared later if `adding`
         // is `false`.

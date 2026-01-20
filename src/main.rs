@@ -1160,8 +1160,8 @@ impl MainStateView<'_> {
         }
     }
 
-    pub(crate) fn get_selection(&self) -> Box<dyn AsRef<[Selection]>> {
-        Box::new(self.main_state.app_state.get_selection())
+    pub(crate) fn get_selection(&self) -> &[Selection] {
+        self.main_state.app_state.get_selection()
     }
 
     pub(crate) fn get_design_reader(&self) -> DesignInteractor {
@@ -1209,24 +1209,24 @@ impl MainStateView<'_> {
     pub(crate) fn delete_selection(&mut self) {
         let selection = self.get_selection();
         if let Some((_, nucl_pairs)) =
-            list_of_xover_as_nucl_pairs(selection.as_ref().as_ref(), &self.get_design_reader())
+            list_of_xover_as_nucl_pairs(selection, &self.get_design_reader())
         {
             self.main_state.update_selection(vec![], None);
             self.main_state
                 .apply_operation(DesignOperation::RmXovers { xovers: nucl_pairs });
-        } else if let Some((_, strand_ids)) = list_of_strands(selection.as_ref().as_ref()) {
+        } else if let Some((_, strand_ids)) = list_of_strands(selection) {
             self.main_state.update_selection(vec![], None);
             self.main_state
                 .apply_operation(DesignOperation::RmStrands { strand_ids });
-        } else if let Some((_, h_ids)) = list_of_helices(selection.as_ref().as_ref()) {
+        } else if let Some((_, h_ids)) = list_of_helices(selection) {
             self.main_state.update_selection(vec![], None);
             self.main_state
                 .apply_operation(DesignOperation::RmHelices { h_ids });
-        } else if let Some(grid_ids) = list_of_free_grids(selection.as_ref().as_ref()) {
+        } else if let Some(grid_ids) = list_of_free_grids(selection) {
             self.main_state.update_selection(vec![], None);
             self.main_state
                 .apply_operation(DesignOperation::RmFreeGrids { grid_ids });
-        } else if let Some(vertices) = list_of_bezier_vertices(selection.as_ref().as_ref()) {
+        } else if let Some(vertices) = list_of_bezier_vertices(selection) {
             self.main_state.update_selection(vec![], None);
             self.main_state
                 .apply_operation(DesignOperation::RmBezierVertices { vertices });
@@ -1272,13 +1272,13 @@ impl MainStateView<'_> {
 
     pub(crate) fn turn_selection_into_anchor(&mut self) {
         let selection = self.get_selection();
-        let nucls = extract_nucls_from_selection(selection.as_ref().as_ref());
+        let nucls = extract_nucls_from_selection(selection);
         self.main_state
             .apply_operation(DesignOperation::FlipAnchors { nucls });
     }
 
     pub(crate) fn set_visibility_sieve(&mut self, compl: bool) {
-        let selection = self.get_selection().as_ref().as_ref().to_vec();
+        let selection = self.get_selection().to_vec();
         self.main_state.set_visibility_sieve(selection, compl);
     }
 
