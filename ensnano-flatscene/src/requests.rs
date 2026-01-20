@@ -1,7 +1,10 @@
 use std::sync::Arc;
 
-use ensnano_design::{nucl::Nucl, operation::DesignOperation, selection::Selection};
-use ensnano_utils::{application::AppId, operation::Operation};
+use ensnano_design::nucl::Nucl;
+use ensnano_state::{
+    design::{operation::DesignOperation, selection::Selection},
+    utils::{application::AppId, operation::Operation},
+};
 use ultraviolet::Isometry2;
 
 pub trait FlatSceneRequests {

@@ -15,6 +15,13 @@ pub(crate) mod transitions;
 
 #[cfg(test)]
 use ensnano_design::Design;
+use ensnano_state::{
+    design::{
+        operation::DesignOperation,
+        selection::{CenterOfSelection, Selection},
+    },
+    utils::operation::Operation,
+};
 
 use crate::{
     app_state::design_interactor::{
@@ -33,9 +40,7 @@ use ensnano_design::{
     domains::Domain,
     group_attributes::GroupPivot,
     interaction_modes::{ActionMode, SelectionMode},
-    operation::DesignOperation,
     organizer_tree::GroupId,
-    selection::{CenterOfSelection, Selection},
 };
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_utils::{
@@ -47,7 +52,6 @@ use ensnano_utils::{
     apply_update,
     consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION},
     graphics::{Background3D, HBondDisplay, RenderingMode},
-    operation::Operation,
     surfaces::{RevolutionSurfaceRadius, UnrootedRevolutionSurfaceDescriptor},
     ui_size::UiSize,
 };

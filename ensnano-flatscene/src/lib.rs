@@ -35,19 +35,22 @@ use crate::{
 };
 use controller::{Consequence, Controller};
 use data::Data;
-use ensnano_design::{
-    consts::ITERATIVE_AXIS_ALGORITHM,
-    operation::DesignOperation,
-    phantom_element::PhantomElement,
-    selection::{Selection, extract_nucls_and_xover_ends},
+use ensnano_design::{consts::ITERATIVE_AXIS_ALGORITHM, phantom_element::PhantomElement};
+use ensnano_state::{
+    design::{
+        operation::DesignOperation,
+        selection::{Selection, extract_nucls_and_xover_ends},
+    },
+    utils::{
+        application::{AppId, Application, Notification},
+        operation::{CrossCut, Cut, Xover},
+    },
 };
 use ensnano_utils::{
-    application::{AppId, Application, Notification},
     buffer_dimensions::BufferDimensions,
     consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE},
     filename::derive_path_with_prefix_and_time_stamp_and_suffix,
     graphics::{DrawArea, PhySize},
-    operation::{CrossCut, Cut, Xover},
 };
 use itertools::Itertools as _;
 use std::{

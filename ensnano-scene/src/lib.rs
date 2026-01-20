@@ -26,23 +26,29 @@ use ensnano_design::{
     grid::{GridPosition, HelixGridPosition},
     group_attributes::GroupPivot,
     nucl::Nucl,
-    operation::{DesignOperation, NewBezierTangentVector},
-    selection::{
-        Selection, extract_control_points, list_of_xover_ids, set_of_grids_containing_selection,
-        set_of_helices_containing_selection,
+};
+use ensnano_state::{
+    design::{
+        operation::{DesignOperation, NewBezierTangentVector},
+        selection::{
+            Selection, extract_control_points, list_of_xover_ids,
+            set_of_grids_containing_selection, set_of_helices_containing_selection,
+        },
+    },
+    utils::{
+        application::{AppId, Application, Camera3D, Notification},
+        operation::{
+            BezierControlPointTranslation, GridHelixCreation, GridRotation, GridTranslation,
+            HelixRotation, HelixTranslation, Operation, TranslateBezierPathVertex,
+            TranslateBezierSheetCorner,
+        },
     },
 };
 use ensnano_utils::{
     WidgetBasis,
-    application::{AppId, Application, Camera3D, Notification},
     buffer_dimensions::BufferDimensions,
     filename::derive_path_with_prefix_and_time_stamp_and_suffix,
     graphics::{DrawArea, FogParameters, PhySize},
-    operation::{
-        BezierControlPointTranslation, GridHelixCreation, GridRotation, GridTranslation,
-        HelixRotation, HelixTranslation, Operation, TranslateBezierPathVertex,
-        TranslateBezierSheetCorner,
-    },
 };
 use itertools::Itertools as _;
 use maths_3d::FiniteVec3;

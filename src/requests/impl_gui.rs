@@ -7,22 +7,23 @@ use ensnano_design::{
     design_element::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridTypeDescr},
     interaction_modes::{ActionMode, SelectionMode},
-    operation::{DesignOperation, HyperboloidRequest, InsertionPoint},
     organizer_tree::{GroupId, OrganizerTree},
     parameters::HelixParameters,
 };
 use ensnano_exports::ExportType;
 use ensnano_gui::requests::{GuiRequests, RigidBodyParametersRequest};
 use ensnano_physics::parameters::RapierParameters;
+use ensnano_state::{
+    design::operation::{DesignOperation, HyperboloidRequest, InsertionPoint},
+    utils::{application::Notification, operation::Operation},
+};
 use ensnano_utils::{
     RigidBodyConstants, RollRequest,
     app_state_parameters::{
         check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
     },
-    application::Notification,
     graphics::{Background3D, FogParameters, HBondDisplay, RenderingMode, SplitMode},
     keyboard_priority::PriorityRequest,
-    operation::Operation,
     overlay::OverlayType,
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
     ui_size::UiSize,

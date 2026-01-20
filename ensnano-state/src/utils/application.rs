@@ -1,5 +1,5 @@
-use crate::graphics::{DrawArea, FogParameters};
-use ensnano_design::{group_attributes::GroupPivot, selection::Selection};
+use ensnano_design::group_attributes::GroupPivot;
+use ensnano_utils::graphics::{DrawArea, FogParameters};
 use std::{path::Path, sync::Arc, time::Duration};
 use ultraviolet::{Rotor3, Vec3};
 use winit::{
@@ -7,6 +7,8 @@ use winit::{
     event::{Modifiers, WindowEvent},
     window::CursorIcon,
 };
+
+use crate::design::selection::Selection;
 
 #[derive(Clone, Debug)]
 pub struct Camera3D {

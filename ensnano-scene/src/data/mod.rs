@@ -32,11 +32,13 @@ use ensnano_design::{
     interaction_modes::{ActionMode, SelectionMode},
     nucl::Nucl,
     phantom_element::PhantomElement,
-    selection::{CenterOfSelection, Selection, extract_helices_with_controls},
+};
+use ensnano_state::{
+    design::selection::{CenterOfSelection, Selection, extract_helices_with_controls},
+    utils::application::Camera3D,
 };
 use ensnano_utils::{
     ObjectType, Referential,
-    application::Camera3D,
     consts::{
         BOND_RADIUS, CANDIDATE_COLOR, CANDIDATE_SCALE_FACTOR, SELECT_SCALE_FACTOR, SELECTED_COLOR,
         SPHERE_RADIUS,

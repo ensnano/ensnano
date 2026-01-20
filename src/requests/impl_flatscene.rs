@@ -4,9 +4,12 @@ use crate::{
     app_state::design_interactor::controller::clipboard::PastePosition,
     controller::normal_state::Action, requests::Requests,
 };
-use ensnano_design::{nucl::Nucl, operation::DesignOperation, selection::Selection};
+use ensnano_design::nucl::Nucl;
 use ensnano_flatscene::requests::FlatSceneRequests;
-use ensnano_utils::{application::AppId, operation::Operation};
+use ensnano_state::{
+    design::{operation::DesignOperation, selection::Selection},
+    utils::{application::AppId, operation::Operation},
+};
 use std::sync::Arc;
 use ultraviolet::Isometry2;
 

@@ -45,19 +45,23 @@ use ensnano_design::{
     helices::{Helices, Helix, NuclCollection},
     mutate_in_arc, mutate_one_helix,
     nucl::Nucl,
-    operation::{
-        BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
-        HyperboloidOperation, IsometryTarget, NewBezierTangentVector,
-    },
     organizer_tree::GroupId,
-    selection::{Selection, list_of_helices},
     strands::{DomainJunction, Strand, Strands},
+};
+use ensnano_state::{
+    design::{
+        operation::{
+            BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
+            HyperboloidOperation, IsometryTarget, NewBezierTangentVector,
+        },
+        selection::{Selection, list_of_helices},
+    },
+    utils::operation::{Operation, TranslateBezierPathVertex},
 };
 use ensnano_utils::{
     PastingStatus, SimulationState,
     clipboard::ClipboardContent,
     colors::{new_color, random_color_with_shade},
-    operation::{Operation, TranslateBezierPathVertex},
     strand_builder::{DomainIdentifier, NeighborDescriptor, StrandBuilder, get_neighbor_nucl},
 };
 use std::{

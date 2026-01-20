@@ -5,8 +5,8 @@ use ensnano_design::{
     group_attributes::GroupPivot,
     interaction_modes::{ActionMode, SelectionMode},
     organizer_tree::GroupId,
-    selection::{CenterOfSelection, Selection},
 };
+use ensnano_state::design::selection::{CenterOfSelection, Selection};
 use ensnano_utils::{
     WidgetBasis, app_state_parameters::check_xovers_parameter::CheckXoversParameter,
     graphics::DrawOptions, strand_builder::StrandBuilder,

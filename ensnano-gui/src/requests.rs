@@ -6,12 +6,15 @@ use ensnano_design::{
     design_element::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridTypeDescr},
     interaction_modes::{ActionMode, SelectionMode},
-    operation::{HyperboloidRequest, InsertionPoint},
     organizer_tree::{GroupId, OrganizerTree},
     parameters::HelixParameters,
 };
 use ensnano_exports::ExportType;
 use ensnano_physics::parameters::RapierParameters;
+use ensnano_state::{
+    design::operation::{HyperboloidRequest, InsertionPoint},
+    utils::operation::Operation,
+};
 use ensnano_utils::{
     RollRequest,
     app_state_parameters::{
@@ -19,7 +22,6 @@ use ensnano_utils::{
     },
     graphics::{Background3D, FogParameters, HBondDisplay, RenderingMode, SplitMode},
     keyboard_priority::PriorityRequest,
-    operation::Operation,
     overlay::OverlayType,
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
     ui_size::UiSize,

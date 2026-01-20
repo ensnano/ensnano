@@ -89,7 +89,6 @@ use crate::{
     scheduler::Scheduler,
     state::{MainState, MainStateView},
 };
-use ensnano_design::operation::DesignOperation;
 use ensnano_flatscene::FlatScene;
 use ensnano_gui::{
     GuiManager,
@@ -99,10 +98,10 @@ use ensnano_gui::{
     theme,
 };
 use ensnano_scene::{Scene, SceneKind};
+use ensnano_state::{design::operation::DesignOperation, utils::application::Notification};
 use ensnano_utils::{
     TEXTURE_FORMAT,
     app_state_parameters::AppStateParameters,
-    application::Notification,
     consts::{APP_NAME, NO_DESIGN_TITLE, WELCOME_MSG},
     convert_size_f32, convert_size_u32,
     graphics::{GuiComponentType, PhySize, SplitMode},

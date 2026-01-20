@@ -20,15 +20,19 @@ use ensnano_design::{
     bezier_plane::BezierPlaneDescriptor,
     grid::{GridDescriptor, GridId, GridTypeDescr},
     group_attributes::GroupPivot,
-    operation::{DesignOperation, HyperboloidOperation, HyperboloidRequest},
     parameters::HelixParameters,
-    selection::{all_helices_no_grid, extract_grids, extract_strands_from_selection},
 };
 use ensnano_exports::ExportType;
 use ensnano_physics::parameters::RapierParameters;
+use ensnano_state::{
+    design::{
+        operation::{DesignOperation, HyperboloidOperation, HyperboloidRequest},
+        selection::{all_helices_no_grid, extract_grids, extract_strands_from_selection},
+    },
+    utils::application::Notification,
+};
 use ensnano_utils::{
     RigidBodyConstants, RollRequest,
-    application::Notification,
     consts::ENS_EXTENSION,
     graphics::{FogParameters, SplitMode},
     overlay::OverlayType,

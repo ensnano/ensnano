@@ -1,12 +1,18 @@
 //! This modules defines the `poll_all` method that polls the requests stored in a `Requests`
 //! object.
 
+use ensnano_state::{
+    design::{
+        operation::{DesignOperation, HyperboloidOperation},
+        selection::DesignElementKeySelection as _,
+    },
+    utils::application::Notification,
+};
+
 use crate::{
     app_state::design_interactor::controller::clipboard::PastePosition,
     controller::normal_state::Action, requests::Requests, state::MainState,
 };
-use ensnano_design::operation::{DesignOperation, HyperboloidOperation};
-use ensnano_utils::application::Notification;
 use std::ops::DerefMut;
 
 pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(

@@ -13,8 +13,8 @@ use ensnano_design::{
     helices::HBond,
     nucl::Nucl,
     parameters::HelixParameters,
-    selection::MainDesignReaderExt,
 };
+use ensnano_state::design::selection::MainDesignReaderExt;
 use ensnano_utils::{
     ObjectType, Referential,
     graphics::{LoopoutBond, LoopoutNucl},

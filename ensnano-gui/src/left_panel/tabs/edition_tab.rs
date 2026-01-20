@@ -8,7 +8,8 @@ use crate::{
     messages::{FactoryId, ValueId},
     state::GuiAppState,
 };
-use ensnano_design::{design_element::DesignElementKey, selection::extract_strands_from_selection};
+use ensnano_design::design_element::DesignElementKey;
+use ensnano_state::design::selection::extract_strands_from_selection;
 use ensnano_utils::{RollRequest, ui_size::UiSize};
 use iced::{
     Command,

@@ -4,15 +4,15 @@ use crate::{
     app_state::design_interactor::controller::clipboard::PastePosition,
     controller::normal_state::Action, requests::Requests,
 };
-use ensnano_design::{
-    grid::GridPosition,
-    group_attributes::GroupPivot,
-    nucl::Nucl,
-    operation::DesignOperation,
-    selection::{CenterOfSelection, Selection},
-};
+use ensnano_design::{grid::GridPosition, group_attributes::GroupPivot, nucl::Nucl};
 use ensnano_scene::requests::SceneRequests;
-use ensnano_utils::{application::AppId, operation::Operation};
+use ensnano_state::{
+    design::{
+        operation::DesignOperation,
+        selection::{CenterOfSelection, Selection},
+    },
+    utils::{application::AppId, operation::Operation},
+};
 use std::sync::Arc;
 use ultraviolet::{Rotor3, Vec3};
 

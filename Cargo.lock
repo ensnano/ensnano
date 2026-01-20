@@ -1075,6 +1075,7 @@ dependencies = [
  "ensnano_gui",
  "ensnano_physics",
  "ensnano_scene",
+ "ensnano_state",
  "ensnano_utils",
  "futures",
  "iced",
@@ -1149,6 +1150,7 @@ dependencies = [
  "bytemuck",
  "color_space",
  "ensnano_design",
+ "ensnano_state",
  "ensnano_utils",
  "fontdue",
  "futures",
@@ -1170,6 +1172,7 @@ dependencies = [
  "ensnano_design",
  "ensnano_exports",
  "ensnano_physics",
+ "ensnano_state",
  "ensnano_utils",
  "iced",
  "iced_aw",
@@ -1205,6 +1208,7 @@ dependencies = [
  "ahash 0.8.12",
  "bytemuck",
  "ensnano_design",
+ "ensnano_state",
  "ensnano_utils",
  "futures",
  "futures-channel",
@@ -1217,6 +1221,18 @@ dependencies = [
  "png 0.17.16",
  "serde",
  "serde_json",
+ "ultraviolet",
+ "wgpu",
+ "winit",
+]
+
+[[package]]
+name = "ensnano_state"
+version = "0.7.0"
+dependencies = [
+ "ensnano_design",
+ "ensnano_utils",
+ "log",
  "ultraviolet",
  "wgpu",
  "winit",

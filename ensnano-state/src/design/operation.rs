@@ -1,4 +1,4 @@
-use crate::{
+use ensnano_design::{
     CameraId,
     bezier_plane::{
         BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
@@ -13,10 +13,11 @@ use crate::{
     nucl::Nucl,
     organizer_tree::{GroupId, OrganizerTree},
     parameters::HelixParameters,
-    selection::Selection,
 };
 use std::path::PathBuf;
 use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
+
+use crate::design::selection::Selection;
 
 /// An operation that can be performed on a design
 #[derive(Debug, Clone)]

@@ -18,19 +18,18 @@ use ensnano_design::{
     curves::bezier::InstantiatedPiecewiseBezier,
     domains::Domain,
     group_attributes::GroupAttribute,
-    operation::DesignOperation,
     organizer_tree::GroupId,
     parameters::HelixParameters,
-    selection::Selection,
 };
 use ensnano_exports::{ExportResult, ExportType};
+use ensnano_state::{
+    design::{operation::DesignOperation, selection::Selection},
+    utils::operation::{CurrentOpState, Operation},
+};
 use ensnano_utils::{
     PastingStatus, SimulationState,
-    app_state_parameters::suggestion_parameters::SuggestionParameters,
-    clipboard::ClipboardContent,
-    consts::UPDATE_VISIBILITY_SIEVE_LABEL,
-    operation::{CurrentOpState, Operation},
-    strand_builder::StrandBuilder,
+    app_state_parameters::suggestion_parameters::SuggestionParameters, clipboard::ClipboardContent,
+    consts::UPDATE_VISIBILITY_SIEVE_LABEL, strand_builder::StrandBuilder,
 };
 use presenter::{Presenter, SimulationUpdate, apply_simulation_update, update_presenter};
 use std::{io::Write as _, path::PathBuf, sync::Arc};
@@ -406,12 +405,11 @@ mod tests {
         grid::{GridDescriptor, GridId, GridTypeDescr, HelixGridPosition},
         id_generator::IdGenerator,
         nucl::Nucl,
-        operation::InsertionPoint,
-        selection::MainDesignReaderExt as _,
         strands::{DomainJunction, Strand},
     };
+    use ensnano_flatscene::design_reader::FlatSceneDesignReaderExt as _;
     use ensnano_scene::design_reader::SceneDesignReaderExt as _;
-    use ensnano_utils::operation::GridHelixCreation;
+    use ensnano_state::{design::operation::InsertionPoint, utils::operation::GridHelixCreation};
     use regex::Regex;
     use ultraviolet::{Rotor3, Vec3};
 

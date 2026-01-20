@@ -5,7 +5,8 @@ use crate::{
     messages::{FactoryId, ValueId},
     state::GuiAppState,
 };
-use ensnano_design::{grid::GridTypeDescr, operation::HyperboloidRequest};
+use ensnano_design::grid::GridTypeDescr;
+use ensnano_state::design::operation::HyperboloidRequest;
 use ensnano_utils::{
     consts::{ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID},
     ui_size::UiSize,

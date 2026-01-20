@@ -6,20 +6,13 @@ use std::{
 };
 
 use ahash::HashMap;
-use ensnano_design::selection::MainDesignReaderExt;
 use ensnano_design::{
     Camera, CameraId, SavingInformation,
     bezier_plane::BezierPlaneDescriptor,
     grid::GridId,
     group_attributes::GroupPivot,
     interaction_modes::{ActionMode, SelectionMode},
-    operation::{DesignOperation, DesignRotation, DesignTranslation, IsometryTarget},
     organizer_tree::GroupId,
-    selection::{
-        CenterOfSelection, Selection, extract_nucls_from_selection, extract_only_grids,
-        extract_strands_from_selection, list_of_bezier_vertices, list_of_free_grids,
-        list_of_helices, list_of_strands, list_of_xover_as_nucl_pairs,
-    },
 };
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_gui::{
@@ -29,16 +22,28 @@ use ensnano_gui::{
 };
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_scene::{design_reader::SceneDesignReaderExt as _, state::SceneAppState as _};
+use ensnano_state::{
+    design::{
+        operation::{DesignOperation, DesignRotation, DesignTranslation, IsometryTarget},
+        selection::{
+            CenterOfSelection, MainDesignReaderExt, Selection, extract_nucls_from_selection,
+            extract_only_grids, extract_strands_from_selection, list_of_bezier_vertices,
+            list_of_free_grids, list_of_helices, list_of_strands, list_of_xover_as_nucl_pairs,
+        },
+    },
+    utils::{
+        application::{Application, Camera3D, Notification},
+        operation::Operation,
+    },
+};
 use ensnano_utils::{
     PastingStatus, RigidBodyConstants,
     app_state_parameters::{
         check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
     },
-    application::{Application, Camera3D, Notification},
     consts::{ENS_BACKUP_EXTENSION, ENS_UNNAMED_FILE_NAME, SEC_BETWEEN_BACKUPS, SEC_PER_YEAR},
     graphics::{Background3D, GuiComponentType, HBondDisplay, RenderingMode, SplitMode},
     keyboard_priority::KeyboardPriorityId,
-    operation::Operation,
     surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
     ui_size::UiSize,
 };

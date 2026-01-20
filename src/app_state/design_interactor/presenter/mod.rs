@@ -17,14 +17,13 @@ use ensnano_design::{
     helices::{HBond, HalfHBond, Helix, NuclCollection},
     id_generator::IdGenerator,
     nucl::Nucl,
-    selection::Selection,
     strands::{Extremity, Strand},
 };
 use ensnano_exports::{ExportResult, ExportType, oxdna::BACKBONE_TO_CM};
+use ensnano_state::{design::selection::Selection, utils::application::Camera3D};
 use ensnano_utils::{
     Referential, ScaffoldInfo,
     app_state_parameters::suggestion_parameters::SuggestionParameters,
-    application::Camera3D,
     strand_builder::{NeighborDescriptor, get_neighbor_nucl},
 };
 use std::{collections::BTreeMap, fmt::Write as _, path::PathBuf, sync::Arc};

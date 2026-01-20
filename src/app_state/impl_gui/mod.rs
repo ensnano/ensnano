@@ -8,12 +8,15 @@ use ensnano_design::{
     interaction_modes::{ActionMode, SelectionMode},
     organizer_tree::GroupId,
     parameters::HelixParameters,
-    selection::{Selection, all_helices_no_grid},
 };
 use ensnano_gui::{
     curve::{CurveDescriptorBuilder, RevolutionScaling},
     design_reader::GuiDesignReaderExt,
     state::GuiAppState,
+};
+use ensnano_state::{
+    design::selection::{DesignElementKeySelection as _, Selection, all_helices_no_grid},
+    utils::operation::CurrentOpState,
 };
 use ensnano_utils::{
     PastingStatus, ScaffoldInfo, SimulationState, StrandBuildingStatus, WidgetBasis,
@@ -22,7 +25,6 @@ use ensnano_utils::{
     },
     clipboard::ClipboardContent,
     graphics::HBondDisplay,
-    operation::CurrentOpState,
 };
 
 impl GuiAppState for AppState {

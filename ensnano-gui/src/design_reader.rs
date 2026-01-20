@@ -6,10 +6,9 @@ use ensnano_design::{
     design_element::DesignElement,
     grid::GridId,
     nucl::Nucl,
-    operation::InsertionPoint,
     organizer_tree::OrganizerTree,
-    selection::Selection,
 };
+use ensnano_state::design::{operation::InsertionPoint, selection::Selection};
 use ultraviolet::{Rotor3, Vec2, Vec3};
 
 pub trait GuiDesignReaderExt: 'static {

@@ -16,8 +16,8 @@ use ensnano_design::{
         bezier::{BezierControlPoint, BezierEndCoordinates, CubicBezierControlPoint},
     },
     parameters::HelixParameters,
-    selection::Selection,
 };
+use ensnano_state::design::selection::Selection;
 use ensnano_utils::{
     consts::{
         BEZIER_CONTROL_RADIUS, BEZIER_CONTROL1_COLOR, BEZIER_CONTROL2_COLOR, BEZIER_END_COLOR,

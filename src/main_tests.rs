@@ -14,12 +14,15 @@ use crate::{
     state::MainState,
 };
 
-use ensnano_design::{nucl::Nucl, operation::DesignOperation, selection::Selection};
+use ensnano_design::nucl::Nucl;
 use ensnano_gui::messages::GuiMessages;
 use ensnano_scene::design_reader::SceneDesignReaderExt as _;
+use ensnano_state::{
+    design::{operation::DesignOperation, selection::Selection},
+    utils::application::{Application, Camera3D, Notification},
+};
 use ensnano_utils::{
     PastingStatus,
-    application::{Application, Camera3D, Notification},
     graphics::{DrawArea, GuiComponentType},
 };
 use ultraviolet::{Rotor3, Vec3};

@@ -4,8 +4,8 @@ use ensnano_design::{
     interaction_modes::{ActionMode, SelectionMode},
     organizer_tree::GroupId,
     parameters::HelixParameters,
-    selection::Selection,
 };
+use ensnano_state::{design::selection::Selection, utils::operation::CurrentOpState};
 use ensnano_utils::{
     PastingStatus, ScaffoldInfo, SimulationState, StrandBuildingStatus, WidgetBasis,
     app_state_parameters::{
@@ -13,7 +13,6 @@ use ensnano_utils::{
     },
     clipboard::ClipboardContent,
     graphics::HBondDisplay,
-    operation::CurrentOpState,
 };
 
 use crate::{

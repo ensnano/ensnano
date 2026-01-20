@@ -27,8 +27,11 @@ use crate::{
     theme::GuiBackground,
 };
 use ensnano_design::{
-    design_element::DesignElementKey, interaction_modes::ActionMode, operation::HyperboloidRequest,
-    organizer_tree::OrganizerTree, selection::Selection,
+    design_element::DesignElementKey, interaction_modes::ActionMode, organizer_tree::OrganizerTree,
+};
+use ensnano_state::design::{
+    operation::HyperboloidRequest,
+    selection::{DesignElementKeySelection as _, Selection},
 };
 use ensnano_utils::{
     app_state_parameters::AppStateParameters, overlay::OverlayType, ui_size::UiSize,

@@ -12,3 +12,7 @@ workspace = true
 ensnano_design.workspace = true
 ensnano_utils.workspace = true
 
+log.workspace = true
+ultraviolet.workspace = true
+winit.workspace = true
+wgpu.workspace = true

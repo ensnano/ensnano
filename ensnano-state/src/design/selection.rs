@@ -1,6 +1,4 @@
-// TODO: find a better place for everything in this file
-
-use crate::{
+use ensnano_design::{
     bezier_plane::{BezierPathId, BezierVertexId},
     curves::bezier::BezierControlPoint,
     design_element::DesignElementKey,
@@ -409,8 +407,13 @@ pub fn extract_nucls_from_selection(selection: &[Selection]) -> Vec<Nucl> {
     ret
 }
 
-impl DesignElementKey {
-    pub fn from_selection(selection: &Selection, d_id: u32) -> Option<Self> {
+pub trait DesignElementKeySelection: Sized {
+    fn from_selection(selection: &Selection, d_id: u32) -> Option<Self>;
+    fn to_selection(&self, d_id: u32) -> Selection;
+}
+
+impl DesignElementKeySelection for DesignElementKey {
+    fn from_selection(selection: &Selection, d_id: u32) -> Option<Self> {
         if selection.get_design() != Some(d_id) {
             return None;
         }
@@ -449,7 +452,7 @@ impl DesignElementKey {
         }
     }
 
-    pub fn to_selection(&self, d_id: u32) -> Selection {
+    fn to_selection(&self, d_id: u32) -> Selection {
         match self {
             Self::Nucleotide {
                 helix,

@@ -5,9 +5,9 @@ use crate::{
 use ensnano_design::{
     grid::{GridId, HelixGridPosition},
     nucl::Nucl,
-    selection::MainDesignReaderExt,
     strands::Strand,
 };
+use ensnano_state::design::selection::MainDesignReaderExt;
 use itertools::Itertools as _;
 use rust_xlsxwriter::{Color, Format, Workbook};
 use serde::Serialize;

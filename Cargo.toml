@@ -31,7 +31,7 @@ ensnano_flatscene = { path = "ensnano-flatscene" }
 ensnano_gui = { path = "ensnano-gui" }
 ensnano_physics = { path = "ensnano-physics" }
 ensnano_scene = { path = "ensnano-scene" }
-ensnano_state = { path = "ensnano-scene" }
+ensnano_state = { path = "ensnano-state" }
 ensnano_utils = { path = "ensnano-utils" }
 
 ahash = "0.8.6"

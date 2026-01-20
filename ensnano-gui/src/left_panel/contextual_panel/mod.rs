@@ -8,9 +8,8 @@ use crate::{
     helpers::{extra_jump, right_checkbox, section, subsection, text_button},
     theme,
 };
-use ensnano_design::{
-    bezier_plane::BezierVertexId, grid::GridId, interaction_modes::ActionMode, selection::Selection,
-};
+use ensnano_design::{bezier_plane::BezierVertexId, grid::GridId, interaction_modes::ActionMode};
+use ensnano_state::design::selection::Selection;
 use ensnano_utils::{
     SimulationState,
     consts::{

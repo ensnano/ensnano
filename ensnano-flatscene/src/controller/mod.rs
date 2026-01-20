@@ -14,7 +14,8 @@ use crate::{
     state::FlatSceneAppState,
 };
 use automata::{ControllerState, NormalState, Transition, ctrl};
-use ensnano_design::{interaction_modes::ActionMode, selection::Selection};
+use ensnano_design::interaction_modes::ActionMode;
+use ensnano_state::design::selection::Selection;
 use ensnano_utils::graphics::PhySize;
 use std::cell::RefCell;
 use ultraviolet::Vec2;
