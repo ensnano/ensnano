@@ -5,7 +5,6 @@ mod point_and_click_state;
 use crate::{
     controller::{Consequence, Controller, TransitionConsequence},
     element_selector::SceneElement,
-    state::SceneAppState,
     view::{
         handle_drawer::{HandleColors, HandleDir},
         rotation_widget::RotationMode,
@@ -20,6 +19,7 @@ use ensnano_design::{
     grid::GridId,
     interaction_modes::ActionMode,
 };
+use ensnano_state::scene::state::SceneAppState;
 use ensnano_utils::consts::{
     DIR_HANDLE_ID, FRONT_CIRCLE_ID, RIGHT_CIRCLE_ID, RIGHT_HANDLE_ID, UP_CIRCLE_ID, UP_HANDLE_ID,
 };

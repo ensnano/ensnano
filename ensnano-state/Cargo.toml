@@ -17,6 +17,7 @@ ensnano_utils.workspace = true
 ahash.workspace = true
 iced.workspace = true
 log.workspace = true
+serde.workspace = true
 ultraviolet.workspace = true
 winit.workspace = true
 wgpu.workspace = true

@@ -407,9 +407,9 @@ mod tests {
         nucl::Nucl,
         strands::{DomainJunction, Strand},
     };
-    use ensnano_scene::design_reader::SceneDesignReaderExt as _;
     use ensnano_state::{
         design::{operation::InsertionPoint, selection::MainDesignReaderExt as _},
+        scene::design_reader::SceneDesignReaderExt as _,
         utils::operation::GridHelixCreation,
     };
     use regex::Regex;

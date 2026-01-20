@@ -1,5 +1,6 @@
 use std::{collections::BTreeMap, sync::Arc};
 
+use crate::design::selection::MainDesignReaderExt;
 use ahash::{HashMap, HashSet};
 use ensnano_design::{
     AdditionalStructure,
@@ -14,7 +15,6 @@ use ensnano_design::{
     nucl::Nucl,
     parameters::HelixParameters,
 };
-use ensnano_state::design::selection::MainDesignReaderExt;
 use ensnano_utils::{
     ObjectType, Referential,
     graphics::{LoopoutBond, LoopoutNucl},

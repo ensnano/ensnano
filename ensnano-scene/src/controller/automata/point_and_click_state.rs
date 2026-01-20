@@ -17,9 +17,9 @@ use crate::{
         },
     },
     element_selector::SceneElement,
-    state::SceneAppState,
 };
 use ensnano_design::nucl::Nucl;
+use ensnano_state::scene::state::SceneAppState;
 use std::{borrow::Cow, time::Instant};
 use winit::{
     dpi::PhysicalPosition,

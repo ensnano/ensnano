@@ -1,8 +1,6 @@
 use crate::{
     controller::Controller,
-    design_reader::SceneDesignReaderExt as _,
     element_selector::{CornerType, ElementSelector, SceneElement},
-    state::SceneAppState,
     view::grid::GridIntersection,
 };
 use ensnano_design::{
@@ -15,6 +13,7 @@ use ensnano_design::{
     interaction_modes::ActionMode,
     nucl::Nucl,
 };
+use ensnano_state::scene::{design_reader::SceneDesignReaderExt as _, state::SceneAppState};
 use ultraviolet::{Vec2, Vec3};
 use winit::{dpi::PhysicalPosition, keyboard::ModifiersState};
 

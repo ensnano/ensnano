@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
-use ensnano_design::{grid::GridPosition, group_attributes::GroupPivot, nucl::Nucl};
-use ensnano_state::{
+use crate::{
     design::{
         operation::DesignOperation,
         selection::{CenterOfSelection, Selection},
     },
     utils::{application::AppId, operation::Operation},
 };
+use ensnano_design::{grid::GridPosition, group_attributes::GroupPivot, nucl::Nucl};
 use ultraviolet::{Rotor3, Vec3};
 
 pub trait SceneRequests {

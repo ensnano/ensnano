@@ -1,8 +1,6 @@
 use crate::{
     data::design3d::{Design3D, create_dna_bond},
-    design_reader::SceneDesignReaderExt,
     element_selector,
-    state::SceneAppState,
     view::{
         dna_obj::{RawDnaInstance, SphereInstance, TubeInstance},
         instances_drawer::Instantiable as _,
@@ -17,7 +15,10 @@ use ensnano_design::{
     },
     parameters::HelixParameters,
 };
-use ensnano_state::design::selection::Selection;
+use ensnano_state::{
+    design::selection::Selection,
+    scene::{design_reader::SceneDesignReaderExt, state::SceneAppState},
+};
 use ensnano_utils::{
     consts::{
         BEZIER_CONTROL_RADIUS, BEZIER_CONTROL1_COLOR, BEZIER_CONTROL2_COLOR, BEZIER_END_COLOR,

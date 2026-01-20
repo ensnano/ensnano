@@ -1,23 +1,17 @@
 mod camera;
 mod controller;
 pub mod data;
-pub mod design_reader;
 mod element_selector;
 mod maths_3d;
-pub mod requests;
 mod rotor_utils;
 mod sausage_rosary;
-pub mod state;
 mod stl;
 pub mod view;
 
 use crate::{
     controller::{Consequence, Controller, automata::WidgetTarget},
     data::Data,
-    design_reader::SceneDesignReaderExt as _,
     element_selector::{ElementSelector, SceneElement},
-    requests::SceneRequests,
-    state::SceneAppState,
     view::{DrawType, View, ViewPtr, ViewUpdate},
 };
 use ensnano_design::{
@@ -34,6 +28,9 @@ use ensnano_state::{
             Selection, extract_control_points, list_of_xover_ids,
             set_of_grids_containing_selection, set_of_helices_containing_selection,
         },
+    },
+    scene::{
+        design_reader::SceneDesignReaderExt as _, requests::SceneRequests, state::SceneAppState,
     },
     utils::{
         application::{AppId, Application, Camera3D, Notification},

@@ -4,7 +4,6 @@ mod bezier_paths;
 
 use crate::{
     SceneElement::DesignElement,
-    design_reader::SceneDesignReaderExt,
     element_selector::SceneElement,
     maths_3d::{Basis3D, UnalignedBoundaries},
     rotor_utils::SafeRotor as _,
@@ -28,6 +27,7 @@ use ensnano_design::{
         PHANTOM_RANGE, PhantomElement, phantom_helix_encoder_bond, phantom_helix_encoder_nucl,
     },
 };
+use ensnano_state::scene::design_reader::SceneDesignReaderExt;
 use ensnano_utils::{
     ObjectType, Referential,
     colors::{new_color, purple_to_blue_gradient_color_in_range},

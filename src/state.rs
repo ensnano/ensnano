@@ -17,7 +17,6 @@ use ensnano_design::{
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_gui::GuiManager;
 use ensnano_physics::parameters::RapierParameters;
-use ensnano_scene::{design_reader::SceneDesignReaderExt as _, state::SceneAppState as _};
 use ensnano_state::{
     design::{
         operation::{DesignOperation, DesignRotation, DesignTranslation, IsometryTarget},
@@ -31,6 +30,7 @@ use ensnano_state::{
         messages::{GuiMessages, TopBarStateFlags},
         state::GuiAppState as _,
     },
+    scene::{design_reader::SceneDesignReaderExt as _, state::SceneAppState as _},
     utils::{
         application::{Application, Camera3D, Notification},
         operation::Operation,

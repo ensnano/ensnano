@@ -1,19 +1,20 @@
 use std::path::PathBuf;
 
+use crate::{
+    design::selection::{CenterOfSelection, Selection},
+    scene::design_reader::SceneDesignReaderExt,
+};
 use ensnano_design::{
     bezier_plane::BezierVertexId,
     group_attributes::GroupPivot,
     interaction_modes::{ActionMode, SelectionMode},
     organizer_tree::GroupId,
 };
-use ensnano_state::design::selection::{CenterOfSelection, Selection};
 use ensnano_utils::{
     WidgetBasis, app_state_parameters::check_xovers_parameter::CheckXoversParameter,
     graphics::DrawOptions, strand_builder::StrandBuilder,
     surfaces::UnrootedRevolutionSurfaceDescriptor,
 };
-
-use crate::design_reader::SceneDesignReaderExt;
 
 pub trait SceneAppState: Clone + 'static {
     type AppStateDesignReader: SceneDesignReaderExt;

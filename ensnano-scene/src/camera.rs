@@ -1,10 +1,10 @@
 use crate::{
     data::Data,
-    design_reader::SceneDesignReaderExt,
     maths_3d::{Basis3D, FiniteVec3, Plane, cast_ray, unproject_point_on_plane},
     view::uniforms::Stereography,
 };
 use ensnano_design::curves::{SurfaceInfo, SurfacePoint};
+use ensnano_state::scene::design_reader::SceneDesignReaderExt;
 use ensnano_utils::{
     consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP},
     graphics::PhySize,

@@ -7,7 +7,6 @@ use crate::{
     data::Data,
     element_selector::{ElementSelector, SceneElement},
     maths_3d::FiniteVec3,
-    state::SceneAppState,
     view::{
         ViewUpdate,
         handle_drawer::{HandleColors, HandleDir},
@@ -22,6 +21,7 @@ use ensnano_design::{
     grid::{GridId, GridObject, HelixGridPosition},
     nucl::Nucl,
 };
+use ensnano_state::scene::state::SceneAppState;
 use ensnano_utils::graphics::PhySize;
 use std::{cell::RefCell, ops::Deref as _, rc::Rc, time::Duration};
 use ultraviolet::{Rotor3, Vec2, Vec3};

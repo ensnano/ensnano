@@ -5,9 +5,7 @@ pub mod design3d;
 
 use crate::{
     camera::CameraController,
-    design_reader::{SceneDesignReaderExt, StrandNucleotidesPositions},
     element_selector::{SceneElement, bezier_vertex_id},
-    state::SceneAppState,
     view::{
         Mesh, ViewPtr, ViewUpdate,
         dna_obj::{RawDnaInstance, StereographicSphereAndPlane},
@@ -35,6 +33,10 @@ use ensnano_design::{
 };
 use ensnano_state::{
     design::selection::{CenterOfSelection, Selection, extract_helices_with_controls},
+    scene::{
+        design_reader::{SceneDesignReaderExt, StrandNucleotidesPositions},
+        state::SceneAppState,
+    },
     utils::application::Camera3D,
 };
 use ensnano_utils::{

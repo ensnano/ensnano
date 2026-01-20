@@ -5,12 +5,12 @@ use crate::{
     controller::normal_state::Action, requests::Requests,
 };
 use ensnano_design::{grid::GridPosition, group_attributes::GroupPivot, nucl::Nucl};
-use ensnano_scene::requests::SceneRequests;
 use ensnano_state::{
     design::{
         operation::DesignOperation,
         selection::{CenterOfSelection, Selection},
     },
+    scene::requests::SceneRequests,
     utils::{application::AppId, operation::Operation},
 };
 use std::sync::Arc;

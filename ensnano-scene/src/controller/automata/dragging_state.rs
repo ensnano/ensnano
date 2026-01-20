@@ -13,7 +13,6 @@ use crate::{
         },
     },
     element_selector::SceneElement,
-    state::SceneAppState,
     view::handle_drawer::{HandleColors, HandleDir},
 };
 use ensnano_design::{
@@ -21,6 +20,7 @@ use ensnano_design::{
     grid::{GridId, GridObject},
     nucl::Nucl,
 };
+use ensnano_state::scene::state::SceneAppState;
 use std::borrow::Cow;
 use ultraviolet::Vec2;
 use winit::{
