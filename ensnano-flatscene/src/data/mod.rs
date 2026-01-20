@@ -20,7 +20,7 @@ use ensnano_design::{interaction_modes::SelectionMode, phantom_element::PhantomE
 use ensnano_state::{
     app_state::{AppState, design_interactor::DesignInteractor},
     design::selection::Selection,
-    flatscene::requests::FlatSceneRequests,
+    requests::Requests,
 };
 use ensnano_utils::{
     StrandBuildingStatus,
@@ -47,7 +47,7 @@ pub struct Data {
     nb_helices_created: usize,
     suggestions: HashMap<FlatNucl, HashSet<FlatNucl, RandomState>, RandomState>,
     id: u32,
-    requests: Arc<Mutex<dyn FlatSceneRequests>>,
+    requests: Arc<Mutex<Requests>>,
     last_click: LastClick,
 }
 
@@ -56,7 +56,7 @@ impl Data {
         view: ViewPtr,
         design: DesignInteractor,
         id: u32,
-        requests: Arc<Mutex<dyn FlatSceneRequests>>,
+        requests: Arc<Mutex<Requests>>,
     ) -> Self {
         Self {
             view,

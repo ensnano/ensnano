@@ -37,7 +37,7 @@ use ensnano_state::{
         operation::DesignOperation,
         selection::{Selection, extract_nucls_and_xover_ends},
     },
-    flatscene::requests::FlatSceneRequests,
+    requests::Requests,
     utils::{
         application::{AppId, Application, Notification},
         operation::{CrossCut, Cut, Xover},
@@ -99,7 +99,7 @@ pub struct FlatScene {
     /// Whether the flatscene is split in two.
     is_split: bool,
     old_state: AppState,
-    requests: Arc<Mutex<dyn FlatSceneRequests>>,
+    requests: Arc<Mutex<Requests>>,
 }
 
 impl FlatScene {
@@ -108,7 +108,7 @@ impl FlatScene {
         queue: Rc<Queue>,
         window_size: PhySize,
         area: DrawArea,
-        requests: Arc<Mutex<dyn FlatSceneRequests>>,
+        requests: Arc<Mutex<Requests>>,
         initial_state: AppState,
     ) -> Self {
         let mut ret = Self {
@@ -132,11 +132,7 @@ impl FlatScene {
     /// Add a design to the scene.
     ///
     /// This creates a new `View`, a new `Data` and a new `Controller`
-    fn add_design(
-        &mut self,
-        reader: DesignInteractor,
-        requests: Arc<Mutex<dyn FlatSceneRequests>>,
-    ) {
+    fn add_design(&mut self, reader: DesignInteractor, requests: Arc<Mutex<Requests>>) {
         let height = if self.is_split {
             self.area.size.height as f32 / 2.
         } else {

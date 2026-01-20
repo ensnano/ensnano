@@ -8,9 +8,7 @@ use ensnano_design::{
     helices::{Helices, Helix},
     nucl::Nucl,
 };
-use ensnano_state::{
-    app_state::design_interactor::DesignInteractor, flatscene::requests::FlatSceneRequests,
-};
+use ensnano_state::{app_state::design_interactor::DesignInteractor, requests::Requests};
 use ensnano_utils::{
     Referential,
     consts::{
@@ -37,16 +35,13 @@ pub(super) struct Design2d {
     pasted_strands: Vec<Strand>,
     last_flip_other: Option<FlatHelix>,
     removed: BTreeSet<FlatIdx>,
-    requests: Arc<Mutex<dyn FlatSceneRequests>>,
+    requests: Arc<Mutex<Requests>>,
     known_helices: HashMap<usize, *const Helix>,
     known_map: *const Helices,
 }
 
 impl Design2d {
-    pub(super) fn new(
-        design: DesignInteractor,
-        requests: Arc<Mutex<dyn FlatSceneRequests>>,
-    ) -> Self {
+    pub(super) fn new(design: DesignInteractor, requests: Arc<Mutex<Requests>>) -> Self {
         Self {
             design,
             helices: HelixVec::new(),
