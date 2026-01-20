@@ -1,13 +1,11 @@
 mod closed_curves;
 
-use crate::{
-    app_state::{
-        ErrOperation,
-        design_interactor::{
-            controller::simulations::SimulationInterface, presenter::SimulationUpdate,
-        },
+use crate::app_state::{
+    ErrOperation,
+    channel_reader::ChannelReader,
+    design_interactor::{
+        controller::simulations::SimulationInterface, presenter::SimulationUpdate,
     },
-    controller::channel_reader::ChannelReader,
 };
 use closed_curves::CloseSurfaceTopology;
 use ensnano_design::{

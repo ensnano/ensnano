@@ -3,11 +3,9 @@ pub(crate) mod revolutions;
 pub(crate) mod roller;
 pub(crate) mod twister;
 
-use crate::{
-    app_state::design_interactor::{
-        Presenter, controller::ErrOperation, presenter::SimulationUpdate,
-    },
-    controller::channel_reader::ChannelReader,
+use crate::app_state::{
+    channel_reader::ChannelReader,
+    design_interactor::{Presenter, controller::ErrOperation, presenter::SimulationUpdate},
 };
 use ahash::RandomState;
 use ensnano_design::{

@@ -1,4 +1,5 @@
 use crate::{
+    MainStateView,
     app_state::design_interactor::DesignInteractor,
     controller::{
         AutomataState, TransitionMessage,
@@ -9,7 +10,6 @@ use crate::{
         normal_state::NormalState,
     },
     dialog,
-    state::MainStateView,
 };
 use dialog::{MustAckMessage, PathInput};
 use std::path::PathBuf;

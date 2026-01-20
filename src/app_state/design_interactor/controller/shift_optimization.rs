@@ -1,6 +1,5 @@
-use crate::{
-    app_state::design_interactor::controller::ErrOperation,
-    controller::channel_reader::ChannelReader,
+use crate::app_state::{
+    channel_reader::ChannelReader, design_interactor::controller::ErrOperation,
 };
 use ensnano_design::{Design, domains::Domain, helices::NuclCollection, nucl::Nucl};
 use std::{

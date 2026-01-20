@@ -1,5 +1,6 @@
-use crate::{
-    app_state::design_interactor::{
+use crate::app_state::{
+    channel_reader::ChannelReader,
+    design_interactor::{
         Presenter,
         controller::simulations::{
             SimulationInterface,
@@ -7,7 +8,6 @@ use crate::{
         },
         presenter::SimulationUpdate,
     },
-    controller::channel_reader::ChannelReader,
 };
 use ensnano_design::{
     Design,

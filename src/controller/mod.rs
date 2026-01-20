@@ -1,6 +1,5 @@
 //! Handles windows and dialog (Alert, and file pickers) interactions.
 
-pub(crate) mod channel_reader;
 mod download_intervals;
 pub(crate) mod download_staples;
 mod messages;
@@ -9,8 +8,8 @@ mod quit;
 pub(crate) mod set_scaffold_sequence;
 
 use crate::{
+    MainStateView,
     dialog::{self, MustAckMessage, YesNoQuestion},
-    state::MainStateView,
 };
 use ensnano_design::scadnano::ScadnanoImportError;
 use ensnano_utils::consts::CANNOT_OPEN_DEFAULT_DIR;

@@ -1,9 +1,9 @@
-use crate::{
-    app_state::design_interactor::{
+use crate::app_state::{
+    channel_reader::ChannelReader,
+    design_interactor::{
         controller::simulations::SimulationInterface,
         presenter::{Presenter, SimulationUpdate},
     },
-    controller::channel_reader::ChannelReader,
 };
 use ahash::RandomState;
 use ensnano_design::{Design, helices::NuclCollection, parameters::HelixParameters};

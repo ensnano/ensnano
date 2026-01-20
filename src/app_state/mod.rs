@@ -6,12 +6,13 @@
 //!
 //! Each component of ENSnano has specific needs and express them via its own `AppState` trait.
 
-pub(crate) mod address_pointer;
-pub(crate) mod design_interactor;
-pub(crate) mod impl_app2d;
-pub(crate) mod impl_app3d;
-pub(crate) mod impl_gui;
-pub(crate) mod transitions;
+pub mod address_pointer;
+pub mod channel_reader;
+pub mod design_interactor;
+pub mod impl_app2d;
+pub mod impl_app3d;
+pub mod impl_gui;
+pub mod transitions;
 
 #[cfg(test)]
 use ensnano_design::Design;
@@ -23,6 +24,7 @@ use ensnano_state::{
     utils::operation::Operation,
 };
 
+use crate::app_state::channel_reader::ChannelReader;
 use crate::{
     app_state::design_interactor::{
         controller::{
@@ -30,7 +32,7 @@ use crate::{
         },
         presenter::SimulationUpdate,
     },
-    controller::{LoadDesignError, SaveDesignError, channel_reader::ChannelReader},
+    controller::{LoadDesignError, SaveDesignError},
 };
 use address_pointer::AddressPointer;
 use design_interactor::{DesignInteractor, InteractorResult, controller::ErrOperation};

@@ -5,11 +5,12 @@ pub(crate) mod presenter;
 use crate::{
     app_state::{
         address_pointer::AddressPointer,
+        channel_reader::ChannelReader,
         design_interactor::controller::{
             OkOperation, clipboard::CopyOperation, simulations::SimulationOperation,
         },
     },
-    controller::{SaveDesignError, channel_reader::ChannelReader},
+    controller::SaveDesignError,
 };
 use controller::{Controller, ErrOperation, InteractorNotification};
 use ensnano_design::{

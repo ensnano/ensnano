@@ -3,19 +3,17 @@ pub(crate) mod shift_optimization;
 pub(crate) mod simulations;
 pub(crate) mod update_insertion_length;
 
-use crate::{
-    app_state::{
-        AddressPointer,
-        design_interactor::controller::simulations::{
-            GridSystemInterface, GridsSystemThread, HelixSystemInterface, HelixSystemThread,
-            SimulationOperation,
-            rapier::{RapierInterface, RapierPhysicalSystem},
-            revolutions::{RevolutionSystemInterface, RevolutionSystemThread},
-            roller::{PhysicalSystem, RollInterface},
-            twister::{TwistInterface, Twister},
-        },
+use crate::app_state::{
+    AddressPointer,
+    channel_reader::ChannelReader,
+    design_interactor::controller::simulations::{
+        GridSystemInterface, GridsSystemThread, HelixSystemInterface, HelixSystemThread,
+        SimulationOperation,
+        rapier::{RapierInterface, RapierPhysicalSystem},
+        revolutions::{RevolutionSystemInterface, RevolutionSystemThread},
+        roller::{PhysicalSystem, RollInterface},
+        twister::{TwistInterface, Twister},
     },
-    controller::channel_reader::ChannelReader,
 };
 use clipboard::{Clipboard, CopyOperation, PastePosition, PastedStrand, StrandClipboard};
 use ensnano_design::{
