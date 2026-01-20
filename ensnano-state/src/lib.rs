@@ -1,6 +1,5 @@
 pub mod app_state;
 pub mod design;
-pub mod flatscene;
 pub mod gui;
 pub mod requests;
 pub mod scene;
