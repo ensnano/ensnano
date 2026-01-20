@@ -1,11 +1,11 @@
 mod curve_builders;
 
+use crate::app_state::design_interactor::DesignInteractor;
 use crate::app_state::{AppState, NewHelixStrand};
 use crate::{
     design::selection::{DesignElementKeySelection as _, Selection, all_helices_no_grid},
     gui::{
         curve::{CurveDescriptorBuilder, RevolutionScaling},
-        design_reader::GuiDesignReaderExt,
         state::GuiAppState,
     },
     utils::operation::CurrentOpState,
@@ -75,8 +75,8 @@ impl GuiAppState for AppState {
             && all_helices_no_grid(self.selection_content(), &self.get_design_interactor())
     }
 
-    fn get_reader(&self) -> Box<dyn GuiDesignReaderExt> {
-        Box::new(self.get_design_interactor())
+    fn get_reader(&self) -> DesignInteractor {
+        self.get_design_interactor()
     }
 
     fn design_was_modified(&self, other: &Self) -> bool {

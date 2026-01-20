@@ -18,7 +18,7 @@ use ensnano_design::{
     helices::{HBond, HalfHBond, Helix, NuclCollection},
     id_generator::IdGenerator,
     nucl::Nucl,
-    strands::{Extremity, Strand},
+    strands::Extremity,
 };
 use ensnano_exports::{ExportResult, ExportType, oxdna::BACKBONE_TO_CM};
 use ensnano_utils::{
@@ -681,14 +681,6 @@ impl DesignInteractor {
             prev_helix = domain.half_helix();
         }
         Extremity::No
-    }
-
-    fn get_strand_length(&self, s_id: usize) -> Option<usize> {
-        self.presenter
-            .current_design
-            .strands
-            .get(&s_id)
-            .map(Strand::length)
     }
 
     pub fn get_scaffold_info(&self) -> Option<ScaffoldInfo> {

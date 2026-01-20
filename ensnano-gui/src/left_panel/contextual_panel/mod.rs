@@ -6,9 +6,9 @@ use crate::{
 };
 use ensnano_design::{bezier_plane::BezierVertexId, grid::GridId, interaction_modes::ActionMode};
 use ensnano_state::{
+    app_state::design_interactor::DesignInteractor,
     design::selection::Selection,
     gui::{
-        design_reader::GuiDesignReaderExt,
         messages::{InstantiatedValue, LeftPanelMessage, ValueKind},
         requests::GuiRequests,
         state::GuiAppState,
@@ -146,7 +146,7 @@ where
     fn update(
         &mut self,
         selection: &Selection,
-        reader: &dyn GuiDesignReaderExt,
+        reader: &DesignInteractor,
         app_state: &State,
     ) -> bool {
         if *selection != self.selection || app_state.is_transitory() {
@@ -162,7 +162,7 @@ where
         }
     }
 
-    fn new(selection: &Selection, reader: &dyn GuiDesignReaderExt) -> Option<Self> {
+    fn new(selection: &Selection, reader: &DesignInteractor) -> Option<Self> {
         Self::new_builder(selection, reader).map(|builder| Self {
             builder,
             selection: *selection,
@@ -171,7 +171,7 @@ where
 
     fn new_builder(
         selection: &Selection,
-        reader: &dyn GuiDesignReaderExt,
+        reader: &DesignInteractor,
     ) -> Option<Box<dyn Builder<State>>> {
         match selection {
             Selection::Grid(_, g_id) => {
@@ -238,7 +238,7 @@ where
             .count();
         self.update_builder(
             Some(selection).filter(|_| nb_selected == 1),
-            app_state.get_reader().as_ref(),
+            &app_state.get_reader(),
             app_state,
         );
         self.insertion_length_state.update_selection(selection);
@@ -248,7 +248,7 @@ where
     fn update_builder(
         &mut self,
         selection: Option<&Selection>,
-        reader: &dyn GuiDesignReaderExt,
+        reader: &DesignInteractor,
         app_state: &State,
     ) {
         if let Some(s) = selection {
@@ -289,7 +289,7 @@ where
             })
             .and_then(|id| app_state.get_reader().xover_length(id));
 
-        let info_values = values_of_selection(selection, app_state.get_reader().as_ref());
+        let info_values = values_of_selection(selection, &app_state.get_reader());
 
         // NOTE: The branching below determines what is viewed in the contextual panel.
         //
@@ -382,7 +382,10 @@ where
             }
         }
 
-        if let Some(len) = app_state.get_reader().get_insertion_length(selection) {
+        if let Some(len) = app_state
+            .get_reader()
+            .get_insertion_length_in_selection(selection)
+        {
             let real_len_string = len.to_string();
             let text_input_content = self
                 .insertion_length_state
@@ -762,7 +765,7 @@ fn view_2d_help() -> Vec<(String, String)> {
     ]
 }
 
-fn values_of_selection(selection: &Selection, reader: &dyn GuiDesignReaderExt) -> Vec<String> {
+fn values_of_selection(selection: &Selection, reader: &DesignInteractor) -> Vec<String> {
     match selection {
         Selection::Grid(_, g_id) => {
             let b1 = reader.grid_has_persistent_phantom(*g_id);

@@ -1,8 +1,5 @@
 use crate::app_state::design_interactor::DesignInteractor;
-use crate::{
-    design::{operation::InsertionPoint, selection::Selection},
-    gui::design_reader::GuiDesignReaderExt,
-};
+use crate::design::{operation::InsertionPoint, selection::Selection};
 use ensnano_design::{
     CameraId,
     bezier_plane::{BezierPathId, BezierVertexId},
@@ -15,20 +12,20 @@ use ensnano_design::{
 use std::sync::Arc;
 use ultraviolet::{Rotor3, Vec2, Vec3};
 
-impl GuiDesignReaderExt for DesignInteractor {
-    fn grid_has_small_spheres(&self, g_id: GridId) -> bool {
+impl DesignInteractor {
+    pub fn grid_has_small_spheres(&self, g_id: GridId) -> bool {
         self.presenter.content.grid_has_small_spheres(g_id)
     }
 
-    fn grid_has_persistent_phantom(&self, g_id: GridId) -> bool {
+    pub fn grid_has_persistent_phantom(&self, g_id: GridId) -> bool {
         self.presenter.content.grid_has_persistent_phantom(g_id)
     }
 
-    fn get_grid_nb_turn(&self, g_id: GridId) -> Option<f32> {
+    pub fn get_grid_nb_turn(&self, g_id: GridId) -> Option<f32> {
         self.presenter.content.get_grid_nb_turn(g_id)
     }
 
-    fn get_strand_length(&self, s_id: usize) -> Option<usize> {
+    pub fn get_strand_length(&self, s_id: usize) -> Option<usize> {
         self.presenter
             .current_design
             .strands
@@ -36,27 +33,27 @@ impl GuiDesignReaderExt for DesignInteractor {
             .map(Strand::length)
     }
 
-    fn is_id_of_scaffold(&self, s_id: usize) -> bool {
+    pub fn is_id_of_scaffold(&self, s_id: usize) -> bool {
         self.presenter.current_design.scaffold_id == Some(s_id)
     }
 
-    fn nucl_is_anchor(&self, nucl: Nucl) -> bool {
+    pub fn nucl_is_anchor(&self, nucl: Nucl) -> bool {
         self.presenter.current_design.anchors.contains(&nucl)
     }
 
-    fn length_decomposition(&self, s_id: usize) -> String {
+    pub fn length_decomposition(&self, s_id: usize) -> String {
         self.presenter.decompose_length(s_id)
     }
 
-    fn get_dna_elements(&self) -> &[DesignElement] {
+    pub fn get_dna_elements(&self) -> &[DesignElement] {
         self.presenter.content.elements.as_slice()
     }
 
-    fn get_organizer_tree(&self) -> Option<Arc<OrganizerTree>> {
+    pub fn get_organizer_tree(&self) -> Option<Arc<OrganizerTree>> {
         self.presenter.get_design().organizer_tree.clone()
     }
 
-    fn strand_name(&self, s_id: usize) -> String {
+    pub fn strand_name(&self, s_id: usize) -> String {
         self.presenter
             .current_design
             .strands
@@ -65,7 +62,7 @@ impl GuiDesignReaderExt for DesignInteractor {
             .unwrap_or_else(|| String::from("Unnamed strand"))
     }
 
-    fn get_all_cameras(&self) -> Vec<(CameraId, &str)> {
+    pub fn get_all_cameras(&self) -> Vec<(CameraId, &str)> {
         //TODO this obviously needs to be updated to relate to the real content
         self.presenter
             .current_design
@@ -74,7 +71,7 @@ impl GuiDesignReaderExt for DesignInteractor {
             .collect()
     }
 
-    fn get_grid_position_and_orientation(&self, g_id: GridId) -> Option<(Vec3, Rotor3)> {
+    pub fn get_grid_position_and_orientation(&self, g_id: GridId) -> Option<(Vec3, Rotor3)> {
         self.presenter
             .current_design
             .free_grids
@@ -82,7 +79,7 @@ impl GuiDesignReaderExt for DesignInteractor {
             .map(|g| (g.position, g.orientation))
     }
 
-    fn xover_length(&self, xover_id: usize) -> Option<(f32, Option<f32>)> {
+    pub fn xover_length(&self, xover_id: usize) -> Option<(f32, Option<f32>)> {
         let (n1, n2) = self.presenter.junctions_ids.get_element(xover_id)?;
         let len_self = self.presenter.get_xover_len(xover_id)?;
         let neighbor_id = self
@@ -110,15 +107,11 @@ impl GuiDesignReaderExt for DesignInteractor {
         Some((len_self, len_neighbor))
     }
 
-    fn get_id_of_xover_involving_nucl(&self, nucl: Nucl) -> Option<usize> {
-        self.presenter.get_id_of_xover_involving_nucl(nucl)
-    }
-
-    fn rainbow_scaffold(&self) -> bool {
+    pub fn rainbow_scaffold(&self) -> bool {
         self.presenter.current_design.rainbow_scaffold
     }
 
-    fn get_insertion_length(&self, selection: &Selection) -> Option<usize> {
+    pub fn get_insertion_length_in_selection(&self, selection: &Selection) -> Option<usize> {
         match selection {
             Selection::Bond(_, n1, n2) => {
                 let bond_id = self
@@ -172,7 +165,7 @@ impl GuiDesignReaderExt for DesignInteractor {
         }
     }
 
-    fn get_insertion_point(&self, selection: &Selection) -> Option<InsertionPoint> {
+    pub fn get_insertion_point(&self, selection: &Selection) -> Option<InsertionPoint> {
         match selection {
             Selection::Bond(_, n1, _n2) => Some(InsertionPoint {
                 nucl: *n1,
@@ -203,7 +196,7 @@ impl GuiDesignReaderExt for DesignInteractor {
         }
     }
 
-    fn is_bezier_path_cyclic(&self, path_id: BezierPathId) -> Option<bool> {
+    pub fn is_bezier_path_cyclic(&self, path_id: BezierPathId) -> Option<bool> {
         self.presenter
             .current_design
             .bezier_paths
@@ -211,7 +204,7 @@ impl GuiDesignReaderExt for DesignInteractor {
             .map(|p| p.is_cyclic)
     }
 
-    fn get_bezier_vertex_position(&self, vertex_id: BezierVertexId) -> Option<Vec2> {
+    pub fn get_bezier_vertex_position(&self, vertex_id: BezierVertexId) -> Option<Vec2> {
         let path = self
             .presenter
             .current_design
@@ -220,11 +213,11 @@ impl GuiDesignReaderExt for DesignInteractor {
         path.vertices().get(vertex_id.vertex_id).map(|v| v.position)
     }
 
-    fn get_scaffold_sequence(&self) -> Option<&str> {
+    pub fn get_scaffold_sequence(&self) -> Option<&str> {
         self.presenter.current_design.scaffold_sequence.as_deref()
     }
 
-    fn get_current_length_of_relaxed_shape(&self) -> Option<usize> {
+    pub fn get_current_length_of_relaxed_shape(&self) -> Option<usize> {
         self.presenter
             .current_design
             .additional_structure

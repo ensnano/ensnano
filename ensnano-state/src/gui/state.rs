@@ -1,9 +1,7 @@
 use crate::{
+    app_state::design_interactor::DesignInteractor,
     design::selection::Selection,
-    gui::{
-        curve::{CurveDescriptorBuilder, RevolutionScaling},
-        design_reader::GuiDesignReaderExt,
-    },
+    gui::curve::{CurveDescriptorBuilder, RevolutionScaling},
     utils::operation::CurrentOpState,
 };
 use ensnano_design::{
@@ -38,7 +36,7 @@ pub trait GuiAppState:
     fn get_selection(&self) -> &[Selection];
     fn get_selection_as_design_element(&self) -> Vec<DesignElementKey>;
     fn can_make_grid(&self) -> bool;
-    fn get_reader(&self) -> Box<dyn GuiDesignReaderExt>;
+    fn get_reader(&self) -> DesignInteractor;
     fn design_was_modified(&self, other: &Self) -> bool;
     fn selection_was_updated(&self, other: &Self) -> bool;
     fn get_current_operation_state(&self) -> Option<CurrentOpState>;
