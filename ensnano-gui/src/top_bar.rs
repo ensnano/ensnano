@@ -12,10 +12,10 @@ use crate::{
         material_icons::{MaterialIcon, MaterialIconStyle},
     },
     helpers::{fixed_text_button, image_button, material_icon_button, text_button},
-    messages::TopBarMessage,
     theme::GuiBackground,
 };
 use ensnano_design::interaction_modes::{ActionMode, SelectionMode};
+use ensnano_state::gui::messages::TopBarMessage;
 use ensnano_utils::{graphics::SplitMode, ui_size::UiSize};
 use iced::{
     Element, Length, Padding, theme,

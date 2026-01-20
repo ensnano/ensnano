@@ -4,10 +4,12 @@ use crate::{
     left_panel::{
         LeftPanelMessage, ScrollSensitivity, discrete_value::RequestFactory, tabs::GuiTab,
     },
+};
+use ensnano_design::{ensnano_version, parameters::NAMED_DNA_PARAMETERS};
+use ensnano_state::gui::{
     messages::{FactoryId, ValueId},
     state::GuiAppState,
 };
-use ensnano_design::{ensnano_version, parameters::NAMED_DNA_PARAMETERS};
 use ensnano_utils::ui_size::{ALL_UI_SIZES, UiSize};
 use iced::widget::{column, pick_list, scrollable, text};
 use iced_aw::TabLabel;

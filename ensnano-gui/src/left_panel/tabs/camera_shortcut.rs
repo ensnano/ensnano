@@ -5,9 +5,9 @@ use crate::{
         section, subsection,
     },
     left_panel::LeftPanelMessage,
-    state::GuiAppState,
 };
 use ensnano_design::CameraId;
+use ensnano_state::gui::state::GuiAppState;
 use ensnano_utils::{keyboard_priority::keyboard_priority, ui_size::UiSize};
 use iced::{
     Alignment, Command, Length,

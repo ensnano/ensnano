@@ -2,9 +2,11 @@
 
 // TODO: Make it an independent object like ensnano_gui::color_picker ?
 
-use crate::messages::{FactoryId, ValueId};
 use crate::theme;
-use crate::{messages::LeftPanelMessage, state::GuiAppState};
+use ensnano_state::gui::{
+    messages::{FactoryId, LeftPanelMessage, ValueId},
+    state::GuiAppState,
+};
 use iced::{
     Alignment, Length, Pixels,
     widget::{Space, button, row, slider, text},

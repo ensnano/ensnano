@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use crate::design::{operation::InsertionPoint, selection::Selection};
 use ensnano_design::{
     CameraId,
     bezier_plane::{BezierPathId, BezierVertexId},
@@ -8,7 +9,6 @@ use ensnano_design::{
     nucl::Nucl,
     organizer_tree::OrganizerTree,
 };
-use ensnano_state::design::{operation::InsertionPoint, selection::Selection};
 use ultraviolet::{Rotor3, Vec2, Vec3};
 
 pub trait GuiDesignReaderExt: 'static {

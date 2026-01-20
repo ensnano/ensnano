@@ -1,15 +1,19 @@
 use crate::{
-    color_picker::{ColorPicker, ColorPickerMessage},
+    color_picker::ColorPicker,
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
     left_panel::{
         HelixRoll, LeftPanelMessage, color_to_u32, discrete_value::RequestFactory, tabs::GuiTab,
     },
-    messages::{FactoryId, ValueId},
-    state::GuiAppState,
 };
 use ensnano_design::design_element::DesignElementKey;
-use ensnano_state::design::selection::extract_strands_from_selection;
+use ensnano_state::{
+    design::selection::extract_strands_from_selection,
+    gui::{
+        messages::{ColorPickerMessage, FactoryId, ValueId},
+        state::GuiAppState,
+    },
+};
 use ensnano_utils::{RollRequest, ui_size::UiSize};
 use iced::{
     Command,

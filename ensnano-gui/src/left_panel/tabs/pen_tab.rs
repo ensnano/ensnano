@@ -2,9 +2,9 @@ use crate::{
     fonts::material_icons::{MaterialIcon, MaterialIconStyle, icon_to_char},
     helpers::{extra_jump, icon_button, material_icon_button, section},
     left_panel::{LeftPanelMessage, tabs::GuiTab},
-    state::GuiAppState,
 };
 use ensnano_design::grid::GridTypeDescr;
+use ensnano_state::gui::state::GuiAppState;
 use ensnano_utils::{
     consts::{ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID},
     ui_size::UiSize,
@@ -53,14 +53,18 @@ impl<State: GuiAppState> GuiTab<State> for PenTab<State> {
             // add_grid_buttons!
             if let Some(path_id) = app_state.get_selected_bezier_path() {
                 row![
-                    icon_button(ICON_SQUARE_GRID, ui_size).on_press(LeftPanelMessage::TurnPathIntoGrid {
-                        path_id,
-                        grid_type: GridTypeDescr::Square { twist: None },
-                    }),
-                    icon_button(ICON_HONEYCOMB_GRID, ui_size).on_press(LeftPanelMessage::TurnPathIntoGrid {
-                        path_id,
-                        grid_type: GridTypeDescr::Honeycomb { twist: None },
-                    }),
+                    icon_button(ICON_SQUARE_GRID, ui_size).on_press(
+                        LeftPanelMessage::TurnPathIntoGrid {
+                            path_id,
+                            grid_type: GridTypeDescr::Square { twist: None },
+                        }
+                    ),
+                    icon_button(ICON_HONEYCOMB_GRID, ui_size).on_press(
+                        LeftPanelMessage::TurnPathIntoGrid {
+                            path_id,
+                            grid_type: GridTypeDescr::Honeycomb { twist: None },
+                        }
+                    ),
                 ]
                 .spacing(5)
             } else {

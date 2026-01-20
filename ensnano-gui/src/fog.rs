@@ -1,13 +1,12 @@
 use crate::{
     helpers::{extra_jump, subsection},
-    messages::LeftPanelMessage,
-    state::GuiAppState,
     theme,
 };
-use ensnano_utils::{
-    graphics::{FogParameters, fog_kind},
-    ui_size::UiSize,
+use ensnano_state::gui::{
+    messages::{ALL_FOG_CHOICES, FogChoices, LeftPanelMessage},
+    state::GuiAppState,
 };
+use ensnano_utils::{graphics::FogParameters, ui_size::UiSize};
 use iced::{
     Alignment,
     widget::{column, pick_list, row, slider, text},
@@ -115,136 +114,6 @@ impl Default for FogGuiParameters {
             softness: 10.,
             from_camera: true,
             is_reversed: false,
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum FogChoices {
-    #[default]
-    None,
-    FromCamera,
-    FromPivot,
-    DarkFromCamera,
-    DarkFromPivot,
-    ReversedFromPivot,
-}
-
-const ALL_FOG_CHOICES: &[FogChoices] = &[
-    FogChoices::None,
-    FogChoices::FromCamera,
-    FogChoices::FromPivot,
-    FogChoices::DarkFromCamera,
-    FogChoices::DarkFromPivot,
-    FogChoices::ReversedFromPivot,
-];
-
-impl std::fmt::Display for FogChoices {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let ret = match self {
-            Self::None => "None",
-            Self::FromCamera => "From Camera",
-            Self::FromPivot => "From Pivot",
-            Self::DarkFromCamera => "Dark from Camera",
-            Self::DarkFromPivot => "Dark from Pivot",
-            Self::ReversedFromPivot => "Reversed from Pivot",
-        };
-        write!(f, "{ret}")
-    }
-}
-
-impl FogChoices {
-    fn from_param(visible: bool, from_camera: bool, dark: bool, reversed: bool) -> Self {
-        Self::None
-            .visible(visible)
-            .dark(dark)
-            .from_camera(from_camera)
-            .reversed(reversed)
-    }
-
-    pub fn to_param(self) -> (bool, bool, bool, bool) {
-        (
-            self.is_visible(),
-            self.is_from_camera(),
-            self.is_dark(),
-            self.is_reversed(),
-        )
-    }
-
-    fn visible(self, visible: bool) -> Self {
-        if visible {
-            if self == Self::None {
-                Self::FromPivot
-            } else {
-                self
-            }
-        } else {
-            Self::None
-        }
-    }
-
-    fn from_camera(self, from_camera: bool) -> Self {
-        if from_camera {
-            match self {
-                Self::FromPivot => Self::FromCamera,
-                Self::DarkFromPivot => Self::DarkFromCamera,
-                _ => self,
-            }
-        } else {
-            match self {
-                Self::FromCamera => Self::FromPivot,
-                Self::DarkFromCamera => Self::DarkFromPivot,
-                _ => self,
-            }
-        }
-    }
-
-    fn reversed(self, reversed: bool) -> Self {
-        match (self, reversed) {
-            (Self::FromPivot, true) => Self::ReversedFromPivot,
-            (Self::ReversedFromPivot, false) => Self::FromPivot,
-            _ => self,
-        }
-    }
-
-    fn dark(self, dark: bool) -> Self {
-        if dark {
-            match self {
-                Self::FromCamera => Self::DarkFromCamera,
-                Self::FromPivot => Self::DarkFromPivot,
-                _ => self,
-            }
-        } else {
-            match self {
-                Self::DarkFromCamera => Self::FromCamera,
-                Self::DarkFromPivot => Self::FromPivot,
-                _ => self,
-            }
-        }
-    }
-
-    fn is_visible(&self) -> bool {
-        !matches!(self, Self::None)
-    }
-
-    fn is_from_camera(&self) -> bool {
-        matches!(self, Self::FromCamera | Self::DarkFromCamera)
-    }
-
-    fn is_dark(&self) -> bool {
-        matches!(self, Self::DarkFromCamera | Self::DarkFromPivot)
-    }
-
-    fn is_reversed(&self) -> bool {
-        matches!(self, Self::ReversedFromPivot)
-    }
-
-    fn fog_kind(&self) -> u32 {
-        match self {
-            Self::None => fog_kind::NO_FOG,
-            Self::FromCamera | Self::FromPivot => fog_kind::TRANSPARENT_FOG,
-            Self::DarkFromPivot | Self::DarkFromCamera => fog_kind::DARK_FOG,
-            Self::ReversedFromPivot => fog_kind::REVERSED_FOG,
         }
     }
 }

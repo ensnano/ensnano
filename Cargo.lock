@@ -1231,7 +1231,10 @@ name = "ensnano_state"
 version = "0.7.0"
 dependencies = [
  "ensnano_design",
+ "ensnano_exports",
+ "ensnano_physics",
  "ensnano_utils",
+ "iced",
  "log",
  "ultraviolet",
  "wgpu",

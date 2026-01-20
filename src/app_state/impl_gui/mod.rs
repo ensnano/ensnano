@@ -9,13 +9,13 @@ use ensnano_design::{
     organizer_tree::GroupId,
     parameters::HelixParameters,
 };
-use ensnano_gui::{
-    curve::{CurveDescriptorBuilder, RevolutionScaling},
-    design_reader::GuiDesignReaderExt,
-    state::GuiAppState,
-};
 use ensnano_state::{
     design::selection::{DesignElementKeySelection as _, Selection, all_helices_no_grid},
+    gui::{
+        curve::{CurveDescriptorBuilder, RevolutionScaling},
+        design_reader::GuiDesignReaderExt,
+        state::GuiAppState,
+    },
     utils::operation::CurrentOpState,
 };
 use ensnano_utils::{

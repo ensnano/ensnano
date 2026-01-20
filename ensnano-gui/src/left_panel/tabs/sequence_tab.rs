@@ -1,10 +1,10 @@
 use crate::{
     helpers::{extra_jump, right_checkbox, section, text_button},
     left_panel::{LeftPanelMessage, tabs::GuiTab},
-    state::GuiAppState,
     theme,
 };
 use ensnano_design::design_element::DesignElementKey;
+use ensnano_state::gui::state::GuiAppState;
 use ensnano_utils::{
     StandardSequence, consts::ICON_ATGC, keyboard_priority::keyboard_priority, ui_size::UiSize,
 };
@@ -108,9 +108,11 @@ impl<State: GuiAppState> GuiTab<State> for SequenceTab<State> {
             // add_show_sequence_button!
             {
                 if self.toggle_text_value {
-                    text_button("Hide Sequences", ui_size).on_press(LeftPanelMessage::ToggleText(false))
+                    text_button("Hide Sequences", ui_size)
+                        .on_press(LeftPanelMessage::ToggleText(false))
                 } else {
-                    text_button("Show Sequences", ui_size).on_press(LeftPanelMessage::ToggleText(true))
+                    text_button("Show Sequences", ui_size)
+                        .on_press(LeftPanelMessage::ToggleText(true))
                 }
             },
             extra_jump(),
@@ -126,8 +128,8 @@ impl<State: GuiAppState> GuiTab<State> for SequenceTab<State> {
                 }
                 let selection = app_state.get_selection_as_design_element();
                 if let Some(n) = Self::get_candidate_scaffold(&selection) {
-                    button_selection_to_scaffold =
-                        button_selection_to_scaffold.on_press(LeftPanelMessage::ScaffoldIdSet(n, true));
+                    button_selection_to_scaffold = button_selection_to_scaffold
+                        .on_press(LeftPanelMessage::ScaffoldIdSet(n, true));
                 }
                 row![button_selection_to_scaffold, button_selection_from_scaffold,]
                     .spacing(ui_size.button_spacing())
@@ -220,7 +222,8 @@ impl<State: GuiAppState> GuiTab<State> for SequenceTab<State> {
             // add_download_staples_button!
             column![
                 text_button("Export Staples", ui_size).on_press(LeftPanelMessage::StaplesRequested),
-                text_button("Export Origamis", ui_size).on_press(LeftPanelMessage::OrigamisRequested),
+                text_button("Export Origamis", ui_size)
+                    .on_press(LeftPanelMessage::OrigamisRequested),
             ]
             .spacing(ui_size.button_spacing()),
         ];

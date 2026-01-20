@@ -8,7 +8,8 @@ pub mod revolution_tab;
 pub mod sequence_tab;
 pub mod simulation_tab;
 
-use crate::{left_panel::LeftPanelMessage, state::GuiAppState};
+use crate::left_panel::LeftPanelMessage;
+use ensnano_state::gui::state::GuiAppState;
 use ensnano_utils::ui_size::UiSize;
 use iced::{Command, Length, widget::container};
 use iced_aw::TabLabel;
@@ -34,7 +35,8 @@ pub trait GuiTab<State: GuiAppState> {
 
 // TODO: Turn this into a widget
 pub mod gostop {
-    use crate::{left_panel::LeftPanelMessage, state::GuiAppState};
+    use crate::left_panel::LeftPanelMessage;
+    use ensnano_state::gui::state::GuiAppState;
     use iced::widget::{button, row, text};
 
     pub struct GoStop<State: GuiAppState> {

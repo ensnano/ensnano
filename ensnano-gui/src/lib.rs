@@ -7,16 +7,10 @@
 
 mod color_picker;
 mod consts;
-pub mod curve;
-pub mod design_reader;
-pub mod drag_drop_target;
 pub mod fog;
 pub mod fonts;
 mod helpers;
 pub mod left_panel;
-pub mod messages;
-pub mod requests;
-pub mod state;
 pub mod status_bar;
 pub mod theme;
 pub mod top_bar;
@@ -25,19 +19,22 @@ mod widgets;
 use crate::{
     fonts::{INTER_REGULAR_FONT, load_fonts},
     left_panel::LeftPanelState,
-    messages::{GuiMessages, LeftPanelMessage, StatusBarMessage, TopBarMessage, TopBarStateFlags},
-    requests::GuiRequests,
-    state::GuiAppState,
     status_bar::StatusBarState,
     top_bar::TopBarState,
 };
-
-use ensnano_utils::graphics::DrawArea;
-use ensnano_utils::{
-    TEXTURE_FORMAT, app_state_parameters::AppStateParameters, graphics::GuiComponentType,
-    multiplexer_ext::MultiplexerExt, ui_size::UiSize,
+use ensnano_state::gui::{
+    messages::{GuiMessages, LeftPanelMessage, StatusBarMessage, TopBarMessage, TopBarStateFlags},
+    requests::GuiRequests,
+    state::GuiAppState,
 };
-use ensnano_utils::{convert_size_f32, convert_size_u32};
+use ensnano_utils::{
+    TEXTURE_FORMAT,
+    app_state_parameters::AppStateParameters,
+    convert_size_f32, convert_size_u32,
+    graphics::{DrawArea, GuiComponentType},
+    multiplexer_ext::MultiplexerExt,
+    ui_size::UiSize,
+};
 use iced::{
     Event, Size,
     advanced::{clipboard, mouse, renderer},

@@ -2,11 +2,15 @@ use crate::{
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, icon_button, section, subsection, text_button},
     left_panel::{Hyperboloid_, LeftPanelMessage, discrete_value::RequestFactory, tabs::GuiTab},
-    messages::{FactoryId, ValueId},
-    state::GuiAppState,
 };
 use ensnano_design::grid::GridTypeDescr;
-use ensnano_state::design::operation::HyperboloidRequest;
+use ensnano_state::{
+    design::operation::HyperboloidRequest,
+    gui::{
+        messages::{FactoryId, ValueId},
+        state::GuiAppState,
+    },
+};
 use ensnano_utils::{
     consts::{ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID},
     ui_size::UiSize,

@@ -3,8 +3,8 @@ use crate::{
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, right_checkbox, section, subsection, text_button},
     left_panel::{LeftPanelMessage, tabs::GuiTab},
-    state::GuiAppState,
 };
+use ensnano_state::gui::state::GuiAppState;
 use ensnano_utils::{
     app_state_parameters::{AppStateParameters, check_xovers_parameter::CheckXoversParameter},
     graphics::{

@@ -16,23 +16,21 @@ use ensnano_utils::{
     app_state_parameters::{
         check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
     },
-    graphics::{Background3D, HBondDisplay, RenderingMode, SplitMode},
+    graphics::{Background3D, HBondDisplay, RenderingMode, SplitMode, fog_kind},
     keyboard_priority::PriorityRequest,
     surfaces::EquadiffSolvingMethod,
     ui_size::UiSize,
 };
-use iced::widget::text_input::Id;
+use iced::{Color, widget::text_input::Id};
 use ultraviolet::Vec3;
 use winit::{
     dpi::{LogicalPosition, LogicalSize},
     event::Modifiers,
 };
 
-use crate::{
-    color_picker::ColorPickerMessage,
+use crate::gui::{
     curve::CurveDescriptorBuilder,
     drag_drop_target::DragIdentifier,
-    fog::FogChoices,
     state::{GuiAppState, RevolutionParameterId},
 };
 
@@ -48,6 +46,148 @@ pub struct TopBarStateFlags {
     pub can_split_2d: bool,
     pub can_toggle_2d: bool,
     pub is_split_2d: bool,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum FogChoices {
+    #[default]
+    None,
+    FromCamera,
+    FromPivot,
+    DarkFromCamera,
+    DarkFromPivot,
+    ReversedFromPivot,
+}
+
+pub const ALL_FOG_CHOICES: &[FogChoices] = &[
+    FogChoices::None,
+    FogChoices::FromCamera,
+    FogChoices::FromPivot,
+    FogChoices::DarkFromCamera,
+    FogChoices::DarkFromPivot,
+    FogChoices::ReversedFromPivot,
+];
+
+impl std::fmt::Display for FogChoices {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let ret = match self {
+            Self::None => "None",
+            Self::FromCamera => "From Camera",
+            Self::FromPivot => "From Pivot",
+            Self::DarkFromCamera => "Dark from Camera",
+            Self::DarkFromPivot => "Dark from Pivot",
+            Self::ReversedFromPivot => "Reversed from Pivot",
+        };
+        write!(f, "{ret}")
+    }
+}
+
+impl FogChoices {
+    pub fn from_param(visible: bool, from_camera: bool, dark: bool, reversed: bool) -> Self {
+        Self::None
+            .visible(visible)
+            .dark(dark)
+            .from_camera(from_camera)
+            .reversed(reversed)
+    }
+
+    pub fn to_param(self) -> (bool, bool, bool, bool) {
+        (
+            self.is_visible(),
+            self.is_from_camera(),
+            self.is_dark(),
+            self.is_reversed(),
+        )
+    }
+
+    #[must_use]
+    pub fn visible(self, visible: bool) -> Self {
+        if visible {
+            if self == Self::None {
+                Self::FromPivot
+            } else {
+                self
+            }
+        } else {
+            Self::None
+        }
+    }
+
+    #[must_use]
+    pub fn from_camera(self, from_camera: bool) -> Self {
+        if from_camera {
+            match self {
+                Self::FromPivot => Self::FromCamera,
+                Self::DarkFromPivot => Self::DarkFromCamera,
+                _ => self,
+            }
+        } else {
+            match self {
+                Self::FromCamera => Self::FromPivot,
+                Self::DarkFromCamera => Self::DarkFromPivot,
+                _ => self,
+            }
+        }
+    }
+
+    #[must_use]
+    pub fn reversed(self, reversed: bool) -> Self {
+        match (self, reversed) {
+            (Self::FromPivot, true) => Self::ReversedFromPivot,
+            (Self::ReversedFromPivot, false) => Self::FromPivot,
+            _ => self,
+        }
+    }
+
+    #[must_use]
+    pub fn dark(self, dark: bool) -> Self {
+        if dark {
+            match self {
+                Self::FromCamera => Self::DarkFromCamera,
+                Self::FromPivot => Self::DarkFromPivot,
+                _ => self,
+            }
+        } else {
+            match self {
+                Self::DarkFromCamera => Self::FromCamera,
+                Self::DarkFromPivot => Self::FromPivot,
+                _ => self,
+            }
+        }
+    }
+
+    pub fn is_visible(&self) -> bool {
+        !matches!(self, Self::None)
+    }
+
+    pub fn is_from_camera(&self) -> bool {
+        matches!(self, Self::FromCamera | Self::DarkFromCamera)
+    }
+
+    pub fn is_dark(&self) -> bool {
+        matches!(self, Self::DarkFromCamera | Self::DarkFromPivot)
+    }
+
+    pub fn is_reversed(&self) -> bool {
+        matches!(self, Self::ReversedFromPivot)
+    }
+
+    pub fn fog_kind(&self) -> u32 {
+        match self {
+            Self::None => fog_kind::NO_FOG,
+            Self::FromCamera | Self::FromPivot => fog_kind::TRANSPARENT_FOG,
+            Self::DarkFromPivot | Self::DarkFromCamera => fog_kind::DARK_FOG,
+            Self::ReversedFromPivot => fog_kind::REVERSED_FOG,
+        }
+    }
+}
+
+/// Messages from ColorPicker
+#[derive(Debug, Clone, Copy)]
+pub enum ColorPickerMessage {
+    HueChanged(f64),
+    HsvSatValueChanged(f64, f64),
+    ColorPicked(Color),
+    FinishChangingColor,
 }
 
 /// Message sent to the gui component
@@ -325,59 +465,59 @@ pub enum OrganizerInternalMessage {
 
 /// Shorthands to send internal messages.
 impl OrganizerMessage {
-    pub(super) fn expand(id: OrganizerNodeId, expanded: bool) -> Self {
+    pub fn expand(id: OrganizerNodeId, expanded: bool) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::Expand { id, expanded })
     }
 
-    pub(super) fn node_selected(id: OrganizerNodeId) -> Self {
+    pub fn node_selected(id: OrganizerNodeId) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::NodeSelected { id })
     }
 
-    pub(super) fn node_hovered(id: OrganizerNodeId, hovered_in: bool) -> Self {
+    pub fn node_hovered(id: OrganizerNodeId, hovered_in: bool) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::NodeHovered { id, hovered_in })
     }
 
-    pub(super) fn key_hovered(key: DesignElementKey, hovered_in: bool) -> Self {
+    pub fn key_hovered(key: DesignElementKey, hovered_in: bool) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::KeyHovered { key, hovered_in })
     }
 
-    pub(super) fn edit(id: OrganizerNodeId) -> Self {
+    pub fn edit(id: OrganizerNodeId) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::Edit { id })
     }
 
-    pub(super) fn delete(id: OrganizerNodeId) -> Self {
+    pub fn delete(id: OrganizerNodeId) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::Delete { id })
     }
 
-    pub(super) fn name_input(name: String) -> Self {
+    pub fn name_input(name: String) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::NameInput { name })
     }
 
-    pub(super) fn stop_edit() -> Self {
+    pub fn stop_edit() -> Self {
         Self::InternalMessage(OrganizerInternalMessage::StopEdit)
     }
 
-    pub(super) fn element_selected(key: DesignElementKey) -> Self {
+    pub fn element_selected(key: DesignElementKey) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::ElementSelected { key })
     }
 
-    pub(super) fn add_selection_to_group(id: OrganizerNodeId) -> Self {
+    pub fn add_selection_to_group(id: OrganizerNodeId) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::AddSelectionToGroup { id })
     }
 
-    pub(super) fn new_group() -> Self {
+    pub fn new_group() -> Self {
         Self::InternalMessage(OrganizerInternalMessage::NewGroup)
     }
 
-    pub(super) fn dragging(key: DragIdentifier) -> Self {
+    pub fn dragging(key: DragIdentifier) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::Dragging(key))
     }
 
-    pub(super) fn drag_dropped(key: DragIdentifier) -> Self {
+    pub fn drag_dropped(key: DragIdentifier) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::DragDropped(key))
     }
 
-    pub(super) fn attribute_selected(attribute: DnaAttribute, id: OrganizerNodeId) -> Self {
+    pub fn attribute_selected(attribute: DnaAttribute, id: OrganizerNodeId) -> Self {
         Self::InternalMessage(OrganizerInternalMessage::AttributeSelected { attribute, id })
     }
 }

@@ -8,7 +8,7 @@ use iced::{
     widget::container::layout,
 };
 
-use crate::messages::OrganizerMessage;
+use crate::gui::messages::OrganizerMessage;
 
 /// Identifier for drag-drop widgets.
 #[derive(Debug, Clone, PartialOrd, PartialEq, Eq, Ord)]

@@ -8,8 +8,10 @@ use ensnano_design::{
     organizer_tree::OrganizerTree,
     strands::Strand,
 };
-use ensnano_gui::design_reader::GuiDesignReaderExt;
-use ensnano_state::design::{operation::InsertionPoint, selection::Selection};
+use ensnano_state::{
+    design::{operation::InsertionPoint, selection::Selection},
+    gui::design_reader::GuiDesignReaderExt,
+};
 use std::sync::Arc;
 use ultraviolet::{Rotor3, Vec2, Vec3};
 

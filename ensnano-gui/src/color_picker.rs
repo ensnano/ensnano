@@ -8,6 +8,7 @@ use crate::widgets::{
     color_square::ColorSquare, hue_row::HueRow, light_sat_square::LightSatSquare,
 };
 use color_space::{Hsv, Rgb};
+use ensnano_state::gui::messages::ColorPickerMessage;
 use iced::{
     Color, Length,
     widget::{Column, Row, column, row},
@@ -23,15 +24,6 @@ const DEFAULT_SIZE: f32 = 30.0;
 const FACTOR: usize = 6;
 // Gap between squares.
 const GAP: f32 = 3.0;
-
-/// Messages from ColorPicker
-#[derive(Debug, Clone, Copy)]
-pub enum ColorPickerMessage {
-    HueChanged(f64),
-    HsvSatValueChanged(f64, f64),
-    ColorPicked(Color),
-    FinishChangingColor,
-}
 
 fn hsv_to_color(hsv: Hsv) -> Color {
     let Rgb { r, g, b } = Rgb::from(hsv);

@@ -3,11 +3,11 @@ use hue_column::HueColumn;
 use iced::widget::row;
 use light_sat_square::LightSatSquare;
 
-pub(super) struct ColorPicker {
+pub(super) struct HueColorPicker {
     hue: f64,
 }
 
-impl ColorPicker {
+impl HueColorPicker {
     pub(super) fn new() -> Self {
         Self { hue: 0. }
     }

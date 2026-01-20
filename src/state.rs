@@ -15,11 +15,7 @@ use ensnano_design::{
     organizer_tree::GroupId,
 };
 use ensnano_exports::{ExportResult, ExportType};
-use ensnano_gui::{
-    GuiManager,
-    messages::{GuiMessages, TopBarStateFlags},
-    state::GuiAppState as _,
-};
+use ensnano_gui::GuiManager;
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_scene::{design_reader::SceneDesignReaderExt as _, state::SceneAppState as _};
 use ensnano_state::{
@@ -30,6 +26,10 @@ use ensnano_state::{
             extract_only_grids, extract_strands_from_selection, list_of_bezier_vertices,
             list_of_free_grids, list_of_helices, list_of_strands, list_of_xover_as_nucl_pairs,
         },
+    },
+    gui::{
+        messages::{GuiMessages, TopBarStateFlags},
+        state::GuiAppState as _,
     },
     utils::{
         application::{Application, Camera3D, Notification},

@@ -10,8 +10,11 @@ workspace = true
 
 [dependencies]
 ensnano_design.workspace = true
+ensnano_exports.workspace = true
+ensnano_physics.workspace = true
 ensnano_utils.workspace = true
 
+iced.workspace = true
 log.workspace = true
 ultraviolet.workspace = true
 winit.workspace = true

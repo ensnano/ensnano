@@ -1,6 +1,3 @@
-use crate::messages::{FactoryId, ValueId};
-use crate::requests::GuiRequests;
-use crate::state::GuiAppState;
 use crate::{
     helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
     left_panel::{
@@ -12,6 +9,11 @@ use crate::{
 };
 use ensnano_physics::parameters::{
     RAPIER_FLOAT_PARAMETERS_COUNT, RapierParameters, RapierSimulationType,
+};
+use ensnano_state::gui::{
+    messages::{FactoryId, ValueId},
+    requests::GuiRequests,
+    state::GuiAppState,
 };
 use ensnano_utils::{
     RollRequest, SimulationState, consts::ICON_PHYSICAL_ENGINE,

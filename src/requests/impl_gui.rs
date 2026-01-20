@@ -11,10 +11,10 @@ use ensnano_design::{
     parameters::HelixParameters,
 };
 use ensnano_exports::ExportType;
-use ensnano_gui::requests::{GuiRequests, RigidBodyParametersRequest};
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_state::{
     design::operation::{DesignOperation, HyperboloidRequest, InsertionPoint},
+    gui::requests::{GuiRequests, RigidBodyParametersRequest},
     utils::{application::Notification, operation::Operation},
 };
 use ensnano_utils::{

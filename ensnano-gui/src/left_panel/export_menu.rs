@@ -1,6 +1,5 @@
-use crate::messages::LeftPanelMessage;
-use crate::state::GuiAppState;
 use ensnano_exports::ExportType;
+use ensnano_state::gui::{messages::LeftPanelMessage, state::GuiAppState};
 use iced::widget::{button, column, scrollable};
 
 #[derive(Default)]

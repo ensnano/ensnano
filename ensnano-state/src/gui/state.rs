@@ -1,3 +1,11 @@
+use crate::{
+    design::selection::Selection,
+    gui::{
+        curve::{CurveDescriptorBuilder, RevolutionScaling},
+        design_reader::GuiDesignReaderExt,
+    },
+    utils::operation::CurrentOpState,
+};
 use ensnano_design::{
     bezier_plane::BezierPathId,
     design_element::DesignElementKey,
@@ -5,7 +13,6 @@ use ensnano_design::{
     organizer_tree::GroupId,
     parameters::HelixParameters,
 };
-use ensnano_state::{design::selection::Selection, utils::operation::CurrentOpState};
 use ensnano_utils::{
     PastingStatus, ScaffoldInfo, SimulationState, StrandBuildingStatus, WidgetBasis,
     app_state_parameters::{
@@ -13,11 +20,6 @@ use ensnano_utils::{
     },
     clipboard::ClipboardContent,
     graphics::HBondDisplay,
-};
-
-use crate::{
-    curve::{CurveDescriptorBuilder, RevolutionScaling},
-    design_reader::GuiDesignReaderExt,
 };
 
 pub trait GuiAppState:

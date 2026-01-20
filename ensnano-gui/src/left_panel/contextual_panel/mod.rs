@@ -1,15 +1,19 @@
 pub(super) mod value_constructor;
 
-use crate::design_reader::GuiDesignReaderExt;
-use crate::messages::{InstantiatedValue, LeftPanelMessage, ValueKind};
-use crate::requests::GuiRequests;
-use crate::state::GuiAppState;
 use crate::{
     helpers::{extra_jump, right_checkbox, section, subsection, text_button},
     theme,
 };
 use ensnano_design::{bezier_plane::BezierVertexId, grid::GridId, interaction_modes::ActionMode};
-use ensnano_state::design::selection::Selection;
+use ensnano_state::{
+    design::selection::Selection,
+    gui::{
+        design_reader::GuiDesignReaderExt,
+        messages::{InstantiatedValue, LeftPanelMessage, ValueKind},
+        requests::GuiRequests,
+        state::GuiAppState,
+    },
+};
 use ensnano_utils::{
     SimulationState,
     consts::{

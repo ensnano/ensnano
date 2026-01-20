@@ -1,5 +1,9 @@
 use std::{collections::BTreeSet, sync::Arc};
 
+use crate::{
+    design::operation::{HyperboloidRequest, InsertionPoint},
+    utils::operation::Operation,
+};
 use ensnano_design::{
     CameraId,
     bezier_plane::{BezierPathId, BezierVertexId},
@@ -11,10 +15,6 @@ use ensnano_design::{
 };
 use ensnano_exports::ExportType;
 use ensnano_physics::parameters::RapierParameters;
-use ensnano_state::{
-    design::operation::{HyperboloidRequest, InsertionPoint},
-    utils::operation::Operation,
-};
 use ensnano_utils::{
     RollRequest,
     app_state_parameters::{

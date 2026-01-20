@@ -1,5 +1,8 @@
-use crate::{GuiAppState, GuiRequests, messages::StatusBarMessage, theme::GuiBackground};
-use ensnano_state::utils::operation::{CurrentOpState, Operation};
+use crate::{GuiAppState, GuiRequests, theme::GuiBackground};
+use ensnano_state::{
+    gui::messages::StatusBarMessage,
+    utils::operation::{CurrentOpState, Operation},
+};
 use ensnano_utils::{PastingStatus, keyboard_priority::keyboard_priority, ui_size::UiSize};
 use iced::{
     Alignment, Color, Element, Length,

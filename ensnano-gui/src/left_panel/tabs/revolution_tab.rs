@@ -1,12 +1,14 @@
 use crate::{
-    curve::{CurveDescriptorBuilder, Frame, InstantiatedParameter, RevolutionScaling},
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, jump_by, section, subsection, text_button},
     left_panel::{LeftPanelMessage, tabs::GuiTab},
-    state::{GuiAppState, RevolutionParameterId},
     theme,
 };
 use ensnano_design::curves::torus::CurveDescriptor2D;
+use ensnano_state::gui::{
+    curve::{CurveDescriptorBuilder, Frame, InstantiatedParameter, RevolutionScaling},
+    state::{GuiAppState, RevolutionParameterId},
+};
 use ensnano_utils::{
     SimulationState,
     keyboard_priority::keyboard_priority,

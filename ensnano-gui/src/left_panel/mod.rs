@@ -5,25 +5,21 @@ mod export_menu;
 mod organizer;
 pub mod tabs;
 
-use self::{
-    color_picker::ColorPicker,
-    contextual_panel::ContextualPanel,
-    discrete_value::Requestable,
-    export_menu::ExportMenu,
-    organizer::Organizer,
-    tabs::{
-        GuiTab as _, camera_shortcut::CameraShortcutPanel, camera_tab::CameraTab,
-        edition_tab::EditionTab, grids_tab::GridTab, parameters_tab::ParametersTab,
-        pen_tab::PenTab, revolution_tab::RevolutionTab, sequence_tab::SequenceTab,
-        simulation_tab::SimulationTab,
-    },
-};
 use crate::{
-    color_picker::ColorPickerMessage,
     fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
-    messages::{FactoryId, LeftPanelMessage, OrganizerMessage, TabId},
-    requests::{GuiRequests, RigidBodyParametersRequest},
-    state::{GuiAppState, RevolutionParameterId},
+    left_panel::{
+        color_picker::HueColorPicker,
+        contextual_panel::ContextualPanel,
+        discrete_value::Requestable,
+        export_menu::ExportMenu,
+        organizer::Organizer,
+        tabs::{
+            GuiTab as _, camera_shortcut::CameraShortcutPanel, camera_tab::CameraTab,
+            edition_tab::EditionTab, grids_tab::GridTab, parameters_tab::ParametersTab,
+            pen_tab::PenTab, revolution_tab::RevolutionTab, sequence_tab::SequenceTab,
+            simulation_tab::SimulationTab,
+        },
+    },
     theme::GuiBackground,
 };
 use ensnano_design::{
@@ -33,6 +29,12 @@ use ensnano_state::design::{
     operation::HyperboloidRequest,
     selection::{DesignElementKeySelection as _, Selection},
 };
+use ensnano_state::gui::messages::{
+    ColorPickerMessage, FactoryId, LeftPanelMessage, OrganizerMessage, TabId,
+};
+use ensnano_state::gui::requests::{GuiRequests, RigidBodyParametersRequest};
+use ensnano_state::gui::state::GuiAppState;
+use ensnano_state::gui::state::RevolutionParameterId;
 use ensnano_utils::{
     app_state_parameters::AppStateParameters, overlay::OverlayType, ui_size::UiSize,
 };
@@ -1043,7 +1045,7 @@ where
 
 pub struct ColorOverlay<R: GuiRequests> {
     logical_size: LogicalSize<f64>,
-    color_picker: ColorPicker,
+    color_picker: HueColorPicker,
     requests: Arc<Mutex<R>>,
 }
 
@@ -1051,7 +1053,7 @@ impl<R: GuiRequests> ColorOverlay<R> {
     pub fn new(requests: Arc<Mutex<R>>, logical_size: LogicalSize<f64>) -> Self {
         Self {
             logical_size,
-            color_picker: ColorPicker::new(),
+            color_picker: HueColorPicker::new(),
             requests,
         }
     }

@@ -2,13 +2,9 @@ mod hoverable_container;
 mod icon;
 mod theme;
 
-use crate::{
-    drag_drop_target::{DragDropTarget, DragIdentifier},
-    left_panel::organizer::{
-        hoverable_container::HoverableContainer,
-        theme::{OrganizerTheme, SelectionType},
-    },
-    messages::{OrganizerInternalMessage, OrganizerMessage},
+use crate::left_panel::organizer::{
+    hoverable_container::HoverableContainer,
+    theme::{OrganizerTheme, SelectionType},
 };
 use ensnano_design::{
     design_element::{
@@ -16,6 +12,10 @@ use ensnano_design::{
         DnaAttribute, DnaAutoGroup,
     },
     organizer_tree::{GroupId, OrganizerNodeId, OrganizerTree},
+};
+use ensnano_state::gui::{
+    drag_drop_target::{DragDropTarget, DragIdentifier},
+    messages::{OrganizerInternalMessage, OrganizerMessage},
 };
 use ensnano_utils::keyboard_priority::keyboard_priority;
 use iced::{

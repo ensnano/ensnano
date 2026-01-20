@@ -1,7 +1,11 @@
 use crate::consts::{MAX_NB_TURN, MIN_NB_TURN, NB_TURN_SLIDER_SPACING, NB_TURN_STEP};
-use crate::messages::{InstantiatedValue, LeftPanelMessage, ValueKind};
-use crate::state::GuiAppState;
-use ensnano_state::design::selection::Selection;
+use ensnano_state::{
+    design::selection::Selection,
+    gui::{
+        messages::{InstantiatedValue, LeftPanelMessage, ValueKind},
+        state::GuiAppState,
+    },
+};
 use ensnano_utils::{keyboard_priority::keyboard_priority, ui_size::UiSize};
 use iced::{
     Alignment, Length,

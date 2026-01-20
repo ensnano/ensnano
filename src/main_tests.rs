@@ -15,10 +15,10 @@ use crate::{
 };
 
 use ensnano_design::nucl::Nucl;
-use ensnano_gui::messages::GuiMessages;
 use ensnano_scene::design_reader::SceneDesignReaderExt as _;
 use ensnano_state::{
     design::{operation::DesignOperation, selection::Selection},
+    gui::messages::GuiMessages,
     utils::application::{Application, Camera3D, Notification},
 };
 use ensnano_utils::{

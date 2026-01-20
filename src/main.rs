@@ -94,11 +94,13 @@ use ensnano_gui::{
     GuiManager,
     fonts::{INTER_REGULAR_FONT, load_fonts},
     left_panel::ColorOverlay,
-    messages::GuiMessages,
     theme,
 };
 use ensnano_scene::{Scene, SceneKind};
-use ensnano_state::{design::operation::DesignOperation, utils::application::Notification};
+use ensnano_state::{
+    design::operation::DesignOperation, gui::messages::GuiMessages,
+    utils::application::Notification,
+};
 use ensnano_utils::{
     TEXTURE_FORMAT,
     app_state_parameters::AppStateParameters,
