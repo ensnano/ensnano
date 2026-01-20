@@ -21,7 +21,7 @@ use ensnano_design::{
     grid::{GridId, GridObject, HelixGridPosition},
     nucl::Nucl,
 };
-use ensnano_state::scene::state::SceneAppState;
+use ensnano_state::app_state::AppState;
 use ensnano_utils::graphics::PhySize;
 use std::{cell::RefCell, ops::Deref as _, rc::Rc, time::Duration};
 use ultraviolet::{Rotor3, Vec2, Vec3};
@@ -32,7 +32,7 @@ use winit::{
 };
 
 /// An object handling input and notification for the scene.
-pub(crate) struct Controller<S: SceneAppState> {
+pub(crate) struct Controller {
     /// A pointer to the View
     view: ViewPtr,
     /// A pointer to the data
@@ -45,7 +45,7 @@ pub(crate) struct Controller<S: SceneAppState> {
     area_size: PhySize,
     /// The current modifiers
     current_modifiers_state: ModifiersState,
-    state: State<S>,
+    state: State,
     stereography: Option<Stereography>,
     /// The origin of the two points bezier curve being created.
     bezier_curve_origin: Option<HelixGridPosition>,
@@ -145,7 +145,7 @@ enum TransitionConsequence {
     StartRotatingPivot,
 }
 
-impl<S: SceneAppState> Controller<S> {
+impl Controller {
     pub(super) fn new(
         view: ViewPtr,
         data: Rc<RefCell<Data>>,
@@ -245,7 +245,7 @@ impl<S: SceneAppState> Controller<S> {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         pixel_reader: &mut ElementSelector,
-        app_state: &S,
+        app_state: &AppState,
     ) -> Consequence {
         let transition = match event {
             WindowEvent::Focused(false) => {

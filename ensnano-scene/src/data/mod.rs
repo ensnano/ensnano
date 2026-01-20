@@ -32,9 +32,9 @@ use ensnano_design::{
     phantom_element::PhantomElement,
 };
 use ensnano_state::{
-    app_state::design_interactor::DesignInteractor,
+    app_state::{AppState, design_interactor::DesignInteractor},
     design::selection::{CenterOfSelection, Selection, extract_helices_with_controls},
-    scene::{design_reader::StrandNucleotidesPositions, state::SceneAppState},
+    scene::design_reader::StrandNucleotidesPositions,
     utils::application::Camera3D,
 };
 use ensnano_utils::{
@@ -126,7 +126,7 @@ impl Data {
     }
 
     /// Forwards all needed update to the view
-    pub fn update_view<S: SceneAppState>(&mut self, app_state: &S, older_app_state: &S) {
+    pub fn update_view(&mut self, app_state: &AppState, older_app_state: &AppState) {
         if self.discs_need_update(app_state, older_app_state) {
             self.update_discs(app_state);
         }
@@ -200,7 +200,7 @@ impl Data {
             .update(ViewUpdate::RawDna(Mesh::StereographicSphere, instances));
     }
 
-    fn update_external_3d_objects<S: SceneAppState>(&mut self, app_state: &S) {
+    fn update_external_3d_objects(&mut self, app_state: &AppState) {
         let reader = app_state.get_design_reader();
         let external_objects = reader.get_external_objects();
         if let Some(new_stamp) = external_objects.was_updated(self.external_3d_objects_stamps) {
@@ -231,7 +231,7 @@ impl Data {
         ret
     }
 
-    fn discs_need_update<S: SceneAppState>(&mut self, app_state: &S, older_app_state: &S) -> bool {
+    fn discs_need_update(&mut self, app_state: &AppState, older_app_state: &AppState) -> bool {
         let ret = app_state.design_was_modified(older_app_state)
             || app_state.selection_was_updated(older_app_state)
             || app_state.candidates_set_was_updated(older_app_state)
@@ -240,7 +240,7 @@ impl Data {
         ret
     }
 
-    fn update_bezier<S: SceneAppState>(&self, app_state: &S) {
+    fn update_bezier(&self, app_state: &AppState) {
         let selected_helices = extract_helices_with_controls(app_state.get_selection());
         log::debug!("selected helices {selected_helices:?}");
         let mut spheres = Vec::new();
@@ -259,7 +259,7 @@ impl Data {
             .update(ViewUpdate::RawDna(Mesh::BezierSkeleton, Rc::new(tubes)));
     }
 
-    fn update_handle<S: SceneAppState>(&self, app_state: &S) {
+    fn update_handle(&self, app_state: &AppState) {
         log::debug!("updating handle {:?} ", self.selected_element(app_state));
         let pivot = app_state.get_current_group_pivot();
         let origin = pivot
@@ -318,11 +318,7 @@ impl Data {
             .update(ViewUpdate::RotationWidget(rotation_widget_descr));
     }
 
-    pub fn set_pivot_element<S: SceneAppState>(
-        &mut self,
-        element: Option<SceneElement>,
-        app_state: &S,
-    ) {
+    pub fn set_pivot_element(&mut self, element: Option<SceneElement>, app_state: &AppState) {
         self.pivot_update |= self.pivot_element != element;
         self.pivot_element = element;
         self.update_pivot_position(app_state);
@@ -395,10 +391,10 @@ impl Data {
     }
 
     /// Return the instances of selected spheres
-    pub fn get_selected_spheres<S: SceneAppState>(
+    pub fn get_selected_spheres(
         &self,
         selection: &[Selection],
-        app_state: &S,
+        app_state: &AppState,
     ) -> Vec<RawDnaInstance> {
         let mut ret = Vec::new();
         for selection in selection {
@@ -441,10 +437,10 @@ impl Data {
     }
 
     /// Return the instances of selected tubes
-    pub fn get_selected_tubes<S: SceneAppState>(
+    pub fn get_selected_tubes(
         &self,
         selection: &[Selection],
-        app_state: &S,
+        app_state: &AppState,
     ) -> Rc<Vec<RawDnaInstance>> {
         let mut ret = Vec::new();
         for selection in selection {
@@ -487,10 +483,10 @@ impl Data {
     }
 
     /// Return the instances of candidate spheres
-    pub fn get_candidate_spheres<S: SceneAppState>(
+    pub fn get_candidate_spheres(
         &self,
         candidates: &[Selection],
-        app_state: &S,
+        app_state: &AppState,
     ) -> Rc<Vec<RawDnaInstance>> {
         let mut ret = Vec::new();
         for candidate in candidates {
@@ -533,10 +529,10 @@ impl Data {
     }
 
     /// Return the instances of candidate tubes
-    pub fn get_candidate_tubes<S: SceneAppState>(
+    pub fn get_candidate_tubes(
         &self,
         candidates: &[Selection],
-        app_state: &S,
+        app_state: &AppState,
     ) -> Rc<Vec<RawDnaInstance>> {
         let mut ret = Vec::new();
         for candidate in candidates {
@@ -579,7 +575,7 @@ impl Data {
     }
 
     /// Return the identifier of the group of the selected element
-    pub fn get_selected_group<S: SceneAppState>(&self, app_state: &S) -> Option<u32> {
+    pub fn get_selected_group(&self, app_state: &AppState) -> Option<u32> {
         match self.selected_element(app_state) {
             Some(SceneElement::DesignElement(design_id, element_id)) => {
                 let selection_mode = self.get_sub_selection_mode(app_state);
@@ -688,7 +684,7 @@ impl Data {
         self.selected_position
     }
 
-    pub fn try_update_pivot_position<S: SceneAppState>(&mut self, app_state: &S) {
+    pub fn try_update_pivot_position(&mut self, app_state: &AppState) {
         if self.pivot_element.is_none() {
             self.pivot_element = self.selected_element(app_state);
             self.pivot_update = true;
@@ -702,10 +698,10 @@ impl Data {
 
     /// Update the selection by selecting the group to which a given nucleotide belongs. Return the
     /// selected group
-    pub fn set_selection<S: SceneAppState>(
+    pub fn set_selection(
         &mut self,
         element: Option<SceneElement>,
-        app_state: &S,
+        app_state: &AppState,
     ) -> (Option<Selection>, Option<CenterOfSelection>) {
         self.handle_needs_update = true;
         if let Some(SceneElement::WidgetElement(_)) = element {
@@ -735,10 +731,10 @@ impl Data {
         (Some(selection), new_center_of_selection)
     }
 
-    pub fn to_selection<S: SceneAppState>(
+    pub fn to_selection(
         &self,
         element: Option<SceneElement>,
-        app_state: &S,
+        app_state: &AppState,
     ) -> Option<Selection> {
         if let Some(SceneElement::WidgetElement(_)) = element {
             return None;
@@ -751,11 +747,11 @@ impl Data {
         Some(selection).filter(|s| *s != Selection::Nothing)
     }
 
-    pub fn add_to_selection<S: SceneAppState>(
+    pub fn add_to_selection(
         &mut self,
         element: Option<SceneElement>,
         selection: &[Selection],
-        app_state: &S,
+        app_state: &AppState,
     ) -> Option<(Vec<Selection>, Option<CenterOfSelection>)> {
         if let Some(SceneElement::WidgetElement(_)) = element {
             return None;
@@ -809,7 +805,7 @@ impl Data {
         Some((source_nucl, target_nucl, design_id as usize))
     }
 
-    fn update_selected_position<S: SceneAppState>(&mut self, app_state: &S) {
+    fn update_selected_position(&mut self, app_state: &AppState) {
         log::trace!("updating selected position");
         let selection_mode = self.get_sub_selection_mode(app_state);
         self.selected_position = {
@@ -821,7 +817,7 @@ impl Data {
         };
     }
 
-    fn update_pivot_position<S: SceneAppState>(&mut self, app_state: &S) {
+    fn update_pivot_position(&mut self, app_state: &AppState) {
         self.pivot_position = {
             if let Some(element) = self.pivot_element.as_ref() {
                 self.get_element_position(
@@ -841,7 +837,7 @@ impl Data {
     }
 
     /// Notify the view that the selected elements have been modified
-    fn update_selection<S: SceneAppState>(&mut self, selection: &[Selection], app_state: &S) {
+    fn update_selection(&mut self, selection: &[Selection], app_state: &AppState) {
         // little hack to avoid going several time through the same helix if several segments are
         // selected
         let mut selection_: Vec<_> = selection
@@ -931,9 +927,9 @@ impl Data {
     }
 
     /// Return the sets of elements of the phantom helix
-    pub fn get_phantom_instances<S: SceneAppState>(
+    pub fn get_phantom_instances(
         &self,
-        app_state: &S,
+        app_state: &AppState,
     ) -> (Rc<Vec<RawDnaInstance>>, Rc<Vec<RawDnaInstance>>) {
         let phantom_map = self.get_phantom_helices_set(app_state);
         let mut ret_sphere = Vec::new();
@@ -953,10 +949,7 @@ impl Data {
 
     /// Return a hashmap, mapping designs identifier to the set of helices whose phantom must be
     /// drawn.
-    fn get_phantom_helices_set<S: SceneAppState>(
-        &self,
-        app_state: &S,
-    ) -> HashMap<u32, HashMap<u32, bool>> {
+    fn get_phantom_helices_set(&self, app_state: &AppState) -> HashMap<u32, HashMap<u32, bool>> {
         let mut ret = HashMap::default();
 
         for (d_id, design) in self.designs.iter().enumerate() {
@@ -1011,7 +1004,7 @@ impl Data {
         ret
     }
 
-    fn must_draw_phantom<S: SceneAppState>(&self, app_state: &S) -> bool {
+    fn must_draw_phantom(&self, app_state: &AppState) -> bool {
         app_state.get_selection_mode() == SelectionMode::Helix
             || self
                 .selected_element(app_state)
@@ -1130,10 +1123,10 @@ impl Data {
     }
 
     /// Set the set of candidates to a given nucleotide
-    pub fn set_candidate<S: SceneAppState>(
+    pub fn set_candidate(
         &mut self,
         element: Option<SceneElement>,
-        app_state: &S,
+        app_state: &AppState,
     ) -> Option<Selection> {
         if log::log_enabled!(log::Level::Info) && element.is_some() {
             log::debug!("candidate {element:?}");
@@ -1186,7 +1179,7 @@ impl Data {
         self.candidate_element = None;
     }
 
-    pub fn get_all_raw_instances<S: SceneAppState>(&self, app_state: &S) -> Vec<RawDnaInstance> {
+    pub fn get_all_raw_instances(&self, app_state: &AppState) -> Vec<RawDnaInstance> {
         let mut instances = vec![];
         let show_insertion_discriminants = app_state.show_insertion_discriminants();
         for design in &self.designs {
@@ -1228,7 +1221,7 @@ impl Data {
     }
 
     /// Notify the view that the instances of candidates have changed
-    fn update_candidate<S: SceneAppState>(&self, candidates: &[Selection], app_state: &S) {
+    fn update_candidate(&self, candidates: &[Selection], app_state: &AppState) {
         self.view.borrow_mut().update(ViewUpdate::RawDna(
             Mesh::CandidateTube,
             self.get_candidate_tubes(candidates, app_state),
@@ -1330,7 +1323,7 @@ impl Data {
     }
 
     /// Notify the view that the set of instances have been modified.
-    fn update_instances<S: SceneAppState>(&self, app_state: &S) {
+    fn update_instances(&self, app_state: &AppState) {
         let mut spheres = Vec::with_capacity(10_000);
         let mut tubes = Vec::with_capacity(10_000);
         let mut tube_lids = Vec::with_capacity(10_000);
@@ -1456,7 +1449,7 @@ impl Data {
         ));
     }
 
-    fn update_discs<S: SceneAppState>(&self, app_state: &S) {
+    fn update_discs(&self, app_state: &AppState) {
         let mut discs = Vec::new();
         let mut letters: Vec<Vec<LetterInstance>> = vec![vec![]; 10];
         let right = self.view.borrow().get_camera().borrow().right_vec();
@@ -1558,7 +1551,7 @@ impl Data {
         self.designs[design_id as usize].middle_point()
     }
 
-    pub fn get_widget_basis<S: SceneAppState>(&self, app_state: &S) -> Option<Rotor3> {
+    pub fn get_widget_basis(&self, app_state: &AppState) -> Option<Rotor3> {
         self.get_selected_basis(app_state).map(|b| {
             if app_state.get_widget_basis().is_axis_aligned() {
                 Rotor3::identity()
@@ -1568,14 +1561,14 @@ impl Data {
         })
     }
 
-    fn get_forced_widget_basis<S: SceneAppState>(&self, app_state: &S) -> Option<Rotor3> {
+    fn get_forced_widget_basis(&self, app_state: &AppState) -> Option<Rotor3> {
         (app_state.get_widget_basis().is_axis_aligned()
             && !(self.handle_colors == HandleColors::Cym
                 && app_state.get_action_mode().0 == ActionMode::Rotate))
             .then(Rotor3::identity)
     }
 
-    fn get_selected_basis<S: SceneAppState>(&self, app_state: &S) -> Option<Rotor3> {
+    fn get_selected_basis(&self, app_state: &AppState) -> Option<Rotor3> {
         let from_selected_element = match self.selected_element(app_state) {
             Some(SceneElement::DesignElement(d_id, _)) => match self
                 .get_sub_selection_mode(app_state)
@@ -1703,7 +1696,7 @@ impl Data {
         self.free_xover = None;
     }
 
-    fn get_sub_selection_mode<S: SceneAppState>(&self, app_state: &S) -> SelectionMode {
+    fn get_sub_selection_mode(&self, app_state: &AppState) -> SelectionMode {
         if app_state.get_selection_mode() == SelectionMode::Nucleotide {
             self.sub_selection_mode
         } else {
@@ -1711,7 +1704,7 @@ impl Data {
         }
     }
 
-    pub fn get_selected_element<S: SceneAppState>(&self, app_state: &S) -> Selection {
+    pub fn get_selected_element(&self, app_state: &AppState) -> Selection {
         if let Some(selection) = self.selected_element(app_state).as_ref() {
             self.element_to_selection(selection, self.get_sub_selection_mode(app_state))
         } else {
@@ -1719,7 +1712,7 @@ impl Data {
         }
     }
 
-    fn selected_element<S: SceneAppState>(&self, app_state: &S) -> Option<SceneElement> {
+    fn selected_element(&self, app_state: &AppState) -> Option<SceneElement> {
         let center_of_selection = app_state.get_selected_element();
         let provided_center =
             center_of_selection.and_then(|s| self.center_of_selection_to_element(s));
@@ -1771,7 +1764,7 @@ impl Data {
     }
 
     /// Return a default selected element when no center of selection was provided
-    fn default_element<S: SceneAppState>(&self, app_state: &S) -> Option<SceneElement> {
+    fn default_element(&self, app_state: &AppState) -> Option<SceneElement> {
         log::trace!("Using default element");
         let selected_object = app_state.get_selection().first()?;
         let design = selected_object

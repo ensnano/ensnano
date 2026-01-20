@@ -17,7 +17,6 @@ use ensnano_state::{
         },
     },
     gui::messages::{GuiMessages, TopBarStateFlags},
-    scene::state::SceneAppState as _,
     utils::{
         application::{Application, Camera3D, Notification},
         operation::Operation,

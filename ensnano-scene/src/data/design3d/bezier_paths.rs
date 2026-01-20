@@ -15,7 +15,7 @@ use ensnano_design::{
     },
     parameters::HelixParameters,
 };
-use ensnano_state::{design::selection::Selection, scene::state::SceneAppState};
+use ensnano_state::{app_state::AppState, design::selection::Selection};
 use ensnano_utils::{
     consts::{
         BEZIER_CONTROL_RADIUS, BEZIER_CONTROL1_COLOR, BEZIER_CONTROL2_COLOR, BEZIER_END_COLOR,
@@ -97,10 +97,7 @@ impl Design3D {
         }
     }
 
-    pub fn get_bezier_sheets<S: SceneAppState>(
-        &self,
-        app_state: &S,
-    ) -> (Vec<Sheet2D>, Vec<RawDnaInstance>) {
+    pub fn get_bezier_sheets(&self, app_state: &AppState) -> (Vec<Sheet2D>, Vec<RawDnaInstance>) {
         let mut sheets = Vec::new();
         let mut spheres = Vec::new();
         let axis_position = app_state.get_revolution_axis_position();
@@ -134,9 +131,9 @@ impl Design3D {
             .map(|v| v.position)
     }
 
-    pub fn get_bezier_paths_elements<S: SceneAppState>(
+    pub fn get_bezier_paths_elements(
         &self,
-        app_state: &S,
+        app_state: &AppState,
     ) -> (Vec<RawDnaInstance>, Vec<RawDnaInstance>) {
         let mut spheres = Vec::new();
         let mut tubes = Vec::new();

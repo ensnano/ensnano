@@ -1,15 +1,7 @@
 use crate::app_state::{AppState, design_interactor::DesignInteractor};
-use crate::{
-    design::selection::{CenterOfSelection, Selection},
-    scene::state::SceneAppState,
-};
-use ensnano_design::{
-    bezier_plane::BezierVertexId,
-    grid::GridId,
-    group_attributes::GroupPivot,
-    interaction_modes::{ActionMode, SelectionMode},
-    organizer_tree::GroupId,
-};
+use crate::design::selection::{CenterOfSelection, Selection};
+use ensnano_design::interaction_modes::ActionMode;
+use ensnano_design::{bezier_plane::BezierVertexId, grid::GridId, group_attributes::GroupPivot};
 use ensnano_utils::{
     WidgetBasis, app_state_parameters::check_xovers_parameter::CheckXoversParameter,
     graphics::DrawOptions, strand_builder::StrandBuilder,
@@ -17,52 +9,40 @@ use ensnano_utils::{
 };
 use std::path::PathBuf;
 
-impl SceneAppState for AppState {
-    fn get_selection(&self) -> &[Selection] {
-        self.selection_content().as_slice()
+impl AppState {
+    pub fn insertion_bond_display_was_modified(&self, other: &Self) -> bool {
+        self.show_insertion_discriminants() != other.show_insertion_discriminants()
     }
 
-    fn get_candidates(&self) -> &[Selection] {
-        self.0.candidates.as_slice()
-    }
-
-    fn selection_was_updated(&self, other: &Self) -> bool {
+    pub fn selection_was_updated(&self, other: &Self) -> bool {
         self.selection_content() != other.selection_content()
             || self.0.center_of_selection != other.0.center_of_selection
             || self.is_changing_color() != other.is_changing_color()
     }
 
-    fn candidates_set_was_updated(&self, other: &Self) -> bool {
+    pub fn candidates_set_was_updated(&self, other: &Self) -> bool {
         self.0.candidates != other.0.candidates
     }
 
-    fn design_was_modified(&self, other: &Self) -> bool {
-        self.0.design.has_different_design_than(&other.0.design)
-    }
-
-    fn design_model_matrix_was_updated(&self, other: &Self) -> bool {
+    pub fn design_model_matrix_was_updated(&self, other: &Self) -> bool {
         self.0
             .design
             .has_different_model_matrix_than(&other.0.design)
     }
 
-    fn get_selection_mode(&self) -> SelectionMode {
-        self.0.selection_mode
-    }
-
-    fn get_action_mode(&self) -> (ActionMode, WidgetBasis) {
+    pub fn get_action_mode(&self) -> (ActionMode, WidgetBasis) {
         (self.0.action_mode, self.0.widget_basis)
     }
 
-    fn get_design_reader(&self) -> DesignInteractor {
+    pub fn get_design_reader(&self) -> DesignInteractor {
         self.0.design.clone_inner()
     }
 
-    fn get_strand_builders(&self) -> &[StrandBuilder] {
+    pub fn get_strand_builders(&self) -> &[StrandBuilder] {
         self.0.design.get_strand_builders()
     }
 
-    fn get_widget_basis(&self) -> WidgetBasis {
+    pub fn get_widget_basis(&self) -> WidgetBasis {
         // When the selected object is a grid associated to a bezier vertex, we always want to
         // return WidgetBasis::Object. We do so to enforce that all rotation applied to that grid
         // happen in a canonical plane
@@ -73,19 +53,15 @@ impl SceneAppState for AppState {
         }
     }
 
-    fn is_changing_color(&self) -> bool {
-        self.is_changing_color()
-    }
-
-    fn is_pasting(&self) -> bool {
+    pub fn is_pasting(&self) -> bool {
         self.get_pasting_status().is_pasting()
     }
 
-    fn get_selected_element(&self) -> Option<CenterOfSelection> {
+    pub fn get_selected_element(&self) -> Option<CenterOfSelection> {
         self.0.center_of_selection
     }
 
-    fn get_current_group_pivot(&self) -> Option<GroupPivot> {
+    pub fn get_current_group_pivot(&self) -> Option<GroupPivot> {
         let reader = self.get_design_interactor();
         self.0
             .selection
@@ -95,23 +71,19 @@ impl SceneAppState for AppState {
             .or_else(|| *self.0.selection.pivot.read().as_deref().unwrap())
     }
 
-    fn get_current_group_id(&self) -> Option<GroupId> {
-        self.0.selection.selected_group
-    }
-
-    fn suggestion_parameters_were_updated(&self, other: &Self) -> bool {
+    pub fn suggestion_parameters_were_updated(&self, other: &Self) -> bool {
         self.0.parameters.suggestion_parameters != other.0.parameters.suggestion_parameters
     }
 
-    fn get_check_xover_parameters(&self) -> CheckXoversParameter {
+    pub fn get_check_xover_parameters(&self) -> CheckXoversParameter {
         self.0.parameters.check_xover_parameters
     }
 
-    fn follow_stereographic_camera(&self) -> bool {
+    pub fn follow_stereographic_camera(&self) -> bool {
         self.0.parameters.follow_stereography
     }
 
-    fn get_draw_options(&self) -> DrawOptions {
+    pub fn get_draw_options(&self) -> DrawOptions {
         DrawOptions {
             background3d: self.0.parameters.background3d,
             rendering_mode: self.0.parameters.rendering_mode,
@@ -122,11 +94,11 @@ impl SceneAppState for AppState {
         }
     }
 
-    fn draw_options_were_updated(&self, other: &Self) -> bool {
+    pub fn draw_options_were_updated(&self, other: &Self) -> bool {
         self.get_draw_options() != other.get_draw_options()
     }
 
-    fn get_scroll_sensitivity(&self) -> f32 {
+    pub fn get_scroll_sensitivity(&self) -> f32 {
         const BASE_SCROLL_SENSITIVITY: f32 = 0.12;
         let sign = if self.0.parameters.inverted_y_scroll {
             -1.0
@@ -136,19 +108,19 @@ impl SceneAppState for AppState {
         sign * 10f32.powf(self.0.parameters.scroll_sensitivity / 10.) * BASE_SCROLL_SENSITIVITY
     }
 
-    fn show_insertion_discriminants(&self) -> bool {
+    pub fn show_insertion_discriminants(&self) -> bool {
         self.0.show_insertion_discriminants
     }
 
-    fn show_bezier_paths(&self) -> bool {
+    pub fn show_bezier_paths(&self) -> bool {
         self.0.parameters.show_bezier_paths
     }
 
-    fn get_design_path(&self) -> Option<PathBuf> {
+    pub fn get_design_path(&self) -> Option<PathBuf> {
         self.0.path_to_current_design.clone()
     }
 
-    fn get_selected_bezier_vertex(&self) -> Option<BezierVertexId> {
+    pub fn get_selected_bezier_vertex(&self) -> Option<BezierVertexId> {
         if let Some(Selection::BezierVertex(vertex)) = self.0.selection.selection.first() {
             Some(*vertex)
         } else {
@@ -156,22 +128,22 @@ impl SceneAppState for AppState {
         }
     }
 
-    fn has_selected_a_bezier_grid(&self) -> bool {
+    pub fn has_selected_a_bezier_grid(&self) -> bool {
         matches!(
             self.get_selection().as_ref().first(),
             Some(Selection::Grid(_, GridId::BezierPathGrid(_)))
         )
     }
 
-    fn revolution_bezier_updated(&self, other: &Self) -> bool {
+    pub fn revolution_bezier_updated(&self, other: &Self) -> bool {
         self.0.unrooted_surface.descriptor != other.0.unrooted_surface.descriptor
     }
 
-    fn get_current_unrooted_surface(&self) -> Option<UnrootedRevolutionSurfaceDescriptor> {
+    pub fn get_current_unrooted_surface(&self) -> Option<UnrootedRevolutionSurfaceDescriptor> {
         self.0.unrooted_surface.descriptor.clone()
     }
 
-    fn get_revolution_axis_position(&self) -> Option<f64> {
+    pub fn get_revolution_axis_position(&self) -> Option<f64> {
         Some(
             self.0
                 .unrooted_surface

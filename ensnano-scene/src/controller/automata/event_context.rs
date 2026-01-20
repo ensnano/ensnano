@@ -13,24 +13,24 @@ use ensnano_design::{
     interaction_modes::ActionMode,
     nucl::Nucl,
 };
-use ensnano_state::scene::state::SceneAppState;
+use ensnano_state::app_state::AppState;
 use ultraviolet::{Vec2, Vec3};
 use winit::{dpi::PhysicalPosition, keyboard::ModifiersState};
 
 const REVOLUTION_AXIS_WIDTH: f32 = 1.;
 
 /// The context in which an event took place.
-pub(crate) struct EventContext<'a, S: SceneAppState> {
-    controller: &'a Controller<S>,
-    app_state: &'a S,
+pub(crate) struct EventContext<'a> {
+    controller: &'a Controller,
+    app_state: &'a AppState,
     pixel_reader: &'a mut ElementSelector,
     pub cursor_position: PhysicalPosition<f64>,
 }
 
-impl<'a, S: SceneAppState> EventContext<'a, S> {
+impl<'a> EventContext<'a> {
     pub(crate) fn new(
-        controller: &'a Controller<S>,
-        app_state: &'a S,
+        controller: &'a Controller,
+        app_state: &'a AppState,
         pixel_reader: &'a mut ElementSelector,
         cursor_position: PhysicalPosition<f64>,
     ) -> Self {

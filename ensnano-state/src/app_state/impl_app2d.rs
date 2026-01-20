@@ -1,15 +1,11 @@
-use crate::app_state::{AppState, design_interactor::DesignInteractor};
+use crate::app_state::AppState;
 use crate::design::selection::Selection;
 use ensnano_design::interaction_modes::SelectionMode;
-use ensnano_utils::{StrandBuildingStatus, strand_builder::StrandBuilder};
+use ensnano_utils::StrandBuildingStatus;
 
 impl AppState {
     pub fn get_candidates(&self) -> &[Selection] {
         self.0.candidates.as_slice()
-    }
-
-    pub fn selection_was_updated(&self, other: &Self) -> bool {
-        self.selection_content() != other.selection_content()
     }
 
     pub fn candidate_was_updated(&self, other: &Self) -> bool {
@@ -20,20 +16,8 @@ impl AppState {
         self.0.selection_mode
     }
 
-    pub fn get_design_reader(&self) -> DesignInteractor {
-        self.0.design.clone_inner()
-    }
-
-    pub fn get_strand_builders(&self) -> &[StrandBuilder] {
-        self.0.design.get_strand_builders()
-    }
-
     pub fn design_was_updated(&self, other: &Self) -> bool {
         self.0.design.has_different_design_than(&other.0.design)
-    }
-
-    pub fn is_pasting(&self) -> bool {
-        self.get_pasting_status().is_pasting()
     }
 
     pub fn get_building_state(&self) -> Option<StrandBuildingStatus> {

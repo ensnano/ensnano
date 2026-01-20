@@ -22,6 +22,7 @@ use ensnano_design::{
     nucl::Nucl,
 };
 use ensnano_state::{
+    app_state::AppState,
     design::{
         operation::{DesignOperation, NewBezierTangentVector},
         selection::{
@@ -29,7 +30,7 @@ use ensnano_state::{
             set_of_grids_containing_selection, set_of_helices_containing_selection,
         },
     },
-    scene::{requests::SceneRequests, state::SceneAppState},
+    scene::requests::SceneRequests,
     utils::{
         application::{AppId, Application, Camera3D, Notification},
         operation::{
@@ -64,7 +65,7 @@ use winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon};
 const PNG_SIZE: u32 = 8192;
 
 /// A structure responsible of the 3D display of the designs
-pub struct Scene<S: SceneAppState> {
+pub struct Scene {
     /// The update to be performed before next frame
     update: SceneUpdate,
     /// The Object that handles the drawing to the 3d texture
@@ -72,11 +73,11 @@ pub struct Scene<S: SceneAppState> {
     /// The Object that handles the designs data
     data: Rc<RefCell<Data>>,
     /// The Object that handles input and notifications
-    controller: Controller<S>,
+    controller: Controller,
     /// The limits of the area on which the scene is displayed
     area: DrawArea,
     element_selector: ElementSelector,
-    older_state: S,
+    older_state: AppState,
     requests: Arc<Mutex<dyn SceneRequests>>,
     scene_kind: SceneKind,
     current_camera: Arc<(Camera3D, f32)>,
@@ -88,7 +89,7 @@ pub enum SceneKind {
     Stereographic,
 }
 
-impl<S: SceneAppState> Scene<S> {
+impl Scene {
     /// Create a new scene.
     /// # Argument
     ///
@@ -106,7 +107,7 @@ impl<S: SceneAppState> Scene<S> {
         area: DrawArea,
         requests: Arc<Mutex<R>>,
         encoder: &mut wgpu::CommandEncoder,
-        initial_state: S,
+        initial_state: AppState,
         scene_kind: SceneKind,
     ) -> Self {
         let update = SceneUpdate::default();
@@ -121,8 +122,7 @@ impl<S: SceneAppState> Scene<S> {
             initial_state.get_design_reader(),
             view.clone(),
         )));
-        let controller: Controller<S> =
-            Controller::new(view.clone(), data.clone(), window_size, area.size);
+        let controller = Controller::new(view.clone(), data.clone(), window_size, area.size);
         let element_selector = ElementSelector::new(
             device,
             queue,
@@ -162,7 +162,7 @@ impl<S: SceneAppState> Scene<S> {
         &mut self,
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
-        app_state: &S,
+        app_state: &AppState,
     ) -> Option<CursorIcon> {
         let consequence = self.controller.input(
             event,
@@ -174,12 +174,12 @@ impl<S: SceneAppState> Scene<S> {
         self.controller.get_icon()
     }
 
-    fn check_timers(&mut self, app_state: &S) {
+    fn check_timers(&mut self, app_state: &AppState) {
         let consequence = self.controller.check_timers();
         self.read_consequence(consequence, app_state);
     }
 
-    fn set_pivot_point(&mut self, app_state: &S) {
+    fn set_pivot_point(&mut self, app_state: &AppState) {
         let mut pivot: Option<FiniteVec3> = self
             .data
             .borrow()
@@ -196,7 +196,7 @@ impl<S: SceneAppState> Scene<S> {
         self.controller.set_pivot_point(pivot);
     }
 
-    fn read_consequence(&mut self, consequence: Consequence, app_state: &S) {
+    fn read_consequence(&mut self, consequence: Consequence, app_state: &AppState) {
         if !matches!(consequence, Consequence::Nothing) {
             log::info!("Consequence {consequence:?}");
         }
@@ -551,7 +551,7 @@ impl<S: SceneAppState> Scene<S> {
             .xover_request(source, target, design_id);
     }
 
-    fn element_center(&mut self, _app_state: &S) -> Option<SceneElement> {
+    fn element_center(&mut self, _app_state: &AppState) -> Option<SceneElement> {
         let clicked_pixel = PhysicalPosition::new(
             self.area.size.width as f64 / 2.,
             self.area.size.height as f64 / 2.,
@@ -565,7 +565,7 @@ impl<S: SceneAppState> Scene<S> {
         grid.or_else(move || self.element_selector.set_selected_id(clicked_pixel))
     }
 
-    fn select(&self, element: Option<SceneElement>, app_state: &S) {
+    fn select(&self, element: Option<SceneElement>, app_state: &AppState) {
         let (selection, center_of_selection) =
             self.data.borrow_mut().set_selection(element, app_state);
         if let Some(selection) = selection {
@@ -580,7 +580,7 @@ impl<S: SceneAppState> Scene<S> {
         &self,
         element: Option<SceneElement>,
         current_selection: &[Selection],
-        app_state: &S,
+        app_state: &AppState,
     ) {
         let selection =
             self.data
@@ -620,7 +620,7 @@ impl<S: SceneAppState> Scene<S> {
         }
     }
 
-    fn set_candidate(&self, element: Option<SceneElement>, app_state: &S) {
+    fn set_candidate(&self, element: Option<SceneElement>, app_state: &AppState) {
         let new_candidates = self.data.borrow_mut().set_candidate(element, app_state);
         let widget = if let Some(SceneElement::WidgetElement(widget_id)) = element {
             Some(widget_id)
@@ -636,7 +636,7 @@ impl<S: SceneAppState> Scene<S> {
         self.requests.lock().unwrap().set_candidate(selection);
     }
 
-    fn translate_selected_design(&self, translation: Vec3, app_state: &S) {
+    fn translate_selected_design(&self, translation: Vec3, app_state: &AppState) {
         let rotor = self.data.borrow().get_widget_basis(app_state);
         self.view.borrow_mut().translate_widgets(translation);
         if rotor.is_none() {
@@ -717,7 +717,7 @@ impl<S: SceneAppState> Scene<S> {
         rotation: Rotor3,
         origin: Vec3,
         positive: bool,
-        app_state: &S,
+        app_state: &AppState,
     ) {
         log::debug!(
             "Rotation {:?}, positive {}",
@@ -791,7 +791,7 @@ impl<S: SceneAppState> Scene<S> {
         }
     }
 
-    fn need_redraw(&mut self, dt: Duration, new_state: S) -> bool {
+    fn need_redraw(&mut self, dt: Duration, new_state: AppState) -> bool {
         self.check_timers(&new_state);
         if self.controller.camera_is_moving() {
             self.notify(SceneNotification::CameraMoved);
@@ -820,7 +820,7 @@ impl<S: SceneAppState> Scene<S> {
         &self,
         encoder: &mut wgpu::CommandEncoder,
         target: &wgpu::TextureView,
-        app_state: &S,
+        app_state: &AppState,
     ) {
         let is_stereographic = matches!(self.scene_kind, SceneKind::Stereographic);
         log::trace!("draw scene");
@@ -858,7 +858,7 @@ impl<S: SceneAppState> Scene<S> {
         }
     }
 
-    fn set_camera_target(&mut self, target: Vec3, up: Vec3, app_state: &S) {
+    fn set_camera_target(&mut self, target: Vec3, up: Vec3, app_state: &AppState) {
         let pivot = self
             .data
             .borrow()
@@ -878,7 +878,7 @@ impl<S: SceneAppState> Scene<S> {
         self.fit_design();
     }
 
-    fn request_camera_rotation(&mut self, x: f32, y: f32, z: f32, app_state: &S) {
+    fn request_camera_rotation(&mut self, x: f32, y: f32, z: f32, app_state: &AppState) {
         let pivot = self
             .data
             .borrow()
@@ -1058,7 +1058,7 @@ impl<S: SceneAppState> Scene<S> {
         println!("PNG export failed! Save our design first");
     }
 
-    fn export_stl(&self, design_path: Option<Arc<Path>>, app_state: &S) {
+    fn export_stl(&self, design_path: Option<Arc<Path>>, app_state: &AppState) {
         let path = derive_path_with_prefix_and_time_stamp_and_suffix(
             design_path,
             Some("export_stl"),
@@ -1143,8 +1143,8 @@ pub enum SceneNotification {
     NewCameraPosition(Vec3),
 }
 
-impl<S: SceneAppState> Application for Scene<S> {
-    type AppState = S;
+impl Application for Scene {
+    type AppState = AppState;
 
     fn on_notify(&mut self, notification: Notification) {
         log::info!("scene notified {notification:?}");
@@ -1240,7 +1240,7 @@ impl<S: SceneAppState> Application for Scene<S> {
         &mut self,
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
-        app_state: &S,
+        app_state: &AppState,
     ) -> Option<CursorIcon> {
         self.element_selector
             .set_stereographic(self.is_stereographic());
@@ -1266,7 +1266,7 @@ impl<S: SceneAppState> Application for Scene<S> {
         self.draw_view(encoder, target, &older_state);
     }
 
-    fn needs_redraw(&mut self, dt: Duration, app_state: S) -> bool {
+    fn needs_redraw(&mut self, dt: Duration, app_state: AppState) -> bool {
         self.need_redraw(dt, app_state)
     }
 
