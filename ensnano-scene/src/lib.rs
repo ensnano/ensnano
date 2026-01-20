@@ -30,7 +30,7 @@ use ensnano_state::{
             set_of_grids_containing_selection, set_of_helices_containing_selection,
         },
     },
-    scene::requests::SceneRequests,
+    requests::Requests,
     utils::{
         application::{AppId, Application, Camera3D, Notification},
         operation::{
@@ -78,7 +78,7 @@ pub struct Scene {
     area: DrawArea,
     element_selector: ElementSelector,
     older_state: AppState,
-    requests: Arc<Mutex<dyn SceneRequests>>,
+    requests: Arc<Mutex<Requests>>,
     scene_kind: SceneKind,
     current_camera: Arc<(Camera3D, f32)>,
 }
@@ -100,12 +100,12 @@ impl Scene {
     /// * `window_size` the *Physical* size of the window in which the application is displayed
     ///
     /// * `area` the limits, in *physical* size of the area on which the scene is displayed
-    pub fn new<R: 'static + SceneRequests>(
+    pub fn new(
         device: Rc<Device>,
         queue: Rc<Queue>,
         window_size: PhySize,
         area: DrawArea,
-        requests: Arc<Mutex<R>>,
+        requests: Arc<Mutex<Requests>>,
         encoder: &mut wgpu::CommandEncoder,
         initial_state: AppState,
         scene_kind: SceneKind,
