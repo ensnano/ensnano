@@ -19,9 +19,16 @@ use ensnano_utils::{
     ObjectType, Referential,
     graphics::{LoopoutBond, LoopoutNucl},
 };
+use serde::{Deserialize, Serialize};
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 
-use crate::data::StrandNucleotidesPositions;
+#[derive(Serialize, Deserialize, Debug)]
+pub struct StrandNucleotidesPositions {
+    pub is_cyclic: bool,
+    pub positions: Vec<[f32; 3]>,
+    pub curvatures: Vec<f64>,
+    pub torsions: Vec<f64>,
+}
 
 pub trait SceneDesignReaderExt: 'static + MainDesignReaderExt {
     /// Return the identifier of all the visible nucleotides

@@ -5,7 +5,7 @@ pub mod design3d;
 
 use crate::{
     camera::CameraController,
-    design_reader::SceneDesignReaderExt,
+    design_reader::{SceneDesignReaderExt, StrandNucleotidesPositions},
     element_selector::{SceneElement, bezier_vertex_id},
     state::SceneAppState,
     view::{
@@ -45,7 +45,6 @@ use ensnano_utils::{
     },
     graphics::HBondDisplay,
 };
-use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, rc::Rc, sync::Arc};
 use ultraviolet::{Rotor3, Vec3};
 
@@ -1959,15 +1958,6 @@ struct Discs<'a, R: SceneDesignReaderExt> {
     candidates: &'a mut Vec<GridPosition>,
     design: &'a Design3D<R>,
 }
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct StrandNucleotidesPositions {
-    pub is_cyclic: bool,
-    pub positions: Vec<[f32; 3]>,
-    pub curvatures: Vec<f64>,
-    pub torsions: Vec<f64>,
-}
-
 fn add_discs<R: SceneDesignReaderExt>(pos: GridPosition, discs: Discs<R>, level: DiscLevel) {
     if let Some(grid) = discs.design.get_grid().get(&pos.grid) {
         let new_disc_instances = match level {

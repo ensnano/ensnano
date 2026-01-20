@@ -16,10 +16,7 @@ use ensnano_design::{
     nucl::Nucl,
     parameters::HelixParameters,
 };
-use ensnano_scene::{
-    data::StrandNucleotidesPositions,
-    design_reader::{Scalebar, SceneDesignReaderExt},
-};
+use ensnano_scene::design_reader::{Scalebar, SceneDesignReaderExt, StrandNucleotidesPositions};
 use ensnano_utils::{
     ObjectType, Referential,
     graphics::{LoopoutBond, LoopoutNucl},
