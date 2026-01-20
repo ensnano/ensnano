@@ -10,8 +10,9 @@ use ensnano_state::{
 };
 
 use crate::{
-    app_state::design_interactor::controller::clipboard::PastePosition,
-    controller::normal_state::Action, requests::Requests, state::MainState,
+    app_state::{action::Action, design_interactor::controller::clipboard::PastePosition},
+    requests::Requests,
+    state::MainState,
 };
 use std::ops::DerefMut;
 

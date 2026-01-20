@@ -1,8 +1,8 @@
 //! Implements the [FlatSceneRequests](`ensnano_flatscene::FlatSceneRequests`) trait for [Requests](`super::Requests`).
 
 use crate::{
-    app_state::design_interactor::controller::clipboard::PastePosition,
-    controller::normal_state::Action, requests::Requests,
+    app_state::{action::Action, design_interactor::controller::clipboard::PastePosition},
+    requests::Requests,
 };
 use ensnano_design::nucl::Nucl;
 use ensnano_state::{

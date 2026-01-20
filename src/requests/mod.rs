@@ -7,7 +7,6 @@ mod impl_gui;
 mod impl_scene;
 pub(crate) mod poll;
 
-use crate::controller::normal_state::Action;
 use ensnano_design::{
     design_element::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridPosition, GridTypeDescr},
@@ -34,6 +33,8 @@ use ensnano_utils::{
 };
 use std::{collections::VecDeque, sync::Arc};
 use ultraviolet::Vec3;
+
+use crate::app_state::action::Action;
 
 /// A structure that contains all the requests that can be made through the GUI or the
 /// Applications.

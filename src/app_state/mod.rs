@@ -6,6 +6,7 @@
 //!
 //! Each component of ENSnano has specific needs and express them via its own `AppState` trait.
 
+pub mod action;
 pub mod address_pointer;
 pub mod channel_reader;
 pub mod design_interactor;

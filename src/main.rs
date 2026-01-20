@@ -84,6 +84,7 @@ mod state;
 use crate::{
     app_state::{
         AppState, LoadDesignError, SaveDesignError,
+        action::Action,
         channel_reader::ChannelReaderUpdate,
         design_interactor::{
             DesignInteractor,
@@ -97,7 +98,6 @@ use crate::{
     },
     controller::{
         Controller,
-        normal_state::Action,
         set_scaffold_sequence::{
             SetScaffoldSequenceError, SetScaffoldSequenceOk, TargetScaffoldLength,
         },

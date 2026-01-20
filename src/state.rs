@@ -45,6 +45,7 @@ use winit::window::CursorIcon;
 use crate::{
     app_state::{
         AppState, SaveDesignError,
+        action::Action,
         channel_reader::ChannelReader,
         design_interactor::controller::{
             ErrOperation, InteractorNotification, clipboard::CopyOperation,
@@ -52,7 +53,6 @@ use crate::{
         },
         transitions::{AppStateTransition, OkOperation, TransitionLabel},
     },
-    controller::normal_state::Action,
     multiplexer::Multiplexer,
 };
 
