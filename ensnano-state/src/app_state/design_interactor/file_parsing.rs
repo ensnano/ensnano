@@ -103,6 +103,7 @@ mod tests {
 
     fn one_helix_path() -> PathBuf {
         let mut ret = PathBuf::from(std::env!("CARGO_MANIFEST_DIR"));
+        ret.pop();
         ret.push("tests");
         ret.push("one_helix.json");
         ret
