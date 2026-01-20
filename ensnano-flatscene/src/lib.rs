@@ -19,19 +19,14 @@ mod chars2d;
 mod circles2d;
 mod controller;
 pub mod data;
-pub mod design_reader;
 mod flat_types;
 mod full_isometry;
 mod ndc;
-pub mod requests;
-pub mod state;
 mod view;
 
 use crate::{
     camera2d::{Camera2D, FitRectangle},
     flat_types::FlatNucl,
-    requests::FlatSceneRequests,
-    state::FlatSceneAppState,
 };
 use controller::{Consequence, Controller};
 use data::Data;
@@ -41,6 +36,7 @@ use ensnano_state::{
         operation::DesignOperation,
         selection::{Selection, extract_nucls_and_xover_ends},
     },
+    flatscene::{requests::FlatSceneRequests, state::FlatSceneAppState},
     utils::{
         application::{AppId, Application, Notification},
         operation::{CrossCut, Cut, Xover},

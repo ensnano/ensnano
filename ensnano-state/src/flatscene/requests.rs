@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
-use ensnano_design::nucl::Nucl;
-use ensnano_state::{
+use crate::{
     design::{operation::DesignOperation, selection::Selection},
     utils::{application::AppId, operation::Operation},
 };
+use ensnano_design::nucl::Nucl;
 use ultraviolet::Isometry2;
 
 pub trait FlatSceneRequests {

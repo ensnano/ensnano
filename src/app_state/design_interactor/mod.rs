@@ -407,9 +407,11 @@ mod tests {
         nucl::Nucl,
         strands::{DomainJunction, Strand},
     };
-    use ensnano_flatscene::design_reader::FlatSceneDesignReaderExt as _;
     use ensnano_scene::design_reader::SceneDesignReaderExt as _;
-    use ensnano_state::{design::operation::InsertionPoint, utils::operation::GridHelixCreation};
+    use ensnano_state::{
+        design::{operation::InsertionPoint, selection::MainDesignReaderExt as _},
+        utils::operation::GridHelixCreation,
+    };
     use regex::Regex;
     use ultraviolet::{Rotor3, Vec3};
 

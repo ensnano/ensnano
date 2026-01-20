@@ -5,9 +5,9 @@ use crate::{
     controller::normal_state::Action, requests::Requests,
 };
 use ensnano_design::nucl::Nucl;
-use ensnano_flatscene::requests::FlatSceneRequests;
 use ensnano_state::{
     design::{operation::DesignOperation, selection::Selection},
+    flatscene::requests::FlatSceneRequests,
     utils::{application::AppId, operation::Operation},
 };
 use std::sync::Arc;

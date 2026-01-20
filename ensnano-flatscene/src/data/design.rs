@@ -1,14 +1,15 @@
 use crate::{
     data::strand::Strand,
-    design_reader::FlatSceneDesignReaderExt,
     flat_types::{Flat, FlatHelix, FlatHelixMaps, FlatIdx, FlatNucl, HelixSegment, HelixVec},
     full_isometry::FullIsometry,
-    requests::FlatSceneRequests,
 };
 use ensnano_design::{
     curves::time_nucl_map::AbscissaConverter,
     helices::{Helices, Helix},
     nucl::Nucl,
+};
+use ensnano_state::flatscene::{
+    design_reader::FlatSceneDesignReaderExt, requests::FlatSceneRequests,
 };
 use ensnano_utils::{
     Referential,

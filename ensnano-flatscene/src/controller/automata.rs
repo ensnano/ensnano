@@ -3,9 +3,9 @@ use crate::{
     controller::{Consequence, Controller},
     data::{ClickResult, helix::HelixHandle, strand::FreeEnd},
     flat_types::{FlatHelix, FlatNucl},
-    state::FlatSceneAppState,
 };
 use ensnano_design::interaction_modes::ActionMode;
+use ensnano_state::flatscene::state::FlatSceneAppState;
 use ensnano_utils::consts::CIRCLE2D_GREY;
 use std::time::Instant;
 use ultraviolet::Vec2;

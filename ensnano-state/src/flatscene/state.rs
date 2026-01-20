@@ -1,8 +1,9 @@
+use crate::{
+    design::selection::{MainDesignReaderExt, Selection},
+    flatscene::design_reader::FlatSceneDesignReaderExt,
+};
 use ensnano_design::interaction_modes::SelectionMode;
-use ensnano_state::design::selection::{MainDesignReaderExt, Selection};
 use ensnano_utils::{StrandBuildingStatus, strand_builder::StrandBuilder};
-
-use crate::design_reader::FlatSceneDesignReaderExt;
 
 pub trait FlatSceneAppState: Clone {
     type Reader: FlatSceneDesignReaderExt + MainDesignReaderExt;

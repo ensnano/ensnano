@@ -11,11 +11,10 @@ use crate::{
     CameraPtr, DataPtr, ViewPtr,
     data::{ClickResult, strand::FreeEnd},
     flat_types::{FlatHelix, FlatNucl},
-    state::FlatSceneAppState,
 };
 use automata::{ControllerState, NormalState, Transition, ctrl};
 use ensnano_design::interaction_modes::ActionMode;
-use ensnano_state::design::selection::Selection;
+use ensnano_state::{design::selection::Selection, flatscene::state::FlatSceneAppState};
 use ensnano_utils::graphics::PhySize;
 use std::cell::RefCell;
 use ultraviolet::Vec2;

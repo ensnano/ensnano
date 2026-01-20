@@ -1,7 +1,6 @@
 use crate::app_state::{AppState, design_interactor::DesignInteractor};
 use ensnano_design::interaction_modes::SelectionMode;
-use ensnano_flatscene::state::FlatSceneAppState;
-use ensnano_state::design::selection::Selection;
+use ensnano_state::{design::selection::Selection, flatscene::state::FlatSceneAppState};
 use ensnano_utils::{StrandBuildingStatus, strand_builder::StrandBuilder};
 
 impl FlatSceneAppState for AppState {

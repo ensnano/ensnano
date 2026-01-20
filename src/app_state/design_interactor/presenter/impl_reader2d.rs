@@ -7,7 +7,7 @@ use ensnano_design::{
     nucl::Nucl,
     strands::{Extremity, Strand},
 };
-use ensnano_flatscene::design_reader::FlatSceneDesignReaderExt;
+use ensnano_state::flatscene::design_reader::FlatSceneDesignReaderExt;
 use ensnano_utils::{Referential, torsion::Torsion};
 use std::{collections::BTreeMap, sync::Arc};
 use ultraviolet::{Isometry2, Vec2, Vec3};

@@ -9,18 +9,21 @@ use crate::{
         helix::{Helix, HelixHandle},
         strand::FreeEnd,
     },
-    design_reader::FlatSceneDesignReaderExt,
     flat_types::{
         FlatHelix, FlatHelixMaps, FlatIdx, FlatNucl, FlatSelection, HelixSegment, HelixVec,
     },
-    requests::FlatSceneRequests,
-    state::FlatSceneAppState,
     view::EditionInfo,
 };
 use ahash::RandomState;
 use design::Design2d;
 use ensnano_design::{interaction_modes::SelectionMode, phantom_element::PhantomElement};
-use ensnano_state::design::selection::Selection;
+use ensnano_state::{
+    design::selection::Selection,
+    flatscene::{
+        design_reader::FlatSceneDesignReaderExt, requests::FlatSceneRequests,
+        state::FlatSceneAppState,
+    },
+};
 use ensnano_utils::{
     StrandBuildingStatus,
     consts::{
