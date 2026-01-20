@@ -11,6 +11,7 @@ workspace = true
 [dependencies]
 ensnano_design.workspace = true
 ensnano_utils.workspace = true
+ensnano_state.workspace = true
 
 ahash.workspace = true
 bytemuck.workspace = true

@@ -7,34 +7,34 @@
 
 mod color_picker;
 mod consts;
-pub mod design_reader;
+pub mod fog;
 pub mod fonts;
 mod helpers;
 pub mod left_panel;
-pub mod messages;
-pub mod requests;
-pub mod state;
 pub mod status_bar;
 pub mod theme;
 pub mod top_bar;
 mod widgets;
 
-use crate::{
-    fonts::{INTER_REGULAR_FONT, load_fonts},
-    left_panel::LeftPanel,
-    messages::GuiMessages,
-    requests::GuiRequests,
-    state::{GuiAppState, GuiState, TopBarState},
-    status_bar::StatusBar,
-    top_bar::TopBar,
+use ensnano_state::{
+    app_state::AppState,
+    gui::messages::{
+        GuiMessages, LeftPanelMessage, StatusBarMessage, TopBarMessage, TopBarStateFlags,
+    },
+    requests::Requests,
 };
 use ensnano_utils::{
-    TEXTURE_FORMAT, app_state_parameters::AppStateParameters, convert_size_f32, convert_size_u32,
-    graphics::GuiComponentType, multiplexer_ext::MultiplexerExt, ui_size::UiSize,
+    TEXTURE_FORMAT,
+    app_state_parameters::AppStateParameters,
+    convert_size_f32, convert_size_u32,
+    graphics::{DrawArea, GuiComponentType},
+    multiplexer_ext::MultiplexerExt,
+    ui_size::UiSize,
 };
 use iced::{
-    advanced::{mouse, renderer},
-    event::Event,
+    Event, Size,
+    advanced::{clipboard, mouse, renderer},
+    keyboard,
     mouse::Cursor,
 };
 use iced_runtime::{Debug, program};
@@ -47,28 +47,187 @@ use std::{
 use wgpu::{Device, Queue};
 use winit::window::Window;
 
+use crate::{
+    fonts::{INTER_REGULAR_FONT, load_fonts},
+    left_panel::LeftPanelState,
+    status_bar::StatusBarState,
+    top_bar::TopBarState,
+};
+
+#[expect(clippy::large_enum_variant)]
+pub enum GuiState {
+    TopBar(program::State<TopBarState>),
+    LeftPanel(program::State<LeftPanelState>),
+    StatusBar(program::State<StatusBarState>),
+}
+
+impl GuiState {
+    pub fn queue_event(&mut self, event: Event) {
+        if let Event::Keyboard(keyboard::Event::KeyPressed {
+            key: keyboard::Key::Named(keyboard::key::Named::Tab),
+            ..
+        }) = event
+        {
+            match self {
+                Self::StatusBar(_) => {
+                    self.queue_status_bar_message(StatusBarMessage::TabPressed);
+                }
+                Self::TopBar(_) | Self::LeftPanel(_) => (),
+            }
+        } else {
+            match self {
+                Self::TopBar(state) => state.queue_event(event),
+                Self::LeftPanel(state) => state.queue_event(event),
+                Self::StatusBar(state) => state.queue_event(event),
+            }
+        }
+    }
+
+    pub fn queue_top_bar_message(&mut self, message: TopBarMessage) {
+        log::trace!("Queue top bar {message:?}");
+        if let Self::TopBar(state) = self {
+            state.queue_message(message);
+        } else {
+            panic!("wrong message type")
+        }
+    }
+
+    pub fn queue_left_panel_message(&mut self, message: LeftPanelMessage) {
+        log::trace!("Queue left panel {message:?}");
+        if let Self::LeftPanel(state) = self {
+            state.queue_message(message);
+        } else {
+            panic!("wrong message type")
+        }
+    }
+
+    pub fn queue_status_bar_message(&mut self, message: StatusBarMessage) {
+        log::trace!("Queue status_bar {message:?}");
+        if let Self::StatusBar(state) = self {
+            state.queue_message(message);
+        } else {
+            panic!("wrong message type")
+        }
+    }
+
+    pub fn resize(&mut self, area: DrawArea, window: &Window) {
+        match self {
+            Self::TopBar(state) => state.queue_message(TopBarMessage::Resize(
+                area.size.to_logical(window.scale_factor()),
+            )),
+            Self::LeftPanel(state) => state.queue_message(LeftPanelMessage::Resized(
+                area.size.to_logical(window.scale_factor()),
+                area.position.to_logical(window.scale_factor()),
+            )),
+            Self::StatusBar(state) => state.queue_message(StatusBarMessage::Resize(
+                area.size.to_logical(window.scale_factor()),
+            )),
+        }
+    }
+
+    pub fn is_queue_empty(&self) -> bool {
+        match self {
+            Self::TopBar(state) => state.is_queue_empty(),
+            Self::LeftPanel(state) => state.is_queue_empty(),
+            Self::StatusBar(state) => state.is_queue_empty(),
+        }
+    }
+
+    pub fn update(
+        &mut self,
+        size: Size,
+        cursor: Cursor,
+        renderer: &mut iced::Renderer,
+        theme: &iced::Theme,
+        style: &renderer::Style,
+        debug: &mut Debug,
+    ) {
+        let mut clipboard = clipboard::Null;
+        match self {
+            Self::TopBar(state) => {
+                let _ = state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
+            }
+            Self::LeftPanel(state) => {
+                let _ = state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
+            }
+            Self::StatusBar(state) => {
+                let _ = state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
+            }
+        }
+    }
+
+    pub fn render(
+        &mut self,
+        renderer: &mut iced::Renderer,
+        device: &Device,
+        queue: &Queue,
+        encoder: &mut wgpu::CommandEncoder,
+        clear_color: Option<iced::Color>,
+        format: wgpu::TextureFormat,
+        frame: &wgpu::TextureView,
+        viewport: &iced_graphics::Viewport,
+        debug: &Debug,
+        mouse_interaction: &mut mouse::Interaction,
+    ) {
+        match renderer {
+            iced::Renderer::Wgpu(wgpu_renderer) => {
+                wgpu_renderer.with_primitives(|backend, primitives| {
+                    backend.present(
+                        device,
+                        queue,
+                        encoder,
+                        clear_color,
+                        format,
+                        frame,
+                        primitives,
+                        viewport,
+                        &debug.overlay(),
+                    );
+                });
+            }
+            iced::Renderer::TinySkia(_) => panic!("Unhandled renderer"),
+        }
+
+        match self {
+            Self::TopBar(state) => *mouse_interaction = state.mouse_interaction(),
+            Self::LeftPanel(state) => {
+                let icon = state.mouse_interaction();
+                if icon > *mouse_interaction {
+                    *mouse_interaction = icon;
+                }
+            }
+            Self::StatusBar(state) => {
+                let icon = state.mouse_interaction();
+                if icon > *mouse_interaction {
+                    *mouse_interaction = icon;
+                }
+            }
+        }
+    }
+}
+
 /// A Gui component.
-struct GuiComponent<R: GuiRequests, S: GuiAppState> {
-    state: GuiState<R, S>,
+struct GuiComponent {
+    state: GuiState,
     debug: Debug,
     redraw: bool,
     element_type: GuiComponentType,
     renderer: iced::Renderer,
 }
 
-impl<R: GuiRequests, S: GuiAppState> GuiComponent<R, S> {
+impl GuiComponent {
     /// Initialize the top bar gui component
     fn top_bar(
         mut renderer: iced::Renderer,
         window: &Window,
         multiplexer: &dyn MultiplexerExt,
-        requests: Arc<Mutex<R>>,
-        app_state: S,
-        top_bar_state: TopBarState,
+        requests: Arc<Mutex<Requests>>,
+        app_state: AppState,
+        top_bar_state: TopBarStateFlags,
         ui_size: UiSize,
     ) -> Self {
         let top_bar_area = multiplexer.get_draw_area(GuiComponentType::TopBar).unwrap();
-        let top_bar = TopBar::new(
+        let top_bar = TopBarState::new(
             requests,
             top_bar_area.size.to_logical(window.scale_factor()),
             app_state,
@@ -96,15 +255,15 @@ impl<R: GuiRequests, S: GuiAppState> GuiComponent<R, S> {
         mut renderer: iced::Renderer,
         window: &Window,
         multiplexer: &dyn MultiplexerExt,
-        requests: Arc<Mutex<R>>,
+        requests: Arc<Mutex<Requests>>,
         first_time: bool,
-        state: &S,
+        state: &AppState,
         parameters: &AppStateParameters,
     ) -> Self {
         let left_panel_area = multiplexer
             .get_draw_area(GuiComponentType::LeftPanel)
             .unwrap();
-        let left_panel = LeftPanel::new(
+        let left_panel = LeftPanelState::new(
             requests,
             left_panel_area.size.to_logical(window.scale_factor()),
             left_panel_area.position.to_logical(window.scale_factor()),
@@ -132,14 +291,14 @@ impl<R: GuiRequests, S: GuiAppState> GuiComponent<R, S> {
         mut renderer: iced::Renderer,
         window: &Window,
         multiplexer: &dyn MultiplexerExt,
-        requests: Arc<Mutex<R>>,
-        state: &S,
+        requests: Arc<Mutex<Requests>>,
+        state: &AppState,
         ui_size: UiSize,
     ) -> Self {
         let status_bar_area = multiplexer
             .get_draw_area(GuiComponentType::StatusBar)
             .unwrap();
-        let status_bar = StatusBar::new(
+        let status_bar = StatusBarState::new(
             requests,
             state,
             status_bar_area.size.to_logical(window.scale_factor()),
@@ -165,7 +324,7 @@ impl<R: GuiRequests, S: GuiAppState> GuiComponent<R, S> {
         self.state.queue_event(event);
     }
 
-    fn get_state(&mut self) -> &mut GuiState<R, S> {
+    fn get_state(&mut self) -> &mut GuiState {
         &mut self.state
     }
 
@@ -248,7 +407,7 @@ impl<R: GuiRequests, S: GuiAppState> GuiComponent<R, S> {
 /// The manager of the graphical user interface.
 ///
 /// The manager contains a [`GuiComponent`] for each [`GuiComponentType`] (top_bar, left_panel, etc…)
-pub struct GuiManager<R: GuiRequests, S: GuiAppState> {
+pub struct GuiManager {
     /// WGPU Settings
     wgpu_settings: iced_wgpu::Settings,
     /// WGPU device
@@ -256,22 +415,22 @@ pub struct GuiManager<R: GuiRequests, S: GuiAppState> {
     /// WGPU queue
     queue: Rc<Queue>,
     resized: bool,
-    requests: Arc<Mutex<R>>,
+    requests: Arc<Mutex<Requests>>,
     parameters: AppStateParameters,
     /// [`GuiComponent`] mapped by [`GuiComponentType`]
-    components: HashMap<GuiComponentType, GuiComponent<R, S>>,
+    components: HashMap<GuiComponentType, GuiComponent>,
 }
 
-impl<R: GuiRequests, State: GuiAppState> GuiManager<R, State> {
+impl GuiManager {
     pub fn new(
         device: Rc<Device>,
         queue: Rc<Queue>,
         window: &Window,
         multiplexer: &dyn MultiplexerExt,
-        requests: Arc<Mutex<R>>,
+        requests: Arc<Mutex<Requests>>,
         parameters: AppStateParameters,
-        global_state: &State,
-        top_bar_state: TopBarState,
+        global_state: &AppState,
+        top_bar_state: TopBarStateFlags,
     ) -> Self {
         let wgpu_settings = iced_wgpu::Settings {
             antialiasing: Some(iced_graphics::Antialiasing::MSAAx4),
@@ -306,8 +465,8 @@ impl<R: GuiRequests, State: GuiAppState> GuiManager<R, State> {
         &mut self,
         window: &Window,
         multiplexer: &dyn MultiplexerExt,
-        state: &State,
-        top_bar_state: TopBarState,
+        state: &AppState,
+        top_bar_state: TopBarStateFlags,
     ) {
         // NOTE: Wow…
         //       Argument 'state' is called 'global_state' when called above, and it is used
@@ -408,7 +567,7 @@ impl<R: GuiRequests, State: GuiAppState> GuiManager<R, State> {
     }
 
     /// Forward a message to the appropriate gui component
-    pub fn forward_messages(&mut self, messages: &mut GuiMessages<State>) {
+    pub fn forward_messages(&mut self, messages: &mut GuiMessages) {
         for m in messages.top_bar.drain(..) {
             self.components
                 .get_mut(&GuiComponentType::TopBar)
@@ -474,8 +633,8 @@ impl<R: GuiRequests, State: GuiAppState> GuiManager<R, State> {
         ui_size: UiSize,
         window: &Window,
         multiplexer: &dyn MultiplexerExt,
-        app_state: &State,
-        top_bar_state: TopBarState,
+        app_state: &AppState,
+        top_bar_state: TopBarStateFlags,
     ) {
         self.set_text_size(ui_size.main_text());
         self.parameters.ui_size = ui_size;
@@ -487,8 +646,8 @@ impl<R: GuiRequests, State: GuiAppState> GuiManager<R, State> {
         &mut self,
         window: &Window,
         multiplexer: &dyn MultiplexerExt,
-        app_state: &State,
-        top_bar_state: TopBarState,
+        app_state: &AppState,
+        top_bar_state: TopBarStateFlags,
     ) {
         self.set_text_size(self.parameters.ui_size.main_text());
         self.rebuild_gui(window, multiplexer, app_state, top_bar_state);

@@ -6,6 +6,7 @@ members = [
     "ensnano-gui",
     "ensnano-physics",
     "ensnano-scene",
+    "ensnano-state",
     "ensnano-utils",
 ]
 
@@ -30,6 +31,7 @@ ensnano_flatscene = { path = "ensnano-flatscene" }
 ensnano_gui = { path = "ensnano-gui" }
 ensnano_physics = { path = "ensnano-physics" }
 ensnano_scene = { path = "ensnano-scene" }
+ensnano_state = { path = "ensnano-state" }
 ensnano_utils = { path = "ensnano-utils" }
 
 ahash = "0.8.6"
@@ -99,11 +101,10 @@ ensnano_flatscene.workspace = true
 ensnano_gui.workspace = true
 ensnano_physics.workspace = true
 ensnano_scene.workspace = true
+ensnano_state.workspace = true
 ensnano_utils.workspace = true
 
 ahash.workspace = true
-chebyshev_polynomials.workspace = true
-color_space.workspace = true
 confy.workspace = true
 dirs.workspace = true
 futures.workspace = true
@@ -112,20 +113,10 @@ iced_graphics.workspace = true
 iced_runtime.workspace = true
 iced_wgpu.workspace = true
 iced_winit.workspace = true
-itertools.workspace = true
 log.workspace = true
-mathru.workspace = true
-ordered-float.workspace = true
 pretty_env_logger.workspace = true
-rand.workspace = true
-rand_distr.workspace = true
-regex.workspace = true
 rfd.workspace = true
-rust_xlsxwriter.workspace = true
-serde.workspace = true
-serde_json.workspace = true
 ultraviolet.workspace = true
-version-compare.workspace = true
 wgpu.workspace = true
 winit.workspace = true
 

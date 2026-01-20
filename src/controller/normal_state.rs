@@ -1,7 +1,5 @@
 use crate::{
-    app_state::design_interactor::controller::{
-        clipboard::PastePosition, simulations::SimulationOperation,
-    },
+    MainStateView,
     controller::{
         AutomataState, TransitionMessage, YesNo,
         download_intervals::DownloadIntervals,
@@ -13,33 +11,23 @@ use crate::{
         quit::{Exporting, Load, LoadType, NewDesign, Quit, SaveAs, SaveWithPath},
         set_scaffold_sequence::SetScaffoldSequence,
     },
-    state::MainStateView,
 };
 use ensnano_design::{
-    CameraId,
     bezier_plane::BezierPlaneDescriptor,
-    grid::{GridDescriptor, GridId, GridTypeDescr},
-    group_attributes::GroupPivot,
-    operation::{DesignOperation, HyperboloidOperation, HyperboloidRequest},
+    grid::{GridDescriptor, GridTypeDescr},
     parameters::HelixParameters,
-    selection::{all_helices_no_grid, extract_grids, extract_strands_from_selection},
 };
 use ensnano_exports::ExportType;
-use ensnano_physics::parameters::RapierParameters;
-use ensnano_utils::{
-    RigidBodyConstants, RollRequest,
-    application::Notification,
-    consts::ENS_EXTENSION,
-    graphics::{FogParameters, SplitMode},
-    overlay::OverlayType,
-    surfaces::RevolutionSurfaceSystemDescriptor,
-    ui_size::UiSize,
+use ensnano_state::{
+    app_state::{action::Action, design_interactor::controller::simulations::SimulationOperation},
+    design::{
+        operation::{DesignOperation, HyperboloidOperation},
+        selection::{all_helices_no_grid, extract_grids, extract_strands_from_selection},
+    },
+    utils::application::Notification,
 };
-use std::{
-    path::{Path, PathBuf},
-    sync::Arc,
-};
-use ultraviolet::{Rotor3, Vec3};
+use ensnano_utils::consts::ENS_EXTENSION;
+use std::path::Path;
 
 /// User is interacting with graphical components.
 pub(crate) struct NormalState;
@@ -333,10 +321,7 @@ impl AutomataState for ChangingDnaParameters {
 impl NormalState {
     fn turn_selection_into_grid(self: Box<Self>, main_state: &mut MainStateView) -> Box<Self> {
         let selection = main_state.get_selection();
-        if all_helices_no_grid(
-            selection.as_ref().as_ref(),
-            main_state.get_design_reader().as_ref(),
-        ) {
+        if all_helices_no_grid(selection, &main_state.get_design_reader()) {
             let selection = selection.as_ref().as_ref().to_vec();
             main_state.apply_operation(DesignOperation::HelicesToGrid(selection));
         }
@@ -364,7 +349,7 @@ impl NormalState {
     }
 
     fn change_color(self: Box<Self>, main_state: &mut MainStateView, color: u32) -> Box<Self> {
-        let strands = extract_strands_from_selection(main_state.get_selection().as_ref().as_ref());
+        let strands = extract_strands_from_selection(main_state.get_selection());
         main_state.apply_operation(DesignOperation::ChangeColor { color, strands });
         self
     }
@@ -374,7 +359,7 @@ impl NormalState {
         main_state: &mut MainStateView,
         small: bool,
     ) -> Box<Self> {
-        let grid_ids = extract_grids(main_state.get_selection().as_ref().as_ref());
+        let grid_ids = extract_grids(main_state.get_selection());
         if !grid_ids.is_empty() {
             main_state.apply_operation(DesignOperation::SetSmallSpheres { grid_ids, small });
         }
@@ -386,7 +371,7 @@ impl NormalState {
         main_state: &mut MainStateView,
         persistent: bool,
     ) -> Box<Self> {
-        let grid_ids = extract_grids(main_state.get_selection().as_ref().as_ref());
+        let grid_ids = extract_grids(main_state.get_selection());
         if !grid_ids.is_empty() {
             main_state.apply_operation(DesignOperation::SetHelicesPersistence {
                 grid_ids,
@@ -427,92 +412,4 @@ fn export(export_type: ExportType) -> Box<dyn AutomataState> {
         Box::new(NormalState),
     );
     Box::new(Exporting::new(on_success, on_error, export_type))
-}
-
-/// An action to be performed at the end of an event loop iteration, and that will have an effect
-/// on the main application state, e.g. Closing the window, or toggling between 3D/2D views.
-#[derive(Debug, Clone)]
-pub(crate) enum Action {
-    LoadDesign(Option<PathBuf>),
-    NewDesign,
-    SaveAs,
-    QuickSave,
-    DownloadStaplesRequest,
-    DownloadOrigamiRequest,
-    /// Trigger the sequence of action that will set the scaffold of the sequence.
-    SetScaffoldSequence {
-        shift: usize,
-    },
-    Exit,
-    ToggleSplit(SplitMode),
-    Export(ExportType),
-    CloseOverlay(OverlayType),
-    ChangeUiSize(UiSize),
-    ErrorMsg(String),
-    DesignOperation(DesignOperation),
-    SilentDesignOperation(DesignOperation),
-    Undo,
-    Redo,
-    NotifyApps(Notification),
-    TurnSelectionIntoGrid,
-    AddGrid(GridTypeDescr),
-    /// Change the color of all the selected strands
-    ChangeColorStrand(u32),
-    FinishChangingColor,
-    ToggleHelicesPersistence(bool),
-    ToggleSmallSphere(bool),
-    RollRequest(RollRequest),
-    UpdateRapierParameters(RapierParameters),
-    StopSimulation,
-    RollHelices(f32),
-    Copy,
-    PasteCandidate(Option<PastePosition>),
-    InitPaste,
-    ApplyPaste,
-    Duplicate,
-    RigidGridSimulation {
-        parameters: RigidBodyConstants,
-    },
-    RevolutionSimulation {
-        desc: RevolutionSurfaceSystemDescriptor,
-    },
-    FinishRelaxationSimulation,
-    RigidHelicesSimulation {
-        parameters: RigidBodyConstants,
-    },
-    ResetSimulation,
-    RigidParametersUpdate(RigidBodyConstants),
-    TurnIntoAnchor,
-    NewHyperboloid(HyperboloidRequest),
-    SetVisibilitySieve {
-        compl: bool,
-    },
-    DeleteSelection,
-    ScaffoldToSelection,
-    /// Save the nucleotides 3D positions by strand as a json file in the design directory
-    GetDesignPathAndNotify(fn(Option<Arc<Path>>) -> Notification),
-    SuspendOp,
-    Fog(FogParameters),
-    Split2D,
-    ReloadFile,
-    ClearVisibilitySieve,
-    SetGroupPivot(GroupPivot),
-    TranslateGroupPivot(Vec3),
-    RotateGroupPivot(Rotor3),
-    NewCamera,
-    SelectCamera(CameraId),
-    SelectFavoriteCamera(u32),
-    Toggle2D,
-    MakeAllSuggestedXover {
-        doubled: bool,
-    },
-    FlipSplitViews,
-    Twist(GridId),
-    SetDnaParameters(HelixParameters),
-    SetExpandInsertions(bool),
-    AddBezierPlane,
-    SetExporting(bool),
-    Import3DObject,
-    ImportSvg,
-    OptimizeShift,
 }

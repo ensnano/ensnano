@@ -1,7 +1,5 @@
 use crate::{
-    SceneAppState,
     controller::Controller,
-    data::design3d::SceneDesignReaderExt as _,
     element_selector::{CornerType, ElementSelector, SceneElement},
     view::grid::GridIntersection,
 };
@@ -15,23 +13,24 @@ use ensnano_design::{
     interaction_modes::ActionMode,
     nucl::Nucl,
 };
+use ensnano_state::app_state::AppState;
 use ultraviolet::{Vec2, Vec3};
 use winit::{dpi::PhysicalPosition, keyboard::ModifiersState};
 
 const REVOLUTION_AXIS_WIDTH: f32 = 1.;
 
 /// The context in which an event took place.
-pub(crate) struct EventContext<'a, S: SceneAppState> {
-    controller: &'a Controller<S>,
-    app_state: &'a S,
+pub(crate) struct EventContext<'a> {
+    controller: &'a Controller,
+    app_state: &'a AppState,
     pixel_reader: &'a mut ElementSelector,
     pub cursor_position: PhysicalPosition<f64>,
 }
 
-impl<'a, S: SceneAppState> EventContext<'a, S> {
+impl<'a> EventContext<'a> {
     pub(crate) fn new(
-        controller: &'a Controller<S>,
-        app_state: &'a S,
+        controller: &'a Controller,
+        app_state: &'a AppState,
         pixel_reader: &'a mut ElementSelector,
         cursor_position: PhysicalPosition<f64>,
     ) -> Self {
@@ -179,10 +178,7 @@ impl<'a, S: SceneAppState> EventContext<'a, S> {
     }
 
     pub(crate) fn is_editing_bezier_path(&self) -> bool {
-        matches!(
-            self.app_state.get_action_mode(),
-            (ActionMode::EditBezierPath, _)
-        )
+        matches!(self.app_state.get_action_mode(), ActionMode::EditBezierPath)
     }
 
     pub(crate) fn get_bezier_vertex_being_edited(&self) -> Option<BezierVertexId> {
@@ -281,7 +277,7 @@ impl<'a, S: SceneAppState> EventContext<'a, S> {
     }
 
     pub(crate) fn get_action_mode(&self) -> ActionMode {
-        self.app_state.get_action_mode().0
+        self.app_state.get_action_mode()
     }
 
     pub(crate) fn get_object_at_grid_pos(&self, position: GridPosition) -> Option<GridObject> {

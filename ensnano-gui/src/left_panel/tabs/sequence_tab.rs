@@ -1,10 +1,10 @@
 use crate::{
     helpers::{extra_jump, right_checkbox, section, text_button},
-    left_panel::{Message, tabs::GuiTab},
-    state::GuiAppState,
+    left_panel::{LeftPanelMessage, tabs::GuiTab},
     theme,
 };
 use ensnano_design::design_element::DesignElementKey;
+use ensnano_state::app_state::AppState;
 use ensnano_utils::{
     StandardSequence, consts::ICON_ATGC, keyboard_priority::keyboard_priority, ui_size::UiSize,
 };
@@ -13,13 +13,11 @@ use iced::{
     widget::{column, row, scrollable, text, text_input},
 };
 use iced_aw::TabLabel;
-use std::marker::PhantomData;
 
-pub struct SequenceTab<State: GuiAppState> {
+pub struct SequenceTab {
     toggle_text_value: bool,
     scaffold_position_str: String,
     scaffold_position: usize,
-    _state_type: PhantomData<State>,
 }
 
 macro_rules! scaffold_length_fmt {
@@ -44,13 +42,12 @@ fn get_sequence_name(sequence: &str) -> &'static str {
     }
 }
 
-impl<State: GuiAppState> SequenceTab<State> {
+impl SequenceTab {
     pub fn new() -> Self {
         Self {
             toggle_text_value: false,
             scaffold_position_str: "0".to_owned(),
             scaffold_position: 0,
-            _state_type: PhantomData,
         }
     }
 
@@ -85,14 +82,14 @@ impl<State: GuiAppState> SequenceTab<State> {
     }
 }
 
-impl<State: GuiAppState> GuiTab<State> for SequenceTab<State> {
-    type Message = Message<State>;
+impl GuiTab for SequenceTab {
+    type Message = LeftPanelMessage;
 
     fn label(&self) -> TabLabel {
         TabLabel::Icon(ICON_ATGC)
     }
 
-    fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {
+    fn content(&self, ui_size: UiSize, app_state: &AppState) -> iced::Element<'_, Self::Message> {
         // TODO: This update should happen, but somewhere else in the code.
         //       I think it must happen inside LeftPanel::update
         //
@@ -108,9 +105,11 @@ impl<State: GuiAppState> GuiTab<State> for SequenceTab<State> {
             // add_show_sequence_button!
             {
                 if self.toggle_text_value {
-                    text_button("Hide Sequences", ui_size).on_press(Message::ToggleText(false))
+                    text_button("Hide Sequences", ui_size)
+                        .on_press(LeftPanelMessage::ToggleText(false))
                 } else {
-                    text_button("Show Sequences", ui_size).on_press(Message::ToggleText(true))
+                    text_button("Show Sequences", ui_size)
+                        .on_press(LeftPanelMessage::ToggleText(true))
                 }
             },
             extra_jump(),
@@ -122,12 +121,12 @@ impl<State: GuiAppState> GuiTab<State> for SequenceTab<State> {
                 let mut button_selection_from_scaffold = text_button("Show", ui_size);
                 if app_state.get_scaffold_info().is_some() {
                     button_selection_from_scaffold =
-                        button_selection_from_scaffold.on_press(Message::SelectScaffold);
+                        button_selection_from_scaffold.on_press(LeftPanelMessage::SelectScaffold);
                 }
                 let selection = app_state.get_selection_as_design_element();
                 if let Some(n) = Self::get_candidate_scaffold(&selection) {
-                    button_selection_to_scaffold =
-                        button_selection_to_scaffold.on_press(Message::ScaffoldIdSet(n, true));
+                    button_selection_to_scaffold = button_selection_to_scaffold
+                        .on_press(LeftPanelMessage::ScaffoldIdSet(n, true));
                 }
                 row![button_selection_to_scaffold, button_selection_from_scaffold,]
                     .spacing(ui_size.button_spacing())
@@ -155,13 +154,13 @@ impl<State: GuiAppState> GuiTab<State> for SequenceTab<State> {
             right_checkbox(
                 app_state.get_reader().rainbow_scaffold(),
                 "Rainbow Scaffold",
-                Message::RainbowScaffold,
+                LeftPanelMessage::RainbowScaffold,
                 ui_size,
             ),
             extra_jump(),
             // add_set_scaffold_sequence_button!
             text_button("Set scaffold sequence", ui_size)
-                .on_press(Message::SetScaffoldSeqButtonPressed),
+                .on_press(LeftPanelMessage::SetScaffoldSeqButtonPressed),
             // show_current_sequence_name!
             {
                 let name = app_state
@@ -176,9 +175,9 @@ impl<State: GuiAppState> GuiTab<State> for SequenceTab<State> {
                 text("Starting position").width(Length::FillPortion(2)),
                 keyboard_priority(
                     "Scaffold position",
-                    Message::SetKeyboardPriority,
+                    LeftPanelMessage::SetKeyboardPriority,
                     text_input("Scaffold position", &self.scaffold_position_str)
-                        .on_input(Message::ScaffoldPositionInput,)
+                        .on_input(LeftPanelMessage::ScaffoldPositionInput,)
                         .style(theme::BadValue(
                             self.scaffold_position_str == self.scaffold_position.to_string(),
                         ))
@@ -187,7 +186,7 @@ impl<State: GuiAppState> GuiTab<State> for SequenceTab<State> {
             ],
             // add_optimize_scaffold_shift_button!
             text_button("Optimize starting position", ui_size)
-                .on_press(Message::OptimizeScaffoldShiftPressed),
+                .on_press(LeftPanelMessage::OptimizeScaffoldShiftPressed),
             // add_scaffold_start_position!
             {
                 let starting_nucl = app_state
@@ -219,8 +218,9 @@ impl<State: GuiAppState> GuiTab<State> for SequenceTab<State> {
             extra_jump(),
             // add_download_staples_button!
             column![
-                text_button("Export Staples", ui_size).on_press(Message::StaplesRequested),
-                text_button("Export Origamis", ui_size).on_press(Message::OrigamisRequested),
+                text_button("Export Staples", ui_size).on_press(LeftPanelMessage::StaplesRequested),
+                text_button("Export Origamis", ui_size)
+                    .on_press(LeftPanelMessage::OrigamisRequested),
             ]
             .spacing(ui_size.button_spacing()),
         ];

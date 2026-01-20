@@ -1,6 +1,5 @@
 use crate::{
-    SceneAppState,
-    data::design3d::{Design3D, SceneDesignReaderExt, create_dna_bond},
+    data::design3d::{Design3D, create_dna_bond},
     element_selector,
     view::{
         dna_obj::{RawDnaInstance, SphereInstance, TubeInstance},
@@ -15,8 +14,8 @@ use ensnano_design::{
         bezier::{BezierControlPoint, BezierEndCoordinates, CubicBezierControlPoint},
     },
     parameters::HelixParameters,
-    selection::Selection,
 };
+use ensnano_state::{app_state::AppState, design::selection::Selection};
 use ensnano_utils::{
     consts::{
         BEZIER_CONTROL_RADIUS, BEZIER_CONTROL1_COLOR, BEZIER_CONTROL2_COLOR, BEZIER_END_COLOR,
@@ -28,7 +27,7 @@ use ensnano_utils::{
 };
 use ultraviolet::{Rotor3, Vec2, Vec3};
 
-impl<R: SceneDesignReaderExt> Design3D<R> {
+impl Design3D {
     pub fn get_bezier_elements(&self, h_id: usize) -> (Vec<RawDnaInstance>, Vec<RawDnaInstance>) {
         let mut spheres = Vec::new();
         let mut tubes = Vec::new();
@@ -98,10 +97,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
         }
     }
 
-    pub fn get_bezier_sheets<S: SceneAppState>(
-        &self,
-        app_state: &S,
-    ) -> (Vec<Sheet2D>, Vec<RawDnaInstance>) {
+    pub fn get_bezier_sheets(&self, app_state: &AppState) -> (Vec<Sheet2D>, Vec<RawDnaInstance>) {
         let mut sheets = Vec::new();
         let mut spheres = Vec::new();
         let axis_position = app_state.get_revolution_axis_position();
@@ -135,9 +131,9 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
             .map(|v| v.position)
     }
 
-    pub fn get_bezier_paths_elements<S: SceneAppState>(
+    pub fn get_bezier_paths_elements(
         &self,
-        app_state: &S,
+        app_state: &AppState,
     ) -> (Vec<RawDnaInstance>, Vec<RawDnaInstance>) {
         let mut spheres = Vec::new();
         let mut tubes = Vec::new();

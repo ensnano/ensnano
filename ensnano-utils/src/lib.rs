@@ -2,7 +2,6 @@
 //! interact with the design.
 
 pub mod app_state_parameters;
-pub mod application;
 pub mod bindgroup_manager;
 pub mod buffer_dimensions;
 pub mod clipboard;
@@ -14,7 +13,6 @@ pub mod instance;
 pub mod keyboard_priority;
 pub mod multiplexer_ext;
 pub mod obj_loader;
-pub mod operation;
 pub mod overlay;
 pub mod strand_builder;
 pub mod surfaces;

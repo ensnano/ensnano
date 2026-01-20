@@ -1,10 +1,11 @@
-use crate::{GuiAppState, GuiRequests, theme::GuiBackground};
-use ensnano_utils::{
-    PastingStatus,
-    keyboard_priority::{PriorityRequest, keyboard_priority},
-    operation::{CurrentOpState, Operation},
-    ui_size::UiSize,
+use crate::theme::GuiBackground;
+use ensnano_state::{
+    app_state::AppState,
+    gui::messages::StatusBarMessage,
+    requests::Requests,
+    utils::operation::{CurrentOpState, Operation},
 };
+use ensnano_utils::{PastingStatus, keyboard_priority::keyboard_priority, ui_size::UiSize};
 use iced::{
     Alignment, Color, Element, Length,
     widget::{Row, Space, Text, column, container, horizontal_space, row, text, text_input},
@@ -37,20 +38,20 @@ impl StatusParameter {
     }
 }
 
-pub struct StatusBar<R: GuiRequests, S: GuiAppState> {
+pub struct StatusBarState {
     operation: Option<OperationInput>,
-    requests: Arc<Mutex<R>>,
+    requests: Arc<Mutex<Requests>>,
     progress: Option<(String, f32)>,
-    app_state: S,
+    app_state: AppState,
     ui_size: UiSize,
     message: Option<String>,
     logical_size: LogicalSize<f64>,
 }
 
-impl<R: GuiRequests, State: GuiAppState> StatusBar<R, State> {
+impl StatusBarState {
     pub fn new(
-        requests: Arc<Mutex<R>>,
-        state: &State,
+        requests: Arc<Mutex<Requests>>,
+        state: &AppState,
         logical_size: LogicalSize<f64>,
         ui_size: UiSize,
     ) -> Self {
@@ -81,7 +82,7 @@ impl<R: GuiRequests, State: GuiAppState> StatusBar<R, State> {
         }
     }
 
-    fn view_progress(&self) -> Row<'_, Message<State>> {
+    fn view_progress(&self) -> Row<'_, StatusBarMessage> {
         let progress = self.progress.as_ref().unwrap();
         row![
             text(format!("{}, {:.1}%", progress.0, progress.1 * 100.))
@@ -90,22 +91,8 @@ impl<R: GuiRequests, State: GuiAppState> StatusBar<R, State> {
     }
 }
 
-// List of Messages that can be send by the status bar.
-#[derive(Clone, Debug)]
-pub enum Message<S: GuiAppState> {
-    ValueStrChanged(usize, String),
-    ValueSet(usize, String),
-    Progress(Option<(String, f32)>),
-    NewApplicationState(S),
-    UiSizeChanged(UiSize),
-    TabPressed,
-    Message(Option<String>),
-    Resize(LogicalSize<f64>),
-    SetKeyboardPriority(PriorityRequest),
-}
-
-impl<R: GuiRequests, S: GuiAppState> Program for StatusBar<R, S> {
-    type Message = Message<S>;
+impl Program for StatusBarState {
+    type Message = StatusBarMessage;
     type Theme = iced::Theme;
     type Renderer = iced::Renderer;
 
@@ -122,12 +109,12 @@ impl<R: GuiRequests, S: GuiAppState> Program for StatusBar<R, S> {
             log::trace!("operation is none");
         }
         match message {
-            Message::ValueStrChanged(n, s) => {
+            StatusBarMessage::ValueStrChanged(n, s) => {
                 if let Some(operation) = self.operation.as_mut() {
                     operation.update_input_str(n, s);
                 }
             }
-            Message::ValueSet(n, s) => {
+            StatusBarMessage::ValueSet(n, s) => {
                 if let Some(operation) = self.operation.as_mut()
                     && let Some(new_operation) = operation.update_value(n, s)
                 {
@@ -137,14 +124,14 @@ impl<R: GuiRequests, S: GuiAppState> Program for StatusBar<R, S> {
                         .update_current_operation(new_operation);
                 }
             }
-            Message::Progress(progress) => self.progress = progress,
-            Message::NewApplicationState(state) => self.app_state = state,
-            Message::UiSizeChanged(ui_size) => self.set_ui_size(ui_size),
+            StatusBarMessage::Progress(progress) => self.progress = progress,
+            StatusBarMessage::NewApplicationState(state) => self.app_state = state,
+            StatusBarMessage::UiSizeChanged(ui_size) => self.set_ui_size(ui_size),
             //Message::TabPressed => self.process_tab(),
-            Message::TabPressed => (),
-            Message::Message(message) => self.message = message,
-            Message::Resize(size) => self.logical_size = size,
-            Message::SetKeyboardPriority(priority) => self
+            StatusBarMessage::TabPressed => (),
+            StatusBarMessage::Message(message) => self.message = message,
+            StatusBarMessage::Resize(size) => self.logical_size = size,
+            StatusBarMessage::SetKeyboardPriority(priority) => self
                 .requests
                 .lock()
                 .unwrap()
@@ -197,6 +184,7 @@ impl<R: GuiRequests, S: GuiAppState> Program for StatusBar<R, S> {
             .into()
     }
 }
+
 struct OperationInput {
     /// The values obtained with Operation::values
     values: Vec<String>,
@@ -262,7 +250,7 @@ impl OperationInput {
         self.operation = operation;
     }
 
-    fn view<S: GuiAppState>(&self, ui_size: UiSize) -> Row<'_, Message<S>> {
+    fn view(&self, ui_size: UiSize) -> Row<'_, StatusBarMessage> {
         let mut row = Row::new();
         let op = self.operation.as_ref();
         row = row.push(text(op.description()).size(ui_size.main_text()));
@@ -275,10 +263,10 @@ impl OperationInput {
         for i in 0..self.values.len() {
             if let Some(param) = op.parameters().get(i) {
                 let mut input = text_input("", &format!("{0:.4}", str_values[i]))
-                    .on_input(move |s| Message::ValueStrChanged(i, s))
+                    .on_input(move |s| StatusBarMessage::ValueStrChanged(i, s))
                     .size(ui_size.main_text())
                     .width(40)
-                    .on_submit(Message::ValueSet(i, str_values[i].clone()));
+                    .on_submit(StatusBarMessage::ValueSet(i, str_values[i].clone()));
                 if active_input.get(i) == Some(&true) {
                     let state = if values.get(i) == str_values.get(i) {
                         InputValueState::Normal
@@ -295,7 +283,7 @@ impl OperationInput {
                     .push(text(param).size(ui_size.main_text()))
                     .push(keyboard_priority(
                         "Status bar unnamed priority",
-                        Message::SetKeyboardPriority,
+                        StatusBarMessage::SetKeyboardPriority,
                         input,
                     ));
             }

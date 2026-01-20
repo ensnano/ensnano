@@ -1,0 +1,227 @@
+use crate::app_state::design_interactor::DesignInteractor;
+use crate::design::{operation::InsertionPoint, selection::Selection};
+use ensnano_design::{
+    CameraId,
+    bezier_plane::{BezierPathId, BezierVertexId},
+    design_element::DesignElement,
+    grid::GridId,
+    nucl::Nucl,
+    organizer_tree::OrganizerTree,
+    strands::Strand,
+};
+use std::sync::Arc;
+use ultraviolet::{Rotor3, Vec2, Vec3};
+
+impl DesignInteractor {
+    pub fn grid_has_small_spheres(&self, g_id: GridId) -> bool {
+        self.presenter.content.grid_has_small_spheres(g_id)
+    }
+
+    pub fn grid_has_persistent_phantom(&self, g_id: GridId) -> bool {
+        self.presenter.content.grid_has_persistent_phantom(g_id)
+    }
+
+    pub fn get_grid_nb_turn(&self, g_id: GridId) -> Option<f32> {
+        self.presenter.content.get_grid_nb_turn(g_id)
+    }
+
+    pub fn get_strand_length(&self, s_id: usize) -> Option<usize> {
+        self.presenter
+            .current_design
+            .strands
+            .get(&s_id)
+            .map(Strand::length)
+    }
+
+    pub fn is_id_of_scaffold(&self, s_id: usize) -> bool {
+        self.presenter.current_design.scaffold_id == Some(s_id)
+    }
+
+    pub fn nucl_is_anchor(&self, nucl: Nucl) -> bool {
+        self.presenter.current_design.anchors.contains(&nucl)
+    }
+
+    pub fn length_decomposition(&self, s_id: usize) -> String {
+        self.presenter.decompose_length(s_id)
+    }
+
+    pub fn get_dna_elements(&self) -> &[DesignElement] {
+        self.presenter.content.elements.as_slice()
+    }
+
+    pub fn get_organizer_tree(&self) -> Option<Arc<OrganizerTree>> {
+        self.presenter.get_design().organizer_tree.clone()
+    }
+
+    pub fn strand_name(&self, s_id: usize) -> String {
+        self.presenter
+            .current_design
+            .strands
+            .get(&s_id)
+            .and_then(|s| s.name.as_ref().map(ToString::to_string))
+            .unwrap_or_else(|| String::from("Unnamed strand"))
+    }
+
+    pub fn get_all_cameras(&self) -> Vec<(CameraId, &str)> {
+        //TODO this obviously needs to be updated to relate to the real content
+        self.presenter
+            .current_design
+            .get_cameras()
+            .map(|(id, cam)| (*id, cam.name.as_str()))
+            .collect()
+    }
+
+    pub fn get_grid_position_and_orientation(&self, g_id: GridId) -> Option<(Vec3, Rotor3)> {
+        self.presenter
+            .current_design
+            .free_grids
+            .get_from_g_id(&g_id)
+            .map(|g| (g.position, g.orientation))
+    }
+
+    pub fn xover_length(&self, xover_id: usize) -> Option<(f32, Option<f32>)> {
+        let (n1, n2) = self.presenter.junctions_ids.get_element(xover_id)?;
+        let len_self = self.presenter.get_xover_len(xover_id)?;
+        let neighbor_id = self
+            .presenter
+            .junctions_ids
+            .get_id(&(n1.prime3(), n2.prime5()))
+            .or_else(|| {
+                self.presenter
+                    .junctions_ids
+                    .get_id(&(n1.prime5(), n2.prime3()))
+            })
+            .or_else(|| {
+                self.presenter
+                    .junctions_ids
+                    .get_id(&(n2.prime5(), n1.prime3()))
+            })
+            .or_else(|| {
+                self.presenter
+                    .junctions_ids
+                    .get_id(&(n2.prime5(), n1.prime3()))
+            });
+
+        let len_neighbor = neighbor_id.and_then(|id| self.presenter.get_xover_len(id));
+
+        Some((len_self, len_neighbor))
+    }
+
+    pub fn rainbow_scaffold(&self) -> bool {
+        self.presenter.current_design.rainbow_scaffold
+    }
+
+    pub fn get_insertion_length_in_selection(&self, selection: &Selection) -> Option<usize> {
+        match selection {
+            Selection::Bond(_, n1, n2) => {
+                let bond_id = self
+                    .presenter
+                    .content
+                    .identifier_bond
+                    .get(&(*n1, *n2))
+                    .or_else(|| self.presenter.content.identifier_bond.get(&(*n2, *n1)))?;
+                self.presenter
+                    .content
+                    .insertion_length
+                    .get(bond_id)
+                    .copied()
+                    .or(Some(0))
+            }
+            Selection::Xover(_, xover_id) => {
+                let (n1, n2) = self.presenter.junctions_ids.get_element(*xover_id)?;
+                let bond_id = self
+                    .presenter
+                    .content
+                    .identifier_bond
+                    .get(&(n1, n2))
+                    .or_else(|| self.presenter.content.identifier_bond.get(&(n2, n1)))?;
+                self.presenter
+                    .content
+                    .insertion_length
+                    .get(bond_id)
+                    .copied()
+                    .or(Some(0))
+            }
+            Selection::Nucleotide(_, nucl) => {
+                let nucl_id = self
+                    .presenter
+                    .content
+                    .nucl_collection
+                    .get_identifier(nucl)?;
+                if self.prime5_of_which_strand(*nucl).is_some()
+                    || self.prime3_of_which_strand(*nucl).is_some()
+                {
+                    self.presenter
+                        .content
+                        .insertion_length
+                        .get(nucl_id)
+                        .copied()
+                        .or(Some(0))
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        }
+    }
+
+    pub fn get_insertion_point(&self, selection: &Selection) -> Option<InsertionPoint> {
+        match selection {
+            Selection::Bond(_, n1, _n2) => Some(InsertionPoint {
+                nucl: *n1,
+                nucl_is_prime5_of_insertion: true,
+            }),
+            Selection::Xover(_, xover_id) => {
+                let (n1, _n2) = self.presenter.junctions_ids.get_element(*xover_id)?;
+                Some(InsertionPoint {
+                    nucl: n1,
+                    nucl_is_prime5_of_insertion: true,
+                })
+            }
+            Selection::Nucleotide(_, nucl) => {
+                if let Some(_s_id) = self.prime5_of_which_strand(*nucl) {
+                    Some(InsertionPoint {
+                        nucl: *nucl,
+                        nucl_is_prime5_of_insertion: false,
+                    })
+                } else {
+                    self.prime3_of_which_strand(*nucl)
+                        .map(|_s_id| InsertionPoint {
+                            nucl: *nucl,
+                            nucl_is_prime5_of_insertion: true,
+                        })
+                }
+            }
+            _ => None,
+        }
+    }
+
+    pub fn is_bezier_path_cyclic(&self, path_id: BezierPathId) -> Option<bool> {
+        self.presenter
+            .current_design
+            .bezier_paths
+            .get(&path_id)
+            .map(|p| p.is_cyclic)
+    }
+
+    pub fn get_bezier_vertex_position(&self, vertex_id: BezierVertexId) -> Option<Vec2> {
+        let path = self
+            .presenter
+            .current_design
+            .bezier_paths
+            .get(&vertex_id.path_id)?;
+        path.vertices().get(vertex_id.vertex_id).map(|v| v.position)
+    }
+
+    pub fn get_scaffold_sequence(&self) -> Option<&str> {
+        self.presenter.current_design.scaffold_sequence.as_deref()
+    }
+
+    pub fn get_current_length_of_relaxed_shape(&self) -> Option<usize> {
+        self.presenter
+            .current_design
+            .additional_structure
+            .as_ref()
+            .and_then(|s| s.current_length())
+    }
+}

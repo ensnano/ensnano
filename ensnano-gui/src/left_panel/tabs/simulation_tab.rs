@@ -1,16 +1,19 @@
 use crate::{
     helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
     left_panel::{
-        BrownianParametersFactory, Message, RigidBodyFactory, RigidBodyParametersRequest,
-        discrete_value::{FactoryId, RequestFactory, ValueId},
+        BrownianParametersFactory, LeftPanelMessage, RigidBodyFactory, RigidBodyParametersRequest,
+        discrete_value::RequestFactory,
         tabs::{GuiTab, gostop::GoStop},
     },
-    requests::GuiRequests,
-    state::GuiAppState,
-    theme,
+    theme::BadValue,
 };
 use ensnano_physics::parameters::{
     RAPIER_FLOAT_PARAMETERS_COUNT, RapierParameters, RapierSimulationType,
+};
+use ensnano_state::{
+    app_state::AppState,
+    gui::messages::{FactoryId, ValueId},
+    requests::Requests,
 };
 use ensnano_utils::{
     RollRequest, SimulationState, consts::ICON_PHYSICAL_ENGINE,
@@ -26,18 +29,18 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-pub struct SimulationTab<State: GuiAppState> {
+pub struct SimulationTab {
     rigid_body_factory: RequestFactory<RigidBodyFactory>,
     brownian_factory: RequestFactory<BrownianParametersFactory>,
-    //rigid_grid_button: GoStop<State>,
-    rigid_helices_button: GoStop<State>,
+    //rigid_grid_button: GoStop,
+    rigid_helices_button: GoStop,
     physical_simulation: PhysicalSimulation,
     pub rapier_parameters: RapierParameters,
     // holds the value of the string fields
     pub rapier_parameter_fields: HashMap<String, String>,
 }
 
-impl<State: GuiAppState> SimulationTab<State> {
+impl SimulationTab {
     pub fn new() -> Self {
         let init_brownian = BrownianParametersFactory {
             rate: 0.,
@@ -55,7 +58,7 @@ impl<State: GuiAppState> SimulationTab<State> {
             brownian_factory: RequestFactory::new(FactoryId::Brownian, init_brownian),
             rigid_helices_button: GoStop::new(
                 String::from("Rigid Helices"),
-                Message::RigidHelicesSimulation,
+                LeftPanelMessage::RigidHelicesSimulation,
             ),
             physical_simulation: Default::default(),
             rapier_parameters: Default::default(),
@@ -100,7 +103,7 @@ impl<State: GuiAppState> SimulationTab<State> {
         self.physical_simulation.request()
     }
 
-    pub fn leave_tab<R: GuiRequests>(&self, requests: Arc<Mutex<R>>, app_state: &State) {
+    pub fn leave_tab(&self, requests: Arc<Mutex<Requests>>, app_state: &AppState) {
         if SimulationState::RigidGrid == app_state.get_simulation_state() {
             self.request_stop_rigid_body_simulation(requests);
             println!("stop grids");
@@ -110,7 +113,7 @@ impl<State: GuiAppState> SimulationTab<State> {
         }
     }
 
-    fn request_stop_rigid_body_simulation<R: GuiRequests>(&self, requests: Arc<Mutex<R>>) {
+    fn request_stop_rigid_body_simulation(&self, requests: Arc<Mutex<Requests>>) {
         let mut request = None;
         self.make_rigid_body_request(&mut request);
         if let Some(request) = request {
@@ -122,15 +125,15 @@ impl<State: GuiAppState> SimulationTab<State> {
     }
 
     fn helix_btns<'a>(
-        go_stop: &'a GoStop<State>,
-        app_state: &State,
+        go_stop: &'a GoStop,
+        app_state: &AppState,
         ui_size: UiSize,
-    ) -> iced::Element<'a, Message<State>> {
+    ) -> iced::Element<'a, LeftPanelMessage> {
         let sim_state = app_state.get_simulation_state();
         if sim_state.is_paused() {
             row![
                 go_stop.view(true, false),
-                text_button("Reset", ui_size).on_press(Message::ResetSimulation),
+                text_button("Reset", ui_size).on_press(LeftPanelMessage::ResetSimulation),
             ]
             .spacing(3)
             .into()
@@ -141,14 +144,14 @@ impl<State: GuiAppState> SimulationTab<State> {
     }
 }
 
-impl<State: GuiAppState> GuiTab<State> for SimulationTab<State> {
-    type Message = Message<State>;
+impl GuiTab for SimulationTab {
+    type Message = LeftPanelMessage;
 
     fn label(&self) -> TabLabel {
         TabLabel::Icon(ICON_PHYSICAL_ENGINE)
     }
 
-    fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {
+    fn content(&self, ui_size: UiSize, app_state: &AppState) -> iced::Element<'_, Self::Message> {
         let sim_state = &app_state.get_simulation_state();
         let rigid_grid_is_active = sim_state.is_none() || sim_state.simulating_grid();
         let roll_active = sim_state.is_none() || sim_state.is_rolling();
@@ -164,7 +167,7 @@ impl<State: GuiAppState> GuiTab<State> for SimulationTab<State> {
                 start_stop_button(
                     "Rigid Grids",
                     ui_size,
-                    rigid_grid_is_active.then_some(Message::RigidGridSimulation),
+                    rigid_grid_is_active.then_some(LeftPanelMessage::RigidGridSimulation),
                     sim_state.simulating_grid()
                 ),
                 Self::helix_btns(&self.rigid_helices_button, app_state, ui_size,),
@@ -175,13 +178,13 @@ impl<State: GuiAppState> GuiTab<State> for SimulationTab<State> {
             right_checkbox(
                 volume_exclusion,
                 "Volume exclusion",
-                Message::VolumeExclusion,
+                LeftPanelMessage::VolumeExclusion,
                 ui_size,
             ),
             right_checkbox(
                 brownian_motion,
                 "Unmatched nt jiggling",
-                Message::BrownianMotion,
+                LeftPanelMessage::BrownianMotion,
                 ui_size,
             ),
             Column::with_children(
@@ -198,7 +201,7 @@ impl<State: GuiAppState> GuiTab<State> for SimulationTab<State> {
                         RapierSimulationType::KCut,
                     ],
                     Some(self.rapier_parameters.simulation_type),
-                    |simulation_type| Message::UpdateRapierParameters(RapierParameters {
+                    |simulation_type| LeftPanelMessage::UpdateRapierParameters(RapierParameters {
                         simulation_type,
                         ..self.rapier_parameters
                     }),
@@ -208,13 +211,15 @@ impl<State: GuiAppState> GuiTab<State> for SimulationTab<State> {
                         if self.rapier_parameters.is_simulation_running {
                             None
                         } else {
-                            Some(Message::UpdateRapierParameters(apply_parameter_fields(
-                                &self.rapier_parameter_fields,
-                                &RapierParameters {
-                                    is_simulation_running: true,
-                                    ..self.rapier_parameters
-                                },
-                            )))
+                            Some(LeftPanelMessage::UpdateRapierParameters(
+                                apply_parameter_fields(
+                                    &self.rapier_parameter_fields,
+                                    &RapierParameters {
+                                        is_simulation_running: true,
+                                        ..self.rapier_parameters
+                                    },
+                                ),
+                            ))
                         }
                     ),
                     Space::with_width(ui_size.button_spacing()),
@@ -222,12 +227,15 @@ impl<State: GuiAppState> GuiTab<State> for SimulationTab<State> {
                         if !self.rapier_parameters.is_simulation_running || sim_state.is_paused() {
                             None
                         } else {
-                            Some(Message::StopSimulation)
+                            Some(LeftPanelMessage::StopSimulation)
                         }
                     ),
                     Space::with_width(ui_size.button_spacing()),
-                    text_button("Reset", ui_size)
-                        .on_press_maybe(sim_state.is_paused().then(|| Message::ResetSimulation)),
+                    text_button("Reset", ui_size).on_press_maybe(
+                        sim_state
+                            .is_paused()
+                            .then(|| LeftPanelMessage::ResetSimulation)
+                    ),
                 ],
             ]
             .spacing(ui_size.button_spacing()),
@@ -248,11 +256,11 @@ impl<State: GuiAppState> GuiTab<State> for SimulationTab<State> {
     }
 }
 
-fn kcut_threshold_editor<State: GuiAppState>(
+fn kcut_threshold_editor(
     parameters: &RapierParameters,
     fields: &HashMap<String, String>,
     ui_size: UiSize,
-) -> iced::Element<'static, Message<State>> {
+) -> iced::Element<'static, LeftPanelMessage> {
     row![
         "KCut threshold",
         Space::with_width(ui_size.checkbox_spacing()),
@@ -263,7 +271,7 @@ fn kcut_threshold_editor<State: GuiAppState>(
                 } else {
                     parameters.k_cut_threshold - 1
                 };
-                Message::UpdateRapierParameters(apply_parameter_fields(
+                LeftPanelMessage::UpdateRapierParameters(apply_parameter_fields(
                     fields,
                     &RapierParameters {
                         k_cut_threshold: new_value,
@@ -275,7 +283,7 @@ fn kcut_threshold_editor<State: GuiAppState>(
         text_button("+", ui_size).on_press_maybe(
             (parameters.simulation_type == RapierSimulationType::KCut).then(|| {
                 let new_value = parameters.k_cut_threshold + 1;
-                Message::UpdateRapierParameters(apply_parameter_fields(
+                LeftPanelMessage::UpdateRapierParameters(apply_parameter_fields(
                     fields,
                     &RapierParameters {
                         k_cut_threshold: new_value,
@@ -333,13 +341,13 @@ fn apply_parameter_fields(
     result
 }
 
-fn rapier_parameters_field_editor<State: GuiAppState>(
+fn rapier_parameters_field_editor(
     description: impl ToString,
     default_value: f32,
     ui_size: UiSize,
     fields: &HashMap<String, String>,
     parameters: &RapierParameters,
-) -> iced::Element<'static, Message<State>> {
+) -> iced::Element<'static, LeftPanelMessage> {
     let description = description.to_string();
     let default_field_value = default_value.to_string();
     let current_value = fields.get(&description).unwrap_or(&default_field_value);
@@ -349,32 +357,32 @@ fn rapier_parameters_field_editor<State: GuiAppState>(
         Space::with_width(ui_size.checkbox_spacing()),
         keyboard_priority(
             "Rapier parameters ".to_owned() + &description,
-            Message::<State>::SetKeyboardPriority,
+            LeftPanelMessage::SetKeyboardPriority,
             // if parameters.is_simulation_running {
             //     text_input(current_value, current_value)
             // } else {
             text_input(current_value, current_value)
                 .on_input(move |str| {
-                    Message::UpdateRapierParameterField(description.clone(), str)
+                    LeftPanelMessage::UpdateRapierParameterField(description.clone(), str)
                 })
-                .on_submit(Message::UpdateRapierParameters(apply_parameter_fields(
-                    fields, parameters,
-                )))
+                .on_submit(LeftPanelMessage::UpdateRapierParameters(
+                    apply_parameter_fields(fields, parameters,)
+                ))
                 // }
                 .width(70)
-                .style(theme::BadValue(true)),
+                .style(BadValue(true)),
         )
     ]
     .align_items(Alignment::Center)
     .into()
 }
 
-fn view_rapier_parameters<State: GuiAppState>(
+fn view_rapier_parameters(
     parameters: RapierParameters,
     fields: &HashMap<String, String>,
     ui_size: UiSize,
-) -> iced::Element<'static, Message<State>> {
-    let mut elements: Vec<iced::Element<'static, Message<State>>> =
+) -> iced::Element<'static, LeftPanelMessage> {
+    let mut elements: Vec<iced::Element<'static, LeftPanelMessage>> =
         vec![subsection("Rapier parameters", ui_size).into()];
 
     let values = parameters.parameters_array();
@@ -398,13 +406,13 @@ fn view_rapier_parameters<State: GuiAppState>(
 struct PhysicalSimulation;
 
 impl PhysicalSimulation {
-    fn view<State: GuiAppState>(
+    fn view(
         &self,
         ui_size: UiSize,
         name: &'static str,
         active: bool,
         running: bool,
-    ) -> iced::Element<'_, Message<State>> {
+    ) -> iced::Element<'_, LeftPanelMessage> {
         let button_str = if running { "Stop" } else { name };
         let mut button = text_button(button_str, ui_size);
         button = if running {
@@ -413,7 +421,7 @@ impl PhysicalSimulation {
             button.style(iced::theme::Button::Positive)
         };
         if active {
-            button = button.on_press(Message::RollSimulationRequest);
+            button = button.on_press(LeftPanelMessage::RollSimulationRequest);
         }
         row![button].into()
     }

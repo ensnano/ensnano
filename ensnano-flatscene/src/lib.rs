@@ -24,31 +24,30 @@ mod full_isometry;
 mod ndc;
 mod view;
 
-use self::{
+use crate::{
     camera2d::{Camera2D, FitRectangle},
-    data::design::FlatSceneDesignReaderExt,
     flat_types::FlatNucl,
 };
 use controller::{Consequence, Controller};
 use data::Data;
-use ensnano_design::{
-    MainDesignReaderExt,
-    consts::ITERATIVE_AXIS_ALGORITHM,
-    interaction_modes::SelectionMode,
-    nucl::Nucl,
-    operation::DesignOperation,
-    phantom_element::PhantomElement,
-    selection::{Selection, extract_nucls_and_xover_ends},
+use ensnano_design::{consts::ITERATIVE_AXIS_ALGORITHM, phantom_element::PhantomElement};
+use ensnano_state::{
+    app_state::{AppState, design_interactor::DesignInteractor},
+    design::{
+        operation::DesignOperation,
+        selection::{Selection, extract_nucls_and_xover_ends},
+    },
+    requests::Requests,
+    utils::{
+        application::{AppId, Application, Notification},
+        operation::{CrossCut, Cut, Xover},
+    },
 };
 use ensnano_utils::{
-    StrandBuildingStatus,
-    application::{AppId, Application, Notification},
     buffer_dimensions::BufferDimensions,
     consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE},
     filename::derive_path_with_prefix_and_time_stamp_and_suffix,
     graphics::{DrawArea, PhySize},
-    operation::{CrossCut, Cut, Operation, Xover},
-    strand_builder::StrandBuilder,
 };
 use itertools::Itertools as _;
 use std::{
@@ -59,13 +58,12 @@ use std::{
     sync::{Arc, Mutex},
     time::{Duration, Instant},
 };
-use ultraviolet::Isometry2;
 use view::View;
 use wgpu::{Device, Queue};
 use winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon};
 
 type ViewPtr = Rc<RefCell<View>>;
-type DataPtr<R> = Rc<RefCell<Data<R>>>;
+type DataPtr = Rc<RefCell<Data>>;
 type CameraPtr = Rc<RefCell<Camera2D>>;
 
 fn png_resolution([w, h]: [f32; 2]) -> [f32; 2] {
@@ -80,13 +78,13 @@ fn png_resolution([w, h]: [f32; 2]) -> [f32; 2] {
 }
 
 /// A Flatscene handles one design at a time
-pub struct FlatScene<S: FlatSceneAppState> {
+pub struct FlatScene {
     /// Handle the data to send to the GPU.
     view: Vec<ViewPtr>,
     /// Handle the data representing the design.
-    data: Vec<DataPtr<S::Reader>>,
+    data: Vec<DataPtr>,
     /// Handle inputs.
-    controller: Vec<Controller<S>>,
+    controller: Vec<Controller>,
     /// The area on which the flatscene is displayed.
     area: DrawArea,
     /// The size of the window on which the flatscene is displayed.
@@ -100,18 +98,18 @@ pub struct FlatScene<S: FlatSceneAppState> {
     last_update: Instant,
     /// Whether the flatscene is split in two.
     is_split: bool,
-    old_state: S,
-    requests: Arc<Mutex<dyn FlatSceneRequests>>,
+    old_state: AppState,
+    requests: Arc<Mutex<Requests>>,
 }
 
-impl<S: FlatSceneAppState> FlatScene<S> {
+impl FlatScene {
     pub fn new(
         device: Rc<Device>,
         queue: Rc<Queue>,
         window_size: PhySize,
         area: DrawArea,
-        requests: Arc<Mutex<dyn FlatSceneRequests>>,
-        initial_state: S,
+        requests: Arc<Mutex<Requests>>,
+        initial_state: AppState,
     ) -> Self {
         let mut ret = Self {
             view: Vec::new(),
@@ -134,7 +132,7 @@ impl<S: FlatSceneAppState> FlatScene<S> {
     /// Add a design to the scene.
     ///
     /// This creates a new `View`, a new `Data` and a new `Controller`
-    fn add_design(&mut self, reader: S::Reader, requests: Arc<Mutex<dyn FlatSceneRequests>>) {
+    fn add_design(&mut self, reader: DesignInteractor, requests: Arc<Mutex<Requests>>) {
         let height = if self.is_split {
             self.area.size.height as f32 / 2.
         } else {
@@ -210,7 +208,7 @@ impl<S: FlatSceneAppState> FlatScene<S> {
         &mut self,
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
-        app_state: &S,
+        app_state: &AppState,
     ) -> Option<CursorIcon> {
         if let Some(controller) = self.controller.get_mut(self.selected_design) {
             let consequence = controller.input(event, cursor_position, app_state);
@@ -222,7 +220,7 @@ impl<S: FlatSceneAppState> FlatScene<S> {
         }
     }
 
-    fn read_consequence(&self, consequence: Consequence, new_state: Option<&S>) {
+    fn read_consequence(&self, consequence: Consequence, new_state: Option<&AppState>) {
         let app_state = new_state.unwrap_or(&self.old_state);
         match consequence {
             Consequence::Xover(nucl1, nucl2) => {
@@ -505,7 +503,7 @@ impl<S: FlatSceneAppState> FlatScene<S> {
     }
 
     /// Ask the view if it has been modified since the last drawing
-    fn needs_redraw_(&mut self, new_state: S) -> bool {
+    fn needs_redraw_(&mut self, new_state: AppState) -> bool {
         self.check_timers();
         if let Some(view) = self.view.get(self.selected_design) {
             self.data[self.selected_design]
@@ -680,8 +678,8 @@ impl<S: FlatSceneAppState> FlatScene<S> {
     }
 }
 
-impl<S: FlatSceneAppState> Application for FlatScene<S> {
-    type AppState = S;
+impl Application for FlatScene {
+    type AppState = AppState;
 
     fn on_notify(&mut self, notification: Notification) {
         match notification {
@@ -792,7 +790,7 @@ impl<S: FlatSceneAppState> Application for FlatScene<S> {
         &mut self,
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
-        app_state: &S,
+        app_state: &AppState,
     ) -> Option<CursorIcon> {
         self.input(event, cursor_position, app_state)
     }
@@ -805,7 +803,7 @@ impl<S: FlatSceneAppState> Application for FlatScene<S> {
         self.draw_view(encoder, target);
     }
 
-    fn needs_redraw(&mut self, _: Duration, app_state: S) -> bool {
+    fn needs_redraw(&mut self, _: Duration, app_state: AppState) -> bool {
         let now = Instant::now();
         if (now - self.last_update).as_millis() < 25 {
             false
@@ -818,35 +816,4 @@ impl<S: FlatSceneAppState> Application for FlatScene<S> {
     fn is_split(&self) -> bool {
         self.is_split
     }
-}
-
-pub trait FlatSceneAppState: Clone {
-    type Reader: FlatSceneDesignReaderExt + MainDesignReaderExt;
-
-    fn selection_was_updated(&self, other: &Self) -> bool;
-    fn candidate_was_updated(&self, other: &Self) -> bool;
-    fn get_selection(&self) -> &[Selection];
-    fn get_candidates(&self) -> &[Selection];
-    fn get_selection_mode(&self) -> SelectionMode;
-    fn get_design_reader(&self) -> Self::Reader;
-    fn get_strand_builders(&self) -> &[StrandBuilder];
-    fn design_was_updated(&self, other: &Self) -> bool;
-    fn is_changing_color(&self) -> bool;
-    fn is_pasting(&self) -> bool;
-    fn get_building_state(&self) -> Option<StrandBuildingStatus>;
-}
-
-pub trait FlatSceneRequests {
-    fn xover_request(&mut self, source: Nucl, target: Nucl, design_id: usize);
-    fn request_center_selection(&mut self, selection: Selection, app_id: AppId);
-    fn new_selection(&mut self, selection: Vec<Selection>);
-    fn new_candidates(&mut self, candidates: Vec<Selection>);
-    fn attempt_paste(&mut self, nucl: Option<Nucl>);
-    fn update_operation(&mut self, operation: Arc<dyn Operation>);
-    fn set_isometry(&mut self, helix: usize, segment_idx: usize, isometry: Isometry2);
-    fn set_visibility_helix(&mut self, helix: usize, visibility: bool);
-    fn flip_group(&mut self, helix: usize);
-    fn suspend_op(&mut self);
-    fn apply_design_operation(&mut self, op: DesignOperation);
-    fn set_paste_candidate(&mut self, candidate: Option<Nucl>);
 }

@@ -2,26 +2,25 @@ use crate::{
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{extra_jump, jump_by, right_checkbox, section, subsection},
     left_panel::{
-        Message, ScrollSensitivity,
-        discrete_value::{FactoryId, RequestFactory, ValueId},
-        tabs::GuiTab,
+        LeftPanelMessage, ScrollSensitivity, discrete_value::RequestFactory, tabs::GuiTab,
     },
-    state::GuiAppState,
 };
 use ensnano_design::{ensnano_version, parameters::NAMED_DNA_PARAMETERS};
+use ensnano_state::{
+    app_state::AppState,
+    gui::messages::{FactoryId, ValueId},
+};
 use ensnano_utils::ui_size::{ALL_UI_SIZES, UiSize};
 use iced::widget::{column, pick_list, scrollable, text};
 use iced_aw::TabLabel;
-use std::marker::PhantomData;
 
-pub struct ParametersTab<State: GuiAppState> {
+pub struct ParametersTab {
     scroll_sensitivity_factory: RequestFactory<ScrollSensitivity>,
     _invert_y_scroll: bool,
-    _state_type: PhantomData<State>,
 }
 
-impl<State: GuiAppState> ParametersTab<State> {
-    pub fn new<S: GuiAppState>(app_state: &S) -> Self {
+impl ParametersTab {
+    pub fn new(app_state: &AppState) -> Self {
         Self {
             scroll_sensitivity_factory: RequestFactory::new(
                 FactoryId::Scroll,
@@ -30,7 +29,6 @@ impl<State: GuiAppState> ParametersTab<State> {
                 },
             ),
             _invert_y_scroll: false,
-            _state_type: PhantomData,
         }
     }
 
@@ -45,21 +43,25 @@ impl<State: GuiAppState> ParametersTab<State> {
     }
 }
 
-impl<State: GuiAppState> GuiTab<State> for ParametersTab<State> {
-    type Message = Message<State>;
+impl GuiTab for ParametersTab {
+    type Message = LeftPanelMessage;
 
     fn label(&self) -> TabLabel {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Settings)))
     }
 
-    fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {
+    fn content(&self, ui_size: UiSize, app_state: &AppState) -> iced::Element<'_, Self::Message> {
         let dna_params = &app_state.get_dna_parameters();
 
         let content = column![
             section("Parameters", ui_size),
             extra_jump(),
             subsection("Font size", ui_size),
-            pick_list(&ALL_UI_SIZES[..], Some(ui_size), Message::UiSizePicked,),
+            pick_list(
+                &ALL_UI_SIZES[..],
+                Some(ui_size),
+                LeftPanelMessage::UiSizePicked,
+            ),
             extra_jump(),
             subsection("Scrolling", ui_size),
             column(
@@ -69,7 +71,7 @@ impl<State: GuiAppState> GuiTab<State> for ParametersTab<State> {
             right_checkbox(
                 app_state.get_invert_y_scroll(),
                 "Inverse direction",
-                Message::InvertScroll,
+                LeftPanelMessage::InvertScroll,
                 ui_size,
             ),
             jump_by(10),
@@ -77,7 +79,7 @@ impl<State: GuiAppState> GuiTab<State> for ParametersTab<State> {
             pick_list(
                 &NAMED_DNA_PARAMETERS[..],
                 Some(app_state.get_dna_parameters().name().clone()),
-                Message::NewDnaParameters,
+                LeftPanelMessage::NewDnaParameters,
             ),
             column![
                 text(format!("  Radius: {:.3} nm", dna_params.helix_radius)),

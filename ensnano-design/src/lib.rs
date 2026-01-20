@@ -24,12 +24,10 @@ pub mod interaction_modes;
 pub mod isometry3_descriptor;
 mod material_colors;
 pub mod nucl;
-pub mod operation;
 pub mod organizer_tree;
 pub mod parameters;
 pub mod phantom_element;
 pub mod scadnano;
-pub mod selection;
 pub mod strands;
 pub mod utils;
 
@@ -47,17 +45,11 @@ use self::{
     parameters::HelixParameters,
     strands::Strands,
 };
-use crate::{
-    grid::HelixGridPosition,
-    organizer_tree::{GroupId, OrganizerTree},
-    strands::Strand,
-};
+use crate::organizer_tree::{GroupId, OrganizerTree};
+use ahash::{HashMap, HashSet};
 use serde::{Deserialize, Serialize};
 use serde_with::{DefaultOnError, serde_as};
-use std::{
-    collections::{BTreeMap, HashMap, HashSet},
-    sync::Arc,
-};
+use std::{collections::BTreeMap, sync::Arc};
 use ultraviolet::{Rotor3, Similarity3, Vec3};
 
 /// The `ensnano` Design structure.
@@ -529,15 +521,6 @@ impl Design {
     pub fn set_helices(&mut self, helices: BTreeMap<usize, Arc<Helix>>) {
         self.helices = Helices(Arc::new(helices));
     }
-}
-
-pub trait MainDesignReaderExt {
-    fn get_grid_position_of_helix(&self, h_id: usize) -> Option<HelixGridPosition>;
-    fn get_xover_id(&self, pair: &(Nucl, Nucl)) -> Option<usize>;
-    fn get_xover_with_id(&self, id: usize) -> Option<(Nucl, Nucl)>;
-    fn get_strand_with_id(&self, id: usize) -> Option<&Strand>;
-    fn get_helix_grid(&self, h_id: usize) -> Option<GridId>;
-    fn get_domain_ends(&self, s_id: usize) -> Option<Vec<Nucl>>;
 }
 
 pub trait AdditionalStructure: Send + Sync {

@@ -1,22 +1,21 @@
-mod drag_drop_target;
 mod hoverable_container;
 mod icon;
-pub(super) mod message;
 mod theme;
 
-use self::{
-    drag_drop_target::{DragDropTarget, DragIdentifier},
+use crate::left_panel::organizer::{
     hoverable_container::HoverableContainer,
-    message::{OrganizerInternalMessage, OrganizerMessage},
-    theme::OrganizerTheme,
+    theme::{OrganizerTheme, SelectionType},
 };
-use crate::left_panel::organizer::theme::SelectionType;
 use ensnano_design::{
     design_element::{
         AttributeDisplay, AttributeWidget, DesignElement, DesignElementKey, DesignElementSection,
         DnaAttribute, DnaAutoGroup,
     },
-    organizer_tree::{GroupId, OrganizerTree},
+    organizer_tree::{GroupId, OrganizerNodeId, OrganizerTree},
+};
+use ensnano_state::gui::{
+    drag_drop_target::{DragDropTarget, DragIdentifier},
+    messages::{OrganizerInternalMessage, OrganizerMessage},
 };
 use ensnano_utils::keyboard_priority::keyboard_priority;
 use iced::{
@@ -672,23 +671,6 @@ impl Organizer {
         }
         for s in &mut self.sections {
             s.update_attributes();
-        }
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub enum OrganizerNodeId {
-    Tree(Vec<usize>),
-    Section(usize),
-    AutoGroup(DnaAutoGroup),
-}
-
-impl OrganizerNodeId {
-    pub fn push(&mut self, x: usize) {
-        if let Self::Tree(v) = self {
-            v.push(x);
-        } else {
-            log::error!("Trying to push on {self:?}");
         }
     }
 }

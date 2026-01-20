@@ -10,38 +10,41 @@ pub mod view;
 
 use crate::{
     controller::{Consequence, Controller, automata::WidgetTarget},
-    data::{Data, design3d::SceneDesignReaderExt},
+    data::Data,
     element_selector::{ElementSelector, SceneElement},
-    view::{DrawOptions, DrawType, View, ViewPtr, ViewUpdate},
+    view::{DrawType, View, ViewPtr, ViewUpdate},
 };
 use ensnano_design::{
     bezier_plane::BezierVertexId,
     consts::ITERATIVE_AXIS_ALGORITHM,
     grid::{GridPosition, HelixGridPosition},
     group_attributes::GroupPivot,
-    interaction_modes::{ActionMode, SelectionMode},
     nucl::Nucl,
-    operation::{DesignOperation, NewBezierTangentVector},
-    organizer_tree::GroupId,
-    selection::{
-        CenterOfSelection, Selection, extract_control_points, list_of_xover_ids,
-        set_of_grids_containing_selection, set_of_helices_containing_selection,
+};
+use ensnano_state::{
+    app_state::AppState,
+    design::{
+        operation::{DesignOperation, NewBezierTangentVector},
+        selection::{
+            Selection, extract_control_points, list_of_xover_ids,
+            set_of_grids_containing_selection, set_of_helices_containing_selection,
+        },
+    },
+    requests::Requests,
+    utils::{
+        application::{AppId, Application, Camera3D, Notification},
+        operation::{
+            BezierControlPointTranslation, GridHelixCreation, GridRotation, GridTranslation,
+            HelixRotation, HelixTranslation, Operation, TranslateBezierPathVertex,
+            TranslateBezierSheetCorner,
+        },
     },
 };
 use ensnano_utils::{
     WidgetBasis,
-    app_state_parameters::check_xovers_parameter::CheckXoversParameter,
-    application::{AppId, Application, Camera3D, Notification},
     buffer_dimensions::BufferDimensions,
     filename::derive_path_with_prefix_and_time_stamp_and_suffix,
     graphics::{DrawArea, FogParameters, PhySize},
-    operation::{
-        BezierControlPointTranslation, GridHelixCreation, GridRotation, GridTranslation,
-        HelixRotation, HelixTranslation, Operation, TranslateBezierPathVertex,
-        TranslateBezierSheetCorner,
-    },
-    strand_builder::StrandBuilder,
-    surfaces::UnrootedRevolutionSurfaceDescriptor,
 };
 use itertools::Itertools as _;
 use maths_3d::FiniteVec3;
@@ -50,7 +53,7 @@ use std::{
     f32::consts::{FRAC_PI_2, TAU},
     fs,
     io::Write as _,
-    path::{Path, PathBuf},
+    path::Path,
     rc::Rc,
     sync::{Arc, Mutex},
     time::Duration,
@@ -62,20 +65,20 @@ use winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon};
 const PNG_SIZE: u32 = 8192;
 
 /// A structure responsible of the 3D display of the designs
-pub struct Scene<S: SceneAppState> {
+pub struct Scene {
     /// The update to be performed before next frame
     update: SceneUpdate,
     /// The Object that handles the drawing to the 3d texture
     view: ViewPtr,
     /// The Object that handles the designs data
-    data: Rc<RefCell<Data<S::AppStateDesignReader>>>,
+    data: Rc<RefCell<Data>>,
     /// The Object that handles input and notifications
-    controller: Controller<S>,
+    controller: Controller,
     /// The limits of the area on which the scene is displayed
     area: DrawArea,
     element_selector: ElementSelector,
-    older_state: S,
-    requests: Arc<Mutex<dyn SceneRequests>>,
+    older_state: AppState,
+    requests: Arc<Mutex<Requests>>,
     scene_kind: SceneKind,
     current_camera: Arc<(Camera3D, f32)>,
 }
@@ -86,7 +89,7 @@ pub enum SceneKind {
     Stereographic,
 }
 
-impl<S: SceneAppState> Scene<S> {
+impl Scene {
     /// Create a new scene.
     /// # Argument
     ///
@@ -97,14 +100,14 @@ impl<S: SceneAppState> Scene<S> {
     /// * `window_size` the *Physical* size of the window in which the application is displayed
     ///
     /// * `area` the limits, in *physical* size of the area on which the scene is displayed
-    pub fn new<R: 'static + SceneRequests>(
+    pub fn new(
         device: Rc<Device>,
         queue: Rc<Queue>,
         window_size: PhySize,
         area: DrawArea,
-        requests: Arc<Mutex<R>>,
+        requests: Arc<Mutex<Requests>>,
         encoder: &mut wgpu::CommandEncoder,
-        initial_state: S,
+        initial_state: AppState,
         scene_kind: SceneKind,
     ) -> Self {
         let update = SceneUpdate::default();
@@ -115,12 +118,11 @@ impl<S: SceneAppState> Scene<S> {
             queue.clone(),
             encoder,
         )));
-        let data: Rc<RefCell<Data<S::AppStateDesignReader>>> = Rc::new(RefCell::new(Data::new(
+        let data: Rc<RefCell<Data>> = Rc::new(RefCell::new(Data::new(
             initial_state.get_design_reader(),
             view.clone(),
         )));
-        let controller: Controller<S> =
-            Controller::new(view.clone(), data.clone(), window_size, area.size);
+        let controller = Controller::new(view.clone(), data.clone(), window_size, area.size);
         let element_selector = ElementSelector::new(
             device,
             queue,
@@ -160,7 +162,7 @@ impl<S: SceneAppState> Scene<S> {
         &mut self,
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
-        app_state: &S,
+        app_state: &AppState,
     ) -> Option<CursorIcon> {
         let consequence = self.controller.input(
             event,
@@ -172,12 +174,12 @@ impl<S: SceneAppState> Scene<S> {
         self.controller.get_icon()
     }
 
-    fn check_timers(&mut self, app_state: &S) {
+    fn check_timers(&mut self, app_state: &AppState) {
         let consequence = self.controller.check_timers();
         self.read_consequence(consequence, app_state);
     }
 
-    fn set_pivot_point(&mut self, app_state: &S) {
+    fn set_pivot_point(&mut self, app_state: &AppState) {
         let mut pivot: Option<FiniteVec3> = self
             .data
             .borrow()
@@ -194,7 +196,7 @@ impl<S: SceneAppState> Scene<S> {
         self.controller.set_pivot_point(pivot);
     }
 
-    fn read_consequence(&mut self, consequence: Consequence, app_state: &S) {
+    fn read_consequence(&mut self, consequence: Consequence, app_state: &AppState) {
         if !matches!(consequence, Consequence::Nothing) {
             log::info!("Consequence {consequence:?}");
         }
@@ -549,7 +551,7 @@ impl<S: SceneAppState> Scene<S> {
             .xover_request(source, target, design_id);
     }
 
-    fn element_center(&mut self, _app_state: &S) -> Option<SceneElement> {
+    fn element_center(&mut self, _app_state: &AppState) -> Option<SceneElement> {
         let clicked_pixel = PhysicalPosition::new(
             self.area.size.width as f64 / 2.,
             self.area.size.height as f64 / 2.,
@@ -563,7 +565,7 @@ impl<S: SceneAppState> Scene<S> {
         grid.or_else(move || self.element_selector.set_selected_id(clicked_pixel))
     }
 
-    fn select(&self, element: Option<SceneElement>, app_state: &S) {
+    fn select(&self, element: Option<SceneElement>, app_state: &AppState) {
         let (selection, center_of_selection) =
             self.data.borrow_mut().set_selection(element, app_state);
         if let Some(selection) = selection {
@@ -578,7 +580,7 @@ impl<S: SceneAppState> Scene<S> {
         &self,
         element: Option<SceneElement>,
         current_selection: &[Selection],
-        app_state: &S,
+        app_state: &AppState,
     ) {
         let selection =
             self.data
@@ -618,7 +620,7 @@ impl<S: SceneAppState> Scene<S> {
         }
     }
 
-    fn set_candidate(&self, element: Option<SceneElement>, app_state: &S) {
+    fn set_candidate(&self, element: Option<SceneElement>, app_state: &AppState) {
         let new_candidates = self.data.borrow_mut().set_candidate(element, app_state);
         let widget = if let Some(SceneElement::WidgetElement(widget_id)) = element {
             Some(widget_id)
@@ -634,7 +636,7 @@ impl<S: SceneAppState> Scene<S> {
         self.requests.lock().unwrap().set_candidate(selection);
     }
 
-    fn translate_selected_design(&self, translation: Vec3, app_state: &S) {
+    fn translate_selected_design(&self, translation: Vec3, app_state: &AppState) {
         let rotor = self.data.borrow().get_widget_basis(app_state);
         self.view.borrow_mut().translate_widgets(translation);
         if rotor.is_none() {
@@ -715,7 +717,7 @@ impl<S: SceneAppState> Scene<S> {
         rotation: Rotor3,
         origin: Vec3,
         positive: bool,
-        app_state: &S,
+        app_state: &AppState,
     ) {
         log::debug!(
             "Rotation {:?}, positive {}",
@@ -789,7 +791,7 @@ impl<S: SceneAppState> Scene<S> {
         }
     }
 
-    fn need_redraw(&mut self, dt: Duration, new_state: S) -> bool {
+    fn need_redraw(&mut self, dt: Duration, new_state: AppState) -> bool {
         self.check_timers(&new_state);
         if self.controller.camera_is_moving() {
             self.notify(SceneNotification::CameraMoved);
@@ -818,7 +820,7 @@ impl<S: SceneAppState> Scene<S> {
         &self,
         encoder: &mut wgpu::CommandEncoder,
         target: &wgpu::TextureView,
-        app_state: &S,
+        app_state: &AppState,
     ) {
         let is_stereographic = matches!(self.scene_kind, SceneKind::Stereographic);
         log::trace!("draw scene");
@@ -856,7 +858,7 @@ impl<S: SceneAppState> Scene<S> {
         }
     }
 
-    fn set_camera_target(&mut self, target: Vec3, up: Vec3, app_state: &S) {
+    fn set_camera_target(&mut self, target: Vec3, up: Vec3, app_state: &AppState) {
         let pivot = self
             .data
             .borrow()
@@ -876,7 +878,7 @@ impl<S: SceneAppState> Scene<S> {
         self.fit_design();
     }
 
-    fn request_camera_rotation(&mut self, x: f32, y: f32, z: f32, app_state: &S) {
+    fn request_camera_rotation(&mut self, x: f32, y: f32, z: f32, app_state: &AppState) {
         let pivot = self
             .data
             .borrow()
@@ -1056,7 +1058,7 @@ impl<S: SceneAppState> Scene<S> {
         println!("PNG export failed! Save our design first");
     }
 
-    fn export_stl(&self, design_path: Option<Arc<Path>>, app_state: &S) {
+    fn export_stl(&self, design_path: Option<Arc<Path>>, app_state: &AppState) {
         let path = derive_path_with_prefix_and_time_stamp_and_suffix(
             design_path,
             Some("export_stl"),
@@ -1141,8 +1143,8 @@ pub enum SceneNotification {
     NewCameraPosition(Vec3),
 }
 
-impl<S: SceneAppState> Application for Scene<S> {
-    type AppState = S;
+impl Application for Scene {
+    type AppState = AppState;
 
     fn on_notify(&mut self, notification: Notification) {
         log::info!("scene notified {notification:?}");
@@ -1238,7 +1240,7 @@ impl<S: SceneAppState> Application for Scene<S> {
         &mut self,
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
-        app_state: &S,
+        app_state: &AppState,
     ) -> Option<CursorIcon> {
         self.element_selector
             .set_stereographic(self.is_stereographic());
@@ -1264,7 +1266,7 @@ impl<S: SceneAppState> Application for Scene<S> {
         self.draw_view(encoder, target, &older_state);
     }
 
-    fn needs_redraw(&mut self, dt: Duration, app_state: S) -> bool {
+    fn needs_redraw(&mut self, dt: Duration, app_state: AppState) -> bool {
         self.need_redraw(dt, app_state)
     }
 
@@ -1286,73 +1288,4 @@ impl<S: SceneAppState> Application for Scene<S> {
     fn is_split(&self) -> bool {
         false
     }
-}
-
-pub trait SceneAppState: Clone + 'static {
-    type AppStateDesignReader: SceneDesignReaderExt;
-    fn get_selection(&self) -> &[Selection];
-    fn get_candidates(&self) -> &[Selection];
-    fn selection_was_updated(&self, other: &Self) -> bool;
-    fn candidates_set_was_updated(&self, other: &Self) -> bool;
-    fn design_was_modified(&self, other: &Self) -> bool;
-    fn design_model_matrix_was_updated(&self, other: &Self) -> bool;
-    fn get_selection_mode(&self) -> SelectionMode;
-    fn get_action_mode(&self) -> (ActionMode, WidgetBasis);
-    fn get_design_reader(&self) -> Self::AppStateDesignReader;
-    fn get_strand_builders(&self) -> &[StrandBuilder];
-    fn get_widget_basis(&self) -> WidgetBasis;
-    fn is_changing_color(&self) -> bool;
-    fn is_pasting(&self) -> bool;
-    fn get_selected_element(&self) -> Option<CenterOfSelection>;
-    fn get_current_group_pivot(&self) -> Option<GroupPivot>;
-    fn get_current_group_id(&self) -> Option<GroupId>;
-    fn suggestion_parameters_were_updated(&self, other: &Self) -> bool;
-    fn get_check_xover_parameters(&self) -> CheckXoversParameter;
-    fn follow_stereographic_camera(&self) -> bool;
-    fn get_draw_options(&self) -> DrawOptions;
-    fn draw_options_were_updated(&self, other: &Self) -> bool;
-    fn get_scroll_sensitivity(&self) -> f32;
-    fn show_insertion_discriminants(&self) -> bool;
-
-    fn insertion_bond_display_was_modified(&self, other: &Self) -> bool {
-        self.show_insertion_discriminants() != other.show_insertion_discriminants()
-    }
-
-    fn show_bezier_paths(&self) -> bool;
-
-    fn get_design_path(&self) -> Option<PathBuf>;
-
-    fn get_selected_bezier_vertex(&self) -> Option<BezierVertexId>;
-
-    fn has_selected_a_bezier_grid(&self) -> bool;
-
-    fn get_revolution_axis_position(&self) -> Option<f64>;
-    fn revolution_bezier_updated(&self, other: &Self) -> bool;
-    fn get_current_unrooted_surface(&self) -> Option<UnrootedRevolutionSurfaceDescriptor>;
-}
-
-pub trait SceneRequests {
-    fn update_operation(&mut self, op: Arc<dyn Operation>);
-    fn apply_design_operation(&mut self, op: DesignOperation);
-    fn set_candidate(&mut self, candidates: Vec<Selection>);
-    fn set_paste_candidate(&mut self, nucl: Option<Nucl>);
-    fn set_selection(
-        &mut self,
-        selection: Vec<Selection>,
-        center_of_selection: Option<CenterOfSelection>,
-    );
-    fn paste_candidate_on_grid(&mut self, position: GridPosition);
-    fn attempt_paste_on_grid(&mut self, position: GridPosition);
-    fn attempt_paste(&mut self, nucl: Option<Nucl>);
-    fn xover_request(&mut self, source: Nucl, target: Nucl, design_id: usize);
-    fn suspend_op(&mut self);
-    fn request_center_selection(&mut self, selection: Selection, app_id: AppId);
-    fn undo(&mut self);
-    fn redo(&mut self);
-    fn update_builder_position(&mut self, position: isize);
-    fn toggle_widget_basis(&mut self);
-    fn set_current_group_pivot(&mut self, pivot: GroupPivot);
-    fn translate_group_pivot(&mut self, translation: Vec3);
-    fn rotate_group_pivot(&mut self, rotation: Rotor3);
-    fn set_revolution_axis_position(&mut self, position: f32);
 }

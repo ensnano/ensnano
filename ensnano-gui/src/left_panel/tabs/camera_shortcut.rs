@@ -4,10 +4,10 @@ use crate::{
         button_text_wrapper, extra_jump, fixed_text_button, material_icon, material_icon_button,
         section, subsection,
     },
-    left_panel::Message,
-    state::GuiAppState,
+    left_panel::LeftPanelMessage,
 };
 use ensnano_design::CameraId;
+use ensnano_state::app_state::AppState;
 use ensnano_utils::{keyboard_priority::keyboard_priority, ui_size::UiSize};
 use iced::{
     Alignment, Command, Length,
@@ -63,12 +63,12 @@ impl NamedCamera {
     }
 
     /// Generate a message to set camera to desired position.
-    fn message<State: GuiAppState>(self) -> Message<State> {
-        Message::FixPoint(self.direction(), self.up())
+    fn message(self) -> LeftPanelMessage {
+        LeftPanelMessage::FixPoint(self.direction(), self.up())
     }
 
     /// Turn a [`NamedCamera`] into a button.
-    fn button<'a, State: GuiAppState>(self, ui_size: UiSize) -> iced::Element<'a, Message<State>> {
+    fn button<'a>(self, ui_size: UiSize) -> iced::Element<'a, LeftPanelMessage> {
         fixed_text_button(self.name(), 2.0, ui_size)
             .on_press(self.message())
             .into()
@@ -99,12 +99,12 @@ impl Rotation {
     }
 
     /// Generate the message that request rotation.
-    fn message<State: GuiAppState>(&self) -> Message<State> {
+    fn message(&self) -> LeftPanelMessage {
         let (x, y, z) = self.angles();
-        Message::RotateCam(x, y, z)
+        LeftPanelMessage::RotateCam(x, y, z)
     }
 
-    fn button<'a, State: GuiAppState>(self, ui_size: UiSize) -> iced::Element<'a, Message<State>> {
+    fn button<'a>(self, ui_size: UiSize) -> iced::Element<'a, LeftPanelMessage> {
         let icon = match self {
             Self::NegativeY => MaterialIcon::ArrowBack,
             Self::PositiveY => MaterialIcon::ArrowForward,
@@ -134,14 +134,14 @@ struct CameraWidget {
 }
 
 impl CameraWidget {
-    fn view<State: GuiAppState>(&self, ui_size: UiSize) -> iced::Element<'_, Message<State>> {
+    fn view(&self, ui_size: UiSize) -> iced::Element<'_, LeftPanelMessage> {
         let name_field: iced::Element<'_, _> = if self.being_edited {
             keyboard_priority(
                 "Camera name",
-                Message::SetKeyboardPriority,
+                LeftPanelMessage::SetKeyboardPriority,
                 text_input("Camera name", &self.name)
-                    .on_input(Message::EditCameraName)
-                    .on_submit(Message::SubmitCameraName),
+                    .on_input(LeftPanelMessage::EditCameraName)
+                    .on_submit(LeftPanelMessage::SubmitCameraName),
             )
             .into()
         } else {
@@ -153,15 +153,15 @@ impl CameraWidget {
             Space::with_width(3),
             // edit button
             material_icon_button(MaterialIcon::Edit, MaterialIconStyle::Light, ui_size)
-                .on_press(Message::StartEditCameraName(self.camera_id)),
+                .on_press(LeftPanelMessage::StartEditCameraName(self.camera_id)),
             //
             Space::with_width(Length::Fill),
             //select camera button
             material_icon_button(MaterialIcon::Visibility, MaterialIconStyle::Light, ui_size)
-                .on_press(Message::SelectCamera(self.camera_id)),
+                .on_press(LeftPanelMessage::SelectCamera(self.camera_id)),
             // delete button
             material_icon_button(MaterialIcon::Delete, MaterialIconStyle::Light, ui_size)
-                .on_press(Message::DeleteCamera(self.camera_id)),
+                .on_press(LeftPanelMessage::DeleteCamera(self.camera_id)),
         ]
         .into()
     }
@@ -208,7 +208,7 @@ impl CameraShortcutPanel {
         }
     }
 
-    fn set_camera_widget<State: GuiAppState>(&mut self, app: &State) {
+    fn set_camera_widget(&mut self, app: &AppState) {
         self.camera_widgets = app
             .get_reader()
             .get_all_cameras()
@@ -233,12 +233,12 @@ impl CameraShortcutPanel {
         self.scroll_state.snap_to(scrollable::RelativeOffset::END);
     }
 
-    pub fn update<State: GuiAppState>(&mut self, app_state: &State) -> Command<Message<State>> {
+    pub fn update(&mut self, app_state: &AppState) -> Command<LeftPanelMessage> {
         self.set_camera_widget(app_state);
         Command::none()
     }
 
-    pub fn view<State: GuiAppState>(&self, ui_size: UiSize) -> iced::Element<'_, Message<State>> {
+    pub fn view(&self, ui_size: UiSize) -> iced::Element<'_, LeftPanelMessage> {
         const NAMED_CAMERA_GRID: [[NamedCamera; 3]; 2] = [
             [NamedCamera::Left, NamedCamera::Top, NamedCamera::Front],
             [NamedCamera::Right, NamedCamera::Bottom, NamedCamera::Back],
@@ -298,8 +298,10 @@ impl CameraShortcutPanel {
                             .height(ui_size.button()),
                         extra_jump(),
                         column![
-                            fixed_text_button("2D", 1.0, ui_size).on_press(Message::ScreenShot2D),
-                            fixed_text_button("3D", 1.0, ui_size).on_press(Message::ScreenShot3D),
+                            fixed_text_button("2D", 1.0, ui_size)
+                                .on_press(LeftPanelMessage::ScreenShot2D),
+                            fixed_text_button("3D", 1.0, ui_size)
+                                .on_press(LeftPanelMessage::ScreenShot3D),
                         ]
                         .spacing(ui_size.button_spacing()),
                     ]
@@ -311,9 +313,10 @@ impl CameraShortcutPanel {
                         Space::with_height(ui_size.button()),
                         extra_jump(),
                         column![
-                            fixed_text_button("STL", 2.0, ui_size).on_press(Message::StlExport),
+                            fixed_text_button("STL", 2.0, ui_size)
+                                .on_press(LeftPanelMessage::StlExport),
                             fixed_text_button("Nucl", 2.0, ui_size)
-                                .on_press(Message::SaveNucleotidesPositions),
+                                .on_press(LeftPanelMessage::SaveNucleotidesPositions),
                         ]
                         .spacing(ui_size.button_spacing()),
                     ]
@@ -327,7 +330,7 @@ impl CameraShortcutPanel {
                 section("Custom cameras", ui_size),
                 Space::with_width(ui_size.button_spacing()),
                 material_icon_button(MaterialIcon::AddAPhoto, MaterialIconStyle::Light, ui_size)
-                    .on_press(Message::NewCustomCamera),
+                    .on_press(LeftPanelMessage::NewCustomCamera),
             ],
             // add_camera_widgets!
             Column::with_children(self.camera_widgets.iter().map(|w| w.view(ui_size)))

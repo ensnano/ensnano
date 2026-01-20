@@ -36,7 +36,9 @@ use ensnano_design::{
 use ensnano_utils::{
     bindgroup_manager::{DynamicBindGroup, UniformBindGroup},
     consts::{MIN_RADIUS_FOR_FAKE_UPSCALING, PRINTABLE_CHARS, SAMPLE_COUNT, SELECT_SCALE_FACTOR},
-    graphics::{Background3D, DrawArea, FogParameters, HBondDisplay, PhySize, RenderingMode},
+    graphics::{
+        Background3D, DrawArea, DrawOptions, FogParameters, HBondDisplay, PhySize, RenderingMode,
+    },
     surfaces::UnrootedRevolutionSurfaceDescriptor,
     text::Letter,
     texture::Texture,
@@ -121,16 +123,6 @@ pub struct View {
     post_processing_pipeline: wgpu::RenderPipeline,
     post_processing_bind_group_layout: wgpu::BindGroupLayout,
     post_processing_buffer: wgpu::Buffer,
-}
-
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
-pub struct DrawOptions {
-    pub rendering_mode: RenderingMode,
-    pub background3d: Background3D,
-    pub show_stereographic_camera: bool,
-    pub all_helices_on_axis: bool,
-    pub h_bonds: HBondDisplay,
-    pub show_bezier_planes: bool,
 }
 
 impl View {

@@ -1,9 +1,9 @@
-use crate::state::GuiAppState;
-use crate::{
-    consts::{MAX_NB_TURN, MIN_NB_TURN, NB_TURN_SLIDER_SPACING, NB_TURN_STEP},
-    left_panel::Message,
+use crate::consts::{MAX_NB_TURN, MIN_NB_TURN, NB_TURN_SLIDER_SPACING, NB_TURN_STEP};
+use ensnano_state::{
+    app_state::AppState,
+    design::selection::Selection,
+    gui::messages::{InstantiatedValue, LeftPanelMessage, ValueKind},
 };
-use ensnano_design::selection::Selection;
 use ensnano_utils::{keyboard_priority::keyboard_priority, ui_size::UiSize};
 use iced::{
     Alignment, Length,
@@ -45,7 +45,7 @@ macro_rules! type_builder {
                     }
                 }
 
-                fn view<S: GuiAppState>(&self) -> iced::Element<'_, Message<S>> {
+                fn view(&self) -> iced::Element<'_, LeftPanelMessage> {
                     let str_values = [$(& self.[<$param _string>],)*];
                     let mut ret = Column::new().width(Length::Fill).align_items(Alignment::End);
                     let value_to_modify = self.value_to_modify;
@@ -55,10 +55,10 @@ macro_rules! type_builder {
                             Space::with_width(5),
                             keyboard_priority(
                                 "Contextual value change priority",
-                                Message::SetKeyboardPriority,
+                                LeftPanelMessage::SetKeyboardPriority,
                                 text_input("", str_values[i])
-                                    .on_input(move |string| Message::ContextualValueChanged(value_to_modify, i, string))
-                                    .on_submit(Message::ContextualValueSubmitted(value_to_modify))
+                                    .on_input(move |string| LeftPanelMessage::ContextualValueChanged(value_to_modify, i, string))
+                                    .on_submit(LeftPanelMessage::ContextualValueSubmitted(value_to_modify))
                                     .width(50)
                             )
                         ].width(Length::Fill))
@@ -144,21 +144,6 @@ type_builder!(
     angle: f32 % DegreeAngleFormatter
 );
 
-#[derive(Clone, Copy, Debug)]
-pub enum ValueKind {
-    HelixGridPosition,
-    GridOrientation,
-    BezierVertexPosition,
-}
-
-#[derive(Debug, Clone)]
-pub enum InstantiatedValue {
-    HelixGridPosition(Vec3),
-    GridOrientation(Rotor3),
-    GridNbTurn(f32),
-    BezierVertexPosition(Vec2),
-}
-
 pub(crate) enum GridPositionBuilder {
     Cartesian(Vec3Builder),
 }
@@ -168,7 +153,7 @@ impl GridPositionBuilder {
         Self::Cartesian(Vec3Builder::new(ValueKind::HelixGridPosition, position))
     }
 
-    fn view<S: GuiAppState>(&self) -> iced::Element<'_, Message<S>> {
+    fn view(&self) -> iced::Element<'_, LeftPanelMessage> {
         match self {
             Self::Cartesian(builder) => builder.view(),
         }
@@ -201,7 +186,7 @@ impl GridOrientationBuilder {
         ))
     }
 
-    fn view<S: GuiAppState>(&self) -> iced::Element<'_, Message<S>> {
+    fn view(&self) -> iced::Element<'_, LeftPanelMessage> {
         match self {
             Self::DirectionAngle(builder) => builder.view(),
         }
@@ -234,13 +219,13 @@ impl BezierVertexBuilder {
     }
 }
 
-impl<S: GuiAppState> Builder<S> for BezierVertexBuilder {
+impl Builder for BezierVertexBuilder {
     fn view(
         &self,
         ui_size: UiSize,
         _selection: &Selection,
-        _app_state: &S,
-    ) -> iced::Element<'_, Message<S>> {
+        _app_state: &AppState,
+    ) -> iced::Element<'_, LeftPanelMessage> {
         column![
             text("Position").size(ui_size.intermediate_text()),
             self.position_builder.view(),
@@ -282,16 +267,18 @@ impl GridBuilder {
         }
     }
 
-    fn nb_turn_row<'a, S: GuiAppState>(
-        app_state: &S,
+    fn nb_turn_row<'a>(
+        app_state: &AppState,
         selection: &Selection,
-    ) -> Option<iced::Element<'a, Message<S>>> {
+    ) -> Option<iced::Element<'a, LeftPanelMessage>> {
         if let Selection::Grid(_, g_id) = selection {
             if let Some(nb_turn) = app_state.get_reader().get_grid_nb_turn(*g_id) {
                 let row = row![
                     text(format!("{nb_turn:.2}")),
                     slider(MIN_NB_TURN..=MAX_NB_TURN, nb_turn, |x| {
-                        Message::InstantiatedValueSubmitted(InstantiatedValue::GridNbTurn(x))
+                        LeftPanelMessage::InstantiatedValueSubmitted(InstantiatedValue::GridNbTurn(
+                            x,
+                        ))
                     })
                     .step(NB_TURN_STEP),
                 ]
@@ -306,13 +293,13 @@ impl GridBuilder {
     }
 }
 
-impl<S: GuiAppState> Builder<S> for GridBuilder {
+impl Builder for GridBuilder {
     fn view(
         &self,
         ui_size: UiSize,
         selection: &Selection,
-        app_state: &S,
-    ) -> iced::Element<'_, Message<S>> {
+        app_state: &AppState,
+    ) -> iced::Element<'_, LeftPanelMessage> {
         column![
             text("Position").size(ui_size.intermediate_text()),
             self.position_builder.view(),
@@ -351,13 +338,13 @@ impl<S: GuiAppState> Builder<S> for GridBuilder {
     }
 }
 
-pub(crate) trait Builder<S: GuiAppState> {
+pub(crate) trait Builder {
     fn view<'a>(
         &'a self,
         ui_size: UiSize,
         selection: &Selection,
-        app_state: &S,
-    ) -> iced::Element<'a, Message<S>>;
+        app_state: &AppState,
+    ) -> iced::Element<'a, LeftPanelMessage>;
     fn update_str_value(&mut self, value_kind: ValueKind, n: usize, value_str: String);
     fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstantiatedValue>;
 }

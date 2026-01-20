@@ -1,6 +1,5 @@
 //! Handles windows and dialog (Alert, and file pickers) interactions.
 
-pub(crate) mod channel_reader;
 mod download_intervals;
 pub(crate) mod download_staples;
 mod messages;
@@ -8,14 +7,13 @@ pub(crate) mod normal_state;
 mod quit;
 pub(crate) mod set_scaffold_sequence;
 
-use crate::{
-    dialog::{self, MustAckMessage, YesNoQuestion},
-    state::MainStateView,
-};
-use ensnano_design::scadnano::ScadnanoImportError;
-use ensnano_utils::consts::CANNOT_OPEN_DEFAULT_DIR;
-use normal_state::NormalState;
 use std::borrow::Cow;
+
+use crate::{
+    MainStateView,
+    controller::normal_state::NormalState,
+    dialog::{self, MustAckMessage, YesNoQuestion},
+};
 
 pub(crate) struct Controller {
     /// The sate of the windows
@@ -148,49 +146,5 @@ impl AutomataState for YesNo {
             self.answer = Some(yesno);
             self
         }
-    }
-}
-
-pub(crate) enum LoadDesignError {
-    JsonError(serde_json::Error),
-    ScadnanoImportError(ScadnanoImportError),
-    IncompatibleVersion { current: String, required: String },
-}
-
-impl std::fmt::Display for LoadDesignError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            Self::JsonError(e) => write!(f, "Json error: {e}"),
-            Self::ScadnanoImportError(e) => {
-                write!(
-                    f,
-                    "Scadnano file detected but the following error was encountered:
-                {e:?}",
-                )
-            }
-            Self::IncompatibleVersion { current, required } => {
-                write!(
-                    f,
-                    "Your ENSnano version is too old to load this design.
-                Your version: {current},
-                Required version: {required}"
-                )
-            }
-        }
-    }
-}
-
-#[derive(Debug)]
-pub(crate) struct SaveDesignError(String);
-
-impl<E: std::error::Error> From<E> for SaveDesignError {
-    fn from(e: E) -> Self {
-        Self(format!("{e}"))
-    }
-}
-
-impl SaveDesignError {
-    pub(crate) fn cannot_open_default_dir() -> Self {
-        Self(CANNOT_OPEN_DEFAULT_DIR.to_owned())
     }
 }

@@ -1,15 +1,15 @@
 pub(super) mod value_constructor;
 
-use crate::design_reader::GuiDesignReaderExt;
-use crate::requests::GuiRequests;
-use crate::state::GuiAppState;
 use crate::{
     helpers::{extra_jump, right_checkbox, section, subsection, text_button},
-    left_panel::Message,
     theme,
 };
-use ensnano_design::{
-    bezier_plane::BezierVertexId, grid::GridId, interaction_modes::ActionMode, selection::Selection,
+use ensnano_design::{bezier_plane::BezierVertexId, grid::GridId, interaction_modes::ActionMode};
+use ensnano_state::{
+    app_state::{AppState, design_interactor::DesignInteractor},
+    design::selection::Selection,
+    gui::messages::{InstantiatedValue, LeftPanelMessage, ValueKind},
+    requests::Requests,
 };
 use ensnano_utils::{
     SimulationState,
@@ -28,7 +28,7 @@ use iced::{
 };
 use std::sync::{Arc, Mutex};
 use ultraviolet::{Rotor3, Vec2, Vec3};
-use value_constructor::{BezierVertexBuilder, Builder, GridBuilder, InstantiatedValue, ValueKind};
+use value_constructor::{BezierVertexBuilder, Builder, GridBuilder};
 
 pub(super) enum ValueRequest {
     HelixGridPosition {
@@ -99,7 +99,7 @@ impl ValueRequest {
         }
     }
 
-    pub(super) fn make_request<R: GuiRequests>(&self, request: Arc<Mutex<R>>) {
+    pub(super) fn make_request(&self, request: Arc<Mutex<Requests>>) {
         match self {
             Self::HelixGridPosition { grid_id, position } => request
                 .lock()
@@ -126,25 +126,19 @@ impl ValueRequest {
     }
 }
 
-struct InstantiatedBuilder<State>
-where
-    State: GuiAppState,
-{
+struct InstantiatedBuilder {
     selection: Selection,
-    builder: Box<dyn Builder<State>>,
+    builder: Box<dyn Builder>,
 }
 
-impl<State> InstantiatedBuilder<State>
-where
-    State: GuiAppState,
-{
+impl InstantiatedBuilder {
     /// If a builder can be made from the selection, update the builder and return true. Otherwise,
     /// return false.
     fn update(
         &mut self,
         selection: &Selection,
-        reader: &dyn GuiDesignReaderExt,
-        app_state: &State,
+        reader: &DesignInteractor,
+        app_state: &AppState,
     ) -> bool {
         if *selection != self.selection || app_state.is_transitory() {
             self.selection = *selection;
@@ -159,17 +153,14 @@ where
         }
     }
 
-    fn new(selection: &Selection, reader: &dyn GuiDesignReaderExt) -> Option<Self> {
+    fn new(selection: &Selection, reader: &DesignInteractor) -> Option<Self> {
         Self::new_builder(selection, reader).map(|builder| Self {
             builder,
             selection: *selection,
         })
     }
 
-    fn new_builder(
-        selection: &Selection,
-        reader: &dyn GuiDesignReaderExt,
-    ) -> Option<Box<dyn Builder<State>>> {
+    fn new_builder(selection: &Selection, reader: &DesignInteractor) -> Option<Box<dyn Builder>> {
         match selection {
             Selection::Grid(_, g_id) => {
                 if let Some((position, orientation)) =
@@ -192,22 +183,16 @@ where
     }
 }
 
-pub(super) struct ContextualPanel<State>
-where
-    State: GuiAppState,
-{
+pub(super) struct ContextualPanel {
     width: u16,
     pub force_help: bool,
     pub show_tutorial: bool,
     add_strand_menu: AddStrandMenu,
-    builder: Option<InstantiatedBuilder<State>>,
+    builder: Option<InstantiatedBuilder>,
     insertion_length_state: InsertionLengthState,
 }
 
-impl<State> ContextualPanel<State>
-where
-    State: GuiAppState,
-{
+impl ContextualPanel {
     pub(super) fn new(width: u16) -> Self {
         Self {
             width,
@@ -223,7 +208,7 @@ where
         self.width = width;
     }
 
-    pub(super) fn update(&mut self, app_state: &State) -> Command<Message<State>> {
+    pub(super) fn update(&mut self, app_state: &AppState) -> Command<LeftPanelMessage> {
         let selection = app_state
             .get_selection()
             .first()
@@ -235,7 +220,7 @@ where
             .count();
         self.update_builder(
             Some(selection).filter(|_| nb_selected == 1),
-            app_state.get_reader().as_ref(),
+            &app_state.get_reader(),
             app_state,
         );
         self.insertion_length_state.update_selection(selection);
@@ -245,8 +230,8 @@ where
     fn update_builder(
         &mut self,
         selection: Option<&Selection>,
-        reader: &dyn GuiDesignReaderExt,
-        app_state: &State,
+        reader: &DesignInteractor,
+        app_state: &AppState,
     ) {
         if let Some(s) = selection {
             if let Some(builder) = &mut self.builder {
@@ -264,8 +249,8 @@ where
     pub(super) fn view(
         &self,
         ui_size: UiSize,
-        app_state: &State,
-    ) -> iced::Element<'_, Message<State>> {
+        app_state: &AppState,
+    ) -> iced::Element<'_, LeftPanelMessage> {
         let selection = app_state
             .get_selection()
             .first()
@@ -286,7 +271,7 @@ where
             })
             .and_then(|id| app_state.get_reader().xover_length(id));
 
-        let info_values = values_of_selection(selection, app_state.get_reader().as_ref());
+        let info_values = values_of_selection(selection, &app_state.get_reader());
 
         // NOTE: The branching below determines what is viewed in the contextual panel.
         //
@@ -301,7 +286,7 @@ where
                 row![
                     text(link),
                     Space::with_width(Length::Fill),
-                    text_button("Go", ui_size).on_press(Message::OpenLink(link)),
+                    text_button("Go", ui_size).on_press(LeftPanelMessage::OpenLink(link)),
                 ],
             ]
         } else if self.force_help && xover_len.is_none() {
@@ -322,7 +307,7 @@ where
             column = column.push(
                 row![
                     Space::with_width(Length::FillPortion(1)),
-                    column![text_button("Help", ui_size).on_press(Message::ForceHelp),]
+                    column![text_button("Help", ui_size).on_press(LeftPanelMessage::ForceHelp),]
                         .width(Length::FillPortion(1)),
                     Space::with_width(Length::FillPortion(1)),
                 ]
@@ -379,7 +364,10 @@ where
             }
         }
 
-        if let Some(len) = app_state.get_reader().get_insertion_length(selection) {
+        if let Some(len) = app_state
+            .get_reader()
+            .get_insertion_length_in_selection(selection)
+        {
             let real_len_string = len.to_string();
             let text_input_content = self
                 .insertion_length_state
@@ -390,10 +378,10 @@ where
                 "Loopout",
                 keyboard_priority(
                     "Loopout",
-                    Message::SetKeyboardPriority,
+                    LeftPanelMessage::SetKeyboardPriority,
                     text_input("", text_input_content)
-                        .on_input(Message::InsertionLengthInput)
-                        .on_submit(Message::InsertionLengthSubmitted)
+                        .on_input(LeftPanelMessage::InsertionLengthInput)
+                        .on_submit(LeftPanelMessage::InsertionLengthSubmitted)
                 )
             ]);
         }
@@ -402,11 +390,7 @@ where
         // NOTE: I don't really understand why there is a “- 2” here.
     }
 
-    pub(super) fn selection_value_changed<R: GuiRequests>(
-        &self,
-        s: String,
-        requests: Arc<Mutex<R>>,
-    ) {
+    pub(super) fn selection_value_changed(&self, s: String, requests: Arc<Mutex<Requests>>) {
         if let Ok(g_id) = s.parse() {
             requests
                 .lock()
@@ -415,16 +399,11 @@ where
         }
     }
 
-    pub(super) fn set_small_sphere<R: GuiRequests>(&self, b: bool, requests: Arc<Mutex<R>>) {
+    pub(super) fn set_small_sphere(&self, b: bool, requests: Arc<Mutex<Requests>>) {
         requests.lock().unwrap().set_small_sphere(b);
     }
 
-    pub(super) fn scaffold_id_set<R: GuiRequests>(
-        &self,
-        n: usize,
-        b: bool,
-        requests: Arc<Mutex<R>>,
-    ) {
+    pub(super) fn scaffold_id_set(&self, n: usize, b: bool, requests: Arc<Mutex<Requests>>) {
         if b {
             requests.lock().unwrap().set_scaffold_id(Some(n));
         } else {
@@ -510,52 +489,56 @@ enum TwistStatus {
     Twisting,
 }
 
-fn add_grid_content<'a, State: GuiAppState>(
+fn add_grid_content<'a>(
     info_values: Vec<String>,
     ui_size: UiSize,
     twisting: TwistStatus,
-) -> iced::Element<'a, Message<State>> {
+) -> iced::Element<'a, LeftPanelMessage> {
     column![
         // twist_button
         match twisting {
-            TwistStatus::Twisting => text_button("Stop", ui_size).on_press(Message::StopSimulation),
-            TwistStatus::CanTwist => text_button("Twist", ui_size).on_press(Message::StartTwist),
+            TwistStatus::Twisting =>
+                text_button("Stop", ui_size).on_press(LeftPanelMessage::StopSimulation),
+            TwistStatus::CanTwist =>
+                text_button("Twist", ui_size).on_press(LeftPanelMessage::StartTwist),
             TwistStatus::CannotTwist => text_button("Twist", ui_size),
         },
         checkbox(
             "Persistent phantoms",
             info_values[0].parse::<bool>().unwrap()
         )
-        .on_toggle(|b| Message::SelectionValueChanged(bool_to_string(b)),)
+        .on_toggle(|b| LeftPanelMessage::SelectionValueChanged(bool_to_string(b)),)
         .size(ui_size.checkbox())
         .text_size(ui_size.main_text()),
         checkbox("No sphere", info_values[1].parse::<bool>().unwrap())
-            .on_toggle(|b| { Message::SetSmallSpheres(b) })
+            .on_toggle(|b| { LeftPanelMessage::SetSmallSpheres(b) })
             .size(ui_size.checkbox())
             .text_size(ui_size.main_text()),
     ]
     .into()
 }
 
-fn add_strand_content<'a, State: GuiAppState>(
+fn add_strand_content<'a>(
     info_values: Vec<String>,
     ui_size: UiSize,
-) -> iced::Element<'a, Message<State>> {
+) -> iced::Element<'a, LeftPanelMessage> {
     let s_id = info_values[2].parse::<usize>().unwrap();
     column![
         row![
             text("Name").size(ui_size.main_text()),
             keyboard_priority(
                 "Name",
-                Message::SetKeyboardPriority,
+                LeftPanelMessage::SetKeyboardPriority,
                 text_input("Name", &info_values[4])
-                    .on_input(move |new_name| { Message::StrandNameChanged(s_id, new_name) })
+                    .on_input(move |new_name| {
+                        LeftPanelMessage::StrandNameChanged(s_id, new_name)
+                    })
                     .size(ui_size.main_text())
             )
         ],
         text(format!("length {}", info_values[0])).size(ui_size.main_text()),
         checkbox("Scaffold", info_values[1].parse().unwrap())
-            .on_toggle(move |b| { Message::ScaffoldIdSet(s_id, b) }),
+            .on_toggle(move |b| { LeftPanelMessage::ScaffoldIdSet(s_id, b) }),
         text(info_values[3].as_str()).size(ui_size.main_text()),
     ]
     .into()
@@ -569,11 +552,11 @@ fn bool_to_string(b: bool) -> String {
     }
 }
 
-fn add_help_to_column<'a, State: GuiAppState>(
+fn add_help_to_column<'a>(
     help_title: impl ToString,
     help: Vec<(String, String)>,
     ui_size: UiSize,
-) -> Column<'a, Message<State>> {
+) -> Column<'a, LeftPanelMessage> {
     column![
         text(help_title).size(ui_size.intermediate_text()),
         column(help.iter().map(|(l, r)| {
@@ -599,7 +582,7 @@ fn add_help_to_column<'a, State: GuiAppState>(
     ]
 }
 
-fn turn_into_help_column<'a, State: GuiAppState>(ui_size: UiSize) -> Column<'a, Message<State>> {
+fn turn_into_help_column<'a>(ui_size: UiSize) -> Column<'a, LeftPanelMessage> {
     column![
         section("Help", ui_size)
             .width(Length::Fill)
@@ -753,7 +736,7 @@ fn view_2d_help() -> Vec<(String, String)> {
     ]
 }
 
-fn values_of_selection(selection: &Selection, reader: &dyn GuiDesignReaderExt) -> Vec<String> {
+fn values_of_selection(selection: &Selection, reader: &DesignInteractor) -> Vec<String> {
     match selection {
         Selection::Grid(_, g_id) => {
             let b1 = reader.grid_has_persistent_phantom(*g_id);
@@ -859,7 +842,7 @@ impl AddStrandMenu {
         self.text_inputs_are_active = show;
     }
 
-    fn view<State: GuiAppState>(&self, ui_size: UiSize, width: u16) -> Column<'_, Message<State>> {
+    fn view(&self, ui_size: UiSize, width: u16) -> Column<'_, LeftPanelMessage> {
         let color_choose_strand_start_length = if self.text_inputs_are_active {
             iced::theme::Text::Color(theme::GUI_PALETTE.text)
         } else {
@@ -870,7 +853,7 @@ impl AddStrandMenu {
             right_checkbox(
                 self.text_inputs_are_active,
                 "Add double strand on helix",
-                Message::AddDoubleStrandHelix,
+                LeftPanelMessage::AddDoubleStrandHelix,
                 ui_size,
             ),
             row![
@@ -879,9 +862,9 @@ impl AddStrandMenu {
                     // position_input
                     keyboard_priority(
                         "Starting nt",
-                        Message::SetKeyboardPriority,
+                        LeftPanelMessage::SetKeyboardPriority,
                         text_input("Position", &self.pos_str)
-                            .on_input(Message::PositionHelicesChanged)
+                            .on_input(LeftPanelMessage::PositionHelicesChanged)
                             .style(theme::BadValue(self.pos_str == self.helix_pos.to_string()))
                     )
                 ]
@@ -891,9 +874,9 @@ impl AddStrandMenu {
                     // length_input
                     keyboard_priority(
                         "Length (nt)",
-                        Message::SetKeyboardPriority,
+                        LeftPanelMessage::SetKeyboardPriority,
                         text_input("Length", &self.length_str)
-                            .on_input(Message::LengthHelicesChanged)
+                            .on_input(LeftPanelMessage::LengthHelicesChanged)
                             .style(theme::BadValue(
                                 self.length_str == self.helix_length.to_string()
                             ))

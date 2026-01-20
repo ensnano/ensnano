@@ -9,7 +9,6 @@
 //! state, or a specific DraggingState.
 
 use crate::{
-    SceneAppState,
     controller::{
         Consequence, Controller, Transition,
         automata::{
@@ -39,27 +38,21 @@ const LONG_HOLDING_TIME: std::time::Duration = std::time::Duration::from_millis(
 ///
 /// The state is produced in a function and not stored by the object because `Box<dyn>` cannot be
 /// cloned.
-trait OptionalTransition<S: SceneAppState>:
-    Fn(ClickInfo) -> Option<Box<dyn ControllerState<S>>> + 'static
-{
-}
-impl<S: SceneAppState, F: Fn(ClickInfo) -> Option<Box<dyn ControllerState<S>>> + 'static>
-    OptionalTransition<S> for F
-{
+trait OptionalTransition: Fn(ClickInfo) -> Option<Box<dyn ControllerState>> + 'static {}
+impl<F: Fn(ClickInfo) -> Option<Box<dyn ControllerState>> + 'static> OptionalTransition for F {}
+
+enum OptionalTransitionPtr {
+    Owned(Box<dyn OptionalTransition>),
+    Borrowed(&'static dyn OptionalTransition),
 }
 
-enum OptionalTransitionPtr<S: SceneAppState> {
-    Owned(Box<dyn OptionalTransition<S>>),
-    Borrowed(&'static dyn OptionalTransition<S>),
-}
-
-impl<S: SceneAppState> Default for OptionalTransitionPtr<S> {
+impl Default for OptionalTransitionPtr {
     fn default() -> Self {
         Self::Borrowed(&back_to_normal_state)
     }
 }
 
-impl<S: SceneAppState> OptionalTransitionPtr<S> {
+impl OptionalTransitionPtr {
     fn double_clicking(element: Option<SceneElement>) -> Self {
         let now = Instant::now();
         Self::Owned(Box::new(move |info| {
@@ -72,8 +65,8 @@ impl<S: SceneAppState> OptionalTransitionPtr<S> {
     }
 }
 
-impl<S: SceneAppState> std::ops::Deref for OptionalTransitionPtr<S> {
-    type Target = dyn OptionalTransition<S> + 'static;
+impl std::ops::Deref for OptionalTransitionPtr {
+    type Target = dyn OptionalTransition + 'static;
     fn deref(&self) -> &Self::Target {
         match self {
             Self::Owned(x) => x,
@@ -87,18 +80,18 @@ impl<S: SceneAppState> std::ops::Deref for OptionalTransitionPtr<S> {
 ///
 /// This is useful when the context has an influence on whether a certain event should trigger an
 /// OptionalTransition.
-trait ContextDependentTransition<S: SceneAppState>:
-    for<'a, 'b> Fn(&'b mut EventContext<'a, S>, ClickInfo) -> Box<dyn OptionalTransition<S>>
+trait ContextDependentTransition:
+    for<'a, 'b> Fn(&'b mut EventContext<'a>, ClickInfo) -> Box<dyn OptionalTransition>
 {
 }
 
-enum ContextDependentTransitionPtr<S: SceneAppState> {
-    Owned(Box<dyn ContextDependentTransition<S>>),
-    Borrowed(&'static dyn ContextDependentTransition<S>),
+enum ContextDependentTransitionPtr {
+    Owned(Box<dyn ContextDependentTransition>),
+    Borrowed(&'static dyn ContextDependentTransition),
 }
 
-impl<S: SceneAppState> std::ops::Deref for ContextDependentTransitionPtr<S> {
-    type Target = dyn ContextDependentTransition<S> + 'static;
+impl std::ops::Deref for ContextDependentTransitionPtr {
+    type Target = dyn ContextDependentTransition + 'static;
     fn deref(&self) -> &Self::Target {
         match self {
             Self::Owned(x) => x,
@@ -108,10 +101,8 @@ impl<S: SceneAppState> std::ops::Deref for ContextDependentTransitionPtr<S> {
 }
 
 impl<
-    S: SceneAppState,
-    F: for<'a, 'b> Fn(&'b mut EventContext<'a, S>, ClickInfo) -> Box<dyn OptionalTransition<S>>
-        + 'static,
-> ContextDependentTransition<S> for F
+    F: for<'a, 'b> Fn(&'b mut EventContext<'a>, ClickInfo) -> Box<dyn OptionalTransition> + 'static,
+> ContextDependentTransition for F
 {
 }
 
@@ -119,7 +110,7 @@ impl<
 ///
 /// The controller's automata between the moment the button is pressed and the moment it is
 /// released.
-pub(super) struct PointAndClicking<S: SceneAppState> {
+pub(super) struct PointAndClicking {
     /// The position of the cursor when the mouse button was pressed
     clicked_position: PhysicalPosition<f64>,
     /// The button that was pressed
@@ -128,36 +119,26 @@ pub(super) struct PointAndClicking<S: SceneAppState> {
     release_consequences: Consequence,
     /// An `OptionalTransition` triggered by releasing the button that was pressed to enter the
     /// state
-    release_transition: OptionalTransitionPtr<S>,
+    release_transition: OptionalTransitionPtr,
     /// An `OptionalTransition` triggered by moving the cursor far away from
     /// `self.clicked_position`.
-    away_state: OptionalTransitionPtr<S>,
+    away_state: OptionalTransitionPtr,
     /// If Some(_), a function that will update `self.away_state` when the cursor position
     /// changes.
-    away_state_maker: Option<ContextDependentTransitionPtr<S>>,
+    away_state_maker: Option<ContextDependentTransitionPtr>,
     /// If Some(_), an `OptionalTransition` triggered when the cursor has been held for a long
     /// time.
-    long_hold_state: Option<OptionalTransitionPtr<S>>,
+    long_hold_state: Option<OptionalTransitionPtr>,
     /// If Some(_), a function that will update `self.long_hold_state` when the cursor position
     /// changes.
-    long_hold_state_maker: Option<ContextDependentTransitionPtr<S>>,
+    long_hold_state_maker: Option<ContextDependentTransitionPtr>,
     /// A description of the current state of the controller's automata
     description: &'static str,
     clicked_date: Instant,
 }
 
-impl<S: SceneAppState> PointAndClicking<S> {
-    fn get_click_info(&self, position: PhysicalPosition<f64>) -> ClickInfo {
-        ClickInfo {
-            button: self.pressed_button,
-            current_position: position,
-            clicked_position: self.clicked_position,
-        }
-    }
-}
-
-impl<S: SceneAppState> ControllerState<S> for PointAndClicking<S> {
-    fn input(&mut self, event: &WindowEvent, mut context: EventContext<'_, S>) -> Transition<S> {
+impl ControllerState for PointAndClicking {
+    fn input(&mut self, event: &WindowEvent, mut context: EventContext<'_>) -> Transition {
         let position = context.cursor_position;
         match event {
             WindowEvent::CursorMoved { .. } => {
@@ -212,7 +193,7 @@ impl<S: SceneAppState> ControllerState<S> for PointAndClicking<S> {
         self.description.into()
     }
 
-    fn check_timers(&mut self, controller: &Controller<S>) -> Transition<S> {
+    fn check_timers(&mut self, controller: &Controller) -> Transition {
         if let Some(transition) = self.long_hold_state.as_ref() {
             log::info!("Some long hold state");
             let now = Instant::now();
@@ -232,7 +213,7 @@ impl<S: SceneAppState> ControllerState<S> for PointAndClicking<S> {
         Transition::nothing()
     }
 
-    fn give_context(&mut self, mut context: EventContext<'_, S>) {
+    fn give_context(&mut self, mut context: EventContext<'_>) {
         if let Some(transition_maker) = self.long_hold_state_maker.as_ref() {
             let position = context.cursor_position;
             self.long_hold_state = Some(OptionalTransitionPtr::Owned(transition_maker(
@@ -243,7 +224,51 @@ impl<S: SceneAppState> ControllerState<S> for PointAndClicking<S> {
     }
 }
 
-impl<S: SceneAppState> PointAndClicking<S> {
+fn rotating_camera(click: ClickInfo) -> Option<Box<dyn ControllerState>> {
+    Some(Box::new(dragging_state::rotating_camera(click)))
+}
+
+fn tilt_camera(click: ClickInfo) -> Option<Box<dyn ControllerState>> {
+    Some(Box::new(dragging_state::tilting_camera(click)))
+}
+
+fn back_to_normal_state(click: ClickInfo) -> Option<Box<dyn ControllerState>> {
+    Some(Box::new(NormalState {
+        mouse_position: click.current_position,
+    }))
+}
+
+fn leaving_selection<'a>(
+    context: &'a EventContext<'a>,
+    element: Option<SceneElement>,
+) -> Box<dyn OptionalTransition> {
+    if let Some(SceneElement::BezierVertex { path_id, vertex_id }) = element {
+        Box::new(move |click_info| {
+            Some(Box::new(dragging_state::moving_bezier_vertex(
+                click_info,
+                MovingBezierVertex::Existing { vertex_id, path_id },
+            )))
+        })
+    } else {
+        let nucl = context.can_start_builder(element);
+        Box::new(move |click_info| build_strand(click_info, nucl))
+    }
+}
+
+fn build_strand(click: ClickInfo, nucl: Option<Nucl>) -> Option<Box<dyn ControllerState>> {
+    let nucls = vec![nucl?];
+    Some(Box::new(dragging_state::building_strands(click, nucls)))
+}
+
+impl PointAndClicking {
+    fn get_click_info(&self, position: PhysicalPosition<f64>) -> ClickInfo {
+        ClickInfo {
+            button: self.pressed_button,
+            current_position: position,
+            clicked_position: self.clicked_position,
+        }
+    }
+
     /// A state in which the user is setting the pivot around which camera translation occur.
     ///
     /// If the cursor is moved away from it's initial position, the controller's automata
@@ -271,48 +296,7 @@ impl<S: SceneAppState> PointAndClicking<S> {
             clicked_date: Instant::now(),
         }
     }
-}
 
-fn rotating_camera<S: SceneAppState>(click: ClickInfo) -> Option<Box<dyn ControllerState<S>>> {
-    Some(Box::new(dragging_state::rotating_camera(click)))
-}
-
-fn tilt_camera<S: SceneAppState>(click: ClickInfo) -> Option<Box<dyn ControllerState<S>>> {
-    Some(Box::new(dragging_state::tilting_camera(click)))
-}
-
-fn back_to_normal_state<S: SceneAppState>(click: ClickInfo) -> Option<Box<dyn ControllerState<S>>> {
-    Some(Box::new(NormalState {
-        mouse_position: click.current_position,
-    }))
-}
-
-fn leaving_selection<'a, S: SceneAppState>(
-    context: &'a EventContext<'a, S>,
-    element: Option<SceneElement>,
-) -> Box<dyn OptionalTransition<S>> {
-    if let Some(SceneElement::BezierVertex { path_id, vertex_id }) = element {
-        Box::new(move |click_info| {
-            Some(Box::new(dragging_state::moving_bezier_vertex(
-                click_info,
-                MovingBezierVertex::Existing { vertex_id, path_id },
-            )))
-        })
-    } else {
-        let nucl = context.can_start_builder(element);
-        Box::new(move |click_info| build_strand(click_info, nucl))
-    }
-}
-
-fn build_strand<S: SceneAppState>(
-    click: ClickInfo,
-    nucl: Option<Nucl>,
-) -> Option<Box<dyn ControllerState<S>>> {
-    let nucls = vec![nucl?];
-    Some(Box::new(dragging_state::building_strands(click, nucls)))
-}
-
-impl<S: SceneAppState> PointAndClicking<S> {
     /// A state in which the user is selecting an element.
     ///
     /// If the user is clicking on a nucleotide and hold the mouse button for a long time, the
@@ -405,18 +389,18 @@ impl<S: SceneAppState> PointAndClicking<S> {
     }
 }
 
-fn making_xover_maker<S: SceneAppState>(
-    context: &mut EventContext<'_, S>,
+fn making_xover_maker(
+    context: &mut EventContext<'_>,
     _click: ClickInfo,
-) -> Box<dyn OptionalTransition<S>> {
+) -> Box<dyn OptionalTransition> {
     let origin = context.get_xover_origin_under_cursor();
     Box::new(move |click: ClickInfo| making_xover(click, origin.as_ref()))
 }
 
-fn making_xover<S: SceneAppState>(
+fn making_xover(
     click: ClickInfo,
     origin: Option<&XoverOrigin>,
-) -> Option<Box<dyn ControllerState<S>>> {
+) -> Option<Box<dyn ControllerState>> {
     if let Some(source) = origin {
         Some(Box::new(dragging_state::making_xover(
             click,

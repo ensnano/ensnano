@@ -1,8 +1,7 @@
 use crate::{
-    app_state::design_interactor::DesignInteractor,
+    MainStateView,
     controller::{
         AutomataState, TransitionMessage,
-        download_staples::{DownloadStapleError, DownloadStapleOk},
         messages::{
             NO_FILE_RECEIVED_STAPLE, NO_SCAFFOLD_SEQUENCE_SET, NO_SCAFFOLD_SET, ORIGAMI_FILTERS,
             successful_staples_export_msg,
@@ -10,9 +9,12 @@ use crate::{
         normal_state::NormalState,
     },
     dialog,
-    state::MainStateView,
 };
 use dialog::{MustAckMessage, PathInput};
+use ensnano_state::app_state::design_interactor::{
+    DesignInteractor,
+    presenter::impl_main_reader::{DownloadStapleError, DownloadStapleOk},
+};
 use ensnano_utils::consts::ORIGAMI_EXTENSION;
 use std::path::PathBuf;
 

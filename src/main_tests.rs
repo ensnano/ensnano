@@ -6,20 +6,20 @@ use std::{
     time::Duration,
 };
 
-use crate::{
+use crate::state::MainState;
+
+use ensnano_design::nucl::Nucl;
+use ensnano_state::{
     app_state::{
         AppState,
         design_interactor::controller::clipboard::{CopyOperation, PastePosition},
     },
-    state::MainState,
+    design::{operation::DesignOperation, selection::Selection},
+    gui::messages::GuiMessages,
+    utils::application::{Application, Camera3D, Notification},
 };
-
-use ensnano_design::{nucl::Nucl, operation::DesignOperation, selection::Selection};
-use ensnano_gui::messages::GuiMessages;
-use ensnano_scene::data::design3d::SceneDesignReaderExt as _;
 use ensnano_utils::{
     PastingStatus,
-    application::{Application, Camera3D, Notification},
     graphics::{DrawArea, GuiComponentType},
 };
 use ultraviolet::{Rotor3, Vec3};
@@ -89,7 +89,7 @@ fn undoable_selection() {
     state.update_selection(selection_1.clone(), None);
     state.update_selection(vec![], None);
     state.undo();
-    assert_eq!(state.app_state.get_selection().as_ref(), selection_1);
+    assert_eq!(state.app_state.get_selection(), selection_1);
 }
 
 #[test]
@@ -98,9 +98,9 @@ fn redoable_selection() {
     let selection_1 = vec![Selection::Strand(0, 0), Selection::Strand(0, 1)];
     state.update_selection(selection_1.clone(), None);
     state.undo();
-    assert_eq!(state.app_state.get_selection().as_ref(), vec![]);
+    assert_eq!(state.app_state.get_selection(), vec![]);
     state.redo();
-    assert_eq!(state.app_state.get_selection().as_ref(), selection_1);
+    assert_eq!(state.app_state.get_selection(), selection_1);
 }
 
 #[test]
@@ -111,7 +111,7 @@ fn empty_selections_dont_pollute_undo_stack() {
     state.update_selection(vec![], None);
     state.update_selection(vec![], None);
     state.undo();
-    assert_eq!(state.app_state.get_selection().as_ref(), selection_1);
+    assert_eq!(state.app_state.get_selection(), selection_1);
 }
 
 #[test]
