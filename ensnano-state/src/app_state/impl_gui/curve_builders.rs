@@ -3,7 +3,7 @@ use crate::gui::curve::{CurveDescriptorBuilder, CurveDescriptorParameter, Instan
 use ensnano_design::{bezier_plane::BezierPathId, curves::torus::CurveDescriptor2D};
 use ultraviolet::{Rotor3, Vec3};
 
-pub(super) const ELLIPSE_BUILDER: CurveDescriptorBuilder<AppState> = CurveDescriptorBuilder {
+pub(super) const ELLIPSE_BUILDER: CurveDescriptorBuilder = CurveDescriptorBuilder {
     curve_name: "Ellipse",
     parameters: &[
         CurveDescriptorParameter {
@@ -35,7 +35,7 @@ fn build_ellipse(parameters: &[InstantiatedParameter], _: &AppState) -> Option<C
     })
 }
 
-pub(super) const TWO_SPHERES_BUILDER: CurveDescriptorBuilder<AppState> = CurveDescriptorBuilder {
+pub(super) const TWO_SPHERES_BUILDER: CurveDescriptorBuilder = CurveDescriptorBuilder {
     curve_name: "Two spheres",
     parameters: &[
         CurveDescriptorParameter {
@@ -93,7 +93,7 @@ fn build_two_spheres(
     })
 }
 
-pub(super) const BEZIER_CURVE_BUILDER: CurveDescriptorBuilder<AppState> = CurveDescriptorBuilder {
+pub(super) const BEZIER_CURVE_BUILDER: CurveDescriptorBuilder = CurveDescriptorBuilder {
     curve_name: "Bezier",
     parameters: &[CurveDescriptorParameter {
         name: "Path n°",

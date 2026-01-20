@@ -8,11 +8,9 @@ use crate::{
 };
 use ensnano_design::design_element::DesignElementKey;
 use ensnano_state::{
+    app_state::AppState,
     design::selection::extract_strands_from_selection,
-    gui::{
-        messages::{ColorPickerMessage, FactoryId, ValueId},
-        state::GuiAppState,
-    },
+    gui::messages::{ColorPickerMessage, FactoryId, ValueId},
 };
 use ensnano_utils::{RollRequest, ui_size::UiSize};
 use iced::{
@@ -20,22 +18,19 @@ use iced::{
     widget::{column, row, scrollable},
 };
 use iced_aw::TabLabel;
-use std::marker::PhantomData;
 
-pub struct EditionTab<State: GuiAppState> {
+pub struct EditionTab {
     helix_roll_factory: RequestFactory<HelixRoll>,
     color_picker: ColorPicker,
     //_sequence_input: SequenceInput,
-    //roll_target_btn: GoStop<State>,
-    _state_type: PhantomData<State>,
+    //roll_target_btn: GoStop,
 }
 
-impl<State: GuiAppState> EditionTab<State> {
+impl EditionTab {
     pub fn new() -> Self {
         Self {
             helix_roll_factory: RequestFactory::new(FactoryId::HelixRoll, HelixRoll {}),
             color_picker: ColorPicker::new(),
-            _state_type: PhantomData,
         }
     }
 
@@ -76,18 +71,18 @@ impl<State: GuiAppState> EditionTab<State> {
     }
 }
 
-impl<State: GuiAppState> GuiTab<State> for EditionTab<State> {
-    type Message = LeftPanelMessage<State>;
+impl GuiTab for EditionTab {
+    type Message = LeftPanelMessage;
 
     fn label(&self) -> TabLabel {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Edit)))
     }
 
-    fn update(&mut self, _app_state: &mut State) -> Command<Self::Message> {
+    fn update(&mut self, _app_state: &mut AppState) -> Command<Self::Message> {
         Command::none()
     }
 
-    fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {
+    fn content(&self, ui_size: UiSize, app_state: &AppState) -> iced::Element<'_, Self::Message> {
         let roll_target_helices =
             self.get_roll_target_helices(&app_state.get_selection_as_design_element());
         let sim_state = &app_state.get_simulation_state();
@@ -120,7 +115,7 @@ impl<State: GuiAppState> GuiTab<State> for EditionTab<State> {
                 row![
                     self.color_picker
                         .view()
-                        .map(|m| LeftPanelMessage::ColorPickerMessage(m)),
+                        .map(LeftPanelMessage::ColorPickerMessage),
                     //self.color_picker.color_square(),
                     // memory_color_column(&self.memory_color_squares, 4),
                 ]

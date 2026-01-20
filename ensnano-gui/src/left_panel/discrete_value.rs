@@ -3,10 +3,7 @@
 // TODO: Make it an independent object like ensnano_gui::color_picker ?
 
 use crate::theme;
-use ensnano_state::gui::{
-    messages::{FactoryId, LeftPanelMessage, ValueId},
-    state::GuiAppState,
-};
+use ensnano_state::gui::messages::{FactoryId, LeftPanelMessage, ValueId};
 use iced::{
     Alignment, Length, Pixels,
     widget::{Space, button, row, slider, text},
@@ -66,11 +63,11 @@ impl<R: Requestable> RequestFactory<R> {
         }
     }
 
-    pub(super) fn view<State: GuiAppState>(
+    pub(super) fn view(
         &self,
         active: bool,
         size: impl Into<Pixels>,
-    ) -> Vec<iced::Element<'_, LeftPanelMessage<State>>> {
+    ) -> Vec<iced::Element<'_, LeftPanelMessage>> {
         let s = size.into();
         self.values
             .values()
@@ -144,11 +141,11 @@ impl DiscreteValue {
         }
     }
 
-    fn view<State: GuiAppState>(
+    fn view(
         &self,
         active: bool,
         name_size: impl Into<Pixels>,
-    ) -> iced::Element<'_, LeftPanelMessage<State>> {
+    ) -> iced::Element<'_, LeftPanelMessage> {
         let decr_button = if active && self.value - self.step >= self.min_val {
             button("-").on_press(LeftPanelMessage::DiscreteValue {
                 factory_id: self.owner_id,

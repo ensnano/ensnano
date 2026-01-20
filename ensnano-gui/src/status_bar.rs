@@ -1,5 +1,6 @@
-use crate::{GuiAppState, GuiRequests, theme::GuiBackground};
+use crate::{GuiRequests, theme::GuiBackground};
 use ensnano_state::{
+    app_state::AppState,
     gui::messages::StatusBarMessage,
     utils::operation::{CurrentOpState, Operation},
 };
@@ -36,20 +37,20 @@ impl StatusParameter {
     }
 }
 
-pub struct StatusBarState<R: GuiRequests, S: GuiAppState> {
+pub struct StatusBarState<R: GuiRequests> {
     operation: Option<OperationInput>,
     requests: Arc<Mutex<R>>,
     progress: Option<(String, f32)>,
-    app_state: S,
+    app_state: AppState,
     ui_size: UiSize,
     message: Option<String>,
     logical_size: LogicalSize<f64>,
 }
 
-impl<R: GuiRequests, State: GuiAppState> StatusBarState<R, State> {
+impl<R: GuiRequests> StatusBarState<R> {
     pub fn new(
         requests: Arc<Mutex<R>>,
-        state: &State,
+        state: &AppState,
         logical_size: LogicalSize<f64>,
         ui_size: UiSize,
     ) -> Self {
@@ -80,7 +81,7 @@ impl<R: GuiRequests, State: GuiAppState> StatusBarState<R, State> {
         }
     }
 
-    fn view_progress(&self) -> Row<'_, StatusBarMessage<State>> {
+    fn view_progress(&self) -> Row<'_, StatusBarMessage> {
         let progress = self.progress.as_ref().unwrap();
         row![
             text(format!("{}, {:.1}%", progress.0, progress.1 * 100.))
@@ -89,8 +90,8 @@ impl<R: GuiRequests, State: GuiAppState> StatusBarState<R, State> {
     }
 }
 
-impl<R: GuiRequests, S: GuiAppState> Program for StatusBarState<R, S> {
-    type Message = StatusBarMessage<S>;
+impl<R: GuiRequests> Program for StatusBarState<R> {
+    type Message = StatusBarMessage;
     type Theme = iced::Theme;
     type Renderer = iced::Renderer;
 
@@ -248,7 +249,7 @@ impl OperationInput {
         self.operation = operation;
     }
 
-    fn view<S: GuiAppState>(&self, ui_size: UiSize) -> Row<'_, StatusBarMessage<S>> {
+    fn view(&self, ui_size: UiSize) -> Row<'_, StatusBarMessage> {
         let mut row = Row::new();
         let op = self.operation.as_ref();
         row = row.push(text(op.description()).size(ui_size.main_text()));

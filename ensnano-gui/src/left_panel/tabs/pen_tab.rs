@@ -4,31 +4,28 @@ use crate::{
     left_panel::{LeftPanelMessage, tabs::GuiTab},
 };
 use ensnano_design::grid::GridTypeDescr;
-use ensnano_state::gui::state::GuiAppState;
+use ensnano_state::app_state::AppState;
 use ensnano_utils::{
     consts::{ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID},
     ui_size::UiSize,
 };
 use iced::widget::{checkbox, column, row, text};
 use iced_aw::TabLabel;
-use std::marker::PhantomData;
 
 const NEW_BEZIER_PLANE_ICON: MaterialIcon = MaterialIcon::HistoryEdu;
 const EDIT_BEZIER_PATH_ICON: MaterialIcon = MaterialIcon::LinearScale;
 
 #[derive(Default)]
-pub struct PenTab<State: GuiAppState> {
-    _state_type: PhantomData<State>,
-}
+pub struct PenTab;
 
-impl<State: GuiAppState> GuiTab<State> for PenTab<State> {
-    type Message = LeftPanelMessage<State>;
+impl GuiTab for PenTab {
+    type Message = LeftPanelMessage;
 
     fn label(&self) -> TabLabel {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Draw)))
     }
 
-    fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {
+    fn content(&self, ui_size: UiSize, app_state: &AppState) -> iced::Element<'_, Self::Message> {
         let selected_path_id = app_state.get_selected_bezier_path();
         let path_txt = match selected_path_id {
             Some(p) => format!("{p:?}"),

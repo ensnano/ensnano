@@ -8,16 +8,18 @@ pub mod tabs;
 use ensnano_design::{
     design_element::DesignElementKey, interaction_modes::ActionMode, organizer_tree::OrganizerTree,
 };
-use ensnano_state::design::{
-    operation::HyperboloidRequest,
-    selection::{DesignElementKeySelection as _, Selection},
-};
 use ensnano_state::gui::messages::{
     ColorPickerMessage, FactoryId, LeftPanelMessage, OrganizerMessage, TabId,
 };
 use ensnano_state::gui::requests::{GuiRequests, RigidBodyParametersRequest};
-use ensnano_state::gui::state::GuiAppState;
 use ensnano_state::gui::state::RevolutionParameterId;
+use ensnano_state::{
+    app_state::AppState,
+    design::{
+        operation::HyperboloidRequest,
+        selection::{DesignElementKeySelection as _, Selection},
+    },
+};
 use ensnano_utils::{
     app_state_parameters::AppStateParameters, overlay::OverlayType, ui_size::UiSize,
 };
@@ -52,7 +54,7 @@ use crate::{
     theme::GuiBackground,
 };
 
-pub struct LeftPanelState<R: GuiRequests, S: GuiAppState> {
+pub struct LeftPanelState<R: GuiRequests> {
     logical_size: LogicalSize<f64>,
     logical_position: LogicalPosition<f64>,
     requests: Arc<Mutex<R>>,
@@ -60,28 +62,28 @@ pub struct LeftPanelState<R: GuiRequests, S: GuiAppState> {
     /// Provide an organized view of the object being edited.
     organizer: Organizer,
     ui_size: UiSize,
-    grid_tab: GridTab<S>,
-    edition_tab: EditionTab<S>,
-    camera_tab: CameraTab<S>,
-    simulation_tab: SimulationTab<S>,
-    sequence_tab: SequenceTab<S>,
-    parameters_tab: ParametersTab<S>,
-    pen_tab: PenTab<S>,
-    revolution_tab: RevolutionTab<S>,
-    contextual_panel: ContextualPanel<S>,
+    grid_tab: GridTab,
+    edition_tab: EditionTab,
+    camera_tab: CameraTab,
+    simulation_tab: SimulationTab,
+    sequence_tab: SequenceTab,
+    parameters_tab: ParametersTab,
+    pen_tab: PenTab,
+    revolution_tab: RevolutionTab,
+    contextual_panel: ContextualPanel,
     camera_shortcut: CameraShortcutPanel,
-    application_state: S,
+    application_state: AppState,
     exports_menu: ExportMenu,
 }
 
-impl<R: GuiRequests, S: GuiAppState> LeftPanelState<R, S> {
+impl<R: GuiRequests> LeftPanelState<R> {
     /// Create a new [LeftPanel].
     pub fn new(
         requests: Arc<Mutex<R>>,
         logical_size: LogicalSize<f64>,
         logical_position: LogicalPosition<f64>,
         first_time: bool,
-        state: &S,
+        state: &AppState,
         parameters: &AppStateParameters,
     ) -> Self {
         let mut organizer = Organizer::new();
@@ -126,7 +128,7 @@ impl<R: GuiRequests, S: GuiAppState> LeftPanelState<R, S> {
     }
 
     /// Convert an [OrganizerMessage] into a LeftPanel [Message].
-    fn organizer_message(&mut self, m: OrganizerMessage) -> Option<LeftPanelMessage<S>> {
+    fn organizer_message(&mut self, m: OrganizerMessage) -> Option<LeftPanelMessage> {
         match m {
             OrganizerMessage::InternalMessage(m) => {
                 let selection = self
@@ -138,7 +140,7 @@ impl<R: GuiRequests, S: GuiAppState> LeftPanelState<R, S> {
                 return self
                     .organizer
                     .message(&m, &selection)
-                    .map(|m_| LeftPanelMessage::OrganizerMessage(m_));
+                    .map(LeftPanelMessage::OrganizerMessage);
             }
             OrganizerMessage::Selection(s, group_id) => self
                 .requests
@@ -186,21 +188,20 @@ impl<R: GuiRequests, S: GuiAppState> LeftPanelState<R, S> {
     }
 }
 
-impl<R, S> Program for LeftPanelState<R, S>
+impl<R> Program for LeftPanelState<R>
 where
     R: GuiRequests,
-    S: GuiAppState,
 {
     type Theme = iced::Theme;
     type Renderer = iced::Renderer;
-    type Message = LeftPanelMessage<S>;
+    type Message = LeftPanelMessage;
 
     // BUG: Increasing the left panel too much crashes ENSnano.
 
     // NOTE: The Command feature of Iced has not been used in ENSnan.
     // NOTE: Trying it, it seems that commands are not executed.
 
-    fn update(&mut self, message: LeftPanelMessage<S>) -> Command<LeftPanelMessage<S>> {
+    fn update(&mut self, message: LeftPanelMessage) -> Command<LeftPanelMessage> {
         let notify_new_tree =
             if let Some(tree) = self.application_state.get_reader().get_organizer_tree() {
                 self.organizer.read_tree(tree.as_ref())
@@ -1015,7 +1016,7 @@ where
         let organizer = self
             .organizer
             .view(selection)
-            .map(|m| LeftPanelMessage::OrganizerMessage(m));
+            .map(LeftPanelMessage::OrganizerMessage);
 
         let first_container = if self.application_state.is_exporting() {
             container(self.exports_menu.view())

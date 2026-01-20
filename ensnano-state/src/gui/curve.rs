@@ -1,7 +1,7 @@
 use ensnano_design::curves::torus::CurveDescriptor2D;
 use ultraviolet::{Rotor3, Vec3};
 
-use crate::gui::state::GuiAppState;
+use crate::app_state::AppState;
 
 #[derive(Clone, Copy)]
 pub struct RevolutionScaling {
@@ -9,16 +9,20 @@ pub struct RevolutionScaling {
 }
 
 #[derive(Clone)]
-pub struct CurveDescriptorBuilder<S: GuiAppState> {
+pub struct CurveDescriptorBuilder {
     pub curve_name: &'static str,
     pub parameters: &'static [CurveDescriptorParameter],
     pub bezier_path_id: &'static (dyn Fn(&[InstantiatedParameter]) -> Option<usize> + Send + Sync),
-    pub build:
-        &'static (dyn Fn(&[InstantiatedParameter], &S) -> Option<CurveDescriptor2D> + Send + Sync),
-    pub frame: &'static (dyn Fn(&[InstantiatedParameter], &S) -> Option<Frame> + Send + Sync),
+    pub build: &'static (
+                 dyn Fn(&[InstantiatedParameter], &AppState) -> Option<CurveDescriptor2D>
+                     + Send
+                     + Sync
+             ),
+    pub frame:
+        &'static (dyn Fn(&[InstantiatedParameter], &AppState) -> Option<Frame> + Send + Sync),
 }
 
-impl<S: GuiAppState> std::fmt::Debug for CurveDescriptorBuilder<S> {
+impl std::fmt::Debug for CurveDescriptorBuilder {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         f.debug_struct("CurveDescriptorBuilder")
             .field("curve_name", &self.curve_name)
@@ -26,19 +30,19 @@ impl<S: GuiAppState> std::fmt::Debug for CurveDescriptorBuilder<S> {
     }
 }
 
-impl<S: GuiAppState> std::fmt::Display for CurveDescriptorBuilder<S> {
+impl std::fmt::Display for CurveDescriptorBuilder {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.curve_name)
     }
 }
 
-impl<S: GuiAppState> PartialEq for CurveDescriptorBuilder<S> {
+impl PartialEq for CurveDescriptorBuilder {
     fn eq(&self, other: &Self) -> bool {
         self.curve_name == other.curve_name
     }
 }
 
-impl<S: GuiAppState> Eq for CurveDescriptorBuilder<S> {}
+impl Eq for CurveDescriptorBuilder {}
 
 #[derive(Debug, Clone)]
 pub struct CurveDescriptorParameter {

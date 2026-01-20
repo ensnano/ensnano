@@ -62,6 +62,10 @@ impl DesignInteractor {
         self.handle_operation_result(result)
     }
 
+    pub(super) fn is_building_hyperboloid(&self) -> bool {
+        self.controller.is_building_hyperboloid()
+    }
+
     pub(super) fn apply_operation(
         &self,
         operation: DesignOperation,
@@ -274,10 +278,6 @@ impl DesignInteractor {
 
     pub(super) fn can_iterate_duplication(&self) -> bool {
         self.controller.can_iterate_duplication()
-    }
-
-    pub(super) fn is_building_hyperboloid(&self) -> bool {
-        self.controller.is_building_hyperboloid()
     }
 
     pub(super) fn with_visibility_sieve(

@@ -1,10 +1,8 @@
 use crate::consts::{MAX_NB_TURN, MIN_NB_TURN, NB_TURN_SLIDER_SPACING, NB_TURN_STEP};
 use ensnano_state::{
+    app_state::AppState,
     design::selection::Selection,
-    gui::{
-        messages::{InstantiatedValue, LeftPanelMessage, ValueKind},
-        state::GuiAppState,
-    },
+    gui::messages::{InstantiatedValue, LeftPanelMessage, ValueKind},
 };
 use ensnano_utils::{keyboard_priority::keyboard_priority, ui_size::UiSize};
 use iced::{
@@ -47,7 +45,7 @@ macro_rules! type_builder {
                     }
                 }
 
-                fn view<S: GuiAppState>(&self) -> iced::Element<'_, LeftPanelMessage<S>> {
+                fn view(&self) -> iced::Element<'_, LeftPanelMessage> {
                     let str_values = [$(& self.[<$param _string>],)*];
                     let mut ret = Column::new().width(Length::Fill).align_items(Alignment::End);
                     let value_to_modify = self.value_to_modify;
@@ -155,7 +153,7 @@ impl GridPositionBuilder {
         Self::Cartesian(Vec3Builder::new(ValueKind::HelixGridPosition, position))
     }
 
-    fn view<S: GuiAppState>(&self) -> iced::Element<'_, LeftPanelMessage<S>> {
+    fn view(&self) -> iced::Element<'_, LeftPanelMessage> {
         match self {
             Self::Cartesian(builder) => builder.view(),
         }
@@ -188,7 +186,7 @@ impl GridOrientationBuilder {
         ))
     }
 
-    fn view<S: GuiAppState>(&self) -> iced::Element<'_, LeftPanelMessage<S>> {
+    fn view(&self) -> iced::Element<'_, LeftPanelMessage> {
         match self {
             Self::DirectionAngle(builder) => builder.view(),
         }
@@ -221,13 +219,13 @@ impl BezierVertexBuilder {
     }
 }
 
-impl<S: GuiAppState> Builder<S> for BezierVertexBuilder {
+impl Builder for BezierVertexBuilder {
     fn view(
         &self,
         ui_size: UiSize,
         _selection: &Selection,
-        _app_state: &S,
-    ) -> iced::Element<'_, LeftPanelMessage<S>> {
+        _app_state: &AppState,
+    ) -> iced::Element<'_, LeftPanelMessage> {
         column![
             text("Position").size(ui_size.intermediate_text()),
             self.position_builder.view(),
@@ -269,10 +267,10 @@ impl GridBuilder {
         }
     }
 
-    fn nb_turn_row<'a, S: GuiAppState>(
-        app_state: &S,
+    fn nb_turn_row<'a>(
+        app_state: &AppState,
         selection: &Selection,
-    ) -> Option<iced::Element<'a, LeftPanelMessage<S>>> {
+    ) -> Option<iced::Element<'a, LeftPanelMessage>> {
         if let Selection::Grid(_, g_id) = selection {
             if let Some(nb_turn) = app_state.get_reader().get_grid_nb_turn(*g_id) {
                 let row = row![
@@ -295,13 +293,13 @@ impl GridBuilder {
     }
 }
 
-impl<S: GuiAppState> Builder<S> for GridBuilder {
+impl Builder for GridBuilder {
     fn view(
         &self,
         ui_size: UiSize,
         selection: &Selection,
-        app_state: &S,
-    ) -> iced::Element<'_, LeftPanelMessage<S>> {
+        app_state: &AppState,
+    ) -> iced::Element<'_, LeftPanelMessage> {
         column![
             text("Position").size(ui_size.intermediate_text()),
             self.position_builder.view(),
@@ -340,13 +338,13 @@ impl<S: GuiAppState> Builder<S> for GridBuilder {
     }
 }
 
-pub(crate) trait Builder<S: GuiAppState> {
+pub(crate) trait Builder {
     fn view<'a>(
         &'a self,
         ui_size: UiSize,
         selection: &Selection,
-        app_state: &S,
-    ) -> iced::Element<'a, LeftPanelMessage<S>>;
+        app_state: &AppState,
+    ) -> iced::Element<'a, LeftPanelMessage>;
     fn update_str_value(&mut self, value_kind: ValueKind, n: usize, value_str: String);
     fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstantiatedValue>;
 }

@@ -2,10 +2,7 @@ use crate::{
     helpers::{extra_jump, subsection},
     theme,
 };
-use ensnano_state::gui::{
-    messages::{ALL_FOG_CHOICES, FogChoices, LeftPanelMessage},
-    state::GuiAppState,
-};
+use ensnano_state::gui::messages::{ALL_FOG_CHOICES, FogChoices, LeftPanelMessage};
 use ensnano_utils::{graphics::FogParameters, ui_size::UiSize};
 use iced::{
     Alignment,
@@ -29,10 +26,7 @@ pub struct FogGuiParameters {
 }
 
 impl FogGuiParameters {
-    pub fn view<State: GuiAppState>(
-        &self,
-        ui_size: UiSize,
-    ) -> iced::Element<'_, LeftPanelMessage<State>> {
+    pub fn view(&self, ui_size: UiSize) -> iced::Element<'_, LeftPanelMessage> {
         let radius_text = if self.is_activated {
             text("Radius")
         } else {

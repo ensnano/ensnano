@@ -9,46 +9,45 @@ pub mod sequence_tab;
 pub mod simulation_tab;
 
 use crate::left_panel::LeftPanelMessage;
-use ensnano_state::gui::state::GuiAppState;
+use ensnano_state::app_state::AppState;
 use ensnano_utils::ui_size::UiSize;
 use iced::{Command, Length, widget::container};
 use iced_aw::TabLabel;
 
-pub trait GuiTab<State: GuiAppState> {
+pub trait GuiTab {
     type Message;
 
     fn label(&self) -> TabLabel;
 
-    fn update(&mut self, _app_state: &mut State) -> Command<LeftPanelMessage<State>> {
+    fn update(&mut self, _app_state: &mut AppState) -> Command<LeftPanelMessage> {
         Command::none()
     }
 
-    fn view(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {
+    fn view(&self, ui_size: UiSize, app_state: &AppState) -> iced::Element<'_, Self::Message> {
         container(self.content(ui_size, app_state))
             .width(Length::Fill)
             .height(Length::Fill)
             .into()
     }
 
-    fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message>;
+    fn content(&self, ui_size: UiSize, app_state: &AppState) -> iced::Element<'_, Self::Message>;
 }
 
 // TODO: Turn this into a widget
 pub mod gostop {
     use crate::left_panel::LeftPanelMessage;
-    use ensnano_state::gui::state::GuiAppState;
     use iced::widget::{button, row, text};
 
-    pub struct GoStop<State: GuiAppState> {
+    pub struct GoStop {
         pub name: String,
-        on_press: Box<dyn Fn(bool) -> LeftPanelMessage<State>>,
+        on_press: Box<dyn Fn(bool) -> LeftPanelMessage>,
         // TODO: Use a checkbox-like approach with Option<Box<…>>
     }
 
-    impl<State: GuiAppState> GoStop<State> {
+    impl GoStop {
         pub fn new<F>(name: String, on_press: F) -> Self
         where
-            F: 'static + Fn(bool) -> LeftPanelMessage<State>,
+            F: 'static + Fn(bool) -> LeftPanelMessage,
         {
             Self {
                 name,
@@ -56,11 +55,7 @@ pub mod gostop {
             }
         }
 
-        pub fn view(
-            &self,
-            active: bool,
-            running: bool,
-        ) -> iced::Element<'_, LeftPanelMessage<State>> {
+        pub fn view(&self, active: bool, running: bool) -> iced::Element<'_, LeftPanelMessage> {
             let button_str = if running {
                 "Stop".to_owned()
             } else {

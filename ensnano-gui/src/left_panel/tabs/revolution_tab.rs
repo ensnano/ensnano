@@ -5,9 +5,12 @@ use crate::{
     theme,
 };
 use ensnano_design::curves::torus::CurveDescriptor2D;
-use ensnano_state::gui::{
-    curve::{CurveDescriptorBuilder, Frame, InstantiatedParameter, RevolutionScaling},
-    state::{GuiAppState, RevolutionParameterId},
+use ensnano_state::{
+    app_state::AppState,
+    gui::{
+        curve::{CurveDescriptorBuilder, Frame, InstantiatedParameter, RevolutionScaling},
+        state::RevolutionParameterId,
+    },
 };
 use ensnano_utils::{
     SimulationState,
@@ -53,10 +56,7 @@ impl ParameterWidget {
         }
     }
 
-    fn input_view<State: GuiAppState>(
-        &self,
-        id: RevolutionParameterId,
-    ) -> iced::Element<'_, LeftPanelMessage<State>> {
+    fn input_view(&self, id: RevolutionParameterId) -> iced::Element<'_, LeftPanelMessage> {
         keyboard_priority(
             format!("Revolution tab {id:?}"),
             LeftPanelMessage::SetKeyboardPriority,
@@ -100,14 +100,14 @@ impl ParameterWidget {
     }
 }
 
-struct CurveDescriptorWidget<S: GuiAppState> {
+struct CurveDescriptorWidget {
     parameters: Vec<(&'static str, ParameterWidget)>,
     curve_name: &'static str,
-    builder: CurveDescriptorBuilder<S>,
+    builder: CurveDescriptorBuilder,
 }
 
-impl<S: GuiAppState> CurveDescriptorWidget<S> {
-    fn new(builder: CurveDescriptorBuilder<S>) -> Self {
+impl CurveDescriptorWidget {
+    fn new(builder: CurveDescriptorBuilder) -> Self {
         let parameters = builder
             .parameters
             .iter()
@@ -121,7 +121,7 @@ impl<S: GuiAppState> CurveDescriptorWidget<S> {
         }
     }
 
-    fn view(&self, ui_size: UiSize) -> iced::Element<'_, LeftPanelMessage<S>> {
+    fn view(&self, ui_size: UiSize) -> iced::Element<'_, LeftPanelMessage> {
         container(column(self.parameters.iter().enumerate().map(
             |(param_id, param)| {
                 row![
@@ -152,7 +152,7 @@ impl<S: GuiAppState> CurveDescriptorWidget<S> {
             .collect()
     }
 
-    fn build_curve(&self, app_state: &S) -> Option<CurveDescriptor2D> {
+    fn build_curve(&self, app_state: &AppState) -> Option<CurveDescriptor2D> {
         (self.builder.build)(&self.instantiated_parameters(), app_state)
     }
 
@@ -160,13 +160,13 @@ impl<S: GuiAppState> CurveDescriptorWidget<S> {
         (self.builder.bezier_path_id)(&self.instantiated_parameters())
     }
 
-    fn get_frame(&self, app_state: &S) -> Option<Frame> {
+    fn get_frame(&self, app_state: &AppState) -> Option<Frame> {
         (self.builder.frame)(&self.instantiated_parameters(), app_state)
     }
 }
 
-pub(crate) struct RevolutionTab<State: GuiAppState> {
-    curve_descriptor_widget: Option<CurveDescriptorWidget<State>>,
+pub(crate) struct RevolutionTab {
+    curve_descriptor_widget: Option<CurveDescriptorWidget>,
     half_turn_count: ParameterWidget,
     radius_input: ParameterWidget,
     scaling: Option<RevolutionScaling>,
@@ -185,7 +185,7 @@ pub(crate) struct RevolutionTab<State: GuiAppState> {
     equadiff_method: EquadiffSolvingMethod,
 }
 
-impl<State: GuiAppState> Default for RevolutionTab<State> {
+impl Default for RevolutionTab {
     fn default() -> Self {
         let init_parameter = RevolutionSimulationParameters::default();
         Self {
@@ -219,8 +219,8 @@ impl<State: GuiAppState> Default for RevolutionTab<State> {
     }
 }
 
-impl<State: GuiAppState> RevolutionTab<State> {
-    pub(crate) fn set_builder(&mut self, builder: CurveDescriptorBuilder<State>) {
+impl RevolutionTab {
+    pub(crate) fn set_builder(&mut self, builder: CurveDescriptorBuilder) {
         if self.curve_descriptor_widget.as_ref().map(|w| w.curve_name) != Some(builder.curve_name) {
             self.curve_descriptor_widget = Some(CurveDescriptorWidget::new(builder));
         }
@@ -271,7 +271,7 @@ impl<State: GuiAppState> RevolutionTab<State> {
 
     pub(crate) fn get_current_unrooted_surface(
         &self,
-        app_state: &State,
+        app_state: &AppState,
     ) -> Option<UnrootedRevolutionSurfaceDescriptor> {
         let curve = self
             .curve_descriptor_widget
@@ -304,7 +304,7 @@ impl<State: GuiAppState> RevolutionTab<State> {
 
     pub(crate) fn get_revolution_system(
         &self,
-        app_state: &State,
+        app_state: &AppState,
         compute_area: bool,
     ) -> Option<RevolutionSurfaceSystemDescriptor> {
         let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
@@ -333,7 +333,7 @@ impl<State: GuiAppState> RevolutionTab<State> {
     }
 
     /// Get the number of shift per turn, updating `self.shift_generator` if needed.
-    fn get_shift_per_turn(&self, app_state: &State) -> Option<isize> {
+    fn get_shift_per_turn(&self, app_state: &AppState) -> Option<isize> {
         self.try_get_shift_per_turn(app_state).or_else(|| {
             // TODO: This update must be done elsewhere.
             //let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
@@ -350,7 +350,7 @@ impl<State: GuiAppState> RevolutionTab<State> {
 
     /// Return the number of shift per turn if `self.shift_generator` is up-to-date, and `None`
     /// otherwise.
-    fn try_get_shift_per_turn(&self, app_state: &State) -> Option<isize> {
+    fn try_get_shift_per_turn(&self, app_state: &AppState) -> Option<isize> {
         let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
         let nb_spiral = self
             .nb_spiral_state_input
@@ -412,14 +412,14 @@ impl<State: GuiAppState> RevolutionTab<State> {
     }
 }
 
-impl<State: GuiAppState> GuiTab<State> for RevolutionTab<State> {
-    type Message = LeftPanelMessage<State>;
+impl GuiTab for RevolutionTab {
+    type Message = LeftPanelMessage;
 
     fn label(&self) -> TabLabel {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::AutoMode)))
     }
 
-    fn update(&mut self, app_state: &mut State) -> Command<LeftPanelMessage<State>> {
+    fn update(&mut self, app_state: &mut AppState) -> Command<LeftPanelMessage> {
         if let Some(r) = app_state.get_current_revolution_radius()
             && !self.modifying_radius()
         {
@@ -452,7 +452,7 @@ impl<State: GuiAppState> GuiTab<State> for RevolutionTab<State> {
         Command::none()
     }
 
-    fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {
+    fn content(&self, ui_size: UiSize, app_state: &AppState) -> iced::Element<'_, Self::Message> {
         let desc = self.get_revolution_system(app_state, false);
 
         let shift_buttons = {
@@ -505,7 +505,7 @@ impl<State: GuiAppState> GuiTab<State> for RevolutionTab<State> {
                     "Curve type",
                     Space::with_width(ui_size.checkbox_spacing()),
                     pick_list(
-                        State::POSSIBLE_CURVES,
+                        AppState::POSSIBLE_CURVES,
                         self.curve_descriptor_widget
                             .as_ref()
                             .map(|w| w.builder.clone()),

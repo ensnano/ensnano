@@ -178,10 +178,7 @@ impl<'a> EventContext<'a> {
     }
 
     pub(crate) fn is_editing_bezier_path(&self) -> bool {
-        matches!(
-            self.app_state.get_action_mode(),
-            (ActionMode::EditBezierPath, _)
-        )
+        matches!(self.app_state.get_action_mode(), ActionMode::EditBezierPath)
     }
 
     pub(crate) fn get_bezier_vertex_being_edited(&self) -> Option<BezierVertexId> {
@@ -280,7 +277,7 @@ impl<'a> EventContext<'a> {
     }
 
     pub(crate) fn get_action_mode(&self) -> ActionMode {
-        self.app_state.get_action_mode().0
+        self.app_state.get_action_mode()
     }
 
     pub(crate) fn get_object_at_grid_pos(&self, position: GridPosition) -> Option<GridObject> {

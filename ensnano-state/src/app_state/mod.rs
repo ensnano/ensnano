@@ -581,7 +581,7 @@ impl AppState {
             && (self.0.updated_once || other.0.updated_once)
     }
 
-    fn get_strand_building_state(&self) -> Option<StrandBuildingStatus> {
+    pub fn get_strand_building_state(&self) -> Option<StrandBuildingStatus> {
         let builders = self.0.design.get_strand_builders();
         builders.first().and_then(|b| {
             let domain_id = b.get_domain_identifier();
@@ -661,10 +661,6 @@ impl AppState {
 
     pub fn get_simulation_state(&self) -> SimulationState {
         self.0.design.get_simulation_state()
-    }
-
-    pub fn is_building_hyperboloid(&self) -> bool {
-        self.0.design.is_building_hyperboloid()
     }
 
     #[must_use]

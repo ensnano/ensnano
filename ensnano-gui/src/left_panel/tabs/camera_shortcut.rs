@@ -7,7 +7,7 @@ use crate::{
     left_panel::LeftPanelMessage,
 };
 use ensnano_design::CameraId;
-use ensnano_state::gui::state::GuiAppState;
+use ensnano_state::app_state::AppState;
 use ensnano_utils::{keyboard_priority::keyboard_priority, ui_size::UiSize};
 use iced::{
     Alignment, Command, Length,
@@ -63,15 +63,12 @@ impl NamedCamera {
     }
 
     /// Generate a message to set camera to desired position.
-    fn message<State: GuiAppState>(self) -> LeftPanelMessage<State> {
+    fn message(self) -> LeftPanelMessage {
         LeftPanelMessage::FixPoint(self.direction(), self.up())
     }
 
     /// Turn a [`NamedCamera`] into a button.
-    fn button<'a, State: GuiAppState>(
-        self,
-        ui_size: UiSize,
-    ) -> iced::Element<'a, LeftPanelMessage<State>> {
+    fn button<'a>(self, ui_size: UiSize) -> iced::Element<'a, LeftPanelMessage> {
         fixed_text_button(self.name(), 2.0, ui_size)
             .on_press(self.message())
             .into()
@@ -102,15 +99,12 @@ impl Rotation {
     }
 
     /// Generate the message that request rotation.
-    fn message<State: GuiAppState>(&self) -> LeftPanelMessage<State> {
+    fn message(&self) -> LeftPanelMessage {
         let (x, y, z) = self.angles();
         LeftPanelMessage::RotateCam(x, y, z)
     }
 
-    fn button<'a, State: GuiAppState>(
-        self,
-        ui_size: UiSize,
-    ) -> iced::Element<'a, LeftPanelMessage<State>> {
+    fn button<'a>(self, ui_size: UiSize) -> iced::Element<'a, LeftPanelMessage> {
         let icon = match self {
             Self::NegativeY => MaterialIcon::ArrowBack,
             Self::PositiveY => MaterialIcon::ArrowForward,
@@ -140,10 +134,7 @@ struct CameraWidget {
 }
 
 impl CameraWidget {
-    fn view<State: GuiAppState>(
-        &self,
-        ui_size: UiSize,
-    ) -> iced::Element<'_, LeftPanelMessage<State>> {
+    fn view(&self, ui_size: UiSize) -> iced::Element<'_, LeftPanelMessage> {
         let name_field: iced::Element<'_, _> = if self.being_edited {
             keyboard_priority(
                 "Camera name",
@@ -217,7 +208,7 @@ impl CameraShortcutPanel {
         }
     }
 
-    fn set_camera_widget<State: GuiAppState>(&mut self, app: &State) {
+    fn set_camera_widget(&mut self, app: &AppState) {
         self.camera_widgets = app
             .get_reader()
             .get_all_cameras()
@@ -242,18 +233,12 @@ impl CameraShortcutPanel {
         self.scroll_state.snap_to(scrollable::RelativeOffset::END);
     }
 
-    pub fn update<State: GuiAppState>(
-        &mut self,
-        app_state: &State,
-    ) -> Command<LeftPanelMessage<State>> {
+    pub fn update(&mut self, app_state: &AppState) -> Command<LeftPanelMessage> {
         self.set_camera_widget(app_state);
         Command::none()
     }
 
-    pub fn view<State: GuiAppState>(
-        &self,
-        ui_size: UiSize,
-    ) -> iced::Element<'_, LeftPanelMessage<State>> {
+    pub fn view(&self, ui_size: UiSize) -> iced::Element<'_, LeftPanelMessage> {
         const NAMED_CAMERA_GRID: [[NamedCamera; 3]; 2] = [
             [NamedCamera::Left, NamedCamera::Top, NamedCamera::Front],
             [NamedCamera::Right, NamedCamera::Bottom, NamedCamera::Back],

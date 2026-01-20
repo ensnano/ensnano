@@ -4,7 +4,7 @@ use crate::{
     helpers::{extra_jump, right_checkbox, section, subsection, text_button},
     left_panel::{LeftPanelMessage, tabs::GuiTab},
 };
-use ensnano_state::gui::state::GuiAppState;
+use ensnano_state::app_state::AppState;
 use ensnano_utils::{
     app_state_parameters::{AppStateParameters, check_xovers_parameter::CheckXoversParameter},
     graphics::{
@@ -18,22 +18,19 @@ use iced::{
     widget::{checkbox, column, pick_list, row, scrollable},
 };
 use iced_aw::TabLabel;
-use std::marker::PhantomData;
 
-pub struct CameraTab<State: GuiAppState> {
+pub struct CameraTab {
     fog: FogGuiParameters,
     pub background3d: Background3D,
     pub rendering_mode: RenderingMode,
-    _state_type: PhantomData<State>,
 }
 
-impl<State: GuiAppState> CameraTab<State> {
+impl CameraTab {
     pub fn new(parameters: &AppStateParameters) -> Self {
         Self {
             fog: Default::default(),
             background3d: parameters.background3d,
             rendering_mode: parameters.rendering_mode,
-            _state_type: PhantomData,
         }
     }
 
@@ -66,8 +63,8 @@ impl<State: GuiAppState> CameraTab<State> {
     }
 }
 
-impl<State: GuiAppState> GuiTab<State> for CameraTab<State> {
-    type Message = LeftPanelMessage<State>;
+impl GuiTab for CameraTab {
+    type Message = LeftPanelMessage;
 
     fn label(&self) -> TabLabel {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Videocam)))
@@ -76,8 +73,8 @@ impl<State: GuiAppState> GuiTab<State> for CameraTab<State> {
     fn content(
         &self,
         ui_size: UiSize,
-        app_state: &State,
-    ) -> iced::Element<'_, LeftPanelMessage<State>> {
+        app_state: &AppState,
+    ) -> iced::Element<'_, LeftPanelMessage> {
         let content = column![
             section("Camera", ui_size),
             subsection("Toggle visibility", ui_size),

@@ -1,6 +1,5 @@
 use crate::app_state::AppState;
 use crate::design::selection::Selection;
-use ensnano_design::interaction_modes::SelectionMode;
 use ensnano_utils::StrandBuildingStatus;
 
 impl AppState {
@@ -10,10 +9,6 @@ impl AppState {
 
     pub fn candidate_was_updated(&self, other: &Self) -> bool {
         self.0.candidates != other.0.candidates
-    }
-
-    pub fn get_selection_mode(&self) -> SelectionMode {
-        self.0.selection_mode
     }
 
     pub fn design_was_updated(&self, other: &Self) -> bool {
@@ -27,6 +22,8 @@ impl AppState {
 
 #[cfg(test)]
 mod tests {
+    use ensnano_design::interaction_modes::SelectionMode;
+
     use super::*;
 
     #[test]

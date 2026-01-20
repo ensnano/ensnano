@@ -274,7 +274,7 @@ impl Data {
                 .or_else(|| self.get_widget_basis(app_state))
         });
         let handle_descr =
-            if app_state.get_action_mode().0 == ActionMode::Translate || self.rotating_pivot {
+            if app_state.get_action_mode() == ActionMode::Translate || self.rotating_pivot {
                 let colors = if self.rotating_pivot {
                     HandleColors::Rgb
                 } else {
@@ -300,7 +300,7 @@ impl Data {
         } else {
             AvailableRotationAxes::All
         };
-        let rotation_widget_descr = if app_state.get_action_mode().0 == ActionMode::Rotate {
+        let rotation_widget_descr = if app_state.get_action_mode() == ActionMode::Rotate {
             origin
                 .zip(orientation)
                 .map(|(origin, orientation)| RotationWidgetDescriptor {
@@ -1470,7 +1470,7 @@ impl Data {
 
         // If we are building helices, we want to show candidates grid circle even when they do not
         // correspond to an existing helix
-        if app_state.get_action_mode().0.is_build()
+        if app_state.get_action_mode().is_build()
             && let Some(SceneElement::GridCircle(0, position)) = self.candidate_element.as_ref()
         {
             add_discs(*position, discs!(), DiscLevel::Candidate);
@@ -1564,7 +1564,7 @@ impl Data {
     fn get_forced_widget_basis(&self, app_state: &AppState) -> Option<Rotor3> {
         (app_state.get_widget_basis().is_axis_aligned()
             && !(self.handle_colors == HandleColors::Cym
-                && app_state.get_action_mode().0 == ActionMode::Rotate))
+                && app_state.get_action_mode() == ActionMode::Rotate))
             .then(Rotor3::identity)
     }
 

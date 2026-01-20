@@ -30,7 +30,7 @@ impl AppState {
             .has_different_model_matrix_than(&other.0.design)
     }
 
-    pub fn get_action_mode(&self) -> (ActionMode, WidgetBasis) {
+    pub fn get_action_mode_and_widget_basis(&self) -> (ActionMode, WidgetBasis) {
         (self.0.action_mode, self.0.widget_basis)
     }
 
@@ -77,10 +77,6 @@ impl AppState {
 
     pub fn get_check_xover_parameters(&self) -> CheckXoversParameter {
         self.0.parameters.check_xover_parameters
-    }
-
-    pub fn follow_stereographic_camera(&self) -> bool {
-        self.0.parameters.follow_stereography
     }
 
     pub fn get_draw_options(&self) -> DrawOptions {

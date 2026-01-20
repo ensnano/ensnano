@@ -123,7 +123,7 @@ use ensnano_state::{
             list_of_helices, list_of_strands, list_of_xover_as_nucl_pairs,
         },
     },
-    gui::{messages::GuiMessages, state::GuiAppState as _},
+    gui::messages::GuiMessages,
     requests::Requests,
     utils::application::{Camera3D, Notification},
 };
@@ -955,7 +955,7 @@ impl OverlayManager {
         }
     }
 
-    fn forward_messages(&self, _messages: &mut GuiMessages<AppState>) {}
+    fn forward_messages(&self, _messages: &mut GuiMessages) {}
 
     fn fetch_change(
         &mut self,
@@ -1023,7 +1023,7 @@ pub(crate) struct MainStateView<'a> {
     pub(crate) window_target: &'a EventLoopWindowTarget<()>,
     pub(crate) multiplexer: &'a mut Multiplexer,
     pub(crate) scheduler: &'a mut Scheduler,
-    pub(crate) gui: &'a mut GuiManager<Requests, AppState>,
+    pub(crate) gui: &'a mut GuiManager<Requests>,
     pub(crate) window: &'a Window,
     pub(crate) resized: bool,
 }

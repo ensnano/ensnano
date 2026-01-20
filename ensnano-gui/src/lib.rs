@@ -16,10 +16,14 @@ pub mod theme;
 pub mod top_bar;
 mod widgets;
 
-use ensnano_state::gui::{
-    messages::{GuiMessages, LeftPanelMessage, StatusBarMessage, TopBarMessage, TopBarStateFlags},
-    requests::GuiRequests,
-    state::GuiAppState,
+use ensnano_state::{
+    app_state::AppState,
+    gui::{
+        messages::{
+            GuiMessages, LeftPanelMessage, StatusBarMessage, TopBarMessage, TopBarStateFlags,
+        },
+        requests::GuiRequests,
+    },
 };
 use ensnano_utils::{
     TEXTURE_FORMAT,
@@ -53,13 +57,13 @@ use crate::{
 };
 
 #[expect(clippy::large_enum_variant)]
-pub enum GuiState<R: GuiRequests, S: GuiAppState> {
-    TopBar(program::State<TopBarState<R, S>>),
-    LeftPanel(program::State<LeftPanelState<R, S>>),
-    StatusBar(program::State<StatusBarState<R, S>>),
+pub enum GuiState<R: GuiRequests> {
+    TopBar(program::State<TopBarState<R>>),
+    LeftPanel(program::State<LeftPanelState<R>>),
+    StatusBar(program::State<StatusBarState<R>>),
 }
 
-impl<R: GuiRequests, S: GuiAppState> GuiState<R, S> {
+impl<R: GuiRequests> GuiState<R> {
     pub fn queue_event(&mut self, event: Event) {
         if let Event::Keyboard(keyboard::Event::KeyPressed {
             key: keyboard::Key::Named(keyboard::key::Named::Tab),
@@ -81,7 +85,7 @@ impl<R: GuiRequests, S: GuiAppState> GuiState<R, S> {
         }
     }
 
-    pub fn queue_top_bar_message(&mut self, message: TopBarMessage<S>) {
+    pub fn queue_top_bar_message(&mut self, message: TopBarMessage) {
         log::trace!("Queue top bar {message:?}");
         if let Self::TopBar(state) = self {
             state.queue_message(message);
@@ -90,7 +94,7 @@ impl<R: GuiRequests, S: GuiAppState> GuiState<R, S> {
         }
     }
 
-    pub fn queue_left_panel_message(&mut self, message: LeftPanelMessage<S>) {
+    pub fn queue_left_panel_message(&mut self, message: LeftPanelMessage) {
         log::trace!("Queue left panel {message:?}");
         if let Self::LeftPanel(state) = self {
             state.queue_message(message);
@@ -99,7 +103,7 @@ impl<R: GuiRequests, S: GuiAppState> GuiState<R, S> {
         }
     }
 
-    pub fn queue_status_bar_message(&mut self, message: StatusBarMessage<S>) {
+    pub fn queue_status_bar_message(&mut self, message: StatusBarMessage) {
         log::trace!("Queue status_bar {message:?}");
         if let Self::StatusBar(state) = self {
             state.queue_message(message);
@@ -205,22 +209,22 @@ impl<R: GuiRequests, S: GuiAppState> GuiState<R, S> {
 }
 
 /// A Gui component.
-struct GuiComponent<R: GuiRequests, S: GuiAppState> {
-    state: GuiState<R, S>,
+struct GuiComponent<R: GuiRequests> {
+    state: GuiState<R>,
     debug: Debug,
     redraw: bool,
     element_type: GuiComponentType,
     renderer: iced::Renderer,
 }
 
-impl<R: GuiRequests, S: GuiAppState> GuiComponent<R, S> {
+impl<R: GuiRequests> GuiComponent<R> {
     /// Initialize the top bar gui component
     fn top_bar(
         mut renderer: iced::Renderer,
         window: &Window,
         multiplexer: &dyn MultiplexerExt,
         requests: Arc<Mutex<R>>,
-        app_state: S,
+        app_state: AppState,
         top_bar_state: TopBarStateFlags,
         ui_size: UiSize,
     ) -> Self {
@@ -255,7 +259,7 @@ impl<R: GuiRequests, S: GuiAppState> GuiComponent<R, S> {
         multiplexer: &dyn MultiplexerExt,
         requests: Arc<Mutex<R>>,
         first_time: bool,
-        state: &S,
+        state: &AppState,
         parameters: &AppStateParameters,
     ) -> Self {
         let left_panel_area = multiplexer
@@ -290,7 +294,7 @@ impl<R: GuiRequests, S: GuiAppState> GuiComponent<R, S> {
         window: &Window,
         multiplexer: &dyn MultiplexerExt,
         requests: Arc<Mutex<R>>,
-        state: &S,
+        state: &AppState,
         ui_size: UiSize,
     ) -> Self {
         let status_bar_area = multiplexer
@@ -322,7 +326,7 @@ impl<R: GuiRequests, S: GuiAppState> GuiComponent<R, S> {
         self.state.queue_event(event);
     }
 
-    fn get_state(&mut self) -> &mut GuiState<R, S> {
+    fn get_state(&mut self) -> &mut GuiState<R> {
         &mut self.state
     }
 
@@ -405,7 +409,7 @@ impl<R: GuiRequests, S: GuiAppState> GuiComponent<R, S> {
 /// The manager of the graphical user interface.
 ///
 /// The manager contains a [`GuiComponent`] for each [`GuiComponentType`] (top_bar, left_panel, etc…)
-pub struct GuiManager<R: GuiRequests, S: GuiAppState> {
+pub struct GuiManager<R: GuiRequests> {
     /// WGPU Settings
     wgpu_settings: iced_wgpu::Settings,
     /// WGPU device
@@ -416,10 +420,10 @@ pub struct GuiManager<R: GuiRequests, S: GuiAppState> {
     requests: Arc<Mutex<R>>,
     parameters: AppStateParameters,
     /// [`GuiComponent`] mapped by [`GuiComponentType`]
-    components: HashMap<GuiComponentType, GuiComponent<R, S>>,
+    components: HashMap<GuiComponentType, GuiComponent<R>>,
 }
 
-impl<R: GuiRequests, State: GuiAppState> GuiManager<R, State> {
+impl<R: GuiRequests> GuiManager<R> {
     pub fn new(
         device: Rc<Device>,
         queue: Rc<Queue>,
@@ -427,7 +431,7 @@ impl<R: GuiRequests, State: GuiAppState> GuiManager<R, State> {
         multiplexer: &dyn MultiplexerExt,
         requests: Arc<Mutex<R>>,
         parameters: AppStateParameters,
-        global_state: &State,
+        global_state: &AppState,
         top_bar_state: TopBarStateFlags,
     ) -> Self {
         let wgpu_settings = iced_wgpu::Settings {
@@ -463,7 +467,7 @@ impl<R: GuiRequests, State: GuiAppState> GuiManager<R, State> {
         &mut self,
         window: &Window,
         multiplexer: &dyn MultiplexerExt,
-        state: &State,
+        state: &AppState,
         top_bar_state: TopBarStateFlags,
     ) {
         // NOTE: Wow…
@@ -565,7 +569,7 @@ impl<R: GuiRequests, State: GuiAppState> GuiManager<R, State> {
     }
 
     /// Forward a message to the appropriate gui component
-    pub fn forward_messages(&mut self, messages: &mut GuiMessages<State>) {
+    pub fn forward_messages(&mut self, messages: &mut GuiMessages) {
         for m in messages.top_bar.drain(..) {
             self.components
                 .get_mut(&GuiComponentType::TopBar)
@@ -631,7 +635,7 @@ impl<R: GuiRequests, State: GuiAppState> GuiManager<R, State> {
         ui_size: UiSize,
         window: &Window,
         multiplexer: &dyn MultiplexerExt,
-        app_state: &State,
+        app_state: &AppState,
         top_bar_state: TopBarStateFlags,
     ) {
         self.set_text_size(ui_size.main_text());
@@ -644,7 +648,7 @@ impl<R: GuiRequests, State: GuiAppState> GuiManager<R, State> {
         &mut self,
         window: &Window,
         multiplexer: &dyn MultiplexerExt,
-        app_state: &State,
+        app_state: &AppState,
         top_bar_state: TopBarStateFlags,
     ) {
         self.set_text_size(self.parameters.ui_size.main_text());

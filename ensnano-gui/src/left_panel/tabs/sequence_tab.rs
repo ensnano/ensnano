@@ -4,7 +4,7 @@ use crate::{
     theme,
 };
 use ensnano_design::design_element::DesignElementKey;
-use ensnano_state::gui::state::GuiAppState;
+use ensnano_state::app_state::AppState;
 use ensnano_utils::{
     StandardSequence, consts::ICON_ATGC, keyboard_priority::keyboard_priority, ui_size::UiSize,
 };
@@ -13,13 +13,11 @@ use iced::{
     widget::{column, row, scrollable, text, text_input},
 };
 use iced_aw::TabLabel;
-use std::marker::PhantomData;
 
-pub struct SequenceTab<State: GuiAppState> {
+pub struct SequenceTab {
     toggle_text_value: bool,
     scaffold_position_str: String,
     scaffold_position: usize,
-    _state_type: PhantomData<State>,
 }
 
 macro_rules! scaffold_length_fmt {
@@ -44,13 +42,12 @@ fn get_sequence_name(sequence: &str) -> &'static str {
     }
 }
 
-impl<State: GuiAppState> SequenceTab<State> {
+impl SequenceTab {
     pub fn new() -> Self {
         Self {
             toggle_text_value: false,
             scaffold_position_str: "0".to_owned(),
             scaffold_position: 0,
-            _state_type: PhantomData,
         }
     }
 
@@ -85,14 +82,14 @@ impl<State: GuiAppState> SequenceTab<State> {
     }
 }
 
-impl<State: GuiAppState> GuiTab<State> for SequenceTab<State> {
-    type Message = LeftPanelMessage<State>;
+impl GuiTab for SequenceTab {
+    type Message = LeftPanelMessage;
 
     fn label(&self) -> TabLabel {
         TabLabel::Icon(ICON_ATGC)
     }
 
-    fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {
+    fn content(&self, ui_size: UiSize, app_state: &AppState) -> iced::Element<'_, Self::Message> {
         // TODO: This update should happen, but somewhere else in the code.
         //       I think it must happen inside LeftPanel::update
         //

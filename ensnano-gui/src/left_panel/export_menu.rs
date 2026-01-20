@@ -1,15 +1,12 @@
 use ensnano_exports::ExportType;
-use ensnano_state::gui::{messages::LeftPanelMessage, state::GuiAppState};
+use ensnano_state::gui::messages::LeftPanelMessage;
 use iced::widget::{button, column, scrollable};
 
 #[derive(Default)]
 pub(super) struct ExportMenu;
 
 impl ExportMenu {
-    pub(super) fn view<State>(&self) -> iced::Element<'_, LeftPanelMessage<State>>
-    where
-        State: GuiAppState,
-    {
+    pub(super) fn view(&self) -> iced::Element<'_, LeftPanelMessage> {
         let content = column![
             button("Cancel").on_press(LeftPanelMessage::CancelExport),
             button("Oxdna").on_press(LeftPanelMessage::Export(ExportType::Oxdna)),

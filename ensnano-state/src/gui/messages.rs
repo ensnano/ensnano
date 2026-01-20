@@ -28,10 +28,12 @@ use winit::{
     event::Modifiers,
 };
 
-use crate::gui::{
-    curve::CurveDescriptorBuilder,
-    drag_drop_target::DragIdentifier,
-    state::{GuiAppState, RevolutionParameterId},
+use crate::{
+    app_state::AppState,
+    gui::{
+        curve::CurveDescriptorBuilder, drag_drop_target::DragIdentifier,
+        state::RevolutionParameterId,
+    },
 };
 
 /// Some main application state, mostly related with top bar buttons.
@@ -191,16 +193,16 @@ pub enum ColorPickerMessage {
 }
 
 /// Message sent to the gui component
-pub struct GuiMessages<S: GuiAppState> {
-    pub left_panel: VecDeque<LeftPanelMessage<S>>,
-    pub top_bar: VecDeque<TopBarMessage<S>>,
-    pub status_bar: VecDeque<StatusBarMessage<S>>,
-    pub application_state: S,
+pub struct GuiMessages {
+    pub left_panel: VecDeque<LeftPanelMessage>,
+    pub top_bar: VecDeque<TopBarMessage>,
+    pub status_bar: VecDeque<StatusBarMessage>,
+    pub application_state: AppState,
     pub last_top_bar_state: TopBarStateFlags,
     pub redraw: bool,
 }
 
-impl<S: GuiAppState> GuiMessages<S> {
+impl GuiMessages {
     pub fn new() -> Self {
         Self {
             left_panel: VecDeque::new(),
@@ -248,7 +250,7 @@ impl<S: GuiAppState> GuiMessages<S> {
         self.left_panel.push_back(LeftPanelMessage::ForceHelp);
     }
 
-    pub fn push_application_state(&mut self, state: S, top_bar_state: TopBarStateFlags) {
+    pub fn push_application_state(&mut self, state: AppState, top_bar_state: TopBarStateFlags) {
         log::trace!("Old ptr {:p}, new ptr {:p}", state, self.application_state);
         self.application_state = state.clone();
         self.redraw |= top_bar_state != self.last_top_bar_state;
@@ -269,11 +271,11 @@ impl<S: GuiAppState> GuiMessages<S> {
 
 /// List of Messages that can be send by the status bar.
 #[derive(Clone, Debug)]
-pub enum StatusBarMessage<S: GuiAppState> {
+pub enum StatusBarMessage {
     ValueStrChanged(usize, String),
     ValueSet(usize, String),
     Progress(Option<(String, f32)>),
-    NewApplicationState(S),
+    NewApplicationState(AppState),
     UiSizeChanged(UiSize),
     TabPressed,
     Message(Option<String>),
@@ -282,7 +284,7 @@ pub enum StatusBarMessage<S: GuiAppState> {
 }
 
 #[derive(Debug, Clone)]
-pub enum LeftPanelMessage<S: GuiAppState> {
+pub enum LeftPanelMessage {
     Resized(LogicalSize<f64>, LogicalPosition<f64>),
     MakeGrids,
     StrandNameChanged(usize, String),
@@ -340,7 +342,7 @@ pub enum LeftPanelMessage<S: GuiAppState> {
     RenderingMode(RenderingMode),
     Background3D(Background3D),
     OpenLink(&'static str),
-    NewApplicationState(S),
+    NewApplicationState(AppState),
     FogChoice(FogChoices),
     SetScaffoldSeqButtonPressed,
     OptimizeScaffoldShiftPressed,
@@ -380,7 +382,7 @@ pub enum LeftPanelMessage<S: GuiAppState> {
     },
     Export(ExportType),
     StlExport,
-    CurveBuilderPicked(CurveDescriptorBuilder<S>),
+    CurveBuilderPicked(CurveDescriptorBuilder),
     RevolutionEquadiffSolvingMethodPicked(EquadiffSolvingMethod),
     RevolutionParameterUpdate {
         parameter_id: RevolutionParameterId,
@@ -523,7 +525,7 @@ impl OrganizerMessage {
 }
 
 #[derive(Debug, Clone)]
-pub enum TopBarMessage<S: GuiAppState> {
+pub enum TopBarMessage {
     SceneFitRequested,
     AlignHorizon,
     OpenFileButtonPressed,
@@ -537,7 +539,7 @@ pub enum TopBarMessage<S: GuiAppState> {
     ExportRequested,
     Split2D,
     // Receive an new application state.
-    NewApplicationState((S, TopBarStateFlags)),
+    NewApplicationState((AppState, TopBarStateFlags)),
     ForceHelp,
     ShowTutorial,
     Undo,

@@ -6,12 +6,11 @@ use crate::{
 };
 use ensnano_design::{bezier_plane::BezierVertexId, grid::GridId, interaction_modes::ActionMode};
 use ensnano_state::{
-    app_state::design_interactor::DesignInteractor,
+    app_state::{AppState, design_interactor::DesignInteractor},
     design::selection::Selection,
     gui::{
         messages::{InstantiatedValue, LeftPanelMessage, ValueKind},
         requests::GuiRequests,
-        state::GuiAppState,
     },
 };
 use ensnano_utils::{
@@ -129,25 +128,19 @@ impl ValueRequest {
     }
 }
 
-struct InstantiatedBuilder<State>
-where
-    State: GuiAppState,
-{
+struct InstantiatedBuilder {
     selection: Selection,
-    builder: Box<dyn Builder<State>>,
+    builder: Box<dyn Builder>,
 }
 
-impl<State> InstantiatedBuilder<State>
-where
-    State: GuiAppState,
-{
+impl InstantiatedBuilder {
     /// If a builder can be made from the selection, update the builder and return true. Otherwise,
     /// return false.
     fn update(
         &mut self,
         selection: &Selection,
         reader: &DesignInteractor,
-        app_state: &State,
+        app_state: &AppState,
     ) -> bool {
         if *selection != self.selection || app_state.is_transitory() {
             self.selection = *selection;
@@ -169,10 +162,7 @@ where
         })
     }
 
-    fn new_builder(
-        selection: &Selection,
-        reader: &DesignInteractor,
-    ) -> Option<Box<dyn Builder<State>>> {
+    fn new_builder(selection: &Selection, reader: &DesignInteractor) -> Option<Box<dyn Builder>> {
         match selection {
             Selection::Grid(_, g_id) => {
                 if let Some((position, orientation)) =
@@ -195,22 +185,16 @@ where
     }
 }
 
-pub(super) struct ContextualPanel<State>
-where
-    State: GuiAppState,
-{
+pub(super) struct ContextualPanel {
     width: u16,
     pub force_help: bool,
     pub show_tutorial: bool,
     add_strand_menu: AddStrandMenu,
-    builder: Option<InstantiatedBuilder<State>>,
+    builder: Option<InstantiatedBuilder>,
     insertion_length_state: InsertionLengthState,
 }
 
-impl<State> ContextualPanel<State>
-where
-    State: GuiAppState,
-{
+impl ContextualPanel {
     pub(super) fn new(width: u16) -> Self {
         Self {
             width,
@@ -226,7 +210,7 @@ where
         self.width = width;
     }
 
-    pub(super) fn update(&mut self, app_state: &State) -> Command<LeftPanelMessage<State>> {
+    pub(super) fn update(&mut self, app_state: &AppState) -> Command<LeftPanelMessage> {
         let selection = app_state
             .get_selection()
             .first()
@@ -249,7 +233,7 @@ where
         &mut self,
         selection: Option<&Selection>,
         reader: &DesignInteractor,
-        app_state: &State,
+        app_state: &AppState,
     ) {
         if let Some(s) = selection {
             if let Some(builder) = &mut self.builder {
@@ -267,8 +251,8 @@ where
     pub(super) fn view(
         &self,
         ui_size: UiSize,
-        app_state: &State,
-    ) -> iced::Element<'_, LeftPanelMessage<State>> {
+        app_state: &AppState,
+    ) -> iced::Element<'_, LeftPanelMessage> {
         let selection = app_state
             .get_selection()
             .first()
@@ -516,11 +500,11 @@ enum TwistStatus {
     Twisting,
 }
 
-fn add_grid_content<'a, State: GuiAppState>(
+fn add_grid_content<'a>(
     info_values: Vec<String>,
     ui_size: UiSize,
     twisting: TwistStatus,
-) -> iced::Element<'a, LeftPanelMessage<State>> {
+) -> iced::Element<'a, LeftPanelMessage> {
     column![
         // twist_button
         match twisting {
@@ -545,10 +529,10 @@ fn add_grid_content<'a, State: GuiAppState>(
     .into()
 }
 
-fn add_strand_content<'a, State: GuiAppState>(
+fn add_strand_content<'a>(
     info_values: Vec<String>,
     ui_size: UiSize,
-) -> iced::Element<'a, LeftPanelMessage<State>> {
+) -> iced::Element<'a, LeftPanelMessage> {
     let s_id = info_values[2].parse::<usize>().unwrap();
     column![
         row![
@@ -579,11 +563,11 @@ fn bool_to_string(b: bool) -> String {
     }
 }
 
-fn add_help_to_column<'a, State: GuiAppState>(
+fn add_help_to_column<'a>(
     help_title: impl ToString,
     help: Vec<(String, String)>,
     ui_size: UiSize,
-) -> Column<'a, LeftPanelMessage<State>> {
+) -> Column<'a, LeftPanelMessage> {
     column![
         text(help_title).size(ui_size.intermediate_text()),
         column(help.iter().map(|(l, r)| {
@@ -609,9 +593,7 @@ fn add_help_to_column<'a, State: GuiAppState>(
     ]
 }
 
-fn turn_into_help_column<'a, State: GuiAppState>(
-    ui_size: UiSize,
-) -> Column<'a, LeftPanelMessage<State>> {
+fn turn_into_help_column<'a>(ui_size: UiSize) -> Column<'a, LeftPanelMessage> {
     column![
         section("Help", ui_size)
             .width(Length::Fill)
@@ -871,11 +853,7 @@ impl AddStrandMenu {
         self.text_inputs_are_active = show;
     }
 
-    fn view<State: GuiAppState>(
-        &self,
-        ui_size: UiSize,
-        width: u16,
-    ) -> Column<'_, LeftPanelMessage<State>> {
+    fn view(&self, ui_size: UiSize, width: u16) -> Column<'_, LeftPanelMessage> {
         let color_choose_strand_start_length = if self.text_inputs_are_active {
             iced::theme::Text::Color(theme::GUI_PALETTE.text)
         } else {

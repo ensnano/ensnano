@@ -5,11 +5,9 @@ use crate::{
 };
 use ensnano_design::grid::GridTypeDescr;
 use ensnano_state::{
+    app_state::AppState,
     design::operation::HyperboloidRequest,
-    gui::{
-        messages::{FactoryId, ValueId},
-        state::GuiAppState,
-    },
+    gui::messages::{FactoryId, ValueId},
 };
 use ensnano_utils::{
     consts::{ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID},
@@ -20,18 +18,15 @@ use iced::{
     widget::{Column, column, row, scrollable, text, tooltip},
 };
 use iced_aw::TabLabel;
-use std::marker::PhantomData;
 
-pub struct GridTab<State: GuiAppState> {
+pub struct GridTab {
     hyperboloid_factory: RequestFactory<Hyperboloid_>,
-    _state_type: PhantomData<State>,
 }
 
-impl<State: GuiAppState> GridTab<State> {
+impl GridTab {
     pub fn new() -> Self {
         Self {
             hyperboloid_factory: RequestFactory::new(FactoryId::Hyperboloid, Hyperboloid_ {}),
-            _state_type: PhantomData,
         }
     }
 
@@ -51,22 +46,22 @@ impl<State: GuiAppState> GridTab<State> {
     }
 }
 
-impl<State: GuiAppState> GuiTab<State> for GridTab<State> {
-    type Message = LeftPanelMessage<State>;
+impl GuiTab for GridTab {
+    type Message = LeftPanelMessage;
 
     fn label(&self) -> TabLabel {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::GridOn)))
     }
 
-    fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {
+    fn content(&self, ui_size: UiSize, app_state: &AppState) -> iced::Element<'_, Self::Message> {
         let content = column![
             section("Grids", ui_size),
             subsection("New Grid", ui_size),
             // add_grid_buttons!
             row![
-                icon_button(ICON_SQUARE_GRID, ui_size).on_press(
-                    LeftPanelMessage::<State>::NewGrid(GridTypeDescr::Square { twist: None })
-                ),
+                icon_button(ICON_SQUARE_GRID, ui_size).on_press(LeftPanelMessage::NewGrid(
+                    GridTypeDescr::Square { twist: None }
+                )),
                 icon_button(ICON_HONEYCOMB_GRID, ui_size).on_press(LeftPanelMessage::NewGrid(
                     GridTypeDescr::Honeycomb { twist: None }
                 )),

@@ -6,7 +6,7 @@
 //! Drawing the top bar, and triggering events from it is handled here.
 
 use crate::{
-    GuiAppState, GuiRequests, TopBarStateFlags,
+    GuiRequests, TopBarStateFlags,
     fonts::{
         ENSNANO_FONT,
         material_icons::{MaterialIcon, MaterialIconStyle},
@@ -15,7 +15,7 @@ use crate::{
     theme::GuiBackground,
 };
 use ensnano_design::interaction_modes::{ActionMode, SelectionMode};
-use ensnano_state::gui::messages::TopBarMessage;
+use ensnano_state::{app_state::AppState, gui::messages::TopBarMessage};
 use ensnano_utils::{graphics::SplitMode, ui_size::UiSize};
 use iced::{
     Element, Length, Padding, theme,
@@ -26,7 +26,7 @@ use std::sync::{Arc, Mutex};
 use winit::dpi::LogicalSize;
 
 /// Top bar object
-pub struct TopBarState<R: GuiRequests, S: GuiAppState> {
+pub struct TopBarState<R: GuiRequests> {
     /// ENSnano requests handle to which forwards messages.
     requests: Arc<Mutex<R>>,
     /// Area occupied by the top bar.
@@ -34,16 +34,16 @@ pub struct TopBarState<R: GuiRequests, S: GuiAppState> {
     /// A copy of the UI sizes.
     ui_size: UiSize,
     /// State of the whole application.
-    app_state: S,
+    app_state: AppState,
     /// More local state stuff.
     state: TopBarStateFlags,
 }
 
-impl<R: GuiRequests, S: GuiAppState> TopBarState<R, S> {
+impl<R: GuiRequests> TopBarState<R> {
     pub fn new(
         requests: Arc<Mutex<R>>,
         logical_size: LogicalSize<f64>,
-        app_state: S,
+        app_state: AppState,
         state: TopBarStateFlags,
         ui_size: UiSize,
     ) -> Self {
@@ -66,8 +66,8 @@ impl<R: GuiRequests, S: GuiAppState> TopBarState<R, S> {
     }
 }
 
-impl<R: GuiRequests, S: GuiAppState> Program for TopBarState<R, S> {
-    type Message = TopBarMessage<S>;
+impl<R: GuiRequests> Program for TopBarState<R> {
+    type Message = TopBarMessage;
     type Theme = iced::Theme;
     type Renderer = iced::Renderer;
 
@@ -462,12 +462,12 @@ impl<R: GuiRequests, S: GuiAppState> Program for TopBarState<R, S> {
     }
 }
 
-fn action_mode_btn<'a, State: GuiAppState>(
+fn action_mode_btn<'a>(
     mode: &ActionMode,
     current_action_mode: ActionMode,
     axis_aligned: bool,
     ui_size: UiSize,
-) -> Button<'a, TopBarMessage<State>> {
+) -> Button<'a, TopBarMessage> {
     let icon_path = if current_action_mode == *mode {
         mode.icon_on(axis_aligned)
     } else {
@@ -484,11 +484,11 @@ fn action_mode_btn<'a, State: GuiAppState>(
     // TODO: Use SelectionMode Copy trait.
 }
 
-fn selection_mode_btn<'a, State: GuiAppState>(
+fn selection_mode_btn<'a>(
     mode: &SelectionMode,
     current_mode: SelectionMode,
     ui_size: UiSize,
-) -> Button<'a, TopBarMessage<State>> {
+) -> Button<'a, TopBarMessage> {
     let icon_path = if current_mode == *mode {
         mode.icon_on()
     } else {
