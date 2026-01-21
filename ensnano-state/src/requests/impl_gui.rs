@@ -1,5 +1,3 @@
-//! Implements the [GuiRequests](`ensnano_gui::GuiRequests`) trait for [Requests](`super::Requests`).
-
 use crate::{
     app_state::action::Action,
     design::operation::{DesignOperation, HyperboloidRequest, InsertionPoint},
@@ -518,7 +516,7 @@ impl Requests {
     }
 }
 
-pub fn rigid_parameters(parameters: RigidBodyParametersRequest) -> RigidBodyConstants {
+fn rigid_parameters(parameters: RigidBodyParametersRequest) -> RigidBodyConstants {
     let ret = RigidBodyConstants {
         k_spring: 10f32.powf(parameters.k_springs),
         k_friction: 10f32.powf(parameters.k_friction),

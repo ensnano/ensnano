@@ -1,5 +1,3 @@
-//! Implements the [SceneRequests](`ensnano_scene::SceneRequests`) trait for [Requests](`super::Requests`).
-
 use crate::{
     app_state::{action::Action, design_interactor::controller::clipboard::PastePosition},
     design::{

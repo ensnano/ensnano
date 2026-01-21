@@ -100,12 +100,6 @@
 
 ## Refactor
 
-- Lift some types from the main crate to a crate above to avoid circular dependencies requiring single-use traits:
-  - `Multiplexer`
-  - `AppState`
-  - `DesignInteractor`
-  - ...
-- Clean/split `main.rs`
 - Remove in-file modules:
   - `abscissa_converter`
   - `input_color`
@@ -114,8 +108,7 @@
   - `color_square`
   - `gostop`
   - `fog_kind`
-- Rename structs with the same name in different crates, then remove all use aliases (`use ... as ...`):
-  - `AbscissaConverter as AbscissaConverter_`
+- Clean `AbscissaConverter as AbscissaConverter_`
 - kebab-case -> snake_case for the crate directories
 - More consistent styling:
   - Create some `rustfmt.toml` rules?
@@ -123,11 +116,10 @@
   - `mod` then `use`
 - Remove traits implemented only once:
   - `AdditionalStructure` (ensnano_design)
-  - `(Gui|FlatScene|Scene)AppState`
-  - `(Gui|FlatScene|Scene)Requests`
-  - `(Gui|FlatScene|Scene|Main)DesignReaderExt`
-  - `Multiplexer`
   - `RawDrawer`
+  - `DesignElementKeySelection`
+  - `MultiplexerExt`
+  - `GridInstanceExt`
 - Remove enums with one variant -> struct or raw value:
   - `AppOperation`
   - `GridPositionBuilder`
