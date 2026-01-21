@@ -9,6 +9,7 @@ members = [
     "ensnano-state",
     "ensnano-utils",
 ]
+resolver = "3"
 
 [workspace.package]
 authors = [
@@ -135,7 +136,6 @@ license.workspace = true
 name = "ensnano"
 repository.workspace = true
 readme = "README.md"
-resolver = "2"
 version.workspace = true
 
 [features]
