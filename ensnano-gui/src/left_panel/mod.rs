@@ -5,21 +5,38 @@ mod export_menu;
 mod organizer;
 pub mod tabs;
 
+use self::{
+    color_picker::HueColorPicker,
+    contextual_panel::ContextualPanel,
+    discrete_value::Requestable,
+    export_menu::ExportMenu,
+    organizer::Organizer,
+    tabs::{
+        GuiTab as _, camera_shortcut::CameraShortcutPanel, camera_tab::CameraTab,
+        edition_tab::EditionTab, grids_tab::GridTab, parameters_tab::ParametersTab,
+        pen_tab::PenTab, revolution_tab::RevolutionTab, sequence_tab::SequenceTab,
+        simulation_tab::SimulationTab,
+    },
+};
+use crate::{
+    fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
+    theme::GuiBackground,
+};
 use ensnano_design::{
     design_element::DesignElementKey, interaction_modes::ActionMode, organizer_tree::OrganizerTree,
 };
-use ensnano_state::gui::messages::{
-    ColorPickerMessage, FactoryId, LeftPanelMessage, OrganizerMessage, TabId,
-};
-use ensnano_state::gui::requests::RigidBodyParametersRequest;
-use ensnano_state::gui::state::RevolutionParameterId;
-use ensnano_state::requests::Requests;
 use ensnano_state::{
     app_state::AppState,
     design::{
         operation::HyperboloidRequest,
         selection::{DesignElementKeySelection as _, Selection},
     },
+    gui::{
+        messages::{ColorPickerMessage, FactoryId, LeftPanelMessage, OrganizerMessage, TabId},
+        requests::RigidBodyParametersRequest,
+        state::RevolutionParameterId,
+    },
+    requests::Requests,
 };
 use ensnano_utils::{
     app_state_parameters::AppStateParameters, overlay::OverlayType, ui_size::UiSize,
@@ -36,24 +53,6 @@ use std::{
     sync::{Arc, Mutex},
 };
 use winit::dpi::{LogicalPosition, LogicalSize};
-
-use crate::{
-    fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
-    left_panel::{
-        color_picker::HueColorPicker,
-        contextual_panel::ContextualPanel,
-        discrete_value::Requestable,
-        export_menu::ExportMenu,
-        organizer::Organizer,
-        tabs::{
-            GuiTab as _, camera_shortcut::CameraShortcutPanel, camera_tab::CameraTab,
-            edition_tab::EditionTab, grids_tab::GridTab, parameters_tab::ParametersTab,
-            pen_tab::PenTab, revolution_tab::RevolutionTab, sequence_tab::SequenceTab,
-            simulation_tab::SimulationTab,
-        },
-    },
-    theme::GuiBackground,
-};
 
 pub struct LeftPanelState {
     logical_size: LogicalSize<f64>,

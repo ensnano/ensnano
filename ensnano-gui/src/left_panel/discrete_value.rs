@@ -2,7 +2,6 @@
 
 // TODO: Make it an independent object like ensnano_gui::color_picker ?
 
-use crate::theme;
 use ensnano_state::gui::messages::{FactoryId, LeftPanelMessage, ValueId};
 use iced::{
     Alignment, Length, Pixels,
@@ -179,13 +178,13 @@ impl DiscreteValue {
             slider(self.min_val..=self.max_val, self.value, |_| {
                 LeftPanelMessage::Nothing
             })
-            .style(theme::DeactivatedSlider)
+            .style(crate::theme::DeactivatedSlider)
         };
 
         let mut name_text = text(self.name.clone()).size(name_size);
 
         if !active {
-            name_text = name_text.style(theme::DISABLED_TEXT);
+            name_text = name_text.style(crate::theme::DISABLED_TEXT);
         }
 
         row![

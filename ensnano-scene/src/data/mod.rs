@@ -3,6 +3,7 @@
 
 pub mod design3d;
 
+use self::design3d::Design3D;
 use crate::{
     camera::CameraController,
     element_selector::{SceneElement, bezier_vertex_id},
@@ -21,7 +22,6 @@ use crate::{
     },
 };
 use ahash::{HashMap, HashSet};
-use design3d::Design3D;
 use ensnano_design::{
     bezier_plane::BezierVertexId,
     curves::{SurfaceInfo, SurfacePoint},

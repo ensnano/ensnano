@@ -18,14 +18,24 @@ pub mod sheet_2d;
 /// A `Uniform` is a structure that manages view and projection matrices.
 pub mod uniforms;
 
+use self::{
+    direction_cube::{DirectionCube, DirectionTexture, SkyBox},
+    dna_obj::{
+        PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance, SphereInstance,
+        StereographicSphereAndPlane, TubeInstance, TubeLidInstance,
+    },
+    gltf_drawer::{ExternalObjects, Object3DDrawer},
+    grid::{GridIntersection, GridManager, GridTextures},
+    grid_disc::GridDisc,
+    handle_drawer::{HandleDir, HandlesDescriptor, HandlesDrawer},
+    instances_drawer::{InstanceDrawer, RawDrawer},
+    letter::LetterInstance,
+    rotation_widget::{RotationMode, RotationWidget, RotationWidgetDescriptor},
+    sheet_2d::Sheet2D,
+};
 use crate::{
     camera::{Camera, CameraPtr, Projection, ProjectionPtr},
     maths_3d::{cast_ray, distance_to_cursor_with_penalty, unproject_point_on_line},
-};
-use direction_cube::{DirectionCube, DirectionTexture, SkyBox};
-use dna_obj::{
-    PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance, SphereInstance,
-    StereographicSphereAndPlane, TubeInstance, TubeLidInstance,
 };
 use ensnano_design::{
     grid::{GridId, GridInstance},
@@ -43,15 +53,7 @@ use ensnano_utils::{
     text::Letter,
     texture::Texture,
 };
-use gltf_drawer::{ExternalObjects, Object3DDrawer};
-use grid::{GridIntersection, GridManager, GridTextures};
-use grid_disc::GridDisc;
-use handle_drawer::{HandleDir, HandlesDescriptor, HandlesDrawer};
-use instances_drawer::{InstanceDrawer, RawDrawer};
 use int_enum::IntEnum;
-use letter::LetterInstance;
-use rotation_widget::{RotationMode, RotationWidget, RotationWidgetDescriptor};
-use sheet_2d::Sheet2D;
 use std::{cell::RefCell, collections::BTreeMap, rc::Rc};
 use ultraviolet::{Mat4, Rotor3, Vec3};
 use uniforms::{Stereography, Uniforms};

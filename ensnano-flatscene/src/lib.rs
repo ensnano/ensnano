@@ -26,10 +26,11 @@ mod view;
 
 use crate::{
     camera2d::{Camera2D, FitRectangle},
+    controller::{Consequence, Controller},
+    data::Data,
     flat_types::FlatNucl,
+    view::View,
 };
-use controller::{Consequence, Controller};
-use data::Data;
 use ensnano_design::{consts::ITERATIVE_AXIS_ALGORITHM, phantom_element::PhantomElement};
 use ensnano_state::{
     app_state::{AppState, design_interactor::DesignInteractor},
@@ -58,7 +59,6 @@ use std::{
     sync::{Arc, Mutex},
     time::{Duration, Instant},
 };
-use view::View;
 use wgpu::{Device, Queue};
 use winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon};
 

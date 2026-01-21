@@ -3,10 +3,9 @@ pub mod shift_optimization;
 pub mod simulations;
 pub mod update_insertion_length;
 
-use crate::app_state::{
-    AddressPointer,
-    channel_reader::ChannelReader,
-    design_interactor::controller::simulations::{
+use self::{
+    clipboard::{Clipboard, CopyOperation, PastePosition, PastedStrand, StrandClipboard},
+    simulations::{
         GridSystemInterface, GridsSystemThread, HelixSystemInterface, HelixSystemThread,
         SimulationOperation,
         rapier::{RapierInterface, RapierPhysicalSystem},
@@ -16,6 +15,7 @@ use crate::app_state::{
     },
 };
 use crate::{
+    app_state::{AddressPointer, channel_reader::ChannelReader},
     design::{
         operation::{
             BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
@@ -25,7 +25,6 @@ use crate::{
     },
     utils::operation::{Operation, TranslateBezierPathVertex},
 };
-use clipboard::{Clipboard, CopyOperation, PastePosition, PastedStrand, StrandClipboard};
 use ensnano_design::{
     CameraId, Design, UpToDateDesign,
     bezier_plane::{

@@ -1,3 +1,4 @@
+use crate::multiplexer::Multiplexer;
 use ahash::HashMap;
 use ensnano_design::{
     Camera, SavingInformation,
@@ -7,8 +8,17 @@ use ensnano_design::{
     organizer_tree::GroupId,
 };
 use ensnano_physics::parameters::RapierParameters;
-
 use ensnano_state::{
+    app_state::{
+        AppState, SaveDesignError,
+        action::Action,
+        channel_reader::ChannelReader,
+        design_interactor::controller::{
+            ErrOperation, InteractorNotification, clipboard::CopyOperation,
+            simulations::SimulationOperation,
+        },
+        transitions::{AppStateTransition, OkOperation, TransitionLabel},
+    },
     design::{
         operation::DesignOperation,
         selection::{
@@ -40,19 +50,6 @@ use std::{
 };
 use ultraviolet::{Rotor3, Vec3};
 use winit::window::CursorIcon;
-
-use crate::multiplexer::Multiplexer;
-
-use ensnano_state::app_state::{
-    AppState, SaveDesignError,
-    action::Action,
-    channel_reader::ChannelReader,
-    design_interactor::controller::{
-        ErrOperation, InteractorNotification, clipboard::CopyOperation,
-        simulations::SimulationOperation,
-    },
-    transitions::{AppStateTransition, OkOperation, TransitionLabel},
-};
 
 /// The state of the main event loop.
 pub(crate) struct MainState {

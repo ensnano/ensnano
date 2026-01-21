@@ -31,7 +31,7 @@ pub mod scadnano;
 pub mod strands;
 pub mod utils;
 
-use self::{
+use crate::{
     bezier_plane::{BezierPathData, BezierPaths, BezierPlanes},
     curves::CurveCache,
     domains::Domain,
@@ -42,10 +42,10 @@ use self::{
     helices::{Helices, Helix},
     isometry3_descriptor::Isometry3Descriptor,
     nucl::Nucl,
+    organizer_tree::{GroupId, OrganizerTree},
     parameters::HelixParameters,
     strands::Strands,
 };
-use crate::organizer_tree::{GroupId, OrganizerTree};
 use ahash::{HashMap, HashSet};
 use serde::{Deserialize, Serialize};
 use serde_with::{DefaultOnError, serde_as};

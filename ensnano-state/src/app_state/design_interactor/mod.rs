@@ -2,19 +2,18 @@ pub mod controller;
 pub mod file_parsing;
 pub mod presenter;
 
-use crate::app_state::{
-    SaveDesignError,
-    address_pointer::AddressPointer,
-    channel_reader::ChannelReader,
-    design_interactor::controller::{
-        OkOperation, clipboard::CopyOperation, simulations::SimulationOperation,
+use self::{
+    controller::{
+        Controller, ErrOperation, InteractorNotification, OkOperation, clipboard::CopyOperation,
+        simulations::SimulationOperation,
     },
+    presenter::{Presenter, SimulationUpdate, apply_simulation_update, update_presenter},
 };
 use crate::{
+    app_state::{SaveDesignError, address_pointer::AddressPointer, channel_reader::ChannelReader},
     design::{operation::DesignOperation, selection::Selection},
     utils::operation::{CurrentOpState, Operation},
 };
-use controller::{Controller, ErrOperation, InteractorNotification};
 use ensnano_design::{
     Design, SavingInformation,
     bezier_plane::{BezierPathId, BezierPlaneDescriptor},
@@ -30,7 +29,6 @@ use ensnano_utils::{
     app_state_parameters::suggestion_parameters::SuggestionParameters, clipboard::ClipboardContent,
     consts::UPDATE_VISIBILITY_SIEVE_LABEL, strand_builder::StrandBuilder,
 };
-use presenter::{Presenter, SimulationUpdate, apply_simulation_update, update_presenter};
 use std::{io::Write as _, path::PathBuf, sync::Arc};
 
 /// The `DesignInteractor` handles all read/write operations on the design. It is a stateful struct
@@ -391,10 +389,13 @@ impl InteractorResult {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::app_state::{
-        AppState, design_interactor::controller::clipboard::PastePosition, transitions,
+    use crate::{
+        app_state::{
+            AppState, design_interactor::controller::clipboard::PastePosition, transitions,
+        },
+        design::operation::InsertionPoint,
+        utils::operation::GridHelixCreation,
     };
-    use crate::{design::operation::InsertionPoint, utils::operation::GridHelixCreation};
     use ensnano_design::{
         grid::{GridDescriptor, GridId, GridTypeDescr, HelixGridPosition},
         id_generator::IdGenerator,

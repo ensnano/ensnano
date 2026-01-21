@@ -1,3 +1,4 @@
+use self::input_color::InputValueState;
 use crate::theme::GuiBackground;
 use ensnano_state::{
     app_state::AppState,
@@ -12,7 +13,6 @@ use iced::{
 };
 use iced_graphics::text::Paragraph;
 use iced_runtime::{Command, Program};
-use input_color::InputValueState;
 use std::{
     collections::HashMap,
     sync::{Arc, Mutex},

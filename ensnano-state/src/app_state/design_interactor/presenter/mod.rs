@@ -4,10 +4,13 @@ pub mod impl_reader2d;
 pub mod impl_reader3d;
 pub mod impl_readergui;
 
-use crate::app_state::{address_pointer::AddressPointer, design_interactor::DesignInteractor};
-use crate::{design::selection::Selection, utils::application::Camera3D};
+use self::design_content::DesignContent;
+use crate::{
+    app_state::{address_pointer::AddressPointer, design_interactor::DesignInteractor},
+    design::selection::Selection,
+    utils::application::Camera3D,
+};
 use ahash::{HashMap, HashSet};
-use design_content::DesignContent;
 use ensnano_design::{
     CameraId, Design,
     bezier_plane::{BezierPath, BezierPathId},

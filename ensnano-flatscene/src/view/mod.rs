@@ -3,6 +3,12 @@ mod helix_view;
 pub(crate) mod insertion;
 mod rectangle;
 
+use self::{
+    background::Background,
+    helix_view::{HelixView, StrandView},
+    insertion::InsertionDrawer,
+    rectangle::Rectangle,
+};
 use crate::{
     CameraPtr,
     camera2d::Globals,
@@ -17,7 +23,6 @@ use crate::{
     ndc::Ndc,
 };
 use ahash::RandomState;
-use background::Background;
 use ensnano_design::{helices::NuclCollection, nucl::Nucl};
 use ensnano_utils::{
     bindgroup_manager::{DynamicBindGroup, UniformBindGroup},
@@ -25,9 +30,6 @@ use ensnano_utils::{
     graphics::{DrawArea, PhySize},
     texture::Texture,
 };
-use helix_view::{HelixView, StrandView};
-use insertion::InsertionDrawer;
-use rectangle::Rectangle;
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap},
     f32::consts::FRAC_1_SQRT_2,

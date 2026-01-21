@@ -2,6 +2,14 @@ mod dragging_state;
 pub(crate) mod event_context;
 mod point_and_click_state;
 
+use self::{
+    dragging_state::{
+        ClickInfo, MovingBezierCorner, MovingBezierTangent, MovingBezierVertex,
+        MovingRevolutionRadius, translating_grid_object,
+    },
+    event_context::{EventContext, XoverOrigin},
+    point_and_click_state::PointAndClicking,
+};
 use crate::{
     controller::{Consequence, Controller, TransitionConsequence},
     element_selector::SceneElement,
@@ -9,10 +17,6 @@ use crate::{
         handle_drawer::{HandleColors, HandleDir},
         rotation_widget::RotationMode,
     },
-};
-use dragging_state::{
-    ClickInfo, MovingBezierCorner, MovingBezierTangent, MovingBezierVertex, MovingRevolutionRadius,
-    translating_grid_object,
 };
 use ensnano_design::{
     bezier_plane::{BezierVertex, BezierVertexId},
@@ -22,8 +26,6 @@ use ensnano_design::{
 use ensnano_utils::consts::{
     DIR_HANDLE_ID, FRONT_CIRCLE_ID, RIGHT_CIRCLE_ID, RIGHT_HANDLE_ID, UP_CIRCLE_ID, UP_HANDLE_ID,
 };
-use event_context::{EventContext, XoverOrigin};
-use point_and_click_state::PointAndClicking;
 use std::{borrow::Cow, cell::RefCell};
 use ultraviolet::Vec2;
 use winit::{

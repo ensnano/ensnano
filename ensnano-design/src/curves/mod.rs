@@ -14,47 +14,45 @@ pub mod torus_concentric_circle;
 pub mod tube_spiral;
 pub mod twist;
 
+use self::{
+    bezier::{
+        BezierEnd, CubicBezierConstructor, InstantiatedPiecewiseBezier,
+        InterpolatedC1PiecewiseBezierDescriptor, TranslatedPiecewiseBezier,
+        instantiator::PieceWiseBezierInstantiator,
+    },
+    chebyshev::{PolynomialCoordinates, PolynomialCoordinates_},
+    circle_curve::CircleDescriptor,
+    revolution::{InterpolatedCurveDescriptor, InterpolationDescriptor},
+    sphere_concentric_circle::{
+        PillConcentricStadiumDescriptor, PillTennisBallSeamDescriptor,
+        SphereConcentricCircleDescriptor, SphereTennisBallSeamDescriptor,
+    },
+    sphere_like_spiral::SphereLikeSpiralDescriptor,
+    spiral_cylinder::SpiralCylinderDescriptor,
+    supertwist::SuperTwist,
+    time_nucl_map::AbscissaConverter,
+    torus::{Torus, TwistedTorus, TwistedTorusDescriptor},
+    torus_concentric_circle::{
+        EllipticTorusConcentricCircleDescriptor, TorusConcentricCircleDescriptor,
+    },
+    tube_spiral::TubeSpiralDescriptor,
+    twist::Twist,
+};
 use crate::{
     bezier_plane::{BezierPathData, BezierPathId},
-    curves::{
-        bezier::{
-            BezierEnd, CubicBezierConstructor, InstantiatedPiecewiseBezier,
-            InterpolatedC1PiecewiseBezierDescriptor, instantiator::PieceWiseBezierInstantiator,
-        },
-        circle_curve::CircleDescriptor,
-        revolution::InterpolatedCurveDescriptor,
-        sphere_concentric_circle::{
-            PillConcentricStadiumDescriptor, PillTennisBallSeamDescriptor,
-            SphereConcentricCircleDescriptor, SphereTennisBallSeamDescriptor,
-        },
-        sphere_like_spiral::SphereLikeSpiralDescriptor,
-        spiral_cylinder::SpiralCylinderDescriptor,
-        supertwist::SuperTwist,
-        torus::{Torus, TwistedTorusDescriptor},
-        torus_concentric_circle::{
-            EllipticTorusConcentricCircleDescriptor, TorusConcentricCircleDescriptor,
-        },
-        tube_spiral::TubeSpiralDescriptor,
-        twist::Twist,
-    },
     grid::{Edge, GridData, GridPosition, grid_collection::FreeGrids},
     helices::{AdditionalHelix2D, Helix},
     parameters::HelixParameters,
     utils::{serde::is_false, ultraviolet::vec_to_dvec},
 };
-use bezier::TranslatedPiecewiseBezier;
-use chebyshev::{PolynomialCoordinates, PolynomialCoordinates_};
 use chebyshev_polynomials::ChebyshevPolynomial;
 use rand::prelude::*;
-use revolution::InterpolationDescriptor;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
     f64::consts::{PI, TAU},
     sync::Arc,
 };
-use time_nucl_map::AbscissaConverter;
-use torus::TwistedTorus;
 use ultraviolet::{DMat3, DVec3, Isometry2, Rotor3, Vec2, Vec3};
 
 /// To compute curvilinear abscissa over long distances

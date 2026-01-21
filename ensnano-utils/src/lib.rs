@@ -21,10 +21,9 @@ pub mod texture;
 pub mod torsion;
 pub mod ui_size;
 
+use crate::graphics::PhySize;
 use ensnano_design::{grid::GridId, nucl::Nucl};
 use wgpu::util::{BufferInitDescriptor, DeviceExt as _};
-
-use crate::graphics::PhySize;
 
 pub const TEXTURE_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8UnormSrgb;
 

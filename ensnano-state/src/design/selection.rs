@@ -1,3 +1,4 @@
+use crate::app_state::design_interactor::DesignInteractor;
 use ensnano_design::{
     bezier_plane::{BezierPathId, BezierVertexId},
     curves::bezier::BezierControlPoint,
@@ -8,8 +9,6 @@ use ensnano_design::{
     phantom_element::PhantomElement,
 };
 use std::collections::BTreeSet;
-
-use crate::app_state::design_interactor::DesignInteractor;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Selection {

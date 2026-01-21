@@ -1,3 +1,4 @@
+use self::abscissa_converter::AbscissaConverter;
 use crate::{
     CameraPtr,
     chars2d::text_drawer::{Line, Sentence, TextDrawer},
@@ -10,7 +11,6 @@ use crate::{
         insertion::{InsertionDescriptor, InsertionInstance},
     },
 };
-use abscissa_converter::AbscissaConverter;
 use ahash::RandomState;
 use ensnano_design::{
     curves::time_nucl_map::AbscissaConverter as AbscissaConverter_, helices::NuclCollection,

@@ -1,9 +1,9 @@
 pub(crate) mod automata;
 
+use self::automata::{NormalState, State, Transition, WidgetTarget, event_context::EventContext};
 use crate::{
     PhysicalPosition, ViewPtr, WindowEvent,
     camera::CameraController,
-    controller::automata::event_context::EventContext,
     data::Data,
     element_selector::{ElementSelector, SceneElement},
     maths_3d::FiniteVec3,
@@ -14,7 +14,6 @@ use crate::{
         uniforms::Stereography,
     },
 };
-use automata::{NormalState, State, Transition, WidgetTarget};
 use ensnano_design::{
     bezier_plane::{BezierPathId, BezierPlaneId, BezierVertex, BezierVertexId},
     curves::SurfaceInfo,

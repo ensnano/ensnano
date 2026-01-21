@@ -2,7 +2,7 @@ mod hoverable_container;
 mod icon;
 mod theme;
 
-use crate::left_panel::organizer::{
+use self::{
     hoverable_container::HoverableContainer,
     theme::{OrganizerTheme, SelectionType},
 };

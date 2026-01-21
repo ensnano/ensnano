@@ -1,13 +1,6 @@
 //! Test suite for the `MainState` structure
 
-use std::{
-    path::PathBuf,
-    sync::{Arc, Mutex},
-    time::Duration,
-};
-
 use crate::state::MainState;
-
 use ensnano_design::nucl::Nucl;
 use ensnano_state::{
     app_state::{
@@ -21,6 +14,11 @@ use ensnano_state::{
 use ensnano_utils::{
     PastingStatus,
     graphics::{DrawArea, GuiComponentType},
+};
+use std::{
+    path::PathBuf,
+    sync::{Arc, Mutex},
+    time::Duration,
 };
 use ultraviolet::{Rotor3, Vec3};
 use winit::{

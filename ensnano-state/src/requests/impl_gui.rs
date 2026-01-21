@@ -1,9 +1,10 @@
 //! Implements the [GuiRequests](`ensnano_gui::GuiRequests`) trait for [Requests](`super::Requests`).
 
-use crate::{app_state::action::Action, requests::Requests};
 use crate::{
+    app_state::action::Action,
     design::operation::{DesignOperation, HyperboloidRequest, InsertionPoint},
     gui::requests::RigidBodyParametersRequest,
+    requests::Requests,
     utils::{application::Notification, operation::Operation},
 };
 use ensnano_design::{

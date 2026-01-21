@@ -1,5 +1,6 @@
 mod closed_curves;
 
+use self::closed_curves::CloseSurfaceTopology;
 use crate::app_state::{
     ErrOperation,
     channel_reader::ChannelReader,
@@ -7,7 +8,6 @@ use crate::app_state::{
         controller::simulations::SimulationInterface, presenter::SimulationUpdate,
     },
 };
-use closed_curves::CloseSurfaceTopology;
 use ensnano_design::{
     AdditionalStructure, Design,
     curves::CurveDescriptor,

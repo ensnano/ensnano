@@ -1,7 +1,6 @@
+use crate::app_state::AppState;
 use ensnano_design::curves::torus::CurveDescriptor2D;
 use ultraviolet::{Rotor3, Vec3};
-
-use crate::app_state::AppState;
 
 #[derive(Clone, Copy)]
 pub struct RevolutionScaling {

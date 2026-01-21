@@ -1,3 +1,4 @@
+use crate::design::selection::Selection;
 use ensnano_design::{
     CameraId,
     bezier_plane::{
@@ -16,8 +17,6 @@ use ensnano_design::{
 };
 use std::path::PathBuf;
 use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
-
-use crate::design::selection::Selection;
 
 /// An operation that can be performed on a design
 #[derive(Debug, Clone)]

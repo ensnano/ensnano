@@ -1,6 +1,4 @@
-use crate::utils::application::Camera3D;
-
-use crate::app_state::AppState;
+use crate::{app_state::AppState, utils::application::Camera3D};
 use std::borrow::Cow;
 
 /// Represents an undoable operation.

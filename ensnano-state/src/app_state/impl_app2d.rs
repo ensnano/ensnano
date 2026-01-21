@@ -1,5 +1,4 @@
-use crate::app_state::AppState;
-use crate::design::selection::Selection;
+use crate::{app_state::AppState, design::selection::Selection};
 use ensnano_utils::StrandBuildingStatus;
 
 impl AppState {
@@ -22,9 +21,8 @@ impl AppState {
 
 #[cfg(test)]
 mod tests {
-    use ensnano_design::interaction_modes::SelectionMode;
-
     use super::*;
+    use ensnano_design::interaction_modes::SelectionMode;
 
     #[test]
     fn selection_update() {

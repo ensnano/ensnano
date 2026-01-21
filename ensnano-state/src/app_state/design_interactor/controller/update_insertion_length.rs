@@ -1,5 +1,7 @@
-use crate::app_state::design_interactor::controller::{Controller, ErrOperation};
-use crate::design::operation::InsertionPoint;
+use crate::{
+    app_state::design_interactor::controller::{Controller, ErrOperation},
+    design::operation::InsertionPoint,
+};
 use ensnano_design::{
     Design,
     domains::Domain,

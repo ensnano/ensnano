@@ -7,6 +7,7 @@ pub mod impl_gui;
 pub mod impl_scene;
 
 use crate::{
+    app_state::action::Action,
     design::{
         operation::HyperboloidRequest,
         selection::{CenterOfSelection, Selection},
@@ -32,8 +33,6 @@ use ensnano_utils::{
 };
 use std::{collections::VecDeque, sync::Arc};
 use ultraviolet::Vec3;
-
-use crate::app_state::action::Action;
 
 /// A structure that contains all the requests that can be made through the GUI or the
 /// Applications.

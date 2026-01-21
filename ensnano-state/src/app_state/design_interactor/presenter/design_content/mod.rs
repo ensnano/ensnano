@@ -1,10 +1,12 @@
 pub mod click_counter;
 pub mod xover_suggestions;
 
-use crate::app_state::design_interactor::presenter::{JunctionsIds, Presenter, SimulationUpdate};
-use crate::scene::design_reader::Scalebar;
+use self::{click_counter::ClickCounter, xover_suggestions::XoverSuggestions};
+use crate::{
+    app_state::design_interactor::presenter::{JunctionsIds, Presenter, SimulationUpdate},
+    scene::design_reader::Scalebar,
+};
 use ahash::{HashMap, HashSet};
-use click_counter::ClickCounter;
 use ensnano_design::{
     Design,
     design_element::{DesignElement, DesignElementKey},
@@ -29,7 +31,6 @@ use ensnano_utils::{
 use serde::Serialize;
 use std::{borrow::Cow, collections::BTreeMap, fmt::Write as _, str::FromStr as _, sync::Arc};
 use ultraviolet::{Isometry3, Vec3};
-use xover_suggestions::XoverSuggestions;
 
 const PRINTOUT_NUCL_POSITIONS: bool = false; // true;
 

@@ -1,5 +1,7 @@
-use crate::app_state::AppState;
-use crate::gui::curve::{CurveDescriptorBuilder, CurveDescriptorParameter, InstantiatedParameter};
+use crate::{
+    app_state::AppState,
+    gui::curve::{CurveDescriptorBuilder, CurveDescriptorParameter, InstantiatedParameter},
+};
 use ensnano_design::{bezier_plane::BezierPathId, curves::torus::CurveDescriptor2D};
 use ultraviolet::{Rotor3, Vec3};
 

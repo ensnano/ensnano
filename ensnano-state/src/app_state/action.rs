@@ -1,9 +1,5 @@
-use std::{
-    path::{Path, PathBuf},
-    sync::Arc,
-};
-
 use crate::{
+    app_state::design_interactor::controller::clipboard::PastePosition,
     design::operation::{DesignOperation, HyperboloidRequest},
     utils::application::Notification,
 };
@@ -22,9 +18,11 @@ use ensnano_utils::{
     surfaces::RevolutionSurfaceSystemDescriptor,
     ui_size::UiSize,
 };
+use std::{
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 use ultraviolet::{Rotor3, Vec3};
-
-use crate::app_state::design_interactor::controller::clipboard::PastePosition;
 
 /// An action to be performed at the end of an event loop iteration, and that will have an effect
 ///

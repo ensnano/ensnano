@@ -14,6 +14,7 @@
 
 pub(crate) mod layout_manager;
 
+use self::layout_manager::{LayoutTree, PixelRegion};
 use ensnano_design::interaction_modes::{ActionMode, SelectionMode};
 use ensnano_state::{app_state::action::Action, requests::Requests};
 use ensnano_utils::{
@@ -23,7 +24,6 @@ use ensnano_utils::{
     ui_size::UiSize,
 };
 use iced_wgpu::wgpu::Device;
-use layout_manager::{LayoutTree, PixelRegion};
 use std::{
     rc::Rc,
     sync::{Arc, Mutex},

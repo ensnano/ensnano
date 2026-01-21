@@ -1,13 +1,12 @@
 mod curve_builders;
 
-use crate::app_state::design_interactor::DesignInteractor;
-use crate::app_state::{AppState, NewHelixStrand};
+use self::curve_builders::{BEZIER_CURVE_BUILDER, ELLIPSE_BUILDER, TWO_SPHERES_BUILDER};
 use crate::{
+    app_state::{AppState, NewHelixStrand, design_interactor::DesignInteractor},
     design::selection::{DesignElementKeySelection as _, Selection, all_helices_no_grid},
     gui::curve::{CurveDescriptorBuilder, RevolutionScaling},
     utils::operation::CurrentOpState,
 };
-use curve_builders::{BEZIER_CURVE_BUILDER, ELLIPSE_BUILDER, TWO_SPHERES_BUILDER};
 use ensnano_design::{
     bezier_plane::BezierPathId,
     design_element::DesignElementKey,

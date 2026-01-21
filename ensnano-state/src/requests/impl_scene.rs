@@ -2,13 +2,11 @@
 
 use crate::{
     app_state::{action::Action, design_interactor::controller::clipboard::PastePosition},
-    requests::Requests,
-};
-use crate::{
     design::{
         operation::DesignOperation,
         selection::{CenterOfSelection, Selection},
     },
+    requests::Requests,
     utils::application::AppId,
 };
 use ensnano_design::{grid::GridPosition, group_attributes::GroupPivot, nucl::Nucl};

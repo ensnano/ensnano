@@ -1,5 +1,7 @@
-use crate::app_state::design_interactor::DesignInteractor;
-use crate::design::{operation::InsertionPoint, selection::Selection};
+use crate::{
+    app_state::design_interactor::DesignInteractor,
+    design::{operation::InsertionPoint, selection::Selection},
+};
 use ensnano_design::{
     CameraId,
     bezier_plane::{BezierPathId, BezierVertexId},

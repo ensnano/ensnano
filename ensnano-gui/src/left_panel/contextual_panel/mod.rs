@@ -1,5 +1,6 @@
 pub(super) mod value_constructor;
 
+use self::value_constructor::{BezierVertexBuilder, Builder, GridBuilder};
 use crate::{
     helpers::{extra_jump, right_checkbox, section, subsection, text_button},
     theme,
@@ -28,7 +29,6 @@ use iced::{
 };
 use std::sync::{Arc, Mutex};
 use ultraviolet::{Rotor3, Vec2, Vec3};
-use value_constructor::{BezierVertexBuilder, Builder, GridBuilder};
 
 pub(super) enum ValueRequest {
     HelixGridPosition {

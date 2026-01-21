@@ -1,8 +1,9 @@
 //! Implements the [FlatSceneRequests](`ensnano_flatscene::FlatSceneRequests`) trait for [Requests](`super::Requests`).
 
-use crate::{app_state::action::Action, requests::Requests};
 use crate::{
+    app_state::action::Action,
     design::{operation::DesignOperation, selection::Selection},
+    requests::Requests,
     utils::operation::Operation,
 };
 use std::sync::Arc;

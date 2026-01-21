@@ -3,6 +3,7 @@ mod deserialize;
 pub mod grid_collection;
 pub mod hyperboloid;
 
+use self::{grid_collection::FreeGrids, hyperboloid::Hyperboloid};
 use crate::{
     Design,
     bezier_plane::{BezierPathData, BezierPathId, BezierVertexId},
@@ -14,7 +15,6 @@ use crate::{
         twist::{Twist, twist_to_omega},
     },
     design_operations::{ErrDesignOperation, MIN_HELICES_TO_MAKE_GRID},
-    grid::{grid_collection::FreeGrids, hyperboloid::Hyperboloid},
     helices::{Axis, Helices, Helix},
     parameters::HelixParameters,
 };

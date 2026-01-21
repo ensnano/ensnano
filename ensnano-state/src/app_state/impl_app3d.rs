@@ -1,7 +1,11 @@
-use crate::app_state::{AppState, design_interactor::DesignInteractor};
-use crate::design::selection::{CenterOfSelection, Selection};
-use ensnano_design::interaction_modes::ActionMode;
-use ensnano_design::{bezier_plane::BezierVertexId, grid::GridId, group_attributes::GroupPivot};
+use crate::{
+    app_state::{AppState, design_interactor::DesignInteractor},
+    design::selection::{CenterOfSelection, Selection},
+};
+use ensnano_design::{
+    bezier_plane::BezierVertexId, grid::GridId, group_attributes::GroupPivot,
+    interaction_modes::ActionMode,
+};
 use ensnano_utils::{
     WidgetBasis, app_state_parameters::check_xovers_parameter::CheckXoversParameter,
     graphics::DrawOptions, strand_builder::StrandBuilder,

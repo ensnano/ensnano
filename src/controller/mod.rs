@@ -7,13 +7,12 @@ pub(crate) mod normal_state;
 mod quit;
 pub(crate) mod set_scaffold_sequence;
 
-use std::borrow::Cow;
-
 use crate::{
     MainStateView,
     controller::normal_state::NormalState,
     dialog::{self, MustAckMessage, YesNoQuestion},
 };
+use std::borrow::Cow;
 
 pub(crate) struct Controller {
     /// The sate of the windows

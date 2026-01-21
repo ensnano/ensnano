@@ -8,9 +8,8 @@ use crate::{
         },
         normal_state::NormalState,
     },
-    dialog,
+    dialog::{self, MustAckMessage, PathInput},
 };
-use dialog::{MustAckMessage, PathInput};
 use ensnano_state::app_state::design_interactor::{
     DesignInteractor,
     presenter::impl_main_reader::{DownloadStapleError, DownloadStapleOk},

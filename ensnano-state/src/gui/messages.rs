@@ -1,6 +1,10 @@
-use std::collections::{BTreeMap, VecDeque};
-use ultraviolet::{Rotor3, Vec2};
-
+use crate::{
+    app_state::AppState,
+    gui::{
+        curve::CurveDescriptorBuilder, drag_drop_target::DragIdentifier,
+        state::RevolutionParameterId,
+    },
+};
 use ensnano_design::{
     CameraId,
     bezier_plane::BezierPathId,
@@ -22,18 +26,11 @@ use ensnano_utils::{
     ui_size::UiSize,
 };
 use iced::{Color, widget::text_input::Id};
-use ultraviolet::Vec3;
+use std::collections::{BTreeMap, VecDeque};
+use ultraviolet::{Rotor3, Vec2, Vec3};
 use winit::{
     dpi::{LogicalPosition, LogicalSize},
     event::Modifiers,
-};
-
-use crate::{
-    app_state::AppState,
-    gui::{
-        curve::CurveDescriptorBuilder, drag_drop_target::DragIdentifier,
-        state::RevolutionParameterId,
-    },
 };
 
 /// Some main application state, mostly related with top bar buttons.
@@ -300,8 +297,7 @@ pub enum LeftPanelMessage {
     FogRadius(f32),
     FogLength(f32),
     RollSimulationRequest,
-    /// Changes rapier parameters, including
-    /// if a simulation is running.
+    /// Changes rapier parameters, including if a simulation is running.
     UpdateRapierParameters(RapierParameters),
     UpdateRapierParameterField(String, String),
     DiscreteValue {

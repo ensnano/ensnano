@@ -7,12 +7,12 @@
 
 mod automata;
 
+use self::automata::{ControllerState, NormalState, Transition, ctrl};
 use crate::{
     CameraPtr, DataPtr, ViewPtr,
     data::{ClickResult, strand::FreeEnd},
     flat_types::{FlatHelix, FlatNucl},
 };
-use automata::{ControllerState, NormalState, Transition, ctrl};
 use ensnano_design::interaction_modes::ActionMode;
 use ensnano_state::{app_state::AppState, design::selection::Selection};
 use ensnano_utils::graphics::PhySize;

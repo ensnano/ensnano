@@ -2,20 +2,20 @@ pub mod design;
 pub mod helix;
 pub mod strand;
 
+use self::{
+    design::Design2d,
+    helix::{Helix, HelixHandle},
+    strand::FreeEnd,
+};
 use crate::{
     CameraPtr, ViewPtr,
     camera2d::FitRectangle,
-    data::{
-        helix::{Helix, HelixHandle},
-        strand::FreeEnd,
-    },
     flat_types::{
         FlatHelix, FlatHelixMaps, FlatIdx, FlatNucl, FlatSelection, HelixSegment, HelixVec,
     },
     view::EditionInfo,
 };
 use ahash::RandomState;
-use design::Design2d;
 use ensnano_design::{interaction_modes::SelectionMode, phantom_element::PhantomElement};
 use ensnano_state::{
     app_state::{AppState, design_interactor::DesignInteractor},

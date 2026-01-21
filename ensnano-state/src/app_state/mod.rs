@@ -15,6 +15,22 @@ pub mod impl_app3d;
 pub mod impl_gui;
 pub mod transitions;
 
+#[cfg(test)]
+use ensnano_design::Design;
+
+use self::{
+    address_pointer::AddressPointer,
+    channel_reader::ChannelReader,
+    design_interactor::{
+        DesignInteractor, InteractorResult,
+        controller::{
+            ErrOperation, InteractorNotification, clipboard::CopyOperation,
+            simulations::SimulationOperation,
+        },
+        presenter::SimulationUpdate,
+    },
+    transitions::OkOperation,
+};
 use crate::{
     design::{
         operation::DesignOperation,
@@ -22,18 +38,6 @@ use crate::{
     },
     utils::operation::Operation,
 };
-#[cfg(test)]
-use ensnano_design::Design;
-
-use crate::app_state::channel_reader::ChannelReader;
-use crate::app_state::design_interactor::{
-    controller::{
-        InteractorNotification, clipboard::CopyOperation, simulations::SimulationOperation,
-    },
-    presenter::SimulationUpdate,
-};
-use address_pointer::AddressPointer;
-use design_interactor::{DesignInteractor, InteractorResult, controller::ErrOperation};
 use ensnano_design::{
     SavingInformation,
     bezier_plane::BezierPathId,
@@ -60,7 +64,6 @@ use std::{
     path::PathBuf,
     sync::{Arc, RwLock},
 };
-use transitions::OkOperation;
 use ultraviolet::{Rotor3, Vec3};
 
 /// A structure containing the global state of the program.

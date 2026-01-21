@@ -12,6 +12,7 @@ use crate::{
     controller::{Consequence, Controller, automata::WidgetTarget},
     data::Data,
     element_selector::{ElementSelector, SceneElement},
+    maths_3d::FiniteVec3,
     view::{DrawType, View, ViewPtr, ViewUpdate},
 };
 use ensnano_design::{
@@ -47,7 +48,6 @@ use ensnano_utils::{
     graphics::{DrawArea, FogParameters, PhySize},
 };
 use itertools::Itertools as _;
-use maths_3d::FiniteVec3;
 use std::{
     cell::RefCell,
     f32::consts::{FRAC_PI_2, TAU},

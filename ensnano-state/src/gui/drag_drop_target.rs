@@ -1,5 +1,6 @@
 //! Allow your users to drag and drop widgets.
 
+use crate::gui::messages::OrganizerMessage;
 use ensnano_design::{design_element::DesignElementKey, organizer_tree::OrganizerNodeId};
 use iced::{
     Element, Length, Padding, Rectangle, Size, Vector,
@@ -7,8 +8,6 @@ use iced::{
     alignment, event,
     widget::container::layout,
 };
-
-use crate::gui::messages::OrganizerMessage;
 
 /// Identifier for drag-drop widgets.
 #[derive(Debug, Clone, PartialOrd, PartialEq, Eq, Ord)]

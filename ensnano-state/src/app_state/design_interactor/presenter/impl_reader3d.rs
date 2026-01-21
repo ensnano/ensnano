@@ -1,5 +1,7 @@
-use crate::app_state::design_interactor::DesignInteractor;
-use crate::scene::design_reader::{Scalebar, StrandNucleotidesPositions};
+use crate::{
+    app_state::design_interactor::DesignInteractor,
+    scene::design_reader::{Scalebar, StrandNucleotidesPositions},
+};
 use ahash::{HashMap, HashSet};
 use ensnano_design::{
     AdditionalStructure,

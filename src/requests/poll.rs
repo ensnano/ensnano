@@ -1,6 +1,7 @@
 //! This modules defines the `poll_all` method that polls the requests stored in a `Requests`
 //! object.
 
+use crate::state::MainState;
 use ensnano_state::{
     app_state::{action::Action, design_interactor::controller::clipboard::PastePosition},
     design::{
@@ -10,8 +11,6 @@ use ensnano_state::{
     requests::Requests,
     utils::application::Notification,
 };
-
-use crate::state::MainState;
 use std::ops::DerefMut;
 
 pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(

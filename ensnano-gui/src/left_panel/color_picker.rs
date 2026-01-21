@@ -1,7 +1,6 @@
+use self::{hue_column::HueColumn, light_sat_square::LightSatSquare};
 use crate::left_panel::ColorMessage;
-use hue_column::HueColumn;
 use iced::widget::row;
-use light_sat_square::LightSatSquare;
 
 pub(super) struct HueColorPicker {
     hue: f64,
