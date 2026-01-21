@@ -42,7 +42,7 @@ use ensnano_utils::{
     app_state_parameters::AppStateParameters, overlay::OverlayType, ui_size::UiSize,
 };
 use iced::{
-    Color, Command, Element, Length,
+    Command, Element, Length,
     widget::{Button, Column, Container, Text, column, container, horizontal_rule, text_input},
 };
 use iced_aw::widgets::{TabBarPosition, Tabs};
@@ -1411,13 +1411,4 @@ impl Requestable for RigidBodyFactory {
             _ => unreachable!(),
         }
     }
-}
-
-/// Encodes a color into a u32.
-fn color_to_u32(color: Color) -> u32 {
-    let red = ((color.r * 255.) as u32) << 16;
-    let green = ((color.g * 255.) as u32) << 8;
-    let blue = (color.b * 255.) as u32;
-
-    red + green + blue
 }

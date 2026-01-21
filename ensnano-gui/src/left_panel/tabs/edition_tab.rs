@@ -2,9 +2,7 @@ use crate::{
     color_picker::ColorPicker,
     fonts::material_icons::{MaterialIcon, icon_to_char},
     helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
-    left_panel::{
-        HelixRoll, LeftPanelMessage, color_to_u32, discrete_value::RequestFactory, tabs::GuiTab,
-    },
+    left_panel::{HelixRoll, LeftPanelMessage, discrete_value::RequestFactory, tabs::GuiTab},
 };
 use ensnano_design::design_element::DesignElementKey;
 use ensnano_state::{
@@ -14,7 +12,7 @@ use ensnano_state::{
 };
 use ensnano_utils::{RollRequest, ui_size::UiSize};
 use iced::{
-    Command,
+    Color, Command,
     widget::{column, row, scrollable},
 };
 use iced_aw::TabLabel;
@@ -62,6 +60,15 @@ impl EditionTab {
     }
 
     pub fn current_strand_color(&self) -> u32 {
+        /// Encodes a color into a u32.
+        fn color_to_u32(color: Color) -> u32 {
+            let red = ((color.r.clamp(0., 1.) * 255.) as u32) << 16;
+            let green = ((color.g.clamp(0., 1.) * 255.) as u32) << 8;
+            let blue = (color.b.clamp(0., 1.) * 255.) as u32;
+
+            red + green + blue
+        }
+
         let color = self.color_picker.current_color();
         color_to_u32(color)
     }
