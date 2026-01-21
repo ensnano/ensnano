@@ -26,12 +26,12 @@ pub struct GridTab {
 impl GridTab {
     pub fn new() -> Self {
         Self {
-            hyperboloid_factory: RequestFactory::new(FactoryId::Hyperboloid, Hyperboloid_ {}),
+            hyperboloid_factory: RequestFactory::new(FactoryId::Hyperboloid, Hyperboloid_),
         }
     }
 
     pub fn new_hyperboloid(&mut self, requests: &mut Option<HyperboloidRequest>) {
-        self.hyperboloid_factory = RequestFactory::new(FactoryId::Hyperboloid, Hyperboloid_ {});
+        self.hyperboloid_factory = RequestFactory::new(FactoryId::Hyperboloid, Hyperboloid_);
         self.hyperboloid_factory.make_request(requests);
     }
 
