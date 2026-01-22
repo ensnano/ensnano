@@ -62,28 +62,6 @@ impl ChebyshevPolynomial {
             definition_interval,
         }
     }
-
-    /// Return the derivative of `self`
-    pub fn derivated(self) -> SecondKindChebyshevPolynomial {
-        if self.coeffs.is_empty() {
-            SecondKindChebyshevPolynomial {
-                coeffs: vec![],
-                definition_interval: self.definition_interval,
-            }
-        } else {
-            let derivative_coeffs: Vec<f64> = self
-                .coeffs
-                .into_iter()
-                .enumerate()
-                .skip(1)
-                .map(|(n, c)| n as f64 * c)
-                .collect();
-            SecondKindChebyshevPolynomial {
-                coeffs: derivative_coeffs,
-                definition_interval: self.definition_interval,
-            }
-        }
-    }
 }
 
 impl SecondKindChebyshevPolynomial {
@@ -148,7 +126,7 @@ mod tests {
     }
 
     #[test]
-    /// Check that the equation `T_n(cos theta) = cos(n theta)` is verrified
+    /// Check that the equation `T_n(cos theta) = cos(n theta)` is verified
     fn trigonometric_property() {
         for n in 0..10 {
             let polynomial = get_tn(n);
@@ -161,7 +139,7 @@ mod tests {
     }
 
     #[test]
-    /// Check that the equation `U_{n-1}(cos theta)(sin theta) = sin(n theta)` is verrified
+    /// Check that the equation `U_{n-1}(cos theta)(sin theta) = sin(n theta)` is verified
     fn trigonometric_property_second_kind() {
         for n in 1..10 {
             let polynomial = get_un(n - 1);
@@ -170,29 +148,6 @@ mod tests {
             let expected = (n as f64 * theta).sin();
             let result = polynomial.evaluate(theta.cos()) * theta.sin();
             assert!((expected - result).abs() < 1e-5, "Failed for n = {n}");
-        }
-    }
-
-    #[test]
-    /// Check that the relation between Tn and its derivative is verrified
-    ///
-    /// The relation is
-    /// 2 * T_n  = 1 / (n+1) (d/dx) T_{n + 1} - 1 / (n - 1 ) ( d/dx) T_{n-1}(x)
-    fn test_derivative() {
-        for n in 2..10 {
-            let polynomial_plus = get_tn(n + 1).derivated();
-            let polynomial_minus = get_tn(n - 1).derivated();
-            let theta = 1.234;
-
-            let expected = (n as f64 * theta).cos() * 2.;
-            let result = polynomial_plus.evaluate(theta.cos()) / (n as f64 + 1.)
-                - polynomial_minus.evaluate(theta.cos()) / (n as f64 - 1.);
-            assert!(
-                (expected - result).abs() < 1e-5,
-                "Failed for n = {n}, expected {:.3}, got {:.3}",
-                expected,
-                result
-            );
         }
     }
 }

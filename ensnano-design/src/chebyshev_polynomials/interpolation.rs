@@ -1,4 +1,4 @@
-//! Methods to build Chebychev's polynomials that approximate functions.
+//! Methods to build Chebyshev's polynomials that approximate functions.
 
 use super::chebyshev::*;
 use rayon::prelude::*;
@@ -6,9 +6,9 @@ use rayon::prelude::*;
 const DEGREE_MIN: usize = 1;
 const DEGREE_MAX: usize = 100;
 
-/// Interpolate a blackbox function on interval [a, b].
+/// Interpolate a black box function on interval [a, b].
 ///
-/// Return a Chebychev's Polynomial P so that for p in points_for_error_eval,
+/// Return a Chebyshev's Polynomial P so that for p in points_for_error_eval,
 /// |P(p) - f(p)| < error_max
 pub fn interpolate_fun<F>(
     f: Box<F>,
@@ -25,7 +25,7 @@ where
 
 /// Interpolate a function that is known only at a given set of points.
 ///
-/// Return a Chebychev's polynomial P so that for p in points,
+/// Return a Chebyshev's polynomial P so that for p in points,
 /// |P(p) - f(p)| < error_max.
 ///
 /// If points is empty, return a null polynomial,
@@ -242,7 +242,7 @@ mod test {
     }
 
     #[test]
-    fn interpolate_blackbox() {
+    fn interpolate_black_box() {
         let f = Box::new(fun_to_interpolate);
         let points_for_error_eval = (0..1_000).map(|n| 20. * n as f64 / 1_000. - 10.).collect();
         let poly = interpolate_fun(f, -10., 10., 1e-4, points_for_error_eval);
