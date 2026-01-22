@@ -10,8 +10,8 @@
 //!
 //!    <https://docs.rs/iced_widget/0.12.1/src/iced_widget/container.rs.html>
 
+use ensnano_state::gui::messages::OrganizerMessage;
 use iced::{
-    Element, Length, Padding, Point, Rectangle, Size, Vector,
     advanced::{
         Clipboard, Shell,
         layout::{self, Layout},
@@ -22,18 +22,18 @@ use iced::{
 };
 
 /// A widget that emits a message when hovered.
-pub(super) struct HoverableContainer<'a, Message> {
-    padding: Padding,
-    content: Element<'a, Message>,
-    on_hover: Option<Message>,
-    on_unhover: Option<Message>,
+pub(super) struct HoverableContainer<'a> {
+    padding: iced::Padding,
+    content: iced::Element<'a, OrganizerMessage>,
+    on_hover: Option<OrganizerMessage>,
+    on_unhover: Option<OrganizerMessage>,
 }
 
-impl<'a, Message> HoverableContainer<'a, Message> {
+impl<'a> HoverableContainer<'a> {
     /// Creates a new [HoverableContainer] with the given content.
-    pub(super) fn new(content: impl Into<Element<'a, Message>>) -> Self {
+    pub(super) fn new(content: impl Into<iced::Element<'a, OrganizerMessage>>) -> Self {
         HoverableContainer {
-            padding: Padding::ZERO,
+            padding: iced::Padding::ZERO,
             content: content.into(),
             on_hover: None,
             on_unhover: None,
@@ -42,14 +42,14 @@ impl<'a, Message> HoverableContainer<'a, Message> {
 
     /// Sets the message that will be produced when the content is hovered.
     #[must_use]
-    pub(super) fn on_hover(mut self, message: Message) -> Self {
+    pub(super) fn on_hover(mut self, message: OrganizerMessage) -> Self {
         self.on_hover = Some(message);
         self
     }
 
     /// Sets the message that will be produced when the content is unhovered.
     #[must_use]
-    pub(super) fn on_unhover(mut self, message: Message) -> Self {
+    pub(super) fn on_unhover(mut self, message: OrganizerMessage) -> Self {
         self.on_unhover = Some(message);
         self
     }
@@ -61,10 +61,7 @@ struct HoverableContainerState {
     is_hovered: bool,
 }
 
-impl<'a, Message> Widget<Message, iced::Theme, iced::Renderer> for HoverableContainer<'a, Message>
-where
-    Message: 'a + Clone,
-{
+impl Widget<OrganizerMessage, iced::Theme, iced::Renderer> for HoverableContainer<'_> {
     fn tag(&self) -> widget::tree::Tag {
         widget::tree::Tag::of::<HoverableContainerState>()
     }
@@ -87,8 +84,8 @@ where
         cursor_position: mouse::Cursor,
         renderer: &iced::Renderer,
         clipboard: &mut dyn Clipboard,
-        shell: &mut Shell<'_, Message>,
-        viewport: &Rectangle,
+        shell: &mut Shell<'_, OrganizerMessage>,
+        viewport: &iced::Rectangle,
     ) -> event::Status {
         if self.content.as_widget_mut().on_event(
             &mut tree.children[0],
@@ -133,14 +130,14 @@ where
         renderer: &iced::Renderer,
         limits: &layout::Limits,
     ) -> layout::Node {
-        let Size { width, height } = self.size();
+        let iced::Size { width, height } = self.size();
         let limits = limits.width(width).height(height).shrink(self.padding);
 
         let content_layout = self
             .content
             .as_widget()
             .layout(&mut tree.children[0], renderer, &limits)
-            .move_to(Point::new(self.padding.left, self.padding.top));
+            .move_to(iced::Point::new(self.padding.left, self.padding.top));
 
         let size = limits
             .resolve(width, height, content_layout.size())
@@ -149,10 +146,10 @@ where
         layout::Node::with_children(size, vec![content_layout])
     }
 
-    fn size(&self) -> Size<Length> {
-        Size {
-            width: Length::Shrink,
-            height: Length::Shrink,
+    fn size(&self) -> iced::Size<iced::Length> {
+        iced::Size {
+            width: iced::Length::Shrink,
+            height: iced::Length::Shrink,
         }
     }
 
@@ -164,7 +161,7 @@ where
         style: &renderer::Style,
         layout: Layout,
         cursor: mouse::Cursor,
-        _viewport: &Rectangle,
+        _viewport: &iced::Rectangle,
     ) {
         let bounds = layout.bounds();
         let content_layout = layout.children().next().unwrap();
@@ -185,7 +182,7 @@ where
         tree: &widget::Tree,
         layout: Layout,
         cursor_position: mouse::Cursor,
-        viewport: &Rectangle,
+        viewport: &iced::Rectangle,
         renderer: &iced::Renderer,
     ) -> mouse::Interaction {
         self.content.as_widget().mouse_interaction(
@@ -202,8 +199,8 @@ where
         tree: &'b mut widget::Tree,
         layout: Layout,
         renderer: &iced::Renderer,
-        translation: Vector,
-    ) -> Option<overlay::Element<'b, Message, iced::Theme, iced::Renderer>> {
+        translation: iced::Vector,
+    ) -> Option<overlay::Element<'b, OrganizerMessage, iced::Theme, iced::Renderer>> {
         self.content.as_widget_mut().overlay(
             &mut tree.children[0],
             layout.children().next().unwrap(),
@@ -213,11 +210,8 @@ where
     }
 }
 
-impl<'a, Message> From<HoverableContainer<'a, Message>> for Element<'a, Message>
-where
-    Message: 'a + Clone,
-{
-    fn from(value: HoverableContainer<'a, Message>) -> Self {
-        Element::new(value)
+impl<'a> From<HoverableContainer<'a>> for iced::Element<'a, OrganizerMessage> {
+    fn from(value: HoverableContainer<'a>) -> Self {
+        iced::Element::new(value)
     }
 }
