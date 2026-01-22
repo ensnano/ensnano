@@ -76,7 +76,7 @@ mod main_tests;
 mod controller;
 mod dialog;
 mod multiplexer;
-mod requests;
+mod poll;
 mod scheduler;
 mod state;
 
@@ -726,7 +726,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 );
 
                 // When there is no more event to deal with
-                requests::poll::poll_all(requests.lock().unwrap(), &mut main_state);
+                poll::poll_all(requests.lock().unwrap(), &mut main_state);
 
                 let mut main_state_view = MainStateView {
                     main_state: &mut main_state,
