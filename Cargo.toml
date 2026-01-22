@@ -39,7 +39,7 @@ ahash = "0.8"
 bytemuck = "1.24"
 chrono = "0.4"
 color_space = "0.5"
-confy = { version = "1.0", default-features = false, features = [
+confy = { version = "2.0", default-features = false, features = [
     "yaml_conf",
 ] }
 dirs = "4.0"
