@@ -1,6 +1,7 @@
 //! A widget to select Lightness and Saturation values.
 
 use color_space::{Hsv, Rgb};
+use ensnano_state::gui::messages::ColorPickerMessage;
 use iced::{
     Length, Point, Rectangle, Size, Vector,
     advanced::{
@@ -36,15 +37,15 @@ fn hsv_to_linear(hue: f64, sat: f64, light: f64) -> [f32; 4] {
 }
 
 /// A Lightness-Saturation square Widget.
-pub struct LightSatSquare<'a, Message> {
+pub struct LightSatSquare {
     width: Length,
     height: Length,
     hue: f64,
-    on_slide: Option<Box<dyn Fn(f64, f64) -> Message + 'a>>,
-    on_finish: Option<Message>,
+    on_slide: Option<Box<dyn Fn(f64, f64) -> ColorPickerMessage>>,
+    on_finish: Option<ColorPickerMessage>,
 }
 
-impl<'a, Message> LightSatSquare<'a, Message> {
+impl LightSatSquare {
     pub fn new(hue: f64) -> Self {
         Self {
             width: Length::Fixed(DEFAULT_SIZE),
@@ -58,14 +59,14 @@ impl<'a, Message> LightSatSquare<'a, Message> {
     #[must_use]
     pub fn on_slide<F>(mut self, f: F) -> Self
     where
-        F: 'a + Fn(f64, f64) -> Message,
+        F: 'static + Fn(f64, f64) -> ColorPickerMessage,
     {
         self.on_slide = Some(Box::new(f));
         self
     }
 
     #[must_use]
-    pub fn on_finish(mut self, message: Message) -> Self {
+    pub fn on_finish(mut self, message: ColorPickerMessage) -> Self {
         self.on_finish = Some(message);
         self
     }
@@ -83,10 +84,7 @@ impl<'a, Message> LightSatSquare<'a, Message> {
     }
 }
 
-impl<Message> Widget<Message, iced::Theme, iced::Renderer> for LightSatSquare<'_, Message>
-where
-    Message: Clone,
-{
+impl Widget<ColorPickerMessage, iced::Theme, iced::Renderer> for LightSatSquare {
     fn state(&self) -> widget::tree::State {
         widget::tree::State::Some(Box::new(LightSatState::default()))
     }
@@ -173,7 +171,7 @@ where
         cursor: Cursor,
         _renderer: &iced::Renderer,
         _clipboard: &mut dyn Clipboard,
-        shell: &mut Shell<'_, Message>,
+        shell: &mut Shell<'_, ColorPickerMessage>,
         _viewport: &Rectangle,
     ) -> event::Status {
         // A closure that takes an absolute position and send Message.
@@ -219,7 +217,7 @@ where
                     if state.is_dragging {
                         state.is_dragging = false;
                     }
-                    if let Some(on_finish) = self.on_finish.clone() {
+                    if let Some(on_finish) = self.on_finish {
                         shell.publish(on_finish);
                     }
                     event::Status::Captured
@@ -242,11 +240,8 @@ where
     }
 }
 
-impl<'a, Message> From<LightSatSquare<'a, Message>> for iced::Element<'a, Message>
-where
-    Message: Clone + 'a,
-{
-    fn from(value: LightSatSquare<'a, Message>) -> Self {
+impl From<LightSatSquare> for iced::Element<'_, ColorPickerMessage> {
+    fn from(value: LightSatSquare) -> Self {
         Self::new(value)
     }
 }
