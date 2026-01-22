@@ -16,15 +16,12 @@ fn vs_main(@builtin(vertex_index) vi: u32) -> VertexOutput {
     );
 
     let p = positions[vi];
+    let uv = p * vec2(0.5, -0.5) + 0.5;
 
-    return VertexOutput(
-        vec4(p, 0.0, 1.0),
-        p * vec2(1.0, -1.0),
-    );
+    return VertexOutput(vec4(p, 0.0, 1.0), uv);
 }
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
-    let uv = (in.uv + 1.0) * 0.5;
-    return textureSample(t_diffuse, s_diffuse, uv);
+    return textureSample(t_diffuse, s_diffuse, in.uv);
 }
