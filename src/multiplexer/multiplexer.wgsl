@@ -15,10 +15,10 @@ fn vs_main(@builtin(vertex_index) vi: u32) -> VertexOutput {
         vec2<f32>( 1.0,  1.0),
     );
 
-    let p = positions[vi];
-    let uv = p * vec2(0.5, -0.5) + 0.5;
+    let pos = positions[vi];
+    let uv = pos * vec2(0.5, -0.5) + 0.5;
 
-    return VertexOutput(vec4(p, 0.0, 1.0), uv);
+    return VertexOutput(vec4(pos, 0.0, 1.0), uv);
 }
 
 @fragment

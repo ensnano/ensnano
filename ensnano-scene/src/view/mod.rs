@@ -329,7 +329,7 @@ impl View {
             });
 
         let post_processing_shader =
-            device.create_shader_module(wgpu::include_wgsl!("./post_processing.wgsl"));
+            device.create_shader_module(wgpu::include_wgsl!("post_processing.wgsl"));
         let post_processing_pipeline =
             device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
                 label: Some("post-processing pipeline"),
