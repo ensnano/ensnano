@@ -1,15 +1,12 @@
-use crate::{
-    MainStateView,
-    controller::{
-        AutomataState, TransitionMessage,
-        messages::{
-            NO_FILE_RECEIVED_STAPLE, NO_SCAFFOLD_SEQUENCE_SET, NO_SCAFFOLD_SET, ORIGAMI_FILTERS,
-            successful_staples_export_msg,
-        },
-        normal_state::NormalState,
+use super::{
+    AutomataState, TransitionMessage,
+    messages::{
+        NO_FILE_RECEIVED_STAPLE, NO_SCAFFOLD_SEQUENCE_SET, NO_SCAFFOLD_SET, ORIGAMI_FILTERS,
+        successful_staples_export_msg,
     },
-    dialog,
+    normal_state::NormalState,
 };
+use crate::{MainStateView, dialog};
 use dialog::{MustAckMessage, PathInput};
 use ensnano_state::app_state::design_interactor::{
     DesignInteractor,

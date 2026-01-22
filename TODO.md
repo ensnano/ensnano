@@ -104,6 +104,7 @@
 
 ## Refactor
 
+- Merge `MainState` and `MainStateView` structs?
 - Remove in-file modules:
   - `abscissa_converter`
   - `input_color`

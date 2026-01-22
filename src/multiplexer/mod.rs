@@ -12,7 +12,7 @@
 //!
 //! The multiplexer is also in charge of drawing to the frame.
 
-pub(crate) mod layout_manager;
+mod layout_manager;
 
 use self::layout_manager::{LayoutTree, PixelRegion};
 use ensnano_design::interaction_modes::{ActionMode, SelectionMode};

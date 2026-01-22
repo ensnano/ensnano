@@ -1,15 +1,15 @@
 //! Handles windows and dialog (Alert, and file pickers) interactions.
 
 mod download_intervals;
-pub(crate) mod download_staples;
+mod download_staples;
 mod messages;
-pub(crate) mod normal_state;
+mod normal_state;
 mod quit;
 pub(crate) mod set_scaffold_sequence;
 
+use self::normal_state::NormalState;
 use crate::{
     MainStateView,
-    controller::normal_state::NormalState,
     dialog::{self, MustAckMessage, YesNoQuestion},
 };
 use std::borrow::Cow;
@@ -41,7 +41,7 @@ impl Controller {
     }
 }
 
-pub(crate) trait AutomataState {
+trait AutomataState {
     /// Operate on [MainStateView] and return the new State of the automata
     fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn AutomataState>;
 }

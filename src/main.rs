@@ -1017,26 +1017,27 @@ fn formatted_path_end<P: AsRef<Path>>(path: P) -> String {
     }
     ret.join("/")
 }
+
 /// A temporary view of the main state and the control flow.
-pub(crate) struct MainStateView<'a> {
-    pub(crate) main_state: &'a mut MainState,
-    pub(crate) window_target: &'a EventLoopWindowTarget<()>,
-    pub(crate) multiplexer: &'a mut Multiplexer,
-    pub(crate) scheduler: &'a mut Scheduler,
-    pub(crate) gui: &'a mut GuiManager,
-    pub(crate) window: &'a Window,
-    pub(crate) resized: bool,
+struct MainStateView<'a> {
+    main_state: &'a mut MainState,
+    window_target: &'a EventLoopWindowTarget<()>,
+    multiplexer: &'a mut Multiplexer,
+    scheduler: &'a mut Scheduler,
+    gui: &'a mut GuiManager,
+    window: &'a Window,
+    resized: bool,
 }
 
 impl MainStateView<'_> {
-    pub(crate) fn pop_action(&mut self) -> Option<Action> {
+    fn pop_action(&mut self) -> Option<Action> {
         if !self.main_state.pending_actions.is_empty() {
             log::debug!("pending actions {:?}", self.main_state.pending_actions);
         }
         self.main_state.pending_actions.pop_front()
     }
 
-    pub(crate) fn check_backup(&mut self) {
+    fn check_backup(&mut self) {
         if !self
             .main_state
             .last_backed_up_state
@@ -1050,30 +1051,30 @@ impl MainStateView<'_> {
         }
     }
 
-    pub(crate) fn main_state(&mut self) -> &mut MainState {
+    fn main_state(&mut self) -> &mut MainState {
         self.main_state
     }
 
-    pub(crate) fn need_backup(&self) -> bool {
+    fn need_backup(&self) -> bool {
         self.main_state.last_backup_date.elapsed() > Duration::from_secs(SEC_BETWEEN_BACKUPS)
     }
 
-    pub(crate) fn exit_control_flow(&self) {
+    fn exit_control_flow(&self) {
         self.window_target.exit();
     }
 
-    pub(crate) fn new_design(&mut self) {
+    fn new_design(&mut self) {
         self.notify_apps(Notification::ClearDesigns);
         self.main_state.new_design();
     }
 
-    pub(crate) fn export(&mut self, path: &PathBuf, export_type: ExportType) -> ExportResult {
+    fn export(&mut self, path: &PathBuf, export_type: ExportType) -> ExportResult {
         let ret = self.main_state.app_state.export(path, export_type);
         self.set_exporting(false);
         ret
     }
 
-    pub(crate) fn load_design(&mut self, path: PathBuf) -> Result<(), LoadDesignError> {
+    fn load_design(&mut self, path: PathBuf) -> Result<(), LoadDesignError> {
         let state = AppState::import_design(path)?;
         self.notify_apps(Notification::ClearDesigns);
         self.main_state.clear_app_state(state);
@@ -1095,46 +1096,46 @@ impl MainStateView<'_> {
         Ok(())
     }
 
-    pub(crate) fn apply_operation(&mut self, operation: DesignOperation) {
+    fn apply_operation(&mut self, operation: DesignOperation) {
         self.main_state.apply_operation(operation);
     }
 
-    pub(crate) fn apply_silent_operation(&mut self, operation: DesignOperation) {
+    fn apply_silent_operation(&mut self, operation: DesignOperation) {
         self.main_state.apply_silent_operation(operation);
     }
 
-    pub(crate) fn undo(&mut self) {
+    fn undo(&mut self) {
         self.main_state.undo();
     }
 
-    pub(crate) fn redo(&mut self) {
+    fn redo(&mut self) {
         self.main_state.redo();
     }
 
-    pub(crate) fn get_design_interactor(&self) -> DesignInteractor {
+    fn get_design_interactor(&self) -> DesignInteractor {
         self.main_state.app_state.get_design_interactor()
     }
 
-    pub(crate) fn save_design(&mut self, path: &PathBuf) -> Result<(), SaveDesignError> {
+    fn save_design(&mut self, path: &PathBuf) -> Result<(), SaveDesignError> {
         self.main_state.save_design(path)?;
         self.main_state.last_backup_date = Instant::now();
         Ok(())
     }
 
-    pub(crate) fn save_backup(&mut self) -> Result<(), SaveDesignError> {
+    fn save_backup(&mut self) -> Result<(), SaveDesignError> {
         self.main_state.save_backup()?;
         self.main_state.last_backup_date = Instant::now();
         Ok(())
     }
 
-    pub(crate) fn toggle_split_mode(&mut self, mode: SplitMode) {
+    fn toggle_split_mode(&mut self, mode: SplitMode) {
         self.multiplexer.change_split(mode);
         self.scheduler
             .forward_new_size(self.window.inner_size(), self.multiplexer);
         self.gui.resize(self.multiplexer, self.window);
     }
 
-    pub(crate) fn change_ui_size(&mut self, ui_size: UiSize) {
+    fn change_ui_size(&mut self, ui_size: UiSize) {
         self.gui.new_ui_size(
             ui_size,
             self.window,
@@ -1153,30 +1154,30 @@ impl MainStateView<'_> {
         self.resized = true;
     }
 
-    pub(crate) fn notify_apps(&mut self, notification: Notification) {
+    fn notify_apps(&mut self, notification: Notification) {
         log::info!("Notify apps {notification:?}");
         for app in self.main_state.applications.values_mut() {
             app.lock().unwrap().on_notify(notification.clone());
         }
     }
 
-    pub(crate) fn get_selection(&self) -> &[Selection] {
+    fn get_selection(&self) -> &[Selection] {
         self.main_state.app_state.get_selection()
     }
 
-    pub(crate) fn get_design_reader(&self) -> DesignInteractor {
+    fn get_design_reader(&self) -> DesignInteractor {
         self.main_state.app_state.get_design_interactor()
     }
 
-    pub(crate) fn get_grid_creation_position(&self) -> Option<(Vec3, Rotor3)> {
+    fn get_grid_creation_position(&self) -> Option<(Vec3, Rotor3)> {
         self.main_state.get_grid_creation_position()
     }
 
-    pub(crate) fn get_bezier_sheet_creation_position(&self) -> Option<(Vec3, Rotor3)> {
+    fn get_bezier_sheet_creation_position(&self) -> Option<(Vec3, Rotor3)> {
         self.main_state.get_bezier_sheet_creation_position()
     }
 
-    pub(crate) fn finish_operation(&mut self) {
+    fn finish_operation(&mut self) {
         self.main_state.modify_state(
             |s| s.notified(InteractorNotification::FinishOperation),
             None,
@@ -1184,29 +1185,29 @@ impl MainStateView<'_> {
         self.main_state.app_state.finish_operation();
     }
 
-    pub(crate) fn request_copy(&mut self) {
+    fn request_copy(&mut self) {
         self.main_state.request_copy();
     }
 
-    pub(crate) fn init_paste(&mut self) {
+    fn init_paste(&mut self) {
         self.main_state
             .apply_copy_operation(CopyOperation::PositionPastingPoint(None));
     }
 
-    pub(crate) fn apply_paste(&mut self) {
+    fn apply_paste(&mut self) {
         self.main_state.apply_paste();
     }
 
-    pub(crate) fn duplicate(&mut self) {
+    fn duplicate(&mut self) {
         self.main_state.request_duplication();
     }
 
-    pub(crate) fn request_pasting_candidate(&mut self, candidate: Option<PastePosition>) {
+    fn request_pasting_candidate(&mut self, candidate: Option<PastePosition>) {
         self.main_state
             .apply_copy_operation(CopyOperation::PositionPastingPoint(candidate));
     }
 
-    pub(crate) fn delete_selection(&mut self) {
+    fn delete_selection(&mut self) {
         let selection = self.get_selection();
         if let Some((_, nucl_pairs)) =
             list_of_xover_as_nucl_pairs(selection, &self.get_design_reader())
@@ -1233,7 +1234,7 @@ impl MainStateView<'_> {
         }
     }
 
-    pub(crate) fn scaffold_to_selection(&mut self) {
+    fn scaffold_to_selection(&mut self) {
         let scaffold_id = self
             .main_state
             .get_app_state()
@@ -1246,53 +1247,53 @@ impl MainStateView<'_> {
         }
     }
 
-    pub(crate) fn start_helix_simulation(&mut self, parameters: RigidBodyConstants) {
+    fn start_helix_simulation(&mut self, parameters: RigidBodyConstants) {
         self.main_state.start_helix_simulation(parameters);
     }
 
-    pub(crate) fn start_grid_simulation(&mut self, parameters: RigidBodyConstants) {
+    fn start_grid_simulation(&mut self, parameters: RigidBodyConstants) {
         self.main_state.start_grid_simulation(parameters);
     }
 
-    pub(crate) fn start_revolution_simulation(&mut self, desc: RevolutionSurfaceSystemDescriptor) {
+    fn start_revolution_simulation(&mut self, desc: RevolutionSurfaceSystemDescriptor) {
         self.main_state.start_revolution_simulation(desc);
     }
 
-    pub(crate) fn start_roll_simulation(&mut self, target_helices: Option<Vec<usize>>) {
+    fn start_roll_simulation(&mut self, target_helices: Option<Vec<usize>>) {
         self.main_state.start_roll_simulation(target_helices);
     }
 
-    pub(crate) fn update_simulation(&mut self, request: SimulationOperation) {
+    fn update_simulation(&mut self, request: SimulationOperation) {
         self.main_state.update_simulation(request);
     }
 
-    pub(crate) fn set_roll_of_selected_helices(&mut self, roll: f32) {
+    fn set_roll_of_selected_helices(&mut self, roll: f32) {
         self.main_state.set_roll_of_selected_helices(roll);
     }
 
-    pub(crate) fn turn_selection_into_anchor(&mut self) {
+    fn turn_selection_into_anchor(&mut self) {
         let selection = self.get_selection();
         let nucls = extract_nucls_from_selection(selection);
         self.main_state
             .apply_operation(DesignOperation::FlipAnchors { nucls });
     }
 
-    pub(crate) fn set_visibility_sieve(&mut self, compl: bool) {
+    fn set_visibility_sieve(&mut self, compl: bool) {
         let selection = self.get_selection().to_vec();
         self.main_state.set_visibility_sieve(selection, compl);
     }
 
-    pub(crate) fn clear_visibility_sieve(&mut self) {
+    fn clear_visibility_sieve(&mut self) {
         self.main_state.set_visibility_sieve(vec![], true);
     }
 
-    pub(crate) fn need_save(&self) -> Option<Option<PathBuf>> {
+    fn need_save(&self) -> Option<Option<PathBuf>> {
         self.main_state
             .need_save()
             .then(|| self.get_current_file_name().map(Path::to_path_buf))
     }
 
-    pub(crate) fn get_current_design_directory(&self) -> Option<&Path> {
+    fn get_current_design_directory(&self) -> Option<&Path> {
         let mut ancestors = self
             .main_state
             .app_state
@@ -1308,14 +1309,11 @@ impl MainStateView<'_> {
         }
     }
 
-    pub(crate) fn get_current_file_name(&self) -> Option<&Path> {
+    fn get_current_file_name(&self) -> Option<&Path> {
         self.main_state.get_current_file_name()
     }
 
-    pub(crate) fn get_design_path_and_notify(
-        &mut self,
-        notificator: fn(Option<Arc<Path>>) -> Notification,
-    ) {
+    fn get_design_path_and_notify(&mut self, notificator: fn(Option<Arc<Path>>) -> Notification) {
         if let Some(filename) = self.get_current_file_name() {
             self.main_state
                 .push_action(Action::NotifyApps(notificator(Some(Arc::from(filename)))));
@@ -1326,7 +1324,7 @@ impl MainStateView<'_> {
         }
     }
 
-    pub(crate) fn set_current_group_pivot(&mut self, pivot: GroupPivot) {
+    fn set_current_group_pivot(&mut self, pivot: GroupPivot) {
         if let Some(group_id) = self.main_state.app_state.get_current_group_id() {
             self.apply_operation(DesignOperation::SetGroupPivot { group_id, pivot });
         } else {
@@ -1334,7 +1332,7 @@ impl MainStateView<'_> {
         }
     }
 
-    pub(crate) fn translate_group_pivot(&mut self, translation: Vec3) {
+    fn translate_group_pivot(&mut self, translation: Vec3) {
         if let Some(group_id) = self.main_state.app_state.get_current_group_id() {
             self.apply_operation(DesignOperation::Translation(DesignTranslation {
                 target: IsometryTarget::GroupPivot(group_id),
@@ -1346,7 +1344,7 @@ impl MainStateView<'_> {
         }
     }
 
-    pub(crate) fn rotate_group_pivot(&mut self, rotation: Rotor3) {
+    fn rotate_group_pivot(&mut self, rotation: Rotor3) {
         if let Some(group_id) = self.main_state.app_state.get_current_group_id() {
             self.apply_operation(DesignOperation::Rotation(DesignRotation {
                 target: IsometryTarget::GroupPivot(group_id),
@@ -1359,7 +1357,7 @@ impl MainStateView<'_> {
         }
     }
 
-    pub(crate) fn create_new_camera(&mut self) {
+    fn create_new_camera(&mut self) {
         if let Some(camera) = self
             .main_state
             .applications
@@ -1377,7 +1375,7 @@ impl MainStateView<'_> {
         }
     }
 
-    pub(crate) fn select_camera(&mut self, camera_id: CameraId) {
+    fn select_camera(&mut self, camera_id: CameraId) {
         let reader = self.main_state.app_state.get_design_interactor();
         if let Some(camera) = reader.get_camera_with_id(camera_id) {
             self.notify_apps(Notification::TeleportCamera(camera));
@@ -1386,7 +1384,7 @@ impl MainStateView<'_> {
         }
     }
 
-    pub(crate) fn select_favorite_camera(&mut self, n_camera: u32) {
+    fn select_favorite_camera(&mut self, n_camera: u32) {
         let reader = self.main_state.app_state.get_design_interactor();
         if let Some(camera) = reader.get_nth_camera(n_camera) {
             self.notify_apps(Notification::TeleportCamera(camera));
@@ -1395,37 +1393,37 @@ impl MainStateView<'_> {
         }
     }
 
-    pub(crate) fn toggle_2d(&mut self) {
+    fn toggle_2d(&mut self) {
         self.multiplexer.toggle_2d();
         self.scheduler
             .forward_new_size(self.window.inner_size(), self.multiplexer);
     }
 
-    pub(crate) fn make_all_suggested_xover(&mut self, doubled: bool) {
+    fn make_all_suggested_xover(&mut self, doubled: bool) {
         let reader = self.main_state.app_state.get_design_interactor();
         let xovers = reader.get_suggestions();
         self.apply_operation(DesignOperation::MakeSeveralXovers { xovers, doubled });
     }
 
-    pub(crate) fn flip_split_views(&mut self) {
+    fn flip_split_views(&mut self) {
         self.notify_apps(Notification::FlipSplitViews);
     }
 
-    pub(crate) fn start_twist(&mut self, g_id: GridId) {
+    fn start_twist(&mut self, g_id: GridId) {
         self.main_state.start_twist(g_id);
     }
 
-    pub(crate) fn set_expand_insertions(&mut self, expand: bool) {
+    fn set_expand_insertions(&mut self, expand: bool) {
         self.main_state
             .modify_state(|app| app.with_expand_insertion_set(expand), None);
     }
 
-    pub(crate) fn set_exporting(&mut self, exporting: bool) {
+    fn set_exporting(&mut self, exporting: bool) {
         self.main_state
             .modify_state(|app| app.exporting(exporting), None);
     }
 
-    pub(crate) fn load_3d_object(&mut self, path: PathBuf) {
+    fn load_3d_object(&mut self, path: PathBuf) {
         let design_path = self
             .get_current_design_directory()
             .map(Path::to_path_buf)
@@ -1437,11 +1435,11 @@ impl MainStateView<'_> {
         });
     }
 
-    pub(crate) fn load_svg(&mut self, path: PathBuf) {
+    fn load_svg(&mut self, path: PathBuf) {
         self.apply_operation(DesignOperation::ImportSvgPath { path });
     }
 
-    pub(crate) fn set_scaffold_sequence(
+    fn set_scaffold_sequence(
         &mut self,
         sequence: String,
         shift: usize,
@@ -1474,11 +1472,11 @@ impl MainStateView<'_> {
         })
     }
 
-    pub(crate) fn optimize_shift(&mut self) {
+    fn optimize_shift(&mut self) {
         self.main_state.optimize_shift();
     }
 
-    pub(crate) fn get_scaffold_length(&self) -> Option<usize> {
+    fn get_scaffold_length(&self) -> Option<usize> {
         self.main_state
             .app_state
             .get_scaffold_info()

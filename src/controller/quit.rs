@@ -1,15 +1,15 @@
+use super::{
+    AutomataState, TransitionMessage, YesNo,
+    messages::{
+        CADNANO_FILTERS, DESIGN_LOAD_FILTERS, DESIGN_WRITE_FILTERS, NO_FILE_RECEIVED_LOAD,
+        NO_FILE_RECEIVED_OXDNA, NO_FILE_RECEIVED_SAVE, OBJECT3D_FILTERS, OXDNA_CONFIG_EXTENSION,
+        OXDNA_CONFIG_FILTERS, PDB_FILTERS, SAVE_BEFORE_EXIT, SAVE_BEFORE_LOAD, SAVE_BEFORE_NEW,
+        SAVE_BEFORE_RELOAD, SVG_FILTERS, failed_to_save_msg,
+    },
+    normal_state::NormalState,
+};
 use crate::{
     MainStateView,
-    controller::{
-        AutomataState, TransitionMessage, YesNo,
-        messages::{
-            CADNANO_FILTERS, DESIGN_LOAD_FILTERS, DESIGN_WRITE_FILTERS, NO_FILE_RECEIVED_LOAD,
-            NO_FILE_RECEIVED_OXDNA, NO_FILE_RECEIVED_SAVE, OBJECT3D_FILTERS,
-            OXDNA_CONFIG_EXTENSION, OXDNA_CONFIG_FILTERS, PDB_FILTERS, SAVE_BEFORE_EXIT,
-            SAVE_BEFORE_LOAD, SAVE_BEFORE_NEW, SAVE_BEFORE_RELOAD, SVG_FILTERS, failed_to_save_msg,
-        },
-        normal_state::NormalState,
-    },
     dialog::{self, DialogFilters, PathInput},
 };
 use ensnano_exports::ExportType;

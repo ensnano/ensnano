@@ -1,5 +1,5 @@
 mod dragging_state;
-pub(crate) mod event_context;
+pub(super) mod event_context;
 mod point_and_click_state;
 
 use self::{

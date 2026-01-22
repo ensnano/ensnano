@@ -1,13 +1,13 @@
+use super::{
+    AutomataState, TransitionMessage, YesNo,
+    messages::{
+        NO_FILE_RECEIVED_SCAFFOLD, SEQUENCE_FILTERS, invalid_sequence_file,
+        optimize_scaffold_position_msg,
+    },
+    normal_state::NormalState,
+};
 use crate::{
     MainStateView,
-    controller::{
-        AutomataState, TransitionMessage, YesNo,
-        messages::{
-            NO_FILE_RECEIVED_SCAFFOLD, SEQUENCE_FILTERS, invalid_sequence_file,
-            optimize_scaffold_position_msg,
-        },
-        normal_state::NormalState,
-    },
     dialog::{self, PathInput},
 };
 use ensnano_utils::StandardSequence;

@@ -1,17 +1,15 @@
-use crate::{
-    MainStateView,
-    controller::{
-        AutomataState, TransitionMessage, YesNo,
-        download_intervals::DownloadIntervals,
-        download_staples::DownloadStaples,
-        messages::{
-            CHANGING_DNA_PARAMETERS_WARNING, OXDNA_EXPORT_FAILED, SAVE_DESIGN_FAILED,
-            SET_DESIGN_DIRECTORY_FIRST,
-        },
-        quit::{Exporting, Load, LoadType, NewDesign, Quit, SaveAs, SaveWithPath},
-        set_scaffold_sequence::SetScaffoldSequence,
+use super::{
+    AutomataState, TransitionMessage, YesNo,
+    download_intervals::DownloadIntervals,
+    download_staples::DownloadStaples,
+    messages::{
+        CHANGING_DNA_PARAMETERS_WARNING, OXDNA_EXPORT_FAILED, SAVE_DESIGN_FAILED,
+        SET_DESIGN_DIRECTORY_FIRST,
     },
+    quit::{Exporting, Load, LoadType, NewDesign, Quit, SaveAs, SaveWithPath},
+    set_scaffold_sequence::SetScaffoldSequence,
 };
+use crate::MainStateView;
 use ensnano_design::{
     bezier_plane::BezierPlaneDescriptor,
     grid::{GridDescriptor, GridTypeDescr},
