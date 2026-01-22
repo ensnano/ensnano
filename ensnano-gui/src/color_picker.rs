@@ -40,7 +40,7 @@ fn color_to_hsv(color: Color) -> Hsv {
 }
 
 /// Helper function to create color squares.
-fn color_square<'a>(color: Color) -> ColorSquare<'a, ColorPickerMessage> {
+fn color_square(color: Color) -> ColorSquare {
     ColorSquare::new(color)
         .on_click(ColorPickerMessage::ColorPicked)
         .on_release(ColorPickerMessage::FinishChangingColor)

@@ -1,5 +1,6 @@
 //! A widget to Visualize selected color.
 
+use ensnano_state::gui::messages::ColorPickerMessage;
 use iced::{
     Color, Length, Rectangle, Size, Vector,
     advanced::{
@@ -24,15 +25,15 @@ pub(crate) struct ColorSquareState {
 }
 
 /// A ColorSquare Widget
-pub struct ColorSquare<'a, Message> {
+pub struct ColorSquare {
     width: Length,
     height: Length,
     color: Color,
-    on_click: Option<Box<dyn Fn(Color) -> Message + 'a>>,
-    on_release: Option<Message>,
+    on_click: Option<Box<dyn Fn(Color) -> ColorPickerMessage>>,
+    on_release: Option<ColorPickerMessage>,
 }
 
-impl<'a, Message> ColorSquare<'a, Message> {
+impl ColorSquare {
     pub fn new(color: Color) -> Self {
         Self {
             width: Length::Fixed(DEFAULT_SIZE),
@@ -46,14 +47,14 @@ impl<'a, Message> ColorSquare<'a, Message> {
     #[must_use]
     pub fn on_click<F>(mut self, f: F) -> Self
     where
-        F: 'a + Fn(Color) -> Message,
+        F: 'static + Fn(Color) -> ColorPickerMessage,
     {
         self.on_click = Some(Box::new(f));
         self
     }
 
     #[must_use]
-    pub fn on_release(mut self, message: Message) -> Self {
+    pub fn on_release(mut self, message: ColorPickerMessage) -> Self {
         self.on_release = Some(message);
         self
     }
@@ -71,10 +72,7 @@ impl<'a, Message> ColorSquare<'a, Message> {
     }
 }
 
-impl<Message> Widget<Message, iced::Theme, iced::Renderer> for ColorSquare<'_, Message>
-where
-    Message: Clone,
-{
+impl Widget<ColorPickerMessage, iced::Theme, iced::Renderer> for ColorSquare {
     fn state(&self) -> widget::tree::State {
         widget::tree::State::Some(Box::new(ColorSquareState::default()))
     }
@@ -151,7 +149,7 @@ where
         cursor: Cursor,
         _renderer: &iced::Renderer,
         _clipboard: &mut dyn Clipboard,
-        shell: &mut Shell<'_, Message>,
+        shell: &mut Shell<'_, ColorPickerMessage>,
         _viewport: &Rectangle,
     ) -> event::Status {
         if let event::Event::Mouse(mouse_event) = event {
@@ -171,7 +169,7 @@ where
                 mouse::Event::ButtonReleased(mouse::Button::Left) if state.clicked => {
                     if cursor.is_over(layout.bounds()) {
                         state.clicked = false;
-                        if let Some(on_release) = self.on_release.clone() {
+                        if let Some(on_release) = self.on_release {
                             shell.publish(on_release);
                         }
                         event::Status::Captured
@@ -184,7 +182,7 @@ where
                         event::Status::Ignored
                     } else {
                         state.clicked = false;
-                        if let Some(on_release) = self.on_release.clone() {
+                        if let Some(on_release) = self.on_release {
                             shell.publish(on_release);
                         }
                         event::Status::Captured
@@ -198,11 +196,8 @@ where
     }
 }
 
-impl<'a, Message> From<ColorSquare<'a, Message>> for iced::Element<'a, Message>
-where
-    Message: Clone + 'a,
-{
-    fn from(color_square: ColorSquare<'a, Message>) -> Self {
+impl From<ColorSquare> for iced::Element<'_, ColorPickerMessage> {
+    fn from(color_square: ColorSquare) -> Self {
         Self::new(color_square)
     }
 }
