@@ -76,6 +76,7 @@ mod main_tests;
 mod controller;
 mod dialog;
 mod multiplexer;
+mod overlay_manager;
 mod poll;
 mod scheduler;
 mod state;
@@ -88,6 +89,7 @@ use crate::{
         },
     },
     multiplexer::Multiplexer,
+    overlay_manager::OverlayManager,
     scheduler::Scheduler,
     state::MainState,
 };
@@ -97,7 +99,6 @@ use ensnano_flatscene::FlatScene;
 use ensnano_gui::{
     GuiManager,
     fonts::{INTER_REGULAR_FONT, load_fonts},
-    left_panel::ColorOverlay,
     theme,
 };
 use ensnano_scene::{Scene, SceneKind};
@@ -131,18 +132,11 @@ use ensnano_utils::{
     RigidBodyConstants, TEXTURE_FORMAT,
     app_state_parameters::AppStateParameters,
     consts::{APP_NAME, NO_DESIGN_TITLE, SEC_BETWEEN_BACKUPS, WELCOME_MSG},
-    convert_size_f32, convert_size_u32,
     graphics::{GuiComponentType, PhySize, SplitMode},
-    overlay::OverlayType,
     surfaces::RevolutionSurfaceSystemDescriptor,
     ui_size::UiSize,
 };
-use iced::{
-    advanced::{clipboard, renderer},
-    mouse::Cursor,
-};
-use iced_graphics::{Antialiasing, Viewport};
-use iced_runtime::{Debug, program};
+use iced_graphics::Antialiasing;
 use iced_wgpu::Settings;
 use std::{
     path::{Component, Path, PathBuf},
@@ -152,7 +146,6 @@ use std::{
 };
 use ultraviolet::{Rotor3, Vec3};
 use winit::{
-    dpi::PhysicalSize,
     event::{Event, WindowEvent},
     event_loop::{ControlFlow, EventLoop, EventLoopWindowTarget},
     keyboard::{Key, ModifiersState, NamedKey},
@@ -788,7 +781,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     "{} {}",
                     PROGRAM_NAME,
                     match main_state.get_current_file_name() {
-                        Some(path) => formatted_path_end(path),
+                        Some(path) => {
+                            let components: Vec<_> =
+                                path.components().map(Component::as_os_str).collect();
+                            let mut ret = if components.len() > 3 {
+                                vec!["..."]
+                            } else {
+                                vec![]
+                            };
+                            let mut iter = components.iter().rev().take(3).rev();
+                            for _ in 0..3 {
+                                if let Some(comp) = iter.next().and_then(|s| s.to_str()) {
+                                    ret.push(comp);
+                                }
+                            }
+                            ret.join("/")
+                        }
                         None => NO_DESIGN_TITLE.to_owned(),
                     }
                 );
@@ -837,181 +845,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     })?;
 
     Ok(())
-}
-
-struct OverlayManager {
-    color_state: program::State<ColorOverlay>,
-    color_debug: Debug,
-    overlay_types: Vec<OverlayType>,
-}
-
-impl OverlayManager {
-    fn new(requests: Arc<Mutex<Requests>>, window: &Window, renderer: &mut iced::Renderer) -> Self {
-        let color = ColorOverlay::new(
-            requests,
-            PhysicalSize::new(250., 250.).to_logical(window.scale_factor()),
-        );
-        let mut color_debug = Debug::new();
-        let color_state = program::State::new(
-            color,
-            convert_size_f32(PhysicalSize::new(250, 250)),
-            renderer,
-            &mut color_debug,
-        );
-
-        Self {
-            color_state,
-            color_debug,
-            overlay_types: Vec::new(),
-        }
-    }
-
-    fn forward_event(&mut self, event: iced::Event, n: usize) {
-        match self.overlay_types.get(n) {
-            None => {
-                log::error!("receive event from non existing overlay");
-                unreachable!();
-            }
-            Some(OverlayType::Color) => self.color_state.queue_event(event),
-        }
-    }
-
-    fn process_event(
-        &mut self,
-        renderer: &mut iced::Renderer,
-        theme: &iced::Theme,
-        style: &renderer::Style,
-        resized: bool,
-        multiplexer: &Multiplexer,
-        window: &Window,
-    ) {
-        for (n, overlay) in self.overlay_types.iter().enumerate() {
-            let cursor = if multiplexer.focused_element() == Some(GuiComponentType::Overlay(n)) {
-                let point = iced_winit::conversion::cursor_position(
-                    multiplexer.get_cursor_position(),
-                    window.scale_factor(),
-                );
-                Cursor::Available(point)
-            } else {
-                Cursor::Unavailable
-            };
-            let mut clipboard = clipboard::Null;
-            match overlay {
-                OverlayType::Color => {
-                    if !self.color_state.is_queue_empty() || resized {
-                        let _ = self.color_state.update(
-                            convert_size_f32(PhysicalSize::new(250, 250)),
-                            cursor,
-                            renderer,
-                            theme,
-                            style,
-                            &mut clipboard,
-                            &mut self.color_debug,
-                        );
-                    }
-                }
-            }
-        }
-    }
-
-    fn render(
-        &self,
-        device: &wgpu::Device,
-        queue: &wgpu::Queue,
-        encoder: &mut wgpu::CommandEncoder,
-        format: wgpu::TextureFormat,
-        target: &wgpu::TextureView,
-        multiplexer: &Multiplexer,
-        window: &Window,
-        renderer: &mut iced::Renderer,
-    ) {
-        for overlay_type in &self.overlay_types {
-            match overlay_type {
-                OverlayType::Color => {
-                    let color_viewport = Viewport::with_physical_size(
-                        convert_size_u32(multiplexer.window_size),
-                        window.scale_factor(),
-                    );
-                    match renderer {
-                        iced::Renderer::Wgpu(wgpu_renderer) => {
-                            wgpu_renderer.with_primitives(|backend, primitives| {
-                                backend.present(
-                                    device,
-                                    queue,
-                                    encoder,
-                                    None, // TODO: Examine what clear_color is.
-                                    format,
-                                    target,
-                                    primitives,
-                                    &color_viewport,
-                                    &self.color_debug.overlay(),
-                                );
-                            });
-                        }
-                        iced::Renderer::TinySkia(_) => unreachable!(),
-                    }
-                }
-            }
-        }
-    }
-
-    fn forward_messages(&self, _messages: &mut GuiMessages) {}
-
-    fn fetch_change(
-        &mut self,
-        multiplexer: &Multiplexer,
-        window: &Window,
-        renderer: &mut iced::Renderer,
-        theme: &iced::Theme,
-        style: &renderer::Style,
-    ) -> bool {
-        let mut ret = false;
-        for (n, overlay) in self.overlay_types.iter().enumerate() {
-            let cursor = if multiplexer.focused_element() == Some(GuiComponentType::Overlay(n)) {
-                let point = iced_winit::conversion::cursor_position(
-                    multiplexer.get_cursor_position(),
-                    window.scale_factor(),
-                );
-                Cursor::Available(point)
-            } else {
-                Cursor::Unavailable
-            };
-            let mut clipboard = clipboard::Null;
-            match overlay {
-                OverlayType::Color => {
-                    if !self.color_state.is_queue_empty() {
-                        ret = true;
-                        let _ = self.color_state.update(
-                            convert_size_f32(PhysicalSize::new(250, 250)),
-                            cursor,
-                            renderer,
-                            theme,
-                            style,
-                            &mut clipboard,
-                            &mut self.color_debug,
-                        );
-                    }
-                }
-            }
-        }
-        ret
-    }
-}
-
-fn formatted_path_end(path: &Path) -> String {
-    let components: Vec<_> = path.components().map(Component::as_os_str).collect();
-    let mut ret = if components.len() > 3 {
-        vec!["..."]
-    } else {
-        vec![]
-    };
-    let mut iter = components.iter().rev().take(3).rev();
-    for _ in 0..3 {
-        if let Some(comp) = iter.next().and_then(|s| s.to_str()) {
-            ret.push(comp);
-        }
-    }
-    ret.join("/")
 }
 
 /// A temporary view of the main state and the control flow.
