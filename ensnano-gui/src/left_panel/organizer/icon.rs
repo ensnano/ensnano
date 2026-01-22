@@ -1,3 +1,5 @@
+// TODO: put at ensnano_gui root
+
 use iced::widget::{Svg, svg::Handle};
 use icondata::Icon;
 use std::{
@@ -37,8 +39,4 @@ pub(super) fn expand_icon(expanded: bool) -> Svg {
 
 pub(super) fn plus_icon() -> Svg {
     icon(icondata::BsPlus)
-}
-
-pub(super) fn edit_icon() -> Svg {
-    icon(icondata::BsVectorPen)
 }

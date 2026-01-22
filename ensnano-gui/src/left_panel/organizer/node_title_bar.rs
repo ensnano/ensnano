@@ -74,7 +74,6 @@ impl NodeTitleBar {
                     horizontal_space(),
                     button(super::icon::plus_icon())
                         .on_press(OrganizerMessage::add_selection_to_group(id.clone())), // TODO: change icon later !!!
-                    button(super::icon::edit_icon()).on_press(OrganizerMessage::edit(id.clone())),
                 ];
 
                 for ad in &self.attribute_displayers {
@@ -108,7 +107,6 @@ impl NodeTitleBar {
                     horizontal_space(),
                     button(super::icon::plus_icon())
                         .on_press(OrganizerMessage::add_selection_to_group(id.clone())), // TODO: change icon later !!!
-                    button(super::icon::edit_icon()).on_press(OrganizerMessage::stop_edit()),
                 ];
                 for ad in &self.attribute_displayers {
                     if let Some(view) = ad.view() {
