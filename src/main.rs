@@ -726,7 +726,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 );
 
                 // When there is no more event to deal with
-                poll::poll_all(requests.lock().unwrap(), &mut main_state);
+                poll::poll_all(&mut requests.lock().unwrap(), &mut main_state);
 
                 let mut main_state_view = MainStateView {
                     main_state: &mut main_state,
@@ -998,12 +998,8 @@ impl OverlayManager {
     }
 }
 
-fn formatted_path_end<P: AsRef<Path>>(path: P) -> String {
-    let components: Vec<_> = path
-        .as_ref()
-        .components()
-        .map(Component::as_os_str)
-        .collect();
+fn formatted_path_end(path: &Path) -> String {
+    let components: Vec<_> = path.components().map(Component::as_os_str).collect();
     let mut ret = if components.len() > 3 {
         vec!["..."]
     } else {
