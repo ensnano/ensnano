@@ -79,7 +79,7 @@ rand = "0.9"
 rand_distr = "0.5"
 rapier3d = { version = "0.31", features = ["parallel", "simd-stable"] }
 rayon = "1.11"
-regex = "1.4"
+regex = "1.12"
 relative-path = "1.7"
 rfd = "0.15"
 rust_xlsxwriter = "0.55"
