@@ -17,7 +17,6 @@ log.workspace = true
 num.workspace = true
 num_enum.workspace = true
 ordered-float.workspace = true
-pathdiff.workspace = true
 quadrature.workspace = true
 rayon.workspace = true
 rand.workspace = true
