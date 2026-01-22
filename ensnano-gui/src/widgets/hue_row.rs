@@ -1,6 +1,7 @@
 //! A Iced Widget to select Hue.
 
 use color_space::{Hsv, Rgb};
+use ensnano_state::gui::messages::ColorPickerMessage;
 use iced::{
     Length, Point, Rectangle, Size, Vector,
     advanced::{
@@ -25,19 +26,19 @@ pub(crate) struct State {
 }
 
 /// A HueColumn Widget.
-pub struct HueRow<'a, Message> {
+pub struct HueRow {
     width: Length,
     height: Length,
-    on_slide: Option<Box<dyn Fn(f64) -> Message + 'a>>,
+    on_slide: Option<Box<dyn Fn(f64) -> ColorPickerMessage>>,
 }
 
-impl<Message> Default for HueRow<'_, Message> {
+impl Default for HueRow {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<'a, Message> HueRow<'a, Message> {
+impl HueRow {
     pub fn new() -> Self {
         Self {
             width: Length::Fixed(4.0 * DEFAULT_SIZE),
@@ -49,7 +50,7 @@ impl<'a, Message> HueRow<'a, Message> {
     #[must_use]
     pub fn on_slide<F>(mut self, f: F) -> Self
     where
-        F: 'a + Fn(f64) -> Message,
+        F: 'static + Fn(f64) -> ColorPickerMessage,
     {
         self.on_slide = Some(Box::new(f));
         self
@@ -58,7 +59,7 @@ impl<'a, Message> HueRow<'a, Message> {
     #[must_use]
     pub fn on_slide_maybe<F>(mut self, f: Option<F>) -> Self
     where
-        F: 'a + Fn(f64) -> Message,
+        F: 'static + Fn(f64) -> ColorPickerMessage,
     {
         self.on_slide = f.map(|f| Box::new(f) as _);
         self
@@ -77,7 +78,7 @@ impl<'a, Message> HueRow<'a, Message> {
     }
 }
 
-impl<Message> Widget<Message, iced::Theme, iced::Renderer> for HueRow<'_, Message> {
+impl Widget<ColorPickerMessage, iced::Theme, iced::Renderer> for HueRow {
     fn state(&self) -> widget::tree::State {
         widget::tree::State::Some(Box::new(State::default()))
     }
@@ -162,7 +163,7 @@ impl<Message> Widget<Message, iced::Theme, iced::Renderer> for HueRow<'_, Messag
         cursor: Cursor,
         _renderer: &iced::Renderer,
         _clipboard: &mut dyn Clipboard,
-        shell: &mut Shell<'_, Message>,
+        shell: &mut Shell<'_, ColorPickerMessage>,
         _viewport: &Rectangle,
     ) -> event::Status {
         // A closure that takes an absolute position and send Message.
@@ -221,11 +222,8 @@ impl<Message> Widget<Message, iced::Theme, iced::Renderer> for HueRow<'_, Messag
     }
 }
 
-impl<'a, Message> From<HueRow<'a, Message>> for iced::Element<'a, Message>
-where
-    Message: 'a + Clone,
-{
-    fn from(hue_row: HueRow<'a, Message>) -> Self {
+impl From<HueRow> for iced::Element<'_, ColorPickerMessage> {
+    fn from(hue_row: HueRow) -> Self {
         Self::new(hue_row)
     }
 }
