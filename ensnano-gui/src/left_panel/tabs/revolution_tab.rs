@@ -172,7 +172,7 @@ pub(crate) struct RevolutionTab {
     scaling: Option<RevolutionScaling>,
     nb_spiral_state_input: ParameterWidget,
     shift_generator: Option<ShiftGenerator>,
-    pub shift_idx: isize,
+    pub(crate) shift_idx: isize,
     scaffold_len_target: ParameterWidget,
 
     nb_section_per_segment_input: ParameterWidget,
