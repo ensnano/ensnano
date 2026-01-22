@@ -62,7 +62,7 @@ icondata = { version = "0.7", default-features = false, features = [
 ] }
 image = { version = "0.23", default-features = false }
 int-enum = "1.2"
-itertools = "0.10"
+itertools = "0.14"
 log = "0.4"
 lyon = "1.0"
 mathru = "0.13"
