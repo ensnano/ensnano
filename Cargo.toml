@@ -70,7 +70,7 @@ nom_stl = "0.2"
 num = { version = "0.4", default-features = false }
 num_enum = "0.7"
 open = "5.3"
-ordered-float = { version = "2.0", features = ["serde"] }
+ordered-float = { version = "5.1", default-features = false, features = ["serde"] }
 paste = "1.0"
 pathdiff = "0.2"
 png = "0.17"
