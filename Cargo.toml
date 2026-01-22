@@ -46,7 +46,7 @@ dirs = "6.0"
 fontdue = "0.9"
 futures = { version = "0.3", default-features = false }
 futures-channel = "0.3"
-gltf = "0.16"
+gltf = "1.4"
 iced = { version = "0.12", features = ["advanced", "image", "svg"] }
 iced_aw = { version = "0.9", default-features = false, features = [
     "tabs",
