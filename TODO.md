@@ -88,6 +88,7 @@
 - Check and accept nix merge request
 - Fix all GitLab issues
 - Update `iced` to 0.14
+  - Update `iced_aw` in parallel
   - Replace all occurrences of `text(format!(...))` with the macro `text!(...)`
   - Remove `Command::none()` everywhere
 - Convert shaders to WGSL
