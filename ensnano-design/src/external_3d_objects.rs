@@ -20,9 +20,9 @@ pub struct External3DObject {
     source_file: String,
 }
 
-pub struct External3DObjectDescriptor<P1: AsRef<Path>, P2: AsRef<Path>> {
-    pub object_path: P1,
-    pub design_path: P2,
+pub struct External3DObjectDescriptor {
+    pub object_path: PathBuf,
+    pub design_path: PathBuf,
 }
 
 impl External3DObject {
@@ -30,9 +30,7 @@ impl External3DObject {
         RelativePathBuf::from(&self.source_file).to_path(design_path)
     }
 
-    pub fn new<P1: AsRef<Path>, P2: AsRef<Path>>(
-        desc: External3DObjectDescriptor<P1, P2>,
-    ) -> Option<Self> {
+    pub fn new(desc: External3DObjectDescriptor) -> Option<Self> {
         if let Some(rel_path) = pathdiff::diff_paths(&desc.object_path, &desc.design_path)
             .and_then(|rel_path| RelativePathBuf::from_path(rel_path).ok())
         {
@@ -46,8 +44,8 @@ impl External3DObject {
         } else {
             log::error!(
                 "Could not compute path diff between {:?} and {:?}",
-                desc.object_path.as_ref().to_string_lossy(),
-                desc.design_path.as_ref().to_string_lossy()
+                desc.object_path.to_string_lossy(),
+                desc.design_path.to_string_lossy()
             );
             None
         }
