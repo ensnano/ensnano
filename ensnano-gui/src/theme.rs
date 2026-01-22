@@ -21,6 +21,12 @@ pub const GUI_PALETTE: Palette = Palette {
     danger: Color::from_rgb(1.0, 0.5, 0.5),
 };
 
+pub const DISABLED_TEXT: Text = Text::Color(Color::from_rgb(
+    0.6 * GUI_PALETTE.text.r,
+    0.6 * GUI_PALETTE.text.g,
+    0.6 * GUI_PALETTE.text.b,
+));
+
 pub fn gui_theme() -> iced::Theme {
     iced::Theme::custom("ENSnano UI Theme".to_owned(), GUI_PALETTE)
 }
@@ -35,12 +41,6 @@ fn scale_color(color: Color, scale: f32) -> Color {
     let [r, g, b, a] = color.into_linear();
     Color::from_linear_rgba(r * scale, g * scale, b * scale, a)
 }
-
-pub const DISABLED_TEXT: Text = Text::Color(Color::from_rgb(
-    0.6 * GUI_PALETTE.text.r,
-    0.6 * GUI_PALETTE.text.g,
-    0.6 * GUI_PALETTE.text.b,
-));
 
 /// Custom StyleSheet for the background of top_bar, status_bar, and left_panel.
 #[derive(Default)]
@@ -74,20 +74,26 @@ impl From<GuiBackground> for Container {
 impl tab_bar::StyleSheet for GuiBackground {
     type Style = iced::Theme;
 
-    fn active(&self, _style: &Self::Style, _is_active: bool) -> tab_bar::Appearance {
-        tab_bar::Appearance {
-            text_color: GUI_PALETTE.background,
-            icon_color: GUI_PALETTE.background,
-            ..Default::default()
+    fn active(&self, _style: &Self::Style, is_active: bool) -> tab_bar::Appearance {
+        if is_active {
+            tab_bar::Appearance {
+                tab_label_background: Background::Color([0.2; 3].into()),
+                text_color: Color::WHITE,
+                icon_color: Color::WHITE,
+                ..Default::default()
+            }
+        } else {
+            tab_bar::Appearance {
+                tab_label_background: Background::Color([0.87; 3].into()),
+                text_color: Color::BLACK,
+                icon_color: Color::BLACK,
+                ..Default::default()
+            }
         }
     }
 
-    fn hovered(&self, _style: &Self::Style, _is_active: bool) -> tab_bar::Appearance {
-        tab_bar::Appearance {
-            text_color: GUI_PALETTE.background,
-            icon_color: GUI_PALETTE.background,
-            ..Default::default()
-        }
+    fn hovered(&self, style: &Self::Style, _is_active: bool) -> tab_bar::Appearance {
+        Self.active(style, true)
     }
 }
 
