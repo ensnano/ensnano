@@ -43,7 +43,7 @@ confy = { version = "2.0", default-features = false, features = [
     "yaml_conf",
 ] }
 dirs = "6.0"
-fontdue = "0.6"
+fontdue = "0.9"
 futures = "0.3"
 futures-channel = "0.3"
 gltf = "0.16"

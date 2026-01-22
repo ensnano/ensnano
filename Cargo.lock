@@ -38,17 +38,6 @@ checksum = "aae1277d39aeec15cb388266ecc24b11c80469deae6067e17a1a7aa9e5c1f234"
 
 [[package]]
 name = "ahash"
-version = "0.7.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "891477e0c6a8957309ee5c45a6368af3ae14bb510732d2684ffa19af310920f9"
-dependencies = [
- "getrandom 0.2.17",
- "once_cell",
- "version_check",
-]
-
-[[package]]
-name = "ahash"
 version = "0.8.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5a15f179cd60c4584b8a8c596927aadc462e27f2ca70c04e0071964a73ba7a75"
@@ -1031,7 +1020,7 @@ checksum = "66b7e2430c6dff6a955451e2cfc438f09cea1965a9d6f87f7e3b90decc014099"
 name = "ensnano"
 version = "0.7.0"
 dependencies = [
- "ahash 0.8.12",
+ "ahash",
  "confy",
  "dirs",
  "ensnano_design",
@@ -1060,7 +1049,7 @@ dependencies = [
 name = "ensnano_design"
 version = "0.7.0"
 dependencies = [
- "ahash 0.8.12",
+ "ahash",
  "iced",
  "icondata",
  "log",
@@ -1087,7 +1076,7 @@ dependencies = [
 name = "ensnano_exports"
 version = "0.7.0"
 dependencies = [
- "ahash 0.8.12",
+ "ahash",
  "ensnano_design",
  "itertools",
  "rand 0.9.2",
@@ -1100,7 +1089,7 @@ dependencies = [
 name = "ensnano_flatscene"
 version = "0.7.0"
 dependencies = [
- "ahash 0.8.12",
+ "ahash",
  "bytemuck",
  "color_space",
  "ensnano_design",
@@ -1148,7 +1137,7 @@ dependencies = [
 name = "ensnano_physics"
 version = "0.7.0"
 dependencies = [
- "ahash 0.8.12",
+ "ahash",
  "ensnano_design",
  "rand 0.9.2",
  "rapier3d",
@@ -1159,7 +1148,7 @@ dependencies = [
 name = "ensnano_scene"
 version = "0.7.0"
 dependencies = [
- "ahash 0.8.12",
+ "ahash",
  "bytemuck",
  "ensnano_design",
  "ensnano_state",
@@ -1183,7 +1172,7 @@ dependencies = [
 name = "ensnano_state"
 version = "0.7.0"
 dependencies = [
- "ahash 0.8.12",
+ "ahash",
  "color_space",
  "confy",
  "ensnano_design",
@@ -1459,12 +1448,12 @@ dependencies = [
 
 [[package]]
 name = "fontdue"
-version = "0.6.4"
+version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f716db304dca2e287fea5c7e3a22dac3eac9050f9bae143aa424ac2815494475"
+checksum = "2e57e16b3fe8ff4364c0661fdaac543fb38b29ea9bc9c2f45612d90adf931d2b"
 dependencies = [
- "hashbrown 0.11.2",
- "ttf-parser 0.12.3",
+ "hashbrown 0.15.5",
+ "ttf-parser 0.21.1",
 ]
 
 [[package]]
@@ -1930,20 +1919,11 @@ dependencies = [
 
 [[package]]
 name = "hashbrown"
-version = "0.11.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab5ef0d4909ef3724cc8cce6ccc8572c5c817592e9285f5464f8e86f8bd3726e"
-dependencies = [
- "ahash 0.7.8",
-]
-
-[[package]]
-name = "hashbrown"
 version = "0.14.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1"
 dependencies = [
- "ahash 0.8.12",
+ "ahash",
  "allocator-api2",
 ]
 
@@ -4977,12 +4957,6 @@ dependencies = [
 
 [[package]]
 name = "ttf-parser"
-version = "0.12.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ae2f58a822f08abdaf668897e96a5656fe72f5a9ce66422423e8849384872e6"
-
-[[package]]
-name = "ttf-parser"
 version = "0.19.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "49d64318d8311fc2668e48b63969f4343e0a85c4a109aa8460d6672e364b8bd1"
@@ -4992,6 +4966,12 @@ name = "ttf-parser"
 version = "0.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "17f77d76d837a7830fe1d4f12b7b4ba4192c1888001c7164257e4bc6d21d96b4"
+
+[[package]]
+name = "ttf-parser"
+version = "0.21.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2c591d83f69777866b9126b24c6dd9a18351f177e49d625920d19f989fd31cf8"
 
 [[package]]
 name = "ttf-parser"
@@ -5963,7 +5943,7 @@ version = "0.29.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0d59ad965a635657faf09c8f062badd885748428933dad8e8bdd64064d92e5ca"
 dependencies = [
- "ahash 0.8.12",
+ "ahash",
  "android-activity",
  "atomic-waker",
  "bitflags 2.10.0",

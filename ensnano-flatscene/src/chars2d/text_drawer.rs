@@ -1,5 +1,5 @@
 use crate::chars2d::{CharDrawer, CharInstance};
-use fontdue::layout::Layout;
+use fontdue::layout::{CoordinateSystem, GlyphPosition, Layout, LayoutSettings, TextStyle};
 use std::{collections::HashMap, rc::Rc};
 use ultraviolet::{Mat2, Rotor2, Vec2, Vec4};
 use wgpu::{BindGroupLayout, Device, Queue, RenderPass};
@@ -43,7 +43,7 @@ impl TextDrawer {
         Self {
             char_map,
             char_drawers,
-            layout: Layout::new(fontdue::layout::CoordinateSystem::PositiveYDown),
+            layout: Layout::new(CoordinateSystem::PositiveYDown),
         }
     }
 
@@ -77,12 +77,9 @@ impl TextDrawer {
         } else {
             [&self.char_drawers[&'a'].letter.font]
         };
+        self.layout.reset(&LayoutSettings::default());
         self.layout
-            .reset(&fontdue::layout::LayoutSettings::default());
-        self.layout.append(
-            &fonts,
-            &fontdue::layout::TextStyle::new(sentence.text, PX_PER_SQUARE, 0),
-        );
+            .append(&fonts, &TextStyle::new(sentence.text, PX_PER_SQUARE, 0));
         let rectangle = SentenceRectangle::new(
             self.layout.glyphs(),
             PX_PER_SQUARE / sentence.size,
@@ -111,7 +108,7 @@ impl TextDrawer {
 }
 
 struct SentenceRectangle<'a> {
-    glyphs: &'a Vec<fontdue::layout::GlyphPosition<()>>,
+    glyphs: &'a Vec<GlyphPosition<()>>,
     top: f32,
     bottom: f32,
     size_px: f32,
@@ -121,7 +118,7 @@ struct SentenceRectangle<'a> {
 
 impl<'a> SentenceRectangle<'a> {
     fn new(
-        glyphs: &'a Vec<fontdue::layout::GlyphPosition<()>>,
+        glyphs: &'a Vec<GlyphPosition<()>>,
         size_px: f32,
         rotation: Rotor2,
         symmetry: Vec2,
