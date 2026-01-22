@@ -1,7 +1,57 @@
-//! Methods to build Chebyshev's polynomials that approximate functions.
+use rayon::iter::{IntoParallelRefIterator as _, ParallelIterator as _};
 
-use super::chebyshev::*;
-use rayon::prelude::*;
+/// A linear combinations of Chebyshev's polynomials of first kind, defined on an closed interval
+/// of ℝ
+#[derive(Debug, Clone)]
+pub struct ChebyshevPolynomial {
+    /// The coefficients of the linear combination.
+    ///
+    /// `self` represents the polynomials `\sum_{i < coeffs.len()} coeffs[i] T_i` where `T_i` is
+    /// the `i-th` Chebyshev's polynomial of first kind.
+    ///
+    /// If coeffs is empty, `self` represents the null polynomial.
+    pub coeffs: Vec<f64>,
+    pub(super) definition_interval: [f64; 2],
+}
+
+impl ChebyshevPolynomial {
+    /// Evaluate `self` at `t`.
+    #[expect(non_snake_case)]
+    pub fn evaluate(&self, t: f64) -> f64 {
+        if self.coeffs.is_empty() {
+            0.
+        } else if self.coeffs.len() == 1 {
+            self.coeffs[0]
+        } else {
+            let a = self.definition_interval[0];
+            let b = self.definition_interval[1];
+            let u = (2. * t - (a + b)) / (b - a);
+
+            let mut T_previous = 1.;
+            let mut T = u;
+            let mut v = self.coeffs[0] + u * self.coeffs[1];
+            for coeff in self.coeffs.iter().skip(2) {
+                let T_next = 2. * u * T - T_previous;
+                T_previous = T;
+                T = T_next;
+                v += T * coeff;
+            }
+            v
+        }
+    }
+
+    /// Return the interval on which `self` is defined.
+    pub fn definition_interval(&self) -> [f64; 2] {
+        self.definition_interval
+    }
+
+    pub fn from_coeffs_interval(coeffs: Vec<f64>, definition_interval: [f64; 2]) -> Self {
+        Self {
+            coeffs,
+            definition_interval,
+        }
+    }
+}
 
 const DEGREE_MIN: usize = 1;
 const DEGREE_MAX: usize = 100;
@@ -10,7 +60,7 @@ const DEGREE_MAX: usize = 100;
 ///
 /// Return a Chebyshev's Polynomial P so that for p in points_for_error_eval,
 /// |P(p) - f(p)| < error_max
-pub fn interpolate_fun<F>(
+fn interpolate_fun<F>(
     f: Box<F>,
     a: f64,
     b: f64,
@@ -67,7 +117,7 @@ impl LinearInterpolator {
         point_values.sort_by(|a, b| (a.0).partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
         let mut diffs = vec![0.; point_values.len() - 1];
         for i in 0..diffs.len() {
-            diffs[i] = 1. / (point_values[i + 1].0 - point_values[i].0)
+            diffs[i] = 1. / (point_values[i + 1].0 - point_values[i].0);
         }
 
         Self {
@@ -131,11 +181,11 @@ impl<F: Fn(f64) -> f64 + Send + Sync> FunctionInterpolator<F> {
                     std::cmp::Ordering::Greater
                 }
             })
-            .unwrap_or(std::f64::INFINITY)
+            .unwrap_or(f64::INFINITY)
     }
 
     fn fit(mut self, error_max: f64, points_for_error_eval: Vec<f64>) -> ChebyshevPolynomial {
-        let mut err = std::f64::INFINITY;
+        let mut err = f64::INFINITY;
         let mut best_degree = 0;
 
         for d in DEGREE_MIN..=DEGREE_MAX {
@@ -157,8 +207,8 @@ impl<F: Fn(f64) -> f64 + Send + Sync> FunctionInterpolator<F> {
 
         let space = self.space(degree).to_vec();
 
-        let mut interpolation_points = space.to_vec();
-        let mut interpolation_values = space.to_vec();
+        let mut interpolation_points = space.clone();
+        let mut interpolation_values = space.clone();
 
         for i in 0..interpolation_points.len() {
             interpolation_points[i] = (space[i] * (self.top_interval - self.bottom_interval)
@@ -177,7 +227,7 @@ impl<F: Fn(f64) -> f64 + Send + Sync> FunctionInterpolator<F> {
             });
             self.polynomial.coeffs[i] = 2. * c / (degree as f64 + 1.);
         });
-        self.polynomial.coeffs[0] /= 2.
+        self.polynomial.coeffs[0] /= 2.;
     }
 
     fn space(&mut self, degree: usize) -> &[f64] {
@@ -211,8 +261,30 @@ impl<F: Fn(f64) -> f64 + Send + Sync> FunctionInterpolator<F> {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
+
+    fn get_tn(n: usize) -> ChebyshevPolynomial {
+        let mut polynomial = ChebyshevPolynomial {
+            coeffs: vec![0.; n + 1],
+            definition_interval: [-1., 1.],
+        };
+        polynomial.coeffs[n] = 1.;
+        polynomial
+    }
+
+    #[test]
+    /// Check that the equation `T_n(cos theta) = cos(n theta)` is verified
+    fn trigonometric_property() {
+        for n in 0..10 {
+            let polynomial = get_tn(n);
+            let theta = 1.234;
+
+            let expected = (n as f64 * theta).cos();
+            let result = polynomial.evaluate(theta.cos());
+            assert!((expected - result).abs() < 1e-5, "Failed for n = {n}");
+        }
+    }
 
     #[test]
     fn coefficient_similar_to_python_version() {
@@ -233,7 +305,7 @@ mod test {
                 "expected {:?}, actual {:?}",
                 expected,
                 interpolator.polynomial.coeffs
-            )
+            );
         }
     }
 
@@ -253,7 +325,7 @@ mod test {
             assert!(
                 (expected - interpolated).abs() < 1e-3,
                 "x = {x}\n expected {expected} \n got {interpolated}"
-            )
+            );
         }
     }
 
@@ -274,7 +346,7 @@ mod test {
             assert!(
                 (expected - interpolated).abs() < 1e-3,
                 "x = {x}\n expected {expected} \n got {interpolated}"
-            )
+            );
         }
     }
 
@@ -297,7 +369,7 @@ mod test {
             assert!(
                 (expected - interpolated).abs() < 5e-3,
                 "x = {x}\n expected {expected} \n got {interpolated}"
-            )
+            );
         }
     }
 }
