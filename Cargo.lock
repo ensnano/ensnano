@@ -584,14 +584,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fd16c4719339c4530435d38e511904438d07cce7950afa3718a84ac36c10e89e"
 
 [[package]]
-name = "chebyshev_polynomials"
-version = "0.1.0"
-source = "git+https://github.com/thenlevy/chebyshev_polynomials#0a7cfcdb215e024671a35123df22eaff1bc60c74"
-dependencies = [
- "rayon",
-]
-
-[[package]]
 name = "chrono"
 version = "0.4.43"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1088,7 +1080,6 @@ name = "ensnano_design"
 version = "0.7.0"
 dependencies = [
  "ahash 0.8.12",
- "chebyshev_polynomials",
  "iced",
  "icondata",
  "log",
@@ -1212,7 +1203,6 @@ name = "ensnano_state"
 version = "0.7.0"
 dependencies = [
  "ahash 0.8.12",
- "chebyshev_polynomials",
  "color_space",
  "confy",
  "ensnano_design",

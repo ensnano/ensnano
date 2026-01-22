@@ -37,7 +37,6 @@ ensnano_utils = { path = "ensnano-utils" }
 
 ahash = "0.8"
 bytemuck = "1.2"
-chebyshev_polynomials = { git = "https://github.com/thenlevy/chebyshev_polynomials" }
 chrono = "0.4"
 color_space = "0.5"
 confy = { version = "1.0", default-features = false, features = [

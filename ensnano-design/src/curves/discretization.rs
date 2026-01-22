@@ -1,6 +1,7 @@
 //! Implementation of the curve discretization algorithm.
 
 use crate::{
+    chebyshev_polynomials::{self, ChebyshevPolynomial},
     consts::{ITERATIVE_AXIS_ALGORITHM, IterativeFrameAlgorithm},
     curves::{
         Curve, CurveBounds, DELTA_MAX, EPSILON, perpendicular_basis,
@@ -8,7 +9,6 @@ use crate::{
     },
     parameters::HelixParameters,
 };
-use chebyshev_polynomials::ChebyshevPolynomial;
 use std::sync::Arc;
 use ultraviolet::{DMat3, DRotor3, DVec3};
 

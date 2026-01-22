@@ -1,5 +1,7 @@
-use crate::curves::{CurveBounds, Curved, revolution::InterpolationDescriptor};
-use chebyshev_polynomials::ChebyshevPolynomial;
+use crate::{
+    chebyshev_polynomials::ChebyshevPolynomial,
+    curves::{CurveBounds, Curved, revolution::InterpolationDescriptor},
+};
 use serde::{Deserialize, Serialize};
 use ultraviolet::DVec3;
 
