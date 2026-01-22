@@ -61,7 +61,7 @@ icondata = { version = "0.7", default-features = false, features = [
     "material-design-icons",
 ] }
 image = { version = "0.23", default-features = false }
-int-enum = "1.0"
+int-enum = "1.2"
 itertools = "0.10"
 log = "0.4"
 lyon = "1.0"
