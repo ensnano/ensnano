@@ -772,8 +772,7 @@ impl Overlay {
 }
 
 fn create_pipeline(device: &Device, bg_layout: &wgpu::BindGroupLayout) -> wgpu::RenderPipeline {
-    let vs_module = &device.create_shader_module(wgpu::include_spirv!("./draw.vert.spv"));
-    let fs_module = &device.create_shader_module(wgpu::include_spirv!("./draw.frag.spv"));
+    let shader = device.create_shader_module(wgpu::include_wgsl!("draw.wgsl"));
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         bind_group_layouts: &[bg_layout],
         push_constant_ranges: &[],
@@ -788,7 +787,7 @@ fn create_pipeline(device: &Device, bg_layout: &wgpu::BindGroupLayout) -> wgpu::
 
     let primitive = wgpu::PrimitiveState {
         topology: wgpu::PrimitiveTopology::TriangleStrip,
-        strip_index_format: Some(wgpu::IndexFormat::Uint16),
+        strip_index_format: None,
         front_face: wgpu::FrontFace::Ccw,
         cull_mode: None,
         ..Default::default()
@@ -797,13 +796,13 @@ fn create_pipeline(device: &Device, bg_layout: &wgpu::BindGroupLayout) -> wgpu::
     let desc = wgpu::RenderPipelineDescriptor {
         layout: Some(&pipeline_layout),
         vertex: wgpu::VertexState {
-            module: vs_module,
-            entry_point: "main",
+            module: &shader,
+            entry_point: "vs_main",
             buffers: &[],
         },
         fragment: Some(wgpu::FragmentState {
-            module: fs_module,
-            entry_point: "main",
+            module: &shader,
+            entry_point: "fs_main",
             targets,
         }),
         primitive,
