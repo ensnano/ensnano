@@ -16,7 +16,6 @@ use iced_aw::TabLabel;
 
 pub struct ParametersTab {
     scroll_sensitivity_factory: RequestFactory<ScrollSensitivity>,
-    _invert_y_scroll: bool,
 }
 
 impl ParametersTab {
@@ -28,7 +27,6 @@ impl ParametersTab {
                     initial_value: app_state.get_scroll_sensitivity(),
                 },
             ),
-            _invert_y_scroll: false,
         }
     }
 

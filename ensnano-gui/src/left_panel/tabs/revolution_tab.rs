@@ -32,7 +32,7 @@ use iced_aw::TabLabel;
 use ultraviolet::{Rotor3, Vec3};
 
 #[derive(Debug, Clone, Copy)]
-pub enum ParameterKind {
+enum ParameterKind {
     Float,
     Int,
     Uint,
