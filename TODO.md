@@ -89,6 +89,10 @@
 - Fix all GitLab issues
 - Update `iced` to 0.14
   - Replace all occurrences of `text(format!(...))` with the macro `text!(...)`
+  - Remove `Command::none()` everywhere
+- Convert shaders to WGSL
+  - `build.rs` for automatic precompilation
+  - Remove shader rules in Makefile
 - Port to the web with WASM
 - Distribution of strand lengths (analysis tab)
 - Triple-stranded DNA
@@ -127,7 +131,6 @@
   - `RotationWidgetOrientation`
   - `IterativeFrameAlgorithm`
 - Replace `ensnano_gui/fonts/material_icons.rs` by SVG icons from `icondata` lib
-- `build.rs` for shaders instead of manual compilation
 - Share more code between `ensnano_scene` and `ensnano_flatscene`:
   - e.g. `export_2d_png` and `export_3d_png` are pretty much the same
 - Remove all `println!` and use the `log` crate everywhere
