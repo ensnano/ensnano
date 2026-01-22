@@ -17,7 +17,7 @@ impl HueColorPicker {
 
     pub(super) fn new_view(&self) -> iced::Element<'_, ColorMessage> {
         row![
-            HueColumn::new(ColorMessage::HueChanged,),
+            HueColumn::new(ColorMessage::HueChanged),
             LightSatSquare::new(
                 self.hue,
                 ColorMessage::HsvSatValueChanged,
@@ -31,6 +31,7 @@ impl HueColorPicker {
 
 /// A Iced Widget to select Hue.
 mod hue_column {
+    use super::ColorMessage;
     use color_space::{Hsv, Rgb};
     use iced::{
         Length, Point, Rectangle, Size, Vector,
@@ -54,16 +55,14 @@ mod hue_column {
     }
 
     /// A HueColumn Widget.
-    pub struct HueColumn<'a, Message> {
-        on_slide: Box<dyn Fn(f64) -> Message + 'a>,
-        // TODO: Mimic iced like in Checkbox: Option<Box<…>>, then a method to set something else
-        //       than None.
+    pub struct HueColumn {
+        on_slide: Box<dyn Fn(f64) -> ColorMessage>,
     }
 
-    impl<Message> HueColumn<'_, Message> {
+    impl HueColumn {
         pub fn new<F>(on_slide: F) -> Self
         where
-            F: 'static + Fn(f64) -> Message,
+            F: 'static + Fn(f64) -> ColorMessage,
         {
             Self {
                 on_slide: Box::new(on_slide),
@@ -71,10 +70,11 @@ mod hue_column {
         }
     }
 
-    impl<Message> Widget<Message, iced::Theme, iced::Renderer> for HueColumn<'_, Message> {
+    impl Widget<ColorMessage, iced::Theme, iced::Renderer> for HueColumn {
         fn state(&self) -> widget::tree::State {
             widget::tree::State::Some(Box::new(HueColumnState::default()))
         }
+
         fn size(&self) -> Size<Length> {
             Size {
                 width: Length::FillPortion(1),
@@ -162,7 +162,7 @@ mod hue_column {
             cursor: Cursor,
             _renderer: &iced::Renderer,
             _clipboard: &mut dyn Clipboard,
-            shell: &mut Shell<'_, Message>,
+            shell: &mut Shell<'_, ColorMessage>,
             _viewport: &Rectangle,
         ) -> event::Status {
             let mut change = |Point { y, .. }| {
@@ -211,11 +211,8 @@ mod hue_column {
         }
     }
 
-    impl<'a, Message> From<HueColumn<'a, Message>> for iced::Element<'a, Message>
-    where
-        Message: 'a + Clone,
-    {
-        fn from(hue_column: HueColumn<'a, Message>) -> Self {
+    impl From<HueColumn> for iced::Element<'_, ColorMessage> {
+        fn from(hue_column: HueColumn) -> Self {
             Self::new(hue_column)
         }
     }
@@ -223,6 +220,7 @@ mod hue_column {
 
 /// A widget to select Lightness and Saturation values.
 mod light_sat_square {
+    use super::ColorMessage;
     use color_space::{Hsv, Rgb};
     use iced::{
         Length, Point, Rectangle, Size, Vector,
@@ -257,19 +255,19 @@ mod light_sat_square {
     }
 
     /// A Lightness-Saturation square Widget.
-    pub struct LightSatSquare<'a, Message: Clone> {
+    pub struct LightSatSquare {
         hue: f64,
-        on_slide: Box<dyn Fn(f64, f64) -> Message + 'a>,
+        on_slide: Box<dyn Fn(f64, f64) -> ColorMessage>,
         // TODO: Mimic iced like in Checkbox: Option<Box<…>>, then a method to set something else
         //       than None.
-        on_finish: Message,
+        on_finish: ColorMessage,
         // TODO: Mimic iced like in Button: Option<…>, then a method to set something else than None.
     }
 
-    impl<'a, Message: Clone> LightSatSquare<'a, Message> {
-        pub fn new<F>(hue: f64, on_slide: F, on_finish: Message) -> Self
+    impl LightSatSquare {
+        pub fn new<F>(hue: f64, on_slide: F, on_finish: ColorMessage) -> Self
         where
-            F: 'static + Fn(f64, f64) -> Message + 'a,
+            F: 'static + Fn(f64, f64) -> ColorMessage,
         {
             Self {
                 hue,
@@ -279,10 +277,7 @@ mod light_sat_square {
         }
     }
 
-    impl<'a, Message> Widget<Message, iced::Theme, iced::Renderer> for LightSatSquare<'a, Message>
-    where
-        Message: Clone + 'a,
-    {
+    impl Widget<ColorMessage, iced::Theme, iced::Renderer> for LightSatSquare {
         fn state(&self) -> widget::tree::State {
             widget::tree::State::Some(Box::new(LightSatState::default()))
         }
@@ -370,7 +365,7 @@ mod light_sat_square {
             cursor: Cursor,
             _renderer: &iced::Renderer,
             _clipboard: &mut dyn Clipboard,
-            shell: &mut Shell<'_, Message>,
+            shell: &mut Shell<'_, ColorMessage>,
             _viewport: &Rectangle,
         ) -> event::Status {
             let mut change = |Point { x, y }| {
@@ -429,11 +424,8 @@ mod light_sat_square {
         }
     }
 
-    impl<'a, Message> From<LightSatSquare<'a, Message>> for iced::Element<'a, Message>
-    where
-        Message: Clone + 'a,
-    {
-        fn from(value: LightSatSquare<'a, Message>) -> Self {
+    impl From<LightSatSquare> for iced::Element<'_, ColorMessage> {
+        fn from(value: LightSatSquare) -> Self {
             Self::new(value)
         }
     }
@@ -441,6 +433,7 @@ mod light_sat_square {
 
 /// A widget to Visualize selected color.
 mod color_square {
+    use super::ColorMessage;
     use iced::{
         Length, Rectangle, Size, Vector,
         advanced::{
@@ -463,26 +456,19 @@ mod color_square {
     }
 
     /// A ColorSquare Widget
-    pub struct ColorSquare<'a, Message>
-    where
-        Message: Clone,
-    {
-        //state: &'a mut State,
+    pub struct ColorSquare {
         color: iced::Color,
-        on_click: Box<dyn Fn(iced::Color) -> Message + 'a>,
+        on_click: Box<dyn Fn(iced::Color) -> ColorMessage>,
         // TODO: Mimic iced like in Checkbox: Option<Box<…>>, then a method to set something else
         //       than None.
-        on_release: Message,
+        on_release: ColorMessage,
         // TODO: Mimic iced like in Button: Option<…>, then a method to set something else than None.
     }
 
-    impl<'a, Message> ColorSquare<'a, Message>
-    where
-        Message: Clone,
-    {
-        pub fn new<F>(color: iced::Color, on_click: F, on_release: Message) -> Self
+    impl ColorSquare {
+        pub fn new<F>(color: iced::Color, on_click: F, on_release: ColorMessage) -> Self
         where
-            F: 'static + Fn(iced::Color) -> Message + 'a,
+            F: 'static + Fn(iced::Color) -> ColorMessage,
         {
             Self {
                 //state,
@@ -493,10 +479,7 @@ mod color_square {
         }
     }
 
-    impl<'a, Message> Widget<Message, iced::Theme, iced::Renderer> for ColorSquare<'a, Message>
-    where
-        Message: Clone + 'a,
-    {
+    impl Widget<ColorMessage, iced::Theme, iced::Renderer> for ColorSquare {
         fn state(&self) -> widget::tree::State {
             widget::tree::State::Some(Box::new(ColorSquareState::default()))
         }
@@ -578,7 +561,7 @@ mod color_square {
             cursor: Cursor,
             _renderer: &iced::Renderer,
             _clipboard: &mut dyn Clipboard,
-            shell: &mut Shell<'_, Message>,
+            shell: &mut Shell<'_, ColorMessage>,
             _viewport: &Rectangle,
         ) -> event::Status {
             if let event::Event::Mouse(mouse_event) = event {
@@ -619,11 +602,8 @@ mod color_square {
         }
     }
 
-    impl<'a, Message> From<ColorSquare<'a, Message>> for iced::Element<'a, Message>
-    where
-        Message: Clone + 'a,
-    {
-        fn from(color_square: ColorSquare<'a, Message>) -> Self {
+    impl From<ColorSquare> for iced::Element<'_, ColorMessage> {
+        fn from(color_square: ColorSquare) -> Self {
             Self::new(color_square)
         }
     }
