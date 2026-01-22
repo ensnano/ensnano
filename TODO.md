@@ -1,5 +1,16 @@
 # TODO
 
+- Group selections with pivots (still a bit unclear, but at least review the selection code)
+- Editable dna parameters instead of help menu when selecting an helix
+- When selecting different objects, possibility to modify similar fields at the same time
+- Ability to duplicate objects with Ctrl+C Ctrl+V
+- Import a design in an existing design
+- "Object" tab with Torus, Sphere, Circle, Nanotube... with editable parameters
+- Showing distance by selecting two nucleotides (exact UI unclear)
+- Limit undo pile (100 undos)
+- Recycle the identifiers
+- Possibility to remap the identifiers
+
 ## Bugs
 
 - Moving/scrolling and rotating at the same time make the camera go crazy
@@ -49,10 +60,11 @@
 
 - Vector export (SVG?)
 - When moving a crossover, show the length of the neighbor too
-- Show size of the crossovers
+- Show crossover length based on helix parameters, not default parameters
 
 ## GUI
 
+- Tabs same colors as top icons (green when selected)
 - Double click on organizer tree should teleport in 2D and 3D scenes
 - Better looking tabs (and show active)
 - `3D`, `2D` and `3D+2D` should be "radio buttons" with the active one shown like the selection 

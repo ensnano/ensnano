@@ -157,7 +157,7 @@ impl<D: Drawable> Drawer<D> {
             wgpu::BlendState::ALPHA_BLENDING
         };
 
-        let sample_count = if !fake { SAMPLE_COUNT } else { 1 };
+        let sample_count = if fake { 1 } else { SAMPLE_COUNT };
 
         let targets = &[Some(wgpu::ColorTargetState {
             format,
