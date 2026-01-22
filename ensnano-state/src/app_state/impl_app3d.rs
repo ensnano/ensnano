@@ -99,7 +99,7 @@ impl AppState {
     }
 
     pub fn get_scroll_sensitivity(&self) -> f32 {
-        const BASE_SCROLL_SENSITIVITY: f32 = 0.12;
+        const BASE_SCROLL_SENSITIVITY: f32 = 0.24;
         let sign = if self.0.parameters.inverted_y_scroll {
             -1.0
         } else {
