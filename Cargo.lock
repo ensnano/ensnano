@@ -69,7 +69,7 @@ dependencies = [
  "ndk 0.8.0",
  "ndk-context",
  "ndk-sys 0.5.0+25.2.9519653",
- "num_enum 0.7.5",
+ "num_enum",
  "thiserror 1.0.69",
 ]
 
@@ -1038,7 +1038,7 @@ dependencies = [
  "icondata",
  "log",
  "num",
- "num_enum 0.5.11",
+ "num_enum",
  "ordered-float 2.10.1",
  "pathdiff",
  "quadrature",
@@ -1144,7 +1144,7 @@ dependencies = [
  "itertools",
  "log",
  "lyon",
- "num_enum 0.5.11",
+ "num_enum",
  "png 0.17.16",
  "serde_json",
  "ultraviolet",
@@ -2906,7 +2906,7 @@ dependencies = [
  "jni-sys",
  "log",
  "ndk-sys 0.5.0+25.2.9519653",
- "num_enum 0.7.5",
+ "num_enum",
  "raw-window-handle",
  "thiserror 1.0.69",
 ]
@@ -2921,7 +2921,7 @@ dependencies = [
  "jni-sys",
  "log",
  "ndk-sys 0.6.0+11769913",
- "num_enum 0.7.5",
+ "num_enum",
  "raw-window-handle",
  "thiserror 1.0.69",
 ]
@@ -3077,33 +3077,12 @@ dependencies = [
 
 [[package]]
 name = "num_enum"
-version = "0.5.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f646caf906c20226733ed5b1374287eb97e3c2a5c227ce668c1f2ce20ae57c9"
-dependencies = [
- "num_enum_derive 0.5.11",
-]
-
-[[package]]
-name = "num_enum"
 version = "0.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b1207a7e20ad57b847bbddc6776b968420d38292bbfe2089accff5e19e82454c"
 dependencies = [
- "num_enum_derive 0.7.5",
+ "num_enum_derive",
  "rustversion",
-]
-
-[[package]]
-name = "num_enum_derive"
-version = "0.5.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dcbff9bc912032c62bf65ef1d5aea88983b420f4f839db1e9b0c281a25c9c799"
-dependencies = [
- "proc-macro-crate 1.3.1",
- "proc-macro2",
- "quote",
- "syn 1.0.109",
 ]
 
 [[package]]
@@ -3112,7 +3091,7 @@ version = "0.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ff32365de1b6743cb203b710788263c44a03de03802daf96092f2da4fe6ba4d7"
 dependencies = [
- "proc-macro-crate 3.4.0",
+ "proc-macro-crate",
  "proc-macro2",
  "quote",
  "syn 2.0.114",
@@ -3695,21 +3674,11 @@ dependencies = [
 
 [[package]]
 name = "proc-macro-crate"
-version = "1.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7f4c021e1093a56626774e81216a4ce732a735e5bad4868a03f3ed65ca0c3919"
-dependencies = [
- "once_cell",
- "toml_edit 0.19.15",
-]
-
-[[package]]
-name = "proc-macro-crate"
 version = "3.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "219cb19e96be00ab2e37d6e299658a0cfa83e52429179969b0f0121b4ac46983"
 dependencies = [
- "toml_edit 0.23.10+spec-1.0.0",
+ "toml_edit",
 ]
 
 [[package]]
@@ -4839,12 +4808,6 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "toml_datetime"
-version = "0.6.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "22cddaf88f4fbc13c51aebbf5f8eceb5c7c5a9da2ac40a13519eb5b0a0e8f11c"
-
-[[package]]
-name = "toml_datetime"
 version = "0.7.5+spec-1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "92e1cfed4a3038bc5a127e35a2d360f145e1f4b971b551a2ba5fd7aedf7e1347"
@@ -4854,25 +4817,14 @@ dependencies = [
 
 [[package]]
 name = "toml_edit"
-version = "0.19.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b5bb770da30e5cbfde35a2d7b9b8a2c4b8ef89548a7a6aeab5c9a576e3e7421"
-dependencies = [
- "indexmap",
- "toml_datetime 0.6.11",
- "winnow 0.5.40",
-]
-
-[[package]]
-name = "toml_edit"
 version = "0.23.10+spec-1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "84c8b9f757e028cee9fa244aea147aab2a9ec09d5325a9b01e0a49730c2b5269"
 dependencies = [
  "indexmap",
- "toml_datetime 0.7.5+spec-1.1.0",
+ "toml_datetime",
  "toml_parser",
- "winnow 0.7.14",
+ "winnow",
 ]
 
 [[package]]
@@ -4881,7 +4833,7 @@ version = "1.0.6+spec-1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a3198b4b0a8e11f09dd03e133c0280504d0801269e9afa46362ffde1cbeebf44"
 dependencies = [
- "winnow 0.7.14",
+ "winnow",
 ]
 
 [[package]]
@@ -5948,15 +5900,6 @@ dependencies = [
 
 [[package]]
 name = "winnow"
-version = "0.5.40"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f593a95398737aeed53e489c785df13f3618e41dbcd6718c6addbf1395aa6876"
-dependencies = [
- "memchr",
-]
-
-[[package]]
-name = "winnow"
 version = "0.7.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5a5364e9d77fcdeeaa6062ced926ee3381faa2ee02d3eb83a5c27a8825540829"
@@ -6115,7 +6058,7 @@ dependencies = [
  "uds_windows",
  "uuid",
  "windows-sys 0.61.2",
- "winnow 0.7.14",
+ "winnow",
  "zbus_macros",
  "zbus_names",
  "zvariant",
@@ -6127,7 +6070,7 @@ version = "5.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0bbd5a90dbe8feee5b13def448427ae314ccd26a49cac47905cafefb9ff846f1"
 dependencies = [
- "proc-macro-crate 3.4.0",
+ "proc-macro-crate",
  "proc-macro2",
  "quote",
  "syn 2.0.114",
@@ -6143,7 +6086,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ffd8af6d5b78619bab301ff3c560a5bd22426150253db278f164d6cf3b72c50f"
 dependencies = [
  "serde",
- "winnow 0.7.14",
+ "winnow",
  "zvariant",
 ]
 
@@ -6279,7 +6222,7 @@ dependencies = [
  "enumflags2",
  "serde",
  "url",
- "winnow 0.7.14",
+ "winnow",
  "zvariant_derive",
  "zvariant_utils",
 ]
@@ -6290,7 +6233,7 @@ version = "5.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "484d5d975eb7afb52cc6b929c13d3719a20ad650fea4120e6310de3fc55e415c"
 dependencies = [
- "proc-macro-crate 3.4.0",
+ "proc-macro-crate",
  "proc-macro2",
  "quote",
  "syn 2.0.114",
@@ -6307,5 +6250,5 @@ dependencies = [
  "quote",
  "serde",
  "syn 2.0.114",
- "winnow 0.7.14",
+ "winnow",
 ]
