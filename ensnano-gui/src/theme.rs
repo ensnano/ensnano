@@ -75,18 +75,21 @@ impl tab_bar::StyleSheet for GuiBackground {
     type Style = iced::Theme;
 
     fn active(&self, _style: &Self::Style, is_active: bool) -> tab_bar::Appearance {
+        const LIGHT_COLOR: Color = Color::from_rgb(0.9, 0.9, 0.9);
+        const DARK_COLOR: Color = Color::from_rgb(0.15, 0.15, 0.15);
+
         if is_active {
             tab_bar::Appearance {
-                tab_label_background: Background::Color([0.2; 3].into()),
-                text_color: Color::WHITE,
-                icon_color: Color::WHITE,
+                tab_label_background: Background::Color(DARK_COLOR),
+                text_color: LIGHT_COLOR,
+                icon_color: LIGHT_COLOR,
                 ..Default::default()
             }
         } else {
             tab_bar::Appearance {
-                tab_label_background: Background::Color([0.87; 3].into()),
-                text_color: Color::BLACK,
-                icon_color: Color::BLACK,
+                tab_label_background: Background::Color(LIGHT_COLOR),
+                text_color: DARK_COLOR,
+                icon_color: DARK_COLOR,
                 ..Default::default()
             }
         }
