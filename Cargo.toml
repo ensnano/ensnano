@@ -159,7 +159,8 @@ non_ascii_idents = "warn"
 redundant_imports = "warn"
 redundant_lifetimes = "warn"
 single_use_lifetimes = "warn"
-# TODO: enable the following 2 lints once the feature is stabilized (rust 1.94 maybe)
+# TODO: enable the following 2 lints once the feature is stabilized (rust 1.95 maybe)
+# The lint names are likely to change so Ctrl+F "supertrait" in the list of lints
 # supertrait_item_shadowing_definition = "warn"
 # supertrait_item_shadowing_usage = "warn"
 trivial_numeric_casts = "warn"
@@ -246,6 +247,7 @@ big_endian_bytes = "allow"
 clone_on_ref_ptr = "allow" # TODO: warn (too much manual work for now)
 cognitive_complexity = "allow" # TODO: warn (surprisingly good suggestions)
 default_numeric_fallback = "allow"
+doc_paragraphs_missing_punctuation = "allow"
 else_if_without_else = "allow"
 exhaustive_enums = "allow"
 exhaustive_structs = "allow"
