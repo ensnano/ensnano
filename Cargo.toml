@@ -36,7 +36,7 @@ ensnano_state = { path = "ensnano-state" }
 ensnano_utils = { path = "ensnano-utils" }
 
 ahash = "0.8"
-bytemuck = "1.2"
+bytemuck = "1.24"
 chrono = "0.4"
 color_space = "0.5"
 confy = { version = "1.0", default-features = false, features = [
