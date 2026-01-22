@@ -1,0 +1,88 @@
+//! A wrapper around an `Arc<T>` that uses `Arc::ptr_eq` to test for equality.
+
+use std::{ops::Deref as _, sync::Arc};
+
+/// A wrapper around an `Arc<T>` that uses `Arc::ptr_eq` to test for equality.
+#[derive(Default)]
+pub struct AddressPointer<T: Default>(Arc<T>);
+
+impl<T: Default> Clone for AddressPointer<T> {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
+
+impl<T: Default> PartialEq for AddressPointer<T> {
+    fn eq(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.0, &other.0)
+    }
+}
+
+impl<T: Default> Eq for AddressPointer<T> {}
+
+impl<T: Default> AsRef<T> for AddressPointer<T> {
+    fn as_ref(&self) -> &T {
+        self.0.as_ref()
+    }
+}
+
+impl<T, V: AsRef<[T]> + Default> AsRef<[T]> for AddressPointer<V> {
+    fn as_ref(&self) -> &[T] {
+        self.0.as_ref().as_ref()
+    }
+}
+
+impl<T: Default> std::ops::Deref for AddressPointer<T> {
+    type Target = T;
+
+    fn deref(&self) -> &T {
+        self.as_ref()
+    }
+}
+
+impl<T: Default> AddressPointer<T> {
+    pub fn new(content: T) -> Self {
+        Self(Arc::new(content))
+    }
+
+    pub fn show_address(&self) {
+        println!("{:p}", Arc::as_ptr(&self.0));
+    }
+
+    pub fn get_ptr(&self) -> *const T {
+        Arc::as_ptr(&self.0)
+    }
+}
+
+impl<T: Default + Clone> AddressPointer<T> {
+    pub fn make_mut(&mut self) -> &mut T {
+        Arc::make_mut(&mut self.0)
+    }
+}
+
+impl<T: Clone + Default> AddressPointer<T> {
+    /// Return a clone of the pointed value.
+    pub fn clone_inner(&self) -> T {
+        self.0.deref().clone()
+    }
+}
+
+impl<T: Default + PartialEq> AddressPointer<T> {
+    /// Test the content of two pointers for equality
+    pub fn content_equal(&self, content: &T) -> bool {
+        self.0.as_ref() == content
+    }
+}
+
+impl<T: Default> From<Arc<T>> for AddressPointer<T> {
+    fn from(arc: Arc<T>) -> Self {
+        Self(arc)
+    }
+}
+
+impl<T: Default> std::fmt::Pointer for AddressPointer<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let ptr = Arc::as_ptr(&self.0);
+        std::fmt::Pointer::fmt(&ptr, f)
+    }
+}

@@ -1,36 +1,17 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+use crate::{
+    rotor_utils::SafeRotor as _,
+    view::dna_obj::{SlicedTubeInstance, TubeLidInstance},
+};
+use ensnano_utils::{consts::HELIX_CYLINDER_COLOR, instance::Instance};
+use ultraviolet::{Rotor3, Vec3};
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use crate::rotor_utils::SafeRotor;
-use crate::ultraviolet::{Rotor3, Vec3};
-use ensnano_utils::instance::Instance;
-
-use crate::view::{SlicedTubeInstance, TubeLidInstance};
-
-use ensnano_interactor::consts::{HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS};
-
-pub struct SausageRosary {
+pub(crate) struct SausageRosary {
     pub positions: Vec<Vec3>,
     pub is_cyclic: bool,
 }
 
 impl SausageRosary {
-    pub fn to_raw_dna_instances(
+    pub(crate) fn to_raw_dna_instances(
         &self,
         color: impl Fn(usize) -> u32,
         radius: f32,
@@ -67,8 +48,7 @@ impl SausageRosary {
                 self.positions
                     .iter()
                     .zip(self.positions.iter().skip(1))
-                    .map(|(prev, point)| *point - *prev)
-                    .collect::<Vec<Vec3>>(),
+                    .map(|(prev, point)| *point - *prev),
             );
             vecs.push(Vec3::zero());
             vecs.iter()
@@ -80,11 +60,7 @@ impl SausageRosary {
                 .collect::<Vec<(Vec3, Vec3, Vec3, Vec3, Vec3)>>()
         };
 
-        // for s in prev_current_next_p1_p2.clone().into_iter() {
-        //     println!("{:?}", s);
-        // }
-
-        let mut color_iter = (0..prev_current_next_p1_p2.len()).map(|i| color(i));
+        let mut color_iter = (0..prev_current_next_p1_p2.len()).map(&color);
 
         let tubes = prev_current_next_p1_p2
             .into_iter()
@@ -109,10 +85,9 @@ impl SausageRosary {
             .collect::<Vec<SlicedTubeInstance>>();
 
         if self.is_cyclic {
-            return (tubes, None);
+            (tubes, None)
         } else {
             let (p0, p1) = (self.positions[0], self.positions[1]);
-            // println!("{:?}", p1-p0);
             let u = (p0 - p1).normalized();
             let rotor = Rotor3::safe_from_rotation_from_unit_x_to(u);
 
@@ -126,7 +101,6 @@ impl SausageRosary {
 
             let (p0, p1) = (self.positions[n - 2], self.positions[n - 1]);
             let u = (p1 - p0).normalized();
-            // println!("{:?}", p1-p0);
             let rotor = Rotor3::safe_from_rotation_from_unit_x_to(u);
 
             let lid_right = TubeLidInstance {
@@ -136,7 +110,7 @@ impl SausageRosary {
                 id,
                 radius,
             };
-            return (tubes, Some((lid_left, lid_right)));
+            (tubes, Some((lid_left, lid_right)))
         }
     }
 }

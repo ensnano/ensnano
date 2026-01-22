@@ -1,188 +1,106 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+use self::{hue_column::HueColumn, light_sat_square::LightSatSquare};
+use crate::left_panel::ColorMessage;
+use iced::widget::row;
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::{AppState, ColorMessage, Message};
-use iced::{Color, Row};
-
-pub struct ColorPicker {
-    hue_state: hue_column::State,
-    light_sat_square_state: light_sat_square::State,
-    color: Color,
+pub(super) struct HueColorPicker {
     hue: f64,
-    saturation: f64,
-    hsv_value: f64,
 }
 
-pub use color_square::{ColorSquare, State as ColorState};
-use hue_column::HueColumn;
-use light_sat_square::LightSatSquare;
-
-impl ColorPicker {
-    pub fn new() -> Self {
-        Self {
-            hue_state: Default::default(),
-            light_sat_square_state: Default::default(),
-            color: Color::BLACK,
-            hue: 0.,
-            saturation: 1.,
-            hsv_value: 1.,
-        }
+impl HueColorPicker {
+    pub(super) fn new() -> Self {
+        Self { hue: 0. }
     }
 
-    pub fn update_color(&mut self) -> Color {
-        use color_space::{Hsv, Rgb};
-        let hsv = Hsv::new(self.hue, self.saturation, self.hsv_value);
-        let rgb = Rgb::from(hsv);
-        let color: Color = [
-            rgb.r as f32 / 255.,
-            rgb.g as f32 / 255.,
-            rgb.b as f32 / 255.,
-            1.,
-        ]
-        .into();
-        self.color = color;
-        color
+    pub(super) fn change_hue(&mut self, hue: f64) {
+        self.hue = hue;
     }
 
-    pub fn change_hue(&mut self, hue: f64) {
-        self.hue = hue
-    }
-
-    pub fn set_saturation(&mut self, saturation: f64) {
-        self.saturation = saturation
-    }
-
-    pub fn set_hsv_value(&mut self, hsv_value: f64) {
-        self.hsv_value = hsv_value
-    }
-
-    pub fn view<S: AppState>(&mut self) -> Row<Message<S>> {
-        let color_picker = Row::new()
-            .spacing(5)
-            .push(HueColumn::new(&mut self.hue_state, Message::HueChanged))
-            .spacing(10)
-            .push(LightSatSquare::new(
-                self.hue as f64,
-                &mut self.light_sat_square_state,
-                Message::HsvSatValueChanged,
-                Message::FinishChangingColor,
-            ));
-        color_picker
-    }
-
-    pub fn color_square<'a, S: AppState>(
-        &self,
-        state: &'a mut color_square::State,
-    ) -> ColorSquare<'a, Message<S>> {
-        ColorSquare::new(
-            self.color,
-            state,
-            Message::ColorPicked,
-            Message::FinishChangingColor,
-        )
-    }
-
-    pub fn new_view(&mut self) -> Row<ColorMessage> {
-        let color_picker = Row::new()
-            .spacing(5)
-            .push(HueColumn::new(
-                &mut self.hue_state,
-                ColorMessage::HueChanged,
-            ))
-            .spacing(10)
-            .push(LightSatSquare::new(
-                self.hue as f64,
-                &mut self.light_sat_square_state,
+    pub(super) fn new_view(&self) -> iced::Element<'_, ColorMessage> {
+        row![
+            HueColumn::new(ColorMessage::HueChanged),
+            LightSatSquare::new(
+                self.hue,
                 ColorMessage::HsvSatValueChanged,
                 ColorMessage::FinishChangingColor,
-            ));
-        color_picker
+            ),
+        ]
+        .spacing(10)
+        .into()
     }
 }
 
+/// A Iced Widget to select Hue.
 mod hue_column {
-    use iced_graphics::{
-        triangle::{Mesh2D, Vertex2D},
-        Backend, Primitive, Rectangle, Renderer,
-    };
-    use iced_native::{
-        layout, mouse, renderer::Style, Clipboard, Element, Event, Layout, Length, Point,
-        Renderer as RendererTrait, Shell, Size, Vector, Widget,
-    };
-
+    use super::ColorMessage;
     use color_space::{Hsv, Rgb};
+    use iced::{
+        Length, Point, Rectangle, Size, Vector,
+        advanced::{
+            Clipboard, Layout, Renderer as _, Shell, Widget, layout, mouse, renderer::Style, widget,
+        },
+        event,
+        mouse::Cursor,
+    };
+    use iced_graphics::{
+        Primitive,
+        color::pack,
+        mesh::{Indexed, Mesh, SolidVertex2D},
+    };
+    use iced_wgpu::primitive::Custom;
 
+    /// The internal state of a [HueColumnState].
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-    pub struct State {
+    pub(super) struct HueColumnState {
         is_dragging: bool,
     }
 
-    impl State {
-        /// Creates a new [`State`].
-        ///
-        pub fn new() -> State {
-            State::default()
-        }
+    /// A HueColumn Widget.
+    pub struct HueColumn {
+        on_slide: Box<dyn Fn(f64) -> ColorMessage>,
     }
 
-    pub struct HueColumn<'a, Message> {
-        state: &'a mut State,
-        on_slide: Box<dyn Fn(f64) -> Message>,
-    }
-
-    impl<'a, Message> HueColumn<'a, Message> {
-        pub fn new<F>(state: &'a mut State, on_slide: F) -> Self
+    impl HueColumn {
+        pub fn new<F>(on_slide: F) -> Self
         where
-            F: 'static + Fn(f64) -> Message,
+            F: 'static + Fn(f64) -> ColorMessage,
         {
             Self {
-                state,
                 on_slide: Box::new(on_slide),
             }
         }
     }
 
-    impl<'a, B, Message> Widget<Message, Renderer<B>> for HueColumn<'a, Message>
-    where
-        B: Backend,
-    {
-        fn width(&self) -> Length {
-            Length::FillPortion(1)
+    impl Widget<ColorMessage, iced::Theme, iced::Renderer> for HueColumn {
+        fn state(&self) -> widget::tree::State {
+            widget::tree::State::Some(Box::new(HueColumnState::default()))
         }
 
-        fn height(&self) -> Length {
-            Length::Shrink
+        fn size(&self) -> Size<Length> {
+            Size {
+                width: Length::FillPortion(1),
+                height: Length::Shrink,
+            }
         }
 
-        fn layout(&self, _renderer: &Renderer<B>, limits: &layout::Limits) -> layout::Node {
-            let size = limits
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .resolve(Size::ZERO);
+        fn layout(
+            &self,
+            _tree: &mut widget::Tree,
+            _renderer: &iced::Renderer,
+            limits: &layout::Limits,
+        ) -> layout::Node {
+            let size = limits.resolve(Length::Fill, Length::Fill, Size::ZERO);
 
             layout::Node::new(Size::new(size.width, 4. * size.width))
         }
 
         fn draw(
             &self,
-            renderer: &mut Renderer<B>,
+            _tree: &widget::Tree,
+            renderer: &mut iced::Renderer,
+            _theme: &iced::Theme,
             _style: &Style,
-            layout: Layout<'_>,
-            _cursor_position: Point,
+            layout: Layout,
+            _cursor: Cursor,
             _viewport: &Rectangle,
         ) {
             let b = layout.bounds();
@@ -197,17 +115,17 @@ mod hue_column {
             for i in 0..=nb_row {
                 let hsv = Hsv::new(i as f64 / nb_row as f64 * 360., 1., 1.);
                 let rgb = Rgb::from(hsv);
-                let color = [
+                let color = pack([
                     rgb.r as f32 / 255.,
                     rgb.g as f32 / 255.,
                     rgb.b as f32 / 255.,
                     1.,
-                ];
-                vertices.push(Vertex2D {
+                ]);
+                vertices.push(SolidVertex2D {
                     position: [0., y_max * (i as f32 / nb_row as f32)],
                     color,
                 });
-                vertices.push(Vertex2D {
+                vertices.push(SolidVertex2D {
                     position: [x_max, y_max * (i as f32 / nb_row as f32)],
                     color,
                 });
@@ -221,92 +139,107 @@ mod hue_column {
                 }
             }
 
-            renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
-                renderer.draw_primitive(Primitive::Mesh2D {
-                    size: b.size(),
-                    buffers: Mesh2D { vertices, indices },
-                })
+            let mesh = Custom::Mesh(Mesh::Solid {
+                buffers: Indexed { vertices, indices },
+                size: b.size(),
             });
+
+            match renderer {
+                iced::Renderer::Wgpu(wgpu_renderer) => {
+                    wgpu_renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
+                        renderer.draw_primitive(Primitive::Custom(mesh));
+                    });
+                }
+                iced::Renderer::TinySkia(_) => panic!("Unhandled renderer"),
+            }
         }
 
         fn on_event(
             &mut self,
-            event: Event,
-            layout: Layout<'_>,
-            cursor_position: Point,
-            _renderer: &Renderer<B>,
+            tree: &mut widget::Tree,
+            event: event::Event,
+            layout: Layout,
+            cursor: Cursor,
+            _renderer: &iced::Renderer,
             _clipboard: &mut dyn Clipboard,
-            shell: &mut Shell<'_, Message>,
-        ) -> iced_native::event::Status {
-            let mut change = || {
+            shell: &mut Shell<'_, ColorMessage>,
+            _viewport: &Rectangle,
+        ) -> event::Status {
+            let mut change = |Point { y, .. }| {
                 let bounds = layout.bounds();
-                if cursor_position.y <= bounds.y {
+                if y <= bounds.y {
                     shell.publish((self.on_slide)(0.));
-                } else if cursor_position.y >= bounds.y + bounds.height {
+                } else if y >= bounds.y + bounds.height {
                     shell.publish((self.on_slide)(360.));
                 } else {
-                    let percent = (cursor_position.y - bounds.y) / bounds.height;
-                    let value = percent * 360.;
+                    let percent = (y - bounds.y) / bounds.height;
+                    let value: f32 = percent * 360.;
                     shell.publish((self.on_slide)(value.into()));
                 }
             };
 
-            if let Event::Mouse(mouse_event) = event {
+            if let event::Event::Mouse(mouse_event) = event {
+                let state = tree.state.downcast_mut::<HueColumnState>();
                 match mouse_event {
                     mouse::Event::ButtonPressed(mouse::Button::Left) => {
-                        if layout.bounds().contains(cursor_position) {
-                            change();
-                            self.state.is_dragging = true;
+                        if let Some(position) = cursor.position() {
+                            change(position);
+                            state.is_dragging = true;
                         }
-                        iced_native::event::Status::Captured
+                        event::Status::Captured
                     }
                     mouse::Event::ButtonReleased(mouse::Button::Left) => {
-                        if self.state.is_dragging {
-                            self.state.is_dragging = false;
+                        if state.is_dragging {
+                            state.is_dragging = false;
                         }
-                        iced_native::event::Status::Captured
+                        event::Status::Captured
                     }
-                    mouse::Event::CursorMoved { .. } => {
-                        if self.state.is_dragging {
-                            change();
-                            iced_native::event::Status::Captured
+                    mouse::Event::CursorMoved { position } => {
+                        if state.is_dragging {
+                            change(position);
+                            event::Status::Captured
                         } else {
-                            iced_native::event::Status::Ignored
+                            event::Status::Ignored
                         }
                     }
-                    _ => iced_native::event::Status::Ignored,
+                    _ => event::Status::Ignored,
                 }
             } else {
-                iced_native::event::Status::Ignored
+                // Not a mouse event.
+                event::Status::Ignored
             }
         }
     }
 
-    impl<'a, Message, B> From<HueColumn<'a, Message>> for Element<'a, Message, Renderer<B>>
-    where
-        B: Backend,
-        Message: 'a + Clone,
-    {
-        fn from(hue_column: HueColumn<'a, Message>) -> Element<'a, Message, Renderer<B>> {
-            Element::new(hue_column)
+    impl From<HueColumn> for iced::Element<'_, ColorMessage> {
+        fn from(hue_column: HueColumn) -> Self {
+            Self::new(hue_column)
         }
     }
 }
 
+/// A widget to select Lightness and Saturation values.
 mod light_sat_square {
-    use iced_graphics::{
-        triangle::{Mesh2D, Vertex2D},
-        Backend, Primitive, Rectangle, Renderer,
-    };
-    use iced_native::{
-        layout, mouse, renderer::Style, Clipboard, Element, Event, Layout, Length, Point,
-        Renderer as RendererTrait, Shell, Size, Vector, Widget,
-    };
-
+    use super::ColorMessage;
     use color_space::{Hsv, Rgb};
+    use iced::{
+        Length, Point, Rectangle, Size, Vector,
+        advanced::{
+            Clipboard, Layout, Renderer as _, Shell, Widget, layout, mouse, renderer::Style, widget,
+        },
+        event,
+        mouse::Cursor,
+    };
+    use iced_graphics::{
+        Primitive,
+        color::pack,
+        mesh::{Indexed, Mesh, SolidVertex2D},
+    };
+    use iced_wgpu::primitive::Custom;
 
+    /// The internal state of a [LightSatSquare].
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-    pub struct State {
+    pub(super) struct LightSatState {
         is_dragging: bool,
     }
 
@@ -321,54 +254,59 @@ mod light_sat_square {
         ]
     }
 
-    pub struct LightSatSquare<'a, Message: Clone> {
+    /// A Lightness-Saturation square Widget.
+    pub struct LightSatSquare {
         hue: f64,
-        state: &'a mut State,
-        on_slide: Box<dyn Fn(f64, f64) -> Message>,
-        on_finish: Message,
+        on_slide: Box<dyn Fn(f64, f64) -> ColorMessage>,
+        // TODO: Mimic iced like in Checkbox: Option<Box<…>>, then a method to set something else
+        //       than None.
+        on_finish: ColorMessage,
+        // TODO: Mimic iced like in Button: Option<…>, then a method to set something else than None.
     }
 
-    impl<'a, Message: Clone> LightSatSquare<'a, Message> {
-        pub fn new<F>(hue: f64, state: &'a mut State, on_slide: F, on_finish: Message) -> Self
+    impl LightSatSquare {
+        pub fn new<F>(hue: f64, on_slide: F, on_finish: ColorMessage) -> Self
         where
-            F: 'static + Fn(f64, f64) -> Message,
+            F: 'static + Fn(f64, f64) -> ColorMessage,
         {
             Self {
                 hue,
-                state,
                 on_slide: Box::new(on_slide),
                 on_finish,
             }
         }
     }
 
-    impl<'a, Message: Clone, B> Widget<Message, Renderer<B>> for LightSatSquare<'a, Message>
-    where
-        B: Backend,
-    {
-        fn width(&self) -> Length {
-            Length::FillPortion(4)
+    impl Widget<ColorMessage, iced::Theme, iced::Renderer> for LightSatSquare {
+        fn state(&self) -> widget::tree::State {
+            widget::tree::State::Some(Box::new(LightSatState::default()))
+        }
+        fn size(&self) -> Size<Length> {
+            Size {
+                width: Length::FillPortion(4),
+                height: Length::Shrink,
+            }
         }
 
-        fn height(&self) -> Length {
-            Length::Shrink
-        }
-
-        fn layout(&self, _renderer: &Renderer<B>, limits: &layout::Limits) -> layout::Node {
-            let size = limits
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .resolve(Size::ZERO);
+        fn layout(
+            &self,
+            _tree: &mut widget::Tree,
+            _renderer: &iced::Renderer,
+            limits: &layout::Limits,
+        ) -> layout::Node {
+            let size = limits.resolve(Length::Fill, Length::Fill, Size::ZERO);
 
             layout::Node::new(Size::new(size.width, size.width))
         }
 
         fn draw(
             &self,
-            renderer: &mut Renderer<B>,
+            _state: &widget::Tree,
+            renderer: &mut iced::Renderer,
+            _theme: &iced::Theme,
             _style: &Style,
-            layout: Layout<'_>,
-            _cursor_position: Point,
+            layout: Layout,
+            _cursor: Cursor,
             _viewport: &Rectangle,
         ) {
             let b = layout.bounds();
@@ -385,8 +323,8 @@ mod light_sat_square {
                 let value = 1. - (i as f64 / nb_row as f64);
                 for j in 0..nb_column {
                     let sat = 1. - (j as f64 / nb_column as f64);
-                    let color = hsv_to_linear(self.hue, sat, value);
-                    vertices.push(Vertex2D {
+                    let color = pack(hsv_to_linear(self.hue, sat, value));
+                    vertices.push(SolidVertex2D {
                         position: [
                             x_max * (j as f32 / nb_column as f32),
                             y_max * (i as f32 / nb_row as f32),
@@ -404,39 +342,48 @@ mod light_sat_square {
                 }
             }
 
-            renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
-                renderer.draw_primitive(Primitive::Mesh2D {
-                    size: b.size(),
-                    buffers: Mesh2D { vertices, indices },
-                })
+            let mesh = Custom::Mesh(Mesh::Solid {
+                size: b.size(),
+                buffers: Indexed { vertices, indices },
             });
+
+            match renderer {
+                iced::Renderer::Wgpu(wgpu_renderer) => {
+                    wgpu_renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
+                        renderer.draw_primitive(Primitive::Custom(mesh));
+                    });
+                }
+                iced::Renderer::TinySkia(_) => panic!("Unhandled renderer"),
+            }
         }
 
         fn on_event(
             &mut self,
-            event: Event,
-            layout: Layout<'_>,
-            cursor_position: Point,
-            _renderer: &Renderer<B>,
+            tree: &mut widget::Tree,
+            event: event::Event,
+            layout: Layout,
+            cursor: Cursor,
+            _renderer: &iced::Renderer,
             _clipboard: &mut dyn Clipboard,
-            shell: &mut Shell<'_, Message>,
-        ) -> iced_native::event::Status {
-            let mut change = || {
+            shell: &mut Shell<'_, ColorMessage>,
+            _viewport: &Rectangle,
+        ) -> event::Status {
+            let mut change = |Point { x, y }| {
                 let bounds = layout.bounds();
-                let percent_x = if cursor_position.x <= bounds.x {
+                let percent_x = if x <= bounds.x {
                     0.
-                } else if cursor_position.x >= bounds.x + bounds.width {
+                } else if x >= bounds.x + bounds.width {
                     1.
                 } else {
-                    f64::from(cursor_position.x - bounds.x) / f64::from(bounds.width)
+                    f64::from(x - bounds.x) / f64::from(bounds.width)
                 };
 
-                let percent_y = if cursor_position.y <= bounds.y {
+                let percent_y = if y <= bounds.y {
                     0.
-                } else if cursor_position.y >= bounds.y + bounds.height {
+                } else if y >= bounds.y + bounds.height {
                     1.
                 } else {
-                    f64::from(cursor_position.y - bounds.y) / f64::from(bounds.height)
+                    f64::from(y - bounds.y) / f64::from(bounds.height)
                 };
 
                 let saturation = 1. - percent_x;
@@ -444,78 +391,87 @@ mod light_sat_square {
                 shell.publish((self.on_slide)(saturation, value));
             };
 
-            if let Event::Mouse(mouse_event) = event {
+            if let event::Event::Mouse(mouse_event) = event {
+                let state = tree.state.downcast_mut::<LightSatState>();
                 match mouse_event {
                     mouse::Event::ButtonPressed(mouse::Button::Left) => {
-                        if layout.bounds().contains(cursor_position) {
-                            change();
-                            self.state.is_dragging = true;
-                            iced_native::event::Status::Captured
+                        if let Some(position) = cursor.position() {
+                            change(position);
+                            state.is_dragging = true;
+                            event::Status::Captured
                         } else {
-                            iced_native::event::Status::Ignored
+                            event::Status::Ignored
                         }
                     }
                     mouse::Event::ButtonReleased(mouse::Button::Left) => {
-                        if self.state.is_dragging {
-                            self.state.is_dragging = false;
+                        if state.is_dragging {
+                            state.is_dragging = false;
                         }
                         shell.publish(self.on_finish.clone());
-                        iced_native::event::Status::Captured
+                        event::Status::Captured
                     }
-                    mouse::Event::CursorMoved { .. } => {
-                        if self.state.is_dragging {
-                            change();
+                    mouse::Event::CursorMoved { position } => {
+                        if state.is_dragging {
+                            change(position);
                         }
-                        iced_native::event::Status::Captured
+                        event::Status::Captured
                     }
-                    _ => iced_native::event::Status::Ignored,
+                    _ => event::Status::Ignored,
                 }
             } else {
-                iced_native::event::Status::Ignored
+                event::Status::Ignored
             }
         }
     }
 
-    impl<'a, Message, B> Into<Element<'a, Message, Renderer<B>>> for LightSatSquare<'a, Message>
-    where
-        B: Backend,
-        Message: 'a + Clone,
-    {
-        fn into(self) -> Element<'a, Message, Renderer<B>> {
-            Element::new(self)
+    impl From<LightSatSquare> for iced::Element<'_, ColorMessage> {
+        fn from(value: LightSatSquare) -> Self {
+            Self::new(value)
         }
     }
 }
 
+/// A widget to Visualize selected color.
 mod color_square {
+    use super::ColorMessage;
+    use iced::{
+        Length, Rectangle, Size, Vector,
+        advanced::{
+            Clipboard, Layout, Renderer as _, Shell, Widget, layout, mouse, renderer::Style, widget,
+        },
+        event,
+        mouse::Cursor,
+    };
+    use iced_graphics::{
+        Primitive,
+        color::pack,
+        mesh::{Indexed, Mesh, SolidVertex2D},
+    };
+    use iced_wgpu::primitive::Custom;
+
+    /// The State of a [ColorSquare]
     #[derive(Default, Clone, Eq, PartialEq)]
-    pub struct State {
+    pub(super) struct ColorSquareState {
         clicked: bool,
     }
-    use super::Color;
-    use iced_graphics::{
-        triangle::{Mesh2D, Vertex2D},
-        Backend, Primitive, Rectangle, Renderer,
-    };
-    use iced_native::{
-        layout, mouse, renderer::Style, Clipboard, Element, Event, Layout, Length, Point,
-        Renderer as RendererTrait, Shell, Size, Vector, Widget,
-    };
 
-    pub struct ColorSquare<'a, Message: Clone> {
-        state: &'a mut State,
-        color: Color,
-        on_click: Box<dyn Fn(Color) -> Message>,
-        on_release: Message,
+    /// A ColorSquare Widget
+    pub struct ColorSquare {
+        color: iced::Color,
+        on_click: Box<dyn Fn(iced::Color) -> ColorMessage>,
+        // TODO: Mimic iced like in Checkbox: Option<Box<…>>, then a method to set something else
+        //       than None.
+        on_release: ColorMessage,
+        // TODO: Mimic iced like in Button: Option<…>, then a method to set something else than None.
     }
 
-    impl<'a, Message: Clone> ColorSquare<'a, Message> {
-        pub fn new<F>(color: Color, state: &'a mut State, on_click: F, on_release: Message) -> Self
+    impl ColorSquare {
+        pub fn new<F>(color: iced::Color, on_click: F, on_release: ColorMessage) -> Self
         where
-            F: 'static + Fn(Color) -> Message,
+            F: 'static + Fn(iced::Color) -> ColorMessage,
         {
             Self {
-                state,
+                //state,
                 color,
                 on_click: Box::new(on_click),
                 on_release,
@@ -523,120 +479,132 @@ mod color_square {
         }
     }
 
-    impl<'a, Message: Clone, B> Widget<Message, Renderer<B>> for ColorSquare<'a, Message>
-    where
-        B: Backend,
-    {
-        fn width(&self) -> Length {
-            Length::FillPortion(1)
+    impl Widget<ColorMessage, iced::Theme, iced::Renderer> for ColorSquare {
+        fn state(&self) -> widget::tree::State {
+            widget::tree::State::Some(Box::new(ColorSquareState::default()))
+        }
+        fn size(&self) -> Size<Length> {
+            Size {
+                width: Length::FillPortion(1),
+                height: Length::FillPortion(1),
+            }
         }
 
-        fn height(&self) -> Length {
-            Length::FillPortion(1)
-        }
-
-        fn layout(&self, _renderer: &Renderer<B>, limits: &layout::Limits) -> layout::Node {
-            let size = limits
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .resolve(Size::ZERO);
+        fn layout(
+            &self,
+            _tree: &mut widget::Tree,
+            _renderer: &iced::Renderer,
+            limits: &layout::Limits,
+        ) -> layout::Node {
+            let size = limits.resolve(Length::Fill, Length::Fill, Size::ZERO);
 
             layout::Node::new(Size::new(size.width, size.width))
         }
 
         fn draw(
             &self,
-            renderer: &mut Renderer<B>,
+            _tree: &widget::Tree,
+            renderer: &mut iced::Renderer,
+            _theme: &iced::Theme,
             _style: &Style,
-            layout: Layout<'_>,
-            _cursor_position: Point,
+            layout: Layout,
+            _cursor: Cursor,
             _viewport: &Rectangle,
         ) {
             let b = layout.bounds();
             let x_max = b.width;
             let y_max = b.height;
-            let color = [self.color.r, self.color.g, self.color.b, self.color.a];
+            let dummy_color = pack([1.0, 0.0, 0.0, 1.0]);
+            // TODO: Find an appropriate color.
+            // The primitive API changed. It now ask for
+            // some color. I do not now which one to choose now.
             let vertices = vec![
-                Vertex2D {
+                SolidVertex2D {
                     position: [0., 0.],
-                    color,
+                    color: dummy_color,
                 },
-                Vertex2D {
+                SolidVertex2D {
                     position: [0., y_max],
-                    color,
+                    color: dummy_color,
                 },
-                Vertex2D {
+                SolidVertex2D {
                     position: [x_max, 0.],
-                    color,
+                    color: dummy_color,
                 },
-                Vertex2D {
+                SolidVertex2D {
                     position: [x_max, y_max],
-                    color,
+                    color: dummy_color,
                 },
             ];
             let indices = vec![0, 1, 2, 1, 2, 3];
 
-            renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
-                renderer.draw_primitive(Primitive::Mesh2D {
-                    size: b.size(),
-                    buffers: Mesh2D { vertices, indices },
-                })
+            let mesh = Custom::Mesh(Mesh::Solid {
+                buffers: Indexed { vertices, indices },
+                size: b.size(),
             });
+
+            match renderer {
+                iced::Renderer::Wgpu(wgpu_renderer) => {
+                    wgpu_renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
+                        renderer.draw_primitive(Primitive::Custom(mesh));
+                    });
+                }
+                iced::Renderer::TinySkia(_) => unreachable!(),
+            }
         }
 
         fn on_event(
             &mut self,
-            event: Event,
-            layout: Layout<'_>,
-            cursor_position: Point,
-            _renderer: &Renderer<B>,
+            tree: &mut widget::Tree,
+            event: event::Event,
+            layout: Layout,
+            cursor: Cursor,
+            _renderer: &iced::Renderer,
             _clipboard: &mut dyn Clipboard,
-            shell: &mut Shell<'_, Message>,
-        ) -> iced_native::event::Status {
-            if let Event::Mouse(mouse_event) = event {
+            shell: &mut Shell<'_, ColorMessage>,
+            _viewport: &Rectangle,
+        ) -> event::Status {
+            if let event::Event::Mouse(mouse_event) = event {
+                let state = tree.state.downcast_mut::<ColorSquareState>();
                 match mouse_event {
                     mouse::Event::ButtonPressed(mouse::Button::Left) => {
-                        if layout.bounds().contains(cursor_position) {
-                            self.state.clicked = true;
+                        if cursor.is_over(layout.bounds()) {
+                            state.clicked = true;
                             shell.publish((self.on_click)(self.color));
-                            iced_native::event::Status::Captured
+                            event::Status::Captured
                         } else {
-                            iced_native::event::Status::Ignored
+                            event::Status::Ignored
                         }
                     }
-                    mouse::Event::ButtonReleased(mouse::Button::Left) if self.state.clicked => {
-                        if layout.bounds().contains(cursor_position) {
-                            self.state.clicked = false;
+                    mouse::Event::ButtonReleased(mouse::Button::Left) if state.clicked => {
+                        if cursor.is_over(layout.bounds()) {
+                            state.clicked = false;
                             shell.publish(self.on_release.clone());
-                            iced_native::event::Status::Captured
+                            event::Status::Captured
                         } else {
-                            iced_native::event::Status::Ignored
+                            event::Status::Ignored
                         }
                     }
-                    mouse::Event::CursorMoved { .. } if self.state.clicked => {
-                        if layout.bounds().contains(cursor_position) {
-                            iced_native::event::Status::Ignored
+                    mouse::Event::CursorMoved { .. } if state.clicked => {
+                        if cursor.is_over(layout.bounds()) {
+                            event::Status::Ignored
                         } else {
-                            self.state.clicked = false;
+                            state.clicked = false;
                             shell.publish(self.on_release.clone());
-                            iced_native::event::Status::Captured
+                            event::Status::Captured
                         }
                     }
-                    _ => iced_native::event::Status::Ignored,
+                    _ => event::Status::Ignored,
                 }
             } else {
-                iced_native::event::Status::Ignored
+                event::Status::Ignored
             }
         }
     }
 
-    impl<'a, Message, B> Into<Element<'a, Message, Renderer<B>>> for ColorSquare<'a, Message>
-    where
-        B: Backend,
-        Message: 'a + Clone,
-    {
-        fn into(self) -> Element<'a, Message, Renderer<B>> {
-            Element::new(self)
+    impl From<ColorSquare> for iced::Element<'_, ColorMessage> {
+        fn from(color_square: ColorSquare) -> Self {
+            Self::new(color_square)
         }
     }
 }

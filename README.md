@@ -1,5 +1,5 @@
-![ensnano-logo](img/ensnano_logo.png)
-<img src="img/made_with_iced_white.svg" width="300">
+![ensnano-logo](readme/ensnano_logo.png)
+<img src="readme/made_with_iced_white.svg" width="300">
 
 # About
 
@@ -16,7 +16,7 @@ ENSnano include
 Currently, ENSnano can only produces sequences for DNA origamis.
 
 For more details about ENSnano you can checkout the paper introducing it in the proceedings of the
-[DNA27 conference](http://dna27.iopconfs.org/home): 
+DNA27 conference: 
 
 > <ins> ENSnano: a 3D modeling software for DNA nanostructures </ins>
    Nicolas Levy and Nicolas Schabanel.
@@ -28,7 +28,7 @@ the conference.
 
 # Installation
 
-We try to frequently release binaries for Windows and MacOS.
+We try to frequently release binaries for Windows and macOS.
 
 Alternatively you can clone this repository and build the software from source, following instructions below:
 
@@ -51,7 +51,7 @@ You need the GTK3 development packages and a C++ compiler to build the [RFD](htt
 
 * Fedora: `dnf install gtk3-devel`
 
-* Archlinux: `pacman -S gtk3`
+* Arch Linux: `pacman -S gtk3`
 
 You also need to have the **Vulkan** driver for your graphic card installed. The installation method depends on your distribution and graphic card,
 but there should be a tutorial on the internet for any combination of those.
@@ -83,11 +83,11 @@ when importing a cadnano/scadnano file
 
 In this cadnano design, deleted nucleotides are removed and loops are replaced by single strands
 
-![cadnano_del_loop](img/cadnano_del_loop.png) ![ensnano_del_loop](img/ensnano_del_loop.png)
+![cadnano_del_loop](readme/cadnano_del_loop.png) ![ensnano_del_loop](readme/ensnano_del_loop.png)
 
 In this scadnano design, insertions and loopouts are replaced by single strands
 
-![scadnano_insert_loopout](img/scadnano_insert_loopout.png) ![ensnano_insert_loopout](img/ensnano_insert_loopout.png)
+![scadnano_insert_loopout](readme/scadnano_insert_loopout.png) ![ensnano_insert_loopout](readme/ensnano_insert_loopout.png)
 
 # Troubleshooting
 
@@ -114,12 +114,20 @@ or, if you are compiling from source, use a DirectX12 renderer with
 cargo run --release --features="dx12_only log_after_renderer_setup"
 ```
 
+## Compiling shaders
+
+There is a small makefile devoted to the compilation of shaders:
+
+```Shell
+make
+```
+
 # Third-party licenses
 
 The licenses of the dependencies are listed in `thirdparties/license.html`
 
 This software uses the following fonts which are distributed under the SIL OpenFont License
 * [Inconsolata-Regular](https://fonts.google.com/specimen/Inconsolata)
-* [Inter](https://fonts.google.com/specimen/Inter) (Glyphs from this font are used in the file `font/ensnano2.ttf`)
+* [Inter](https://fonts.google.com/specimen/Inter) (Glyphs from this font are used in the file `fonts/ensnano2.ttf`)
 
-The font `font/DejaVuSansMono.ttf` is in public domain.
+The font `fonts/DejaVuSansMono.ttf` is in public domain.

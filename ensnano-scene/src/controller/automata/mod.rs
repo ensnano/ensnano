@@ -1,0 +1,563 @@
+mod dragging_state;
+pub(super) mod event_context;
+mod point_and_click_state;
+
+use self::{
+    dragging_state::{
+        ClickInfo, MovingBezierCorner, MovingBezierTangent, MovingBezierVertex,
+        MovingRevolutionRadius, translating_grid_object,
+    },
+    event_context::{EventContext, XoverOrigin},
+    point_and_click_state::PointAndClicking,
+};
+use crate::{
+    controller::{Consequence, Controller, TransitionConsequence},
+    element_selector::SceneElement,
+    view::{
+        handle_drawer::{HandleColors, HandleDir},
+        rotation_widget::RotationMode,
+    },
+};
+use ensnano_design::{
+    bezier_plane::{BezierVertex, BezierVertexId},
+    grid::GridId,
+    interaction_modes::ActionMode,
+};
+use ensnano_utils::consts::{
+    DIR_HANDLE_ID, FRONT_CIRCLE_ID, RIGHT_CIRCLE_ID, RIGHT_HANDLE_ID, UP_CIRCLE_ID, UP_HANDLE_ID,
+};
+use std::{borrow::Cow, cell::RefCell};
+use ultraviolet::Vec2;
+use winit::{
+    dpi::PhysicalPosition,
+    event::{ElementState, MouseButton, WindowEvent},
+    keyboard::ModifiersState,
+    window::CursorIcon,
+};
+
+pub(super) type State = RefCell<Box<dyn ControllerState>>;
+
+pub(super) fn initial_state() -> State {
+    RefCell::new(Box::new(NormalState {
+        mouse_position: PhysicalPosition::new(-1., -1.),
+    }))
+}
+
+pub(super) struct Transition {
+    pub new_state: Option<Box<dyn ControllerState>>,
+    pub consequences: Consequence,
+}
+
+impl Transition {
+    pub(super) fn nothing() -> Self {
+        Self {
+            new_state: None,
+            consequences: Consequence::Nothing,
+        }
+    }
+
+    pub(super) fn consequence(consequences: Consequence) -> Self {
+        Self {
+            new_state: None,
+            consequences,
+        }
+    }
+}
+
+pub(super) trait ControllerState {
+    fn input(&mut self, event: &WindowEvent, context: EventContext<'_>) -> Transition;
+
+    fn display(&self) -> Cow<'static, str>;
+
+    fn transition_from(&self, _controller: &Controller) -> TransitionConsequence {
+        TransitionConsequence::Nothing
+    }
+
+    fn transition_to(&self, _controller: &Controller) -> TransitionConsequence {
+        TransitionConsequence::Nothing
+    }
+
+    fn check_timers(&mut self, _controller: &Controller) -> Transition {
+        Transition::nothing()
+    }
+
+    fn handles_color_system(&self) -> Option<HandleColors> {
+        None
+    }
+
+    fn cursor(&self) -> Option<CursorIcon> {
+        None
+    }
+
+    fn give_context(&mut self, _context: EventContext<'_>) {}
+}
+
+pub(crate) struct NormalState {
+    pub mouse_position: PhysicalPosition<f64>,
+}
+
+impl ControllerState for NormalState {
+    fn input(&mut self, event: &WindowEvent, mut context: EventContext<'_>) -> Transition {
+        match event {
+            WindowEvent::CursorMoved { .. } if context.is_pasting() => {
+                self.mouse_position = context.cursor_position;
+                let element = context.get_element_under_cursor();
+                let element = context.convert_grid_to_grid_disc(element);
+                Transition::consequence(Consequence::PasteCandidate(element))
+            }
+            WindowEvent::CursorMoved { .. } => {
+                self.mouse_position = context.cursor_position;
+                let element = context.get_element_under_cursor();
+                let element = context.convert_grid_to_grid_disc(element);
+                Transition::consequence(Consequence::Candidate(element))
+            }
+            WindowEvent::MouseInput {
+                state: ElementState::Pressed,
+                button: MouseButton::Left,
+                ..
+            } if context.get_modifiers().alt_key() => {
+                let click_info = ClickInfo::new(MouseButton::Left, context.cursor_position);
+                let clicked_nucl = context
+                    .get_element_under_cursor()
+                    .and_then(|elt| context.element_to_nucl(Some(&elt), true));
+                Transition {
+                    new_state: Some(Box::new(dragging_state::translating_camera(
+                        click_info,
+                        clicked_nucl,
+                    ))),
+                    consequences: Consequence::Nothing,
+                }
+            }
+            WindowEvent::MouseInput {
+                state: ElementState::Pressed,
+                button: MouseButton::Left,
+                ..
+            } if context.is_pasting() => {
+                let element = context.get_element_under_cursor();
+                // When clicking on a grid, `get_element_under_cursor` will return a
+                // `SceneElement::Grid`. We want to get the exact grid disc instead.
+                let element = context.convert_grid_to_grid_disc(element);
+                Transition {
+                    new_state: Some(Box::new(PointAndClicking::pasting(
+                        context.cursor_position,
+                        element,
+                    ))),
+                    consequences: Consequence::Nothing,
+                }
+            }
+            WindowEvent::MouseInput {
+                state: ElementState::Pressed,
+                button: MouseButton::Left,
+                ..
+            } => {
+                let element = context.get_element_under_cursor();
+                log::info!("Clicked on {element:?}");
+                if let Some(SceneElement::PlaneCorner {
+                    plane_id,
+                    corner_type,
+                }) = element
+                {
+                    let fixed_corner_position =
+                        context.get_position_of_opposite_plane_corner(plane_id, corner_type);
+                    let click_info = ClickInfo::new(MouseButton::Left, context.cursor_position);
+                    return Transition {
+                        new_state: Some(Box::new(dragging_state::moving_bezier_corner(
+                            click_info,
+                            MovingBezierCorner {
+                                plane_id,
+                                fixed_corner_position,
+                            },
+                        ))),
+                        consequences: Consequence::Nothing,
+                    };
+                } else if let Some(SceneElement::BezierTangent {
+                    path_id,
+                    vertex_id,
+                    tangent_in,
+                }) = element
+                {
+                    if let Some(vertex) = context.get_bezier_vertex(path_id, vertex_id) {
+                        let click_info = ClickInfo::new(MouseButton::Left, context.cursor_position);
+                        let current_tangent_position = if let Some(i) = context
+                            .get_current_cursor_intersection_with_bezier_plane(vertex.plane_id)
+                        {
+                            i.position()
+                        } else {
+                            log::error!(
+                                "Could not get cursor intersection with plane {:?}",
+                                vertex.plane_id
+                            );
+                            Vec2::unit_x()
+                        };
+                        let new_state = dragging_state::moving_bezier_tangent(
+                            click_info,
+                            MovingBezierTangent {
+                                plane_id: vertex.plane_id,
+                                vertex_id: BezierVertexId { path_id, vertex_id },
+                                vertex_position_on_plane: vertex.position,
+                                tangent_in,
+                                tangent_vector: (current_tangent_position - vertex.position),
+                            },
+                        );
+                        return Transition {
+                            new_state: Some(Box::new(new_state)),
+                            consequences: Consequence::Nothing,
+                        };
+                    }
+                    log::error!("Could not get vertex {path_id:?}, {vertex_id}");
+                }
+                match element {
+                    Some(SceneElement::GridCircle(d_id, grid_position)) => {
+                        if let ActionMode::BuildHelix {
+                            position: position_helix,
+                            length,
+                        } = context.get_action_mode()
+                        {
+                            Transition {
+                                new_state: Some(Box::new(PointAndClicking::building_helix(
+                                    BuildingHelix {
+                                        position_helix,
+                                        length_helix: length,
+                                        x_helix: grid_position.x,
+                                        y_helix: grid_position.y,
+                                        grid_id: grid_position.grid,
+                                        design_id: d_id,
+                                        clicked_position: context.cursor_position,
+                                    },
+                                ))),
+                                consequences: Consequence::Nothing,
+                            }
+                        } else {
+                            let adding = context.get_modifiers().shift_key()
+                                || ctrl(context.get_modifiers());
+                            let new_state = PointAndClicking::selecting(
+                                context.cursor_position,
+                                element,
+                                adding,
+                            );
+                            Transition {
+                                new_state: Some(Box::new(new_state)),
+                                consequences: Consequence::Nothing,
+                            }
+                        }
+                    }
+                    Some(SceneElement::Grid(d_id, _)) => {
+                        let grid_intersection = context.get_grid_intersection_with_cursor();
+                        if let ActionMode::BuildHelix {
+                            position: helix_position,
+                            length,
+                        } = context.get_action_mode()
+                        {
+                            if let Some(intersection) = grid_intersection {
+                                if let Some(object) =
+                                    context.get_object_at_grid_pos(intersection.grid_position())
+                                {
+                                    let click_info =
+                                        ClickInfo::new(MouseButton::Left, context.cursor_position);
+                                    let new_state = translating_grid_object(
+                                        click_info,
+                                        dragging_state::TranslatingGridObject {
+                                            grid_id: intersection.grid_id,
+                                            object: object.clone(),
+                                            x: intersection.x,
+                                            y: intersection.y,
+                                        },
+                                    );
+                                    Transition {
+                                        new_state: Some(Box::new(new_state)),
+                                        consequences: Consequence::HelixSelected(object.helix()),
+                                    }
+                                } else {
+                                    Transition {
+                                        new_state: Some(Box::new(
+                                            PointAndClicking::building_helix(BuildingHelix {
+                                                position_helix: helix_position,
+                                                length_helix: length,
+                                                x_helix: intersection.x,
+                                                y_helix: intersection.y,
+                                                grid_id: intersection.grid_id,
+                                                design_id: d_id,
+                                                clicked_position: context.cursor_position,
+                                            }),
+                                        )),
+                                        consequences: Consequence::Nothing,
+                                    }
+                                }
+                            } else {
+                                let adding = context.get_modifiers().shift_key()
+                                    || ctrl(context.get_modifiers());
+                                let new_state = PointAndClicking::selecting(
+                                    context.cursor_position,
+                                    element,
+                                    adding,
+                                );
+                                Transition {
+                                    new_state: Some(Box::new(new_state)),
+                                    consequences: Consequence::Nothing,
+                                }
+                            }
+                        } else {
+                            let (clicked_element, object) =
+                                if let Some(intersection) = grid_intersection.as_ref() {
+                                    let clicked_element = Some(SceneElement::GridCircle(
+                                        d_id,
+                                        intersection.grid_position(),
+                                    ));
+                                    let object = context
+                                        .get_object_at_grid_pos(intersection.grid_position());
+                                    (clicked_element, object)
+                                } else {
+                                    (element, None)
+                                };
+
+                            if let Some(obj) = object {
+                                // if helix is Some, intersection is also Some
+                                let intersection = grid_intersection.unwrap();
+                                let click_info =
+                                    ClickInfo::new(MouseButton::Left, context.cursor_position);
+                                let new_state = translating_grid_object(
+                                    click_info,
+                                    dragging_state::TranslatingGridObject {
+                                        grid_id: intersection.grid_id,
+                                        object: obj.clone(),
+                                        x: intersection.x,
+                                        y: intersection.y,
+                                    },
+                                );
+                                Transition {
+                                    new_state: Some(Box::new(new_state)),
+                                    consequences: Consequence::HelixSelected(obj.helix()),
+                                }
+                            } else {
+                                let adding = context.get_modifiers().shift_key()
+                                    || ctrl(context.get_modifiers());
+
+                                let selected_element = clicked_element
+                                    .map(SceneElement::converted_to_grid_if_disc_on_bezier_grid);
+                                let new_state = PointAndClicking::selecting(
+                                    context.cursor_position,
+                                    selected_element,
+                                    adding,
+                                );
+                                Transition {
+                                    new_state: Some(Box::new(new_state)),
+                                    consequences: Consequence::Nothing,
+                                }
+                            }
+                        }
+                    }
+                    Some(SceneElement::WidgetElement(widget_id)) => {
+                        let normalized_cursor_position = context.normalized_cursor_position();
+                        let translation_target = if context.get_modifiers().shift_key() {
+                            WidgetTarget::Pivot
+                        } else {
+                            WidgetTarget::Object
+                        };
+                        match widget_id {
+                            UP_HANDLE_ID | DIR_HANDLE_ID | RIGHT_HANDLE_ID => {
+                                let click_info =
+                                    ClickInfo::new(MouseButton::Left, context.cursor_position);
+                                let new_state = dragging_state::translating_widget(
+                                    click_info,
+                                    HandleDir::from_widget_id(widget_id),
+                                    translation_target,
+                                );
+                                Transition {
+                                    new_state: Some(Box::new(new_state)),
+                                    consequences: Consequence::InitTranslation(
+                                        normalized_cursor_position.x,
+                                        normalized_cursor_position.y,
+                                        translation_target,
+                                    ),
+                                }
+                            }
+                            RIGHT_CIRCLE_ID | FRONT_CIRCLE_ID | UP_CIRCLE_ID => {
+                                let target = if context.get_modifiers().shift_key() {
+                                    WidgetTarget::Pivot
+                                } else {
+                                    WidgetTarget::Object
+                                };
+
+                                let click_info =
+                                    ClickInfo::new(MouseButton::Left, context.cursor_position);
+                                let new_state = dragging_state::rotating_widget(click_info, target);
+                                Transition {
+                                    new_state: Some(Box::new(new_state)),
+                                    consequences: Consequence::InitRotation(
+                                        RotationMode::from_widget_id(widget_id),
+                                        normalized_cursor_position.x,
+                                        normalized_cursor_position.y,
+                                        target,
+                                    ),
+                                }
+                            }
+                            _ => {
+                                println!("WARNING UNEXPECTED WIDGET ID");
+                                Transition::nothing()
+                            }
+                        }
+                    }
+                    Some(SceneElement::DesignElement(_, _))
+                        if ctrl(context.get_modifiers())
+                            && context.element_to_nucl(element.as_ref(), true).is_some() =>
+                    {
+                        if let Some(nucl) = context.element_to_nucl(element.as_ref(), true) {
+                            Transition::consequence(Consequence::QuickXoverAttempt {
+                                nucl,
+                                doubled: context.get_modifiers().shift_key(),
+                            })
+                        } else {
+                            Transition::nothing()
+                        }
+                    }
+                    None if context.is_editing_bezier_path() => {
+                        // path_id is either:
+                        // - the id of the currently selected bezier vertex, in which case we are
+                        //   appending a new vertex to the path to which this vertex belong
+                        // - None, in which case we are creating a new bezier path
+                        let path_id = context.get_bezier_vertex_being_edited().map(|v| v.path_id);
+
+                        if let Some((plane_id, intersection)) = context.get_plane_under_cursor() {
+                            println!("{intersection:?}");
+                            let click_info =
+                                ClickInfo::new(MouseButton::Left, context.cursor_position);
+
+                            Transition {
+                                new_state: Some(Box::new(dragging_state::moving_bezier_vertex(
+                                    click_info,
+                                    MovingBezierVertex::New { plane_id },
+                                ))),
+                                consequences: Consequence::CreateBezierVertex {
+                                    vertex: BezierVertex::new(
+                                        plane_id,
+                                        Vec2::new(intersection.x, intersection.y),
+                                    ),
+                                    path: path_id,
+                                },
+                            }
+                        } else {
+                            let adding = context.get_modifiers().shift_key()
+                                || ctrl(context.get_modifiers());
+                            let new_state = PointAndClicking::selecting(
+                                context.cursor_position,
+                                element,
+                                adding,
+                            );
+                            Transition {
+                                new_state: Some(Box::new(new_state)),
+                                consequences: Consequence::Nothing,
+                            }
+                        }
+                    }
+                    None if context.cursor_is_on_revolution_axis()
+                        && context.get_plane_under_cursor().is_some() =>
+                    {
+                        let (plane_id, _) = context.get_plane_under_cursor().unwrap();
+
+                        let click_info = ClickInfo::new(MouseButton::Left, context.cursor_position);
+                        Transition {
+                            new_state: Some(Box::new(dragging_state::moving_revolution_radius(
+                                click_info,
+                                MovingRevolutionRadius { plane_id },
+                            ))),
+                            consequences: Consequence::Nothing,
+                        }
+                    }
+                    _ => {
+                        let adding =
+                            context.get_modifiers().shift_key() || ctrl(context.get_modifiers());
+                        let new_state =
+                            PointAndClicking::selecting(context.cursor_position, element, adding);
+                        Transition {
+                            new_state: Some(Box::new(new_state)),
+                            consequences: Consequence::Nothing,
+                        }
+                    }
+                }
+            }
+            WindowEvent::MouseInput {
+                state: ElementState::Pressed,
+                button: MouseButton::Middle,
+                ..
+            } if ctrl(context.get_modifiers()) => {
+                let click_info = ClickInfo::new(MouseButton::Middle, context.cursor_position);
+                Transition {
+                    new_state: Some(Box::new(dragging_state::rotating_camera(click_info))),
+                    consequences: Consequence::Nothing,
+                }
+            }
+            WindowEvent::MouseInput {
+                state: ElementState::Pressed,
+                button: MouseButton::Middle,
+                ..
+            } => {
+                let click_info = ClickInfo::new(MouseButton::Middle, context.cursor_position);
+                let clicked_nucl = context
+                    .get_element_under_cursor()
+                    .and_then(|elt| context.element_to_nucl(Some(&elt), true));
+                Transition {
+                    new_state: Some(Box::new(dragging_state::translating_camera(
+                        click_info,
+                        clicked_nucl,
+                    ))),
+                    consequences: Consequence::Nothing,
+                }
+            }
+            WindowEvent::MouseInput {
+                state: ElementState::Pressed,
+                button: MouseButton::Right,
+                ..
+            } => {
+                let element = context.get_pivot_element();
+                Transition {
+                    new_state: Some(Box::new(PointAndClicking::setting_pivot(
+                        context.cursor_position,
+                        element,
+                        context.get_modifiers().shift_key(),
+                    ))),
+                    consequences: Consequence::Nothing,
+                }
+            }
+            _ => Transition::nothing(),
+        }
+    }
+
+    fn display(&self) -> Cow<'static, str> {
+        "Normal".into()
+    }
+}
+
+/// What is being affected by the translation
+#[derive(Clone, Debug, Copy, Eq, PartialEq)]
+pub(crate) enum WidgetTarget {
+    /// The selected elements
+    Object,
+    /// The selection's pivot
+    Pivot,
+}
+
+struct BuildingHelix {
+    design_id: u32,
+    grid_id: GridId,
+    x_helix: isize,
+    y_helix: isize,
+    length_helix: usize,
+    position_helix: isize,
+    clicked_position: PhysicalPosition<f64>,
+}
+
+fn ctrl(modifiers: &ModifiersState) -> bool {
+    if cfg!(target_os = "macos") {
+        modifiers.super_key()
+    } else {
+        modifiers.control_key()
+    }
+}
+
+fn other_ctrl(modifiers: &ModifiersState) -> bool {
+    if cfg!(target_os = "macos") {
+        modifiers.control_key()
+    } else {
+        modifiers.super_key()
+    }
+}

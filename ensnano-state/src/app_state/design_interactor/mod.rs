@@ -1,0 +1,1813 @@
+pub mod controller;
+pub mod file_parsing;
+pub mod presenter;
+
+use self::{
+    controller::{
+        Controller, ErrOperation, InteractorNotification, OkOperation, clipboard::CopyOperation,
+        simulations::SimulationOperation,
+    },
+    presenter::{Presenter, SimulationUpdate, apply_simulation_update, update_presenter},
+};
+use crate::{
+    app_state::{SaveDesignError, address_pointer::AddressPointer, channel_reader::ChannelReader},
+    design::{operation::DesignOperation, selection::Selection},
+    utils::operation::{CurrentOpState, Operation},
+};
+use ensnano_design::{
+    Design, SavingInformation,
+    bezier_plane::{BezierPathId, BezierPlaneDescriptor},
+    curves::bezier::InstantiatedPiecewiseBezier,
+    domains::Domain,
+    group_attributes::GroupAttribute,
+    organizer_tree::GroupId,
+    parameters::HelixParameters,
+};
+use ensnano_exports::{ExportResult, ExportType};
+use ensnano_utils::{
+    PastingStatus, SimulationState,
+    app_state_parameters::suggestion_parameters::SuggestionParameters, clipboard::ClipboardContent,
+    consts::UPDATE_VISIBILITY_SIEVE_LABEL, strand_builder::StrandBuilder,
+};
+use std::{io::Write as _, path::PathBuf, sync::Arc};
+
+/// The `DesignInteractor` handles all read/write operations on the design. It is a stateful struct
+/// so it is meant to be cheap to clone.
+#[derive(Clone, Default)]
+pub struct DesignInteractor {
+    /// The current design
+    pub design: AddressPointer<Design>,
+    /// The structure that handles "read" operations. The graphic components of EnsNano access the
+    /// presenter via a trait that defines each components needs.
+    pub presenter: AddressPointer<Presenter>,
+    /// The structure that handles "write" operations.
+    pub controller: AddressPointer<Controller>,
+    pub simulation_update: Option<Arc<dyn SimulationUpdate>>,
+    pub current_operation: Option<Arc<dyn Operation>>,
+    pub current_operation_id: usize,
+    pub new_selection: Option<Vec<Selection>>,
+}
+
+impl DesignInteractor {
+    pub(super) fn optimize_shift(
+        &self,
+        reader: &mut ChannelReader,
+    ) -> Result<InteractorResult, ErrOperation> {
+        let nucl_map = self.presenter.get_owned_nucl_collection();
+        let result = self
+            .controller
+            .optimize_shift(reader, nucl_map, &self.design);
+        self.handle_operation_result(result)
+    }
+
+    pub(super) fn is_building_hyperboloid(&self) -> bool {
+        self.controller.is_building_hyperboloid()
+    }
+
+    pub(super) fn apply_operation(
+        &self,
+        operation: DesignOperation,
+    ) -> Result<InteractorResult, ErrOperation> {
+        let result = self
+            .controller
+            .apply_operation(self.design.as_ref(), operation);
+        self.handle_operation_result(result)
+    }
+
+    pub(super) fn apply_copy_operation(
+        &mut self,
+        operation: CopyOperation,
+    ) -> Result<InteractorResult, ErrOperation> {
+        log::info!("Applying copy operation");
+        log::info!("nb helices {}", self.design.helices.len());
+        let tried_up_to_date = self.design.try_get_up_to_date();
+        if let Some(up_to_date) = tried_up_to_date {
+            log::info!("up to date helices {}", up_to_date.design.helices.len());
+            let result = self.controller.apply_copy_operation(up_to_date, operation);
+            self.handle_operation_result(result)
+        } else {
+            let design_mut = self.design.make_mut();
+            let up_to_date = design_mut.get_up_to_date();
+            let result = self.controller.apply_copy_operation(up_to_date, operation);
+            self.handle_operation_result(result)
+        }
+    }
+
+    pub(super) fn update_pending_operation(
+        &self,
+        operation: Arc<dyn Operation>,
+    ) -> Result<InteractorResult, ErrOperation> {
+        let op_is_new = self.is_in_stable_state();
+        let result = self
+            .controller
+            .update_pending_operation(self.design.as_ref(), operation.clone());
+        let mut ret = self.handle_operation_result(result);
+        if let Ok(ret) = ret.as_mut() {
+            ret.set_operation_state(operation, op_is_new);
+        }
+        ret
+    }
+
+    pub(super) fn start_simulation(
+        &self,
+        operation: SimulationOperation,
+    ) -> Result<InteractorResult, ErrOperation> {
+        let result = self
+            .controller
+            .apply_simulation_operation(self.design.clone_inner(), operation);
+        self.handle_operation_result(result)
+    }
+
+    pub(super) fn update_simulation(
+        &self,
+        operation: SimulationOperation,
+    ) -> Result<InteractorResult, ErrOperation> {
+        let result = self
+            .controller
+            .apply_simulation_operation(self.design.clone_inner(), operation);
+        self.handle_operation_result(result)
+    }
+
+    fn handle_operation_result(
+        &self,
+        result: Result<(OkOperation, Controller), ErrOperation>,
+    ) -> Result<InteractorResult, ErrOperation> {
+        match result {
+            Ok((OkOperation::Replace(design), mut controller)) => {
+                let mut ret = self.clone();
+                ret.new_selection = controller.next_selection.take();
+                ret.controller = AddressPointer::new(controller);
+                ret.design = AddressPointer::new(design);
+                Ok(InteractorResult::Replace(ret))
+            }
+            Ok((OkOperation::Push { design, label }, mut controller)) => {
+                let mut ret = self.clone();
+                ret.current_operation = None;
+                ret.new_selection = controller.next_selection.take();
+                ret.controller = AddressPointer::new(controller);
+                ret.design = AddressPointer::new(design);
+                Ok(InteractorResult::Push {
+                    interactor: ret,
+                    label,
+                })
+            }
+            Ok((OkOperation::NoOp, mut controller)) => {
+                let mut ret = self.clone();
+                ret.new_selection = controller.next_selection.take();
+                ret.controller = AddressPointer::new(controller);
+                Ok(InteractorResult::Replace(ret))
+            }
+            Err(e) => Err(e),
+        }
+    }
+
+    pub(super) fn get_current_operation_state(&self) -> Option<CurrentOpState> {
+        self.current_operation.as_ref().map(|op| CurrentOpState {
+            operation_id: self.current_operation_id,
+            current_operation: op.clone(),
+        })
+    }
+
+    pub(super) fn notify(&self, notification: InteractorNotification) -> Self {
+        let mut ret = self.clone();
+        ret.controller = AddressPointer::new(ret.controller.notify(notification));
+        ret
+    }
+
+    pub(super) fn design_need_update(&self, suggestion_parameters: &SuggestionParameters) -> bool {
+        presenter::design_need_update(&self.presenter, &self.design, suggestion_parameters)
+            || self.simulation_update.is_some()
+    }
+
+    pub(super) fn with_updated_design_reader(
+        mut self,
+        suggestion_parameters: &SuggestionParameters,
+    ) -> Self {
+        if cfg!(test) || log::log_enabled!(log::Level::Trace) {
+            print!("Old design: ");
+            self.design.show_address();
+        }
+        let (new_presenter, new_design) =
+            update_presenter(&self.presenter, self.design.clone(), suggestion_parameters);
+        self.presenter = new_presenter;
+        if cfg!(test) || log::log_enabled!(log::Level::Trace) {
+            print!("New design: ");
+            new_design.show_address();
+        }
+        log::trace!("Interactor design <- {new_design:p}");
+        self.design = new_design;
+        if let Some(update) = self.simulation_update.take() {
+            if !self.controller.get_simulation_state().is_running() {
+                self.simulation_update = None;
+            }
+            self.after_applying_simulation_update(update, suggestion_parameters)
+        } else {
+            self
+        }
+    }
+
+    pub(super) fn with_simulation_update_applied(
+        mut self,
+        update: Box<dyn SimulationUpdate>,
+    ) -> Self {
+        self.simulation_update = Some(update.into());
+        self
+    }
+
+    fn after_applying_simulation_update(
+        mut self,
+        update: Arc<dyn SimulationUpdate>,
+        suggestion_parameters: &SuggestionParameters,
+    ) -> Self {
+        let (new_presenter, new_design) = apply_simulation_update(
+            &self.presenter,
+            self.design.clone(),
+            update,
+            suggestion_parameters,
+        );
+        self.presenter = new_presenter;
+        log::trace!("Interactor design <- {new_design:p}");
+        self.design = new_design;
+        self
+    }
+
+    #[cfg(test)]
+    pub(super) fn with_updated_design(&self, design: Design) -> Self {
+        let mut new_interactor = self.clone();
+        new_interactor.design = AddressPointer::new(design);
+        new_interactor
+    }
+
+    pub(super) fn is_in_stable_state(&self) -> bool {
+        self.controller.is_in_persistent_state().is_persistent()
+    }
+
+    pub(super) fn has_different_design_than(&self, other: &Self) -> bool {
+        self.design != other.design
+    }
+
+    pub(super) fn has_different_model_matrix_than(&self, other: &Self) -> bool {
+        self.presenter
+            .has_different_model_matrix_than(other.presenter.as_ref())
+    }
+
+    pub(super) fn get_simulation_state(&self) -> SimulationState {
+        self.controller.get_simulation_state()
+    }
+
+    pub(super) fn get_dna_parameters(&self) -> HelixParameters {
+        self.presenter
+            .current_design
+            .helix_parameters
+            .unwrap_or_default()
+    }
+
+    pub(super) fn is_changing_color(&self) -> bool {
+        self.controller.is_changing_color()
+    }
+
+    pub(super) fn get_strand_builders(&self) -> &[StrandBuilder] {
+        self.controller.get_strand_builders()
+    }
+
+    pub(super) fn get_pasting_status(&self) -> PastingStatus {
+        self.controller.get_pasting_status()
+    }
+
+    pub(super) fn can_iterate_duplication(&self) -> bool {
+        self.controller.can_iterate_duplication()
+    }
+
+    pub(super) fn with_visibility_sieve(
+        mut self,
+        selection: Vec<Selection>,
+        compl: bool,
+    ) -> InteractorResult {
+        let mut presenter = self.presenter.clone_inner();
+        presenter.set_visibility_sieve(selection, compl);
+        self.presenter = AddressPointer::new(presenter);
+        self.design = AddressPointer::new(self.design.clone_inner());
+        InteractorResult::Push {
+            interactor: self,
+            label: UPDATE_VISIBILITY_SIEVE_LABEL.into(),
+        }
+    }
+
+    pub(super) fn get_new_selection(&self) -> Option<Vec<Selection>> {
+        self.controller.get_new_selection()
+    }
+
+    pub fn get_next_selection(&mut self) -> Option<Vec<Selection>> {
+        self.new_selection.take()
+    }
+
+    pub fn get_clipboard_content(&self) -> ClipboardContent {
+        self.controller.get_clipboard_content()
+    }
+
+    pub(super) fn save_design(
+        &self,
+        path: &PathBuf,
+        saving_info: SavingInformation,
+    ) -> Result<(), SaveDesignError> {
+        let mut design = self.presenter.current_design.clone_inner();
+        design.prepare_for_save(saving_info);
+        let json_content = serde_json::to_string_pretty(&design)?;
+        let mut f = std::fs::File::create(path)?;
+        f.write_all(json_content.as_bytes())?;
+        Ok(())
+    }
+
+    pub fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
+        self.presenter.export(export_path, export_type)
+    }
+
+    pub fn get_strand_domain(&self, s_id: usize, d_id: usize) -> Option<&Domain> {
+        self.presenter.get_strand_domain(s_id, d_id)
+    }
+
+    pub fn get_group_attributes(&self, group_id: GroupId) -> Option<&GroupAttribute> {
+        self.presenter
+            .current_design
+            .as_ref()
+            .group_attributes
+            .get(&group_id)
+    }
+
+    pub fn get_bezier_path_2d(&self, path_id: BezierPathId) -> Option<InstantiatedPiecewiseBezier> {
+        self.presenter.get_bezier_path_2d(path_id)
+    }
+
+    pub fn get_default_bezier(&self) -> Option<&BezierPlaneDescriptor> {
+        self.presenter
+            .current_design
+            .as_ref()
+            .bezier_planes
+            .values()
+            .next()
+    }
+
+    pub fn get_first_bezier_plane(&self, path_id: BezierPathId) -> Option<&BezierPlaneDescriptor> {
+        let path = self
+            .presenter
+            .current_design
+            .as_ref()
+            .bezier_paths
+            .get(&path_id)?;
+        let vertex_0 = path.vertices().first()?;
+        let plane_id = vertex_0.plane_id;
+        self.presenter
+            .current_design
+            .as_ref()
+            .bezier_planes
+            .get(&plane_id)
+    }
+}
+
+/// An operation has been successfully applied to the design, resulting in a new modified
+/// interactor. The variants of these enum indicate different ways in which the result should be
+/// handled
+pub(super) enum InteractorResult {
+    Push {
+        interactor: DesignInteractor,
+        label: std::borrow::Cow<'static, str>,
+    },
+    Replace(DesignInteractor),
+}
+
+impl InteractorResult {
+    pub(super) fn set_operation_state(&mut self, operation: Arc<dyn Operation>, new_op: bool) {
+        let (Self::Push { interactor, .. } | Self::Replace(interactor)) = self;
+        if new_op {
+            interactor.current_operation_id += 1;
+            log::info!("New operation id {}", interactor.current_operation_id);
+        }
+        interactor.current_operation = Some(operation);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        app_state::{
+            AppState, design_interactor::controller::clipboard::PastePosition, transitions,
+        },
+        design::operation::InsertionPoint,
+        utils::operation::GridHelixCreation,
+    };
+    use ensnano_design::{
+        grid::{GridDescriptor, GridId, GridTypeDescr, HelixGridPosition},
+        id_generator::IdGenerator,
+        nucl::Nucl,
+        strands::{DomainJunction, Strand},
+    };
+    use regex::Regex;
+    use ultraviolet::{Rotor3, Vec3};
+
+    fn test_path(design_name: &'static str) -> PathBuf {
+        let mut ret = PathBuf::from(std::env!("CARGO_MANIFEST_DIR"));
+        ret.pop();
+        ret.push("tests");
+        ret.push(design_name);
+        ret
+    }
+
+    fn one_helix_path() -> PathBuf {
+        test_path("one_helix.json")
+    }
+
+    fn design_for_sequence_testing() -> AppState {
+        let path = test_path("test_sequence.json");
+        AppState::import_design(path).ok().unwrap()
+    }
+
+    fn assert_good_strand<S: std::ops::Deref<Target = str>>(strand: &Strand, objective: S) {
+        println!("self {:?}", strand.formatted_domains());
+        println!("objective {}", &*objective);
+        let re = Regex::new(r"\[[^\]]*\]").unwrap();
+        let formatted_strand = strand.formatted_domains();
+        let left = re.find_iter(&formatted_strand);
+        let right = re.find_iter(&objective);
+        for (a, b) in left.zip(right) {
+            assert_eq!(a.as_str(), b.as_str());
+        }
+        test_sane_strand(strand);
+    }
+
+    fn assert_good_junctions<S: std::ops::Deref<Target = str>>(strand: &Strand, objective: S) {
+        println!("self {:?}", strand.formatted_anonymous_junctions());
+        println!("objective {}", &*objective);
+        let re = Regex::new(r"\[[^\]]*\]").unwrap();
+        let formatted_strand = strand.formatted_anonymous_junctions();
+        let left = re.find_iter(&formatted_strand);
+        let right = re.find_iter(&objective);
+        for (a, b) in left.zip(right) {
+            assert_eq!(a.as_str(), b.as_str());
+        }
+        test_sane_strand(strand);
+    }
+
+    /// A design with one strand h1: 0 -> 5 ; h2: 0 <- 5
+    fn one_xover() -> AppState {
+        let path = test_path("one_xover.json");
+        AppState::import_design(path).ok().unwrap()
+    }
+
+    /// A design with one strand h1: -1 -> 7 ; h2: -1 <- 7 ; h3: 0 -> 9 that can be pasted on
+    /// helices 4, 5 and 6
+    fn pastable_design() -> AppState {
+        let path = test_path("pastable.json");
+        AppState::import_design(path).ok().unwrap()
+    }
+
+    /// A design with one cyclic strand h1: -1 -> 7 ; h2: -1 <- 7 ; h3: 0 -> 9 that can be pasted on
+    /// helices 4, 5 and 6
+    fn pastable_cyclic() -> AppState {
+        let path = test_path("pastable_cyclic.json");
+        AppState::import_design(path).ok().unwrap()
+    }
+
+    fn fake_design_update(state: &mut AppState) {
+        let design = state.0.design.design.clone_inner();
+        let new_state = std::mem::take(state);
+        *state = new_state.with_updated_design(design);
+    }
+
+    #[test]
+    fn read_one_helix() {
+        let path = one_helix_path();
+        let interactor = DesignInteractor::new_with_path(&path).ok().unwrap();
+        let suggestion_parameters = Default::default();
+        let interactor = interactor.with_updated_design_reader(&suggestion_parameters);
+        assert_eq!(interactor.get_all_visible_nucl_ids().len(), 24);
+    }
+
+    #[test]
+    fn first_update_has_effect() {
+        let path = one_helix_path();
+        let mut app_state = AppState::import_design(path).ok().unwrap();
+        let old_app_state = app_state.clone();
+        fake_design_update(&mut app_state);
+        let app_state = app_state.updated();
+        assert!(old_app_state.design_was_modified(&app_state));
+    }
+
+    #[test]
+    fn second_update_has_no_effect() {
+        let path = one_helix_path();
+        let mut app_state = AppState::import_design(path).ok().unwrap();
+        fake_design_update(&mut app_state);
+        app_state = app_state.updated();
+        let old_app_state = app_state.clone();
+        let app_state = app_state.updated();
+        assert!(!old_app_state.design_was_modified(&app_state));
+    }
+
+    #[test]
+    fn strand_builder_on_xover_end() {
+        let mut app_state = one_xover();
+        app_state
+            .apply_design_op(DesignOperation::RequestStrandBuilders {
+                nucls: vec![
+                    Nucl {
+                        helix: 1,
+                        position: 5,
+                        forward: true,
+                    },
+                    Nucl {
+                        helix: 2,
+                        position: 5,
+                        forward: false,
+                    },
+                ],
+            })
+            .unwrap();
+        app_state.update();
+        assert_eq!(app_state.0.design.get_strand_builders().len(), 2);
+    }
+
+    #[test]
+    fn moving_one_strand_builder() {
+        let mut app_state = one_xover();
+        app_state
+            .apply_design_op(DesignOperation::RequestStrandBuilders {
+                nucls: vec![Nucl {
+                    helix: 1,
+                    position: 5,
+                    forward: true,
+                }],
+            })
+            .unwrap();
+        app_state.update();
+        app_state
+            .apply_design_op(DesignOperation::MoveBuilders(7))
+            .unwrap();
+        app_state.update();
+        let strand = app_state
+            .0
+            .design
+            .presenter
+            .current_design
+            .strands
+            .get(&0)
+            .expect("No strand 0");
+        assert_good_strand(strand, "[H1: 0 -> 7] [H2: 0 <- 5]");
+        assert_eq!(
+            strand.junctions,
+            vec![DomainJunction::IdentifiedXover(0), DomainJunction::Prime3]
+        );
+    }
+
+    const INSERTION_LEN_0: usize = 3;
+    const INSERTION_LEN_1: usize = 7;
+    const INSERTION_LEN_2: usize = 12;
+    const INSERTION_LEN_3: usize = 45;
+    const INSERTION_LEN_4: usize = 97;
+
+    /// Test insertions on prime5 of strand, in middle of domains in prime 5 of xover in prime 3 of
+    /// xover and in prime3 of strand
+    fn non_cyclic_strand_with_insertions() -> AppState {
+        // A design with one strand h1: -1 -> 7 ; h2: -1 <- 7 ; h3: 0 -> 9
+        let mut app_state = pastable_design();
+
+        // prime5 of strand
+        app_state
+            .apply_design_op(DesignOperation::SetInsertionLength {
+                insertion_point: InsertionPoint {
+                    nucl: Nucl {
+                        helix: 1,
+                        position: -1,
+                        forward: true,
+                    },
+                    nucl_is_prime5_of_insertion: false,
+                },
+                length: INSERTION_LEN_0,
+            })
+            .unwrap();
+        app_state.update();
+
+        // middle of domain
+        app_state
+            .apply_design_op(DesignOperation::SetInsertionLength {
+                insertion_point: InsertionPoint {
+                    nucl: Nucl {
+                        helix: 1,
+                        position: 3,
+                        forward: true,
+                    },
+                    nucl_is_prime5_of_insertion: true,
+                },
+                length: INSERTION_LEN_1,
+            })
+            .unwrap();
+        app_state.update();
+
+        // prime5 of xover
+        app_state
+            .apply_design_op(DesignOperation::SetInsertionLength {
+                insertion_point: InsertionPoint {
+                    nucl: Nucl {
+                        helix: 1,
+                        position: 7,
+                        forward: true,
+                    },
+                    nucl_is_prime5_of_insertion: true,
+                },
+                length: INSERTION_LEN_2,
+            })
+            .unwrap();
+        app_state.update();
+
+        // prime3 of xover
+        app_state
+            .apply_design_op(DesignOperation::SetInsertionLength {
+                insertion_point: InsertionPoint {
+                    nucl: Nucl {
+                        helix: 3,
+                        position: 0,
+                        forward: true,
+                    },
+                    nucl_is_prime5_of_insertion: false,
+                },
+                length: INSERTION_LEN_3,
+            })
+            .unwrap();
+        app_state.update();
+
+        //prime3 of strand
+        app_state
+            .apply_design_op(DesignOperation::SetInsertionLength {
+                insertion_point: InsertionPoint {
+                    nucl: Nucl {
+                        helix: 3,
+                        position: 9,
+                        forward: true,
+                    },
+                    nucl_is_prime5_of_insertion: true,
+                },
+                length: INSERTION_LEN_4,
+            })
+            .unwrap();
+        app_state.update();
+        app_state
+    }
+
+    /// Add an insertion on 5'end of a xover, split the strand and check that the junctions are
+    /// correct
+    #[test]
+    fn correct_junctions_after_split() {
+        // A design with one strand h1: -1 -> 7 ; h2: -1 <- 7 ; h3: 0 -> 9
+        let mut app_state = pastable_design();
+
+        println!("add insertion on prime5 of xover");
+        // prime5 of xover
+        app_state
+            .apply_design_op(DesignOperation::SetInsertionLength {
+                insertion_point: InsertionPoint {
+                    nucl: Nucl {
+                        helix: 1,
+                        position: 7,
+                        forward: true,
+                    },
+                    nucl_is_prime5_of_insertion: true,
+                },
+                length: INSERTION_LEN_2,
+            })
+            .unwrap();
+        app_state.update();
+
+        let strands = &mut app_state.0.design.presenter.current_design.strands.clone();
+
+        let s_id_prime5 = Controller::split_strand(
+            strands,
+            &Nucl {
+                helix: 3,
+                position: 0,
+                forward: true,
+            },
+            Some(true),
+            &mut 0,
+        )
+        .ok()
+        .unwrap();
+
+        let s_id_prime3 = strands
+            .get_strand_nucl(&Nucl {
+                helix: 3,
+                position: 0,
+                forward: true,
+            })
+            .unwrap();
+
+        let strand = strands.get(&s_id_prime5).expect("No strand 5'");
+        let expected_result = "[->] [x] [3']".to_owned();
+        assert_good_junctions(strand, expected_result);
+        println!("OK for 5' end");
+
+        let strand = strands.get(&s_id_prime3).expect("No strand 3'");
+        let expected_result = "[3']".to_owned();
+        assert_good_junctions(strand, expected_result);
+    }
+
+    /// Add an insertion on 3'end of a strand and check that the last two junctions are in correct
+    /// order
+    #[test]
+    fn junction_on_xover_ends() {
+        // A design with one strand h1: -1 -> 7 ; h2: -1 <- 7 ; h3: 0 -> 9
+        let mut app_state = pastable_design();
+
+        println!("add insertion on prime5 of xover");
+        // prime5 of xover
+        app_state
+            .apply_design_op(DesignOperation::SetInsertionLength {
+                insertion_point: InsertionPoint {
+                    nucl: Nucl {
+                        helix: 1,
+                        position: 7,
+                        forward: true,
+                    },
+                    nucl_is_prime5_of_insertion: true,
+                },
+                length: INSERTION_LEN_2,
+            })
+            .unwrap();
+        app_state.update();
+
+        println!("add insertion on prime3 of xover");
+        // prime3 of xover
+        app_state
+            .apply_design_op(DesignOperation::SetInsertionLength {
+                insertion_point: InsertionPoint {
+                    nucl: Nucl {
+                        helix: 3,
+                        position: 0,
+                        forward: true,
+                    },
+                    nucl_is_prime5_of_insertion: false,
+                },
+                length: INSERTION_LEN_3,
+            })
+            .unwrap();
+        app_state.update();
+
+        app_state.update();
+        let strand = app_state
+            .0
+            .design
+            .presenter
+            .current_design
+            .strands
+            .get(&0)
+            .expect("No strand 0");
+        let expected_result = "[->] [x] [->] [x] [3']".to_owned();
+        assert_good_junctions(strand, expected_result);
+    }
+
+    /// Add an insertion on 3'end of a strand and check that the last two junctions are in correct
+    /// order
+    #[test]
+    fn junction_on_xover_and_3prime_ends() {
+        // A design with one strand h1: -1 -> 7 ; h2: -1 <- 7 ; h3: 0 -> 9
+        let mut app_state = pastable_design();
+
+        // prime5 of xover
+        app_state
+            .apply_design_op(DesignOperation::SetInsertionLength {
+                insertion_point: InsertionPoint {
+                    nucl: Nucl {
+                        helix: 1,
+                        position: 7,
+                        forward: true,
+                    },
+                    nucl_is_prime5_of_insertion: true,
+                },
+                length: INSERTION_LEN_2,
+            })
+            .unwrap();
+        app_state.update();
+
+        // prime3 of xover
+        app_state
+            .apply_design_op(DesignOperation::SetInsertionLength {
+                insertion_point: InsertionPoint {
+                    nucl: Nucl {
+                        helix: 3,
+                        position: 0,
+                        forward: true,
+                    },
+                    nucl_is_prime5_of_insertion: false,
+                },
+                length: INSERTION_LEN_3,
+            })
+            .unwrap();
+        app_state.update();
+
+        //prime3 of strand
+        app_state
+            .apply_design_op(DesignOperation::SetInsertionLength {
+                insertion_point: InsertionPoint {
+                    nucl: Nucl {
+                        helix: 3,
+                        position: 9,
+                        forward: true,
+                    },
+                    nucl_is_prime5_of_insertion: true,
+                },
+                length: INSERTION_LEN_4,
+            })
+            .unwrap();
+        app_state.update();
+        let strand = app_state
+            .0
+            .design
+            .presenter
+            .current_design
+            .strands
+            .get(&0)
+            .expect("No strand 0");
+        let expected_result = "[->] [x] [->] [x] [->] [3']".to_owned();
+        assert_good_junctions(strand, expected_result);
+    }
+
+    #[test]
+    fn insertions_on_non_cyclic_strand_have_correct_effect_on_topology() {
+        let app_state = non_cyclic_strand_with_insertions();
+        let strand = app_state
+            .0
+            .design
+            .presenter
+            .current_design
+            .strands
+            .get(&0)
+            .expect("No strand 0");
+        let expected_result = format!(
+            "[@{INSERTION_LEN_0}] [H1: -1 -> 3] [@{INSERTION_LEN_1}] [H1: 4 -> 7] [@{INSERTION_LEN_2}] [H2: -1 <- 7] [@{INSERTION_LEN_3}] [H3: 0 -> 9] [@{INSERTION_LEN_4}]",
+        );
+        assert_good_strand(strand, expected_result);
+    }
+
+    #[test]
+    fn making_a_strand_cyclic_with_insertions_on_prime5_and_prime3() {
+        let mut app_state = non_cyclic_strand_with_insertions();
+        app_state
+            .apply_design_op(DesignOperation::Xover {
+                prime5_id: 0,
+                prime3_id: 0,
+            })
+            .unwrap();
+        app_state.update();
+        let strand = app_state
+            .0
+            .design
+            .presenter
+            .current_design
+            .strands
+            .get(&0)
+            .expect("No strand 0");
+        let expected_result = format!(
+            "[H1: -1 -> 3] [@{INSERTION_LEN_1}] [H1: 4 -> 7] [@{INSERTION_LEN_2}] [H2: -1 <- 7] [@{INSERTION_LEN_3}] [H3: 0 -> 9] [@{}] [cycle]",
+            INSERTION_LEN_4 + INSERTION_LEN_0
+        );
+        assert_good_strand(strand, expected_result);
+    }
+
+    #[test]
+    fn making_a_strand_cyclic_with_insertions_on_prime5() {
+        let mut app_state = non_cyclic_strand_with_insertions();
+        app_state
+            .apply_design_op(DesignOperation::SetInsertionLength {
+                insertion_point: InsertionPoint {
+                    nucl: Nucl {
+                        helix: 3,
+                        position: 9,
+                        forward: true,
+                    },
+                    nucl_is_prime5_of_insertion: true,
+                },
+                length: 0,
+            })
+            .unwrap();
+        app_state
+            .apply_design_op(DesignOperation::Xover {
+                prime5_id: 0,
+                prime3_id: 0,
+            })
+            .unwrap();
+        app_state.update();
+        let strand = app_state
+            .0
+            .design
+            .presenter
+            .current_design
+            .strands
+            .get(&0)
+            .expect("No strand 0");
+        let expected_result = format!(
+            "[H1: -1 -> 3] [@{INSERTION_LEN_1}] [H1: 4 -> 7] [@{INSERTION_LEN_2}] [H2: -1 <- 7] [@{INSERTION_LEN_3}] [H3: 0 -> 9] [@{INSERTION_LEN_0}] [cycle]",
+        );
+        assert_good_strand(strand, expected_result);
+    }
+
+    #[test]
+    fn making_a_strand_cyclic_with_insertions_on_prime3() {
+        let mut app_state = non_cyclic_strand_with_insertions();
+        app_state
+            .apply_design_op(DesignOperation::SetInsertionLength {
+                insertion_point: InsertionPoint {
+                    nucl: Nucl {
+                        helix: 1,
+                        position: -1,
+                        forward: true,
+                    },
+                    nucl_is_prime5_of_insertion: false,
+                },
+                length: 0,
+            })
+            .unwrap();
+        app_state
+            .apply_design_op(DesignOperation::Xover {
+                prime5_id: 0,
+                prime3_id: 0,
+            })
+            .unwrap();
+        app_state.update();
+        let strand = app_state
+            .0
+            .design
+            .presenter
+            .current_design
+            .strands
+            .get(&0)
+            .expect("No strand 0");
+        let expected_result = format!(
+            "[H1: -1 -> 3] [@{INSERTION_LEN_1}] [H1: 4 -> 7] [@{INSERTION_LEN_2}] [H2: -1 <- 7] [@{INSERTION_LEN_3}] [H3: 0 -> 9] [@{INSERTION_LEN_4}] [cycle]",
+        );
+        assert_good_strand(strand, expected_result);
+    }
+
+    #[test]
+    /// Test insertions on prime5 of strand, in middle of domains in prime 5 of xover in prime 3 of
+    /// xover and in prime3 of strand
+    fn insertions_on_cyclic_strand() {
+        // A design with one strand h1: -1 -> 7 ; h2: -1 <- 7 ; h3: 0 -> 9
+        let mut app_state = pastable_cyclic();
+        let insertion_len_0 = 3;
+        let insertion_len_1 = 7;
+        let insertion_len_2 = 12;
+        let insertion_len_3 = 45;
+        let insertion_len_4 = 97;
+
+        // prime5 of strand
+        app_state
+            .apply_design_op(DesignOperation::SetInsertionLength {
+                insertion_point: InsertionPoint {
+                    nucl: Nucl {
+                        helix: 1,
+                        position: -1,
+                        forward: true,
+                    },
+                    nucl_is_prime5_of_insertion: false,
+                },
+                length: insertion_len_0,
+            })
+            .unwrap();
+        app_state.update();
+
+        let strand = app_state
+            .0
+            .design
+            .presenter
+            .current_design
+            .strands
+            .get(&0)
+            .expect("No strand 0");
+        let expected_result =
+            format!("[H1: -1 -> 7] [H2: -1 <- 7] [H3: 0 -> 9] [@{insertion_len_0}] [cycle]",);
+        assert_good_strand(strand, expected_result);
+
+        // middle of domain
+        app_state
+            .apply_design_op(DesignOperation::SetInsertionLength {
+                insertion_point: InsertionPoint {
+                    nucl: Nucl {
+                        helix: 1,
+                        position: 3,
+                        forward: true,
+                    },
+                    nucl_is_prime5_of_insertion: true,
+                },
+                length: insertion_len_1,
+            })
+            .unwrap();
+        app_state.update();
+        let strand = app_state
+            .0
+            .design
+            .presenter
+            .current_design
+            .strands
+            .get(&0)
+            .expect("No strand 0");
+        let expected_result = format!(
+            "[H1: -1 -> 3] [@{insertion_len_1}] [H1: 4 -> 7] [H2: -1 <- 7] [H3: 0 -> 9] [@{insertion_len_0}] [cycle]",
+        );
+        assert_good_strand(strand, expected_result);
+
+        // prime5 of xover
+        app_state
+            .apply_design_op(DesignOperation::SetInsertionLength {
+                insertion_point: InsertionPoint {
+                    nucl: Nucl {
+                        helix: 1,
+                        position: 7,
+                        forward: true,
+                    },
+                    nucl_is_prime5_of_insertion: true,
+                },
+                length: insertion_len_2,
+            })
+            .unwrap();
+        app_state.update();
+        let strand = app_state
+            .0
+            .design
+            .presenter
+            .current_design
+            .strands
+            .get(&0)
+            .expect("No strand 0");
+        let expected_result = format!(
+            "[H1: -1 -> 3] [@{insertion_len_1}] [H1: 4 -> 7] [@{insertion_len_2}] [H2: -1 <- 7] [H3: 0 -> 9] [@{insertion_len_0}] [cycle]",
+        );
+        assert_good_strand(strand, expected_result);
+
+        // prime3 of xover
+        app_state
+            .apply_design_op(DesignOperation::SetInsertionLength {
+                insertion_point: InsertionPoint {
+                    nucl: Nucl {
+                        helix: 3,
+                        position: 0,
+                        forward: true,
+                    },
+                    nucl_is_prime5_of_insertion: false,
+                },
+                length: insertion_len_3,
+            })
+            .unwrap();
+        app_state.update();
+
+        let strand = app_state
+            .0
+            .design
+            .presenter
+            .current_design
+            .strands
+            .get(&0)
+            .expect("No strand 0");
+        let expected_result = format!(
+            "[H1: -1 -> 3] [@{insertion_len_1}] [H1: 4 -> 7] [@{insertion_len_2}] [H2: -1 <- 7] [@{insertion_len_3}] [H3: 0 -> 9] [@{insertion_len_0}] [cycle]",
+        );
+        assert_good_strand(strand, expected_result);
+
+        //prime3 of strand
+        app_state
+            .apply_design_op(DesignOperation::SetInsertionLength {
+                insertion_point: InsertionPoint {
+                    nucl: Nucl {
+                        helix: 3,
+                        position: 9,
+                        forward: true,
+                    },
+                    nucl_is_prime5_of_insertion: true,
+                },
+                length: insertion_len_4,
+            })
+            .unwrap();
+        app_state.update();
+
+        let strand = app_state
+            .0
+            .design
+            .presenter
+            .current_design
+            .strands
+            .get(&0)
+            .expect("No strand 0");
+        let expected_result = format!(
+            "[H1: -1 -> 3] [@{insertion_len_1}] [H1: 4 -> 7] [@{insertion_len_2}] [H2: -1 <- 7] [@{insertion_len_3}] [H3: 0 -> 9] [@{}] [cycle]",
+            insertion_len_4 + insertion_len_0
+        );
+        assert_good_strand(strand, expected_result);
+    }
+
+    fn test_sane_strand(strand: &Strand) {
+        let mut strand = Strand::clone(strand);
+        let mut xover_ids = IdGenerator::default();
+        strand.read_junctions(&mut xover_ids, true);
+        strand.read_junctions(&mut xover_ids, false);
+    }
+
+    #[test]
+    fn moving_xover_preserve_ids() {
+        let mut app_state = one_xover();
+        app_state
+            .apply_design_op(DesignOperation::RequestStrandBuilders {
+                nucls: vec![Nucl {
+                    helix: 1,
+                    position: 5,
+                    forward: true,
+                }],
+            })
+            .unwrap();
+        app_state.update();
+        app_state
+            .apply_design_op(DesignOperation::MoveBuilders(7))
+            .unwrap();
+        app_state.update();
+
+        let n1 = Nucl {
+            helix: 1,
+            position: 7,
+            forward: true,
+        };
+        let n2 = Nucl {
+            helix: 2,
+            position: 5,
+            forward: false,
+        };
+        let xover_id = app_state
+            .0
+            .design
+            .presenter
+            .junctions_ids
+            .get_all_elements();
+        assert_eq!(xover_id, vec![(0, (n1, n2))]);
+    }
+
+    #[test]
+    fn add_grid() {
+        let mut app_state = AppState::default();
+        app_state
+            .apply_design_op(DesignOperation::AddGrid(GridDescriptor {
+                position: Vec3::zero(),
+                orientation: Rotor3::identity(),
+                helix_parameters: None,
+                grid_type: GridTypeDescr::Square { twist: None },
+                invisible: false,
+                bezier_vertex: None,
+            }))
+            .unwrap();
+        app_state.update();
+        assert_eq!(
+            app_state.0.design.presenter.current_design.free_grids.len(),
+            1
+        );
+    }
+
+    #[test]
+    fn add_grid_helix_via_op() {
+        let mut app_state = AppState::default();
+        app_state
+            .apply_design_op(DesignOperation::AddGrid(GridDescriptor {
+                position: Vec3::zero(),
+                orientation: Rotor3::identity(),
+                helix_parameters: None,
+                grid_type: GridTypeDescr::Square { twist: None },
+                invisible: false,
+                bezier_vertex: None,
+            }))
+            .unwrap();
+        app_state.update();
+        app_state
+            .update_pending_operation(Arc::new(GridHelixCreation {
+                design_id: 0,
+                grid_id: GridId::FreeGrid(0),
+                x: 0,
+                y: 0,
+                position: 0,
+                length: 0,
+            }))
+            .unwrap();
+        app_state.update();
+        assert_eq!(app_state.0.design.presenter.current_design.helices.len(), 1);
+    }
+
+    #[test]
+    fn add_grid_helix_directly() {
+        let mut app_state = AppState::default();
+        app_state
+            .apply_design_op(DesignOperation::AddGrid(GridDescriptor {
+                position: Vec3::zero(),
+                orientation: Rotor3::identity(),
+                helix_parameters: None,
+                grid_type: GridTypeDescr::Square { twist: None },
+                invisible: false,
+                bezier_vertex: None,
+            }))
+            .unwrap();
+        app_state.update();
+        app_state
+            .apply_design_op(DesignOperation::AddGridHelix {
+                position: HelixGridPosition::from_grid_id_x_y(GridId::FreeGrid(0), 0, 0),
+                start: 0,
+                length: 0,
+            })
+            .unwrap();
+        app_state.update();
+        assert_eq!(app_state.0.design.presenter.current_design.helices.len(), 1);
+    }
+
+    #[ignore = "need fix"]
+    #[test]
+    fn copy_creates_clipboard() {
+        let mut app_state = pastable_design();
+        app_state
+            .apply_copy_operation(CopyOperation::CopyStrands(vec![0]))
+            .unwrap();
+        // Fix this path
+        // assert_eq!(app_state.0.design.controller.clipboard.size(), 1)
+    }
+
+    #[test]
+    fn coping_one_strand() {
+        let mut app_state = pastable_design();
+        assert_eq!(app_state.0.design.design.strands.len(), 1);
+        app_state
+            .apply_copy_operation(CopyOperation::CopyStrands(vec![0]))
+            .unwrap();
+        app_state
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
+                PastePosition::Nucl(Nucl {
+                    helix: 4,
+                    position: 5,
+                    forward: true,
+                }),
+            )))
+            .unwrap();
+        app_state
+            .apply_copy_operation(CopyOperation::Paste)
+            .unwrap();
+        app_state.update();
+        assert_eq!(app_state.0.design.design.strands.len(), 2);
+    }
+
+    #[test]
+    fn pasting_is_undoable() {
+        let mut app_state = pastable_design();
+        assert_eq!(app_state.0.design.design.strands.len(), 1);
+        app_state
+            .apply_copy_operation(CopyOperation::CopyStrands(vec![0]))
+            .unwrap();
+        app_state
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
+                PastePosition::Nucl(Nucl {
+                    helix: 4,
+                    position: 5,
+                    forward: true,
+                }),
+            )))
+            .unwrap();
+        assert!(matches!(
+            app_state
+                .apply_copy_operation(CopyOperation::Paste)
+                .unwrap(),
+            transitions::OkOperation::Undoable { .. }
+        ));
+    }
+
+    #[test]
+    fn can_paste_on_same_helix_if_not_intersecting() {
+        let mut app_state = pastable_design();
+        assert_eq!(app_state.0.design.design.strands.len(), 1);
+        app_state
+            .apply_copy_operation(CopyOperation::CopyStrands(vec![0]))
+            .unwrap();
+        app_state
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
+                PastePosition::Nucl(Nucl {
+                    helix: 1,
+                    position: 10,
+                    forward: true,
+                }),
+            )))
+            .unwrap();
+        app_state
+            .apply_copy_operation(CopyOperation::Paste)
+            .unwrap();
+        app_state.update();
+        assert_eq!(app_state.0.design.design.strands.len(), 2);
+    }
+
+    #[test]
+    fn copy_cannot_intersect_existing_strand() {
+        let mut app_state = pastable_design();
+        assert_eq!(app_state.0.design.design.strands.len(), 1);
+        app_state
+            .apply_copy_operation(CopyOperation::CopyStrands(vec![0]))
+            .unwrap();
+        app_state
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
+                PastePosition::Nucl(Nucl {
+                    helix: 1,
+                    position: 5,
+                    forward: true,
+                }),
+            )))
+            .unwrap();
+        match app_state.apply_copy_operation(CopyOperation::Paste) {
+            Err(ErrOperation::CannotPasteHere) => (),
+            x => panic!("expected CannotPasteHere, got {x:?}"),
+        }
+    }
+
+    #[test]
+    fn not_pasting_after_copy() {
+        let mut app_state = pastable_design();
+        app_state
+            .apply_copy_operation(CopyOperation::CopyStrands(vec![0]))
+            .unwrap();
+        assert_eq!(app_state.get_pasting_status(), PastingStatus::None);
+    }
+
+    #[test]
+    fn pasting_after_copy_and_request_paste() {
+        let mut app_state = pastable_design();
+        app_state
+            .apply_copy_operation(CopyOperation::CopyStrands(vec![0]))
+            .unwrap();
+        app_state
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(None))
+            .unwrap();
+        assert_eq!(app_state.get_pasting_status(), PastingStatus::Copy);
+    }
+
+    #[test]
+    fn not_pasting_after_paste() {
+        let mut app_state = pastable_design();
+        app_state
+            .apply_copy_operation(CopyOperation::CopyStrands(vec![0]))
+            .unwrap();
+        app_state
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
+                PastePosition::Nucl(Nucl {
+                    helix: 4,
+                    position: 5,
+                    forward: true,
+                }),
+            )))
+            .unwrap();
+        app_state
+            .apply_copy_operation(CopyOperation::Paste)
+            .unwrap();
+        app_state.update();
+        assert_eq!(app_state.get_pasting_status(), PastingStatus::None);
+    }
+
+    #[test]
+    fn pasting_after_duplicate() {
+        let mut app_state = pastable_design();
+        app_state
+            .apply_copy_operation(CopyOperation::InitStrandsDuplication(vec![0]))
+            .unwrap();
+        assert_eq!(app_state.get_pasting_status(), PastingStatus::Duplication);
+    }
+
+    #[test]
+    fn duplication_of_one_strand() {
+        let mut app_state = pastable_design();
+        app_state
+            .apply_copy_operation(CopyOperation::InitStrandsDuplication(vec![0]))
+            .unwrap();
+        app_state
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
+                PastePosition::Nucl(Nucl {
+                    helix: 1,
+                    position: 10,
+                    forward: true,
+                }),
+            )))
+            .unwrap();
+        app_state
+            .apply_copy_operation(CopyOperation::Duplicate)
+            .unwrap();
+        assert_eq!(app_state.0.design.design.strands.len(), 2);
+        app_state
+            .apply_copy_operation(CopyOperation::Duplicate)
+            .unwrap();
+        assert_eq!(app_state.0.design.design.strands.len(), 3);
+    }
+
+    #[test]
+    fn pasting_candidate_position_are_accessible() {
+        let mut app_state = pastable_design();
+        assert_eq!(app_state.0.design.controller.get_pasted_position().len(), 0);
+        app_state
+            .apply_copy_operation(CopyOperation::CopyStrands(vec![0]))
+            .unwrap();
+        app_state
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
+                PastePosition::Nucl(Nucl {
+                    helix: 1,
+                    position: 5,
+                    forward: true,
+                }),
+            )))
+            .unwrap();
+        assert!(
+            !app_state
+                .0
+                .design
+                .controller
+                .get_pasted_position()
+                .is_empty()
+        );
+    }
+
+    #[test]
+    fn setting_a_candidate_triggers_update() {
+        let mut app_state = pastable_design();
+        let old_app_state = app_state.clone();
+        assert!(!old_app_state.design_was_modified(&app_state));
+        assert_eq!(app_state.0.design.controller.get_pasted_position().len(), 0);
+        app_state
+            .apply_copy_operation(CopyOperation::CopyStrands(vec![0]))
+            .unwrap();
+        let ret = app_state
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
+                PastePosition::Nucl(Nucl {
+                    helix: 1,
+                    position: 10,
+                    forward: true,
+                }),
+            )))
+            .unwrap();
+        println!("{ret:?}");
+        app_state.update();
+        assert!(app_state.design_was_modified(&old_app_state));
+    }
+
+    #[test]
+    fn positioning_xovers_paste() {
+        let mut app_state = pastable_design();
+        let (n1, n2) = app_state
+            .get_design_interactor()
+            .get_xover_with_id(0)
+            .unwrap();
+        app_state
+            .apply_copy_operation(CopyOperation::CopyXovers(vec![(n1, n2)]))
+            .unwrap();
+        app_state
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(None))
+            .unwrap();
+        assert_eq!(app_state.0.design.design.strands.len(), 1);
+        app_state
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
+                PastePosition::Nucl(Nucl {
+                    helix: 1,
+                    position: 5,
+                    forward: true,
+                }),
+            )))
+            .unwrap();
+        assert_eq!(app_state.0.design.design.strands.len(), 2);
+        app_state
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
+                PastePosition::Nucl(Nucl {
+                    helix: 1,
+                    position: 3,
+                    forward: true,
+                }),
+            )))
+            .unwrap();
+        assert_eq!(app_state.0.design.design.strands.len(), 2);
+        app_state
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(None))
+            .unwrap();
+        assert_eq!(app_state.0.design.design.strands.len(), 1);
+    }
+
+    #[test]
+    fn pasting_when_positioning_xovers() {
+        let mut app_state = pastable_design();
+        let (n1, n2) = app_state
+            .get_design_interactor()
+            .get_xover_with_id(0)
+            .unwrap();
+        app_state
+            .apply_copy_operation(CopyOperation::CopyXovers(vec![(n1, n2)]))
+            .unwrap();
+        app_state
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(None))
+            .unwrap();
+        assert_eq!(app_state.get_pasting_status(), PastingStatus::Copy);
+    }
+
+    #[test]
+    fn duplicating_xovers() {
+        let mut app_state = pastable_design();
+        let (n1, n2) = app_state
+            .get_design_interactor()
+            .get_xover_with_id(0)
+            .unwrap();
+        app_state
+            .apply_copy_operation(CopyOperation::InitXoverDuplication(vec![(n1, n2)]))
+            .unwrap();
+        app_state
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(None))
+            .unwrap();
+        assert_eq!(app_state.0.design.design.strands.len(), 1);
+        app_state
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
+                PastePosition::Nucl(Nucl {
+                    helix: 1,
+                    position: 5,
+                    forward: true,
+                }),
+            )))
+            .unwrap();
+        app_state.update();
+        assert_eq!(app_state.0.design.design.strands.len(), 2);
+        app_state
+            .apply_copy_operation(CopyOperation::Duplicate)
+            .unwrap();
+        app_state.update();
+        assert_eq!(app_state.0.design.design.strands.len(), 2);
+        app_state
+            .apply_copy_operation(CopyOperation::Duplicate)
+            .unwrap();
+        app_state.update();
+        assert_eq!(app_state.0.design.design.strands.len(), 3);
+        app_state
+            .apply_copy_operation(CopyOperation::Duplicate)
+            .unwrap();
+        app_state.update();
+        assert_eq!(app_state.0.design.design.strands.len(), 4);
+    }
+
+    #[test]
+    fn duplicating_xovers_pasting_status() {
+        let mut app_state = pastable_design();
+        let (n1, n2) = app_state
+            .get_design_interactor()
+            .get_xover_with_id(0)
+            .unwrap();
+        app_state
+            .apply_copy_operation(CopyOperation::InitXoverDuplication(vec![(n1, n2)]))
+            .unwrap();
+        assert_eq!(app_state.get_pasting_status(), PastingStatus::Duplication);
+        app_state
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
+                PastePosition::Nucl(Nucl {
+                    helix: 1,
+                    position: 5,
+                    forward: true,
+                }),
+            )))
+            .unwrap();
+        assert_eq!(app_state.get_pasting_status(), PastingStatus::Duplication);
+        app_state
+            .apply_copy_operation(CopyOperation::Duplicate)
+            .unwrap();
+        assert_eq!(app_state.get_pasting_status(), PastingStatus::None);
+        app_state
+            .apply_copy_operation(CopyOperation::Duplicate)
+            .unwrap();
+        assert_eq!(app_state.get_pasting_status(), PastingStatus::None);
+    }
+
+    #[test]
+    fn correct_staples_no_scaffold_shift() {
+        let mut app_state = design_for_sequence_testing();
+        let sequence = std::fs::read_to_string(test_path("seq_test.txt")).unwrap();
+        app_state
+            .apply_design_op(DesignOperation::SetScaffoldSequence { sequence, shift: 0 })
+            .unwrap();
+        app_state.update();
+        let s_id = app_state
+            .get_design_interactor()
+            .get_id_of_strand_containing_nucl(&Nucl {
+                helix: 1,
+                position: 0,
+                forward: true,
+            })
+            .unwrap();
+        app_state
+            .apply_design_op(DesignOperation::SetScaffoldId(Some(s_id)))
+            .unwrap();
+        app_state.update();
+        let staples = app_state.get_design_interactor().presenter.get_staples();
+        for s in staples {
+            if s.name.contains("5':h1:nt7") {
+                assert_eq!(s.sequence, "CCAA TTTT"); // cspell: disable-line
+            } else if s.name.contains("5':h2:nt0") {
+                assert_eq!(s.sequence, "AAAA GGTT"); // cspell: disable-line
+            } else {
+                panic!("Incorrect staple name {:?}", s.name);
+            }
+        }
+    }
+
+    #[test]
+    fn correct_staples_scaffold_shift() {
+        let mut app_state = design_for_sequence_testing();
+        let sequence = std::fs::read_to_string(test_path("seq_test.txt")).unwrap();
+        app_state
+            .apply_design_op(DesignOperation::SetScaffoldSequence { sequence, shift: 3 })
+            .unwrap();
+        app_state.update();
+        let s_id = app_state
+            .get_design_interactor()
+            .get_id_of_strand_containing_nucl(&Nucl {
+                helix: 1,
+                position: 0,
+                forward: true,
+            })
+            .unwrap();
+        app_state
+            .apply_design_op(DesignOperation::SetScaffoldId(Some(s_id)))
+            .unwrap();
+        app_state.update();
+        let staples = app_state.get_design_interactor().presenter.get_staples();
+        for s in staples {
+            if s.name.contains("5':h1:nt7") {
+                assert_eq!(s.sequence, "AGGT TCCA"); // cspell: disable-line
+            } else if s.name.contains("5':h2:nt0") {
+                assert_eq!(s.sequence, "ATTT TAAA"); // cspell: disable-line
+            } else {
+                panic!("Incorrect staple name {:?}", s.name);
+            }
+        }
+    }
+
+    /// A design with two strands h1: 0 -> 5 and h1: 6 -> 10
+    fn two_neighbor_one_helix() -> AppState {
+        let path = test_path("two_neighbor_strands.ens");
+        AppState::import_design(path).ok().unwrap()
+    }
+
+    #[test]
+    fn xover_same_helix_neighbor_strands() {
+        let mut app_state = two_neighbor_one_helix();
+        let first_nucl = Nucl {
+            helix: 1,
+            position: 0,
+            forward: true,
+        };
+        let last_nucl = Nucl {
+            position: 10,
+            ..first_nucl
+        };
+        app_state
+            .apply_design_op(DesignOperation::GeneralXover {
+                source: last_nucl,
+                target: first_nucl,
+            })
+            .unwrap();
+        app_state.update();
+
+        let s_id = app_state
+            .get_design_interactor()
+            .get_id_of_strand_containing_nucl(&first_nucl)
+            .unwrap_or_else(|| panic!("no strand containing {first_nucl:?}"));
+        let strand = app_state
+            .0
+            .design
+            .presenter
+            .current_design
+            .strands
+            .get(&s_id)
+            .unwrap_or_else(|| panic!("No strand {s_id}"));
+
+        assert_good_strand(strand, "[H1: 6 -> 10] [H1: 0 -> 5]");
+    }
+
+    #[test]
+    fn merge_neighbor_strands_same_helix() {
+        let mut app_state = two_neighbor_one_helix();
+        let first_nucl = Nucl {
+            helix: 1,
+            position: 0,
+            forward: true,
+        };
+        let last_nucl = Nucl {
+            position: 10,
+            ..first_nucl
+        };
+        let s_id_first = app_state
+            .get_design_interactor()
+            .get_id_of_strand_containing_nucl(&first_nucl)
+            .unwrap_or_else(|| panic!("no strand containing {first_nucl:?}"));
+        let s_id_last = app_state
+            .get_design_interactor()
+            .get_id_of_strand_containing_nucl(&last_nucl)
+            .unwrap_or_else(|| panic!("no strand containing {last_nucl:?}"));
+        app_state
+            .apply_design_op(DesignOperation::Xover {
+                prime5_id: s_id_last,
+                prime3_id: s_id_first,
+            })
+            .unwrap();
+        app_state.update();
+
+        let s_id = app_state
+            .get_design_interactor()
+            .get_id_of_strand_containing_nucl(&first_nucl)
+            .unwrap_or_else(|| panic!("no strand containing {first_nucl:?}"));
+        let strand = app_state
+            .0
+            .design
+            .presenter
+            .current_design
+            .strands
+            .get(&s_id)
+            .unwrap_or_else(|| panic!("No strand {s_id}"));
+
+        assert_good_strand(strand, "[H1: 6 -> 10] [H1: 0 -> 5]");
+    }
+
+    /// A design with two strands [h1: 0 -> 10] and [@10] [h2: 0 <- 10]
+    fn loopout_5prime_end() -> AppState {
+        let path = test_path("loopout_5prime.ens");
+        AppState::import_design(path).ok().unwrap()
+    }
+
+    #[test]
+    fn xover_on_prime5_end_with_loopout() {
+        let mut app_state = loopout_5prime_end();
+        let source_nucl = Nucl {
+            helix: 1,
+            position: 10,
+            forward: true,
+        };
+        let dest_nucl = Nucl {
+            helix: 2,
+            position: 10,
+            forward: false,
+        };
+        app_state
+            .apply_design_op(DesignOperation::GeneralXover {
+                source: source_nucl,
+                target: dest_nucl,
+            })
+            .unwrap();
+        app_state.update();
+        let mut xover_ids = IdGenerator::default();
+
+        let s_id = app_state
+            .get_design_interactor()
+            .get_id_of_strand_containing_nucl(&source_nucl)
+            .unwrap_or_else(|| panic!("no strand containing {source_nucl:?}"));
+        let strand = app_state
+            .0
+            .design
+            .presenter
+            .current_design
+            .strands
+            .get(&s_id)
+            .unwrap_or_else(|| panic!("No strand {s_id}"));
+        let mut strand = Strand::clone(strand);
+        strand.read_junctions(&mut xover_ids, true);
+        strand.read_junctions(&mut xover_ids, false);
+    }
+
+    #[ignore = "the test file doesn't exist anymore"]
+    #[test]
+    fn merge_insertions() {
+        // A design with two strands [h1: 0 -> 10] and [@20] [h2: 0 <- 10]
+        let path = test_path("loopout_5prime_and_3prime.ens");
+        let mut app_state = AppState::import_design(path).ok().unwrap();
+        let source_nucl = Nucl {
+            helix: 1,
+            position: 10,
+            forward: true,
+        };
+        let dest_nucl = Nucl {
+            helix: 2,
+            position: 10,
+            forward: false,
+        };
+        app_state
+            .apply_design_op(DesignOperation::GeneralXover {
+                source: source_nucl,
+                target: dest_nucl,
+            })
+            .unwrap();
+        app_state.update();
+        let s_id = app_state
+            .get_design_interactor()
+            .get_id_of_strand_containing_nucl(&source_nucl)
+            .unwrap_or_else(|| panic!("no strand containing {source_nucl:?}"));
+        let strand = app_state
+            .0
+            .design
+            .presenter
+            .current_design
+            .strands
+            .get(&s_id)
+            .unwrap_or_else(|| panic!("No strand {s_id}"));
+
+        assert_good_strand(strand, "[H1: 0 -> 10] [@20] [H2: 0 <- 10]");
+    }
+}

@@ -1,47 +1,49 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use ensnano_design::ultraviolet;
-use ensnano_utils::wgpu;
-use ultraviolet::{Mat4, Vec2, Vec3, Vec4};
-use wgpu::{include_spirv, Device, RenderPass};
-
-use super::{grid_disc::GridDisc, instances_drawer::*, LetterInstance};
-use ensnano_design::grid::{Grid, GridDivision, GridId, GridPosition, GridType};
-use std::collections::BTreeMap;
-
 mod texture;
 
-#[derive(Debug, Clone)]
-pub struct GridInstance {
-    pub grid: Grid,
-    pub min_x: i32,
-    pub max_x: i32,
-    pub min_y: i32,
-    pub max_y: i32,
-    pub color: u32,
-    pub design: usize,
-    pub id: GridId,
-    pub fake: bool,
-    pub visible: bool,
+use crate::{
+    element_selector::bezier_vertex_id,
+    view::{
+        grid_disc::GridDisc,
+        instances_drawer::{
+            InstanceDrawer, Instantiable, RawDrawer as _, ResourceProvider, Vertexable,
+        },
+        letter::LetterInstance,
+    },
+};
+use ensnano_design::grid::{GridDivision as _, GridId, GridInstance, GridPosition, GridType};
+use ensnano_utils::instance::Instance;
+use std::collections::BTreeMap;
+use ultraviolet::{Mat4, Vec2, Vec3, Vec4};
+use wgpu::{Device, RenderPass, include_spirv};
+
+pub trait GridInstanceExt {
+    fn disc(&self, x: isize, y: isize, color: u32, model_id: u32) -> (GridDisc, GridDisc);
+
+    fn letter_instance(
+        &self,
+        x: isize,
+        y: isize,
+        h_id: usize,
+        instances: &mut [Vec<LetterInstance>],
+        right: Vec3,
+        up: Vec3,
+    );
+
+    #[must_use]
+    fn to_fake(&self) -> Self;
+
+    fn to_raw(&self) -> GridInstanceRaw;
+
+    /// Return x >= 0 so that origin + x axis is on the grid, or None if such an x does not exist.
+    fn ray_intersection(&self, origin: Vec3, axis: Vec3) -> Option<GridIntersection>;
+
+    fn convert_coord(&self, x: f32, y: f32) -> (f32, f32);
+
+    fn contains_point(&self, x: f32, y: f32) -> bool;
 }
 
-impl GridInstance {
-    pub fn disc(&self, x: isize, y: isize, color: u32, model_id: u32) -> (GridDisc, GridDisc) {
+impl GridInstanceExt for GridInstance {
+    fn disc(&self, x: isize, y: isize, color: u32, model_id: u32) -> (GridDisc, GridDisc) {
         let position = self.grid.position_helix(x, y);
         let orientation = self.grid.orientation;
         let gd = GridDisc {
@@ -63,12 +65,12 @@ impl GridInstance {
         )
     }
 
-    pub fn letter_instance(
+    fn letter_instance(
         &self,
         x: isize,
         y: isize,
         h_id: usize,
-        instances: &mut Vec<Vec<LetterInstance>>,
+        instances: &mut [Vec<LetterInstance>],
         right: Vec3,
         up: Vec3,
     ) {
@@ -77,7 +79,7 @@ impl GridInstance {
             let shift = 0.5 * up - 0.35 * h_id.to_string().len() as f32 * right;
             let instance = LetterInstance {
                 position: position + 0.7 * c_idx as f32 * right + shift,
-                color: ultraviolet::Vec4::new(0., 0., 0., 1.),
+                color: Vec4::new(0., 0., 0., 1.),
                 design_id: self.design as u32,
                 scale: 3.,
                 shift: Vec3::zero(),
@@ -90,9 +92,7 @@ impl GridInstance {
     fn to_fake(&self) -> Self {
         let color = match self.id {
             GridId::FreeGrid(id) => id as u32,
-            GridId::BezierPathGrid(vertex) => {
-                crate::element_selector::bezier_vertex_id(vertex.path_id, vertex.vertex_id)
-            }
+            GridId::BezierPathGrid(vertex) => bezier_vertex_id(vertex.path_id, vertex.vertex_id),
         };
         Self {
             color,
@@ -102,9 +102,8 @@ impl GridInstance {
     }
 
     fn to_raw(&self) -> GridInstanceRaw {
-        use ensnano_utils::instance::Instance;
         let (min_x, min_y, max_x, max_y);
-        if let GridType::Hyperboloid(ref h) = self.grid.grid_type {
+        if let GridType::Hyperboloid(h) = &self.grid.grid_type {
             min_x = -h.grid_radius(&self.grid.helix_parameters);
             max_x = h.grid_radius(&self.grid.helix_parameters);
             min_y = -h.grid_radius(&self.grid.helix_parameters);
@@ -135,7 +134,7 @@ impl GridInstance {
         }
     }
 
-    /// Return x >= 0 so that orgin + x axis is on the grid, or None if such an x does not exist.
+    /// Return x >= 0 so that origin + x axis is on the grid, or None if such an x does not exist.
     fn ray_intersection(&self, origin: Vec3, axis: Vec3) -> Option<GridIntersection> {
         let ret = self.grid.ray_intersection(origin, axis)?;
         if ret < 0. {
@@ -148,22 +147,19 @@ impl GridInstance {
             let y_dir = Vec3::unit_y().rotated_by(self.grid.orientation);
             (vec.dot(x_dir), vec.dot(y_dir))
         };
-        if self.contains_point(x, y) {
+        self.contains_point(x, y).then(|| {
             let (x, y) = self
                 .grid
                 .grid_type
                 .interpolate(&self.grid.helix_parameters, x, y);
-
-            Some(GridIntersection {
+            GridIntersection {
                 depth: ret,
                 grid_id: self.id,
                 design_id: self.design,
                 x,
                 y,
-            })
-        } else {
-            None
-        }
+            }
+        })
     }
 
     fn convert_coord(&self, x: f32, y: f32) -> (f32, f32) {
@@ -183,7 +179,7 @@ impl GridInstance {
     }
 
     fn contains_point(&self, x: f32, y: f32) -> bool {
-        if let GridType::Hyperboloid(ref h) = self.grid.grid_type {
+        if let GridType::Hyperboloid(h) = &self.grid.grid_type {
             h.contains_point(&self.grid.helix_parameters, x, y)
         } else {
             let (x, y) = self.convert_coord(x, y);
@@ -210,7 +206,7 @@ pub struct GridInstanceRaw {
     pub design_id: u32,       // padding 0,
 }
 
-/// A structure that manages the pipepline that draw the grids
+/// A structure that manages the pipeline that draw the grids
 pub struct GridManager {
     /// A possible updates to the instances to be drawn. Must be taken into account before drawing
     /// next frame
@@ -241,7 +237,7 @@ impl GridManager {
 
     /// Request an update of the set of instances to draw. This update take effects on the next frame
     pub fn new_instances(&mut self, instances: BTreeMap<GridId, GridInstance>) {
-        self.new_instances = Some(instances)
+        self.new_instances = Some(instances);
     }
 
     /// If one or several update of the set of instances were requested before the last call of
@@ -273,22 +269,22 @@ impl GridManager {
         }
         if fake {
             self.fake_drawer
-                .draw(render_pass, viewer_bind_group, model_bind_group)
+                .draw(render_pass, viewer_bind_group, model_bind_group);
         } else {
             self.drawer
-                .draw(render_pass, viewer_bind_group, model_bind_group)
+                .draw(render_pass, viewer_bind_group, model_bind_group);
         }
     }
 
     pub fn intersect(&self, origin: Vec3, direction: Vec3) -> Option<GridIntersection> {
         let mut ret = None;
-        let mut depth = std::f32::INFINITY;
+        let mut depth = f32::INFINITY;
         for g in self.instances.values() {
-            if let Some(intersection) = g.ray_intersection(origin, direction) {
-                if intersection.depth < depth {
-                    ret = Some(intersection.clone());
-                    depth = intersection.depth;
-                }
+            if let Some(intersection) = g.ray_intersection(origin, direction)
+                && intersection.depth < depth
+            {
+                ret = Some(intersection.clone());
+                depth = intersection.depth;
             }
         }
         ret
@@ -307,23 +303,23 @@ impl GridManager {
 
     pub fn set_candidate_grid(&mut self, grids: Vec<(usize, GridId)>) {
         self.need_new_colors = true;
-        self.candidate = grids
+        self.candidate = grids;
     }
 
     pub fn set_selected_grid(&mut self, grids: Vec<(usize, GridId)>) {
         self.need_new_colors = true;
-        self.selected = grids
+        self.selected = grids;
     }
 
     fn update_colors(&mut self) {
         for instance in self.instances.values_mut() {
-            if self.selected.contains(&(instance.design, instance.id)) {
-                instance.color = 0xFF_00_00
+            instance.color = if self.selected.contains(&(instance.design, instance.id)) {
+                0xFF_00_00
             } else if self.candidate.contains(&(instance.design, instance.id)) {
-                instance.color = 0x00_FF_00
+                0x00_FF_00
             } else {
-                instance.color = 0x00_00_FF
-            }
+                0x00_00_FF
+            };
         }
         self.drawer
             .new_instances(self.instances.values().cloned().collect());
@@ -357,7 +353,7 @@ pub struct GridVertex {
 }
 
 impl Vertexable for GridVertex {
-    type RawType = GridVertex;
+    type RawType = Self;
 
     fn to_raw(&self) -> Self {
         *self
@@ -365,7 +361,7 @@ impl Vertexable for GridVertex {
 
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         wgpu::VertexBufferLayout {
-            array_stride: std::mem::size_of::<GridVertex>() as wgpu::BufferAddress,
+            array_stride: size_of::<Self>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &wgpu::vertex_attr_array![0 => Float32x2],
         }
@@ -374,22 +370,20 @@ impl Vertexable for GridVertex {
 
 pub struct GridTextures {
     square_texture: texture::SquareTexture,
-    honney_texture: texture::HonneyTexture,
+    honey_texture: texture::HoneyTexture,
 }
 
 impl GridTextures {
     pub fn new(device: &Device, encoder: &mut wgpu::CommandEncoder) -> Self {
-        let square_texture = texture::SquareTexture::new(device, encoder);
-        let honney_texture = texture::HonneyTexture::new(device, encoder);
         Self {
-            square_texture,
-            honney_texture,
+            square_texture: texture::SquareTexture::new(device, encoder),
+            honey_texture: texture::HoneyTexture::new(device, encoder),
         }
     }
 }
 
-impl RessourceProvider for GridTextures {
-    fn ressources_layout() -> &'static [wgpu::BindGroupLayoutEntry] {
+impl ResourceProvider for GridTextures {
+    fn resources_layout() -> &'static [wgpu::BindGroupLayoutEntry] {
         &[
             wgpu::BindGroupLayoutEntry {
                 binding: 0,
@@ -426,7 +420,7 @@ impl RessourceProvider for GridTextures {
         ]
     }
 
-    fn ressources(&self) -> Vec<wgpu::BindGroupEntry> {
+    fn resources(&self) -> Vec<wgpu::BindGroupEntry<'_>> {
         vec![
             wgpu::BindGroupEntry {
                 binding: 0,
@@ -438,20 +432,20 @@ impl RessourceProvider for GridTextures {
             },
             wgpu::BindGroupEntry {
                 binding: 2,
-                resource: wgpu::BindingResource::TextureView(&self.honney_texture.view),
+                resource: wgpu::BindingResource::TextureView(&self.honey_texture.view),
             },
             wgpu::BindGroupEntry {
                 binding: 3,
-                resource: wgpu::BindingResource::Sampler(&self.honney_texture.sampler),
+                resource: wgpu::BindingResource::Sampler(&self.honey_texture.sampler),
             },
         ]
     }
 }
 
-impl Instanciable for GridInstance {
+impl Instantiable for GridInstance {
     type Vertex = GridVertex;
     type RawInstance = GridInstanceRaw;
-    type Ressource = GridTextures;
+    type Resource = GridTextures;
 
     fn to_raw_instance(&self) -> GridInstanceRaw {
         self.to_raw()
@@ -483,14 +477,10 @@ impl Instanciable for GridInstance {
     }
 
     fn vertex_module(device: &Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&include_spirv!("grid.vert.spv"))
+        device.create_shader_module(include_spirv!("grid.vert.spv"))
     }
 
     fn fragment_module(device: &Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&include_spirv!("grid.frag.spv"))
-    }
-
-    fn alpha_to_coverage_enabled() -> bool {
-        true
+        device.create_shader_module(include_spirv!("grid.frag.spv"))
     }
 }

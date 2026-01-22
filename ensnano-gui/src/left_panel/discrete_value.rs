@@ -1,31 +1,15 @@
-use iced::Space;
+//! A slider to choose a numerical value within a discrete linear range.
 
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+// TODO: Make it an independent object like ensnano_gui::color_picker ?
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::{button, slider, AppState, Button, DesactivatedSlider, Element, Row, Slider, Text};
-
-use super::Message;
+use ensnano_state::gui::messages::{FactoryId, LeftPanelMessage, ValueId};
+use iced::{
+    Alignment, Length, Pixels,
+    widget::{Space, button, row, slider, text},
+};
 use std::collections::BTreeMap;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct ValueId(pub usize);
-
-pub trait Requestable {
+pub(super) trait Requestable {
     type Request;
     fn request_from_values(&self, values: &[f32]) -> Self::Request;
     fn nb_values(&self) -> usize;
@@ -36,7 +20,7 @@ pub trait Requestable {
     fn name_val(&self, n: usize) -> String;
 
     fn make_request(&self, values: &[f32], request: &mut Option<Self::Request>) {
-        *request = Some(self.request_from_values(values))
+        *request = Some(self.request_from_values(values));
     }
 
     fn hidden(&self, _: usize) -> bool {
@@ -44,31 +28,22 @@ pub trait Requestable {
     }
 }
 
-pub struct RequestFactory<R: Requestable> {
+pub(super) struct RequestFactory<R: Requestable> {
     values: BTreeMap<ValueId, DiscreteValue>,
     pub requestable: R,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Copy)]
-pub enum FactoryId {
-    HelixRoll,
-    Hyperboloid,
-    Scroll,
-    RigidBody,
-    Brownian,
-}
-
 impl<R: Requestable> RequestFactory<R> {
-    pub fn new(factory_id: FactoryId, requestable: R) -> Self {
+    pub(super) fn new(factory_id: FactoryId, requestable: R) -> Self {
         let mut values = BTreeMap::new();
-        for id in 0..requestable.nb_values() {
-            let default = requestable.initial_value(id);
-            let min_val = requestable.min_val(id);
-            let max_val = requestable.max_val(id);
-            let step_val = requestable.step_val(id);
-            let name = requestable.name_val(id);
+        for n in 0..requestable.nb_values() {
+            let default = requestable.initial_value(n);
+            let min_val = requestable.min_val(n);
+            let max_val = requestable.max_val(n);
+            let step_val = requestable.step_val(n);
+            let name = requestable.name_val(n);
             values.insert(
-                ValueId(id),
+                ValueId(n),
                 DiscreteValue::new(
                     default,
                     step_val,
@@ -76,8 +51,8 @@ impl<R: Requestable> RequestFactory<R> {
                     max_val,
                     name,
                     factory_id,
-                    ValueId(id),
-                    requestable.hidden(id),
+                    ValueId(n),
+                    requestable.hidden(n),
                 ),
             );
         }
@@ -87,15 +62,20 @@ impl<R: Requestable> RequestFactory<R> {
         }
     }
 
-    pub fn view<S: AppState>(&mut self, active: bool, size: u16) -> Vec<Element<Message<S>>> {
+    pub(super) fn view(
+        &self,
+        active: bool,
+        size: impl Into<Pixels>,
+    ) -> Vec<iced::Element<'_, LeftPanelMessage>> {
+        let s = size.into();
         self.values
-            .values_mut()
+            .values()
             .filter(|v| !v.hidden)
-            .map(|v| v.view(active, size))
+            .map(|v| v.view(active, s))
             .collect()
     }
 
-    pub fn update_request(
+    pub(super) fn update_request(
         &mut self,
         value_id: ValueId,
         new_val: f32,
@@ -105,26 +85,28 @@ impl<R: Requestable> RequestFactory<R> {
             .get_mut(&value_id)
             .unwrap()
             .update_value(new_val);
-        let values: Vec<f32> = self.values.values().map(|v| v.get_value()).collect();
-        self.requestable.make_request(&values, request)
+        let values: Vec<f32> = self.values.values().map(DiscreteValue::get_value).collect();
+        self.requestable.make_request(&values, request);
     }
 
-    pub fn update_value(&mut self, value_id: ValueId, new_val: f32) -> R::Request {
+    pub(super) fn update_value(&mut self, value_id: ValueId, new_val: f32) -> R::Request {
         self.values
             .get_mut(&value_id)
             .unwrap()
             .update_value(new_val);
-        let values: Vec<f32> = self.values.values().map(|v| v.get_value()).collect();
+        let values: Vec<f32> = self.values.values().map(DiscreteValue::get_value).collect();
         self.requestable.request_from_values(&values)
     }
 
-    pub fn make_request(&self, request: &mut Option<R::Request>) {
-        let values: Vec<f32> = self.values.values().map(|v| v.get_value()).collect();
-        self.requestable.make_request(&values, request)
+    pub(super) fn make_request(&self, request: &mut Option<R::Request>) {
+        let values: Vec<f32> = self.values.values().map(DiscreteValue::get_value).collect();
+        self.requestable.make_request(&values, request);
     }
 }
 
+/// A slider to choose a numerical value within a discrete linear range.
 struct DiscreteValue {
+    // Current selected value.
     value: f32,
     step: f32,
     min_val: f32,
@@ -132,9 +114,6 @@ struct DiscreteValue {
     name: String,
     owner_id: FactoryId,
     value_id: ValueId,
-    incr_button: button::State,
-    decr_button: button::State,
-    slider: slider::State,
     hidden: bool,
 }
 
@@ -157,85 +136,73 @@ impl DiscreteValue {
             name,
             owner_id,
             value_id,
-            incr_button: Default::default(),
-            decr_button: Default::default(),
-            slider: Default::default(),
             hidden,
         }
     }
 
-    fn view<S: AppState>(&mut self, active: bool, name_size: u16) -> Element<Message<S>> {
+    fn view(
+        &self,
+        active: bool,
+        name_size: impl Into<Pixels>,
+    ) -> iced::Element<'_, LeftPanelMessage> {
         let decr_button = if active && self.value - self.step >= self.min_val {
-            Button::new(&mut self.decr_button, Text::new("-")).on_press(Message::DiscreteValue {
+            button("-").on_press(LeftPanelMessage::DiscreteValue {
                 factory_id: self.owner_id,
                 value_id: self.value_id,
                 value: self.value - self.step,
             })
         } else {
-            Button::new(&mut self.decr_button, Text::new("-"))
+            button("-")
         };
         let incr_button = if active && self.value + self.step <= self.max_val {
-            Button::new(&mut self.incr_button, Text::new("+")).on_press(Message::DiscreteValue {
+            button("+").on_press(LeftPanelMessage::DiscreteValue {
                 factory_id: self.owner_id,
                 value_id: self.value_id,
                 value: self.value + self.step,
             })
         } else {
-            Button::new(&mut self.incr_button, Text::new("+"))
+            button("+")
         };
-        let factory_id = self.owner_id.clone();
-        let value_id = self.value_id.clone();
+        let factory_id = self.owner_id;
+        let value_id = self.value_id;
         let slider = if active {
-            Slider::new(
-                &mut self.slider,
-                self.min_val..=self.max_val,
-                self.value,
-                move |value| Message::DiscreteValue {
+            slider(self.min_val..=self.max_val, self.value, move |value| {
+                LeftPanelMessage::DiscreteValue {
                     factory_id,
                     value_id,
                     value,
-                },
-            )
+                }
+            })
             .step(self.step)
         } else {
-            Slider::new(
-                &mut self.slider,
-                self.min_val..=self.max_val,
-                self.value,
-                |_| Message::Nothing,
-            )
-            .style(DesactivatedSlider)
+            slider(self.min_val..=self.max_val, self.value, |_| {
+                LeftPanelMessage::Nothing
+            })
+            .style(crate::theme::DeactivatedSlider)
         };
 
-        let mut name_text = Text::new(self.name.clone()).size(name_size);
+        let mut name_text = text(self.name.clone()).size(name_size);
 
         if !active {
-            name_text = name_text.color([0.6, 0.6, 0.6]);
+            name_text = name_text.style(crate::theme::DISABLED_TEXT);
         }
 
-        let left = Row::new()
-            .push(name_text)
-            .push(iced::Space::with_width(iced::Length::Fill))
-            .align_items(iced::Alignment::Center)
-            .width(iced::Length::FillPortion(8));
-
-        let middle = Row::new()
-            .push(Text::new(format!("{:.1}", self.value)))
-            .width(iced::Length::FillPortion(3));
-        let right = Row::new()
-            .push(decr_button)
-            .push(incr_button)
-            .push(iced::Space::with_width(iced::Length::Units(2)))
-            .push(slider)
-            .width(iced::Length::FillPortion(10));
-
-        Row::new()
-            .push(left)
-            .push(middle)
-            .push(right)
-            .push(Space::with_width(iced::Length::FillPortion(1)))
-            .align_items(iced::Alignment::Center)
-            .into()
+        row![
+            // On the left: print the name of the parameter being selected.
+            row![name_text, Space::with_width(Length::Fill),]
+                .align_items(Alignment::Center)
+                .width(Length::FillPortion(8)),
+            // On the middle: print the currently selected value.
+            row![text(format!("{:.1}", self.value)),].width(Length::FillPortion(3)),
+            // One the right: the buttons and slider that allow to modify the currently selected
+            // value.
+            row![decr_button, incr_button, Space::with_width(2), slider,]
+                .width(Length::FillPortion(10)),
+            //
+            Space::with_width(Length::FillPortion(1)),
+        ]
+        .align_items(Alignment::Center)
+        .into()
     }
 
     fn get_value(&self) -> f32 {
@@ -243,6 +210,6 @@ impl DiscreteValue {
     }
 
     fn update_value(&mut self, new_val: f32) {
-        self.value = new_val
+        self.value = new_val;
     }
 }

@@ -1,194 +1,121 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+//! Implementation of the top bar part of the GUI.
+//!
+//! The top bar consist of a row of buttons that covers various actions: load/save a model, change
+//! the selection mode, modify the layout of the window, etc.
+//!
+//! Drawing the top bar, and triggering events from it is handled here.
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::{AppState, UiSize};
-use ensnano_interactor::{ActionMode, SelectionMode};
-use iced::{container, Background, Container};
-use iced_wgpu;
-use iced_winit::winit::dpi::LogicalSize;
-use iced_winit::{
-    widget::{button, Button, Row},
-    Color, Command, Element, Length, Program,
+use crate::{
+    TopBarStateFlags,
+    fonts::{
+        ENSNANO_FONT,
+        material_icons::{MaterialIcon, MaterialIconStyle},
+    },
+    helpers::{fixed_text_button, image_button, material_icon_button, text_button},
+    theme::GuiBackground,
 };
-use std::collections::BTreeMap;
+use ensnano_design::interaction_modes::{ActionMode, SelectionMode};
+use ensnano_state::{app_state::AppState, gui::messages::TopBarMessage, requests::Requests};
+use ensnano_utils::{graphics::SplitMode, ui_size::UiSize};
+use iced::{
+    Element, Length, Padding, theme,
+    widget::{Button, Row, container, image, row, text, tooltip},
+};
+use iced_runtime::{Command, Program};
 use std::sync::{Arc, Mutex};
+use winit::dpi::LogicalSize;
 
-use super::material_icons_light::{dark_icon, light_icon, LightIcon};
-
-use super::{Requests, SplitMode};
-
-pub struct TopBar<R: Requests, S: AppState> {
-    button_fit: button::State,
-    button_add_file: button::State,
-    button_save_as: button::State,
-    button_save: button::State,
-    button_undo: button::State,
-    button_redo: button::State,
-    button_3d: button::State,
-    button_2d: button::State,
-    button_split: button::State,
-    button_oxdna: button::State,
-    button_split_2d: button::State,
-    button_flip_split: button::State,
-    button_help: button::State,
-    button_tutorial: button::State,
-    button_reload: button::State,
-    button_toggle_2d: button::State,
-    button_new_empty_design: button::State,
-    button_thick_helices: button::State,
-    horizon_button: button::State,
-    button_3d_object: button::State,
-    requests: Arc<Mutex<R>>,
+/// Top bar object
+pub struct TopBarState {
+    /// ENSnano requests handle to which forwards messages.
+    requests: Arc<Mutex<Requests>>,
+    /// Area occupied by the top bar.
     logical_size: LogicalSize<f64>,
-    action_mode_state: ActionModeState,
-    selection_mode_state: SelectionModeState,
+    /// A copy of the UI sizes.
     ui_size: UiSize,
-    application_state: MainState<S>,
+    /// State of the whole application.
+    app_state: AppState,
+    /// More local state stuff.
+    state: TopBarStateFlags,
 }
 
-#[derive(Debug, Default, Clone)]
-pub struct MainState<S: AppState> {
-    pub app_state: S,
-    pub can_undo: bool,
-    pub can_redo: bool,
-    pub need_save: bool,
-    pub can_reload: bool,
-    pub can_split2d: bool,
-    pub can_toggle_2d: bool,
-    pub splited_2d: bool,
-}
-
-#[derive(Debug, Clone)]
-pub enum Message<S: AppState> {
-    SceneFitRequested,
-    AlignHorizon,
-    OpenFileButtonPressed,
-    FileSaveRequested,
-    SaveAsRequested,
-    Resize(LogicalSize<f64>),
-    ToggleView(SplitMode),
-    UiSizeChanged(UiSize),
-    ExportRequested,
-    Split2d,
-    NewApplicationState(MainState<S>),
-    ForceHelp,
-    ShowTutorial,
-    Undo,
-    Redo,
-    ButtonNewEmptyDesignPressed,
-    ActionModeChanged(ActionMode),
-    SelectionModeChanged(SelectionMode),
-    Toggle2D,
-    Reload,
-    FlipSplitViews,
-    ThickHelices(bool),
-    Import3D,
-}
-
-impl<R: Requests, S: AppState> TopBar<R, S> {
+impl TopBarState {
     pub fn new(
-        requests: Arc<Mutex<R>>,
+        requests: Arc<Mutex<Requests>>,
         logical_size: LogicalSize<f64>,
-        application_state: MainState<S>,
+        app_state: AppState,
+        state: TopBarStateFlags,
         ui_size: UiSize,
     ) -> Self {
         Self {
-            button_fit: Default::default(),
-            button_add_file: Default::default(),
-            button_save_as: Default::default(),
-            horizon_button: Default::default(),
-            button_save: Default::default(),
-            button_undo: Default::default(),
-            button_redo: Default::default(),
-            button_2d: Default::default(),
-            button_3d: Default::default(),
-            button_split: Default::default(),
-            button_oxdna: Default::default(),
-            button_split_2d: Default::default(),
-            button_flip_split: Default::default(),
-            button_help: Default::default(),
-            button_tutorial: Default::default(),
-            button_new_empty_design: Default::default(),
-            button_reload: Default::default(),
-            button_toggle_2d: Default::default(),
-            button_thick_helices: Default::default(),
-            button_3d_object: Default::default(),
             requests,
             logical_size,
-            action_mode_state: Default::default(),
-            selection_mode_state: Default::default(),
             ui_size,
-            application_state,
+            app_state,
+            state,
         }
     }
 
+    // Set the top bar to `logical_size`.
     pub fn resize(&mut self, logical_size: LogicalSize<f64>) {
         self.logical_size = logical_size;
     }
 
     fn get_build_helix_mode(&self) -> ActionMode {
-        self.application_state.app_state.get_build_helix_mode()
+        self.app_state.get_build_helix_mode()
     }
 }
 
-impl<R: Requests, S: AppState> Program for TopBar<R, S> {
-    type Renderer = iced_wgpu::Renderer;
-    type Message = Message<S>;
+impl Program for TopBarState {
+    type Message = TopBarMessage;
+    type Theme = iced::Theme;
+    type Renderer = iced::Renderer;
 
-    fn update(&mut self, message: Message<S>) -> Command<Message<S>> {
+    fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
-            Message::SceneFitRequested => {
+            TopBarMessage::SceneFitRequested => {
                 self.requests.lock().unwrap().fit_design_in_scenes();
             }
-            Message::OpenFileButtonPressed => {
+            TopBarMessage::OpenFileButtonPressed => {
                 self.requests.lock().unwrap().open_file();
             }
-            Message::SaveAsRequested => {
-                self.requests.lock().unwrap().save_as();
-            }
-            Message::FileSaveRequested => {
+            TopBarMessage::FileSaveRequested => {
                 self.requests.lock().unwrap().save();
             }
-            Message::Resize(size) => self.resize(size),
-            Message::ToggleView(b) => self.requests.lock().unwrap().change_split_mode(b),
-            Message::UiSizeChanged(ui_size) => self.ui_size = ui_size,
-            Message::ExportRequested => self.requests.lock().unwrap().set_exporting(true),
-            Message::Split2d => self.requests.lock().unwrap().toggle_2d_view_split(),
-            Message::NewApplicationState(state) => self.application_state = state,
-            Message::Undo => self.requests.lock().unwrap().undo(),
-            Message::Redo => self.requests.lock().unwrap().redo(),
-            Message::ForceHelp => self.requests.lock().unwrap().force_help(),
-            Message::ShowTutorial => self.requests.lock().unwrap().show_tutorial(),
-            Message::ButtonNewEmptyDesignPressed => self.requests.lock().unwrap().new_design(),
-            Message::Reload => self.requests.lock().unwrap().reload_file(),
-            Message::SelectionModeChanged(selection_mode) => {
-                if selection_mode != self.application_state.app_state.get_selection_mode() {
+            TopBarMessage::SaveAsRequested => {
+                self.requests.lock().unwrap().save_as();
+            }
+            TopBarMessage::Resize(size) => self.resize(size),
+            TopBarMessage::ToggleView(b) => self.requests.lock().unwrap().change_split_mode(b),
+            TopBarMessage::UiSizeChanged(ui_size) => self.ui_size = ui_size,
+            TopBarMessage::ExportRequested => self.requests.lock().unwrap().set_exporting(true),
+            TopBarMessage::Split2D => self.requests.lock().unwrap().toggle_2d_view_split(),
+            TopBarMessage::NewApplicationState((app_state, state)) => {
+                self.app_state = app_state;
+                self.state = state;
+            }
+            TopBarMessage::Undo => self.requests.lock().unwrap().undo(),
+            TopBarMessage::Redo => self.requests.lock().unwrap().redo(),
+            TopBarMessage::ForceHelp => self.requests.lock().unwrap().force_help(),
+            TopBarMessage::ShowTutorial => self.requests.lock().unwrap().show_tutorial(),
+            TopBarMessage::ButtonNewEmptyDesignPressed => {
+                self.requests.lock().unwrap().new_design();
+            }
+            TopBarMessage::Reload => self.requests.lock().unwrap().reload_file(),
+            TopBarMessage::SelectionModeChanged(selection_mode) => {
+                if selection_mode != self.app_state.get_selection_mode() {
                     self.requests
                         .lock()
                         .unwrap()
                         .change_selection_mode(selection_mode);
                 }
             }
-            Message::ActionModeChanged(action_mode) => {
-                if self.application_state.app_state.get_action_mode() != action_mode {
+            TopBarMessage::ActionModeChanged(action_mode) => {
+                if self.app_state.get_action_mode() != action_mode {
                     self.requests
                         .lock()
                         .unwrap()
-                        .change_action_mode(action_mode)
+                        .change_action_mode(action_mode);
                 } else {
                     match action_mode {
                         ActionMode::Rotate | ActionMode::Translate => {
@@ -198,408 +125,382 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
                     }
                 }
             }
-            Message::Toggle2D => {
+            TopBarMessage::Toggle2D => {
                 self.requests.lock().unwrap().toggle_2d();
             }
-            Message::FlipSplitViews => self.requests.lock().unwrap().flip_split_views(),
-            Message::ThickHelices(b) => self.requests.lock().unwrap().set_all_helices_on_axis(b),
-            Message::AlignHorizon => self.requests.lock().unwrap().align_horizon(),
-            Message::Import3D => self.requests.lock().unwrap().import_3d_object(),
-        };
+            TopBarMessage::FlipSplitViews => self.requests.lock().unwrap().flip_split_views(),
+            TopBarMessage::ThickHelices(b) => {
+                self.requests.lock().unwrap().set_all_helices_on_axis(b);
+            }
+            // TODO: Consider rename message ThickHelices → AllHelicesOnAxis
+            TopBarMessage::AlignHorizon => self.requests.lock().unwrap().align_horizon(),
+            TopBarMessage::Import3D => self.requests.lock().unwrap().import_3d_object(),
+        }
         Command::none()
     }
 
-    fn view(&mut self) -> Element<Message<S>, iced_wgpu::Renderer> {
+    fn view(&self) -> Element<'_, Self::Message> {
         let build_helix_mode = self.get_build_helix_mode();
-        let action_modes = [
+
+        let button_new_empty_design = tooltip(
+            material_icon_button(
+                MaterialIcon::InsertDriveFile,
+                MaterialIconStyle::Light,
+                self.ui_size,
+            )
+            .on_press(TopBarMessage::ButtonNewEmptyDesignPressed),
+            "Start a new design",
+            tooltip::Position::FollowCursor,
+        )
+        .style(theme::Container::Box);
+
+        let button_add_file = tooltip(
+            material_icon_button(
+                MaterialIcon::FolderOpen,
+                MaterialIconStyle::Light,
+                self.ui_size,
+            )
+            .on_press(TopBarMessage::OpenFileButtonPressed),
+            "Open file…",
+            tooltip::Position::FollowCursor,
+        )
+        .style(theme::Container::Box);
+
+        let button_reload = tooltip(
+            material_icon_button(
+                MaterialIcon::RestorePage,
+                MaterialIconStyle::Light,
+                self.ui_size,
+            )
+            .on_press_maybe(self.state.can_reload.then_some(TopBarMessage::Reload)),
+            "Reload file",
+            tooltip::Position::FollowCursor,
+        )
+        .style(theme::Container::Box);
+
+        let button_save = tooltip(
+            material_icon_button(
+                MaterialIcon::Save,
+                if self.state.need_save {
+                    MaterialIconStyle::Dark
+                } else {
+                    MaterialIconStyle::Light
+                },
+                self.ui_size,
+            )
+            .on_press(TopBarMessage::FileSaveRequested),
+            "Save design…",
+            tooltip::Position::FollowCursor,
+        )
+        .style(theme::Container::Box);
+
+        let button_save_as = tooltip(
+            material_icon_button(
+                MaterialIcon::DriveFileMove,
+                if self.state.need_save {
+                    MaterialIconStyle::Dark
+                } else {
+                    MaterialIconStyle::Light
+                },
+                self.ui_size,
+            )
+            .on_press(TopBarMessage::SaveAsRequested),
+            "Save design to…",
+            tooltip::Position::FollowCursor,
+        )
+        .style(theme::Container::Box);
+
+        let button_oxdna = tooltip(
+            material_icon_button(MaterialIcon::Upload, MaterialIconStyle::Light, self.ui_size)
+                .on_press(TopBarMessage::ExportRequested),
+            "Export",
+            tooltip::Position::FollowCursor,
+        )
+        .style(theme::Container::Box);
+
+        let oxdna_tooltip = button_oxdna;
+
+        let button_3d_import = tooltip(
+            material_icon_button(
+                MaterialIcon::Coronavirus,
+                MaterialIconStyle::Light,
+                self.ui_size,
+            )
+            .on_press(TopBarMessage::Import3D),
+            "Import 3D",
+            tooltip::Position::FollowCursor,
+        )
+        .style(theme::Container::Box);
+
+        let button_2d = tooltip(
+            fixed_text_button("2D", 1.0, self.ui_size)
+                .on_press(TopBarMessage::ToggleView(SplitMode::Flat)),
+            "Switch to flatscene only view",
+            tooltip::Position::FollowCursor,
+        )
+        .style(theme::Container::Box);
+
+        let button_3d = tooltip(
+            fixed_text_button("3D", 1.0, self.ui_size)
+                .on_press(TopBarMessage::ToggleView(SplitMode::Scene3D)),
+            "Switch to scene only view",
+            tooltip::Position::FollowCursor,
+        )
+        .style(theme::Container::Box);
+
+        // TODO: Consider rename thick_helices → all_helices_on_axis
+        let button_thick_helices = tooltip(
+            if self.app_state.want_all_helices_on_axis() {
+                material_icon_button(MaterialIcon::Dehaze, MaterialIconStyle::Light, self.ui_size)
+                    .on_press(TopBarMessage::ThickHelices(false))
+            } else {
+                material_icon_button(MaterialIcon::Water, MaterialIconStyle::Light, self.ui_size)
+                    .on_press(TopBarMessage::ThickHelices(true))
+            },
+            "Toggle helices",
+            tooltip::Position::FollowCursor,
+        )
+        .style(theme::Container::Box);
+
+        // TODO: Remove 3D+2D button.
+
+        // WARN: More tricky than expected: in 3D and 2D button we will need to get the current
+        //       split mode, but it is defined in Multiplexer and not directly accessible. Need
+        //       to find an elegant way to do this.
+
+        let button_split = tooltip(
+            text_button("3D+2D", self.ui_size).on_press(TopBarMessage::ToggleView(SplitMode::Both)),
+            "Switch to both flat and 3d view",
+            tooltip::Position::FollowCursor,
+        )
+        .style(theme::Container::Box);
+
+        let button_split_2d = tooltip(
+            material_icon_button(
+                if self.state.is_split_2d {
+                    MaterialIcon::BorderOuter
+                } else {
+                    MaterialIcon::BorderHorizontal
+                },
+                MaterialIconStyle::Light,
+                self.ui_size,
+            )
+            .on_press_maybe(self.state.can_split_2d.then_some(TopBarMessage::Split2D)),
+            "Toggle split of flat scene",
+            tooltip::Position::FollowCursor,
+        )
+        .style(theme::Container::Box);
+
+        let button_toggle_2d = tooltip(
+            text_button("Toggle 2D", self.ui_size)
+                .on_press_maybe(self.state.can_toggle_2d.then_some(TopBarMessage::Toggle2D)),
+            "Toggle flat view",
+            tooltip::Position::FollowCursor,
+        )
+        .style(theme::Container::Box);
+
+        let button_flip_split = tooltip(
+            material_icon_button(
+                MaterialIcon::SwapVert,
+                MaterialIconStyle::Light,
+                self.ui_size,
+            )
+            .on_press_maybe(
+                self.state
+                    .is_split_2d
+                    .then_some(TopBarMessage::FlipSplitViews),
+            ),
+            "Swap flat views",
+            tooltip::Position::FollowCursor,
+        )
+        .style(theme::Container::Box);
+
+        let button_fit = tooltip(
+            material_icon_button(
+                MaterialIcon::ViewInAr,
+                MaterialIconStyle::Light,
+                self.ui_size,
+            )
+            .on_press(TopBarMessage::SceneFitRequested),
+            "Request fit",
+            tooltip::Position::FollowCursor,
+        )
+        .style(theme::Container::Box);
+
+        let button_horizon = tooltip(
+            material_icon_button(
+                MaterialIcon::WbTwilight,
+                MaterialIconStyle::Light,
+                self.ui_size,
+            )
+            .on_press(TopBarMessage::AlignHorizon),
+            "Align horizon",
+            tooltip::Position::FollowCursor,
+        )
+        .style(theme::Container::Box);
+
+        let button_undo = tooltip(
+            material_icon_button(MaterialIcon::Undo, MaterialIconStyle::Dark, self.ui_size)
+                .on_press_maybe(self.state.can_undo.then_some(TopBarMessage::Undo)),
+            "Undo",
+            tooltip::Position::FollowCursor,
+        )
+        .style(theme::Container::Box);
+
+        let button_redo = tooltip(
+            material_icon_button(MaterialIcon::Redo, MaterialIconStyle::Dark, self.ui_size)
+                .on_press_maybe(self.state.can_redo.then_some(TopBarMessage::Redo)),
+            "Redo",
+            tooltip::Position::FollowCursor,
+        )
+        .style(theme::Container::Box);
+
+        //NOTE: List of action modes to add in the top bar.
+        let action_modes_to_display = [
             ActionMode::Normal,
             ActionMode::Translate,
             ActionMode::Rotate,
-            build_helix_mode.clone(),
+            build_helix_mode,
         ];
-        let height = self.logical_size.cast::<u16>().height;
-        let button_fit = Button::new(
-            &mut self.button_fit,
-            light_icon(LightIcon::ViewInAr, self.ui_size),
-        )
-        .on_press(Message::SceneFitRequested)
-        .height(Length::Units(height));
 
-        let button_horizon = Button::new(
-            &mut self.horizon_button,
-            light_icon(LightIcon::WbTwilight, self.ui_size),
-        )
-        .on_press(Message::AlignHorizon);
-
-        let button_new_empty_design = Button::new(
-            &mut self.button_new_empty_design,
-            light_icon(LightIcon::InsertDriveFile, self.ui_size),
-        )
-        .on_press(Message::ButtonNewEmptyDesignPressed);
-
-        let button_add_file = Button::new(
-            &mut self.button_add_file,
-            light_icon(LightIcon::FolderOpen, self.ui_size),
-        )
-        .on_press(Message::OpenFileButtonPressed);
-
-        let mut button_reload = Button::new(
-            &mut self.button_reload,
-            light_icon(LightIcon::RestorePage, self.ui_size),
-        );
-
-        if self.application_state.can_reload {
-            button_reload = button_reload.on_press(Message::Reload);
-        }
-
-        let save_message = Message::FileSaveRequested;
-        /*
-        let button_save = bottom_tooltip_icon_btn(
-            &mut self.button_save,
-            MaterialIcon::Save,
-            &top_size_info,
-            "Save As..",
-            Some(save_message),
-        );*/
-        let button_save = if self.application_state.need_save {
-            Button::new(
-                &mut self.button_save,
-                dark_icon(LightIcon::Save, self.ui_size.clone()),
-            )
-            .on_press(save_message)
-        } else {
-            Button::new(
-                &mut self.button_save,
-                light_icon(LightIcon::Save, self.ui_size.clone()),
-            )
-            .on_press(save_message)
-        };
-
-        let button_save_as = if self.application_state.need_save {
-            Button::new(
-                &mut self.button_save_as,
-                dark_icon(LightIcon::DriveFileMove, self.ui_size.clone()),
-            )
-            .on_press(Message::SaveAsRequested)
-        } else {
-            Button::new(
-                &mut self.button_save_as,
-                light_icon(LightIcon::DriveFileMove, self.ui_size.clone()),
-            )
-            .on_press(Message::SaveAsRequested)
-        };
-
-        let mut button_undo = Button::new(
-            &mut self.button_undo,
-            dark_icon(LightIcon::Undo, self.ui_size.clone()),
-        );
-        if self.application_state.can_undo {
-            button_undo = button_undo.on_press(Message::Undo)
-        }
-
-        let mut button_redo = Button::new(
-            &mut self.button_redo,
-            dark_icon(LightIcon::Redo, self.ui_size.clone()),
-        );
-        if self.application_state.can_redo {
-            button_redo = button_redo.on_press(Message::Redo)
-        }
-
-        let button_2d = Button::new(&mut self.button_2d, iced::Text::new("2D"))
-            .height(Length::Units(self.ui_size.button()))
-            .on_press(Message::ToggleView(SplitMode::Flat));
-        let button_3d = Button::new(&mut self.button_3d, iced::Text::new("3D"))
-            .height(Length::Units(self.ui_size.button()))
-            .on_press(Message::ToggleView(SplitMode::Scene3D));
-        let button_thick_helices = if self.application_state.app_state.want_all_helices_on_axis() {
-            Button::new(
-                &mut self.button_thick_helices,
-                light_icon(LightIcon::Dehaze, self.ui_size),
-            )
-            .on_press(Message::ThickHelices(false))
-        } else {
-            Button::new(
-                &mut self.button_thick_helices,
-                light_icon(LightIcon::Water, self.ui_size),
-            )
-            .on_press(Message::ThickHelices(true))
-        };
-        let button_split = Button::new(&mut self.button_split, iced::Text::new("3D+2D"))
-            .height(Length::Units(self.ui_size.button()))
-            .on_press(Message::ToggleView(SplitMode::Both));
-
-        let button_oxdna = Button::new(
-            &mut self.button_oxdna,
-            light_icon(LightIcon::Upload, self.ui_size),
-        )
-        .height(Length::Units(self.ui_size.button()))
-        .on_press(Message::ExportRequested);
-        let oxdna_tooltip = button_oxdna;
-
-        let button_3d_import = Button::new(
-            &mut self.button_3d_object,
-            light_icon(LightIcon::Coronavirus, self.ui_size),
-        )
-        .height(Length::Units(self.ui_size.button()))
-        .on_press(Message::Import3D);
-
-        let split_icon = if self.application_state.splited_2d {
-            LightIcon::BorderOuter
-        } else {
-            LightIcon::BorderHorizontal
-        };
-
-        let mut button_split_2d = Button::new(
-            &mut self.button_split_2d,
-            light_icon(split_icon, self.ui_size),
-        )
-        .height(Length::Units(self.ui_size.button()));
-
-        if self.application_state.can_split2d {
-            button_split_2d = button_split_2d.on_press(Message::Split2d);
-        }
-
-        let mut button_toggle_2d =
-            Button::new(&mut self.button_toggle_2d, iced::Text::new("Toggle 2D"))
-                .height(Length::Units(self.ui_size.button()));
-
-        if self.application_state.can_toggle_2d {
-            button_toggle_2d = button_toggle_2d.on_press(Message::Toggle2D);
-        }
-
-        let mut button_flip_split = Button::new(
-            &mut self.button_flip_split,
-            light_icon(LightIcon::SwapVert, self.ui_size),
-        )
-        .height(Length::Units(self.ui_size.button()));
-        if self.application_state.splited_2d {
-            button_flip_split = button_flip_split.on_press(Message::FlipSplitViews);
-        }
-
-        let button_help = Button::new(&mut self.button_help, iced::Text::new("Help"))
-            .height(Length::Units(self.ui_size.button()))
-            .on_press(Message::ForceHelp);
-
-        let button_tutorial = Button::new(&mut self.button_tutorial, iced::Text::new("Tutorials"))
-            .height(Length::Units(self.ui_size.button()))
-            .on_press(Message::ShowTutorial);
-
-        let app_state = &self.application_state.app_state;
-        let ui_size = self.ui_size.clone();
-        let action_buttons: Vec<Button<Message<S>, _>> = self
-            .action_mode_state
-            .get_states(build_helix_mode)
-            .into_iter()
-            .filter(|(m, _)| action_modes.contains(m))
-            .map(|(mode, state)| {
-                action_mode_btn(
-                    state,
-                    mode,
-                    app_state.get_action_mode(),
-                    ui_size.button(),
-                    app_state.get_widget_basis().is_axis_aligned(),
+        let action_mode_buttons: Vec<Element<'_, _>> = action_modes_to_display
+            .iter()
+            .map(|mode| {
+                tooltip(
+                    action_mode_btn(
+                        mode,
+                        self.app_state.get_action_mode(),
+                        self.app_state.get_widget_basis().is_axis_aligned(),
+                        self.ui_size,
+                    ),
+                    mode.tooltip_description(),
+                    tooltip::Position::FollowCursor,
                 )
+                .style(theme::Container::Box)
+                .into()
             })
             .collect();
 
-        let selection_modes = [
+        //NOTE: List of selection modes to add to the top bar.
+        let selection_modes_to_display = [
             SelectionMode::Helix,
             SelectionMode::Strand,
             SelectionMode::Nucleotide,
         ];
 
-        let selection_buttons: Vec<_> = self
-            .selection_mode_state
-            .get_states()
-            .into_iter()
-            .filter(|(m, _)| selection_modes.contains(m))
-            .map(|(mode, state)| {
-                selection_mode_btn(
-                    state,
-                    mode,
-                    app_state.get_selection_mode(),
-                    ui_size.button(),
+        let selection_mode_buttons: Vec<Element<'_, _>> = SelectionMode::ALL
+            .iter()
+            .filter(|mode| selection_modes_to_display.contains(mode))
+            .map(|mode| {
+                tooltip(
+                    selection_mode_btn(mode, self.app_state.get_selection_mode(), self.ui_size),
+                    mode.tooltip_description(),
+                    tooltip::Position::FollowCursor,
                 )
+                .style(theme::Container::Box)
+                .into()
             })
             .collect();
 
-        let mut buttons = Row::new()
-            .width(Length::Fill)
-            .height(Length::Units(height))
-            .push(button_new_empty_design)
-            .push(button_add_file)
-            .push(button_reload)
-            .push(button_save)
-            .push(button_save_as)
-            .push(oxdna_tooltip)
-            .push(button_3d_import)
-            .push(iced::Space::with_width(Length::Units(10)))
-            .push(button_3d)
-            .push(button_thick_helices)
-            .push(button_2d)
-            .push(button_split)
-            .push(button_split_2d)
-            .push(button_toggle_2d)
-            .push(button_flip_split)
-            .push(iced::Space::with_width(Length::Units(10)))
-            .push(button_fit)
-            .push(button_horizon)
-            .push(iced::Space::with_width(Length::Units(10)))
-            .push(button_undo)
-            .push(button_redo)
-            .push(iced::Space::with_width(Length::Units(10)));
+        let button_help = text_button("Help", self.ui_size).on_press(TopBarMessage::ForceHelp);
 
-        for button in action_buttons.into_iter() {
-            buttons = buttons.push(button);
-        }
+        let button_tutorial =
+            text_button("Tutorials", self.ui_size).on_press(TopBarMessage::ShowTutorial);
 
-        buttons = buttons.push(iced::Space::with_width(Length::Units(10)));
+        let bar = row![
+            // “File” group
+            row![
+                button_new_empty_design,
+                button_add_file,
+                button_reload,
+                button_save,
+                button_save_as,
+                oxdna_tooltip,
+                button_3d_import,
+            ]
+            .spacing(self.ui_size.button_spacing()),
+            // “View” group
+            row![
+                button_3d,
+                button_thick_helices,
+                button_2d,
+                button_split,
+                button_split_2d,
+                button_toggle_2d,
+                button_flip_split,
+            ]
+            .spacing(self.ui_size.button_spacing()),
+            row![button_fit, button_horizon,].spacing(self.ui_size.button_spacing()),
+            // “Edition” group
+            row![button_undo, button_redo,].spacing(self.ui_size.button_spacing()),
+            // “Action” group
+            Row::from_vec(action_mode_buttons).spacing(self.ui_size.button_spacing()),
+            // “Selection” group
+            Row::from_vec(selection_mode_buttons).spacing(self.ui_size.button_spacing()),
+            row![button_help, button_tutorial,].spacing(self.ui_size.button_spacing()),
+            // ENSnano logo, placed on the right.
+            text("\u{e91c}")
+                .font(ENSNANO_FONT)
+                .width(Length::Fill)
+                .horizontal_alignment(iced::alignment::Horizontal::Right)
+                .vertical_alignment(iced::alignment::Vertical::Center),
+        ]
+        .spacing(self.ui_size.button_group_spacing())
+        .width(Length::Fill);
 
-        for button in selection_buttons.into_iter() {
-            buttons = buttons.push(button);
-        }
-
-        buttons = buttons.push(iced::Space::with_width(Length::Units(10)));
-
-        buttons = buttons
-            .push(button_help)
-            .push(iced::Space::with_width(Length::Units(2)))
-            .push(button_tutorial)
-            .push(
-                iced::Text::new("\u{e91c}")
-                    .width(Length::Fill)
-                    .horizontal_alignment(iced::alignment::Horizontal::Right)
-                    .vertical_alignment(iced::alignment::Vertical::Center),
-            )
-            .push(iced::Space::with_width(Length::Units(10)));
-
-        Container::new(buttons)
-            .width(Length::Units(self.logical_size.width as u16))
-            .style(TopBarStyle)
+        container(bar)
+            .width(self.logical_size.width as f32)
+            .style(GuiBackground)
+            // HACK: A small padding allow tooltip messages to disappear properly.
+            .padding(Padding::from([
+                self.ui_size.button_spacing(),
+                0.0,
+                self.ui_size.button_spacing(),
+                self.ui_size.button_spacing(),
+            ]))
             .into()
     }
 }
 
-struct TopBarStyle;
-impl container::StyleSheet for TopBarStyle {
-    fn style(&self) -> container::Style {
-        container::Style {
-            background: Some(Background::Color(BACKGROUND)),
-            text_color: Some(Color::WHITE),
-            ..container::Style::default()
-        }
-    }
-}
-
-pub const BACKGROUND: Color = Color::from_rgb(
-    0x36 as f32 / 255.0,
-    0x39 as f32 / 255.0,
-    0x3F as f32 / 255.0,
-);
-
-struct ToolTipStyle;
-impl iced::container::StyleSheet for ToolTipStyle {
-    fn style(&self) -> iced::container::Style {
-        iced::container::Style {
-            text_color: Some(iced::Color::BLACK),
-            ..Default::default()
-        }
-    }
-}
-
-#[derive(Default, Debug, Clone)]
-struct SelectionModeState {
-    pub nucleotide: button::State,
-    pub strand: button::State,
-    pub helix: button::State,
-}
-
-impl SelectionModeState {
-    fn get_states<'a>(&'a mut self) -> BTreeMap<SelectionMode, &'a mut button::State> {
-        let mut ret = BTreeMap::new();
-        ret.insert(SelectionMode::Nucleotide, &mut self.nucleotide);
-        ret.insert(SelectionMode::Strand, &mut self.strand);
-        ret.insert(SelectionMode::Helix, &mut self.helix);
-        ret
-    }
-}
-
-#[derive(Default, Debug, Clone)]
-struct ActionModeState {
-    pub select: button::State,
-    pub translate: button::State,
-    pub rotate: button::State,
-    pub build: button::State,
-}
-
-impl ActionModeState {
-    fn get_states<'a>(
-        &'a mut self,
-        build_helix_mode: ActionMode,
-    ) -> BTreeMap<ActionMode, &'a mut button::State> {
-        let mut ret = BTreeMap::new();
-        ret.insert(ActionMode::Normal, &mut self.select);
-        ret.insert(ActionMode::Translate, &mut self.translate);
-        ret.insert(ActionMode::Rotate, &mut self.rotate);
-        ret.insert(build_helix_mode, &mut self.build);
-        ret
-    }
-}
-
-struct ButtonStyle(bool);
-
-impl iced_native::widget::button::StyleSheet for ButtonStyle {
-    fn active(&self) -> iced_native::widget::button::Style {
-        iced_native::widget::button::Style {
-            border_width: if self.0 { 3_f32 } else { 1_f32 },
-            border_radius: if self.0 { 3_f32 } else { 2_f32 },
-            border_color: if self.0 {
-                Color::BLACK
-            } else {
-                [0.7, 0.7, 0.7].into()
-            },
-            background: Some(Background::Color([0.87, 0.87, 0.87].into())),
-            //background: Some(Background::Color(BACKGROUND)),
-            ..Default::default()
-        }
-    }
-}
-
-use super::icon::{HasIcon, HasIconDependentOnAxis};
-use iced::Image;
-fn action_mode_btn<'a, S: AppState>(
-    state: &'a mut button::State,
-    mode: ActionMode,
-    fixed_mode: ActionMode,
-    button_size: u16,
+fn action_mode_btn<'a>(
+    mode: &ActionMode,
+    current_action_mode: ActionMode,
     axis_aligned: bool,
-) -> Button<'a, Message<S>, iced_wgpu::Renderer> {
-    let icon_path = if fixed_mode == mode {
+    ui_size: UiSize,
+) -> Button<'a, TopBarMessage> {
+    let icon_path = if current_action_mode == *mode {
         mode.icon_on(axis_aligned)
     } else {
         mode.icon_off(axis_aligned)
     };
 
-    Button::new(state, Image::new(icon_path))
-        .on_press(Message::ActionModeChanged(mode))
-        .style(ButtonStyle(fixed_mode == mode))
-        .width(Length::Units(button_size))
+    image_button(image(icon_path), ui_size)
+        .on_press(TopBarMessage::ActionModeChanged(*mode))
+        .style(if current_action_mode == *mode {
+            theme::Button::Positive
+        } else {
+            theme::Button::Primary
+        })
+    // TODO: Use SelectionMode Copy trait.
 }
 
-fn selection_mode_btn<'a, S: AppState>(
-    state: &'a mut button::State,
-    mode: SelectionMode,
-    fixed_mode: SelectionMode,
-    button_size: u16,
-) -> Button<'a, Message<S>, iced_wgpu::Renderer> {
-    let icon_path = if fixed_mode == mode {
+fn selection_mode_btn<'a>(
+    mode: &SelectionMode,
+    current_mode: SelectionMode,
+    ui_size: UiSize,
+) -> Button<'a, TopBarMessage> {
+    let icon_path = if current_mode == *mode {
         mode.icon_on()
     } else {
         mode.icon_off()
     };
 
-    Button::new(state, Image::new(icon_path))
-        .on_press(Message::SelectionModeChanged(mode))
-        .style(ButtonStyle(fixed_mode == mode))
-        .width(Length::Units(button_size))
+    image_button(image(icon_path), ui_size)
+        .on_press(TopBarMessage::SelectionModeChanged(*mode))
+        .style(if current_mode == *mode {
+            theme::Button::Positive
+        } else {
+            theme::Button::Primary
+        })
+    // TODO: Use SelectionMode Copy trait.
 }

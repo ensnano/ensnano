@@ -1,0 +1,130 @@
+//! This module defines the `Request` structure, used by applications to express the user intent.
+//!
+//! The main event loop regularly calls `Request::poll` to see if there are pending requests.
+
+pub mod impl_flatscene;
+pub mod impl_gui;
+pub mod impl_scene;
+
+use crate::{
+    app_state::action::Action,
+    design::{
+        operation::HyperboloidRequest,
+        selection::{CenterOfSelection, Selection},
+    },
+    utils::{application::AppId, operation::Operation},
+};
+use ensnano_design::{
+    design_element::{DesignElementKey, DnaAttribute},
+    grid::{GridId, GridPosition, GridTypeDescr},
+    interaction_modes::{ActionMode, SelectionMode},
+    nucl::Nucl,
+    organizer_tree::{GroupId, OrganizerTree},
+};
+use ensnano_physics::parameters::RapierParameters;
+use ensnano_utils::{
+    RigidBodyConstants, RollRequest,
+    app_state_parameters::{
+        check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
+    },
+    graphics::{Background3D, FogParameters, HBondDisplay, RenderingMode},
+    keyboard_priority::PriorityRequest,
+    surfaces::UnrootedRevolutionSurfaceDescriptor,
+};
+use std::{collections::VecDeque, sync::Arc};
+use ultraviolet::Vec3;
+
+/// A structure that contains all the requests that can be made through the GUI or the
+/// Applications.
+///
+/// The GUI and the applications are given a pointer to a `Mutex<Requests>` to store the user
+/// requests.
+#[derive(Default)]
+pub struct Requests {
+    /// A change of the rotation mode
+    pub action_mode: Option<ActionMode>,
+    /// A change of the selection mode
+    pub selection_mode: Option<SelectionMode>,
+    /// A request to move the camera so that the frustum fits the design
+    pub fitting: Option<()>,
+    /// A request to change the color of the selected strand
+    pub strand_color_change: Option<u32>,
+    /// A request to show/hide the sequences
+    pub toggle_text: Option<bool>,
+    /// A request to change the sensitivity of scrolling
+    pub scroll_sensitivity: Option<f32>,
+    pub make_grids: Option<()>,
+    pub operation_update: Option<Arc<dyn Operation>>,
+    pub toggle_persistent_helices: Option<bool>,
+    pub new_grid: Option<GridTypeDescr>,
+    pub new_bezier_plane: Option<()>,
+    pub camera_rotation: Option<(f32, f32, f32)>,
+    pub camera_target: Option<(Vec3, Vec3)>,
+    pub small_spheres: Option<bool>,
+    pub set_scaffold_id: Option<Option<usize>>,
+    pub recolor_staples: Option<()>,
+    pub roll_request: Option<RollRequest>,
+    pub rapier_simulation_parameters: Option<RapierParameters>,
+    pub show_torsion_request: Option<bool>,
+    pub fog: Option<FogParameters>,
+    pub hyperboloid_update: Option<HyperboloidRequest>,
+    pub new_hyperboloid: Option<HyperboloidRequest>,
+    pub finalize_hyperboloid: Option<()>,
+    pub cancel_hyperboloid: Option<()>,
+    pub helix_roll: Option<f32>,
+    pub copy: Option<()>,
+    pub paste: Option<()>,
+    pub duplication: Option<()>,
+    pub rigid_grid_simulation: Option<RigidBodyConstants>,
+    pub rigid_helices_simulation: Option<RigidBodyConstants>,
+    pub anchor: Option<()>,
+    pub rigid_body_parameters: Option<RigidBodyConstants>,
+    pub keep_proceed: VecDeque<Action>,
+    pub organizer_selection: Option<(Vec<DesignElementKey>, Option<GroupId>, bool)>,
+    pub organizer_candidates: Option<Vec<DesignElementKey>>,
+    pub new_attribute: Option<(DnaAttribute, Vec<DesignElementKey>)>,
+    pub new_tree: Option<OrganizerTree>,
+    pub split2d: Option<()>,
+    pub toggle_visibility: Option<bool>,
+    pub all_visible: Option<()>,
+    pub redim_2d_helices: Option<bool>,
+    pub delete_selection: Option<()>,
+    pub select_scaffold: Option<()>,
+    pub scaffold_shift: Option<usize>,
+    pub rendering_mode: Option<RenderingMode>,
+    pub background3d: Option<Background3D>,
+    pub undo: Option<()>,
+    pub redo: Option<()>,
+    pub save_shortcut: Option<()>,
+    pub force_help: Option<()>,
+    pub show_tutorial: Option<()>,
+    pub clean_requests: Option<()>,
+    pub new_candidates: Option<Vec<Selection>>,
+    pub new_selection: Option<Vec<Selection>>,
+    pub suspend_op: Option<()>,
+    pub center_selection: Option<(Selection, AppId)>,
+    pub toggle_widget_basis: Option<()>,
+    pub stop_roll: Option<()>,
+    pub new_paste_candidate: Option<Option<Nucl>>,
+    pub new_grid_paste_candidate: Option<GridPosition>,
+    pub new_double_strand_parameters: Option<Option<(isize, usize)>>,
+    pub new_center_of_selection: Option<Option<CenterOfSelection>>,
+    pub new_suggestion_parameters: Option<SuggestionParameters>,
+    pub check_xover_parameters: Option<CheckXoversParameter>,
+    pub follow_stereographic_camera: Option<bool>,
+    pub set_show_stereographic_camera: Option<bool>,
+    pub set_show_h_bonds: Option<HBondDisplay>,
+    pub set_show_bezier_paths: Option<bool>,
+    pub set_invert_y_scroll: Option<bool>,
+    pub set_all_helices_on_axis: Option<bool>,
+    pub toggle_all_helices_on_axis: Option<()>,
+    pub twist_simulation: Option<GridId>,
+    pub horizon_targeted: Option<()>,
+    pub new_bezier_revolution_id: Option<Option<usize>>,
+    pub new_bezier_revolution_radius: Option<f64>,
+    pub new_bezier_revolution_axis_position: Option<f64>,
+    pub new_unrooted_surface: Option<Option<UnrootedRevolutionSurfaceDescriptor>>,
+    pub switched_to_revolution_tab: Option<()>,
+    /// A request to toggle the keyboard priority mode.
+    pub set_keyboard_priority: Option<Vec<PriorityRequest>>,
+}

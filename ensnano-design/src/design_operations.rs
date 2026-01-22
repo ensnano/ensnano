@@ -1,31 +1,20 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
 //! This modules defines operations that can be performed on a design to modify it.
-//! The functions that apply thes operations take a mutable reference to the design that they are
-//! modifying and may return an `ErrOperation` if the opperation could not be applied.
+//!
+//! The functions that apply these operations take a mutable reference to the design that they are
+//! modifying and may return an `ErrOperation` if the operation could not be applied.
 
-use super::{bezier_plane::*, grid::*, CurveDescriptor, Design};
+use crate::{
+    Design,
+    bezier_plane::{BezierPathId, BezierVertexId},
+    curves::CurveDescriptor,
+    grid::{GridId, GridObject, GridPosition, HelicesTranslator, HelixGridPosition},
+};
 use std::sync::Arc;
 use ultraviolet::{Rotor3, Vec3};
 
-/// An error that occured when trying to apply an operation.
+/// An error that occurred when trying to apply an operation.
 #[derive(Debug)]
-pub enum ErrOperation {
+pub enum ErrDesignOperation {
     NotEnoughHelices { actual: usize, needed: usize },
     GridPositionAlreadyUsed,
     HelixDoesNotExists(usize),
@@ -37,11 +26,15 @@ pub enum ErrOperation {
     CouldNotGetVertex(BezierVertexId),
 }
 
-/// The minimum number of helices requiered to infer a grid
+/// The minimum number of helices required to infer a grid
 pub const MIN_HELICES_TO_MAKE_GRID: usize = 4;
 
 /// Try to create a grid from a set of helices.
-pub fn make_grid_from_helices(design: &mut Design, helices: &[usize]) -> Result<(), ErrOperation> {
+// TODO: rename this or super::grid::make_grid_from_helices to avoid collision
+pub fn make_grid_from_helices(
+    design: &mut Design,
+    helices: &[usize],
+) -> Result<(), ErrDesignOperation> {
     super::grid::make_grid_from_helices(design, helices)?;
     Ok(())
 }
@@ -53,18 +46,18 @@ pub fn attach_object_to_grid(
     grid: GridId,
     x: isize,
     y: isize,
-) -> Result<(), ErrOperation> {
+) -> Result<(), ErrDesignOperation> {
     let grid_manager = design.get_updated_grid_data();
     if matches!(grid_manager.pos_to_object(GridPosition{
         grid, x, y
     }), Some(obj) if obj != object)
     {
-        Err(ErrOperation::GridPositionAlreadyUsed)
+        Err(ErrDesignOperation::GridPositionAlreadyUsed)
     } else {
         let mut helices_mut = design.helices.make_mut();
         let helix_ref = helices_mut
             .get_mut(&object.helix())
-            .ok_or_else(|| ErrOperation::HelixDoesNotExists(object.helix()))?;
+            .ok_or_else(|| ErrDesignOperation::HelixDoesNotExists(object.helix()))?;
         // take previous axis position if there were one
         match object {
             GridObject::Helix(_) => {
@@ -95,7 +88,7 @@ pub fn attach_object_to_grid(
                     if let Some(point) = points.get_mut(n) {
                         point.position = GridPosition { grid, x, y };
                     } else {
-                        return Err(ErrOperation::NotEnoughBezierPoints);
+                        return Err(ErrDesignOperation::NotEnoughBezierPoints);
                     }
                 }
             }
@@ -114,7 +107,7 @@ pub fn translate_helices(
     snap: bool,
     helices: Vec<usize>,
     translation: Vec3,
-) -> Result<(), ErrOperation> {
+) -> Result<(), ErrDesignOperation> {
     let mut helices_translator = HelicesTranslator::from_design(design);
     helices_translator.translate_helices(snap, helices, translation)
 }
@@ -130,7 +123,7 @@ pub fn rotate_helices_3d(
     helices: Vec<usize>,
     rotation: Rotor3,
     origin: Vec3,
-) -> Result<(), ErrOperation> {
+) -> Result<(), ErrDesignOperation> {
     let mut helices_translator = HelicesTranslator::from_design(design);
     helices_translator.rotate_helices_3d(snap, helices, rotation, origin)
 }
