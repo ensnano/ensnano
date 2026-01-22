@@ -60,7 +60,7 @@ icondata = { version = "0.7", default-features = false, features = [
     "bootstrap-icons",
     "material-design-icons",
 ] }
-image = { version = "0.23", default-features = false }
+image = "0.23"
 int-enum = "1.2"
 itertools = "0.14"
 log = "0.4"

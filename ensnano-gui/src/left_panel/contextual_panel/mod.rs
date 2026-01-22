@@ -274,7 +274,6 @@ impl ContextualPanel {
         let info_values = values_of_selection(selection, &app_state.get_reader());
 
         // NOTE: The branching below determines what is viewed in the contextual panel.
-        //
         let mut content = if self.show_tutorial {
             let link = "http://ens-lyon.fr/ensnano";
             column![
