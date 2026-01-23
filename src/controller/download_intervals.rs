@@ -33,7 +33,7 @@ enum Step {
         design_id: usize,
     },
     /// Downloading
-    Downloading { design_id: usize, path: PathBuf },
+    Downloading { path: PathBuf },
 }
 
 impl AutomataState for DownloadIntervals {
@@ -46,7 +46,7 @@ impl AutomataState for DownloadIntervals {
                 path_input,
                 design_id,
             } => poll_path(path_input, design_id),
-            Step::Downloading { design_id, path } => download_staples(&downloader, design_id, path),
+            Step::Downloading { path, .. } => download_staples(&downloader, path),
         }
     }
 }
@@ -124,7 +124,7 @@ fn poll_path(path_input: PathInput, design_id: usize) -> Box<dyn AutomataState> 
     if let Some(result) = path_input.get() {
         if let Some(path) = result {
             Box::new(DownloadIntervals {
-                step: Step::Downloading { path, design_id },
+                step: Step::Downloading { path },
             })
         } else {
             TransitionMessage::new(
@@ -143,12 +143,8 @@ fn poll_path(path_input: PathInput, design_id: usize) -> Box<dyn AutomataState> 
     }
 }
 
-fn download_staples(
-    downloader: &DesignInteractor,
-    _design_id: usize,
-    path: PathBuf,
-) -> Box<dyn AutomataState> {
+fn download_staples(downloader: &DesignInteractor, path: PathBuf) -> Box<dyn AutomataState> {
     downloader.write_intervals(&path);
     let msg = successful_staples_export_msg(&path);
-    TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(NormalState))
+    TransitionMessage::new(msg, rfd::MessageLevel::Info, Box::new(NormalState))
 }
