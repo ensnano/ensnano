@@ -148,4 +148,5 @@ win:
 upcoming:
 	rm -rf ensnano-upcoming
 	git clone git@gitlab.aliens-lyon.fr:nschaban/ensnano-upcoming.git
-	git update-index --skip-worktree ensnano-upcoming
+	git update-index --skip-worktree ensnano-upcoming/*
+	git update-index --skip-worktree ensnano-upcoming/src/*
