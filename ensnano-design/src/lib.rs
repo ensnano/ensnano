@@ -7,6 +7,7 @@ mod tests;
 
 pub mod bezier_plane;
 pub mod cadnano;
+pub mod chebyshev_polynomials;
 pub mod codenano;
 pub mod consts;
 pub mod curves;

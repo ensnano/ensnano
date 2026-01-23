@@ -144,5 +144,5 @@ fn poll_path(path_input: PathInput, design_id: usize) -> Box<dyn AutomataState> 
 fn download_staples(downloader: &DesignInteractor, path: PathBuf) -> Box<dyn AutomataState> {
     downloader.write_staples_xlsx(&path);
     let msg = successful_staples_export_msg(&path);
-    TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(NormalState))
+    TransitionMessage::new(msg, rfd::MessageLevel::Info, Box::new(NormalState))
 }

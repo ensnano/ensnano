@@ -622,8 +622,10 @@ impl Program for LeftPanelState {
                 Command::none()
             }
             LeftPanelMessage::OpenLink(link) => {
-                // ATM we continue even in case of error, later any error will be prompted to user
-                let _ = open::that(link);
+                if let Err(err) = open::that(link) {
+                    // TODO: show the error in the UI
+                    log::warn!("Failed to open '{link}': {err}");
+                }
                 Command::none()
             }
             LeftPanelMessage::NewApplicationState(state) => {

@@ -11,14 +11,12 @@ workspace = true
 
 [dependencies]
 ahash.workspace = true
-chebyshev_polynomials.workspace = true
 iced.workspace = true
 icondata.workspace = true
 log.workspace = true
 num.workspace = true
 num_enum.workspace = true
 ordered-float.workspace = true
-pathdiff.workspace = true
 quadrature.workspace = true
 rayon.workspace = true
 rand.workspace = true

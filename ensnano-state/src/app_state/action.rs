@@ -25,7 +25,6 @@ use std::{
 use ultraviolet::{Rotor3, Vec3};
 
 /// An action to be performed at the end of an event loop iteration, and that will have an effect
-///
 /// on the main application state, e.g. Closing the window, or toggling between 3D/2D views.
 #[derive(Debug, Clone)]
 pub enum Action {

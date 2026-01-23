@@ -19,6 +19,7 @@
 - Request fit doesn't work properly anymore, both in 2D and 3D
 - Organizer Tree slider doesn't work with the mouse
 - Distance fog is broken ([NS message](https://discord.com/channels/689053746604670995/1419689469472411691/1459186505888170035))
+- Maximization of window on startup is slow and ugly
 
 ## Bugs that should be fixed
 
@@ -117,6 +118,7 @@
 
 ## Refactor
 
+- Simplify window creation
 - Merge `MainState` and `MainStateView` structs?
 - Remove in-file modules:
   - `abscissa_converter`
