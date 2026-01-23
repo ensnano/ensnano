@@ -6,7 +6,8 @@ members = [
     "ensnano-gui",
     "ensnano-physics",
     "ensnano-scene",
-    "ensnano-state", "ensnano-upcoming",
+    "ensnano-state",
+    "ensnano-upcoming",
     "ensnano-utils",
 ]
 resolver = "3"
@@ -105,6 +106,8 @@ ensnano_physics.workspace = true
 ensnano_scene.workspace = true
 ensnano_state.workspace = true
 ensnano_utils.workspace = true
+
+ensnano_upcoming = { path = "ensnano-upcoming", optional = true }
 
 ahash.workspace = true
 confy.workspace = true
