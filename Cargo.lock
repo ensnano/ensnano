@@ -1074,6 +1074,7 @@ dependencies = [
  "ensnano_physics",
  "ensnano_scene",
  "ensnano_state",
+ "ensnano_upcoming",
  "ensnano_utils",
  "futures",
  "iced",
@@ -1241,6 +1242,11 @@ dependencies = [
  "wgpu",
  "winit",
 ]
+
+[[package]]
+name = "ensnano_upcoming"
+version = "0.1.0"
+source = "git+ssh://git@gitlab.aliens-lyon.fr/nschaban/ensnano-upcoming.git#1caed6172ad309ea0a137a401e2ab6d46d5f46bf"
 
 [[package]]
 name = "ensnano_utils"
