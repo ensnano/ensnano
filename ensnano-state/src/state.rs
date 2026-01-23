@@ -1,14 +1,5 @@
 use crate::multiplexer::Multiplexer;
-use ahash::HashMap;
-use ensnano_design::{
-    Camera, SavingInformation,
-    bezier_plane::BezierPlaneDescriptor,
-    grid::GridId,
-    interaction_modes::{ActionMode, SelectionMode},
-    organizer_tree::GroupId,
-};
-use ensnano_physics::parameters::RapierParameters;
-use ensnano_state::{
+use crate::{
     app_state::{
         AppState, SaveDesignError,
         action::Action,
@@ -32,6 +23,15 @@ use ensnano_state::{
         operation::Operation,
     },
 };
+use ahash::HashMap;
+use ensnano_design::{
+    Camera, SavingInformation,
+    bezier_plane::BezierPlaneDescriptor,
+    grid::GridId,
+    interaction_modes::{ActionMode, SelectionMode},
+    organizer_tree::GroupId,
+};
+use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
     PastingStatus, RigidBodyConstants,
     app_state_parameters::{
@@ -52,7 +52,7 @@ use ultraviolet::{Rotor3, Vec3};
 use winit::window::CursorIcon;
 
 /// The state of the main event loop.
-pub(crate) struct MainState {
+pub struct MainState {
     pub app_state: AppState,
     pub pending_actions: VecDeque<Action>,
     pub undo_stack: Vec<AppStateTransition>,
@@ -82,7 +82,7 @@ pub(crate) struct MainState {
 }
 
 impl MainState {
-    pub(crate) fn new(messages: Arc<Mutex<GuiMessages>>) -> Self {
+    pub fn new(messages: Arc<Mutex<GuiMessages>>) -> Self {
         let app_state = AppState::with_preferred_parameters().unwrap_or_else(|e| {
             log::error!("Could not load preferences {e}");
             AppState::default()
@@ -110,7 +110,7 @@ impl MainState {
         }
     }
 
-    pub(crate) fn update_cursor(&mut self, multiplexer: &Multiplexer) -> bool {
+    pub fn update_cursor(&mut self, multiplexer: &Multiplexer) -> bool {
         self.update_simulation_cursor();
         // Useful to remember to finish hyperboloid before trying to edit
         if self.app_state.is_building_hyperboloid()
@@ -134,7 +134,7 @@ impl MainState {
         ret
     }
 
-    pub(crate) fn update_simulation_cursor(&mut self) {
+    pub fn update_simulation_cursor(&mut self) {
         self.simulation_cursor = self
             .app_state
             .get_simulation_state()
@@ -142,27 +142,27 @@ impl MainState {
             .then_some(CursorIcon::Progress);
     }
 
-    pub(crate) fn push_action(&mut self, action: Action) {
+    pub fn push_action(&mut self, action: Action) {
         self.pending_actions.push_back(action);
     }
 
-    pub(crate) fn get_app_state(&self) -> AppState {
+    pub fn get_app_state(&self) -> AppState {
         self.app_state.clone()
     }
 
-    pub(crate) fn new_design(&mut self) {
+    pub fn new_design(&mut self) {
         self.clear_app_state(Default::default());
         self.update_current_file_name();
     }
 
-    pub(crate) fn clear_app_state(&mut self, new_state: AppState) {
+    pub fn clear_app_state(&mut self, new_state: AppState) {
         self.undo_stack.clear();
         self.redo_stack.clear();
         self.app_state = new_state.clone();
         self.last_saved_state = new_state;
     }
 
-    pub(crate) fn update(&mut self) {
+    pub fn update(&mut self) {
         log::trace!("call from main state");
         if let Some(camera_ptr) = self
             .applications
@@ -177,11 +177,11 @@ impl MainState {
         self.app_state.update();
     }
 
-    pub(crate) fn update_candidates(&mut self, candidates: Vec<Selection>) {
+    pub fn update_candidates(&mut self, candidates: Vec<Selection>) {
         self.modify_state(|s| s.with_candidates(candidates), None);
     }
 
-    pub(crate) fn transfer_selection_pivot_to_group(&mut self, group_id: GroupId) {
+    pub fn transfer_selection_pivot_to_group(&mut self, group_id: GroupId) {
         let scene_pivot = self
             .applications
             .get(&GuiComponentType::Scene)
@@ -191,27 +191,23 @@ impl MainState {
         }
     }
 
-    pub(crate) fn update_selection(
-        &mut self,
-        selection: Vec<Selection>,
-        group_id: Option<GroupId>,
-    ) {
+    pub fn update_selection(&mut self, selection: Vec<Selection>, group_id: Option<GroupId>) {
         self.modify_state(
             |s| s.with_selection(selection, group_id),
             Some("Selection".into()),
         );
     }
 
-    pub(crate) fn update_center_of_selection(&mut self, center: Option<CenterOfSelection>) {
+    pub fn update_center_of_selection(&mut self, center: Option<CenterOfSelection>) {
         self.modify_state(|s| s.with_center_of_selection(center), None);
     }
 
-    pub(crate) fn apply_copy_operation(&mut self, operation: CopyOperation) {
+    pub fn apply_copy_operation(&mut self, operation: CopyOperation) {
         let result = self.app_state.apply_copy_operation(operation);
         self.apply_operation_result(result);
     }
 
-    pub(crate) fn apply_operation(&mut self, operation: DesignOperation) {
+    pub fn apply_operation(&mut self, operation: DesignOperation) {
         log::debug!("Applying operation {operation:?}");
         let result = self.app_state.apply_design_op(operation.clone());
         if matches!(result, Err(ErrOperation::FinishFirst)) {
@@ -225,7 +221,7 @@ impl MainState {
         }
     }
 
-    pub(crate) fn start_helix_simulation(&mut self, parameters: RigidBodyConstants) {
+    pub fn start_helix_simulation(&mut self, parameters: RigidBodyConstants) {
         let presenter = self.app_state.0.design.presenter.clone();
         let result = self
             .app_state
@@ -237,7 +233,7 @@ impl MainState {
         self.apply_operation_result(result);
     }
 
-    pub(crate) fn start_grid_simulation(&mut self, parameters: RigidBodyConstants) {
+    pub fn start_grid_simulation(&mut self, parameters: RigidBodyConstants) {
         let presenter = self.app_state.0.design.presenter.clone();
         let result = self
             .app_state
@@ -249,7 +245,7 @@ impl MainState {
         self.apply_operation_result(result);
     }
 
-    pub(crate) fn start_revolution_simulation(&mut self, desc: RevolutionSurfaceSystemDescriptor) {
+    pub fn start_revolution_simulation(&mut self, desc: RevolutionSurfaceSystemDescriptor) {
         let result = self
             .app_state
             .start_simulation(SimulationOperation::RevolutionRelaxation {
@@ -259,7 +255,7 @@ impl MainState {
         self.apply_operation_result(result);
     }
 
-    pub(crate) fn start_twist(&mut self, grid_id: GridId) {
+    pub fn start_twist(&mut self, grid_id: GridId) {
         let presenter = self.app_state.0.design.presenter.clone();
         let result = self
             .app_state
@@ -271,7 +267,7 @@ impl MainState {
         self.apply_operation_result(result);
     }
 
-    pub(crate) fn start_roll_simulation(&mut self, target_helices: Option<Vec<usize>>) {
+    pub fn start_roll_simulation(&mut self, target_helices: Option<Vec<usize>>) {
         let presenter = self.app_state.0.design.presenter.clone();
         let result = self
             .app_state
@@ -283,7 +279,7 @@ impl MainState {
         self.apply_operation_result(result);
     }
 
-    pub(crate) fn update_rapier_parameters(&mut self, parameters: RapierParameters) {
+    pub fn update_rapier_parameters(&mut self, parameters: RapierParameters) {
         let presenter = self.app_state.0.design.presenter.clone();
         let result = self
             .app_state
@@ -296,12 +292,12 @@ impl MainState {
     }
 
     // NOTE : rename to apply_simulation_operation
-    pub(crate) fn update_simulation(&mut self, request: SimulationOperation) {
+    pub fn update_simulation(&mut self, request: SimulationOperation) {
         let result = self.app_state.update_simulation(request);
         self.apply_operation_result(result);
     }
 
-    pub(crate) fn apply_silent_operation(&mut self, operation: DesignOperation) {
+    pub fn apply_silent_operation(&mut self, operation: DesignOperation) {
         match self.app_state.apply_design_op(operation.clone()) {
             Ok(_) => (),
             Err(ErrOperation::FinishFirst) => {
@@ -315,7 +311,7 @@ impl MainState {
         }
     }
 
-    pub(crate) fn save_old_state(&mut self, old_state: AppState, label: TransitionLabel) {
+    pub fn save_old_state(&mut self, old_state: AppState, label: TransitionLabel) {
         let camera_3d = self.get_camera_3d();
         self.undo_stack.push(AppStateTransition {
             state: old_state,
@@ -325,13 +321,13 @@ impl MainState {
         self.redo_stack.clear();
     }
 
-    pub(crate) fn set_roll_of_selected_helices(&mut self, roll: f32) {
+    pub fn set_roll_of_selected_helices(&mut self, roll: f32) {
         if let Some((_, helices)) = list_of_helices(self.app_state.get_selection()) {
             self.apply_operation(DesignOperation::SetRollHelices { helices, roll });
         }
     }
 
-    pub(crate) fn undo(&mut self) {
+    pub fn undo(&mut self) {
         if let Some(mut transition) = self.undo_stack.pop() {
             transition.state.prepare_for_replacement(&self.app_state);
             let mut redo_state = std::mem::replace(&mut self.app_state, transition.state);
@@ -351,7 +347,7 @@ impl MainState {
         }
     }
 
-    pub(crate) fn redo(&mut self) {
+    pub fn redo(&mut self) {
         if let Some(mut transition) = self.redo_stack.pop() {
             transition.state.prepare_for_replacement(&self.app_state);
             let undo_state = std::mem::replace(&mut self.app_state, transition.state);
@@ -368,7 +364,7 @@ impl MainState {
         }
     }
 
-    pub(crate) fn modify_state<F>(&mut self, modification: F, undo_label: Option<TransitionLabel>)
+    pub fn modify_state<F>(&mut self, modification: F, undo_label: Option<TransitionLabel>)
     where
         F: FnOnce(AppState) -> AppState,
     {
@@ -389,7 +385,7 @@ impl MainState {
         }
     }
 
-    pub(crate) fn update_pending_operation(&mut self, operation: Arc<dyn Operation>) {
+    pub fn update_pending_operation(&mut self, operation: Arc<dyn Operation>) {
         let result = self.app_state.update_pending_operation(operation.clone());
         if matches!(result, Err(ErrOperation::FinishFirst)) {
             self.modify_state(
@@ -401,13 +397,13 @@ impl MainState {
         self.apply_operation_result(result);
     }
 
-    pub(crate) fn optimize_shift(&mut self) {
+    pub fn optimize_shift(&mut self) {
         let reader = &mut self.channel_reader;
         let result = self.app_state.optimize_shift(reader);
         self.apply_operation_result(result);
     }
 
-    pub(crate) fn apply_operation_result(&mut self, result: Result<OkOperation, ErrOperation>) {
+    pub fn apply_operation_result(&mut self, result: Result<OkOperation, ErrOperation>) {
         match result {
             Ok(OkOperation::Undoable { state, label }) => self.save_old_state(state, label),
             Ok(OkOperation::NotUndoable) => (),
@@ -418,7 +414,7 @@ impl MainState {
         }
     }
 
-    pub(crate) fn request_copy(&mut self) {
+    pub fn request_copy(&mut self) {
         let reader = self.app_state.get_design_interactor();
         let selection = self.app_state.get_selection();
         if let Some((_, xover_ids)) = list_of_xover_as_nucl_pairs(selection, &reader) {
@@ -433,7 +429,7 @@ impl MainState {
         }
     }
 
-    pub(crate) fn apply_paste(&mut self) {
+    pub fn apply_paste(&mut self) {
         log::info!("apply paste");
         match self.app_state.get_pasting_status() {
             PastingStatus::Copy => self.apply_copy_operation(CopyOperation::Paste),
@@ -442,7 +438,7 @@ impl MainState {
         }
     }
 
-    pub(crate) fn request_duplication(&mut self) {
+    pub fn request_duplication(&mut self) {
         if self.app_state.can_iterate_duplication() {
             self.apply_copy_operation(CopyOperation::Duplicate);
         } else if let Some((_, nucl_pairs)) = list_of_xover_as_nucl_pairs(
@@ -458,7 +454,7 @@ impl MainState {
         }
     }
 
-    pub(crate) fn save_design(&mut self, path: &PathBuf) -> Result<(), SaveDesignError> {
+    pub fn save_design(&mut self, path: &PathBuf) -> Result<(), SaveDesignError> {
         let camera = self
             .applications
             .get(&GuiComponentType::Scene)
@@ -480,7 +476,7 @@ impl MainState {
         Ok(())
     }
 
-    pub(crate) fn save_backup(&mut self) -> Result<(), SaveDesignError> {
+    pub fn save_backup(&mut self) -> Result<(), SaveDesignError> {
         let camera = self
             .applications
             .get(&GuiComponentType::Scene)
@@ -517,36 +513,36 @@ impl MainState {
         Ok(())
     }
 
-    pub(crate) fn change_selection_mode(&mut self, mode: SelectionMode) {
+    pub fn change_selection_mode(&mut self, mode: SelectionMode) {
         self.modify_state(|s| s.with_selection_mode(mode), None);
     }
 
-    pub(crate) fn change_action_mode(&mut self, mode: ActionMode) {
+    pub fn change_action_mode(&mut self, mode: ActionMode) {
         self.modify_state(|s| s.with_action_mode(mode), None);
     }
 
-    pub(crate) fn change_double_strand_parameters(&mut self, parameters: Option<(isize, usize)>) {
+    pub fn change_double_strand_parameters(&mut self, parameters: Option<(isize, usize)>) {
         self.modify_state(|s| s.with_strand_on_helix(parameters), None);
     }
 
-    pub(crate) fn toggle_widget_basis(&mut self) {
+    pub fn toggle_widget_basis(&mut self) {
         self.modify_state(|s| s.with_toggled_widget_basis(), None);
     }
 
-    pub(crate) fn set_visibility_sieve(&mut self, selection: Vec<Selection>, compl: bool) {
+    pub fn set_visibility_sieve(&mut self, selection: Vec<Selection>, compl: bool) {
         let result = self.app_state.set_visibility_sieve(selection, compl);
         self.apply_operation_result(result);
     }
 
-    pub(crate) fn need_save(&self) -> bool {
+    pub fn need_save(&self) -> bool {
         self.app_state.design_was_modified(&self.last_saved_state)
     }
 
-    pub(crate) fn get_current_file_name(&self) -> Option<&Path> {
+    pub fn get_current_file_name(&self) -> Option<&Path> {
         self.file_name.as_ref().map(AsRef::as_ref)
     }
 
-    pub(crate) fn update_current_file_name(&mut self) {
+    pub fn update_current_file_name(&mut self) {
         self.file_name = self
             .app_state
             .path_to_current_design()
@@ -555,48 +551,48 @@ impl MainState {
             .map(Into::into);
     }
 
-    pub(crate) fn set_suggestion_parameters(&mut self, param: SuggestionParameters) {
+    pub fn set_suggestion_parameters(&mut self, param: SuggestionParameters) {
         self.modify_state(|s| s.with_suggestion_parameters(param), None);
     }
 
-    pub(crate) fn set_check_xovers_parameters(&mut self, param: CheckXoversParameter) {
+    pub fn set_check_xovers_parameters(&mut self, param: CheckXoversParameter) {
         self.modify_state(|s| s.with_check_xovers_parameters(param), None);
     }
 
-    pub(crate) fn set_follow_stereographic_camera(&mut self, follow: bool) {
+    pub fn set_follow_stereographic_camera(&mut self, follow: bool) {
         self.modify_state(|s| s.with_follow_stereographic_camera(follow), None);
     }
 
-    pub(crate) fn set_show_stereographic_camera(&mut self, show: bool) {
+    pub fn set_show_stereographic_camera(&mut self, show: bool) {
         self.modify_state(|s| s.with_show_stereographic_camera(show), None);
     }
 
-    pub(crate) fn set_show_h_bonds(&mut self, show: HBondDisplay) {
+    pub fn set_show_h_bonds(&mut self, show: HBondDisplay) {
         self.modify_state(|s| s.with_show_h_bonds(show), None);
     }
 
-    pub(crate) fn set_show_bezier_paths(&mut self, show: bool) {
+    pub fn set_show_bezier_paths(&mut self, show: bool) {
         self.modify_state(|s| s.with_show_bezier_paths(show), None);
     }
 
-    pub(crate) fn set_all_helices_on_axis(&mut self, off_axis: bool) {
+    pub fn set_all_helices_on_axis(&mut self, off_axis: bool) {
         self.modify_state(|s| s.all_helices_on_axis(off_axis), None);
     }
 
-    pub(crate) fn set_bezier_revolution_id(&mut self, id: Option<usize>) {
+    pub fn set_bezier_revolution_id(&mut self, id: Option<usize>) {
         self.modify_state(|s| s.set_bezier_revolution_id(id), None);
     }
 
-    pub(crate) fn set_bezier_revolution_radius(&mut self, radius: f64) {
+    pub fn set_bezier_revolution_radius(&mut self, radius: f64) {
         self.modify_state(|s| s.set_bezier_revolution_radius(radius), None);
     }
 
-    pub(crate) fn set_revolution_axis_position(&mut self, position: f64) {
+    pub fn set_revolution_axis_position(&mut self, position: f64) {
         self.modify_state(|s| s.set_revolution_axis_position(position), None);
     }
 
     /// Create a bezier plane where the user is looking at if there are no bezier plane yet.
-    pub(crate) fn create_default_bezier_plane(&mut self) {
+    pub fn create_default_bezier_plane(&mut self) {
         if self
             .app_state
             .get_design_interactor()
@@ -613,20 +609,17 @@ impl MainState {
         }
     }
 
-    pub(crate) fn set_unrooted_surface(
-        &mut self,
-        surface: Option<UnrootedRevolutionSurfaceDescriptor>,
-    ) {
+    pub fn set_unrooted_surface(&mut self, surface: Option<UnrootedRevolutionSurfaceDescriptor>) {
         self.modify_state(|s| s.set_unrooted_surface(surface), None);
     }
 
-    pub(crate) fn get_grid_creation_position(&self) -> Option<(Vec3, Rotor3)> {
+    pub fn get_grid_creation_position(&self) -> Option<(Vec3, Rotor3)> {
         self.applications
             .get(&GuiComponentType::Scene)
             .and_then(|s| s.lock().unwrap().get_position_for_new_grid())
     }
 
-    pub(crate) fn get_bezier_sheet_creation_position(&self) -> Option<(Vec3, Rotor3)> {
+    pub fn get_bezier_sheet_creation_position(&self) -> Option<(Vec3, Rotor3)> {
         self.get_grid_creation_position()
             .map(|(position, orientation)| {
                 (
@@ -636,27 +629,27 @@ impl MainState {
             })
     }
 
-    pub(crate) fn toggle_all_helices_on_axis(&mut self) {
+    pub fn toggle_all_helices_on_axis(&mut self) {
         self.modify_state(|s| s.with_toggled_all_helices_on_axis(), None);
     }
 
-    pub(crate) fn set_background_3d(&mut self, bg: Background3D) {
+    pub fn set_background_3d(&mut self, bg: Background3D) {
         self.modify_state(|s| s.with_background3d(bg), None);
     }
 
-    pub(crate) fn set_rendering_mode(&mut self, rendering_mode: RenderingMode) {
+    pub fn set_rendering_mode(&mut self, rendering_mode: RenderingMode) {
         self.modify_state(|s| s.with_rendering_mode(rendering_mode), None);
     }
 
-    pub(crate) fn set_scroll_sensitivity(&mut self, sensitivity: f32) {
+    pub fn set_scroll_sensitivity(&mut self, sensitivity: f32) {
         self.modify_state(|s| s.with_scroll_sensitivity(sensitivity), None);
     }
 
-    pub(crate) fn set_invert_y_scroll(&mut self, inverted: bool) {
+    pub fn set_invert_y_scroll(&mut self, inverted: bool) {
         self.modify_state(|s| s.with_inverted_y_scroll(inverted), None);
     }
 
-    pub(crate) fn gui_state(&self, multiplexer: &Multiplexer) -> TopBarStateFlags {
+    pub fn gui_state(&self, multiplexer: &Multiplexer) -> TopBarStateFlags {
         TopBarStateFlags {
             can_undo: !self.undo_stack.is_empty(),
             can_redo: !self.redo_stack.is_empty(),
@@ -672,7 +665,7 @@ impl MainState {
         }
     }
 
-    pub(crate) fn get_camera_3d(&self) -> Camera3D {
+    pub fn get_camera_3d(&self) -> Camera3D {
         self.applications
             .get(&GuiComponentType::Scene)
             .expect("Could not get scene element")
@@ -685,7 +678,7 @@ impl MainState {
             .0
     }
 
-    pub(crate) fn set_camera_3d(&self, camera: Camera3D) {
+    pub fn set_camera_3d(&self, camera: Camera3D) {
         self.applications
             .get(&GuiComponentType::Scene)
             .expect("Could not get scene element")

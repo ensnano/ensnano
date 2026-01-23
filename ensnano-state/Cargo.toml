@@ -33,3 +33,5 @@ serde_json.workspace = true
 itertools.workspace = true
 rust_xlsxwriter.workspace = true
 confy.workspace = true
+iced_wgpu.workspace = true
+dirs.workspace = true

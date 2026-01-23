@@ -75,11 +75,8 @@ mod main_tests;
 
 mod controller;
 mod dialog;
-mod multiplexer;
 mod overlay_manager;
-mod poll;
 mod scheduler;
-mod state;
 
 use crate::{
     controller::{
@@ -88,10 +85,8 @@ use crate::{
             SetScaffoldSequenceError, SetScaffoldSequenceOk, TargetScaffoldLength,
         },
     },
-    multiplexer::Multiplexer,
     overlay_manager::OverlayManager,
     scheduler::Scheduler,
-    state::MainState,
 };
 use ensnano_design::{CameraId, grid::GridId, group_attributes::GroupPivot};
 use ensnano_exports::{ExportResult, ExportType};
@@ -125,7 +120,9 @@ use ensnano_state::{
         },
     },
     gui::messages::GuiMessages,
-    requests::Requests,
+    multiplexer::Multiplexer,
+    requests::{Requests, poll::poll_all},
+    state::MainState,
     utils::application::{Camera3D, Notification},
 };
 use ensnano_utils::{
@@ -722,7 +719,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 );
 
                 // When there is no more event to deal with
-                poll::poll_all(&mut requests.lock().unwrap(), &mut main_state);
+                poll_all(&mut requests.lock().unwrap(), &mut main_state);
 
                 let mut main_state_view = MainStateView {
                     main_state: &mut main_state,

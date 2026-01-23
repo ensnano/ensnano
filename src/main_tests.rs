@@ -1,6 +1,5 @@
 //! Test suite for the `MainState` structure
 
-use crate::state::MainState;
 use ensnano_design::nucl::Nucl;
 use ensnano_state::{
     app_state::{
@@ -9,6 +8,7 @@ use ensnano_state::{
     },
     design::{operation::DesignOperation, selection::Selection},
     gui::messages::GuiMessages,
+    state::MainState,
     utils::application::{Application, Camera3D, Notification},
 };
 use ensnano_utils::{

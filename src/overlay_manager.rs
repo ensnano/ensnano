@@ -1,6 +1,5 @@
-use crate::multiplexer::Multiplexer;
 use ensnano_gui::left_panel::ColorOverlay;
-use ensnano_state::{gui::messages::GuiMessages, requests::Requests};
+use ensnano_state::{gui::messages::GuiMessages, multiplexer::Multiplexer, requests::Requests};
 use ensnano_utils::{
     convert_size_f32, convert_size_u32, graphics::GuiComponentType, overlay::OverlayType,
 };

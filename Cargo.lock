@@ -1064,17 +1064,14 @@ checksum = "66b7e2430c6dff6a955451e2cfc438f09cea1965a9d6f87f7e3b90decc014099"
 name = "ensnano"
 version = "0.7.0"
 dependencies = [
- "ahash 0.8.12",
  "confy",
  "dirs",
  "ensnano_design",
  "ensnano_exports",
  "ensnano_flatscene",
  "ensnano_gui",
- "ensnano_physics",
  "ensnano_scene",
  "ensnano_state",
- "ensnano_upcoming",
  "ensnano_utils",
  "futures",
  "iced",
@@ -1222,11 +1219,13 @@ dependencies = [
  "chebyshev_polynomials",
  "color_space",
  "confy",
+ "dirs",
  "ensnano_design",
  "ensnano_exports",
  "ensnano_physics",
  "ensnano_utils",
  "iced",
+ "iced_wgpu",
  "itertools",
  "log",
  "mathru",
@@ -1242,11 +1241,6 @@ dependencies = [
  "wgpu",
  "winit",
 ]
-
-[[package]]
-name = "ensnano_upcoming"
-version = "0.1.0"
-source = "git+ssh://git@gitlab.aliens-lyon.fr/nschaban/ensnano-upcoming.git#1caed6172ad309ea0a137a401e2ab6d46d5f46bf"
 
 [[package]]
 name = "ensnano_utils"
