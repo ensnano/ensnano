@@ -209,6 +209,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         pretty_env_logger::init();
     }
 
+    #[cfg(feature = "ensnano_upcoming")]
+    ensnano_upcoming::exclusive_method();
+
     // Parse arguments. If an argument was given it is treated as a file to open.
     let path = std::env::args().nth(1).map(PathBuf::from);
 
