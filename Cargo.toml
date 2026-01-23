@@ -6,7 +6,7 @@ members = [
     "ensnano-gui",
     "ensnano-physics",
     "ensnano-scene",
-    "ensnano-state",
+    "ensnano-state", "ensnano-upcoming",
     "ensnano-utils",
 ]
 resolver = "3"
