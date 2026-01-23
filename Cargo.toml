@@ -89,7 +89,7 @@ serde_with = "1.11"
 strum = { version = "0.27", features = ["derive"] }
 svg = "0.18"
 ultraviolet = { version = "0.10", features = [ "bytemuck", "f64", "serde" ] }
-version-compare = "0.1"
+version-compare = "0.2"
 wgpu = { version = "0.19", features = ["spirv"] }
 winit = "0.29"
 
