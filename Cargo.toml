@@ -7,7 +7,6 @@ members = [
     "ensnano-physics",
     "ensnano-scene",
     "ensnano-state",
-    "ensnano-upcoming",
     "ensnano-utils",
 ]
 resolver = "3"
@@ -107,7 +106,6 @@ ensnano_scene.workspace = true
 ensnano_state.workspace = true
 ensnano_utils.workspace = true
 
-ensnano_upcoming = { path = "ensnano-upcoming", optional = true }
 
 ahash.workspace = true
 confy.workspace = true
@@ -145,6 +143,9 @@ version.workspace = true
 [features]
 log_after_renderer_setup = []
 dx12_only = []
+# This feature gates content in the ensnano_upcoming private
+# crate
+ensnano_upcoming = []
 
 [lints]
 workspace = true

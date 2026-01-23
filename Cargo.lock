@@ -1074,7 +1074,6 @@ dependencies = [
  "ensnano_physics",
  "ensnano_scene",
  "ensnano_state",
- "ensnano_upcoming",
  "ensnano_utils",
  "futures",
  "iced",
@@ -1242,10 +1241,6 @@ dependencies = [
  "wgpu",
  "winit",
 ]
-
-[[package]]
-name = "ensnano_upcoming"
-version = "0.7.0"
 
 [[package]]
 name = "ensnano_utils"

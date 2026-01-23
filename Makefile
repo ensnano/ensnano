@@ -144,9 +144,3 @@ $(WINDOWS_BIN): src
 win: 
 	make $(WINDOWS_BIN)
 
-
-upcoming:
-	git update-index --assume-unchanged ensnano-upcoming/
-	git update-index --skip-worktree ensnano-upcoming/
-	rm -rf ensnano-upcoming
-	git clone git@gitlab.aliens-lyon.fr:nschaban/ensnano-upcoming.git
