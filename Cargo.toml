@@ -18,6 +18,7 @@ authors = [
     "Joris Picot <joris.picot@ens-lyon.fr>",
     "Pacôme Perrotin <pacome.perrotin@gmail.com>",
     "Axel Brisse <axel.brisse@gmail.com>",
+    "Eliott Mercier Del Forno <eliottmercierjuge@gmail.com>",
 ]
 edition = "2024"
 homepage = "https://www.ens-lyon.fr/ensnano/"
