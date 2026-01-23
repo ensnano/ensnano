@@ -35,19 +35,21 @@ ensnano_physics = { path = "ensnano-physics" }
 ensnano_scene = { path = "ensnano-scene" }
 ensnano_state = { path = "ensnano-state" }
 ensnano_utils = { path = "ensnano-utils" }
+ensnano_upcoming = { git = "ssh://git@gitlab.aliens-lyon.fr/nschaban/ensnano-upcoming.git" }
 
-ahash = "0.8"
-bytemuck = "1.24"
+ahash = "0.8.6"
+bytemuck = "1.2.0"
+chebyshev_polynomials = { git = "https://github.com/thenlevy/chebyshev_polynomials" }
 chrono = "0.4"
-color_space = "0.5"
-confy = { version = "2.0", default-features = false, features = [
+color_space = "0.5.2"
+confy = { version = "1.0.0", default-features = false, features = [
     "yaml_conf",
 ] }
-dirs = "6.0"
-fontdue = "0.9"
-futures = { version = "0.3", default-features = false }
-futures-channel = "0.3"
-gltf = "1.4"
+dirs = "4.0"
+fontdue = "0.6.4"
+futures = "0.3.5"
+futures-channel = "0.3.30"
+gltf = "0.16.0"
 iced = { version = "0.12", features = ["advanced", "image", "svg"] }
 iced_aw = { version = "0.9", default-features = false, features = [
     "tabs",
@@ -62,35 +64,36 @@ icondata = { version = "0.7", default-features = false, features = [
     "material-design-icons",
 ] }
 image = "0.23"
-int-enum = "1.2"
-itertools = "0.14"
+int-enum = "1.0.1"
+itertools = "0.10.3"
 log = "0.4"
 lyon = "1.0"
 mathru = "0.13"
-nom_stl = "0.2"
+nom_stl = "0.2.2"
 num = { version = "0.4", default-features = false }
-num_enum = "0.7"
-open = "5.3"
-ordered-float = { version = "5.1", default-features = false, features = ["serde"] }
-paste = "1.0"
-png = "0.18"
-pretty_env_logger = "0.5"
-quadrature = "0.1"
-rand = "0.9"
-rand_distr = "0.5"
+num_enum = "0.5.1"
+open = "1"
+ordered-float = { version = "2.0", features = ["serde"] }
+paste = "1.0.5"
+pathdiff = "0.2.1"
+png = "0.17.5"
+pretty_env_logger = "0.4"
+quadrature = "0.1.2"
+rand = "0.9.2"
+rand_distr = "0.5.1"
 rapier3d = { version = "0.31", features = ["parallel", "simd-stable"] }
-rayon = "1.11"
-regex = "1.12"
-relative-path = "1.7"
-rfd = "0.17"
-rust_xlsxwriter = "0.92"
-serde = { version = "1.0", features = ["derive", "rc"] }
-serde_json = "1.0"
-serde_with = "1.11"
-strum = { version = "0.27", features = ["derive"] }
-svg = "0.18"
+rayon = "1.6.0"
+regex = "1.4.2"
+relative-path = "1.7.0"
+rfd = "0.15"
+rust_xlsxwriter = "0.55.0"
+serde = { version = "1.0.116", features = ["derive", "rc"] }
+serde_json = "1.0.116"
+serde_with = "1.11.0"
+strum = { version = "0.26", features = ["derive"] }
+svg = "0.12.0"
 ultraviolet = { version = "0.10", features = [ "bytemuck", "f64", "serde" ] }
-version-compare = "0.2"
+version-compare = "0.1.0"
 wgpu = { version = "0.19", features = ["spirv"] }
 winit = "0.29"
 
@@ -103,7 +106,7 @@ ensnano_physics.workspace = true
 ensnano_scene.workspace = true
 ensnano_state.workspace = true
 ensnano_utils.workspace = true
-
+ensnano_upcoming.workspace = true
 
 ahash.workspace = true
 confy.workspace = true
@@ -162,8 +165,7 @@ non_ascii_idents = "warn"
 redundant_imports = "warn"
 redundant_lifetimes = "warn"
 single_use_lifetimes = "warn"
-# TODO: enable the following 2 lints once the feature is stabilized (rust 1.95 maybe)
-# The lint names are likely to change so Ctrl+F "supertrait" in the list of lints
+# TODO: enable the following 2 lints once the feature is stabilized (rust 1.94 maybe)
 # supertrait_item_shadowing_definition = "warn"
 # supertrait_item_shadowing_usage = "warn"
 trivial_numeric_casts = "warn"
@@ -250,7 +252,6 @@ big_endian_bytes = "allow"
 clone_on_ref_ptr = "allow" # TODO: warn (too much manual work for now)
 cognitive_complexity = "allow" # TODO: warn (surprisingly good suggestions)
 default_numeric_fallback = "allow"
-doc_paragraphs_missing_punctuation = "allow"
 else_if_without_else = "allow"
 exhaustive_enums = "allow"
 exhaustive_structs = "allow"

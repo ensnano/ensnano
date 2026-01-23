@@ -143,3 +143,11 @@ $(WINDOWS_BIN): src
 
 win: 
 	make $(WINDOWS_BIN)
+
+upcoming:
+	mv -i Cargo.toml Cargo.toml.noupcoming
+	mv -i Cargo.toml.upcoming Cargo.toml
+
+noupcoming:
+	mv -i Cargo.toml Cargo.toml.upcoming
+	mv -i Cargo.toml.noupcoming Cargo.toml
