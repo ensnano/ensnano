@@ -29,7 +29,7 @@ impl AsRef<str> for TransitionLabel {
 }
 
 #[derive(Debug)]
-pub enum OkOperation {
+pub enum OperationUndoability {
     NotUndoable,
     Undoable {
         state: AppState,

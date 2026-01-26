@@ -2,7 +2,7 @@ mod closed_curves;
 
 use self::closed_curves::CloseSurfaceTopology;
 use crate::app_state::{
-    ErrOperation,
+    OperationError,
     channel_reader::ChannelReader,
     design_interactor::{
         controller::simulations::SimulationInterface, presenter::SimulationUpdate,
@@ -423,7 +423,7 @@ impl RevolutionSystemThread {
     pub(crate) fn start_new(
         system: RevolutionSurfaceSystemDescriptor,
         reader: &mut ChannelReader,
-    ) -> Result<Arc<Mutex<RevolutionSystemInterface>>, ErrOperation> {
+    ) -> Result<Arc<Mutex<RevolutionSystemInterface>>, OperationError> {
         let ret = Arc::new(Mutex::new(RevolutionSystemInterface::default()));
         let ret_dyn: Arc<Mutex<dyn SimulationInterface>> = ret.clone();
         reader.attach_state(&ret_dyn);

@@ -110,7 +110,7 @@ use ensnano_state::{
                 simulations::SimulationOperation,
             },
         },
-        transitions::OkOperation,
+        transitions::OperationUndoability,
     },
     design::{
         operation::{DesignOperation, DesignRotation, DesignTranslation, IsometryTarget},
@@ -1279,10 +1279,10 @@ impl MainStateView<'_> {
             .app_state
             .apply_design_op(DesignOperation::SetScaffoldSequence { sequence, shift })
         {
-            Ok(OkOperation::Undoable { state, label }) => {
+            Ok(OperationUndoability::Undoable { state, label }) => {
                 self.main_state.save_old_state(state, label);
             }
-            Ok(OkOperation::NotUndoable) => (),
+            Ok(OperationUndoability::NotUndoable) => (),
             Err(e) => return Err(SetScaffoldSequenceError(format!("{e:?}"))),
         }
         let default_shift = self.get_design_interactor().default_shift();

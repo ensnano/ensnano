@@ -4,15 +4,15 @@ pub mod presenter;
 
 use self::{
     controller::{
-        Controller, ErrOperation, InteractorNotification, OkOperation, clipboard::CopyOperation,
-        simulations::SimulationOperation,
+        Controller, InteractorNotification, OperationError, OperationResult,
+        clipboard::CopyOperation, simulations::SimulationOperation,
     },
     presenter::{Presenter, SimulationUpdate, apply_simulation_update, update_presenter},
 };
 use crate::{
     app_state::{SaveDesignError, address_pointer::AddressPointer, channel_reader::ChannelReader},
     design::{operation::DesignOperation, selection::Selection},
-    utils::operation::{CurrentOpState, Operation},
+    utils::operation::{CurrentOpState, SimpleOperation},
 };
 use ensnano_design::{
     Design, SavingInformation,
@@ -43,7 +43,7 @@ pub struct DesignInteractor {
     /// The structure that handles "write" operations.
     pub controller: AddressPointer<Controller>,
     pub simulation_update: Option<Arc<dyn SimulationUpdate>>,
-    pub current_operation: Option<Arc<dyn Operation>>,
+    pub current_operation: Option<Arc<dyn SimpleOperation>>,
     pub current_operation_id: usize,
     pub new_selection: Option<Vec<Selection>>,
 }
@@ -52,7 +52,7 @@ impl DesignInteractor {
     pub(super) fn optimize_shift(
         &self,
         reader: &mut ChannelReader,
-    ) -> Result<InteractorResult, ErrOperation> {
+    ) -> Result<InteractorResult, OperationError> {
         let nucl_map = self.presenter.get_owned_nucl_collection();
         let result = self
             .controller
@@ -67,7 +67,7 @@ impl DesignInteractor {
     pub(super) fn apply_operation(
         &self,
         operation: DesignOperation,
-    ) -> Result<InteractorResult, ErrOperation> {
+    ) -> Result<InteractorResult, OperationError> {
         let result = self
             .controller
             .apply_operation(self.design.as_ref(), operation);
@@ -77,7 +77,7 @@ impl DesignInteractor {
     pub(super) fn apply_copy_operation(
         &mut self,
         operation: CopyOperation,
-    ) -> Result<InteractorResult, ErrOperation> {
+    ) -> Result<InteractorResult, OperationError> {
         log::info!("Applying copy operation");
         log::info!("nb helices {}", self.design.helices.len());
         let tried_up_to_date = self.design.try_get_up_to_date();
@@ -95,8 +95,8 @@ impl DesignInteractor {
 
     pub(super) fn update_pending_operation(
         &self,
-        operation: Arc<dyn Operation>,
-    ) -> Result<InteractorResult, ErrOperation> {
+        operation: Arc<dyn SimpleOperation>,
+    ) -> Result<InteractorResult, OperationError> {
         let op_is_new = self.is_in_stable_state();
         let result = self
             .controller
@@ -111,7 +111,7 @@ impl DesignInteractor {
     pub(super) fn start_simulation(
         &self,
         operation: SimulationOperation,
-    ) -> Result<InteractorResult, ErrOperation> {
+    ) -> Result<InteractorResult, OperationError> {
         let result = self
             .controller
             .apply_simulation_operation(self.design.clone_inner(), operation);
@@ -121,7 +121,7 @@ impl DesignInteractor {
     pub(super) fn update_simulation(
         &self,
         operation: SimulationOperation,
-    ) -> Result<InteractorResult, ErrOperation> {
+    ) -> Result<InteractorResult, OperationError> {
         let result = self
             .controller
             .apply_simulation_operation(self.design.clone_inner(), operation);
@@ -130,17 +130,17 @@ impl DesignInteractor {
 
     fn handle_operation_result(
         &self,
-        result: Result<(OkOperation, Controller), ErrOperation>,
-    ) -> Result<InteractorResult, ErrOperation> {
+        result: Result<(OperationResult, Controller), OperationError>,
+    ) -> Result<InteractorResult, OperationError> {
         match result {
-            Ok((OkOperation::Replace(design), mut controller)) => {
+            Ok((OperationResult::Replace(design), mut controller)) => {
                 let mut ret = self.clone();
                 ret.new_selection = controller.next_selection.take();
                 ret.controller = AddressPointer::new(controller);
                 ret.design = AddressPointer::new(design);
                 Ok(InteractorResult::Replace(ret))
             }
-            Ok((OkOperation::Push { design, label }, mut controller)) => {
+            Ok((OperationResult::Push { design, label }, mut controller)) => {
                 let mut ret = self.clone();
                 ret.current_operation = None;
                 ret.new_selection = controller.next_selection.take();
@@ -151,7 +151,7 @@ impl DesignInteractor {
                     label,
                 })
             }
-            Ok((OkOperation::NoOp, mut controller)) => {
+            Ok((OperationResult::NoOp, mut controller)) => {
                 let mut ret = self.clone();
                 ret.new_selection = controller.next_selection.take();
                 ret.controller = AddressPointer::new(controller);
@@ -376,7 +376,11 @@ pub(super) enum InteractorResult {
 }
 
 impl InteractorResult {
-    pub(super) fn set_operation_state(&mut self, operation: Arc<dyn Operation>, new_op: bool) {
+    pub(super) fn set_operation_state(
+        &mut self,
+        operation: Arc<dyn SimpleOperation>,
+        new_op: bool,
+    ) {
         let (Self::Push { interactor, .. } | Self::Replace(interactor)) = self;
         if new_op {
             interactor.current_operation_id += 1;
@@ -1273,7 +1277,7 @@ mod tests {
             app_state
                 .apply_copy_operation(CopyOperation::Paste)
                 .unwrap(),
-            transitions::OkOperation::Undoable { .. }
+            transitions::OperationUndoability::Undoable { .. }
         ));
     }
 
@@ -1317,7 +1321,7 @@ mod tests {
             )))
             .unwrap();
         match app_state.apply_copy_operation(CopyOperation::Paste) {
-            Err(ErrOperation::CannotPasteHere) => (),
+            Err(OperationError::CannotPasteHere) => (),
             x => panic!("expected CannotPasteHere, got {x:?}"),
         }
     }

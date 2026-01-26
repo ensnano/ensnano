@@ -7,7 +7,7 @@ use crate::{
         sphere_like_spiral::SphereLikeSpiralDescriptor,
         tube_spiral::TubeSpiralDescriptor,
     },
-    design_operations::ErrDesignOperation,
+    design_operations::DesignOperationError,
     grid::{Edge, Grid, GridAwareTranslation, GridData, GridId, HelixGridPosition},
     nucl::VirtualNucl,
     parameters::HelixParameters,
@@ -383,7 +383,7 @@ impl Helix {
         &self,
         _bezier_point: BezierControlPoint,
         _translation: GridAwareTranslation,
-    ) -> Result<(), ErrDesignOperation> {
+    ) -> Result<(), DesignOperationError> {
         log::error!("Translation of cubic bezier point not implemented");
         Ok(())
     }
@@ -400,10 +400,10 @@ impl Helix {
         grid_manager: &GridData,
         grid_pos_start: HelixGridPosition,
         grid_pos_end: HelixGridPosition,
-    ) -> Result<Self, ErrDesignOperation> {
+    ) -> Result<Self, DesignOperationError> {
         let position = grid_manager
             .pos_to_space(grid_pos_start.light())
-            .ok_or(ErrDesignOperation::GridDoesNotExist(grid_pos_start.grid))?;
+            .ok_or(DesignOperationError::GridDoesNotExist(grid_pos_start.grid))?;
         let point_start = BezierEnd {
             position: grid_pos_start.light(),
             inward_coeff: 1.,
@@ -448,7 +448,7 @@ impl Helix {
         grid_manager: &GridData,
         grid_pos: HelixGridPosition,
         path_id: BezierPathId,
-    ) -> Result<Self, ErrDesignOperation> {
+    ) -> Result<Self, DesignOperationError> {
         let translation = (|| {
             let grid = grid_manager.grids.get(&grid_pos.grid)?;
             let position = grid.position_helix_in_grid_coordinates(grid_pos.x, grid_pos.y);

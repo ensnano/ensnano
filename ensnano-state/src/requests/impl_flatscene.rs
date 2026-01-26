@@ -2,7 +2,7 @@ use crate::{
     app_state::action::Action,
     design::{operation::DesignOperation, selection::Selection},
     requests::Requests,
-    utils::operation::Operation,
+    utils::operation::SimpleOperation,
 };
 use std::sync::Arc;
 use ultraviolet::Isometry2;
@@ -16,7 +16,7 @@ impl Requests {
         self.new_candidates = Some(candidates);
     }
 
-    pub fn update_operation(&mut self, operation: Arc<dyn Operation>) {
+    pub fn update_operation(&mut self, operation: Arc<dyn SimpleOperation>) {
         self.operation_update = Some(operation);
     }
 
