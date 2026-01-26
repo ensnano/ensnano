@@ -40,12 +40,12 @@ use self::{
 };
 use crate::{
     bezier_plane::{BezierPathData, BezierPathId},
+    chebyshev_polynomials::{self, ChebyshevPolynomial},
     grid::{Edge, GridData, GridPosition, grid_collection::FreeGrids},
     helices::{AdditionalHelix2D, Helix},
     parameters::HelixParameters,
     utils::{serde::is_false, ultraviolet::vec_to_dvec},
 };
-use chebyshev_polynomials::ChebyshevPolynomial;
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::{

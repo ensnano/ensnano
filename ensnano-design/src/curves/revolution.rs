@@ -1,11 +1,11 @@
 use crate::{
+    chebyshev_polynomials::{self, ChebyshevPolynomial},
     curves::{
         CurveBounds, Curved, EPSILON_DERIVATIVE, SurfaceInfo, SurfacePoint,
         torus::{CurveDescriptor2D, PointOnSurface_},
     },
     utils::ultraviolet::dvec_to_vec,
 };
-use chebyshev_polynomials::ChebyshevPolynomial;
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::f64::consts::{PI, TAU};

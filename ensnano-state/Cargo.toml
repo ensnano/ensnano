@@ -27,7 +27,6 @@ wgpu.workspace = true
 ordered-float.workspace = true
 rand.workspace = true
 rand_distr.workspace = true
-chebyshev_polynomials.workspace = true
 version-compare.workspace = true
 serde_json.workspace = true
 itertools.workspace = true

@@ -2,7 +2,7 @@ use relative_path::RelativePathBuf;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
-    path::{Path, PathBuf},
+    path::{Component, Path, PathBuf},
     sync::Arc,
 };
 use ultraviolet::{Rotor3, Vec3};
@@ -31,7 +31,7 @@ impl External3DObject {
     }
 
     pub fn new(desc: External3DObjectDescriptor) -> Option<Self> {
-        if let Some(rel_path) = pathdiff::diff_paths(&desc.object_path, &desc.design_path)
+        if let Some(rel_path) = diff_paths(&desc.object_path, &desc.design_path)
             .and_then(|rel_path| RelativePathBuf::from_path(rel_path).ok())
         {
             Some(Self {
@@ -87,5 +87,143 @@ impl External3DObjects {
             .min_by_key(|k| k.0)
             .map_or(External3DObjectId(0), |k| External3DObjectId(k.0 + 1));
         Arc::make_mut(&mut self.0).insert(key, object);
+    }
+}
+
+// Shamelessly copied from the pathdiff crate (MIT license)
+// https://github.com/Manishearth/pathdiff/blob/bf1ea6a5e528f6f2/src/lib.rs#L43
+fn diff_paths(path: impl AsRef<Path>, base: impl AsRef<Path>) -> Option<PathBuf> {
+    let path = path.as_ref();
+    let base = base.as_ref();
+
+    if path.is_absolute() != base.is_absolute() {
+        return path.is_absolute().then(|| PathBuf::from(path));
+    }
+
+    let mut ita = path.components();
+    let mut itb = base.components();
+    let mut comps: Vec<Component> = vec![];
+
+    // ./foo and foo are the same
+    if ita.clone().next() == Some(Component::CurDir) {
+        ita.next();
+    }
+    if itb.clone().next() == Some(Component::CurDir) {
+        itb.next();
+    }
+
+    loop {
+        match (ita.next(), itb.next()) {
+            (None, None) => break,
+            (Some(a), None) => {
+                comps.push(a);
+                comps.extend(ita.by_ref());
+                break;
+            }
+            (None, _) => comps.push(Component::ParentDir),
+            (Some(a), Some(b)) if comps.is_empty() && a == b => (),
+            (Some(a), Some(Component::CurDir)) => comps.push(a),
+            (Some(_), Some(Component::ParentDir)) => return None,
+            (Some(a), Some(_)) => {
+                comps.push(Component::ParentDir);
+                for _ in itb {
+                    comps.push(Component::ParentDir);
+                }
+                comps.push(a);
+                comps.extend(ita.by_ref());
+                break;
+            }
+        }
+    }
+
+    Some(comps.iter().map(|c| c.as_os_str()).collect())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn absolute() {
+        fn abs(path: &str) -> String {
+            // Absolute paths look different on Windows vs Unix.
+            if cfg!(windows) {
+                format!("C:\\{path}")
+            } else {
+                format!("/{path}")
+            }
+        }
+
+        assert_diff_paths(&abs("foo"), &abs("bar"), Some("../foo"));
+        assert_diff_paths(&abs("foo"), "bar", Some(&abs("foo")));
+        assert_diff_paths("foo", &abs("bar"), None);
+        assert_diff_paths("foo", "bar", Some("../foo"));
+    }
+
+    #[test]
+    fn identity() {
+        assert_diff_paths(".", ".", Some(""));
+        assert_diff_paths("../foo", "../foo", Some(""));
+        assert_diff_paths("./foo", "./foo", Some(""));
+        assert_diff_paths("/foo", "/foo", Some(""));
+        assert_diff_paths("foo", "foo", Some(""));
+        assert_diff_paths("./foo", "foo", Some(""));
+        assert_diff_paths("././foo", "foo", Some(""));
+        assert_diff_paths("foo", "./foo", Some(""));
+        assert_diff_paths("foo/foo", "./foo/foo", Some(""));
+
+        assert_diff_paths("../foo/bar/baz", "../foo/bar/baz", Some(""));
+        assert_diff_paths("foo/bar/baz", "foo/bar/baz", Some(""));
+    }
+
+    #[test]
+    fn subset() {
+        assert_diff_paths("foo", "fo", Some("../foo"));
+        assert_diff_paths("./././fo", "foo", Some("../fo"));
+    }
+
+    #[test]
+    fn empty() {
+        assert_diff_paths("", "", Some(""));
+        assert_diff_paths("foo", "", Some("foo"));
+        assert_diff_paths("", "foo", Some(".."));
+    }
+
+    #[test]
+    fn relative() {
+        assert_diff_paths("../foo", "../bar", Some("../foo"));
+        assert_diff_paths("../foo", "../foo/bar/baz", Some("../.."));
+        assert_diff_paths("../foo/bar/baz", "../foo", Some("bar/baz"));
+        assert_diff_paths("../foo", "bar", Some("../../foo"));
+        assert_diff_paths("foo", "../bar", None);
+
+        assert_diff_paths("foo/bar/baz", "foo", Some("bar/baz"));
+        assert_diff_paths("foo/bar/baz", "foo/bar", Some("baz"));
+        assert_diff_paths("foo/bar/baz", "foo/bar/baz", Some(""));
+        assert_diff_paths("foo/bar/baz", "foo/bar/baz/", Some(""));
+
+        assert_diff_paths("foo/bar/baz/", "foo", Some("bar/baz"));
+        assert_diff_paths("foo/bar/baz/", "foo/bar", Some("baz"));
+        assert_diff_paths("foo/bar/baz/", "foo/bar/baz", Some(""));
+        assert_diff_paths("foo/bar/baz/", "foo/bar/baz/", Some(""));
+
+        assert_diff_paths("foo/bar/baz", "foo/", Some("bar/baz"));
+        assert_diff_paths("foo/bar/baz", "foo/bar/", Some("baz"));
+        assert_diff_paths("foo/bar/baz", "foo/bar/baz", Some(""));
+    }
+
+    #[test]
+    fn current_directory() {
+        assert_diff_paths(".", "foo", Some("../."));
+        assert_diff_paths("foo", ".", Some("foo"));
+        assert_diff_paths("/foo", "/.", Some("foo"));
+
+        assert_diff_paths("./foo/bar/baz", "foo", Some("bar/baz"));
+        assert_diff_paths("foo/bar/baz", "./foo", Some("bar/baz"));
+        assert_diff_paths("./foo/bar/baz", "./foo", Some("bar/baz"));
+    }
+
+    fn assert_diff_paths(path: &str, base: &str, expected: Option<&str>) {
+        assert_eq!(diff_paths(path, base), expected.map(Into::into));
     }
 }
