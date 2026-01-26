@@ -5,10 +5,10 @@ use crate::{
         action::Action,
         channel_reader::ChannelReader,
         design_interactor::controller::{
-            ErrOperation, InteractorNotification, clipboard::CopyOperation,
+            InteractorNotification, OperationError, clipboard::CopyOperation,
             simulations::SimulationOperation,
         },
-        transitions::{AppStateTransition, OkOperation, TransitionLabel},
+        transitions::{AppStateTransition, OperationUndoability, TransitionLabel},
     },
     design::{
         operation::DesignOperation,
@@ -20,7 +20,7 @@ use crate::{
     gui::messages::{GuiMessages, TopBarStateFlags},
     utils::{
         application::{Application, Camera3D, Notification},
-        operation::Operation,
+        operation::SimpleOperation,
     },
 };
 use ahash::HashMap;
@@ -210,7 +210,7 @@ impl MainState {
     pub fn apply_operation(&mut self, operation: DesignOperation) {
         log::debug!("Applying operation {operation:?}");
         let result = self.app_state.apply_design_op(operation.clone());
-        if matches!(result, Err(ErrOperation::FinishFirst)) {
+        if matches!(result, Err(OperationError::FinishFirst)) {
             self.modify_state(
                 |s| s.notified(InteractorNotification::FinishOperation),
                 None,
@@ -300,7 +300,7 @@ impl MainState {
     pub fn apply_silent_operation(&mut self, operation: DesignOperation) {
         match self.app_state.apply_design_op(operation.clone()) {
             Ok(_) => (),
-            Err(ErrOperation::FinishFirst) => {
+            Err(OperationError::FinishFirst) => {
                 self.modify_state(
                     |s| s.notified(InteractorNotification::FinishOperation),
                     None,
@@ -385,9 +385,9 @@ impl MainState {
         }
     }
 
-    pub fn update_pending_operation(&mut self, operation: Arc<dyn Operation>) {
+    pub fn update_pending_operation(&mut self, operation: Arc<dyn SimpleOperation>) {
         let result = self.app_state.update_pending_operation(operation.clone());
-        if matches!(result, Err(ErrOperation::FinishFirst)) {
+        if matches!(result, Err(OperationError::FinishFirst)) {
             self.modify_state(
                 |s| s.notified(InteractorNotification::FinishOperation),
                 None,
@@ -403,10 +403,12 @@ impl MainState {
         self.apply_operation_result(result);
     }
 
-    pub fn apply_operation_result(&mut self, result: Result<OkOperation, ErrOperation>) {
+    pub fn apply_operation_result(&mut self, result: Result<OperationUndoability, OperationError>) {
         match result {
-            Ok(OkOperation::Undoable { state, label }) => self.save_old_state(state, label),
-            Ok(OkOperation::NotUndoable) => (),
+            Ok(OperationUndoability::Undoable { state, label }) => {
+                self.save_old_state(state, label)
+            }
+            Ok(OperationUndoability::NotUndoable) => (),
             Err(e) => log::warn!("{e:?}"),
         }
         if let Some(new_selection) = self.app_state.get_new_selection() {

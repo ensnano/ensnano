@@ -36,7 +36,7 @@ use ensnano_state::{
         application::{AppId, Application, Camera3D, Notification},
         operation::{
             BezierControlPointTranslation, GridHelixCreation, GridRotation, GridTranslation,
-            HelixRotation, HelixTranslation, Operation, TranslateBezierPathVertex,
+            HelixRotation, HelixTranslation, SimpleOperation, TranslateBezierPathVertex,
             TranslateBezierSheetCorner,
         },
     },
@@ -656,7 +656,7 @@ impl Scene {
 
         let group_id = app_state.get_current_group_id();
 
-        let translation_op: Arc<dyn Operation> = if !control_points.is_empty() {
+        let translation_op: Arc<dyn SimpleOperation> = if !control_points.is_empty() {
             Arc::new(BezierControlPointTranslation {
                 control_points,
                 right: Vec3::unit_x().rotated_by(rotor),
@@ -739,7 +739,7 @@ impl Scene {
         );
         log::debug!("rotating grids {grids:?}");
         let group_id = app_state.get_current_group_id();
-        let rotation: Arc<dyn Operation> = if let Some(grid_ids) = grids.filter(|v| !v.is_empty()) {
+        let rotation: Arc<dyn SimpleOperation> = if let Some(grid_ids) = grids.filter(|v| !v.is_empty()) {
             Arc::new(GridRotation {
                 grid_ids,
                 angle,

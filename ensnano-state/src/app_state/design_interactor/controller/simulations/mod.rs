@@ -5,7 +5,7 @@ pub mod twister;
 
 use crate::app_state::{
     channel_reader::ChannelReader,
-    design_interactor::{Presenter, controller::ErrOperation, presenter::SimulationUpdate},
+    design_interactor::{Presenter, controller::OperationError, presenter::SimulationUpdate},
 };
 use ahash::RandomState;
 use ensnano_design::{
@@ -810,7 +810,7 @@ impl HelixSystemThread {
         presenter: &Presenter,
         rigid_parameters: RigidBodyConstants,
         reader: &mut ChannelReader,
-    ) -> Result<Arc<Mutex<HelixSystemInterface>>, ErrOperation> {
+    ) -> Result<Arc<Mutex<HelixSystemInterface>>, OperationError> {
         let interval_results = read_intervals(presenter)?;
         let helix_system =
             make_flexible_helices_system((0., 1.), rigid_parameters, presenter, &interval_results)?;
@@ -900,7 +900,7 @@ impl GridsSystemThread {
         presenter: &Presenter,
         rigid_parameters: RigidBodyConstants,
         reader: &mut ChannelReader,
-    ) -> Result<Arc<Mutex<GridSystemInterface>>, ErrOperation> {
+    ) -> Result<Arc<Mutex<GridSystemInterface>>, OperationError> {
         let grid_system = make_grid_system(presenter, (0., 1.), rigid_parameters)?;
         let ret = Arc::new(Mutex::new(GridSystemInterface::default()));
         let ret_dyn: Arc<Mutex<dyn SimulationInterface>> = ret.clone();
@@ -954,7 +954,7 @@ fn make_flexible_helices_system(
     rigid_parameters: RigidBodyConstants,
     presenter: &Presenter,
     interval_results: &IntervalResult,
-) -> Result<HelixSystem, ErrOperation> {
+) -> Result<HelixSystem, OperationError> {
     let helix_parameters = presenter.get_design().helix_parameters.unwrap_or_default();
     let mut rigid_helices = Vec::with_capacity(interval_results.helix_map.len());
     for i in 0..interval_results.helix_map.len() {
@@ -1096,7 +1096,7 @@ fn make_rigid_helix_world_pov_interval(
     )
 }
 
-fn read_intervals(presenter: &Presenter) -> Result<IntervalResult, ErrOperation> {
+fn read_intervals(presenter: &Presenter) -> Result<IntervalResult, OperationError> {
     // TODO remove pub after testing
     let mut nucl_map = HashMap::new();
     let mut current_helix = None;
@@ -1151,7 +1151,7 @@ fn read_intervals(presenter: &Presenter) -> Result<IntervalResult, ErrOperation>
                         free_nucls.push(FreeNucl::with_helix(&moving_nucl, None));
                         let position = presenter
                             .get_space_position(&moving_nucl)
-                            .ok_or(ErrOperation::NuclDoesNotExist(moving_nucl))?;
+                            .ok_or(OperationError::NuclDoesNotExist(moving_nucl))?;
                         free_nucl_position.push(position);
                     }
                     prev_doubled = doubled;
@@ -1196,7 +1196,7 @@ fn read_intervals(presenter: &Presenter) -> Result<IntervalResult, ErrOperation>
                         free_nucls.push(FreeNucl::with_helix(&moving_nucl, None));
                         let position = presenter
                             .get_space_position(&moving_nucl)
-                            .ok_or(ErrOperation::NuclDoesNotExist(moving_nucl))?;
+                            .ok_or(OperationError::NuclDoesNotExist(moving_nucl))?;
                         free_nucl_position.push(position);
                     }
                     prev_doubled = doubled;
@@ -1560,7 +1560,7 @@ fn make_grid_system(
     presenter: &Presenter,
     time_span: (f32, f32),
     rigid_parameters: RigidBodyConstants,
-) -> Result<GridsSystem, ErrOperation> {
+) -> Result<GridsSystem, OperationError> {
     let intervals = presenter.get_design().strands.get_intervals();
     let helix_parameters = presenter.get_design().helix_parameters.unwrap_or_default();
     let mut selected_grids = HashMap::with_capacity(presenter.get_design().free_grids.len());
@@ -1578,7 +1578,7 @@ fn make_grid_system(
         }
     }
     if rigid_grids.is_empty() {
-        return Err(ErrOperation::NoGrids);
+        return Err(OperationError::NoGrids);
     }
     let xovers = presenter.get_xovers_list();
     let mut springs = Vec::new();
@@ -1587,12 +1587,12 @@ fn make_grid_system(
             .get_design()
             .helices
             .get(&n1.helix)
-            .ok_or(ErrOperation::HelixDoesNotExists(n1.helix))?;
+            .ok_or(OperationError::HelixDoesNotExists(n1.helix))?;
         let h2 = presenter
             .get_design()
             .helices
             .get(&n2.helix)
-            .ok_or(ErrOperation::HelixDoesNotExists(n2.helix))?;
+            .ok_or(OperationError::HelixDoesNotExists(n2.helix))?;
         let g_id1 = h1.grid_position.map(|gp| gp.grid);
         let g_id2 = h2.grid_position.map(|gp| gp.grid);
         if let Some((g_id1, g_id2)) = g_id1.zip(g_id2)
@@ -1603,10 +1603,10 @@ fn make_grid_system(
             if let Some((rigid_id1, rigid_id2)) = rigid_id1.zip(rigid_id2) {
                 let grid1 = presenter
                     .get_grid(g_id1)
-                    .ok_or(ErrOperation::GridDoesNotExist(g_id1))?;
+                    .ok_or(OperationError::GridDoesNotExist(g_id1))?;
                 let grid2 = presenter
                     .get_grid(g_id2)
-                    .ok_or(ErrOperation::GridDoesNotExist(g_id2))?;
+                    .ok_or(OperationError::GridDoesNotExist(g_id2))?;
                 let pos1 = (h1.space_pos(&helix_parameters, n1.position, n1.forward)
                     - rigid_grids[rigid_id1].center_of_mass)
                     .rotated_by(grid1.orientation.reversed());

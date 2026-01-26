@@ -23,7 +23,7 @@ use crate::{
         },
         selection::{Selection, list_of_helices},
     },
-    utils::operation::{Operation, TranslateBezierPathVertex},
+    utils::operation::{SimpleOperation, TranslateBezierPathVertex},
 };
 use ensnano_design::{
     CameraId, Design, UpToDateDesign,
@@ -37,7 +37,7 @@ use ensnano_design::{
     },
     design_element::{DesignElementKey, DnaAttribute},
     design_operations::{
-        ErrDesignOperation, attach_object_to_grid, make_grid_from_helices, rotate_helices_3d,
+        DesignOperationError, attach_object_to_grid, make_grid_from_helices, rotate_helices_3d,
         translate_helices,
     },
     domains::{Domain, helix_interval::HelixInterval},
@@ -104,15 +104,15 @@ impl Controller {
         &self,
         design: &Design,
         operation: DesignOperation,
-    ) -> Result<(OkOperation, Self), ErrOperation> {
+    ) -> Result<(OperationResult, Self), OperationError> {
         log::debug!("operation {operation:?}");
         match self.check_compatibility(&operation) {
             OperationCompatibility::Incompatible => {
-                return Err(ErrOperation::IncompatibleState(
+                return Err(OperationError::IncompatibleState(
                     self.state.state_name().into(),
                 ));
             }
-            OperationCompatibility::FinishFirst => return Err(ErrOperation::FinishFirst),
+            OperationCompatibility::FinishFirst => return Err(OperationError::FinishFirst),
             OperationCompatibility::Compatible => (),
         }
         log::debug!("applicable");
@@ -244,7 +244,7 @@ impl Controller {
             DesignOperation::FlipAnchors { nucls } => {
                 self.apply(|c, d| c.flip_anchors(d, nucls), design)
             }
-            DesignOperation::CleanDesign => Err(ErrOperation::NotImplemented), // TODO
+            DesignOperation::CleanDesign => Err(OperationError::NotImplemented), // TODO
             DesignOperation::AttachObject { object, grid, x, y } => {
                 self.apply(|c, d| c.attach_object(d, object, grid, x, y), design)
             }
@@ -377,8 +377,8 @@ impl Controller {
     pub fn update_pending_operation(
         &self,
         design: &Design,
-        operation: Arc<dyn Operation>,
-    ) -> Result<(OkOperation, Self), ErrOperation> {
+        operation: Arc<dyn SimpleOperation>,
+    ) -> Result<(OperationResult, Self), OperationError> {
         let effect = operation.effect();
         let design = if operation.replace_previous() {
             if let ControllerState::WithPendingOp { design, .. } = &self.state {
@@ -398,7 +398,7 @@ impl Controller {
         &self,
         up_to_date_design: UpToDateDesign,
         operation: CopyOperation,
-    ) -> Result<(OkOperation, Self), ErrOperation> {
+    ) -> Result<(OperationResult, Self), OperationError> {
         match operation {
             CopyOperation::CopyStrands(strand_ids) => self.apply_no_op(
                 |c, _d| c.set_templates(&up_to_date_design, strand_ids),
@@ -412,7 +412,7 @@ impl Controller {
             }
             CopyOperation::PositionPastingPoint(nucl) => {
                 if self.get_pasting_point() == Some(nucl) {
-                    Ok((OkOperation::NoOp, self.clone()))
+                    Ok((OperationResult::NoOp, self.clone()))
                 } else {
                     let design_pasted_on = if let Some(p) = self.get_design_being_pasted_on() {
                         p.as_ref()
@@ -478,9 +478,9 @@ impl Controller {
         }
     }
 
-    fn check_state_compatible_with_simulation(&self) -> Result<(), ErrOperation> {
+    fn check_state_compatible_with_simulation(&self) -> Result<(), OperationError> {
         if self.is_in_persistent_state().is_transitory() {
-            return Err(ErrOperation::IncompatibleState(
+            return Err(OperationError::IncompatibleState(
                 "Cannot launch simulation while editing".into(),
             ));
         }
@@ -492,7 +492,7 @@ impl Controller {
         &self,
         mut design: Design,
         operation: SimulationOperation,
-    ) -> Result<(OkOperation, Self), ErrOperation> {
+    ) -> Result<(OperationResult, Self), OperationError> {
         let mut ret = self.clone();
         match operation {
             SimulationOperation::RevolutionRelaxation { system, reader } => {
@@ -573,7 +573,7 @@ impl Controller {
             } => {
                 self.check_state_compatible_with_simulation()?;
                 let interface = Twister::start_new(presenter, grid_id, reader)
-                    .ok_or(ErrOperation::GridDoesNotExist(grid_id))?;
+                    .ok_or(OperationError::GridDoesNotExist(grid_id))?;
                 ret.state = ControllerState::Twisting {
                     _interface: interface,
                     _initial_design: AddressPointer::new(design.clone()),
@@ -586,7 +586,7 @@ impl Controller {
                 } else if let ControllerState::SimulatingGrids { interface, .. } = &ret.state {
                     interface.lock().unwrap().parameters_update = Some(new_parameters);
                 } else {
-                    return Err(ErrOperation::IncompatibleState(
+                    return Err(OperationError::IncompatibleState(
                         "No simulation running".into(),
                     ));
                 }
@@ -623,7 +623,7 @@ impl Controller {
                     let returned_design = initial_design.clone_inner();
                     ret.state = ControllerState::Normal;
                     return Ok((
-                        OkOperation::Push {
+                        OperationResult::Push {
                             design: returned_design,
                             label: "Simulation".into(),
                         },
@@ -645,11 +645,11 @@ impl Controller {
         mut design: Design,
         s_id: usize,
         name: String,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         let strand = design
             .strands
             .get_mut(&s_id)
-            .ok_or(ErrOperation::StrandDoesNotExist(s_id))?;
+            .ok_or(OperationError::StrandDoesNotExist(s_id))?;
         self.state = ControllerState::ChangingStrandName { strand_id: s_id };
         strand.set_name(name);
         Ok(design)
@@ -661,13 +661,13 @@ impl Controller {
         hyperboloid: &Hyperboloid,
         position: Vec3,
         orientation: Rotor3,
-    ) -> Result<(), ErrOperation> {
+    ) -> Result<(), OperationError> {
         // the hyperboloid grid is always the last one that was added to the design
         let grid_id = design
             .free_grids
             .keys()
             .max()
-            .ok_or(ErrOperation::GridDoesNotExist(GridId::FreeGrid(0)))?;
+            .ok_or(OperationError::GridDoesNotExist(GridId::FreeGrid(0)))?;
         let helix_parameters = design.helix_parameters.unwrap_or_default();
         let (helices, nb_nucl) = hyperboloid.make_helices(&helix_parameters);
         let nb_nucl = nb_nucl.min(5000);
@@ -718,13 +718,13 @@ impl Controller {
         mut design: Design,
         helices: Vec<usize>,
         roll: f32,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         let mut helices_mut = design.helices.make_mut();
         for h in &helices {
             if let Some(helix) = helices_mut.get_mut(h) {
                 helix.roll = roll;
             } else {
-                return Err(ErrOperation::HelixDoesNotExists(*h));
+                return Err(OperationError::HelixDoesNotExists(*h));
             }
         }
         self.state = ControllerState::SettingRollHelices;
@@ -737,13 +737,13 @@ impl Controller {
         mut design: Design,
         helix: usize,
         visible: bool,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         mutate_one_helix(&mut design, helix, |h| h.visible = visible)
-            .ok_or(ErrOperation::HelixDoesNotExists(helix))?;
+            .ok_or(OperationError::HelixDoesNotExists(helix))?;
         Ok(design)
     }
 
-    fn flip_helix_group(&self, mut design: Design, helix: usize) -> Result<Design, ErrOperation> {
+    fn flip_helix_group(&self, mut design: Design, helix: usize) -> Result<Design, OperationError> {
         let mut new_groups = BTreeMap::clone(design.groups.as_ref());
         log::info!("setting group {:?}", new_groups.get(&helix));
         match new_groups.remove(&helix) {
@@ -764,7 +764,7 @@ impl Controller {
         mut design: Design,
         group_id: GroupId,
         pivot: GroupPivot,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         let attributes = design.group_attributes.entry(group_id).or_default();
         if attributes.pivot.is_none() {
             attributes.pivot = Some(pivot);
@@ -777,7 +777,7 @@ impl Controller {
         mut design: Design,
         attribute: DnaAttribute,
         elements: Vec<DesignElementKey>,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         log::info!("updating attribute {attribute:?}, {elements:?}");
         for elt in &elements {
             match attribute {
@@ -791,7 +791,7 @@ impl Controller {
         Ok(design)
     }
 
-    fn flip_anchors(&self, mut design: Design, nucls: Vec<Nucl>) -> Result<Design, ErrOperation> {
+    fn flip_anchors(&self, mut design: Design, nucls: Vec<Nucl>) -> Result<Design, OperationError> {
         let new_anchor_status = !nucls.iter().all(|n| design.anchors.contains(n));
         if new_anchor_status {
             for n in nucls {
@@ -810,18 +810,18 @@ impl Controller {
         design: &mut Design,
         element: &DesignElementKey,
         visible: bool,
-    ) -> Result<(), ErrOperation> {
+    ) -> Result<(), OperationError> {
         match element {
             DesignElementKey::Helix(helix) => {
                 mutate_one_helix(design, *helix, |h| h.visible = visible)
-                    .ok_or(ErrOperation::HelixDoesNotExists(*helix))?;
+                    .ok_or(OperationError::HelixDoesNotExists(*helix))?;
             }
             DesignElementKey::Grid(g_id) => {
                 let mut grids_mut = design.free_grids.make_mut();
                 let g_id = FreeGridId(*g_id);
                 let grid = grids_mut
                     .get_mut(&g_id)
-                    .ok_or_else(|| ErrOperation::GridDoesNotExist(g_id.to_grid_id()))?;
+                    .ok_or_else(|| OperationError::GridDoesNotExist(g_id.to_grid_id()))?;
                 grid.invisible = !grid.invisible;
                 drop(grids_mut);
             }
@@ -835,10 +835,10 @@ impl Controller {
         design: &mut Design,
         element: &DesignElementKey,
         group: Option<bool>,
-    ) -> Result<(), ErrOperation> {
+    ) -> Result<(), OperationError> {
         if let DesignElementKey::Helix(h_id) = element {
             if !design.helices.contains_key(h_id) {
-                return Err(ErrOperation::HelixDoesNotExists(*h_id));
+                return Err(OperationError::HelixDoesNotExists(*h_id));
             }
             let mut new_groups = BTreeMap::clone(design.groups.as_ref());
             if let Some(group) = group {
@@ -856,10 +856,10 @@ impl Controller {
         design: &mut Design,
         element: &DesignElementKey,
         locked: bool,
-    ) -> Result<(), ErrOperation> {
+    ) -> Result<(), OperationError> {
         if let DesignElementKey::Helix(h_id) = element {
             if !design.helices.contains_key(h_id) {
-                return Err(ErrOperation::HelixDoesNotExists(*h_id));
+                return Err(OperationError::HelixDoesNotExists(*h_id));
             }
             mutate_one_helix(design, *h_id, |h| {
                 h.locked_for_simulations = locked;
@@ -872,7 +872,7 @@ impl Controller {
         &mut self,
         mut design: Design,
         operation: HyperboloidOperation,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         match operation {
             HyperboloidOperation::New {
                 position,
@@ -908,7 +908,7 @@ impl Controller {
                     self.add_hyperboloid_helices(&mut design, &hyperboloid, position, orientation)?;
                     Ok(design)
                 } else {
-                    Err(ErrOperation::IncompatibleState(
+                    Err(OperationError::IncompatibleState(
                         "Not making hyperboloid".into(),
                     ))
                 }
@@ -919,7 +919,7 @@ impl Controller {
                     self.state = ControllerState::Normal;
                     Ok(design)
                 } else {
-                    Err(ErrOperation::IncompatibleState(
+                    Err(OperationError::IncompatibleState(
                         "Not making hyperboloid".into(),
                     ))
                 }
@@ -929,7 +929,7 @@ impl Controller {
                     self.state = ControllerState::Normal;
                     Ok(design)
                 } else {
-                    Err(ErrOperation::IncompatibleState(
+                    Err(OperationError::IncompatibleState(
                         "Not making hyperboloid".into(),
                     ))
                 }
@@ -955,9 +955,9 @@ impl Controller {
         chanel_reader: &mut ChannelReader,
         nucl_collection: Arc<NuclCollection>,
         design: &Design,
-    ) -> Result<(OkOperation, Self), ErrOperation> {
+    ) -> Result<(OperationResult, Self), OperationError> {
         match self.check_compatibility(&DesignOperation::SetScaffoldShift(0)) {
-            OperationCompatibility::Incompatible => Err(ErrOperation::IncompatibleState(
+            OperationCompatibility::Incompatible => Err(OperationError::IncompatibleState(
                 self.state.state_name().to_owned(),
             )),
             OperationCompatibility::Compatible | OperationCompatibility::FinishFirst => Ok(self
@@ -1120,11 +1120,11 @@ impl Controller {
         }
     }
 
-    fn return_design(&self, design: Design, label: Cow<'static, str>) -> OkOperation {
+    fn return_design(&self, design: Design, label: Cow<'static, str>) -> OperationResult {
         if self.is_in_persistent_state().is_persistent() {
-            OkOperation::Push { design, label }
+            OperationResult::Push { design, label }
         } else {
-            OkOperation::Replace(design)
+            OperationResult::Replace(design)
         }
     }
 
@@ -1192,7 +1192,7 @@ impl Controller {
     }
 
     /// Apply an operation that cannot fail on the design
-    fn ok_apply<F>(&self, design_op: F, design: &Design) -> (OkOperation, Self)
+    fn ok_apply<F>(&self, design_op: F, design: &Design) -> (OperationResult, Self)
     where
         F: FnOnce(&mut Self, Design) -> Design,
     {
@@ -1205,18 +1205,22 @@ impl Controller {
     }
 
     /// Apply an operation that modifies the interactor and not the design, and that cannot fail.
-    fn ok_no_op<F>(&self, interactor_op: F, design: &Design) -> (OkOperation, Self)
+    fn ok_no_op<F>(&self, interactor_op: F, design: &Design) -> (OperationResult, Self)
     where
         F: FnOnce(&mut Self, &Design),
     {
         let mut new_controller = self.clone();
         interactor_op(&mut new_controller, design);
-        (OkOperation::NoOp, new_controller)
+        (OperationResult::NoOp, new_controller)
     }
 
-    fn apply<F>(&self, design_op: F, design: &Design) -> Result<(OkOperation, Self), ErrOperation>
+    fn apply<F>(
+        &self,
+        design_op: F,
+        design: &Design,
+    ) -> Result<(OperationResult, Self), OperationError>
     where
-        F: FnOnce(&mut Self, Design) -> Result<Design, ErrOperation>,
+        F: FnOnce(&mut Self, Design) -> Result<Design, OperationError>,
     {
         let mut new_controller = self.clone();
         let returned_design = design_op(&mut new_controller, design.clone())?;
@@ -1228,9 +1232,9 @@ impl Controller {
 
     fn make_undoable(
         &self,
-        result: Result<(OkOperation, Self), ErrOperation>,
+        result: Result<(OperationResult, Self), OperationError>,
         label: Cow<'static, str>,
-    ) -> Result<(OkOperation, Self), ErrOperation> {
+    ) -> Result<(OperationResult, Self), OperationError> {
         if self.state.is_undoable_once() {
             match result {
                 Ok((ok_op, interactor)) => Ok((ok_op.into_undoable(label), interactor)),
@@ -1245,21 +1249,21 @@ impl Controller {
         &self,
         interactor_op: F,
         design: &Design,
-    ) -> Result<(OkOperation, Self), ErrOperation>
+    ) -> Result<(OperationResult, Self), OperationError>
     where
-        F: FnOnce(&mut Self, &Design) -> Result<(), ErrOperation>,
+        F: FnOnce(&mut Self, &Design) -> Result<(), OperationError>,
     {
         let mut new_controller = self.clone();
         interactor_op(&mut new_controller, design)?;
-        Ok((OkOperation::NoOp, new_controller))
+        Ok((OperationResult::NoOp, new_controller))
     }
 
     fn turn_selection_into_grid(
         &self,
         mut design: Design,
         selection: Vec<Selection>,
-    ) -> Result<Design, ErrOperation> {
-        let helices = list_of_helices(&selection).ok_or(ErrOperation::BadSelection)?;
+    ) -> Result<Design, OperationError> {
+        let helices = list_of_helices(&selection).ok_or(OperationError::BadSelection)?;
         make_grid_from_helices(&mut design, &helices.1)?;
         Ok(design)
     }
@@ -1305,11 +1309,11 @@ impl Controller {
         mut design: Design,
         path_id: BezierPathId,
         vertex: BezierVertex,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         let mut new_paths = design.bezier_paths.make_mut();
         let path = new_paths
             .get_mut(&path_id)
-            .ok_or(ErrOperation::PathDoesNotExist(path_id))?;
+            .ok_or(OperationError::PathDoesNotExist(path_id))?;
         let vertex_id = path.add_vertex(vertex);
         drop(new_paths);
         self.state = ControllerState::ApplyingOperation {
@@ -1331,7 +1335,7 @@ impl Controller {
         &self,
         mut design: Design,
         mut vertices: Vec<BezierVertexId>,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         vertices.sort();
         let mut paths_id: Vec<_> = vertices.iter().map(|v| v.path_id).collect();
         paths_id.dedup();
@@ -1343,19 +1347,19 @@ impl Controller {
         for p_id in paths_id.into_iter().rev() {
             let path = new_paths
                 .get_mut(&p_id)
-                .ok_or(ErrOperation::PathDoesNotExist(p_id))?;
+                .ok_or(OperationError::PathDoesNotExist(p_id))?;
             while let Some(BezierVertexId {
                 vertex_id: v_id, ..
             }) = vertex_id.filter(|v_id| v_id.path_id == p_id)
             {
                 path.remove_vertex(v_id)
-                    .ok_or(ErrOperation::VertexDoesNotExist(p_id, v_id))?;
+                    .ok_or(OperationError::VertexDoesNotExist(p_id, v_id))?;
                 vertex_id = iterator.next();
             }
             if path.vertices().is_empty() {
                 new_paths
                     .remove_path(&p_id)
-                    .ok_or(ErrOperation::PathDoesNotExist(p_id))?;
+                    .ok_or(OperationError::PathDoesNotExist(p_id))?;
             }
         }
 
@@ -1369,7 +1373,7 @@ impl Controller {
         mut design: Design,
         mut vertices: Vec<BezierVertexId>,
         position: Vec2,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         if let Some(BezierVertexId { path_id, vertex_id }) = vertices.first().copied() {
             self.update_state_and_design(&mut design);
             vertices.sort();
@@ -1378,11 +1382,11 @@ impl Controller {
             let path = design
                 .bezier_paths
                 .get(&path_id)
-                .ok_or(ErrOperation::PathDoesNotExist(path_id))?;
+                .ok_or(OperationError::PathDoesNotExist(path_id))?;
             let vertex = path
                 .vertices()
                 .get(vertex_id)
-                .ok_or(ErrOperation::VertexDoesNotExist(path_id, vertex_id))?;
+                .ok_or(OperationError::VertexDoesNotExist(path_id, vertex_id))?;
 
             let translation = position - vertex.position;
 
@@ -1391,10 +1395,10 @@ impl Controller {
             for BezierVertexId { path_id, vertex_id } in vertices {
                 let path = new_paths
                     .get_mut(&path_id)
-                    .ok_or(ErrOperation::PathDoesNotExist(path_id))?;
+                    .ok_or(OperationError::PathDoesNotExist(path_id))?;
                 let vertex = path
                     .get_vertex_mut(vertex_id)
-                    .ok_or(ErrOperation::VertexDoesNotExist(path_id, vertex_id))?;
+                    .ok_or(OperationError::VertexDoesNotExist(path_id, vertex_id))?;
                 let old_tangent_in = vertex.position_in.map(|p| p - vertex.position);
                 let old_tangent_out = vertex.position_out.map(|p| p - vertex.position);
                 vertex.position += translation;
@@ -1409,7 +1413,7 @@ impl Controller {
             self.next_selection = Some(next_selection);
             Ok(design)
         } else {
-            Err(ErrOperation::NotImplemented)
+            Err(OperationError::NotImplemented)
         }
     }
 
@@ -1419,15 +1423,15 @@ impl Controller {
         mut design: Design,
         vertex_id: BezierVertexId,
         position: Vec2,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         let mut new_paths = design.bezier_paths.make_mut();
         let BezierVertexId { vertex_id, path_id } = vertex_id;
         let path = new_paths
             .get_mut(&path_id)
-            .ok_or(ErrOperation::PathDoesNotExist(path_id))?;
+            .ok_or(OperationError::PathDoesNotExist(path_id))?;
         let vertex = path
             .get_vertex_mut(vertex_id)
-            .ok_or(ErrOperation::VertexDoesNotExist(path_id, vertex_id))?;
+            .ok_or(OperationError::VertexDoesNotExist(path_id, vertex_id))?;
         let old_tangent_in = vertex.position_in.map(|p| p - vertex.position);
         let old_tangent_out = vertex.position_out.map(|p| p - vertex.position);
         vertex.position = position;
@@ -1442,11 +1446,11 @@ impl Controller {
         mut design: Design,
         path_id: BezierPathId,
         cyclic: bool,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         let mut new_paths = design.bezier_paths.make_mut();
         let path = new_paths
             .get_mut(&path_id)
-            .ok_or(ErrOperation::PathDoesNotExist(path_id))?;
+            .ok_or(OperationError::PathDoesNotExist(path_id))?;
         path.is_cyclic = cyclic;
         drop(new_paths);
         Ok(design)
@@ -1456,7 +1460,7 @@ impl Controller {
         &mut self,
         mut design: Design,
         request: NewBezierTangentVector,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         self.update_state_not_design(&design);
 
         let mut new_paths = design.bezier_paths.make_mut();
@@ -1464,10 +1468,10 @@ impl Controller {
         let vertex_id = request.vertex_id.vertex_id;
         let path = new_paths
             .get_mut(&path_id)
-            .ok_or(ErrOperation::PathDoesNotExist(path_id))?;
+            .ok_or(OperationError::PathDoesNotExist(path_id))?;
         let vertex = path
             .get_vertex_mut(vertex_id)
-            .ok_or(ErrOperation::VertexDoesNotExist(path_id, vertex_id))?;
+            .ok_or(OperationError::VertexDoesNotExist(path_id, vertex_id))?;
         if request.tangent_in {
             vertex.position_in = Some(vertex.position + request.new_vector);
             if request.full_symmetry_other_tangent {
@@ -1505,11 +1509,11 @@ impl Controller {
         mut design: Design,
         path_id: BezierPathId,
         desc: GridTypeDescr,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         let mut new_paths = design.bezier_paths.make_mut();
         let path = new_paths
             .get_mut(&path_id)
-            .ok_or(ErrOperation::PathDoesNotExist(path_id))?;
+            .ok_or(OperationError::PathDoesNotExist(path_id))?;
         path.grid_type = Some(desc);
         drop(new_paths);
         Ok(design)
@@ -1570,9 +1574,9 @@ impl Controller {
         design
     }
 
-    fn delete_camera(&self, mut design: Design, id: CameraId) -> Result<Design, ErrOperation> {
+    fn delete_camera(&self, mut design: Design, id: CameraId) -> Result<Design, OperationError> {
         if !design.rm_camera(id) {
-            Err(ErrOperation::CameraDoesNotExist(id))
+            Err(OperationError::CameraDoesNotExist(id))
         } else {
             Ok(design)
         }
@@ -1583,12 +1587,12 @@ impl Controller {
         mut design: Design,
         id: CameraId,
         name: String,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         if let Some(camera) = design.get_camera_mut(id) {
             camera.name = name;
             Ok(design)
         } else {
-            Err(ErrOperation::CameraDoesNotExist(id))
+            Err(OperationError::CameraDoesNotExist(id))
         }
     }
 
@@ -1608,7 +1612,7 @@ impl Controller {
         &mut self,
         design: Design,
         translation: DesignTranslation,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         let mut design = match translation.target {
             IsometryTarget::Helices(helices, snap) => {
                 Ok(self.translate_helices(design, snap, helices, translation.translation))
@@ -1629,7 +1633,7 @@ impl Controller {
                 .group_attributes
                 .get_mut(&group_id)
                 .and_then(|attributes| attributes.pivot.as_mut())
-                .ok_or(ErrOperation::GroupHasNoPivot(group_id))?;
+                .ok_or(OperationError::GroupHasNoPivot(group_id))?;
             pivot.position += translation.translation;
         }
         Ok(design)
@@ -1640,13 +1644,13 @@ impl Controller {
         mut design: Design,
         translation: Vec3,
         group_id: GroupId,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         self.update_state_and_design(&mut design);
         let pivot = design
             .group_attributes
             .get_mut(&group_id)
             .and_then(|attributes| attributes.pivot.as_mut())
-            .ok_or(ErrOperation::GroupHasNoPivot(group_id))?;
+            .ok_or(OperationError::GroupHasNoPivot(group_id))?;
         pivot.position += translation;
         Ok(design)
     }
@@ -1656,13 +1660,13 @@ impl Controller {
         mut design: Design,
         rotation: Rotor3,
         group_id: GroupId,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         self.update_state_and_design(&mut design);
         let pivot = design
             .group_attributes
             .get_mut(&group_id)
             .and_then(|attributes| attributes.pivot.as_mut())
-            .ok_or(ErrOperation::GroupHasNoPivot(group_id))?;
+            .ok_or(OperationError::GroupHasNoPivot(group_id))?;
         pivot.orientation = rotation * pivot.orientation;
         Ok(design)
     }
@@ -1674,7 +1678,7 @@ impl Controller {
         grid: GridId,
         x: isize,
         y: isize,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         self.update_state_and_design(&mut design);
         attach_object_to_grid(&mut design, object, grid, x, y)?;
         Ok(design)
@@ -1684,7 +1688,7 @@ impl Controller {
         &mut self,
         design: Design,
         rotation: DesignRotation,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         let mut design = match rotation.target {
             IsometryTarget::GroupPivot(g_id) => {
                 self.rotate_group_pivot(design, rotation.rotation, g_id)
@@ -1699,14 +1703,14 @@ impl Controller {
             IsometryTarget::Grids(grid_ids) => {
                 Ok(self.rotate_grids(design, grid_ids, rotation.rotation, rotation.origin))
             }
-            IsometryTarget::ControlPoint(_) => Err(ErrOperation::NotImplemented),
+            IsometryTarget::ControlPoint(_) => Err(OperationError::NotImplemented),
         }?;
         if let Some(group_id) = rotation.group_id {
             let pivot = design
                 .group_attributes
                 .get_mut(&group_id)
                 .and_then(|attributes| attributes.pivot.as_mut())
-                .ok_or(ErrOperation::GroupHasNoPivot(group_id))?;
+                .ok_or(OperationError::GroupHasNoPivot(group_id))?;
             pivot.orientation = rotation.rotation * pivot.orientation;
         }
         Ok(design)
@@ -1733,7 +1737,7 @@ impl Controller {
         mut design: Design,
         control_points: Vec<(usize, BezierControlPoint)>,
         translation: Vec3,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         self.update_state_and_design(&mut design);
         let grid_data = design.get_updated_grid_data();
         let translations: Vec<_> = control_points
@@ -1743,7 +1747,7 @@ impl Controller {
             .collect();
         let mut new_helices = design.helices.make_mut();
         for ((h_id, control), translation) in control_points.iter().zip(translations.iter()) {
-            let translation = translation.ok_or(ErrOperation::BadSelection)?;
+            let translation = translation.ok_or(OperationError::BadSelection)?;
             if let Some(helix) = new_helices.get_mut(h_id) {
                 helix.translate_bezier_point(*control, translation)?;
             }
@@ -1774,16 +1778,16 @@ impl Controller {
         mut design: Design,
         grid_ids: Vec<GridId>,
         translation: Vec3,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         self.update_state_and_design(&mut design);
         let mut new_paths = design.bezier_paths.make_mut();
         for g_id in &grid_ids {
             if let GridId::BezierPathGrid(vertex_id) = g_id {
                 let path = new_paths
                     .get_mut(&vertex_id.path_id)
-                    .ok_or(ErrOperation::PathDoesNotExist(vertex_id.path_id))?;
+                    .ok_or(OperationError::PathDoesNotExist(vertex_id.path_id))?;
                 let vertex = path.get_vertex_mut(vertex_id.vertex_id).ok_or(
-                    ErrOperation::VertexDoesNotExist(vertex_id.path_id, vertex_id.vertex_id),
+                    OperationError::VertexDoesNotExist(vertex_id.path_id, vertex_id.vertex_id),
                 )?;
                 vertex.add_translation(translation);
             }
@@ -2050,7 +2054,7 @@ impl Controller {
         &mut self,
         mut design: Design,
         nucls: Vec<Nucl>,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         let mut builders = Vec::with_capacity(nucls.len());
         let ignored_domains: Vec<_> = nucls
             .iter()
@@ -2061,7 +2065,7 @@ impl Controller {
         for nucl in nucls {
             builders.push(
                 self.request_one_builder(&mut design, nucl, &ignored_domains)
-                    .ok_or(ErrOperation::CannotBuildOn(nucl))?,
+                    .ok_or(OperationError::CannotBuildOn(nucl))?,
             );
         }
         log::info!("Ignored domains: {ignored_domains:?}");
@@ -2208,7 +2212,7 @@ impl Controller {
         &mut self,
         current_design: Design,
         n: isize,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         if let ControllerState::BuildingStrand {
             initial_design,
             builders,
@@ -2257,7 +2261,7 @@ impl Controller {
             *initializing = false;
             Ok(design)
         } else {
-            Err(ErrOperation::IncompatibleState(
+            Err(OperationError::IncompatibleState(
                 "Not building strand".into(),
             ))
         }
@@ -2267,14 +2271,14 @@ impl Controller {
         &mut self,
         mut design: Design,
         xovers: &[(Nucl, Nucl)],
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         for (n1, _) in xovers {
             let _ = Self::split_strand(&mut design.strands, n1, None, &mut self.color_idx)?;
         }
         Ok(design)
     }
 
-    fn cut(&mut self, mut design: Design, nucl: Nucl) -> Result<Design, ErrOperation> {
+    fn cut(&mut self, mut design: Design, nucl: Nucl) -> Result<Design, OperationError> {
         let _ = Self::split_strand(&mut design.strands, &nucl, None, &mut self.color_idx)?;
         Ok(design)
     }
@@ -2294,10 +2298,10 @@ impl Controller {
         nucl: &Nucl,
         force_end: Option<bool>,
         color_idx: &mut usize,
-    ) -> Result<usize, ErrOperation> {
+    ) -> Result<usize, OperationError> {
         let id = strands
             .get_strand_nucl(nucl)
-            .ok_or(ErrOperation::CutNonExistentStrand)?;
+            .ok_or(OperationError::CutNonExistentStrand)?;
 
         let strand = strands.remove(&id).expect("strand");
         let name = strand.name.clone();
@@ -2308,7 +2312,7 @@ impl Controller {
         }
         if strand.length() <= 1 {
             // return without putting the strand back
-            return Err(ErrOperation::CutNonExistentStrand);
+            return Err(OperationError::CutNonExistentStrand);
         }
         let mut i = strand.domains.len();
         let mut prim5_domains = Vec::new();
@@ -2513,10 +2517,10 @@ impl Controller {
         position: HelixGridPosition,
         start: isize,
         length: usize,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         let grid_manager = design.get_updated_grid_data();
         if grid_manager.pos_to_object(position.light()).is_some() {
-            return Err(ErrOperation::GridPositionAlreadyUsed);
+            return Err(OperationError::GridPositionAlreadyUsed);
         }
         let helix = if let GridId::BezierPathGrid(BezierVertexId { path_id, .. }) = position.grid {
             Helix::new_on_bezier_path(grid_manager, position, path_id)
@@ -2524,7 +2528,7 @@ impl Controller {
             let grid = grid_manager
                 .grids
                 .get(&position.grid)
-                .ok_or(ErrOperation::GridDoesNotExist(position.grid))?;
+                .ok_or(OperationError::GridDoesNotExist(position.grid))?;
             Ok(Helix::new_on_grid(
                 grid,
                 position.x,
@@ -2553,21 +2557,21 @@ impl Controller {
         mut design: Design,
         start: HelixGridPosition,
         end: HelixGridPosition,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         log::info!("Add {start:?} {end:?}");
         let grid_manager = design.get_updated_grid_data();
         if let Some(obj) = grid_manager.pos_to_object(start.light()) {
             if grid_manager.pos_to_object(end.light()).is_some() {
-                return Err(ErrOperation::GridPositionAlreadyUsed);
+                return Err(OperationError::GridPositionAlreadyUsed);
             }
             let (_, tangent) = grid_manager
                 .get_tangents_between_two_points(start.light(), end.light())
-                .ok_or(ErrOperation::GridDoesNotExist(end.grid))?;
+                .ok_or(OperationError::GridDoesNotExist(end.grid))?;
             return self.add_bezier_point(design, obj, end.light(), tangent, true);
         } else if let Some(obj) = grid_manager.pos_to_object(end.light()) {
             let (tangent, _) = grid_manager
                 .get_tangents_between_two_points(start.light(), end.light())
-                .ok_or(ErrOperation::GridDoesNotExist(end.grid))?;
+                .ok_or(OperationError::GridDoesNotExist(end.grid))?;
             return self.add_bezier_point(design, obj, start.light(), tangent, false);
         }
         let helix = Helix::new_bezier_two_points(grid_manager, start, end)?;
@@ -2596,13 +2600,13 @@ impl Controller {
         point: GridPosition,
         _tangent: Vec3,
         append: bool,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         match object {
             GridObject::BezierPoint { helix_id, n } => {
                 let mut helices_mut = design.helices.make_mut();
                 let helix_ref = helices_mut
                     .get_mut(&helix_id)
-                    .ok_or(ErrOperation::HelixDoesNotExists(helix_id))?;
+                    .ok_or(OperationError::HelixDoesNotExists(helix_id))?;
                 let desc: Option<&mut CurveDescriptor> =
                     if let Some(desc) = helix_ref.curve.as_mut() {
                         Some(Arc::make_mut(desc))
@@ -2622,10 +2626,10 @@ impl Controller {
                     drop(helices_mut);
                     Ok(design)
                 } else {
-                    Err(ErrOperation::NotPiecewiseBezier(helix_id))
+                    Err(OperationError::NotPiecewiseBezier(helix_id))
                 }
             }
-            GridObject::Helix(_) => Err(ErrOperation::GridPositionAlreadyUsed),
+            GridObject::Helix(_) => Err(OperationError::GridPositionAlreadyUsed),
         }
     }
 
@@ -2635,15 +2639,15 @@ impl Controller {
         strands: &mut Strands,
         prime5: usize,
         prime3: usize,
-    ) -> Result<(), ErrOperation> {
+    ) -> Result<(), OperationError> {
         // We panic, if we can't find the strand, because this means that the program has a bug
         if prime5 != prime3 {
             let strand5prime = strands
                 .remove(&prime5)
-                .ok_or(ErrOperation::StrandDoesNotExist(prime5))?;
+                .ok_or(OperationError::StrandDoesNotExist(prime5))?;
             let strand3prime = strands
                 .remove(&prime3)
-                .ok_or(ErrOperation::StrandDoesNotExist(prime3))?;
+                .ok_or(OperationError::StrandDoesNotExist(prime3))?;
             let name = strand5prime.name.or(strand3prime.name);
             let len = strand5prime.domains.len() + strand3prime.domains.len();
             let mut domains = Vec::with_capacity(len);
@@ -2658,13 +2662,13 @@ impl Controller {
                     .iter()
                     .rev()
                     .find(|d| matches!(d, Domain::HelixDomain(_)))
-                    .ok_or(ErrOperation::EmptyOrigin)?;
+                    .ok_or(OperationError::EmptyOrigin)?;
                 let first_interval_prime3 = strand5prime
                     .domains
                     .iter()
                     .rev()
                     .find(|d| matches!(d, Domain::HelixDomain(_)))
-                    .ok_or(ErrOperation::EmptyOrigin)?;
+                    .ok_or(OperationError::EmptyOrigin)?;
                 if last_interval_prime5.can_merge(first_interval_prime3) {
                     DomainJunction::Adjacent
                 } else {
@@ -2736,7 +2740,7 @@ impl Controller {
             Ok(())
         } else {
             // To make a cyclic strand use `make_cyclic_strand` instead
-            Err(ErrOperation::MergingSameStrand)
+            Err(OperationError::MergingSameStrand)
         }
     }
 
@@ -2746,15 +2750,15 @@ impl Controller {
         strands: &mut Strands,
         strand_id: usize,
         cyclic: bool,
-    ) -> Result<(), ErrOperation> {
+    ) -> Result<(), OperationError> {
         strands
             .get_mut(&strand_id)
-            .ok_or(ErrOperation::StrandDoesNotExist(strand_id))?
+            .ok_or(OperationError::StrandDoesNotExist(strand_id))?
             .is_cyclic = cyclic;
 
         let strand = strands
             .get_mut(&strand_id)
-            .ok_or(ErrOperation::StrandDoesNotExist(strand_id))?;
+            .ok_or(OperationError::StrandDoesNotExist(strand_id))?;
         if cyclic {
             let (merge_insertions, replace) = match (strand.domains.first(), strand.domains.last())
             {
@@ -2813,7 +2817,7 @@ impl Controller {
         target_strand: usize,
         nucl: Nucl,
         target_3prime: bool,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         Self::cross_cut(
             &mut design.strands,
             source_strand,
@@ -2831,7 +2835,7 @@ impl Controller {
         mut design: Design,
         prime5_id: usize,
         prime3_id: usize,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         if prime5_id != prime3_id {
             Self::merge_strands(&mut design.strands, prime5_id, prime3_id)?;
         } else {
@@ -2850,11 +2854,11 @@ impl Controller {
         nucl: Nucl,
         target_3prime: bool,
         color_idx: &mut usize,
-    ) -> Result<(), ErrOperation> {
+    ) -> Result<(), OperationError> {
         let new_id = strands.keys().max().map_or(0, |n| n + 1);
         let was_cyclic = strands
             .get(&target_strand)
-            .ok_or(ErrOperation::StrandDoesNotExist(target_strand))?
+            .ok_or(OperationError::StrandDoesNotExist(target_strand))?
             .is_cyclic;
         Self::split_strand(strands, &nucl, Some(target_3prime), color_idx)?;
 
@@ -2864,10 +2868,10 @@ impl Controller {
                 // new id
                 let half0 = strands
                     .remove(&target_strand)
-                    .ok_or(ErrOperation::StrandDoesNotExist(target_strand))?;
+                    .ok_or(OperationError::StrandDoesNotExist(target_strand))?;
                 let half1 = strands
                     .remove(&new_id)
-                    .ok_or(ErrOperation::StrandDoesNotExist(new_id))?;
+                    .ok_or(OperationError::StrandDoesNotExist(new_id))?;
                 strands.insert(new_id, half0);
                 strands.insert(target_strand, half1);
                 Self::merge_strands(strands, source_strand, new_id)
@@ -2876,10 +2880,10 @@ impl Controller {
                 // strand because it is the one that is lost in the merge.
                 let half0 = strands
                     .remove(&source_strand)
-                    .ok_or(ErrOperation::StrandDoesNotExist(source_strand))?;
+                    .ok_or(OperationError::StrandDoesNotExist(source_strand))?;
                 let half1 = strands
                     .remove(&new_id)
-                    .ok_or(ErrOperation::StrandDoesNotExist(new_id))?;
+                    .ok_or(OperationError::StrandDoesNotExist(new_id))?;
                 strands.insert(new_id, half0);
                 strands.insert(source_strand, half1);
                 Self::merge_strands(strands, target_strand, new_id)
@@ -2898,12 +2902,16 @@ impl Controller {
         mut design: Design,
         source_nucl: Nucl,
         target_nucl: Nucl,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         self.general_cross_over(&mut design.strands, source_nucl, target_nucl)?;
         Ok(design)
     }
 
-    fn check_xovers(&self, mut design: Design, xovers: Vec<usize>) -> Result<Design, ErrOperation> {
+    fn check_xovers(
+        &self,
+        mut design: Design,
+        xovers: Vec<usize>,
+    ) -> Result<Design, OperationError> {
         let xovers_set = &mut design.checked_xovers;
         for x in xovers {
             if !xovers_set.insert(x) {
@@ -2929,7 +2937,7 @@ impl Controller {
         mut design: Design,
         mut pairs: Vec<(Nucl, Nucl)>,
         doubled: bool,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         pairs.sort();
 
         for i in 0..pairs.len() {
@@ -2968,23 +2976,23 @@ impl Controller {
         strands: &mut Strands,
         source_nucl: Nucl,
         target_nucl: Nucl,
-    ) -> Result<(), ErrOperation> {
+    ) -> Result<(), OperationError> {
         log::info!("cross over between {source_nucl:?} and {target_nucl:?}");
         let source_id = strands
             .get_strand_nucl(&source_nucl)
-            .ok_or(ErrOperation::NuclDoesNotExist(source_nucl))?;
+            .ok_or(OperationError::NuclDoesNotExist(source_nucl))?;
         let target_id = strands
             .get_strand_nucl(&target_nucl)
-            .ok_or(ErrOperation::NuclDoesNotExist(target_nucl))?;
+            .ok_or(OperationError::NuclDoesNotExist(target_nucl))?;
 
         let source = strands
             .get(&source_id)
             .cloned()
-            .ok_or(ErrOperation::StrandDoesNotExist(source_id))?;
+            .ok_or(OperationError::StrandDoesNotExist(source_id))?;
         let _ = strands
             .get(&target_id)
             .cloned()
-            .ok_or(ErrOperation::StrandDoesNotExist(target_id))?;
+            .ok_or(OperationError::StrandDoesNotExist(target_id))?;
 
         let source_strand_end = strands.is_strand_end(&source_nucl);
         let target_strand_end = strands.is_strand_end(&target_nucl);
@@ -2995,8 +3003,8 @@ impl Controller {
             target_strand_end.to_opt()
         );
         match (source_strand_end.to_opt(), target_strand_end.to_opt()) {
-            (Some(true), Some(true)) => return Err(ErrOperation::XoverBetweenTwoPrime3),
-            (Some(false), Some(false)) => return Err(ErrOperation::XoverBetweenTwoPrime5),
+            (Some(true), Some(true)) => return Err(OperationError::XoverBetweenTwoPrime3),
+            (Some(false), Some(false)) => return Err(OperationError::XoverBetweenTwoPrime5),
             (Some(true), Some(false)) => {
                 // We can xover directly
                 if source_id == target_id {
@@ -3075,10 +3083,10 @@ impl Controller {
                         // split
                         let pos1 = source
                             .find_nucl(&source_nucl)
-                            .ok_or(ErrOperation::NuclDoesNotExist(source_nucl))?;
+                            .ok_or(OperationError::NuclDoesNotExist(source_nucl))?;
                         let pos2 = source
                             .find_nucl(&target_nucl)
-                            .ok_or(ErrOperation::NuclDoesNotExist(target_nucl))?;
+                            .ok_or(OperationError::NuclDoesNotExist(target_nucl))?;
                         if pos1 > pos2 {
                             // the source nucl will be on the 5' end of the split and the
                             // target nucl as well
@@ -3123,7 +3131,7 @@ impl Controller {
         &self,
         mut design: Design,
         strand_ids: Vec<usize>,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         for s_id in &strand_ids {
             design.strands.remove(s_id);
         }
@@ -3134,10 +3142,10 @@ impl Controller {
         &self,
         mut design: Design,
         helices_id: Vec<usize>,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         for h_id in &helices_id {
             if design.strands.uses_helix(*h_id) {
-                return Err(ErrOperation::HelixNotEmpty(*h_id));
+                return Err(OperationError::HelixNotEmpty(*h_id));
             }
             design.helices.make_mut().remove(h_id);
         }
@@ -3148,7 +3156,7 @@ impl Controller {
         &self,
         mut design: Design,
         grid_ids: Vec<usize>,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         let data = design.get_updated_grid_data();
         let empty_grids = data.get_empty_grids_id();
 
@@ -3156,11 +3164,11 @@ impl Controller {
         for id in grid_ids {
             let g_id = GridId::FreeGrid(id);
             if !empty_grids.contains(&g_id) {
-                return Err(ErrOperation::GridIsNotEmpty(g_id));
+                return Err(OperationError::GridIsNotEmpty(g_id));
             }
             free_grids_mut
                 .remove(&g_id)
-                .ok_or(ErrOperation::GridDoesNotExist(g_id))?;
+                .ok_or(OperationError::GridDoesNotExist(g_id))?;
         }
 
         drop(free_grids_mut);
@@ -3172,18 +3180,18 @@ impl Controller {
         mut design: Design,
         grid_id: GridId,
         position: Vec3,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         if let GridId::FreeGrid(id) = grid_id {
             let mut new_grids = design.free_grids.make_mut();
             let grid = new_grids
                 .get_mut(&FreeGridId(id))
-                .ok_or(ErrOperation::GridDoesNotExist(grid_id))?;
+                .ok_or(OperationError::GridDoesNotExist(grid_id))?;
             grid.position = position;
             drop(new_grids);
             Ok(design)
         } else {
             log::error!("Setting position of bezier path grids is not yet implemented");
-            Err(ErrOperation::NotImplemented)
+            Err(OperationError::NotImplemented)
         }
     }
 
@@ -3192,18 +3200,18 @@ impl Controller {
         mut design: Design,
         grid_id: GridId,
         orientation: Rotor3,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         if let GridId::FreeGrid(id) = grid_id {
             let mut new_grids = design.free_grids.make_mut();
             let grid = new_grids
                 .get_mut(&FreeGridId(id))
-                .ok_or(ErrOperation::GridDoesNotExist(grid_id))?;
+                .ok_or(OperationError::GridDoesNotExist(grid_id))?;
             grid.orientation = orientation;
             drop(new_grids);
             Ok(design)
         } else {
             log::error!("Setting orientation of bezier path grids is not yet implemented");
-            Err(ErrOperation::NotImplemented)
+            Err(OperationError::NotImplemented)
         }
     }
 
@@ -3212,25 +3220,25 @@ impl Controller {
         mut design: Design,
         grid_id: GridId,
         x: f64,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         if let GridId::FreeGrid(id) = grid_id {
             let mut new_grids = design.free_grids.make_mut();
             let grid = new_grids
                 .get_mut(&FreeGridId(id))
-                .ok_or(ErrOperation::GridDoesNotExist(grid_id))?;
+                .ok_or(OperationError::GridDoesNotExist(grid_id))?;
             if let GridTypeDescr::Hyperboloid {
                 nb_turn_per_100_nt, ..
             } = &mut grid.grid_type
             {
                 *nb_turn_per_100_nt = x;
             } else {
-                return Err(ErrOperation::GridIsNotHyperboloid(grid_id));
+                return Err(OperationError::GridIsNotHyperboloid(grid_id));
             }
             drop(new_grids);
             Ok(design)
         } else {
             log::error!("Setting nb turn of bezier path grids is not yet implemented");
-            Err(ErrOperation::NotImplemented)
+            Err(OperationError::NotImplemented)
         }
     }
 
@@ -3239,19 +3247,19 @@ impl Controller {
         mut design: Design,
         object_path: PathBuf,
         design_path: PathBuf,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         let object = External3DObject::new(External3DObjectDescriptor {
             object_path,
             design_path,
         })
-        .ok_or(ErrOperation::CouldNotMake3DObject)?;
+        .ok_or(OperationError::CouldNotMake3DObject)?;
 
         design.external_3d_objects.add_object(object);
 
         Ok(design)
     }
 
-    fn import_svg_path(&self, mut design: Design, path: PathBuf) -> Result<Design, ErrOperation> {
+    fn import_svg_path(&self, mut design: Design, path: PathBuf) -> Result<Design, OperationError> {
         // The imported bezier path will be attached to plane 0 so we need to ensure that it exists
         if design.bezier_planes.get(&BezierPlaneId(0)).is_none() {
             design = self.add_bezier_plane(design, Default::default());
@@ -3269,7 +3277,7 @@ impl Controller {
 
 /// An operation has been successfully applied on a design, resulting in a new modified design. The
 /// variants of these enums indicate different ways in which the result should be handled
-pub enum OkOperation {
+pub enum OperationResult {
     /// Push the current design on the undo stack and replace it by the wrapped value. This variant
     /// is produced when the operation has been performed on a non transitory design and can be
     /// undone.
@@ -3289,7 +3297,7 @@ pub enum OkOperation {
     NoOp,
 }
 
-impl OkOperation {
+impl OperationResult {
     fn into_undoable(self, label: Cow<'static, str>) -> Self {
         match self {
             Self::Replace(design) | Self::Push { design, .. } => Self::Push { design, label },
@@ -3306,7 +3314,7 @@ impl OkOperation {
 
 // Some values are only used for logging the error, which Rust considers to be unused
 #[derive(Debug)]
-pub enum ErrOperation {
+pub enum OperationError {
     GroupHasNoPivot(GroupId),
     NotImplemented,
     /// The operation cannot be applied on the current selection
@@ -3337,7 +3345,7 @@ pub enum ErrOperation {
     FinishFirst,
     CameraDoesNotExist(CameraId),
     GridIsNotHyperboloid(GridId),
-    DesignOperationError(ErrDesignOperation),
+    DesignOperationError(DesignOperationError),
     NotPiecewiseBezier(usize),
     GridCopyError(GridCopyError),
     CouldNotGetPrime3of(usize),
@@ -3348,13 +3356,13 @@ pub enum ErrOperation {
     SvgImportError(SvgImportError),
 }
 
-impl From<ErrDesignOperation> for ErrOperation {
-    fn from(e: ErrDesignOperation) -> Self {
+impl From<DesignOperationError> for OperationError {
+    fn from(e: DesignOperationError) -> Self {
         Self::DesignOperationError(e)
     }
 }
 
-impl From<SvgImportError> for ErrOperation {
+impl From<SvgImportError> for OperationError {
     fn from(e: SvgImportError) -> Self {
         Self::SvgImportError(e)
     }
@@ -3398,12 +3406,12 @@ enum ControllerState {
     ChangingColor,
     SettingRollHelices,
     WithPendingOp {
-        operation: Arc<dyn Operation>,
+        operation: Arc<dyn SimpleOperation>,
         design: AddressPointer<Design>,
     },
     ApplyingOperation {
         design: AddressPointer<Design>,
-        operation: Option<Arc<dyn Operation>>,
+        operation: Option<Arc<dyn SimpleOperation>>,
     },
     PositioningStrandPastingPoint {
         pasting_point: Option<Nucl>,
@@ -3521,7 +3529,7 @@ impl ControllerState {
         point: Option<PastePosition>,
         strands: Vec<PastedStrand>,
         duplication_edge: Option<DuplicationEdge>,
-    ) -> Result<(), ErrOperation> {
+    ) -> Result<(), OperationError> {
         match self {
             Self::PositioningStrandPastingPoint { .. }
             | Self::Normal
@@ -3543,7 +3551,7 @@ impl ControllerState {
                 };
                 Ok(())
             }
-            _ => Err(ErrOperation::IncompatibleState(
+            _ => Err(OperationError::IncompatibleState(
                 self.state_name().to_owned(),
             )),
         }
@@ -3554,7 +3562,7 @@ impl ControllerState {
         position: Option<PastePosition>,
         edge: Option<Edge>,
         design: &Design,
-    ) -> Result<(), ErrOperation> {
+    ) -> Result<(), OperationError> {
         match self {
             Self::PositioningHelicesPastingPoint { pasting_point, .. } => {
                 *pasting_point = position.and_then(PastePosition::to_grid_position);
@@ -3580,7 +3588,7 @@ impl ControllerState {
                 };
                 Ok(())
             }
-            _ => Err(ErrOperation::IncompatibleState(
+            _ => Err(OperationError::IncompatibleState(
                 self.state_name().to_owned(),
             )),
         }
@@ -3591,7 +3599,7 @@ impl ControllerState {
         point: Option<Nucl>,
         edge: Option<DuplicationEdge>,
         design: &Design,
-    ) -> Result<(), ErrOperation> {
+    ) -> Result<(), OperationError> {
         match self {
             Self::PastingXovers { pasting_point, .. } => {
                 *pasting_point = point;
@@ -3616,13 +3624,13 @@ impl ControllerState {
                 };
                 Ok(())
             }
-            _ => Err(ErrOperation::IncompatibleState(
+            _ => Err(OperationError::IncompatibleState(
                 self.state_name().to_owned(),
             )),
         }
     }
 
-    fn update_operation(&mut self, op: Arc<dyn Operation>) {
+    fn update_operation(&mut self, op: Arc<dyn SimpleOperation>) {
         match self {
             Self::ApplyingOperation { operation, .. } => *operation = Some(op),
             Self::WithPendingOp { operation, .. } => *operation = op,

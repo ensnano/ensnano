@@ -14,7 +14,7 @@ use crate::{
         torus::CurveDescriptor2D,
         twist::{Twist, twist_to_omega},
     },
-    design_operations::{ErrDesignOperation, MIN_HELICES_TO_MAKE_GRID},
+    design_operations::{DesignOperationError, MIN_HELICES_TO_MAKE_GRID},
     helices::{Axis, Helices, Helix},
     parameters::HelixParameters,
 };
@@ -896,11 +896,11 @@ impl GridData {
         h_id: usize,
         preserve_roll: bool,
         authorized_collisions: &[usize],
-    ) -> Result<(), ErrDesignOperation> {
+    ) -> Result<(), DesignOperationError> {
         let mut helices = self.source_helices.make_mut();
         let h = helices.get_mut(&h_id);
         if h.is_none() {
-            return Err(ErrDesignOperation::HelixDoesNotExists(h_id));
+            return Err(DesignOperationError::HelixDoesNotExists(h_id));
         }
         let h = h.unwrap();
         let axis = h.get_axis(&self.helix_parameters);
@@ -930,7 +930,7 @@ impl GridData {
                                 .direction()
                                 .unwrap_or_else(Vec3::zero);
                     } else {
-                        return Err(ErrDesignOperation::HelixCollisionDuringTranslation);
+                        return Err(DesignOperationError::HelixCollisionDuringTranslation);
                     }
                 } else {
                     h.grid_position = candidate_position;
@@ -1313,9 +1313,9 @@ impl CenterOfGravity {
 pub(super) fn make_grid_from_helices(
     design: &mut Design,
     helices: &[usize],
-) -> Result<(), ErrDesignOperation> {
+) -> Result<(), DesignOperationError> {
     if helices.len() < MIN_HELICES_TO_MAKE_GRID {
-        return Err(ErrDesignOperation::NotEnoughHelices {
+        return Err(DesignOperationError::NotEnoughHelices {
             actual: helices.len(),
             needed: MIN_HELICES_TO_MAKE_GRID,
         });
@@ -1365,7 +1365,7 @@ impl<'a> HelicesTranslator<'a> {
         snap: bool,
         helices: Vec<usize>,
         translation: Vec3,
-    ) -> Result<(), ErrDesignOperation> {
+    ) -> Result<(), DesignOperationError> {
         let mut new_helices = self.grid_data.source_helices.make_mut();
         for h_id in &helices {
             if let Some(h) = new_helices.get_mut(h_id) {
@@ -1386,7 +1386,7 @@ impl<'a> HelicesTranslator<'a> {
         helices: Vec<usize>,
         rotation: Rotor3,
         origin: Vec3,
-    ) -> Result<(), ErrDesignOperation> {
+    ) -> Result<(), DesignOperationError> {
         let mut new_helices = self.grid_data.source_helices.make_mut();
         for h_id in &helices {
             if let Some(h) = new_helices.get_mut(h_id) {
@@ -1401,7 +1401,7 @@ impl<'a> HelicesTranslator<'a> {
         }
     }
 
-    fn attempt_reattach(&mut self, helices: &[usize]) -> Result<(), ErrDesignOperation> {
+    fn attempt_reattach(&mut self, helices: &[usize]) -> Result<(), DesignOperationError> {
         for h_id in helices {
             self.grid_data.reattach_helix(*h_id, true, helices)?;
         }

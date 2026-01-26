@@ -24,19 +24,19 @@ use self::{
     design_interactor::{
         DesignInteractor, InteractorResult,
         controller::{
-            ErrOperation, InteractorNotification, clipboard::CopyOperation,
+            InteractorNotification, OperationError, clipboard::CopyOperation,
             simulations::SimulationOperation,
         },
         presenter::SimulationUpdate,
     },
-    transitions::OkOperation,
+    transitions::OperationUndoability,
 };
 use crate::{
     design::{
         operation::DesignOperation,
         selection::{CenterOfSelection, Selection},
     },
-    utils::operation::Operation,
+    utils::operation::SimpleOperation,
 };
 use ensnano_design::{
     SavingInformation,
@@ -319,12 +319,18 @@ impl AppState {
         Self(AddressPointer::new(new_state))
     }
 
-    pub fn apply_design_op(&mut self, op: DesignOperation) -> Result<OkOperation, ErrOperation> {
+    pub fn apply_design_op(
+        &mut self,
+        op: DesignOperation,
+    ) -> Result<OperationUndoability, OperationError> {
         let result = self.0.design.apply_operation(op);
         self.handle_operation_result(result)
     }
 
-    pub fn apply_copy_operation(&mut self, op: CopyOperation) -> Result<OkOperation, ErrOperation> {
+    pub fn apply_copy_operation(
+        &mut self,
+        op: CopyOperation,
+    ) -> Result<OperationUndoability, OperationError> {
         let self_mut = self.0.make_mut();
         let design_mut = self_mut.design.make_mut();
         let result = design_mut.apply_copy_operation(op);
@@ -333,8 +339,8 @@ impl AppState {
 
     pub fn update_pending_operation(
         &mut self,
-        op: Arc<dyn Operation>,
-    ) -> Result<OkOperation, ErrOperation> {
+        op: Arc<dyn SimpleOperation>,
+    ) -> Result<OperationUndoability, OperationError> {
         let result = self.0.design.update_pending_operation(op);
         self.handle_operation_result(result)
     }
@@ -342,7 +348,7 @@ impl AppState {
     pub fn start_simulation(
         &mut self,
         operation: SimulationOperation,
-    ) -> Result<OkOperation, ErrOperation> {
+    ) -> Result<OperationUndoability, OperationError> {
         let result = self.0.design.start_simulation(operation);
         self.handle_operation_result(result)
     }
@@ -350,15 +356,15 @@ impl AppState {
     pub fn update_simulation(
         &mut self,
         request: SimulationOperation,
-    ) -> Result<OkOperation, ErrOperation> {
+    ) -> Result<OperationUndoability, OperationError> {
         let result = self.0.design.update_simulation(request);
         self.handle_operation_result(result)
     }
 
     fn handle_operation_result(
         &mut self,
-        result: Result<InteractorResult, ErrOperation>,
-    ) -> Result<OkOperation, ErrOperation> {
+        result: Result<InteractorResult, OperationError>,
+    ) -> Result<OperationUndoability, OperationError> {
         log::trace!("handle operation result");
         match result {
             Ok(InteractorResult::Push {
@@ -373,12 +379,12 @@ impl AppState {
                 }
                 *self = new_state;
                 if let Some(state) = ret {
-                    Ok(OkOperation::Undoable {
+                    Ok(OperationUndoability::Undoable {
                         state,
                         label: label.into(),
                     })
                 } else {
-                    Ok(OkOperation::NotUndoable)
+                    Ok(OperationUndoability::NotUndoable)
                 }
             }
             Ok(InteractorResult::Replace(mut design)) => {
@@ -388,7 +394,7 @@ impl AppState {
                     new_state = new_state.with_selection(selection, None);
                 }
                 *self = new_state;
-                Ok(OkOperation::NotUndoable)
+                Ok(OperationUndoability::NotUndoable)
             }
             Err(e) => {
                 log::error!("error {e:?}");
@@ -557,7 +563,7 @@ impl AppState {
     pub fn optimize_shift(
         &mut self,
         reader: &mut ChannelReader,
-    ) -> Result<OkOperation, ErrOperation> {
+    ) -> Result<OperationUndoability, OperationError> {
         let result = self.0.design.optimize_shift(reader);
         self.handle_operation_result(result)
     }
@@ -570,7 +576,7 @@ impl AppState {
         &mut self,
         selection: Vec<Selection>,
         compl: bool,
-    ) -> Result<OkOperation, ErrOperation> {
+    ) -> Result<OperationUndoability, OperationError> {
         let result = self
             .0
             .design

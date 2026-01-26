@@ -1,5 +1,5 @@
 use crate::{
-    app_state::design_interactor::controller::{Controller, ErrOperation},
+    app_state::design_interactor::controller::{Controller, OperationError},
     design::operation::InsertionPoint,
 };
 use ensnano_design::{
@@ -14,28 +14,28 @@ impl Controller {
         mut design: Design,
         insertion_point: InsertionPoint,
         length: usize,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<Design, OperationError> {
         let s_id = design
             .strands
             .get_strand_nucl(&insertion_point.nucl)
-            .ok_or(ErrOperation::NuclDoesNotExist(insertion_point.nucl))?;
+            .ok_or(OperationError::NuclDoesNotExist(insertion_point.nucl))?;
         let strand_mut = design
             .strands
             .get_mut(&s_id)
-            .ok_or(ErrOperation::StrandDoesNotExist(s_id))?;
+            .ok_or(OperationError::StrandDoesNotExist(s_id))?;
 
         let cyclic = strand_mut.is_cyclic;
         if cyclic {
             let prime3 = strand_mut
                 .get_3prime()
-                .ok_or(ErrOperation::CouldNotGetPrime3of(s_id))?;
+                .ok_or(OperationError::CouldNotGetPrime3of(s_id))?;
             Self::split_strand(&mut design.strands, &prime3, None, &mut self.color_idx)?;
         }
 
         let strand_mut = design
             .strands
             .get_mut(&s_id)
-            .ok_or(ErrOperation::StrandDoesNotExist(s_id))?;
+            .ok_or(OperationError::StrandDoesNotExist(s_id))?;
 
         if let Some(insertion_mut) = get_insertion_length_mut(strand_mut, insertion_point) {
             if length > 0 {
@@ -61,7 +61,7 @@ impl Controller {
             let strand_mut = design
                 .strands
                 .get_mut(&s_id)
-                .ok_or(ErrOperation::StrandDoesNotExist(s_id))?;
+                .ok_or(OperationError::StrandDoesNotExist(s_id))?;
             if cfg!(test) {
                 println!(
                     "junction after split {}",
@@ -125,7 +125,7 @@ impl Controller {
             Ok(design)
         } else {
             // Nothing to do
-            Err(ErrOperation::NotImplemented)
+            Err(OperationError::NotImplemented)
         }
     }
 }
