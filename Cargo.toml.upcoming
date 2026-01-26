@@ -102,13 +102,11 @@ ensnano_design.workspace = true
 ensnano_exports.workspace = true
 ensnano_flatscene.workspace = true
 ensnano_gui.workspace = true
-ensnano_physics.workspace = true
 ensnano_scene.workspace = true
 ensnano_state.workspace = true
 ensnano_utils.workspace = true
 ensnano_upcoming.workspace = true
 
-ahash.workspace = true
 confy.workspace = true
 dirs.workspace = true
 futures.workspace = true

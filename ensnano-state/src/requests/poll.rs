@@ -2,7 +2,7 @@
 //! object.
 
 use crate::state::MainState;
-use ensnano_state::{
+use crate::{
     app_state::{action::Action, design_interactor::controller::clipboard::PastePosition},
     design::{
         operation::{DesignOperation, HyperboloidOperation},
@@ -12,7 +12,7 @@ use ensnano_state::{
     utils::application::Notification,
 };
 
-pub(crate) fn poll_all(requests: &mut Requests, main_state: &mut MainState) {
+pub fn poll_all(requests: &mut Requests, main_state: &mut MainState) {
     if requests.fitting.take().is_some() {
         main_state.push_action(Action::NotifyApps(Notification::FitRequest));
     }

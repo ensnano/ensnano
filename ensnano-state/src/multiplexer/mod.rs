@@ -14,9 +14,9 @@
 
 mod layout_manager;
 
-use self::layout_manager::{LayoutTree, PixelRegion};
+use crate::multiplexer::layout_manager::{LayoutTree, PixelRegion};
+use crate::{app_state::action::Action, requests::Requests};
 use ensnano_design::interaction_modes::{ActionMode, SelectionMode};
-use ensnano_state::{app_state::action::Action, requests::Requests};
 use ensnano_utils::{
     graphics::{DrawArea, GuiComponentType, PhySize, SplitMode},
     multiplexer_ext::MultiplexerExt,
@@ -36,7 +36,7 @@ use winit::{
 };
 
 /// A structure that handles the division of the window into different `DrawArea`.
-pub(crate) struct Multiplexer {
+pub struct Multiplexer {
     /// The *physical* size of the window.
     pub window_size: PhySize,
     /// The scale factor of the window.
@@ -111,7 +111,7 @@ impl Multiplexer {
     ///     └───────────────────────────┘
     /// ```
     ///
-    pub(crate) fn new(
+    pub fn new(
         window_size: PhySize,
         scale_factor: f64,
         device: Rc<Device>,
@@ -177,10 +177,7 @@ impl Multiplexer {
     }
 
     /// Return a view of the texture on which the element must be rendered
-    pub(crate) fn get_texture_view(
-        &self,
-        element_type: GuiComponentType,
-    ) -> Option<&wgpu::TextureView> {
+    pub fn get_texture_view(&self, element_type: GuiComponentType) -> Option<&wgpu::TextureView> {
         match element_type {
             GuiComponentType::StereographicScene => self
                 .stereographic_scene_texture
@@ -221,11 +218,11 @@ impl Multiplexer {
         }
     }
 
-    pub(crate) fn update_modifiers(&mut self, modifiers: Modifiers) {
+    pub fn update_modifiers(&mut self, modifiers: Modifiers) {
         self.modifiers_state = modifiers.state();
     }
 
-    pub(crate) fn draw(
+    pub fn draw(
         &mut self,
         encoder: &mut wgpu::CommandEncoder,
         target: &wgpu::TextureView,
@@ -319,7 +316,7 @@ impl Multiplexer {
     }
 
     /// Return the drawing area attributed to an element.
-    pub(crate) fn get_draw_area(&self, element_type: GuiComponentType) -> Option<DrawArea> {
+    pub fn get_draw_area(&self, element_type: GuiComponentType) -> Option<DrawArea> {
         let (position, size) = if let GuiComponentType::Overlay(n) = element_type {
             (self.overlays[n].position, self.overlays[n].size)
         } else {
@@ -346,7 +343,7 @@ impl Multiplexer {
         Some(DrawArea { position, size })
     }
 
-    pub(crate) fn check_scale_factor(&mut self, window: &Window) -> bool {
+    pub fn check_scale_factor(&mut self, window: &Window) -> bool {
         #[expect(clippy::float_cmp)]
         if self.scale_factor != window.scale_factor() {
             self.scale_factor = window.scale_factor();
@@ -363,7 +360,7 @@ impl Multiplexer {
     }
 
     /// Forwards event to the element on which they happen.
-    pub(crate) fn event(
+    pub fn event(
         &mut self,
         mut event: WindowEvent,
         resized: &mut bool,
@@ -604,7 +601,7 @@ impl Multiplexer {
         self.focus.filter(|_| !captured).map(|focus| (event, focus))
     }
 
-    pub(crate) fn change_ui_size(&mut self, ui_size: UiSize, window: &Window) {
+    pub fn change_ui_size(&mut self, ui_size: UiSize, window: &Window) {
         self.ui_size = ui_size;
         self.resize(window.inner_size(), window.scale_factor());
         self.generate_textures();
@@ -639,7 +636,7 @@ impl Multiplexer {
         }
     }
 
-    pub(crate) fn toggle_2d(&mut self) {
+    pub fn toggle_2d(&mut self) {
         log::info!("Toggle 2d");
         if log::log_enabled!(log::Level::Info) {
             println!("Old tree");
@@ -662,7 +659,7 @@ impl Multiplexer {
         self.generate_textures();
     }
 
-    pub(crate) fn change_split(&mut self, split_mode: SplitMode) {
+    pub fn change_split(&mut self, split_mode: SplitMode) {
         if split_mode != self.split_mode {
             self.change_split_(split_mode);
         }
@@ -670,7 +667,7 @@ impl Multiplexer {
         self.generate_textures();
     }
 
-    pub(crate) fn resize(&self, window_size: PhySize, scale_factor: f64) -> bool {
+    pub fn resize(&self, window_size: PhySize, scale_factor: f64) -> bool {
         let ret = self.window_size != window_size;
         let top_panel_prop =
             self.ui_size.top_bar_height() * scale_factor / window_size.height as f64;
@@ -689,7 +686,7 @@ impl Multiplexer {
         Some(MultiplexerTexture { area, texture })
     }
 
-    pub(crate) fn generate_textures(&mut self) {
+    pub fn generate_textures(&mut self) {
         self.scene_texture = self.texture(GuiComponentType::Scene);
         self.top_bar_texture = self.texture(GuiComponentType::TopBar);
         self.left_panel_texture = self.texture(GuiComponentType::LeftPanel);
@@ -726,21 +723,21 @@ impl Multiplexer {
     }
 
     /// Get the drawing area attributed to an element.
-    pub(crate) fn get_element_area(&self, element: GuiComponentType) -> Option<DrawArea> {
+    pub fn get_element_area(&self, element: GuiComponentType) -> Option<DrawArea> {
         self.get_draw_area(element)
     }
 
     /// Return the *physical* position of the cursor, in the focused element coordinates
-    pub(crate) fn get_cursor_position(&self) -> PhysicalPosition<f64> {
+    pub fn get_cursor_position(&self) -> PhysicalPosition<f64> {
         self.cursor_position
     }
 
     /// Return the focused element
-    pub(crate) fn focused_element(&self) -> Option<GuiComponentType> {
+    pub fn focused_element(&self) -> Option<GuiComponentType> {
         self.focus
     }
 
-    pub(crate) fn is_showing(&self, area: &GuiComponentType) -> bool {
+    pub fn is_showing(&self, area: &GuiComponentType) -> bool {
         match area {
             GuiComponentType::LeftPanel
             | GuiComponentType::TopBar
@@ -757,13 +754,13 @@ impl Multiplexer {
 }
 
 #[derive(Clone)]
-pub(crate) struct Overlay {
+pub struct Overlay {
     pub position: PhysicalPosition<u32>,
     pub size: PhysicalSize<u32>,
 }
 
 impl Overlay {
-    pub(crate) fn contains_pixel(&self, pixel: PhysicalPosition<u32>) -> bool {
+    pub fn contains_pixel(&self, pixel: PhysicalPosition<u32>) -> bool {
         pixel.x >= self.position.x
             && pixel.y >= self.position.y
             && pixel.x < self.position.x + self.size.width
