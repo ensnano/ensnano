@@ -1,4 +1,5 @@
 use crate::multiplexer::Multiplexer;
+use crate::operation::AppStateOperation;
 use crate::{
     app_state::{
         AppState, SaveDesignError,
@@ -59,7 +60,7 @@ pub struct MainState {
     pub redo_stack: Vec<AppStateTransition>,
     pub channel_reader: ChannelReader,
     pub messages: Arc<Mutex<GuiMessages>>,
-    pub applications: HashMap<GuiComponentType, Arc<Mutex<dyn Application<AppState = AppState>>>>,
+    pub applications: HashMap<GuiComponentType, Arc<Mutex<dyn Application>>>,
     pub focused_component: Option<GuiComponentType>,
     /// Disable the interception of keyboard events, to let the user input text.
     /// Some(id) indicates that object id has the priority; None indicates none have the priority.
@@ -178,7 +179,7 @@ impl MainState {
     }
 
     pub fn update_candidates(&mut self, candidates: Vec<Selection>) {
-        self.modify_state(|s| s.with_candidates(candidates), None);
+        self.modify_state(|s: &mut AppState| s.set_candidates(&candidates), None);
     }
 
     pub fn transfer_selection_pivot_to_group(&mut self, group_id: GroupId) {
@@ -193,13 +194,13 @@ impl MainState {
 
     pub fn update_selection(&mut self, selection: Vec<Selection>, group_id: Option<GroupId>) {
         self.modify_state(
-            |s| s.with_selection(selection, group_id),
+            |s: &mut AppState| s.set_selection(&selection, &group_id),
             Some("Selection".into()),
         );
     }
 
     pub fn update_center_of_selection(&mut self, center: Option<CenterOfSelection>) {
-        self.modify_state(|s| s.with_center_of_selection(center), None);
+        self.modify_state(|s: &mut AppState| s.set_center_of_selection(center), None);
     }
 
     pub fn apply_copy_operation(&mut self, operation: CopyOperation) {
@@ -212,7 +213,7 @@ impl MainState {
         let result = self.app_state.apply_design_op(operation.clone());
         if matches!(result, Err(OperationError::FinishFirst)) {
             self.modify_state(
-                |s| s.notified(InteractorNotification::FinishOperation),
+                |s: &mut AppState| s.notify(InteractorNotification::FinishOperation),
                 None,
             );
             // recursive call to retry the operation
@@ -303,7 +304,7 @@ impl MainState {
             Ok(_) => (),
             Err(OperationError::FinishFirst) => {
                 self.modify_state(
-                    |s| s.notified(InteractorNotification::FinishOperation),
+                    |s: &mut AppState| s.notify(InteractorNotification::FinishOperation),
                     None,
                 );
                 self.apply_silent_operation(operation);
@@ -332,7 +333,7 @@ impl MainState {
         if let Some(mut transition) = self.undo_stack.pop() {
             transition.state.prepare_for_replacement(&self.app_state);
             let mut redo_state = std::mem::replace(&mut self.app_state, transition.state);
-            redo_state = redo_state.notified(InteractorNotification::FinishOperation);
+            redo_state.notify(InteractorNotification::FinishOperation);
             self.set_camera_3d(transition.camera_3d.clone());
             self.messages
                 .lock()
@@ -365,13 +366,13 @@ impl MainState {
         }
     }
 
-    pub fn modify_state<F>(&mut self, modification: F, undo_label: Option<TransitionLabel>)
-    where
-        F: FnOnce(AppState) -> AppState,
-    {
-        let state = std::mem::take(&mut self.app_state);
-        let old_state = state.clone();
-        self.app_state = modification(state);
+    pub fn modify_state(
+        &mut self,
+        mut modification: impl AppStateOperation,
+        undo_label: Option<TransitionLabel>,
+    ) {
+        let old_state = self.app_state.clone();
+        modification.apply(&mut self.app_state);
         if let Some(label) = undo_label
             && old_state != self.app_state
             && old_state.is_in_stable_state()
@@ -390,7 +391,7 @@ impl MainState {
         let result = self.app_state.update_pending_operation(operation.clone());
         if matches!(result, Err(OperationError::FinishFirst)) {
             self.modify_state(
-                |s| s.notified(InteractorNotification::FinishOperation),
+                |s: &mut AppState| s.notify(InteractorNotification::FinishOperation),
                 None,
             );
             self.update_pending_operation(operation);
@@ -413,7 +414,10 @@ impl MainState {
             Err(e) => log::warn!("{e:?}"),
         }
         if let Some(new_selection) = self.app_state.get_new_selection() {
-            self.modify_state(|s| s.with_selection(new_selection, None), None);
+            self.modify_state(
+                |s: &mut AppState| s.set_selection(&new_selection, &None),
+                None,
+            );
         }
     }
 
@@ -517,19 +521,19 @@ impl MainState {
     }
 
     pub fn change_selection_mode(&mut self, mode: SelectionMode) {
-        self.modify_state(|s| s.with_selection_mode(mode), None);
+        self.modify_state(|s: &mut AppState| s.set_selection_mode(mode), None);
     }
 
     pub fn change_action_mode(&mut self, mode: ActionMode) {
-        self.modify_state(|s| s.with_action_mode(mode), None);
+        self.modify_state(|s: &mut AppState| s.set_action_mode(mode), None);
     }
 
     pub fn change_double_strand_parameters(&mut self, parameters: Option<(isize, usize)>) {
-        self.modify_state(|s| s.with_strand_on_helix(parameters), None);
+        self.modify_state(|s: &mut AppState| s.set_strand_on_helix(parameters), None);
     }
 
     pub fn toggle_widget_basis(&mut self) {
-        self.modify_state(|s| s.with_toggled_widget_basis(), None);
+        self.modify_state(|s: &mut AppState| s.toggle_widget_basis(), None);
     }
 
     pub fn set_visibility_sieve(&mut self, selection: Vec<Selection>, compl: bool) {
@@ -555,43 +559,58 @@ impl MainState {
     }
 
     pub fn set_suggestion_parameters(&mut self, param: SuggestionParameters) {
-        self.modify_state(|s| s.with_suggestion_parameters(param), None);
+        self.modify_state(|s: &mut AppState| s.set_suggestion_parameters(param), None);
     }
 
     pub fn set_check_xovers_parameters(&mut self, param: CheckXoversParameter) {
-        self.modify_state(|s| s.with_check_xovers_parameters(param), None);
+        self.modify_state(
+            |s: &mut AppState| s.set_check_xovers_parameters(param),
+            None,
+        );
     }
 
     pub fn set_follow_stereographic_camera(&mut self, follow: bool) {
-        self.modify_state(|s| s.with_follow_stereographic_camera(follow), None);
+        self.modify_state(
+            |s: &mut AppState| s.set_follow_stereographic_camera(follow),
+            None,
+        );
     }
 
     pub fn set_show_stereographic_camera(&mut self, show: bool) {
-        self.modify_state(|s| s.with_show_stereographic_camera(show), None);
+        self.modify_state(
+            |s: &mut AppState| s.set_show_stereographic_camera(show),
+            None,
+        );
     }
 
-    pub fn set_show_h_bonds(&mut self, show: HBondDisplay) {
-        self.modify_state(|s| s.with_show_h_bonds(show), None);
+    pub fn show_h_bonds(&mut self, show: HBondDisplay) {
+        self.modify_state(|s: &mut AppState| s.show_h_bonds(show), None);
     }
 
     pub fn set_show_bezier_paths(&mut self, show: bool) {
-        self.modify_state(|s| s.with_show_bezier_paths(show), None);
+        self.modify_state(|s: &mut AppState| s.show_bezier_paths(show), None);
     }
 
     pub fn set_all_helices_on_axis(&mut self, off_axis: bool) {
-        self.modify_state(|s| s.all_helices_on_axis(off_axis), None);
+        self.modify_state(|s: &mut AppState| s.set_all_helices_on_axis(off_axis), None);
     }
 
     pub fn set_bezier_revolution_id(&mut self, id: Option<usize>) {
-        self.modify_state(|s| s.set_bezier_revolution_id(id), None);
+        self.modify_state(|s: &mut AppState| s.set_bezier_revolution_id(id), None);
     }
 
     pub fn set_bezier_revolution_radius(&mut self, radius: f64) {
-        self.modify_state(|s| s.set_bezier_revolution_radius(radius), None);
+        self.modify_state(
+            |s: &mut AppState| s.set_bezier_revolution_radius(radius),
+            None,
+        );
     }
 
     pub fn set_revolution_axis_position(&mut self, position: f64) {
-        self.modify_state(|s| s.set_revolution_axis_position(position), None);
+        self.modify_state(
+            |s: &mut AppState| s.set_revolution_axis_position(position),
+            None,
+        );
     }
 
     /// Create a bezier plane where the user is looking at if there are no bezier plane yet.
@@ -612,8 +631,8 @@ impl MainState {
         }
     }
 
-    pub fn set_unrooted_surface(&mut self, surface: Option<UnrootedRevolutionSurfaceDescriptor>) {
-        self.modify_state(|s| s.set_unrooted_surface(surface), None);
+    pub fn set_unrooted_surface(&mut self, surface: &Option<UnrootedRevolutionSurfaceDescriptor>) {
+        self.modify_state(|s: &mut AppState| s.set_unrooted_surface(surface), None);
     }
 
     pub fn get_grid_creation_position(&self) -> Option<(Vec3, Rotor3)> {
@@ -633,23 +652,29 @@ impl MainState {
     }
 
     pub fn toggle_all_helices_on_axis(&mut self) {
-        self.modify_state(|s| s.with_toggled_all_helices_on_axis(), None);
+        self.modify_state(|s: &mut AppState| s.toggle_all_helices_on_axis(), None);
     }
 
     pub fn set_background_3d(&mut self, bg: Background3D) {
-        self.modify_state(|s| s.with_background3d(bg), None);
+        self.modify_state(|s: &mut AppState| s.set_background3d(bg), None);
     }
 
     pub fn set_rendering_mode(&mut self, rendering_mode: RenderingMode) {
-        self.modify_state(|s| s.with_rendering_mode(rendering_mode), None);
+        self.modify_state(
+            |s: &mut AppState| s.set_rendering_mode(rendering_mode),
+            None,
+        );
     }
 
     pub fn set_scroll_sensitivity(&mut self, sensitivity: f32) {
-        self.modify_state(|s| s.with_scroll_sensitivity(sensitivity), None);
+        self.modify_state(
+            |s: &mut AppState| s.set_scroll_sensitivity(sensitivity),
+            None,
+        );
     }
 
     pub fn set_invert_y_scroll(&mut self, inverted: bool) {
-        self.modify_state(|s| s.with_inverted_y_scroll(inverted), None);
+        self.modify_state(|s: &mut AppState| s.set_inverted_y_scroll(inverted), None);
     }
 
     pub fn gui_state(&self, multiplexer: &Multiplexer) -> TopBarStateFlags {

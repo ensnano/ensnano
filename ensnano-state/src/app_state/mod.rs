@@ -54,7 +54,6 @@ use ensnano_utils::{
         AppStateParameters, check_xovers_parameter::CheckXoversParameter,
         suggestion_parameters::SuggestionParameters,
     },
-    apply_update,
     consts::{APP_NAME, CANNOT_OPEN_DEFAULT_DIR, ENS_BACKUP_EXTENSION, ENS_EXTENSION},
     graphics::{Background3D, HBondDisplay, RenderingMode},
     surfaces::{RevolutionSurfaceRadius, UnrootedRevolutionSurfaceDescriptor},
@@ -92,7 +91,7 @@ impl Default for AppState {
         log::trace!("call from default");
         // Synchronize all the pointers.
         // This turns updated_once to true so we must set it back to false afterwards
-        ret = ret.updated();
+        ret.update();
         let mut with_forgot_update = ret.0.clone_inner();
         with_forgot_update.updated_once = false;
         Self(AddressPointer::new(with_forgot_update))
@@ -109,100 +108,81 @@ impl AppState {
         log::trace!("call from default");
         // Synchronize all the pointers.
         // This turns updated_once to true so we must set it back to false afterwards
-        ret = ret.updated();
+        ret.update();
         let mut with_forgot_update = ret.0.clone_inner();
         with_forgot_update.updated_once = false;
         Ok(Self(AddressPointer::new(with_forgot_update)))
     }
 
-    #[must_use]
-    pub fn with_selection(
-        &self,
-        mut selection: Vec<Selection>,
-        selected_group: Option<GroupId>,
-    ) -> Self {
+    pub fn set_selection(&mut self, selection: &[Selection], selected_group: &Option<GroupId>) {
+        let mut selection = Vec::from(selection);
+        let selected_group = *selected_group;
         selection.sort();
         selection.dedup();
+
         if self.0.selection.selection.content_equal(&selection)
             && selected_group == self.0.selection.selected_group
         {
-            self.clone()
-        } else {
-            let mut new_state = self.0.clone_inner();
-            let selection_len = selection.len();
-            new_state.selection = AppStateSelection {
-                selection: AddressPointer::new(selection),
-                selected_group,
-                pivot: Arc::new(RwLock::new(None)),
-                old_pivot: Arc::new(RwLock::new(None)),
-            };
-            // Set when the selection is modified, the center of selection is set to None. It is up
-            // to the caller to set it to a certain value when applicable
-            new_state.center_of_selection = None;
-            let mut ret = Self(AddressPointer::new(new_state));
-            if selection_len > 0 {
-                ret = ret.notified(InteractorNotification::NewSelection);
-            }
-            ret
+            return;
+        }
+
+        let selection_len = selection.len();
+        let state = self.0.make_mut();
+        state.selection = AppStateSelection {
+            selection: AddressPointer::new(selection),
+            selected_group,
+            pivot: Arc::new(RwLock::new(None)),
+            old_pivot: Arc::new(RwLock::new(None)),
+        };
+        // Set when the selection is modified, the center of selection is set to None. It is up
+        // to the caller to set it to a certain value when applicable
+        state.center_of_selection = None;
+        if selection_len > 0 {
+            self.notify(InteractorNotification::NewSelection);
         }
     }
 
-    #[must_use]
-    pub fn with_center_of_selection(&self, center: Option<CenterOfSelection>) -> Self {
+    pub fn set_center_of_selection(&mut self, center: Option<CenterOfSelection>) {
         if center == self.0.center_of_selection {
-            self.clone()
-        } else {
-            let mut new_state = (*self.0).clone();
-            new_state.center_of_selection = center;
-            Self(AddressPointer::new(new_state))
+            return;
         }
+
+        self.0.make_mut().center_of_selection = center;
     }
 
-    #[must_use]
-    pub fn with_candidates(&self, mut candidates: Vec<Selection>) -> Self {
+    pub fn set_candidates(&mut self, candidates: &[Selection]) {
+        let mut candidates = Vec::from(candidates);
+
         candidates.sort();
         candidates.dedup();
+
         if self.0.candidates.content_equal(&candidates) {
-            self.clone()
-        } else {
-            let mut new_state = (*self.0).clone();
-            new_state.candidates = AddressPointer::new(candidates);
-            Self(AddressPointer::new(new_state))
+            return;
         }
+
+        *self.0.make_mut().candidates.make_mut() = candidates;
     }
 
-    #[must_use]
-    pub fn with_selection_mode(&self, selection_mode: SelectionMode) -> Self {
-        let mut new_state = (*self.0).clone();
-        new_state.selection_mode = selection_mode;
-        Self(AddressPointer::new(new_state))
+    pub fn set_selection_mode(&mut self, selection_mode: SelectionMode) {
+        self.0.make_mut().selection_mode = selection_mode;
     }
 
-    #[must_use]
-    pub fn with_suggestion_parameters(&self, suggestion_parameters: SuggestionParameters) -> Self {
-        let mut new_state = (*self.0).clone();
-        new_state.parameters.suggestion_parameters = suggestion_parameters;
-        Self(AddressPointer::new(new_state))
+    pub fn set_suggestion_parameters(&mut self, suggestion_parameters: SuggestionParameters) {
+        self.0.make_mut().parameters.suggestion_parameters = suggestion_parameters;
     }
 
-    #[must_use]
-    pub fn with_ui_size(&self, ui_size: UiSize) -> Self {
-        self.with_updated_parameters(|p| p.ui_size = ui_size)
+    pub fn set_ui_size(&mut self, ui_size: UiSize) {
+        self.update_parameters(|p| p.ui_size = ui_size);
     }
 
-    #[must_use]
-    pub fn with_action_mode(&self, action_mode: ActionMode) -> Self {
-        let mut new_state = (*self.0).clone();
-        new_state.action_mode = action_mode;
-        Self(AddressPointer::new(new_state))
+    pub fn set_action_mode(&mut self, action_mode: ActionMode) {
+        self.0.make_mut().action_mode = action_mode;
     }
 
-    #[must_use]
-    pub fn with_strand_on_helix(&self, parameters: Option<(isize, usize)>) -> Self {
+    pub fn set_strand_on_helix(&mut self, parameters: Option<(isize, usize)>) {
         let new_strand_parameters =
             parameters.map(|(start, length)| NewHelixStrand { length, start });
         if let ActionMode::BuildHelix { .. } = self.0.action_mode {
-            let mut new_state = (*self.0).clone();
             let length = new_strand_parameters
                 .as_ref()
                 .map(|strand| strand.length)
@@ -211,43 +191,26 @@ impl AppState {
                 .as_ref()
                 .map(|strand| strand.start)
                 .unwrap_or_default();
-            new_state.strand_on_new_helix = new_strand_parameters;
-            new_state.action_mode = ActionMode::BuildHelix {
+            let state = self.0.make_mut();
+            state.strand_on_new_helix = new_strand_parameters;
+            state.action_mode = ActionMode::BuildHelix {
                 length,
                 position: start,
             };
-            Self(AddressPointer::new(new_state))
-        } else {
-            self.clone()
         }
     }
 
-    #[must_use]
-    pub fn exporting(&self, exporting: bool) -> Self {
-        let mut new_state = (*self.0).clone();
-        new_state.exporting = exporting;
-        Self(AddressPointer::new(new_state))
+    pub fn set_exporting(&mut self, exporting: bool) {
+        self.0.make_mut().exporting = exporting;
     }
 
-    #[must_use]
-    pub fn with_toggled_widget_basis(&self) -> Self {
-        let mut new_state = (*self.0).clone();
-        new_state.widget_basis.toggle();
-        Self(AddressPointer::new(new_state))
+    pub fn toggle_widget_basis(&mut self) {
+        self.0.make_mut().widget_basis.toggle();
     }
 
     #[cfg(test)]
     pub fn update_design(&mut self, design: Design) {
-        apply_update(self, |s| s.with_updated_design(design));
-    }
-
-    #[cfg(test)]
-    #[must_use]
-    pub fn with_updated_design(&self, design: Design) -> Self {
-        let mut new_state = self.0.clone_inner();
-        let new_interactor = new_state.design.with_updated_design(design);
-        new_state.design = AddressPointer::new(new_interactor);
-        Self(AddressPointer::new(new_state))
+        self.0.make_mut().design.make_mut().update_design(design);
     }
 
     pub fn import_design(mut path: PathBuf) -> Result<Self, LoadDesignError> {
@@ -255,13 +218,17 @@ impl AppState {
         if path.extension().map(|s| s.to_string_lossy()) != Some(ENS_BACKUP_EXTENSION.into()) {
             path.set_extension(ENS_EXTENSION);
         }
-        Ok(Self(AddressPointer::new(AppState_ {
+
+        let mut result = Self(AddressPointer::new(AppState_ {
             design: AddressPointer::new(design_interactor),
             parameters: confy::load(APP_NAME, APP_NAME).unwrap_or_default(),
             path_to_current_design: Some(path.clone()),
             ..Default::default()
-        }))
-        .updated())
+        }));
+
+        result.update();
+
+        Ok(result)
     }
 
     pub fn save_design(
@@ -279,24 +246,13 @@ impl AppState {
         self.0.path_to_current_design.as_ref()
     }
 
-    pub fn update(&mut self) {
-        log::trace!("update");
-        apply_update(self, Self::updated);
-    }
-
     pub fn apply_simulation_update(&mut self, update: Box<dyn SimulationUpdate>) {
-        apply_update(self, |s| s.with_simulation_update_applied(update));
-    }
-
-    fn with_simulation_update_applied(self, update: Box<dyn SimulationUpdate>) -> Self {
         let mut design = self.0.design.clone_inner();
         design = design.with_simulation_update_applied(update);
-        self.with_interactor(design)
+        self.set_interactor(design);
     }
 
-    fn updated(self) -> Self {
-        let old_self = self.clone();
-        let mut interactor = self.0.design.clone_inner();
+    pub fn update(&mut self) {
         log::trace!("calling from updated!!");
         if self
             .0
@@ -304,19 +260,17 @@ impl AppState {
             .design_need_update(&self.0.parameters.suggestion_parameters)
         {
             log::trace!("design need update");
+            let mut interactor = self.0.design.clone_inner();
             interactor =
                 interactor.with_updated_design_reader(&self.0.parameters.suggestion_parameters);
-            self.with_interactor(interactor)
-        } else {
-            old_self
+            self.set_interactor(interactor);
         }
     }
 
-    fn with_interactor(self, interactor: DesignInteractor) -> Self {
-        let mut new_state = self.0.clone_inner();
-        new_state.updated_once = true;
-        new_state.design = AddressPointer::new(interactor);
-        Self(AddressPointer::new(new_state))
+    fn set_interactor(&mut self, interactor: DesignInteractor) {
+        let state = self.0.make_mut();
+        state.updated_once = true;
+        state.design = AddressPointer::new(interactor);
     }
 
     pub fn apply_design_op(
@@ -371,14 +325,17 @@ impl AppState {
                 interactor: mut design,
                 label,
             }) => {
+                let previous_state = Some(self.clone());
+
                 let new_selection = design.get_next_selection();
-                let ret = Some(self.clone());
-                let mut new_state = self.clone().with_interactor(design);
+
+                self.set_interactor(design);
+
                 if let Some(selection) = new_selection {
-                    new_state = new_state.with_selection(selection, None);
+                    self.set_selection(&selection, &None);
                 }
-                *self = new_state;
-                if let Some(state) = ret {
+
+                if let Some(state) = previous_state {
                     Ok(OperationUndoability::Undoable {
                         state,
                         label: label.into(),
@@ -389,11 +346,12 @@ impl AppState {
             }
             Ok(InteractorResult::Replace(mut design)) => {
                 let new_selection = design.get_next_selection();
-                let mut new_state = self.clone().with_interactor(design);
+                self.set_interactor(design);
+
                 if let Some(selection) = new_selection {
-                    new_state = new_state.with_selection(selection, None);
+                    self.set_selection(&selection, &None);
                 }
-                *self = new_state;
+
                 Ok(OperationUndoability::NotUndoable)
             }
             Err(e) => {
@@ -403,10 +361,8 @@ impl AppState {
         }
     }
 
-    #[must_use]
-    pub fn notified(&self, notification: InteractorNotification) -> Self {
-        let new_interactor = self.0.design.notify(notification);
-        self.clone().with_interactor(new_interactor)
+    pub fn notify(&mut self, notification: InteractorNotification) {
+        self.0.make_mut().design.make_mut().notify(notification);
     }
 
     pub fn finish_operation(&self) {
@@ -439,117 +395,84 @@ impl AppState {
     }
 
     pub fn prepare_for_replacement(&mut self, source: &Self) {
-        *self = self.with_candidates(vec![]);
-        *self = self.with_action_mode(source.0.action_mode);
-        *self = self.with_selection_mode(source.0.selection_mode);
-        *self = self.with_suggestion_parameters(source.0.parameters.suggestion_parameters);
-        *self = self.with_check_xovers_parameters(source.0.parameters.check_xover_parameters);
-        *self = self.with_updated_parameters(|p| *p = source.0.parameters.clone());
+        self.set_candidates(&[]);
+        self.set_action_mode(source.0.action_mode);
+        self.set_selection_mode(source.0.selection_mode);
+        self.set_suggestion_parameters(source.0.parameters.suggestion_parameters);
+        self.set_check_xovers_parameters(source.0.parameters.check_xover_parameters);
+        self.update_parameters(|p| *p = source.0.parameters.clone());
     }
 
-    #[must_use]
-    pub fn with_check_xovers_parameters(
-        &self,
-        check_xover_parameters: CheckXoversParameter,
-    ) -> Self {
-        self.with_updated_parameters(|p| p.check_xover_parameters = check_xover_parameters)
+    pub fn set_check_xovers_parameters(&mut self, check_xover_parameters: CheckXoversParameter) {
+        self.update_parameters(|p| p.check_xover_parameters = check_xover_parameters);
     }
 
-    #[must_use]
-    pub fn with_follow_stereographic_camera(&self, follow: bool) -> Self {
-        self.with_updated_parameters(|p| p.follow_stereography = follow)
+    pub fn set_follow_stereographic_camera(&mut self, follow: bool) {
+        self.update_parameters(|p| p.follow_stereography = follow);
     }
 
-    #[must_use]
-    pub fn with_show_stereographic_camera(&self, show: bool) -> Self {
-        self.with_updated_parameters(|p| p.show_stereography = show)
+    pub fn set_show_stereographic_camera(&mut self, show: bool) {
+        self.update_parameters(|p| p.show_stereography = show);
     }
 
-    #[must_use]
-    pub fn with_show_h_bonds(&self, show: HBondDisplay) -> Self {
-        self.with_updated_parameters(|p| p.show_h_bonds = show)
+    pub fn show_h_bonds(&mut self, show: HBondDisplay) {
+        self.update_parameters(|p| p.show_h_bonds = show);
     }
 
-    #[must_use]
-    pub fn with_show_bezier_paths(&self, show: bool) -> Self {
-        self.with_updated_parameters(|p| p.show_bezier_paths = show)
+    pub fn show_bezier_paths(&mut self, show: bool) {
+        self.update_parameters(|p| p.show_bezier_paths = show);
     }
 
-    #[must_use]
-    pub fn all_helices_on_axis(&self, on_axis: bool) -> Self {
-        self.with_updated_parameters(|p| p.all_helices_on_axis = on_axis)
+    pub fn set_all_helices_on_axis(&mut self, on_axis: bool) {
+        self.update_parameters(|p| p.all_helices_on_axis = on_axis);
     }
 
-    #[must_use]
-    pub fn set_bezier_revolution_id(&self, id: Option<usize>) -> Self {
-        let mut new_state = (*self.0).clone();
-        new_state.unrooted_surface.bezier_path_id = id.map(|id| BezierPathId(id as u32));
-        Self(AddressPointer::new(new_state))
+    pub fn set_bezier_revolution_id(&mut self, id: Option<usize>) {
+        self.0.make_mut().unrooted_surface.bezier_path_id = id.map(|id| BezierPathId(id as u32));
     }
 
-    #[must_use]
-    pub fn set_bezier_revolution_radius(&self, radius: f64) -> Self {
-        let mut new_state = (*self.0).clone();
-        new_state.set_surface_revolution_radius(radius);
-        Self(AddressPointer::new(new_state))
+    pub fn set_bezier_revolution_radius(&mut self, radius: f64) {
+        self.0.make_mut().set_surface_revolution_radius(radius);
     }
 
-    #[must_use]
-    pub fn set_revolution_axis_position(&self, position: f64) -> Self {
-        let mut new_state = (*self.0).clone();
-        new_state.set_surface_axis_position(position);
-        Self(AddressPointer::new(new_state))
+    pub fn set_revolution_axis_position(&mut self, position: f64) {
+        self.0.make_mut().set_surface_axis_position(position);
     }
 
-    #[must_use]
-    pub fn set_unrooted_surface(
-        &self,
-        surface: Option<UnrootedRevolutionSurfaceDescriptor>,
-    ) -> Self {
+    pub fn set_unrooted_surface(&mut self, surface: &Option<UnrootedRevolutionSurfaceDescriptor>) {
         if self.0.unrooted_surface.descriptor.as_ref() != surface.as_ref() {
-            let mut new_state = (*self.0).clone();
-            new_state.set_unrooted_surface(surface);
-            Self(AddressPointer::new(new_state))
-        } else {
-            self.clone()
+            self.0.make_mut().set_unrooted_surface(surface.clone());
         }
     }
 
-    #[must_use]
-    pub fn with_toggled_all_helices_on_axis(&self) -> Self {
-        self.with_updated_parameters(|p| p.all_helices_on_axis ^= true)
+    pub fn toggle_all_helices_on_axis(&mut self) {
+        self.update_parameters(|p| p.all_helices_on_axis ^= true);
     }
 
-    #[must_use]
-    pub fn with_background3d(&self, bg: Background3D) -> Self {
-        self.with_updated_parameters(|p| p.background3d = bg)
+    pub fn set_background3d(&mut self, bg: Background3D) {
+        self.update_parameters(|p| p.background3d = bg);
     }
 
-    #[must_use]
-    pub fn with_rendering_mode(&self, rendering_mode: RenderingMode) -> Self {
-        self.with_updated_parameters(|p| p.rendering_mode = rendering_mode)
+    pub fn set_rendering_mode(&mut self, rendering_mode: RenderingMode) {
+        self.update_parameters(|p| p.rendering_mode = rendering_mode);
     }
 
-    #[must_use]
-    pub fn with_scroll_sensitivity(&self, sensitivity: f32) -> Self {
-        self.with_updated_parameters(|p| p.scroll_sensitivity = sensitivity)
+    pub fn set_scroll_sensitivity(&mut self, sensitivity: f32) {
+        self.update_parameters(|p| p.scroll_sensitivity = sensitivity);
     }
 
-    #[must_use]
-    pub fn with_inverted_y_scroll(&self, inverted: bool) -> Self {
-        self.with_updated_parameters(|p| p.inverted_y_scroll = inverted)
+    pub fn set_inverted_y_scroll(&mut self, inverted: bool) {
+        self.update_parameters(|p| p.inverted_y_scroll = inverted);
     }
 
-    fn with_updated_parameters<F>(&self, update: F) -> Self
+    fn update_parameters<F>(&mut self, update: F)
     where
         F: Fn(&mut AppStateParameters),
     {
-        let mut new_state = (*self.0).clone();
-        update(&mut new_state.parameters);
-        if let Err(e) = confy::store(APP_NAME, APP_NAME, new_state.parameters.clone()) {
+        update(&mut self.0.make_mut().parameters);
+        if let Err(e) = confy::store(APP_NAME, APP_NAME, self.0.parameters.clone()) {
             log::error!("Could not save preferences {e:?}");
         }
-        Self(AddressPointer::new(new_state))
     }
 
     pub fn get_pasting_status(&self) -> PastingStatus {
@@ -672,11 +595,8 @@ impl AppState {
         self.0.design.get_simulation_state()
     }
 
-    #[must_use]
-    pub fn with_expand_insertion_set(self, expand: bool) -> Self {
-        let mut ret = (*self.0).clone();
-        ret.show_insertion_discriminants = !expand;
-        Self(AddressPointer::new(ret))
+    pub fn set_expand_insertion_set(&mut self, expand: bool) {
+        self.0.make_mut().show_insertion_discriminants = !expand;
     }
 
     pub fn get_new_selection(&self) -> Option<Vec<Selection>> {

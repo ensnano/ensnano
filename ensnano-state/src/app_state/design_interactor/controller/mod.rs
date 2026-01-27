@@ -1007,16 +1007,13 @@ impl Controller {
         }
     }
 
-    #[must_use]
-    pub fn notify(&self, notification: InteractorNotification) -> Self {
-        let mut new_interactor = self.clone();
+    pub fn notify(&mut self, notification: InteractorNotification) {
         match notification {
-            InteractorNotification::FinishOperation => new_interactor.state = self.state.finish(),
+            InteractorNotification::FinishOperation => self.state.finish(),
             InteractorNotification::NewSelection => {
-                new_interactor.state = self.state.acknowledge_new_selection();
+                self.state.acknowledge_new_selection();
             }
         }
-        new_interactor
     }
 
     fn check_compatibility(&self, operation: &DesignOperation) -> OperationCompatibility {
@@ -3492,6 +3489,54 @@ enum ControllerState {
     },
 }
 
+impl std::fmt::Debug for ControllerState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Normal => write!(f, "Normal"),
+            Self::MakingHyperboloid { .. } => write!(f, "MakingHyperboloid"),
+            Self::BuildingStrand { .. } => write!(f, "BuildingStrand"),
+            Self::ChangingColor => write!(f, "ChangingColor"),
+            Self::SettingRollHelices => write!(f, "SettingRollHelices"),
+            Self::WithPendingOp { .. } => write!(f, "WithPendingOp"),
+            Self::ApplyingOperation { .. } => write!(f, "ApplyingOperation"),
+            Self::PositioningStrandPastingPoint { .. } => {
+                write!(f, "PositioningStrandPastingPoint")
+            }
+            Self::PositioningStrandDuplicationPoint { .. } => {
+                write!(f, "PositioningStrandDuplicationPoint")
+            }
+            Self::PositioningHelicesPastingPoint { .. } => {
+                write!(f, "PositioningHelicesPastingPoint")
+            }
+            Self::PositioningHelicesDuplicationPoint { .. } => {
+                write!(f, "PositioningHelicesDuplicationPoint")
+            }
+            Self::WithPendingHelicesDuplication { .. } => {
+                write!(f, "WithPendingHelicesDuplication")
+            }
+            Self::WithPendingStrandDuplication { .. } => {
+                write!(f, "WithPendingStrandDuplication")
+            }
+            Self::WithPendingXoverDuplication { .. } => {
+                write!(f, "WithPendingXoverDuplication")
+            }
+            Self::PastingXovers { .. } => write!(f, "PastingXovers"),
+            Self::DoingFirstXoversDuplication { .. } => {
+                write!(f, "DoingFirstXoversDuplication")
+            }
+            Self::OptimizingScaffoldPosition => write!(f, "OptimizingScaffoldPosition"),
+            Self::Simulating { .. } => write!(f, "Simulating"),
+            Self::RapierSimulating { .. } => write!(f, "RapierSimulating"),
+            Self::SimulatingGrids { .. } => write!(f, "SimulatingGrids"),
+            Self::Relaxing { .. } => write!(f, "Relaxing"),
+            Self::WithPausedSimulation { .. } => write!(f, "WithPausedSimulation"),
+            Self::Rolling { .. } => write!(f, "Rolling"),
+            Self::Twisting { .. } => write!(f, "Twisting"),
+            Self::ChangingStrandName { .. } => write!(f, "ChangingStrandName"),
+        }
+    }
+}
+
 impl ControllerState {
     fn state_name(&self) -> &'static str {
         match self {
@@ -3638,15 +3683,18 @@ impl ControllerState {
         }
     }
 
-    fn finish(&self) -> Self {
-        match self {
+    fn finish(&mut self) {
+        let value = self.clone();
+        match value {
             Self::ApplyingOperation {
                 operation: Some(op),
                 design,
-            } => Self::WithPendingOp {
-                operation: op.clone(),
-                design: design.clone(),
-            },
+            } => {
+                *self = Self::WithPendingOp {
+                    operation: op.clone(),
+                    design: design.clone(),
+                };
+            }
             Self::MakingHyperboloid { .. }
             | Self::WithPendingOp { .. }
             | Self::PositioningStrandPastingPoint { .. }
@@ -3662,7 +3710,7 @@ impl ControllerState {
             | Self::Relaxing { .. }
             | Self::PositioningHelicesPastingPoint { .. }
             | Self::PositioningHelicesDuplicationPoint { .. }
-            | Self::WithPendingHelicesDuplication { .. } => self.clone(),
+            | Self::WithPendingHelicesDuplication { .. } => return,
             Self::Normal
             | Self::BuildingStrand { .. }
             | Self::ChangingColor
@@ -3671,20 +3719,19 @@ impl ControllerState {
             | Self::Rolling { .. }
             | Self::SettingRollHelices
             | Self::Twisting { .. }
-            | Self::ChangingStrandName { .. } => Self::Normal,
+            | Self::ChangingStrandName { .. } => *self = Self::Normal,
         }
     }
 
-    fn acknowledge_new_selection(&self) -> Self {
+    fn acknowledge_new_selection(&mut self) {
+        let value = self.clone();
         if matches!(
-            self,
+            value,
             Self::WithPendingStrandDuplication { .. }
                 | Self::WithPendingXoverDuplication { .. }
                 | Self::WithPendingHelicesDuplication { .. }
         ) {
-            Self::Normal
-        } else {
-            self.clone()
+            *self = Self::Normal;
         }
     }
 
@@ -3698,6 +3745,7 @@ impl ControllerState {
     }
 }
 
+#[derive(Copy, Clone)]
 pub enum InteractorNotification {
     FinishOperation,
     NewSelection,

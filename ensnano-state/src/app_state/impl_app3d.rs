@@ -112,7 +112,7 @@ impl AppState {
         self.0.show_insertion_discriminants
     }
 
-    pub fn show_bezier_paths(&self) -> bool {
+    pub fn does_show_bezier_paths(&self) -> bool {
         self.0.parameters.show_bezier_paths
     }
 
@@ -165,7 +165,7 @@ mod tests {
 
         // When a new state is created with this methods it should be considered to have a new
         // selection but the same selection
-        state = state.with_selection(vec![Selection::Strand(0, 0)], None);
+        state.set_selection(&[Selection::Strand(0, 0)], &None);
         assert!(state.selection_was_updated(&old_state));
         assert!(!state.candidates_set_was_updated(&old_state));
     }
@@ -177,7 +177,7 @@ mod tests {
 
         // When a new state is created with this methods it should be considered to have a new
         // set of candidates but the same selection
-        state = state.with_candidates(vec![Selection::Strand(0, 0)]);
+        state.set_candidates(&[Selection::Strand(0, 0)]);
         assert!(state.candidates_set_was_updated(&old_state));
         assert!(!state.selection_was_updated(&old_state));
     }
@@ -198,7 +198,7 @@ mod tests {
         let mut state = AppState::default();
         let old_state = state.clone();
 
-        state = state.with_selection(vec![], None);
+        state.set_selection(&[], &None);
         assert!(!state.design_was_modified(&old_state));
     }
 
@@ -207,7 +207,7 @@ mod tests {
         let mut state = AppState::default();
         let old_state = state.clone();
 
-        state = state.with_candidates(vec![]);
+        state.set_candidates(&[]);
         assert!(!state.design_was_modified(&old_state));
     }
 }

@@ -327,7 +327,7 @@ pub fn poll_all(requests: &mut Requests, main_state: &mut MainState) {
     }
 
     if let Some(b) = requests.set_show_h_bonds.take() {
-        main_state.set_show_h_bonds(b);
+        main_state.show_h_bonds(b);
     }
 
     if let Some(b) = requests.set_show_bezier_paths.take() {
@@ -355,7 +355,7 @@ pub fn poll_all(requests: &mut Requests, main_state: &mut MainState) {
     }
 
     if let Some(surface) = requests.new_unrooted_surface.take() {
-        main_state.set_unrooted_surface(surface);
+        main_state.set_unrooted_surface(&surface);
     }
 
     if requests.switched_to_revolution_tab.take().is_some() {

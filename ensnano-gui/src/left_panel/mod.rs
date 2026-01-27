@@ -716,7 +716,10 @@ impl Program for LeftPanelState {
                 Command::none()
             }
             LeftPanelMessage::FollowStereographicCamera(b) => {
-                self.requests.lock().unwrap().follow_stereographic_camera(b);
+                self.requests
+                    .lock()
+                    .unwrap()
+                    .set_follow_stereographic_camera(b);
                 Command::none()
             }
             LeftPanelMessage::ShowStereographicCamera(b) => {

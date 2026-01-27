@@ -30,11 +30,9 @@ use winit::{
 struct DummyScene;
 
 impl Application for DummyScene {
-    type AppState = AppState;
-
     fn on_notify(&mut self, _notification: Notification) {}
 
-    fn needs_redraw(&mut self, _dt: Duration, _app_state: Self::AppState) -> bool {
+    fn needs_redraw(&mut self, _dt: Duration, _: &mut MainState) -> bool {
         false
     }
 
@@ -53,7 +51,7 @@ impl Application for DummyScene {
         &mut self,
         _event: &WindowEvent,
         _position: PhysicalPosition<f64>,
-        _app_state: &Self::AppState,
+        _: &mut MainState,
     ) -> Option<CursorIcon> {
         None
     }
