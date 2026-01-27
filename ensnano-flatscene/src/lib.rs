@@ -503,13 +503,13 @@ impl FlatScene {
     }
 
     /// Ask the view if it has been modified since the last drawing
-    fn needs_redraw_(&mut self, new_state: AppState) -> bool {
+    fn needs_redraw_(&mut self, new_state: &AppState) -> bool {
         self.check_timers();
         if let Some(view) = self.view.get(self.selected_design) {
             self.data[self.selected_design]
                 .borrow_mut()
-                .perform_update(&new_state, &self.old_state);
-            self.old_state = new_state;
+                .perform_update(new_state, &self.old_state);
+            self.old_state = new_state.clone();
             let ret = view.borrow().needs_redraw();
             if ret {
                 log::debug!("Flatscene requests redraw");
@@ -679,8 +679,6 @@ impl FlatScene {
 }
 
 impl Application for FlatScene {
-    type AppState = AppState;
-
     fn on_notify(&mut self, notification: Notification) {
         match notification {
             Notification::ToggleText(b) => {
@@ -803,7 +801,7 @@ impl Application for FlatScene {
         self.draw_view(encoder, target);
     }
 
-    fn needs_redraw(&mut self, _: Duration, app_state: AppState) -> bool {
+    fn needs_redraw(&mut self, _: Duration, app_state: &AppState) -> bool {
         let now = Instant::now();
         if (now - self.last_update).as_millis() < 25 {
             false

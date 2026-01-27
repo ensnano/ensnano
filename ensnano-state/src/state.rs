@@ -59,7 +59,7 @@ pub struct MainState {
     pub redo_stack: Vec<AppStateTransition>,
     pub channel_reader: ChannelReader,
     pub messages: Arc<Mutex<GuiMessages>>,
-    pub applications: HashMap<GuiComponentType, Arc<Mutex<dyn Application<AppState = AppState>>>>,
+    pub applications: HashMap<GuiComponentType, Arc<Mutex<dyn Application>>>,
     pub focused_component: Option<GuiComponentType>,
     /// Disable the interception of keyboard events, to let the user input text.
     /// Some(id) indicates that object id has the priority; None indicates none have the priority.

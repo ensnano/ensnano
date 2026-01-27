@@ -15,7 +15,7 @@ use winit::{
 
 /// The scheduler is responsible for running the different applications
 pub(crate) struct Scheduler {
-    applications: HashMap<GuiComponentType, Arc<Mutex<dyn Application<AppState = AppState>>>>,
+    applications: HashMap<GuiComponentType, Arc<Mutex<dyn Application>>>,
     needs_redraw: Vec<GuiComponentType>,
 }
 
@@ -29,7 +29,7 @@ impl Scheduler {
 
     pub(crate) fn add_application(
         &mut self,
-        application: Arc<Mutex<dyn Application<AppState = AppState>>>,
+        application: Arc<Mutex<dyn Application>>,
         element_type: GuiComponentType,
     ) {
         self.applications.insert(element_type, application);
@@ -58,9 +58,7 @@ impl Scheduler {
         log::debug!("Scheduler checking redraw");
         self.needs_redraw.clear();
         for (area, app) in &mut self.applications {
-            if multiplexer.is_showing(area)
-                && app.lock().unwrap().needs_redraw(dt, app_state.clone())
-            {
+            if multiplexer.is_showing(area) && app.lock().unwrap().needs_redraw(dt, &app_state) {
                 self.needs_redraw.push(*area);
             }
         }

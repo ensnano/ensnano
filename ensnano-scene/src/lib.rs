@@ -739,43 +739,44 @@ impl Scene {
         );
         log::debug!("rotating grids {grids:?}");
         let group_id = app_state.get_current_group_id();
-        let rotation: Arc<dyn SimpleOperation> = if let Some(grid_ids) = grids.filter(|v| !v.is_empty()) {
-            Arc::new(GridRotation {
-                grid_ids,
-                angle,
-                plane,
-                origin,
-                design_id: 0,
-                group_id,
-                replace: false,
-            })
-        } else {
-            match self.data.borrow().get_selected_element(app_state) {
-                Selection::Helix {
-                    design_id,
-                    helix_id,
-                    ..
-                } => Arc::new(HelixRotation {
-                    helices: helices.unwrap_or_else(|| vec![helix_id]),
+        let rotation: Arc<dyn SimpleOperation> =
+            if let Some(grid_ids) = grids.filter(|v| !v.is_empty()) {
+                Arc::new(GridRotation {
+                    grid_ids,
                     angle,
                     plane,
                     origin,
-                    design_id: design_id as usize,
+                    design_id: 0,
                     group_id,
                     replace: false,
-                }),
-                Selection::Grid(d_id, g_id) => Arc::new(GridRotation {
-                    grid_ids: vec![g_id],
-                    angle,
-                    plane,
-                    origin,
-                    design_id: d_id as usize,
-                    group_id,
-                    replace: false,
-                }),
-                _ => return,
-            }
-        };
+                })
+            } else {
+                match self.data.borrow().get_selected_element(app_state) {
+                    Selection::Helix {
+                        design_id,
+                        helix_id,
+                        ..
+                    } => Arc::new(HelixRotation {
+                        helices: helices.unwrap_or_else(|| vec![helix_id]),
+                        angle,
+                        plane,
+                        origin,
+                        design_id: design_id as usize,
+                        group_id,
+                        replace: false,
+                    }),
+                    Selection::Grid(d_id, g_id) => Arc::new(GridRotation {
+                        grid_ids: vec![g_id],
+                        angle,
+                        plane,
+                        origin,
+                        design_id: d_id as usize,
+                        group_id,
+                        replace: false,
+                    }),
+                    _ => return,
+                }
+            };
 
         self.requests.lock().unwrap().update_operation(rotation);
     }
@@ -789,30 +790,6 @@ impl Scene {
             self.notify(SceneNotification::NewCameraPosition(position));
             self.controller.set_pivot_point(pivot_point.try_into().ok());
         }
-    }
-
-    fn need_redraw(&mut self, dt: Duration, new_state: AppState) -> bool {
-        self.check_timers(&new_state);
-        if self.controller.camera_is_moving() {
-            self.notify(SceneNotification::CameraMoved);
-        }
-        self.controller.update_data();
-        if self.update.need_update {
-            self.perform_update(dt);
-        }
-        self.data
-            .borrow_mut()
-            .update_design_reader(new_state.get_design_reader());
-        self.data
-            .borrow_mut()
-            .update_view(&new_state, &self.older_state);
-        let mut ret = new_state.draw_options_were_updated(&self.older_state);
-        self.older_state = new_state;
-        ret |= self.view.borrow().need_redraw();
-        if ret {
-            log::debug!("Scene requests redraw");
-        }
-        ret
     }
 
     /// Draw the scene
@@ -1144,8 +1121,6 @@ pub enum SceneNotification {
 }
 
 impl Application for Scene {
-    type AppState = AppState;
-
     fn on_notify(&mut self, notification: Notification) {
         log::info!("scene notified {notification:?}");
         let older_state = self.older_state.clone();
@@ -1266,8 +1241,28 @@ impl Application for Scene {
         self.draw_view(encoder, target, &older_state);
     }
 
-    fn needs_redraw(&mut self, dt: Duration, app_state: AppState) -> bool {
-        self.need_redraw(dt, app_state)
+    fn needs_redraw(&mut self, dt: Duration, app_state: &AppState) -> bool {
+        self.check_timers(app_state);
+        if self.controller.camera_is_moving() {
+            self.notify(SceneNotification::CameraMoved);
+        }
+        self.controller.update_data();
+        if self.update.need_update {
+            self.perform_update(dt);
+        }
+        self.data
+            .borrow_mut()
+            .update_design_reader(app_state.get_design_reader());
+        self.data
+            .borrow_mut()
+            .update_view(app_state, &self.older_state);
+        let mut ret = app_state.draw_options_were_updated(&self.older_state);
+        self.older_state = app_state.clone();
+        ret |= self.view.borrow().need_redraw();
+        if ret {
+            log::debug!("Scene requests redraw");
+        }
+        ret
     }
 
     fn get_position_for_new_grid(&self) -> Option<(Vec3, Rotor3)> {
