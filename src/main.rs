@@ -752,9 +752,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         ChannelReaderUpdate::ScaffoldShiftOptimizationResult(result) => {
                             main_state.messages.lock().unwrap().finish_progress();
                             if let Ok(result) = result {
-                                main_state.apply_operation(DesignOperation::SetScaffoldShift(
-                                    result.position,
-                                ));
+                                main_state.apply_design_operation(
+                                    DesignOperation::SetScaffoldShift(result.position),
+                                );
                                 let msg = format!(
                                     "Scaffold position set to {}\n {}",
                                     result.position, result.score
@@ -925,8 +925,8 @@ impl MainStateView<'_> {
         Ok(())
     }
 
-    fn apply_operation(&mut self, operation: DesignOperation) {
-        self.main_state.apply_operation(operation);
+    fn apply_design_operation(&mut self, operation: DesignOperation) {
+        self.main_state.apply_design_operation(operation);
     }
 
     fn apply_silent_operation(&mut self, operation: DesignOperation) {
@@ -1043,23 +1043,23 @@ impl MainStateView<'_> {
         {
             self.main_state.update_selection(vec![], None);
             self.main_state
-                .apply_operation(DesignOperation::RmXovers { xovers: nucl_pairs });
+                .apply_design_operation(DesignOperation::RmXovers { xovers: nucl_pairs });
         } else if let Some((_, strand_ids)) = list_of_strands(selection) {
             self.main_state.update_selection(vec![], None);
             self.main_state
-                .apply_operation(DesignOperation::RmStrands { strand_ids });
+                .apply_design_operation(DesignOperation::RmStrands { strand_ids });
         } else if let Some((_, h_ids)) = list_of_helices(selection) {
             self.main_state.update_selection(vec![], None);
             self.main_state
-                .apply_operation(DesignOperation::RmHelices { h_ids });
+                .apply_design_operation(DesignOperation::RmHelices { h_ids });
         } else if let Some(grid_ids) = list_of_free_grids(selection) {
             self.main_state.update_selection(vec![], None);
             self.main_state
-                .apply_operation(DesignOperation::RmFreeGrids { grid_ids });
+                .apply_design_operation(DesignOperation::RmFreeGrids { grid_ids });
         } else if let Some(vertices) = list_of_bezier_vertices(selection) {
             self.main_state.update_selection(vec![], None);
             self.main_state
-                .apply_operation(DesignOperation::RmBezierVertices { vertices });
+                .apply_design_operation(DesignOperation::RmBezierVertices { vertices });
         }
     }
 
@@ -1104,7 +1104,7 @@ impl MainStateView<'_> {
         let selection = self.get_selection();
         let nucls = extract_nucls_from_selection(selection);
         self.main_state
-            .apply_operation(DesignOperation::FlipAnchors { nucls });
+            .apply_design_operation(DesignOperation::FlipAnchors { nucls });
     }
 
     fn set_visibility_sieve(&mut self, compl: bool) {
@@ -1155,7 +1155,7 @@ impl MainStateView<'_> {
 
     fn set_current_group_pivot(&mut self, pivot: GroupPivot) {
         if let Some(group_id) = self.main_state.app_state.get_current_group_id() {
-            self.apply_operation(DesignOperation::SetGroupPivot { group_id, pivot });
+            self.apply_design_operation(DesignOperation::SetGroupPivot { group_id, pivot });
         } else {
             self.main_state.app_state.set_current_group_pivot(pivot);
         }
@@ -1163,7 +1163,7 @@ impl MainStateView<'_> {
 
     fn translate_group_pivot(&mut self, translation: Vec3) {
         if let Some(group_id) = self.main_state.app_state.get_current_group_id() {
-            self.apply_operation(DesignOperation::Translation(DesignTranslation {
+            self.apply_design_operation(DesignOperation::Translation(DesignTranslation {
                 target: IsometryTarget::GroupPivot(group_id),
                 translation,
                 group_id: None,
@@ -1175,7 +1175,7 @@ impl MainStateView<'_> {
 
     fn rotate_group_pivot(&mut self, rotation: Rotor3) {
         if let Some(group_id) = self.main_state.app_state.get_current_group_id() {
-            self.apply_operation(DesignOperation::Rotation(DesignRotation {
+            self.apply_design_operation(DesignOperation::Rotation(DesignRotation {
                 target: IsometryTarget::GroupPivot(group_id),
                 rotation,
                 origin: Vec3::zero(),
@@ -1194,7 +1194,7 @@ impl MainStateView<'_> {
             .and_then(|s| s.lock().unwrap().get_camera())
         {
             self.main_state
-                .apply_operation(DesignOperation::CreateNewCamera {
+                .apply_design_operation(DesignOperation::CreateNewCamera {
                     position: camera.0.position,
                     orientation: camera.0.orientation,
                     pivot_position: camera.0.pivot_position,
@@ -1231,7 +1231,7 @@ impl MainStateView<'_> {
     fn make_all_suggested_xover(&mut self, doubled: bool) {
         let reader = self.main_state.app_state.get_design_interactor();
         let xovers = reader.get_suggestions();
-        self.apply_operation(DesignOperation::MakeSeveralXovers { xovers, doubled });
+        self.apply_design_operation(DesignOperation::MakeSeveralXovers { xovers, doubled });
     }
 
     fn flip_split_views(&mut self) {
@@ -1258,14 +1258,14 @@ impl MainStateView<'_> {
             .map(Path::to_path_buf)
             .or_else(dirs::home_dir)
             .unwrap();
-        self.apply_operation(DesignOperation::Add3DObject {
+        self.apply_design_operation(DesignOperation::Add3DObject {
             file_path: path,
             design_path,
         });
     }
 
     fn load_svg(&mut self, path: PathBuf) {
-        self.apply_operation(DesignOperation::ImportSvgPath { path });
+        self.apply_design_operation(DesignOperation::ImportSvgPath { path });
     }
 
     fn set_scaffold_sequence(

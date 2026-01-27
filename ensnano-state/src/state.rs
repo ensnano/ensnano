@@ -187,7 +187,7 @@ impl MainState {
             .get(&GuiComponentType::Scene)
             .and_then(|app| app.lock().unwrap().get_current_selection_pivot());
         if let Some(pivot) = self.app_state.get_current_group_pivot().or(scene_pivot) {
-            self.apply_operation(DesignOperation::SetGroupPivot { group_id, pivot });
+            self.apply_design_operation(DesignOperation::SetGroupPivot { group_id, pivot });
         }
     }
 
@@ -207,7 +207,7 @@ impl MainState {
         self.apply_operation_result(result);
     }
 
-    pub fn apply_operation(&mut self, operation: DesignOperation) {
+    pub fn apply_design_operation(&mut self, operation: DesignOperation) {
         log::debug!("Applying operation {operation:?}");
         let result = self.app_state.apply_design_op(operation.clone());
         if matches!(result, Err(OperationError::FinishFirst)) {
@@ -215,7 +215,8 @@ impl MainState {
                 |s| s.notified(InteractorNotification::FinishOperation),
                 None,
             );
-            self.apply_operation(operation);
+            // recursive call to retry the operation
+            self.apply_design_operation(operation);
         } else {
             self.apply_operation_result(result);
         }
@@ -323,7 +324,7 @@ impl MainState {
 
     pub fn set_roll_of_selected_helices(&mut self, roll: f32) {
         if let Some((_, helices)) = list_of_helices(self.app_state.get_selection()) {
-            self.apply_operation(DesignOperation::SetRollHelices { helices, roll });
+            self.apply_design_operation(DesignOperation::SetRollHelices { helices, roll });
         }
     }
 
@@ -602,7 +603,7 @@ impl MainState {
             .is_empty()
             && let Some((position, orientation)) = self.get_bezier_sheet_creation_position()
         {
-            self.apply_operation(DesignOperation::AddBezierPlane {
+            self.apply_design_operation(DesignOperation::AddBezierPlane {
                 desc: BezierPlaneDescriptor {
                     position,
                     orientation,
