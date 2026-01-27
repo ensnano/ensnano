@@ -5,7 +5,7 @@ use crate::{
     flat_types::{FlatHelix, FlatNucl},
 };
 use ensnano_design::interaction_modes::ActionMode;
-use ensnano_state::app_state::AppState;
+use ensnano_state::state::MainState;
 use ensnano_utils::consts::CIRCLE2D_GREY;
 use std::time::Instant;
 use ultraviolet::Vec2;
@@ -45,7 +45,7 @@ pub(super) trait ControllerState {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         controller: &Controller,
-        app_state: &AppState,
+        main_state: &mut MainState,
     ) -> Transition;
 
     fn display(&self) -> String;
@@ -77,7 +77,7 @@ impl ControllerState for NormalState {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         controller: &Controller,
-        app_state: &AppState,
+        main_state: &mut MainState,
     ) -> Transition {
         match event {
             WindowEvent::MouseInput {
@@ -140,7 +140,7 @@ impl ControllerState for NormalState {
             } => {
                 log::debug!(
                     "On left button pressed, pasting = {}",
-                    app_state.is_pasting()
+                    main_state.app_state.is_pasting()
                 );
                 if *state == ElementState::Released {
                     return Transition::nothing();
@@ -149,7 +149,7 @@ impl ControllerState for NormalState {
                     .get_camera(position.y)
                     .borrow()
                     .screen_to_world(self.mouse_position.x as f32, self.mouse_position.y as f32);
-                let click_result = if app_state.is_pasting() {
+                let click_result = if main_state.app_state.is_pasting() {
                     controller.data.borrow().get_click_unbounded(
                         x,
                         y,
@@ -163,7 +163,7 @@ impl ControllerState for NormalState {
                 };
                 match click_result {
                     ClickResult::CircleWidget { .. } | ClickResult::Nothing
-                        if app_state.is_pasting() =>
+                        if main_state.app_state.is_pasting() =>
                     {
                         Transition {
                             new_state: Some(Box::new(Pasting {
@@ -173,7 +173,7 @@ impl ControllerState for NormalState {
                             consequences: Consequence::Nothing,
                         }
                     }
-                    ClickResult::Nucl(nucl) if app_state.is_pasting() => Transition {
+                    ClickResult::Nucl(nucl) if main_state.app_state.is_pasting() => Transition {
                         new_state: Some(Box::new(Pasting {
                             nucl: Some(nucl),
                             mouse_position: self.mouse_position,
@@ -316,13 +316,13 @@ impl ControllerState for NormalState {
                                 controller.data.borrow_mut().add_helix_selection(
                                     click_result,
                                     &controller.get_camera(position.y),
-                                    app_state,
+                                    &main_state.app_state,
                                 )
                             } else {
                                 controller.data.borrow_mut().set_helix_selection(
                                     click_result,
                                     &controller.get_camera(position.y),
-                                    app_state,
+                                    &main_state.app_state,
                                 )
                             };
                             Transition {
@@ -366,7 +366,7 @@ impl ControllerState for NormalState {
                     .get_camera(position.y)
                     .borrow()
                     .screen_to_world(self.mouse_position.x as f32, self.mouse_position.y as f32);
-                let click_result = if app_state.is_pasting() {
+                let click_result = if main_state.app_state.is_pasting() {
                     controller.data.borrow().get_click_unbounded(
                         x,
                         y,
@@ -432,7 +432,7 @@ impl ControllerState for Translating {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         controller: &Controller,
-        _: &AppState,
+        _: &mut MainState,
     ) -> Transition {
         match event {
             WindowEvent::MouseInput {
@@ -528,7 +528,7 @@ impl ControllerState for MovingCamera {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         controller: &Controller,
-        _: &AppState,
+        _: &mut MainState,
     ) -> Transition {
         match event {
             WindowEvent::MouseInput {
@@ -623,9 +623,9 @@ impl ControllerState for ReleasedPivot {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         controller: &Controller,
-        app_state: &AppState,
+        main_state: &mut MainState,
     ) -> Transition {
-        if app_state.is_pasting() {
+        if main_state.app_state.is_pasting() {
             return Transition {
                 new_state: Some(Box::new(NormalState {
                     mouse_position: self.mouse_position,
@@ -808,7 +808,7 @@ impl ControllerState for ReleasedPivot {
                         let selection = controller.data.borrow_mut().set_helix_selection(
                             click_result,
                             &controller.get_camera(position.y),
-                            app_state,
+                            &main_state.app_state,
                         );
                         Transition {
                             new_state: Some(Box::new(Translating {
@@ -906,7 +906,7 @@ impl ControllerState for ReleasedPivot {
                     .get_camera(position.y)
                     .borrow()
                     .screen_to_world(self.mouse_position.x as f32, self.mouse_position.y as f32);
-                let click_result = if app_state.is_pasting() {
+                let click_result = if main_state.app_state.is_pasting() {
                     controller.data.borrow().get_click_unbounded(
                         x,
                         y,
@@ -1023,7 +1023,7 @@ impl ControllerState for LeavingPivot {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         controller: &Controller,
-        _: &AppState,
+        _: &mut MainState,
     ) -> Transition {
         match event {
             WindowEvent::MouseInput {
@@ -1161,7 +1161,7 @@ impl ControllerState for Rotating {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         controller: &Controller,
-        _: &AppState,
+        _: &mut MainState,
     ) -> Transition {
         match event {
             WindowEvent::MouseInput {
@@ -1281,7 +1281,7 @@ impl ControllerState for AddOrXover {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         controller: &Controller,
-        _: &AppState,
+        _: &mut MainState,
     ) -> Transition {
         match event {
             WindowEvent::MouseInput {
@@ -1387,7 +1387,7 @@ impl ControllerState for InitAttachment {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         controller: &Controller,
-        _: &AppState,
+        _: &mut MainState,
     ) -> Transition {
         match event {
             WindowEvent::MouseInput {
@@ -1481,7 +1481,7 @@ impl ControllerState for InitBuilding {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         controller: &Controller,
-        app_state: &AppState,
+        main_state: &mut MainState,
     ) -> Transition {
         match event {
             WindowEvent::MouseInput {
@@ -1499,7 +1499,7 @@ impl ControllerState for InitBuilding {
             },
             WindowEvent::CursorMoved { .. } => {
                 self.mouse_position = position;
-                if let Some(builder) = app_state.get_strand_builders().first() {
+                if let Some(builder) = main_state.app_state.get_strand_builders().first() {
                     let (x, y) = controller.get_camera(position.y).borrow().screen_to_world(
                         self.mouse_position.x as f32,
                         self.mouse_position.y as f32,
@@ -1635,7 +1635,7 @@ impl ControllerState for MovingFreeEnd {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         controller: &Controller,
-        _: &AppState,
+        _: &mut MainState,
     ) -> Transition {
         match event {
             WindowEvent::MouseInput {
@@ -1757,7 +1757,7 @@ impl ControllerState for Building {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         controller: &Controller,
-        _: &AppState,
+        _: &mut MainState,
     ) -> Transition {
         match event {
             WindowEvent::MouseInput {
@@ -1853,7 +1853,7 @@ impl ControllerState for Crossing {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         controller: &Controller,
-        _: &AppState,
+        _: &mut MainState,
     ) -> Transition {
         match event {
             WindowEvent::MouseInput {
@@ -1945,7 +1945,7 @@ impl ControllerState for Cutting {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         controller: &Controller,
-        _: &AppState,
+        _: &mut MainState,
     ) -> Transition {
         match event {
             WindowEvent::MouseInput {
@@ -2031,7 +2031,7 @@ impl ControllerState for RmHelix {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         controller: &Controller,
-        _: &AppState,
+        _: &mut MainState,
     ) -> Transition {
         match event {
             WindowEvent::MouseInput {
@@ -2089,7 +2089,7 @@ impl ControllerState for FlipGroup {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         controller: &Controller,
-        _: &AppState,
+        _: &mut MainState,
     ) -> Transition {
         match event {
             WindowEvent::MouseInput {
@@ -2165,7 +2165,7 @@ impl ControllerState for FlipVisibility {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         controller: &Controller,
-        _: &AppState,
+        _: &mut MainState,
     ) -> Transition {
         match event {
             WindowEvent::MouseInput {
@@ -2242,7 +2242,7 @@ impl ControllerState for FollowingSuggestion {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         controller: &Controller,
-        _: &AppState,
+        _: &mut MainState,
     ) -> Transition {
         match event {
             WindowEvent::MouseInput {
@@ -2339,7 +2339,7 @@ impl ControllerState for Pasting {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         controller: &Controller,
-        _: &AppState,
+        _: &mut MainState,
     ) -> Transition {
         match event {
             WindowEvent::MouseInput {
@@ -2407,7 +2407,7 @@ impl ControllerState for DraggingSelection {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         controller: &Controller,
-        app_state: &AppState,
+        main_state: &mut MainState,
     ) -> Transition {
         match event {
             WindowEvent::MouseInput {
@@ -2454,7 +2454,7 @@ impl ControllerState for DraggingSelection {
                         corner2_world.into(),
                         &controller.get_camera(position.y),
                         controller.modifiers.shift_key(),
-                        app_state,
+                        &main_state.app_state,
                     )
                 });
                 if let Some(rectangle_selection) = rectangle_selection {
@@ -2546,7 +2546,7 @@ impl ControllerState for DoubleClicking {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         controller: &Controller,
-        _: &AppState,
+        _: &mut MainState,
     ) -> Transition {
         match event {
             WindowEvent::MouseInput {
@@ -2622,7 +2622,7 @@ impl ControllerState for AddCirclePivot {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         controller: &Controller,
-        app_state: &AppState,
+        main_state: &mut MainState,
     ) -> Transition {
         match event {
             WindowEvent::MouseInput {
@@ -2647,13 +2647,13 @@ impl ControllerState for AddCirclePivot {
                         controller.data.borrow_mut().add_helix_selection(
                             click,
                             &controller.get_camera(position.y),
-                            app_state,
+                            &main_state.app_state,
                         )
                     } else {
                         controller.data.borrow_mut().set_helix_selection(
                             click,
                             &controller.get_camera(position.y),
-                            app_state,
+                            &main_state.app_state,
                         )
                     };
                     Transition {
@@ -2717,7 +2717,7 @@ impl ControllerState for InitHelixTranslation {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         controller: &Controller,
-        app_state: &AppState,
+        main_state: &mut MainState,
     ) -> Transition {
         match event {
             WindowEvent::MouseInput {
@@ -2731,7 +2731,7 @@ impl ControllerState for InitHelixTranslation {
                 let selection = controller.data.borrow_mut().set_helix_selection(
                     self.click_result.clone(),
                     &controller.get_camera(position.y),
-                    app_state,
+                    &main_state.app_state,
                 );
                 Transition {
                     new_state: Some(Box::new(NormalState {
@@ -2802,7 +2802,7 @@ impl ControllerState for TranslatingHandle {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         controller: &Controller,
-        _: &AppState,
+        _: &mut MainState,
     ) -> Transition {
         match event {
             WindowEvent::MouseInput {

@@ -695,9 +695,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             }
                             area if area.is_scene() => {
                                 let cursor_position = multiplexer.get_cursor_position();
-                                let state = main_state.get_app_state();
-                                main_state.applications_cursor =
-                                    scheduler.forward_event(&event, area, cursor_position, state);
+                                main_state.applications_cursor = scheduler.forward_event(
+                                    &event,
+                                    area,
+                                    cursor_position,
+                                    &mut main_state,
+                                );
                                 if matches!(event, WindowEvent::MouseInput { .. }) {
                                     gui.clear_focus();
                                 }
@@ -821,7 +824,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                 let now = Instant::now();
                 let dt = now - last_render_time;
-                redraw |= scheduler.check_redraw(&multiplexer, dt, main_state.get_app_state());
+                redraw |= scheduler.check_redraw(&multiplexer, dt, &mut main_state);
                 let new_gui_state = (
                     main_state.app_state.clone(),
                     main_state.gui_state(&multiplexer),

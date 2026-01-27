@@ -20,7 +20,7 @@ use ensnano_design::{
     grid::{GridId, GridObject, HelixGridPosition},
     nucl::Nucl,
 };
-use ensnano_state::app_state::AppState;
+use ensnano_state::state::MainState;
 use ensnano_utils::graphics::PhySize;
 use std::{cell::RefCell, ops::Deref as _, rc::Rc, time::Duration};
 use ultraviolet::{Rotor3, Vec2, Vec3};
@@ -244,7 +244,7 @@ impl Controller {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         pixel_reader: &mut ElementSelector,
-        app_state: &AppState,
+        main_state: &MainState,
     ) -> Consequence {
         let transition = match event {
             WindowEvent::Focused(false) => {
@@ -266,7 +266,7 @@ impl Controller {
                         delta,
                         mouse_x as f32,
                         mouse_y as f32,
-                        app_state.get_scroll_sensitivity(),
+                        main_state.app_state.get_scroll_sensitivity(),
                     );
                 }
                 Transition::consequence(Consequence::CameraMoved)
@@ -323,12 +323,17 @@ impl Controller {
             }
             _ => self.state.borrow_mut().input(
                 event,
-                EventContext::new(self, app_state, pixel_reader, position),
+                EventContext::new(self, &main_state.app_state, pixel_reader, position),
             ),
         };
 
         if let Some(mut state) = transition.new_state {
-            state.give_context(EventContext::new(self, app_state, pixel_reader, position));
+            state.give_context(EventContext::new(
+                self,
+                &main_state.app_state,
+                pixel_reader,
+                position,
+            ));
             log::info!("3D controller state: {}", state.display());
             let csq = self.state.borrow().transition_from(self);
             self.transition_consequence(csq);

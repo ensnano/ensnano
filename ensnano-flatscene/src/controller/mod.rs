@@ -14,7 +14,7 @@ use crate::{
     flat_types::{FlatHelix, FlatNucl},
 };
 use ensnano_design::interaction_modes::ActionMode;
-use ensnano_state::{app_state::AppState, design::selection::Selection};
+use ensnano_state::{design::selection::Selection, state::MainState};
 use ensnano_utils::graphics::PhySize;
 use std::cell::RefCell;
 use ultraviolet::Vec2;
@@ -178,7 +178,7 @@ impl Controller {
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
-        app_state: &AppState,
+        main_state: &mut MainState,
     ) -> Consequence {
         self.update_hovered_nucl(position);
         self.mouse_position = position;
@@ -193,7 +193,7 @@ impl Controller {
         } else {
             self.state
                 .borrow_mut()
-                .input(event, position, self, app_state)
+                .input(event, position, self, main_state)
         };
 
         if let Some(state) = transition.new_state {
