@@ -406,7 +406,7 @@ impl MainState {
     pub fn apply_operation_result(&mut self, result: Result<OperationUndoability, OperationError>) {
         match result {
             Ok(OperationUndoability::Undoable { state, label }) => {
-                self.save_old_state(state, label)
+                self.save_old_state(state, label);
             }
             Ok(OperationUndoability::NotUndoable) => (),
             Err(e) => log::warn!("{e:?}"),

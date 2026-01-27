@@ -117,18 +117,16 @@ impl AppState {
 
     #[must_use]
     pub fn with_selection(
-        &self,
+        mut self,
         mut selection: Vec<Selection>,
         selected_group: Option<GroupId>,
     ) -> Self {
         selection.sort();
         selection.dedup();
-        if self.0.selection.selection.content_equal(&selection)
-            && selected_group == self.0.selection.selected_group
+        if !self.0.selection.selection.content_equal(&selection)
+            || selected_group != self.0.selection.selected_group
         {
-            self.clone()
-        } else {
-            let mut new_state = (*self.0).clone();
+            let new_state = self.0.make_mut();
             let selection_len = selection.len();
             new_state.selection = AppStateSelection {
                 selection: AddressPointer::new(selection),
@@ -139,12 +137,11 @@ impl AppState {
             // Set when the selection is modified, the center of selection is set to None. It is up
             // to the caller to set it to a certain value when applicable
             new_state.center_of_selection = None;
-            let mut ret = Self(AddressPointer::new(new_state));
             if selection_len > 0 {
-                ret = ret.notified(InteractorNotification::NewSelection);
+                self = self.notified(InteractorNotification::NewSelection);
             }
-            ret
         }
+        self
     }
 
     #[must_use]
