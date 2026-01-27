@@ -128,7 +128,7 @@ impl AppState {
         {
             self.clone()
         } else {
-            let mut new_state = (*self.0).clone();
+            let mut new_state = self.0.clone_inner();
             let selection_len = selection.len();
             new_state.selection = AppStateSelection {
                 selection: AddressPointer::new(selection),

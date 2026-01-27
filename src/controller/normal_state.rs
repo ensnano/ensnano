@@ -70,7 +70,7 @@ impl AutomataState for NormalState {
                 TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(Self))
             }
             Action::DesignOperation(op) => {
-                main_state.apply_operation(op);
+                main_state.apply_design_operation(op);
                 self.make_progress(main_state)
             }
             Action::SilentDesignOperation(op) => {
@@ -150,7 +150,7 @@ impl AutomataState for NormalState {
             }
             Action::NewHyperboloid(request) => {
                 if let Some((position, orientation)) = main_state.get_grid_creation_position() {
-                    main_state.apply_operation(DesignOperation::HyperboloidOperation(
+                    main_state.apply_design_operation(DesignOperation::HyperboloidOperation(
                         HyperboloidOperation::New {
                             request,
                             position,
@@ -164,7 +164,7 @@ impl AutomataState for NormalState {
                 if let Some((position, orientation)) =
                     main_state.get_bezier_sheet_creation_position()
                 {
-                    main_state.apply_operation(DesignOperation::AddBezierPlane {
+                    main_state.apply_design_operation(DesignOperation::AddBezierPlane {
                         desc: BezierPlaneDescriptor {
                             position,
                             orientation,
@@ -308,7 +308,7 @@ struct ChangingDnaParameters(HelixParameters);
 
 impl AutomataState for ChangingDnaParameters {
     fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn AutomataState> {
-        main_state.apply_operation(DesignOperation::SetGlobalHelixParameters {
+        main_state.apply_design_operation(DesignOperation::SetGlobalHelixParameters {
             helix_parameters: self.0,
         });
         Box::new(NormalState)
@@ -320,7 +320,7 @@ impl NormalState {
         let selection = main_state.get_selection();
         if all_helices_no_grid(selection, &main_state.get_design_reader()) {
             let selection = selection.as_ref().as_ref().to_vec();
-            main_state.apply_operation(DesignOperation::HelicesToGrid(selection));
+            main_state.apply_design_operation(DesignOperation::HelicesToGrid(selection));
         }
         self
     }
@@ -331,7 +331,7 @@ impl NormalState {
         descr: GridTypeDescr,
     ) -> Box<Self> {
         if let Some((position, orientation)) = main_state.get_grid_creation_position() {
-            main_state.apply_operation(DesignOperation::AddGrid(GridDescriptor {
+            main_state.apply_design_operation(DesignOperation::AddGrid(GridDescriptor {
                 grid_type: descr,
                 position,
                 orientation,
@@ -347,7 +347,7 @@ impl NormalState {
 
     fn change_color(self: Box<Self>, main_state: &mut MainStateView, color: u32) -> Box<Self> {
         let strands = extract_strands_from_selection(main_state.get_selection());
-        main_state.apply_operation(DesignOperation::ChangeColor { color, strands });
+        main_state.apply_design_operation(DesignOperation::ChangeColor { color, strands });
         self
     }
 
@@ -358,7 +358,7 @@ impl NormalState {
     ) -> Box<Self> {
         let grid_ids = extract_grids(main_state.get_selection());
         if !grid_ids.is_empty() {
-            main_state.apply_operation(DesignOperation::SetSmallSpheres { grid_ids, small });
+            main_state.apply_design_operation(DesignOperation::SetSmallSpheres { grid_ids, small });
         }
         self
     }
@@ -370,7 +370,7 @@ impl NormalState {
     ) -> Box<Self> {
         let grid_ids = extract_grids(main_state.get_selection());
         if !grid_ids.is_empty() {
-            main_state.apply_operation(DesignOperation::SetHelicesPersistence {
+            main_state.apply_design_operation(DesignOperation::SetHelicesPersistence {
                 grid_ids,
                 persistent,
             });
