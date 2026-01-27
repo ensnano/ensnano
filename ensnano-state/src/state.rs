@@ -369,9 +369,8 @@ impl MainState {
     where
         F: FnOnce(AppState) -> AppState,
     {
-        let state = std::mem::take(&mut self.app_state);
-        let old_state = state.clone();
-        self.app_state = modification(state);
+        let old_state = self.app_state.clone();
+        self.app_state = modification(self.app_state.clone());
         if let Some(label) = undo_label
             && old_state != self.app_state
             && old_state.is_in_stable_state()
