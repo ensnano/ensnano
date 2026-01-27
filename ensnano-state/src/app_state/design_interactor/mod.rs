@@ -168,10 +168,8 @@ impl DesignInteractor {
         })
     }
 
-    pub(super) fn notify(&self, notification: InteractorNotification) -> Self {
-        let mut ret = self.clone();
-        ret.controller = AddressPointer::new(ret.controller.notify(notification));
-        ret
+    pub(super) fn notify(&mut self, notification: InteractorNotification) {
+        self.controller.make_mut().notify(notification);
     }
 
     pub(super) fn design_need_update(&self, suggestion_parameters: &SuggestionParameters) -> bool {
@@ -232,10 +230,8 @@ impl DesignInteractor {
     }
 
     #[cfg(test)]
-    pub(super) fn with_updated_design(&self, design: Design) -> Self {
-        let mut new_interactor = self.clone();
-        new_interactor.design = AddressPointer::new(design);
-        new_interactor
+    pub(super) fn update_design(&mut self, design: Design) {
+        *self.design.make_mut() = design;
     }
 
     pub(super) fn is_in_stable_state(&self) -> bool {
@@ -474,8 +470,7 @@ mod tests {
 
     fn fake_design_update(state: &mut AppState) {
         let design = state.0.design.design.clone_inner();
-        let new_state = std::mem::take(state);
-        *state = new_state.with_updated_design(design);
+        state.update_design(design);
     }
 
     #[test]
@@ -493,7 +488,7 @@ mod tests {
         let mut app_state = AppState::import_design(path).ok().unwrap();
         let old_app_state = app_state.clone();
         fake_design_update(&mut app_state);
-        let app_state = app_state.updated();
+        app_state.update();
         assert!(old_app_state.design_was_modified(&app_state));
     }
 
@@ -502,9 +497,9 @@ mod tests {
         let path = one_helix_path();
         let mut app_state = AppState::import_design(path).ok().unwrap();
         fake_design_update(&mut app_state);
-        app_state = app_state.updated();
+        app_state.update();
         let old_app_state = app_state.clone();
-        let app_state = app_state.updated();
+        app_state.update();
         assert!(!old_app_state.design_was_modified(&app_state));
     }
 

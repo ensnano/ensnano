@@ -357,7 +357,7 @@ impl Requests {
         self.check_xover_parameters = Some(parameters);
     }
 
-    pub fn follow_stereographic_camera(&mut self, follow: bool) {
+    pub fn set_follow_stereographic_camera(&mut self, follow: bool) {
         self.follow_stereographic_camera = Some(follow);
     }
 
