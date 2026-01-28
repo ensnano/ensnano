@@ -19,7 +19,6 @@ use crate::{app_state::action::Action, requests::Requests};
 use ensnano_design::interaction_modes::{ActionMode, SelectionMode};
 use ensnano_utils::{
     graphics::{DrawArea, GuiComponentType, PhySize, SplitMode},
-    multiplexer_ext::MultiplexerExt,
     texture::SampledTexture,
     ui_size::UiSize,
 };
@@ -852,23 +851,23 @@ fn control_key(modifiers: &ModifiersState) -> bool {
     }
 }
 
-impl MultiplexerExt for Multiplexer {
-    fn get_draw_area(&self, element_type: GuiComponentType) -> Option<DrawArea> {
-        self.get_texture_size(element_type)
-    }
+// impl MultiplexerExt for Multiplexer {
+//     fn get_draw_area(&self, element_type: GuiComponentType) -> Option<DrawArea> {
+//         self.get_draw_area(element_type)
+//     }
 
-    fn get_texture_view(&self, element_type: GuiComponentType) -> Option<&wgpu::TextureView> {
-        self.get_texture_view(element_type)
-    }
+//     fn get_texture_view(&self, element_type: GuiComponentType) -> Option<&wgpu::TextureView> {
+//         self.get_texture_view(element_type)
+//     }
 
-    fn get_cursor_position(&self) -> PhysicalPosition<f64> {
-        self.get_cursor_position()
-    }
+//     fn get_cursor_position(&self) -> PhysicalPosition<f64> {
+//         self.get_cursor_position()
+//     }
 
-    fn focused_element(&self) -> Option<GuiComponentType> {
-        self.focused_element()
-    }
-}
+//     fn focused_element(&self) -> Option<GuiComponentType> {
+//         self.focused_element()
+//     }
+// }
 
 fn keycode_to_num(key: &Key, _location: &KeyLocation) -> Option<u32> {
     match key {

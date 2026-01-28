@@ -480,6 +480,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 );
 
                 // When there is no more event to deal with
+                // main_state Actions are usually issued here.
                 poll_all(&mut requests.lock().unwrap(), &mut main_state);
 
                 let mut main_state_view = MainStateView {
@@ -496,6 +497,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     main_state_view.notify_apps(Notification::FitRequest);
                     main_state_view.main_state.wants_fit = false;
                 }
+                // main_state Actions are processed here.
                 controller.make_progress(&mut main_state_view);
                 resized |= main_state_view.resized;
                 resized |= first_iteration;

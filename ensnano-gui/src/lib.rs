@@ -35,7 +35,6 @@ use ensnano_utils::{
     app_state_parameters::AppStateParameters,
     convert_size_f32, convert_size_u32,
     graphics::{DrawArea, GuiComponentType},
-    multiplexer_ext::MultiplexerExt,
     ui_size::UiSize,
 };
 use iced::{
@@ -220,7 +219,7 @@ impl GuiComponent {
     fn top_bar(
         mut renderer: iced::Renderer,
         window: &Window,
-        multiplexer: &dyn MultiplexerExt,
+        multiplexer: &Multiplexer,
         requests: Arc<Mutex<Requests>>,
         app_state: AppState,
         top_bar_state: TopBarStateFlags,
@@ -254,7 +253,7 @@ impl GuiComponent {
     fn left_panel(
         mut renderer: iced::Renderer,
         window: &Window,
-        multiplexer: &dyn MultiplexerExt,
+        multiplexer: &Multiplexer,
         requests: Arc<Mutex<Requests>>,
         first_time: bool,
         state: &AppState,
@@ -290,7 +289,7 @@ impl GuiComponent {
     fn status_bar(
         mut renderer: iced::Renderer,
         window: &Window,
-        multiplexer: &dyn MultiplexerExt,
+        multiplexer: &Multiplexer,
         requests: Arc<Mutex<Requests>>,
         state: &AppState,
         ui_size: UiSize,
@@ -328,7 +327,7 @@ impl GuiComponent {
         &mut self.state
     }
 
-    fn resize(&mut self, window: &Window, multiplexer: &dyn MultiplexerExt) {
+    fn resize(&mut self, window: &Window, multiplexer: &Multiplexer) {
         let area = multiplexer.get_draw_area(self.element_type).unwrap();
         self.state.resize(area, window);
         log::debug!("resizing {area:?}");
@@ -340,7 +339,7 @@ impl GuiComponent {
         window: &Window,
         theme: &iced::Theme,
         style: &renderer::Style,
-        multiplexer: &dyn MultiplexerExt,
+        multiplexer: &Multiplexer,
         resized: bool,
     ) -> bool {
         let area = multiplexer.get_draw_area(self.element_type).unwrap();
@@ -377,7 +376,7 @@ impl GuiComponent {
         encoder: &mut wgpu::CommandEncoder,
         clear_color: Option<iced::Color>,
         window: &Window,
-        multiplexer: &dyn MultiplexerExt,
+        multiplexer: &Multiplexer,
         mouse_interaction: &mut iced::mouse::Interaction,
     ) {
         if self.redraw {
@@ -426,7 +425,7 @@ impl GuiManager {
         device: Rc<Device>,
         queue: Rc<Queue>,
         window: &Window,
-        multiplexer: &dyn MultiplexerExt,
+        multiplexer: &Multiplexer,
         requests: Arc<Mutex<Requests>>,
         parameters: AppStateParameters,
         global_state: &AppState,
@@ -464,7 +463,7 @@ impl GuiManager {
     fn rebuild_gui(
         &mut self,
         window: &Window,
-        multiplexer: &dyn MultiplexerExt,
+        multiplexer: &Multiplexer,
         state: &AppState,
         top_bar_state: TopBarStateFlags,
     ) {
@@ -617,7 +616,7 @@ impl GuiManager {
     /// Ask the gui component to process the event and messages that they have received.
     pub fn update(
         &mut self,
-        multiplexer: &dyn MultiplexerExt,
+        multiplexer: &Multiplexer,
         theme: &iced::Theme,
         style: &renderer::Style,
         window: &Window,
@@ -632,7 +631,7 @@ impl GuiManager {
         &mut self,
         ui_size: UiSize,
         window: &Window,
-        multiplexer: &dyn MultiplexerExt,
+        multiplexer: &Multiplexer,
         app_state: &AppState,
         top_bar_state: TopBarStateFlags,
     ) {
@@ -666,7 +665,7 @@ impl GuiManager {
         encoder: &mut wgpu::CommandEncoder,
         clear_color: Option<iced::Color>,
         window: &Window,
-        multiplexer: &dyn MultiplexerExt,
+        multiplexer: &Multiplexer,
         mouse_interaction: &mut iced::mouse::Interaction,
     ) {
         *mouse_interaction = Default::default();
