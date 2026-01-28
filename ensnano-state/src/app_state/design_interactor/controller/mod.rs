@@ -3691,8 +3691,8 @@ impl ControllerState {
                 design,
             } => {
                 *self = Self::WithPendingOp {
-                    operation: op.clone(),
-                    design: design.clone(),
+                    operation: op,
+                    design,
                 };
             }
             Self::MakingHyperboloid { .. }
@@ -3710,7 +3710,7 @@ impl ControllerState {
             | Self::Relaxing { .. }
             | Self::PositioningHelicesPastingPoint { .. }
             | Self::PositioningHelicesDuplicationPoint { .. }
-            | Self::WithPendingHelicesDuplication { .. } => return,
+            | Self::WithPendingHelicesDuplication { .. } => (),
             Self::Normal
             | Self::BuildingStrand { .. }
             | Self::ChangingColor
