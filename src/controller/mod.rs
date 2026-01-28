@@ -14,12 +14,12 @@ use crate::{
 };
 use std::borrow::Cow;
 
-pub(crate) struct Controller {
+pub(crate) struct AutomataController {
     /// The sate of the windows
     state: Box<dyn AutomataState + 'static>,
 }
 
-impl Controller {
+impl AutomataController {
     pub(crate) fn new() -> Self {
         Self {
             state: Box::new(NormalState),

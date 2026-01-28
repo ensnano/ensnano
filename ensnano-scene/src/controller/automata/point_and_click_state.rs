@@ -10,7 +10,7 @@
 
 use crate::{
     controller::{
-        Consequence, Controller, Transition,
+        Consequence, SceneController, Transition,
         automata::{
             BuildingHelix, ClickInfo, ControllerState, MovingBezierVertex, NormalState,
             XoverOrigin, dragging_state, event_context::EventContext,
@@ -193,7 +193,7 @@ impl ControllerState for PointAndClicking {
         self.description.into()
     }
 
-    fn check_timers(&mut self, controller: &Controller) -> Transition {
+    fn check_timers(&mut self, controller: &SceneController) -> Transition {
         if let Some(transition) = self.long_hold_state.as_ref() {
             log::info!("Some long hold state");
             let now = Instant::now();

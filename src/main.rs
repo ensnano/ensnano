@@ -80,7 +80,7 @@ mod scheduler;
 
 use crate::{
     controller::{
-        Controller,
+        AutomataController,
         set_scaffold_sequence::{
             SetScaffoldSequenceError, SetScaffoldSequenceOk, TargetScaffoldLength,
         },
@@ -421,7 +421,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     main_state.update();
     main_state.last_saved_state = main_state.app_state.clone();
 
-    let mut controller = Controller::new();
+    let mut controller = AutomataController::new();
 
     println!("{WELCOME_MSG}");
 

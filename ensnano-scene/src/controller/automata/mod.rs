@@ -11,7 +11,7 @@ use self::{
     point_and_click_state::PointAndClicking,
 };
 use crate::{
-    controller::{Consequence, Controller, TransitionConsequence},
+    controller::{Consequence, SceneController, TransitionConsequence},
     element_selector::SceneElement,
     view::{
         handle_drawer::{HandleColors, HandleDir},
@@ -69,15 +69,15 @@ pub(super) trait ControllerState {
 
     fn display(&self) -> Cow<'static, str>;
 
-    fn transition_from(&self, _controller: &Controller) -> TransitionConsequence {
+    fn transition_from(&self, _controller: &SceneController) -> TransitionConsequence {
         TransitionConsequence::Nothing
     }
 
-    fn transition_to(&self, _controller: &Controller) -> TransitionConsequence {
+    fn transition_to(&self, _controller: &SceneController) -> TransitionConsequence {
         TransitionConsequence::Nothing
     }
 
-    fn check_timers(&mut self, _controller: &Controller) -> Transition {
+    fn check_timers(&mut self, _controller: &SceneController) -> Transition {
         Transition::nothing()
     }
 

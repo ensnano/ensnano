@@ -9,7 +9,7 @@ mod stl;
 pub mod view;
 
 use crate::{
-    controller::{Consequence, Controller, automata::WidgetTarget},
+    controller::{Consequence, SceneController, automata::WidgetTarget},
     data::Data,
     element_selector::{ElementSelector, SceneElement},
     maths_3d::FiniteVec3,
@@ -74,7 +74,7 @@ pub struct Scene {
     /// The Object that handles the designs data
     data: Rc<RefCell<Data>>,
     /// The Object that handles input and notifications
-    controller: Controller,
+    controller: SceneController,
     /// The limits of the area on which the scene is displayed
     area: DrawArea,
     element_selector: ElementSelector,
@@ -123,7 +123,7 @@ impl Scene {
             initial_state.get_design_reader(),
             view.clone(),
         )));
-        let controller = Controller::new(view.clone(), data.clone(), window_size, area.size);
+        let controller = SceneController::new(view.clone(), data.clone(), window_size, area.size);
         let element_selector = ElementSelector::new(
             device,
             queue,

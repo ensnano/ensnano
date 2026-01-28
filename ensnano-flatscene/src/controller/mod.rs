@@ -25,7 +25,7 @@ use winit::{
     window::CursorIcon,
 };
 
-pub(crate) struct Controller {
+pub(crate) struct FlatSceneController {
     view: ViewPtr,
     data: DataPtr,
     window_size: PhySize,
@@ -80,7 +80,7 @@ pub(crate) enum Consequence {
     PngExport(Vec2, Vec2),
 }
 
-impl Controller {
+impl FlatSceneController {
     pub(crate) fn new(
         view: ViewPtr,
         data: DataPtr,
