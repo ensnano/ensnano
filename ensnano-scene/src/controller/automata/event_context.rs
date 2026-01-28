@@ -1,5 +1,5 @@
 use crate::{
-    controller::Controller,
+    controller::SceneController,
     element_selector::{CornerType, ElementSelector, SceneElement},
     view::grid::GridIntersection,
 };
@@ -21,7 +21,7 @@ const REVOLUTION_AXIS_WIDTH: f32 = 1.;
 
 /// The context in which an event took place.
 pub(crate) struct EventContext<'a> {
-    controller: &'a Controller,
+    controller: &'a SceneController,
     app_state: &'a AppState,
     pixel_reader: &'a mut ElementSelector,
     pub cursor_position: PhysicalPosition<f64>,
@@ -29,7 +29,7 @@ pub(crate) struct EventContext<'a> {
 
 impl<'a> EventContext<'a> {
     pub(crate) fn new(
-        controller: &'a Controller,
+        controller: &'a SceneController,
         app_state: &'a AppState,
         pixel_reader: &'a mut ElementSelector,
         cursor_position: PhysicalPosition<f64>,

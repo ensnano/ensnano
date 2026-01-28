@@ -1,6 +1,6 @@
 use crate::{
     circles2d::CircleInstance,
-    controller::{Consequence, Controller},
+    controller::{Consequence, FlatSceneController},
     data::{ClickResult, helix::HelixHandle, strand::FreeEnd},
     flat_types::{FlatHelix, FlatNucl},
 };
@@ -44,17 +44,17 @@ pub(super) trait ControllerState {
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
-        controller: &Controller,
+        controller: &FlatSceneController,
         main_state: &mut MainState,
     ) -> Transition;
 
     fn display(&self) -> String;
 
-    fn transition_from(&self, controller: &Controller);
+    fn transition_from(&self, controller: &FlatSceneController);
 
-    fn transition_to(&self, controller: &Controller);
+    fn transition_to(&self, controller: &FlatSceneController);
 
-    fn check_timers(&mut self, _controller: &Controller) -> Transition {
+    fn check_timers(&mut self, _controller: &FlatSceneController) -> Transition {
         Transition::nothing()
     }
 
@@ -76,7 +76,7 @@ impl ControllerState for NormalState {
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
-        controller: &Controller,
+        controller: &FlatSceneController,
         main_state: &mut MainState,
     ) -> Transition {
         match event {
@@ -410,11 +410,11 @@ impl ControllerState for NormalState {
         }
     }
 
-    fn transition_to(&self, controller: &Controller) {
+    fn transition_to(&self, controller: &FlatSceneController) {
         controller.data.borrow_mut().set_free_end(None);
     }
 
-    fn transition_from(&self, _controller: &Controller) {}
+    fn transition_from(&self, _controller: &FlatSceneController) {}
 }
 
 pub(super) struct Translating {
@@ -431,7 +431,7 @@ impl ControllerState for Translating {
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
-        controller: &Controller,
+        controller: &FlatSceneController,
         _: &mut MainState,
     ) -> Transition {
         match event {
@@ -497,11 +497,11 @@ impl ControllerState for Translating {
         }
     }
 
-    fn transition_from(&self, controller: &Controller) {
+    fn transition_from(&self, controller: &FlatSceneController) {
         controller.data.borrow_mut().end_movement();
     }
 
-    fn transition_to(&self, controller: &Controller) {
+    fn transition_to(&self, controller: &FlatSceneController) {
         let helices = self.translation_pivots.iter().map(|p| p.helix).collect();
         controller.data.borrow_mut().set_selected_helices(helices);
     }
@@ -527,7 +527,7 @@ impl ControllerState for MovingCamera {
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
-        controller: &Controller,
+        controller: &FlatSceneController,
         _: &mut MainState,
     ) -> Transition {
         match event {
@@ -581,11 +581,11 @@ impl ControllerState for MovingCamera {
         }
     }
 
-    fn transition_from(&self, controller: &Controller) {
+    fn transition_from(&self, controller: &FlatSceneController) {
         controller.end_movement();
     }
 
-    fn transition_to(&self, _controller: &Controller) {}
+    fn transition_to(&self, _controller: &FlatSceneController) {}
 
     fn cursor(&self) -> Option<CursorIcon> {
         Some(CursorIcon::Grabbing)
@@ -599,7 +599,7 @@ pub(super) struct ReleasedPivot {
 }
 
 impl ControllerState for ReleasedPivot {
-    fn transition_to(&self, controller: &Controller) {
+    fn transition_to(&self, controller: &FlatSceneController) {
         let helices = self.translation_pivots.iter().map(|p| p.helix).collect();
         controller.data.borrow_mut().set_selected_helices(helices);
 
@@ -611,7 +611,7 @@ impl ControllerState for ReleasedPivot {
         controller.view.borrow_mut().set_wheels(wheels);
     }
 
-    fn transition_from(&self, controller: &Controller) {
+    fn transition_from(&self, controller: &FlatSceneController) {
         controller.view.borrow_mut().set_wheels(vec![]);
     }
 
@@ -622,7 +622,7 @@ impl ControllerState for ReleasedPivot {
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
-        controller: &Controller,
+        controller: &FlatSceneController,
         main_state: &mut MainState,
     ) -> Transition {
         if main_state.app_state.is_pasting() {
@@ -1002,7 +1002,7 @@ pub(super) struct LeavingPivot {
 }
 
 impl ControllerState for LeavingPivot {
-    fn transition_to(&self, controller: &Controller) {
+    fn transition_to(&self, controller: &FlatSceneController) {
         let wheels = self
             .rotation_pivots
             .iter()
@@ -1011,7 +1011,7 @@ impl ControllerState for LeavingPivot {
         controller.view.borrow_mut().set_wheels(wheels);
     }
 
-    fn transition_from(&self, controller: &Controller) {
+    fn transition_from(&self, controller: &FlatSceneController) {
         controller.view.borrow_mut().set_wheels(vec![]);
     }
 
@@ -1022,7 +1022,7 @@ impl ControllerState for LeavingPivot {
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
-        controller: &Controller,
+        controller: &FlatSceneController,
         _: &mut MainState,
     ) -> Transition {
         match event {
@@ -1136,7 +1136,7 @@ impl Rotating {
 }
 
 impl ControllerState for Rotating {
-    fn transition_to(&self, controller: &Controller) {
+    fn transition_to(&self, controller: &FlatSceneController) {
         let helices = self.translation_pivots.iter().map(|p| p.helix).collect();
         controller.data.borrow_mut().set_selected_helices(helices);
 
@@ -1148,7 +1148,7 @@ impl ControllerState for Rotating {
         controller.view.borrow_mut().set_wheels(wheels);
     }
 
-    fn transition_from(&self, controller: &Controller) {
+    fn transition_from(&self, controller: &FlatSceneController) {
         controller.data.borrow_mut().end_movement();
         controller.view.borrow_mut().set_wheels(vec![]);
     }
@@ -1160,7 +1160,7 @@ impl ControllerState for Rotating {
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
-        controller: &Controller,
+        controller: &FlatSceneController,
         _: &mut MainState,
     ) -> Transition {
         match event {
@@ -1268,9 +1268,9 @@ struct AddOrXover {
 }
 
 impl ControllerState for AddOrXover {
-    fn transition_from(&self, _controller: &Controller) {}
+    fn transition_from(&self, _controller: &FlatSceneController) {}
 
-    fn transition_to(&self, _controller: &Controller) {}
+    fn transition_to(&self, _controller: &FlatSceneController) {}
 
     fn display(&self) -> String {
         String::from("Add or Xover")
@@ -1280,7 +1280,7 @@ impl ControllerState for AddOrXover {
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
-        controller: &Controller,
+        controller: &FlatSceneController,
         _: &mut MainState,
     ) -> Transition {
         match event {
@@ -1374,9 +1374,9 @@ struct InitAttachment {
 }
 
 impl ControllerState for InitAttachment {
-    fn transition_from(&self, _controller: &Controller) {}
+    fn transition_from(&self, _controller: &FlatSceneController) {}
 
-    fn transition_to(&self, _controller: &Controller) {}
+    fn transition_to(&self, _controller: &FlatSceneController) {}
 
     fn display(&self) -> String {
         String::from("Init Attachment")
@@ -1386,7 +1386,7 @@ impl ControllerState for InitAttachment {
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
-        controller: &Controller,
+        controller: &FlatSceneController,
         _: &mut MainState,
     ) -> Transition {
         match event {
@@ -1468,9 +1468,9 @@ struct InitBuilding {
 }
 
 impl ControllerState for InitBuilding {
-    fn transition_from(&self, _controller: &Controller) {}
+    fn transition_from(&self, _controller: &FlatSceneController) {}
 
-    fn transition_to(&self, _controller: &Controller) {}
+    fn transition_to(&self, _controller: &FlatSceneController) {}
 
     fn display(&self) -> String {
         String::from("Init Building")
@@ -1480,7 +1480,7 @@ impl ControllerState for InitBuilding {
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
-        controller: &Controller,
+        controller: &FlatSceneController,
         main_state: &mut MainState,
     ) -> Transition {
         match event {
@@ -1622,9 +1622,9 @@ struct MovingFreeEnd {
 }
 
 impl ControllerState for MovingFreeEnd {
-    fn transition_from(&self, _controller: &Controller) {}
+    fn transition_from(&self, _controller: &FlatSceneController) {}
 
-    fn transition_to(&self, _controller: &Controller) {}
+    fn transition_to(&self, _controller: &FlatSceneController) {}
 
     fn display(&self) -> String {
         String::from("Moving Free End")
@@ -1634,7 +1634,7 @@ impl ControllerState for MovingFreeEnd {
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
-        controller: &Controller,
+        controller: &FlatSceneController,
         _: &mut MainState,
     ) -> Transition {
         match event {
@@ -1744,9 +1744,9 @@ struct Building {
 }
 
 impl ControllerState for Building {
-    fn transition_from(&self, _controller: &Controller) {}
+    fn transition_from(&self, _controller: &FlatSceneController) {}
 
-    fn transition_to(&self, _controller: &Controller) {}
+    fn transition_to(&self, _controller: &FlatSceneController) {}
 
     fn display(&self) -> String {
         String::from("Building")
@@ -1756,7 +1756,7 @@ impl ControllerState for Building {
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
-        controller: &Controller,
+        controller: &FlatSceneController,
         _: &mut MainState,
     ) -> Transition {
         match event {
@@ -1840,9 +1840,9 @@ pub(super) struct Crossing {
 }
 
 impl ControllerState for Crossing {
-    fn transition_to(&self, _controller: &Controller) {}
+    fn transition_to(&self, _controller: &FlatSceneController) {}
 
-    fn transition_from(&self, _controller: &Controller) {}
+    fn transition_from(&self, _controller: &FlatSceneController) {}
 
     fn display(&self) -> String {
         String::from("Crossing")
@@ -1852,7 +1852,7 @@ impl ControllerState for Crossing {
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
-        controller: &Controller,
+        controller: &FlatSceneController,
         _: &mut MainState,
     ) -> Transition {
         match event {
@@ -1932,9 +1932,9 @@ struct Cutting {
 }
 
 impl ControllerState for Cutting {
-    fn transition_from(&self, _controller: &Controller) {}
+    fn transition_from(&self, _controller: &FlatSceneController) {}
 
-    fn transition_to(&self, _controller: &Controller) {}
+    fn transition_to(&self, _controller: &FlatSceneController) {}
 
     fn display(&self) -> String {
         String::from("Cutting")
@@ -1944,7 +1944,7 @@ impl ControllerState for Cutting {
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
-        controller: &Controller,
+        controller: &FlatSceneController,
         _: &mut MainState,
     ) -> Transition {
         match event {
@@ -2018,9 +2018,9 @@ struct RmHelix {
 }
 
 impl ControllerState for RmHelix {
-    fn transition_from(&self, _controller: &Controller) {}
+    fn transition_from(&self, _controller: &FlatSceneController) {}
 
-    fn transition_to(&self, _controller: &Controller) {}
+    fn transition_to(&self, _controller: &FlatSceneController) {}
 
     fn display(&self) -> String {
         String::from("RmHelix")
@@ -2030,7 +2030,7 @@ impl ControllerState for RmHelix {
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
-        controller: &Controller,
+        controller: &FlatSceneController,
         _: &mut MainState,
     ) -> Transition {
         match event {
@@ -2076,9 +2076,9 @@ struct FlipGroup {
 }
 
 impl ControllerState for FlipGroup {
-    fn transition_from(&self, _controller: &Controller) {}
+    fn transition_from(&self, _controller: &FlatSceneController) {}
 
-    fn transition_to(&self, _controller: &Controller) {}
+    fn transition_to(&self, _controller: &FlatSceneController) {}
 
     fn display(&self) -> String {
         String::from("FlipGroup")
@@ -2088,7 +2088,7 @@ impl ControllerState for FlipGroup {
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
-        controller: &Controller,
+        controller: &FlatSceneController,
         _: &mut MainState,
     ) -> Transition {
         match event {
@@ -2152,9 +2152,9 @@ struct FlipVisibility {
 }
 
 impl ControllerState for FlipVisibility {
-    fn transition_from(&self, _controller: &Controller) {}
+    fn transition_from(&self, _controller: &FlatSceneController) {}
 
-    fn transition_to(&self, _controller: &Controller) {}
+    fn transition_to(&self, _controller: &FlatSceneController) {}
 
     fn display(&self) -> String {
         String::from("RmHelix")
@@ -2164,7 +2164,7 @@ impl ControllerState for FlipVisibility {
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
-        controller: &Controller,
+        controller: &FlatSceneController,
         _: &mut MainState,
     ) -> Transition {
         match event {
@@ -2229,9 +2229,9 @@ struct FollowingSuggestion {
 }
 
 impl ControllerState for FollowingSuggestion {
-    fn transition_from(&self, _controller: &Controller) {}
+    fn transition_from(&self, _controller: &FlatSceneController) {}
 
-    fn transition_to(&self, _controller: &Controller) {}
+    fn transition_to(&self, _controller: &FlatSceneController) {}
 
     fn display(&self) -> String {
         String::from("Following Suggestion")
@@ -2241,7 +2241,7 @@ impl ControllerState for FollowingSuggestion {
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
-        controller: &Controller,
+        controller: &FlatSceneController,
         _: &mut MainState,
     ) -> Transition {
         match event {
@@ -2326,9 +2326,9 @@ struct Pasting {
 }
 
 impl ControllerState for Pasting {
-    fn transition_from(&self, _controller: &Controller) {}
+    fn transition_from(&self, _controller: &FlatSceneController) {}
 
-    fn transition_to(&self, _controller: &Controller) {}
+    fn transition_to(&self, _controller: &FlatSceneController) {}
 
     fn display(&self) -> String {
         String::from("Pasting")
@@ -2338,7 +2338,7 @@ impl ControllerState for Pasting {
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
-        controller: &Controller,
+        controller: &FlatSceneController,
         _: &mut MainState,
     ) -> Transition {
         match event {
@@ -2406,7 +2406,7 @@ impl ControllerState for DraggingSelection {
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
-        controller: &Controller,
+        controller: &FlatSceneController,
         main_state: &mut MainState,
     ) -> Transition {
         match event {
@@ -2505,11 +2505,11 @@ impl ControllerState for DraggingSelection {
         }
     }
 
-    fn transition_from(&self, controller: &Controller) {
+    fn transition_from(&self, controller: &FlatSceneController) {
         controller.end_movement();
     }
 
-    fn transition_to(&self, _controller: &Controller) {}
+    fn transition_to(&self, _controller: &FlatSceneController) {}
 }
 
 struct DoubleClicking {
@@ -2520,7 +2520,7 @@ struct DoubleClicking {
 }
 
 impl ControllerState for DoubleClicking {
-    fn check_timers(&mut self, controller: &Controller) -> Transition {
+    fn check_timers(&mut self, controller: &FlatSceneController) -> Transition {
         let now = Instant::now();
         if (now - self.clicked_time).as_millis() > 250 {
             Transition {
@@ -2545,7 +2545,7 @@ impl ControllerState for DoubleClicking {
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
-        controller: &Controller,
+        controller: &FlatSceneController,
         _: &mut MainState,
     ) -> Transition {
         match event {
@@ -2596,9 +2596,9 @@ impl ControllerState for DoubleClicking {
         }
     }
 
-    fn transition_from(&self, _controller: &Controller) {}
+    fn transition_from(&self, _controller: &FlatSceneController) {}
 
-    fn transition_to(&self, _controller: &Controller) {}
+    fn transition_to(&self, _controller: &FlatSceneController) {}
 }
 
 struct AddCirclePivot {
@@ -2609,9 +2609,9 @@ struct AddCirclePivot {
 }
 
 impl ControllerState for AddCirclePivot {
-    fn transition_from(&self, _controller: &Controller) {}
+    fn transition_from(&self, _controller: &FlatSceneController) {}
 
-    fn transition_to(&self, _controller: &Controller) {}
+    fn transition_to(&self, _controller: &FlatSceneController) {}
 
     fn display(&self) -> String {
         String::from("AddCirclePivot")
@@ -2621,7 +2621,7 @@ impl ControllerState for AddCirclePivot {
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
-        controller: &Controller,
+        controller: &FlatSceneController,
         main_state: &mut MainState,
     ) -> Transition {
         match event {
@@ -2708,15 +2708,15 @@ impl ControllerState for InitHelixTranslation {
         String::from("Init Helix Translation")
     }
 
-    fn transition_to(&self, _controller: &Controller) {}
+    fn transition_to(&self, _controller: &FlatSceneController) {}
 
-    fn transition_from(&self, _controller: &Controller) {}
+    fn transition_from(&self, _controller: &FlatSceneController) {}
 
     fn input(
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
-        controller: &Controller,
+        controller: &FlatSceneController,
         main_state: &mut MainState,
     ) -> Transition {
         match event {
@@ -2801,7 +2801,7 @@ impl ControllerState for TranslatingHandle {
         &mut self,
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
-        controller: &Controller,
+        controller: &FlatSceneController,
         _: &mut MainState,
     ) -> Transition {
         match event {
@@ -2852,9 +2852,9 @@ impl ControllerState for TranslatingHandle {
         }
     }
 
-    fn transition_from(&self, _controller: &Controller) {}
+    fn transition_from(&self, _controller: &FlatSceneController) {}
 
-    fn transition_to(&self, _controller: &Controller) {}
+    fn transition_to(&self, _controller: &FlatSceneController) {}
 
     fn cursor(&self) -> Option<CursorIcon> {
         Some(CursorIcon::Grabbing)

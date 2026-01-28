@@ -31,7 +31,7 @@ use winit::{
 };
 
 /// An object handling input and notification for the scene.
-pub(crate) struct Controller {
+pub(crate) struct SceneController {
     /// A pointer to the View
     view: ViewPtr,
     /// A pointer to the data
@@ -144,7 +144,7 @@ enum TransitionConsequence {
     StartRotatingPivot,
 }
 
-impl Controller {
+impl SceneController {
     pub(super) fn new(
         view: ViewPtr,
         data: Rc<RefCell<Data>>,

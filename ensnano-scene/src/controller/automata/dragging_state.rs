@@ -7,7 +7,7 @@
 
 use crate::{
     controller::{
-        Consequence, Controller, Transition, TransitionConsequence,
+        Consequence, SceneController, Transition, TransitionConsequence,
         automata::{
             ControllerState, NormalState, WidgetTarget, XoverOrigin, event_context::EventContext,
         },
@@ -196,11 +196,11 @@ impl<Table: DraggingTransitionTable> ControllerState for DraggingState<Table> {
         Table::cursor()
     }
 
-    fn transition_to(&self, _controller: &Controller) -> TransitionConsequence {
+    fn transition_to(&self, _controller: &SceneController) -> TransitionConsequence {
         self.transition_table.on_entering()
     }
 
-    fn transition_from(&self, _controller: &Controller) -> TransitionConsequence {
+    fn transition_from(&self, _controller: &SceneController) -> TransitionConsequence {
         self.transition_table.on_leaving()
     }
 

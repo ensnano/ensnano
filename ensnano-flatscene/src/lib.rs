@@ -26,7 +26,7 @@ mod view;
 
 use crate::{
     camera2d::{Camera2D, FitRectangle},
-    controller::{Consequence, Controller},
+    controller::{Consequence, FlatSceneController},
     data::Data,
     flat_types::FlatNucl,
     view::View,
@@ -85,7 +85,7 @@ pub struct FlatScene {
     /// Handle the data representing the design.
     data: Vec<DataPtr>,
     /// Handle inputs.
-    controller: Vec<Controller>,
+    controller: Vec<FlatSceneController>,
     /// The area on which the flatscene is displayed.
     area: DrawArea,
     /// The size of the window on which the flatscene is displayed.
@@ -164,7 +164,7 @@ impl FlatScene {
         let data = Rc::new(RefCell::new(Data::new(view.clone(), reader, 0, requests)));
         //data.borrow_mut().perform_update();
         // TODO is this update necessary ?
-        let controller = Controller::new(
+        let controller = FlatSceneController::new(
             view.clone(),
             data.clone(),
             self.window_size,
