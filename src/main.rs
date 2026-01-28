@@ -133,6 +133,7 @@ use ensnano_utils::{
     surfaces::RevolutionSurfaceSystemDescriptor,
     ui_size::UiSize,
 };
+use iced::{Renderer, Theme, mouse::Interaction};
 use iced_graphics::Antialiasing;
 use iced_wgpu::Settings;
 use std::{
@@ -142,6 +143,7 @@ use std::{
     time::{Duration, Instant},
 };
 use ultraviolet::{Rotor3, Vec3};
+use wgpu::Surface;
 use winit::{
     event::{Event, WindowEvent},
     event_loop::{ControlFlow, EventLoop, EventLoopWindowTarget},
@@ -227,9 +229,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // https://docs.rs/winit/latest/winit/window/struct.Window.html#platform-specific-41
     let mut window_title = String::from(PROGRAM_NAME);
 
-    // Represents the current state of the keyboard modifiers (Shift, Ctrl, etc.)
-    let kbd_modifiers = ModifiersState::default();
-
     // Setup wgpu
     let gpu_instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
         backends: wgpu::util::backend_bits_from_env().unwrap_or(DEFAULT_BACKEND),
@@ -309,7 +308,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ..Default::default()
     };
     // Initialize the renderer
-    let mut overlay_renderer = iced::Renderer::Wgpu(iced_wgpu::Renderer::new(
+    let mut overlay_renderer = Renderer::Wgpu(iced_wgpu::Renderer::new(
         iced_wgpu::Backend::new(&device, &queue, settings, format),
         settings.default_font,
         settings.default_text_size,
@@ -400,10 +399,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut overlay_manager =
         OverlayManager::new(Arc::clone(&requests), &window, &mut overlay_renderer);
 
-    // Run event loop
-    let mut last_render_time = Instant::now();
-    let mut mouse_interaction = iced::mouse::Interaction::Pointer;
-
     main_state
         .applications
         .insert(GuiComponentType::Scene, scene);
@@ -422,6 +417,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     main_state.last_saved_state = main_state.app_state.clone();
 
     let mut controller = AutomataController::new();
+
+    // Run event loop
+    let mut last_render_time = Instant::now();
+    let mut mouse_interaction = Interaction::Pointer;
 
     println!("{WELCOME_MSG}");
 
@@ -457,259 +456,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         };
 
         match window_event {
-            Event::WindowEvent {
-                event: window_event,
-                ..
-            } => match window_event {
-                WindowEvent::CloseRequested => {
-                    main_state_view
-                        .main_state
-                        .pending_actions
-                        .push_back(Action::Exit);
-                }
-
-                WindowEvent::Focused(false) => {
-                    main_state_view.notify_apps(Notification::WindowFocusLost);
-                }
-
-                WindowEvent::ModifiersChanged(modifiers) => {
-                    main_state_view.multiplexer.update_modifiers(modifiers);
-                    messages.lock().unwrap().update_modifiers(modifiers);
-                    main_state_view.notify_apps(Notification::ModifiersChanged(modifiers));
-                }
-
-                // NOTE: Escape fullscreen mode.
-                //
-                WindowEvent::KeyboardInput {
-                    event: key_event, ..
-                } if (key_event.logical_key == Key::Named(NamedKey::Escape)
-                    && window.fullscreen().is_some()) =>
-                {
-                    window.set_fullscreen(None);
-                }
-
-                // NOTE: KEYBOARD PRIORITY MODE
-                //       Some widgets –such as [text_input]– need to intercept keys that are otherwise used
-                //       as shortcuts by the UI. The “keyboard priority” feature has been made for this,
-                //       and the interception is made here.
-                //
-                WindowEvent::KeyboardInput { .. } if main_state.keyboard_priority.is_some() => {
-                    if let Some(iced_event) = iced_winit::conversion::window_event(
-                        iced::window::Id::MAIN,
-                        // NOTE: Used to be window.id(). It seems dirty,
-                        //       but the same is done in iced/examples/integration
-                        window_event,
-                        window.scale_factor(),
-                        kbd_modifiers,
-                    ) {
-                        gui.forward_event_all(iced_event);
-                    }
-                }
-
-                WindowEvent::RedrawRequested
-                    if window.inner_size().width > 0 && window.inner_size().height > 0 =>
-                {
-                    if resized {
-                        multiplexer.generate_textures();
-                        scheduler.forward_new_size(window.inner_size(), &multiplexer);
-                        let window_size = window.inner_size();
-
-                        surface.configure(
-                            &device,
-                            &wgpu::SurfaceConfiguration {
-                                usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-                                format: TEXTURE_FORMAT,
-                                width: window_size.width,
-                                height: window_size.height,
-                                present_mode: wgpu::PresentMode::AutoVsync,
-                                desired_maximum_frame_latency: 2,
-                                alpha_mode: Default::default(),
-                                view_formats: Default::default(),
-                            },
-                        );
-
-                        gui.resize(&multiplexer, &window);
-                        log::trace!(
-                            "Will draw on texture of size {}x {}",
-                            window_size.width,
-                            window_size.height
-                        );
-                    }
-                    if scale_factor_changed {
-                        multiplexer.generate_textures();
-                        gui.notify_scale_factor_change(
-                            &window,
-                            &multiplexer,
-                            &main_state.app_state,
-                            main_state.gui_state(&multiplexer),
-                        );
-                        log::info!("Notified of scale factor change: {}", window.scale_factor());
-                        scheduler.forward_new_size(window.inner_size(), &multiplexer);
-                        let window_size = window.inner_size();
-
-                        surface.configure(
-                            &device,
-                            &wgpu::SurfaceConfiguration {
-                                usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-                                format: TEXTURE_FORMAT,
-                                width: window_size.width,
-                                height: window_size.height,
-                                present_mode: wgpu::PresentMode::AutoVsync,
-                                desired_maximum_frame_latency: 2,
-                                alpha_mode: Default::default(),
-                                view_formats: Default::default(),
-                            },
-                        );
-
-                        gui.resize(&multiplexer, &window);
-                    }
-                    // Get viewports from the partition
-
-                    // If there are events pending
-                    gui.update(
-                        &multiplexer,
-                        &gui_theme,
-                        &theme::gui_style(&gui_theme),
-                        &window,
-                    );
-
-                    overlay_manager.process_event(
-                        &mut overlay_renderer,
-                        &gui_theme,
-                        &theme::gui_style(&gui_theme),
-                        resized,
-                        &multiplexer,
-                        &window,
-                    );
-
-                    resized = false;
-                    scale_factor_changed = false;
-
-                    if let Ok(frame) = surface.get_current_texture() {
-                        let mut encoder =
-                            device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                                label: None,
-                            });
-
-                        // We draw the applications first
-                        scheduler.draw_apps(&mut encoder, &multiplexer);
-
-                        gui.render(
-                            &mut encoder,
-                            None, // TODO: See if another value of clear_color is more appropriate.
-                            &window,
-                            &multiplexer,
-                            &mut mouse_interaction,
-                        );
-
-                        if multiplexer.resize(window.inner_size(), window.scale_factor()) {
-                            resized = true;
-                            window.request_redraw();
-                            return;
-                        }
-                        log::trace!("window size {:?}", window.inner_size());
-                        multiplexer.draw(
-                            &mut encoder,
-                            &frame
-                                .texture
-                                .create_view(&wgpu::TextureViewDescriptor::default()),
-                            &window,
-                        );
-                        overlay_manager.render(
-                            &device,
-                            &queue,
-                            &mut encoder,
-                            frame.texture.format(),
-                            &frame
-                                .texture
-                                .create_view(&wgpu::TextureViewDescriptor::default()),
-                            &multiplexer,
-                            &window,
-                            &mut overlay_renderer,
-                        );
-
-                        // Then we submit the work
-                        queue.submit(Some(encoder.finish()));
-                        frame.present();
-
-                        // And update the mouse cursor
-                        main_state.gui_cursor =
-                            iced_winit::conversion::mouse_interaction(mouse_interaction);
-                        main_state.update_cursor(&multiplexer);
-                        window.set_cursor_icon(main_state.cursor);
-                    } else {
-                        log::warn!("Error getting next frame, attempt to recreate swap chain");
-                        resized = true;
-                    }
-                }
-
-                // NOTE: Any other [WindowEvent]
-                //
-                _ => {
-                    //let modifiers = multiplexer.modifiers();
-
-                    // Feed the event to the multiplexer
-                    let event =
-                        multiplexer.event(window_event, &mut resized, &mut scale_factor_changed);
-
-                    if let Some((event, gui_component_type)) = event {
-                        // Update the focused gui component
-                        if main_state.focused_component != Some(gui_component_type) {
-                            if let Some(app) = main_state
-                                .focused_component
-                                .as_ref()
-                                .and_then(|elt| main_state.applications.get(elt))
-                            {
-                                app.lock().unwrap().on_notify(Notification::WindowFocusLost);
-                            }
-                            main_state.focused_component = Some(gui_component_type);
-                            main_state.update_candidates(vec![]);
-                        }
-                        main_state.applications_cursor = None;
-
-                        // Feed the event to the gui component on which it happened
-                        match gui_component_type {
-                            component if component.is_panel() => {
-                                if let Some(e) = iced_winit::conversion::window_event(
-                                    iced::window::Id::MAIN,
-                                    // NOTE: Used to be window.id(). It seems dirty,
-                                    //       but the same is done in iced/examples/integration
-                                    event,
-                                    window.scale_factor(),
-                                    kbd_modifiers,
-                                ) {
-                                    gui.forward_event(component, e);
-                                }
-                            }
-                            GuiComponentType::Overlay(n) => {
-                                if let Some(e) = iced_winit::conversion::window_event(
-                                    iced::window::Id::MAIN,
-                                    // NOTE: Used to be window.id(). It seems dirty,
-                                    //       but the same is done in iced/examples/integration
-                                    event,
-                                    window.scale_factor(),
-                                    kbd_modifiers,
-                                ) {
-                                    overlay_manager.forward_event(e, n);
-                                }
-                            }
-                            area if area.is_scene() => {
-                                let cursor_position = multiplexer.get_cursor_position();
-                                main_state.applications_cursor = scheduler.forward_event(
-                                    &event,
-                                    area,
-                                    cursor_position,
-                                    &mut main_state,
-                                );
-                                if matches!(event, WindowEvent::MouseInput { .. }) {
-                                    gui.clear_focus();
-                                }
-                            }
-                            _ => unreachable!(),
-                        }
-                    }
-                }
-            },
+            Event::WindowEvent { event, .. } => handle_window_event(
+                event,
+                &mut main_state_view,
+                &messages,
+                &mut resized,
+                &surface,
+                &mut scale_factor_changed,
+                &gui_theme,
+                &mut overlay_manager,
+                &mut overlay_renderer,
+                &mut mouse_interaction,
+            ),
             Event::AboutToWait => {
                 scale_factor_changed |= multiplexer.check_scale_factor(&window);
                 let mut redraw = resized || scale_factor_changed;
@@ -848,6 +606,307 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     })?;
 
     Ok(())
+}
+
+fn handle_window_event(
+    window_event: WindowEvent,
+    main_state_view: &mut MainStateView,
+    messages: &Arc<Mutex<GuiMessages>>,
+    // Pacome notes : this seems weirdly complicated
+    resized: &mut bool,
+    surface: &Surface<'_>,
+    // Pacome notes : this seems weirdly complicated
+    scale_factor_changed: &mut bool,
+    gui_theme: &Theme,
+    overlay_manager: &mut OverlayManager,
+    overlay_renderer: &mut Renderer,
+    mouse_interaction: &mut Interaction,
+) {
+    // Pacome notes : this is never modified. Weird
+    // Represents the current state of the keyboard modifiers (Shift, Ctrl, etc.)
+    let kbd_modifiers = ModifiersState::default();
+
+    match window_event {
+        WindowEvent::CloseRequested => {
+            main_state_view
+                .main_state
+                .pending_actions
+                .push_back(Action::Exit);
+        }
+
+        WindowEvent::Focused(false) => {
+            main_state_view.notify_apps(Notification::WindowFocusLost);
+        }
+
+        WindowEvent::ModifiersChanged(modifiers) => {
+            main_state_view.multiplexer.update_modifiers(modifiers);
+            messages.lock().unwrap().update_modifiers(modifiers);
+            main_state_view.notify_apps(Notification::ModifiersChanged(modifiers));
+        }
+
+        // NOTE: Escape fullscreen mode.
+        //
+        WindowEvent::KeyboardInput {
+            event: key_event, ..
+        } if (key_event.logical_key == Key::Named(NamedKey::Escape)
+            && main_state_view.window.fullscreen().is_some()) =>
+        {
+            main_state_view.window.set_fullscreen(None);
+        }
+
+        // NOTE: KEYBOARD PRIORITY MODE
+        //       Some widgets –such as [text_input]– need to intercept keys that are otherwise used
+        //       as shortcuts by the UI. The “keyboard priority” feature has been made for this,
+        //       and the interception is made here.
+        //
+        WindowEvent::KeyboardInput { .. }
+            if main_state_view.main_state.keyboard_priority.is_some() =>
+        {
+            if let Some(iced_event) = iced_winit::conversion::window_event(
+                iced::window::Id::MAIN,
+                // NOTE: Used to be window.id(). It seems dirty,
+                //       but the same is done in iced/examples/integration
+                window_event,
+                main_state_view.window.scale_factor(),
+                kbd_modifiers,
+            ) {
+                main_state_view.gui.forward_event_all(iced_event);
+            }
+        }
+
+        WindowEvent::RedrawRequested
+            if main_state_view.window.inner_size().width > 0
+                && main_state_view.window.inner_size().height > 0 =>
+        {
+            if *resized {
+                main_state_view.multiplexer.generate_textures();
+                main_state_view.scheduler.forward_new_size(
+                    main_state_view.window.inner_size(),
+                    main_state_view.multiplexer,
+                );
+                let window_size = main_state_view.window.inner_size();
+
+                surface.configure(
+                    main_state_view.gui.device.as_ref(),
+                    &wgpu::SurfaceConfiguration {
+                        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+                        format: TEXTURE_FORMAT,
+                        width: window_size.width,
+                        height: window_size.height,
+                        present_mode: wgpu::PresentMode::AutoVsync,
+                        desired_maximum_frame_latency: 2,
+                        alpha_mode: Default::default(),
+                        view_formats: Default::default(),
+                    },
+                );
+
+                main_state_view
+                    .gui
+                    .resize(main_state_view.multiplexer, main_state_view.window);
+                log::trace!(
+                    "Will draw on texture of size {}x {}",
+                    window_size.width,
+                    window_size.height
+                );
+            }
+            if *scale_factor_changed {
+                main_state_view.multiplexer.generate_textures();
+                main_state_view.gui.notify_scale_factor_change(
+                    main_state_view.window,
+                    main_state_view.multiplexer,
+                    &main_state_view.main_state.app_state,
+                    main_state_view
+                        .main_state
+                        .gui_state(main_state_view.multiplexer),
+                );
+                log::info!(
+                    "Notified of scale factor change: {}",
+                    main_state_view.window.scale_factor()
+                );
+                main_state_view.scheduler.forward_new_size(
+                    main_state_view.window.inner_size(),
+                    main_state_view.multiplexer,
+                );
+                let window_size = main_state_view.window.inner_size();
+
+                surface.configure(
+                    &main_state_view.gui.device,
+                    &wgpu::SurfaceConfiguration {
+                        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+                        format: TEXTURE_FORMAT,
+                        width: window_size.width,
+                        height: window_size.height,
+                        present_mode: wgpu::PresentMode::AutoVsync,
+                        desired_maximum_frame_latency: 2,
+                        alpha_mode: Default::default(),
+                        view_formats: Default::default(),
+                    },
+                );
+
+                main_state_view
+                    .gui
+                    .resize(main_state_view.multiplexer, main_state_view.window);
+            }
+            // Get viewports from the partition
+
+            // If there are events pending
+            main_state_view.gui.update(
+                main_state_view.multiplexer,
+                gui_theme,
+                &theme::gui_style(gui_theme),
+                main_state_view.window,
+            );
+
+            overlay_manager.process_event(
+                overlay_renderer,
+                gui_theme,
+                &theme::gui_style(gui_theme),
+                *resized,
+                main_state_view.multiplexer,
+                main_state_view.window,
+            );
+
+            *resized = false;
+            *scale_factor_changed = false;
+
+            if let Ok(frame) = surface.get_current_texture() {
+                let mut encoder = main_state_view
+                    .gui
+                    .device
+                    .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+
+                // We draw the applications first
+                main_state_view
+                    .scheduler
+                    .draw_apps(&mut encoder, main_state_view.multiplexer);
+
+                main_state_view.gui.render(
+                    &mut encoder,
+                    None, // TODO: See if another value of clear_color is more appropriate.
+                    main_state_view.window,
+                    main_state_view.multiplexer,
+                    mouse_interaction,
+                );
+
+                if main_state_view.multiplexer.resize(
+                    main_state_view.window.inner_size(),
+                    main_state_view.window.scale_factor(),
+                ) {
+                    *resized = true;
+                    main_state_view.window.request_redraw();
+                    return;
+                }
+                log::trace!("window size {:?}", main_state_view.window.inner_size());
+                main_state_view.multiplexer.draw(
+                    &mut encoder,
+                    &frame
+                        .texture
+                        .create_view(&wgpu::TextureViewDescriptor::default()),
+                    main_state_view.window,
+                );
+                overlay_manager.render(
+                    &main_state_view.gui.device,
+                    &main_state_view.gui.queue,
+                    &mut encoder,
+                    frame.texture.format(),
+                    &frame
+                        .texture
+                        .create_view(&wgpu::TextureViewDescriptor::default()),
+                    main_state_view.multiplexer,
+                    main_state_view.window,
+                    overlay_renderer,
+                );
+
+                // Then we submit the work
+                main_state_view.gui.queue.submit(Some(encoder.finish()));
+                frame.present();
+
+                // And update the mouse cursor
+                main_state_view.main_state.gui_cursor =
+                    iced_winit::conversion::mouse_interaction(*mouse_interaction);
+                main_state_view
+                    .main_state
+                    .update_cursor(main_state_view.multiplexer);
+                main_state_view
+                    .window
+                    .set_cursor_icon(main_state_view.main_state.cursor);
+            } else {
+                log::warn!("Error getting next frame, attempt to recreate swap chain");
+                *resized = true;
+            }
+        }
+
+        // NOTE: Any other [WindowEvent]
+        //
+        _ => {
+            //let modifiers = multiplexer.modifiers();
+
+            // Feed the event to the multiplexer
+            let event =
+                main_state_view
+                    .multiplexer
+                    .event(window_event, resized, scale_factor_changed);
+
+            if let Some((event, gui_component_type)) = event {
+                // Update the focused gui component
+                if main_state_view.main_state.focused_component != Some(gui_component_type) {
+                    if let Some(app) = main_state_view
+                        .main_state
+                        .focused_component
+                        .as_ref()
+                        .and_then(|elt| main_state_view.main_state.applications.get(elt))
+                    {
+                        app.lock().unwrap().on_notify(Notification::WindowFocusLost);
+                    }
+                    main_state_view.main_state.focused_component = Some(gui_component_type);
+                    main_state_view.main_state.update_candidates(vec![]);
+                }
+                main_state_view.main_state.applications_cursor = None;
+
+                // Feed the event to the gui component on which it happened
+                match gui_component_type {
+                    component if component.is_panel() => {
+                        if let Some(e) = iced_winit::conversion::window_event(
+                            iced::window::Id::MAIN,
+                            // NOTE: Used to be window.id(). It seems dirty,
+                            //       but the same is done in iced/examples/integration
+                            event,
+                            main_state_view.window.scale_factor(),
+                            kbd_modifiers,
+                        ) {
+                            main_state_view.gui.forward_event(component, e);
+                        }
+                    }
+                    GuiComponentType::Overlay(n) => {
+                        if let Some(e) = iced_winit::conversion::window_event(
+                            iced::window::Id::MAIN,
+                            // NOTE: Used to be window.id(). It seems dirty,
+                            //       but the same is done in iced/examples/integration
+                            event,
+                            main_state_view.window.scale_factor(),
+                            kbd_modifiers,
+                        ) {
+                            overlay_manager.forward_event(e, n);
+                        }
+                    }
+                    area if area.is_scene() => {
+                        let cursor_position = main_state_view.multiplexer.get_cursor_position();
+                        main_state_view.main_state.applications_cursor =
+                            main_state_view.scheduler.forward_event(
+                                &event,
+                                area,
+                                cursor_position,
+                                main_state_view.main_state,
+                            );
+                        if matches!(event, WindowEvent::MouseInput { .. }) {
+                            main_state_view.gui.clear_focus();
+                        }
+                    }
+                    _ => unreachable!(),
+                }
+            }
+        }
+    }
 }
 
 /// A temporary view of the main state and the control flow.

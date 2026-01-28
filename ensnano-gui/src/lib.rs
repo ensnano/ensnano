@@ -27,6 +27,7 @@ use ensnano_state::{
     gui::messages::{
         GuiMessages, LeftPanelMessage, StatusBarMessage, TopBarMessage, TopBarStateFlags,
     },
+    multiplexer::Multiplexer,
     requests::Requests,
 };
 use ensnano_utils::{
@@ -410,9 +411,9 @@ pub struct GuiManager {
     /// WGPU Settings
     wgpu_settings: iced_wgpu::Settings,
     /// WGPU device
-    device: Rc<Device>,
+    pub device: Rc<Device>,
     /// WGPU queue
-    queue: Rc<Queue>,
+    pub queue: Rc<Queue>,
     resized: bool,
     requests: Arc<Mutex<Requests>>,
     parameters: AppStateParameters,
@@ -591,7 +592,7 @@ impl GuiManager {
     }
 
     /// Get the new size of each gui component from the multiplexer and forwards them.
-    pub fn resize(&mut self, multiplexer: &dyn MultiplexerExt, window: &Window) {
+    pub fn resize(&mut self, multiplexer: &Multiplexer, window: &Window) {
         for element in self.components.values_mut() {
             element.resize(window, multiplexer);
         }
@@ -604,7 +605,7 @@ impl GuiManager {
         window: &Window,
         theme: &iced::Theme,
         style: &renderer::Style,
-        multiplexer: &dyn MultiplexerExt,
+        multiplexer: &Multiplexer,
     ) -> bool {
         let mut ret = false;
         for elements in self.components.values_mut() {
@@ -644,7 +645,7 @@ impl GuiManager {
     pub fn notify_scale_factor_change(
         &mut self,
         window: &Window,
-        multiplexer: &dyn MultiplexerExt,
+        multiplexer: &Multiplexer,
         app_state: &AppState,
         top_bar_state: TopBarStateFlags,
     ) {
