@@ -138,7 +138,6 @@
   - `AdditionalStructure` (ensnano_design)
   - `RawDrawer`
   - `DesignElementKeySelection`
-  - `MultiplexerExt`
   - `GridInstanceExt`
 - Remove enums with one variant -> struct or raw value:
   - `AppOperation`
