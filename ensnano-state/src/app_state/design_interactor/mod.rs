@@ -470,7 +470,7 @@ mod tests {
 
     fn fake_design_update(state: &mut AppState) {
         let design = state.0.design.design.clone_inner();
-        state.update_design(design);
+        _ = state.update_design(design);
     }
 
     #[test]

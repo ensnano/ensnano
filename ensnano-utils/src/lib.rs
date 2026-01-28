@@ -11,7 +11,6 @@ pub mod filename;
 pub mod graphics;
 pub mod instance;
 pub mod keyboard_priority;
-pub mod multiplexer_ext;
 pub mod obj_loader;
 pub mod overlay;
 pub mod strand_builder;
