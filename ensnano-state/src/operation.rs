@@ -1,11 +1,34 @@
-use crate::app_state::AppState;
+use std::borrow::Cow;
 
-pub trait AppStateOperation {
-    fn apply(&mut self, state: &mut AppState);
+use crate::app_state::{AppState, design_interactor::controller::OperationError};
+
+/// The result of an appstate operation.
+///
+/// An operation has been successfully applied on a design, resulting in a new modified design. The
+/// variants of these enums indicate different ways in which the result should be handled.
+/// A save of the current design is always done before we do an operation.
+pub enum AppStateOperationOutcome {
+    /// Push the previous design unto the undo stack.
+    Push {
+        /// A description of the operation that was applied
+        label: Cow<'static, str>,
+    },
+    /// An operation happened, but it is not worth putting on the undo stack.
+    Replace,
+    /// No operation happened.
+    NoOp,
 }
 
-impl<F: Fn(&mut AppState)> AppStateOperation for F {
-    fn apply(&mut self, state: &mut AppState) {
-        self(state);
+pub type AppStateOperationResult = Result<AppStateOperationOutcome, OperationError>;
+
+pub trait AppStateOperation {
+    fn apply(&mut self, state: &mut AppState) -> AppStateOperationResult;
+}
+
+impl<F: Fn(&mut AppState) -> Result<AppStateOperationOutcome, OperationError>> AppStateOperation
+    for F
+{
+    fn apply(&mut self, state: &mut AppState) -> AppStateOperationResult {
+        self(state)
     }
 }

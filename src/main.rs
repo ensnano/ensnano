@@ -982,7 +982,7 @@ impl MainStateView<'_> {
             .unwrap()
             .new_ui_size(ui_size);
         self.main_state
-            .modify_state(|s: &mut AppState| s.set_ui_size(ui_size), None);
+            .modify_state(|s: &mut AppState| s.set_ui_size(ui_size));
         self.resized = true;
     }
 
@@ -1010,10 +1010,8 @@ impl MainStateView<'_> {
     }
 
     fn finish_operation(&mut self) {
-        self.main_state.modify_state(
-            |s: &mut AppState| s.notify(InteractorNotification::FinishOperation),
-            None,
-        );
+        self.main_state
+            .modify_state(|s: &mut AppState| s.notify(InteractorNotification::FinishOperation));
         self.main_state.app_state.finish_operation();
     }
 
@@ -1246,15 +1244,13 @@ impl MainStateView<'_> {
     }
 
     fn set_expand_insertions(&mut self, expand: bool) {
-        self.main_state.modify_state(
-            |app: &mut AppState| app.set_expand_insertion_set(expand),
-            None,
-        );
+        self.main_state
+            .modify_state(|app: &mut AppState| app.set_expand_insertion_set(expand));
     }
 
     fn set_exporting(&mut self, exporting: bool) {
         self.main_state
-            .modify_state(|app: &mut AppState| app.set_exporting(exporting), None);
+            .modify_state(|app: &mut AppState| app.set_exporting(exporting));
     }
 
     fn load_3d_object(&mut self, path: PathBuf) {

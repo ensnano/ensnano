@@ -1,5 +1,5 @@
 use crate::multiplexer::Multiplexer;
-use crate::operation::AppStateOperation;
+use crate::operation::{AppStateOperation, AppStateOperationOutcome};
 use crate::{
     app_state::{
         AppState, SaveDesignError,
@@ -179,7 +179,7 @@ impl MainState {
     }
 
     pub fn update_candidates(&mut self, candidates: Vec<Selection>) {
-        self.modify_state(|s: &mut AppState| s.set_candidates(&candidates), None);
+        self.modify_state(|s: &mut AppState| s.set_candidates(&candidates));
     }
 
     pub fn transfer_selection_pivot_to_group(&mut self, group_id: GroupId) {
@@ -193,14 +193,11 @@ impl MainState {
     }
 
     pub fn update_selection(&mut self, selection: Vec<Selection>, group_id: Option<GroupId>) {
-        self.modify_state(
-            |s: &mut AppState| s.set_selection(&selection, &group_id),
-            Some("Selection".into()),
-        );
+        self.modify_state(|s: &mut AppState| s.set_selection(&selection, &group_id));
     }
 
     pub fn update_center_of_selection(&mut self, center: Option<CenterOfSelection>) {
-        self.modify_state(|s: &mut AppState| s.set_center_of_selection(center), None);
+        self.modify_state(|s: &mut AppState| s.set_center_of_selection(center));
     }
 
     pub fn apply_copy_operation(&mut self, operation: CopyOperation) {
@@ -212,10 +209,7 @@ impl MainState {
         log::debug!("Applying operation {operation:?}");
         let result = self.app_state.apply_design_op(operation.clone());
         if matches!(result, Err(OperationError::FinishFirst)) {
-            self.modify_state(
-                |s: &mut AppState| s.notify(InteractorNotification::FinishOperation),
-                None,
-            );
+            self.modify_state(|s: &mut AppState| s.notify(InteractorNotification::FinishOperation));
             // recursive call to retry the operation
             self.apply_design_operation(operation);
         } else {
@@ -303,10 +297,9 @@ impl MainState {
         match self.app_state.apply_design_op(operation.clone()) {
             Ok(_) => (),
             Err(OperationError::FinishFirst) => {
-                self.modify_state(
-                    |s: &mut AppState| s.notify(InteractorNotification::FinishOperation),
-                    None,
-                );
+                self.modify_state(|s: &mut AppState| {
+                    s.notify(InteractorNotification::FinishOperation)
+                });
                 self.apply_silent_operation(operation);
             }
             Err(e) => log::warn!("{e:?}"),
@@ -331,9 +324,9 @@ impl MainState {
 
     pub fn undo(&mut self) {
         if let Some(mut transition) = self.undo_stack.pop() {
-            transition.state.prepare_for_replacement(&self.app_state);
+            _ = transition.state.prepare_for_replacement(&self.app_state);
             let mut redo_state = std::mem::replace(&mut self.app_state, transition.state);
-            redo_state.notify(InteractorNotification::FinishOperation);
+            _ = redo_state.notify(InteractorNotification::FinishOperation);
             self.set_camera_3d(transition.camera_3d.clone());
             self.messages
                 .lock()
@@ -351,7 +344,7 @@ impl MainState {
 
     pub fn redo(&mut self) {
         if let Some(mut transition) = self.redo_stack.pop() {
-            transition.state.prepare_for_replacement(&self.app_state);
+            _ = transition.state.prepare_for_replacement(&self.app_state);
             let undo_state = std::mem::replace(&mut self.app_state, transition.state);
             self.set_camera_3d(transition.camera_3d.clone());
             self.messages
@@ -369,31 +362,34 @@ impl MainState {
     pub fn modify_state(
         &mut self,
         mut modification: impl AppStateOperation,
-        undo_label: Option<TransitionLabel>,
+        // undo_label: Option<TransitionLabel>,
     ) {
         let old_state = self.app_state.clone();
-        modification.apply(&mut self.app_state);
-        if let Some(label) = undo_label
-            && old_state != self.app_state
-            && old_state.is_in_stable_state()
-        {
-            let camera_3d = self.get_camera_3d();
-            self.undo_stack.push(AppStateTransition {
-                state: old_state,
-                label,
-                camera_3d,
-            });
-            self.redo_stack.clear();
+        match modification.apply(&mut self.app_state) {
+            Ok(AppStateOperationOutcome::Push { label }) => {
+                // Pacome note : this != is where the AppState pointer
+                // equality test is done.
+                // We could do this better by using a DerefMut implementation
+                // on AddressPointer.
+                if old_state != self.app_state && old_state.is_in_stable_state() {
+                    let camera_3d = self.get_camera_3d();
+                    self.undo_stack.push(AppStateTransition {
+                        state: old_state,
+                        label: TransitionLabel(label),
+                        camera_3d,
+                    });
+                    self.redo_stack.clear();
+                }
+            }
+            Ok(AppStateOperationOutcome::Replace | AppStateOperationOutcome::NoOp) => {}
+            Err(e) => log::warn!("{e:?}"),
         }
     }
 
     pub fn update_pending_operation(&mut self, operation: Arc<dyn SimpleOperation>) {
         let result = self.app_state.update_pending_operation(operation.clone());
         if matches!(result, Err(OperationError::FinishFirst)) {
-            self.modify_state(
-                |s: &mut AppState| s.notify(InteractorNotification::FinishOperation),
-                None,
-            );
+            self.modify_state(|s: &mut AppState| s.notify(InteractorNotification::FinishOperation));
             self.update_pending_operation(operation);
         }
         self.apply_operation_result(result);
@@ -414,10 +410,12 @@ impl MainState {
             Err(e) => log::warn!("{e:?}"),
         }
         if let Some(new_selection) = self.app_state.get_new_selection() {
-            self.modify_state(
-                |s: &mut AppState| s.set_selection(&new_selection, &None),
-                None,
-            );
+            // we ignore and override the result of the set_selection
+            // to not make it a reversable operation
+            self.modify_state(|s: &mut AppState| {
+                _ = s.set_selection(&new_selection, &None);
+                Ok(AppStateOperationOutcome::Replace)
+            });
         }
     }
 
@@ -521,19 +519,19 @@ impl MainState {
     }
 
     pub fn change_selection_mode(&mut self, mode: SelectionMode) {
-        self.modify_state(|s: &mut AppState| s.set_selection_mode(mode), None);
+        self.modify_state(|s: &mut AppState| s.set_selection_mode(mode));
     }
 
     pub fn change_action_mode(&mut self, mode: ActionMode) {
-        self.modify_state(|s: &mut AppState| s.set_action_mode(mode), None);
+        self.modify_state(|s: &mut AppState| s.set_action_mode(mode));
     }
 
     pub fn change_double_strand_parameters(&mut self, parameters: Option<(isize, usize)>) {
-        self.modify_state(|s: &mut AppState| s.set_strand_on_helix(parameters), None);
+        self.modify_state(|s: &mut AppState| s.set_strand_on_helix(parameters));
     }
 
     pub fn toggle_widget_basis(&mut self) {
-        self.modify_state(|s: &mut AppState| s.toggle_widget_basis(), None);
+        self.modify_state(|s: &mut AppState| s.toggle_widget_basis());
     }
 
     pub fn set_visibility_sieve(&mut self, selection: Vec<Selection>, compl: bool) {
@@ -559,58 +557,43 @@ impl MainState {
     }
 
     pub fn set_suggestion_parameters(&mut self, param: SuggestionParameters) {
-        self.modify_state(|s: &mut AppState| s.set_suggestion_parameters(param), None);
+        self.modify_state(|s: &mut AppState| s.set_suggestion_parameters(param));
     }
 
     pub fn set_check_xovers_parameters(&mut self, param: CheckXoversParameter) {
-        self.modify_state(
-            |s: &mut AppState| s.set_check_xovers_parameters(param),
-            None,
-        );
+        self.modify_state(|s: &mut AppState| s.set_check_xovers_parameters(param));
     }
 
     pub fn set_follow_stereographic_camera(&mut self, follow: bool) {
-        self.modify_state(
-            |s: &mut AppState| s.set_follow_stereographic_camera(follow),
-            None,
-        );
+        self.modify_state(|s: &mut AppState| s.set_follow_stereographic_camera(follow));
     }
 
     pub fn set_show_stereographic_camera(&mut self, show: bool) {
-        self.modify_state(
-            |s: &mut AppState| s.set_show_stereographic_camera(show),
-            None,
-        );
+        self.modify_state(|s: &mut AppState| s.set_show_stereographic_camera(show));
     }
 
     pub fn show_h_bonds(&mut self, show: HBondDisplay) {
-        self.modify_state(|s: &mut AppState| s.show_h_bonds(show), None);
+        self.modify_state(|s: &mut AppState| s.show_h_bonds(show));
     }
 
     pub fn set_show_bezier_paths(&mut self, show: bool) {
-        self.modify_state(|s: &mut AppState| s.show_bezier_paths(show), None);
+        self.modify_state(|s: &mut AppState| s.show_bezier_paths(show));
     }
 
     pub fn set_all_helices_on_axis(&mut self, off_axis: bool) {
-        self.modify_state(|s: &mut AppState| s.set_all_helices_on_axis(off_axis), None);
+        self.modify_state(|s: &mut AppState| s.set_all_helices_on_axis(off_axis));
     }
 
     pub fn set_bezier_revolution_id(&mut self, id: Option<usize>) {
-        self.modify_state(|s: &mut AppState| s.set_bezier_revolution_id(id), None);
+        self.modify_state(|s: &mut AppState| s.set_bezier_revolution_id(id));
     }
 
     pub fn set_bezier_revolution_radius(&mut self, radius: f64) {
-        self.modify_state(
-            |s: &mut AppState| s.set_bezier_revolution_radius(radius),
-            None,
-        );
+        self.modify_state(|s: &mut AppState| s.set_bezier_revolution_radius(radius));
     }
 
     pub fn set_revolution_axis_position(&mut self, position: f64) {
-        self.modify_state(
-            |s: &mut AppState| s.set_revolution_axis_position(position),
-            None,
-        );
+        self.modify_state(|s: &mut AppState| s.set_revolution_axis_position(position));
     }
 
     /// Create a bezier plane where the user is looking at if there are no bezier plane yet.
@@ -632,7 +615,7 @@ impl MainState {
     }
 
     pub fn set_unrooted_surface(&mut self, surface: &Option<UnrootedRevolutionSurfaceDescriptor>) {
-        self.modify_state(|s: &mut AppState| s.set_unrooted_surface(surface), None);
+        self.modify_state(|s: &mut AppState| s.set_unrooted_surface(surface));
     }
 
     pub fn get_grid_creation_position(&self) -> Option<(Vec3, Rotor3)> {
@@ -652,29 +635,23 @@ impl MainState {
     }
 
     pub fn toggle_all_helices_on_axis(&mut self) {
-        self.modify_state(|s: &mut AppState| s.toggle_all_helices_on_axis(), None);
+        self.modify_state(|s: &mut AppState| s.toggle_all_helices_on_axis());
     }
 
     pub fn set_background_3d(&mut self, bg: Background3D) {
-        self.modify_state(|s: &mut AppState| s.set_background3d(bg), None);
+        self.modify_state(|s: &mut AppState| s.set_background3d(bg));
     }
 
     pub fn set_rendering_mode(&mut self, rendering_mode: RenderingMode) {
-        self.modify_state(
-            |s: &mut AppState| s.set_rendering_mode(rendering_mode),
-            None,
-        );
+        self.modify_state(|s: &mut AppState| s.set_rendering_mode(rendering_mode));
     }
 
     pub fn set_scroll_sensitivity(&mut self, sensitivity: f32) {
-        self.modify_state(
-            |s: &mut AppState| s.set_scroll_sensitivity(sensitivity),
-            None,
-        );
+        self.modify_state(|s: &mut AppState| s.set_scroll_sensitivity(sensitivity));
     }
 
     pub fn set_invert_y_scroll(&mut self, inverted: bool) {
-        self.modify_state(|s: &mut AppState| s.set_inverted_y_scroll(inverted), None);
+        self.modify_state(|s: &mut AppState| s.set_inverted_y_scroll(inverted));
     }
 
     pub fn gui_state(&self, multiplexer: &Multiplexer) -> TopBarStateFlags {

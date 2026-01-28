@@ -36,6 +36,7 @@ use crate::{
         operation::DesignOperation,
         selection::{CenterOfSelection, Selection},
     },
+    operation::{AppStateOperationOutcome, AppStateOperationResult},
     utils::operation::SimpleOperation,
 };
 use ensnano_design::{
@@ -114,7 +115,11 @@ impl AppState {
         Ok(Self(AddressPointer::new(with_forgot_update)))
     }
 
-    pub fn set_selection(&mut self, selection: &[Selection], selected_group: &Option<GroupId>) {
+    pub fn set_selection(
+        &mut self,
+        selection: &[Selection],
+        selected_group: &Option<GroupId>,
+    ) -> AppStateOperationResult {
         let mut selection = Vec::from(selection);
         let selected_group = *selected_group;
         selection.sort();
@@ -123,7 +128,7 @@ impl AppState {
         if self.0.selection.selection.content_equal(&selection)
             && selected_group == self.0.selection.selected_group
         {
-            return;
+            return Ok(AppStateOperationOutcome::NoOp);
         }
 
         let selection_len = selection.len();
@@ -138,48 +143,68 @@ impl AppState {
         // to the caller to set it to a certain value when applicable
         state.center_of_selection = None;
         if selection_len > 0 {
-            self.notify(InteractorNotification::NewSelection);
+            _ = self.notify(InteractorNotification::NewSelection);
         }
+
+        Ok(AppStateOperationOutcome::Push {
+            label: "Selection".into(),
+        })
     }
 
-    pub fn set_center_of_selection(&mut self, center: Option<CenterOfSelection>) {
+    pub fn set_center_of_selection(
+        &mut self,
+        center: Option<CenterOfSelection>,
+    ) -> AppStateOperationResult {
         if center == self.0.center_of_selection {
-            return;
+            return Ok(AppStateOperationOutcome::NoOp);
         }
 
         self.0.make_mut().center_of_selection = center;
+
+        Ok(AppStateOperationOutcome::Replace)
     }
 
-    pub fn set_candidates(&mut self, candidates: &[Selection]) {
+    pub fn set_candidates(&mut self, candidates: &[Selection]) -> AppStateOperationResult {
         let mut candidates = Vec::from(candidates);
 
         candidates.sort();
         candidates.dedup();
 
         if self.0.candidates.content_equal(&candidates) {
-            return;
+            return Ok(AppStateOperationOutcome::NoOp);
         }
 
         *self.0.make_mut().candidates.make_mut() = candidates;
+
+        Ok(AppStateOperationOutcome::Replace)
     }
 
-    pub fn set_selection_mode(&mut self, selection_mode: SelectionMode) {
+    pub fn set_selection_mode(&mut self, selection_mode: SelectionMode) -> AppStateOperationResult {
         self.0.make_mut().selection_mode = selection_mode;
+        Ok(AppStateOperationOutcome::Replace)
     }
 
-    pub fn set_suggestion_parameters(&mut self, suggestion_parameters: SuggestionParameters) {
+    pub fn set_suggestion_parameters(
+        &mut self,
+        suggestion_parameters: SuggestionParameters,
+    ) -> AppStateOperationResult {
         self.0.make_mut().parameters.suggestion_parameters = suggestion_parameters;
+        Ok(AppStateOperationOutcome::Replace)
     }
 
-    pub fn set_ui_size(&mut self, ui_size: UiSize) {
-        self.update_parameters(|p| p.ui_size = ui_size);
+    pub fn set_ui_size(&mut self, ui_size: UiSize) -> AppStateOperationResult {
+        self.update_parameters(|p| p.ui_size = ui_size)
     }
 
-    pub fn set_action_mode(&mut self, action_mode: ActionMode) {
+    pub fn set_action_mode(&mut self, action_mode: ActionMode) -> AppStateOperationResult {
         self.0.make_mut().action_mode = action_mode;
+        Ok(AppStateOperationOutcome::Replace)
     }
 
-    pub fn set_strand_on_helix(&mut self, parameters: Option<(isize, usize)>) {
+    pub fn set_strand_on_helix(
+        &mut self,
+        parameters: Option<(isize, usize)>,
+    ) -> AppStateOperationResult {
         let new_strand_parameters =
             parameters.map(|(start, length)| NewHelixStrand { length, start });
         if let ActionMode::BuildHelix { .. } = self.0.action_mode {
@@ -197,20 +222,26 @@ impl AppState {
                 length,
                 position: start,
             };
+            return Ok(AppStateOperationOutcome::Replace);
         }
+
+        Ok(AppStateOperationOutcome::NoOp)
     }
 
-    pub fn set_exporting(&mut self, exporting: bool) {
+    pub fn set_exporting(&mut self, exporting: bool) -> AppStateOperationResult {
         self.0.make_mut().exporting = exporting;
+        Ok(AppStateOperationOutcome::Replace)
     }
 
-    pub fn toggle_widget_basis(&mut self) {
+    pub fn toggle_widget_basis(&mut self) -> AppStateOperationResult {
         self.0.make_mut().widget_basis.toggle();
+        Ok(AppStateOperationOutcome::Replace)
     }
 
     #[cfg(test)]
-    pub fn update_design(&mut self, design: Design) {
+    pub fn update_design(&mut self, design: Design) -> AppStateOperationResult {
         self.0.make_mut().design.make_mut().update_design(design);
+        Ok(AppStateOperationOutcome::Replace)
     }
 
     pub fn import_design(mut path: PathBuf) -> Result<Self, LoadDesignError> {
@@ -332,7 +363,7 @@ impl AppState {
                 self.set_interactor(design);
 
                 if let Some(selection) = new_selection {
-                    self.set_selection(&selection, &None);
+                    _ = self.set_selection(&selection, &None);
                 }
 
                 if let Some(state) = previous_state {
@@ -349,7 +380,7 @@ impl AppState {
                 self.set_interactor(design);
 
                 if let Some(selection) = new_selection {
-                    self.set_selection(&selection, &None);
+                    _ = self.set_selection(&selection, &None);
                 }
 
                 Ok(OperationUndoability::NotUndoable)
@@ -361,8 +392,10 @@ impl AppState {
         }
     }
 
-    pub fn notify(&mut self, notification: InteractorNotification) {
+    pub fn notify(&mut self, notification: InteractorNotification) -> AppStateOperationResult {
         self.0.make_mut().design.make_mut().notify(notification);
+
+        Ok(AppStateOperationOutcome::Replace)
     }
 
     pub fn finish_operation(&self) {
@@ -394,78 +427,91 @@ impl AppState {
         self.0.design.as_ref().is_changing_color()
     }
 
-    pub fn prepare_for_replacement(&mut self, source: &Self) {
-        self.set_candidates(&[]);
-        self.set_action_mode(source.0.action_mode);
-        self.set_selection_mode(source.0.selection_mode);
-        self.set_suggestion_parameters(source.0.parameters.suggestion_parameters);
-        self.set_check_xovers_parameters(source.0.parameters.check_xover_parameters);
-        self.update_parameters(|p| *p = source.0.parameters.clone());
+    pub fn prepare_for_replacement(&mut self, source: &Self) -> AppStateOperationResult {
+        _ = self.set_candidates(&[]);
+        _ = self.set_action_mode(source.0.action_mode);
+        _ = self.set_selection_mode(source.0.selection_mode);
+        _ = self.set_suggestion_parameters(source.0.parameters.suggestion_parameters);
+        _ = self.set_check_xovers_parameters(source.0.parameters.check_xover_parameters);
+        _ = self.update_parameters(|p| *p = source.0.parameters.clone());
+        Ok(AppStateOperationOutcome::Replace)
     }
 
-    pub fn set_check_xovers_parameters(&mut self, check_xover_parameters: CheckXoversParameter) {
-        self.update_parameters(|p| p.check_xover_parameters = check_xover_parameters);
+    pub fn set_check_xovers_parameters(
+        &mut self,
+        check_xover_parameters: CheckXoversParameter,
+    ) -> AppStateOperationResult {
+        self.update_parameters(|p| p.check_xover_parameters = check_xover_parameters)
     }
 
-    pub fn set_follow_stereographic_camera(&mut self, follow: bool) {
-        self.update_parameters(|p| p.follow_stereography = follow);
+    pub fn set_follow_stereographic_camera(&mut self, follow: bool) -> AppStateOperationResult {
+        self.update_parameters(|p| p.follow_stereography = follow)
     }
 
-    pub fn set_show_stereographic_camera(&mut self, show: bool) {
-        self.update_parameters(|p| p.show_stereography = show);
+    pub fn set_show_stereographic_camera(&mut self, show: bool) -> AppStateOperationResult {
+        self.update_parameters(|p| p.show_stereography = show)
     }
 
-    pub fn show_h_bonds(&mut self, show: HBondDisplay) {
-        self.update_parameters(|p| p.show_h_bonds = show);
+    pub fn show_h_bonds(&mut self, show: HBondDisplay) -> AppStateOperationResult {
+        self.update_parameters(|p| p.show_h_bonds = show)
     }
 
-    pub fn show_bezier_paths(&mut self, show: bool) {
-        self.update_parameters(|p| p.show_bezier_paths = show);
+    pub fn show_bezier_paths(&mut self, show: bool) -> AppStateOperationResult {
+        self.update_parameters(|p| p.show_bezier_paths = show)
     }
 
-    pub fn set_all_helices_on_axis(&mut self, on_axis: bool) {
-        self.update_parameters(|p| p.all_helices_on_axis = on_axis);
+    pub fn set_all_helices_on_axis(&mut self, on_axis: bool) -> AppStateOperationResult {
+        self.update_parameters(|p| p.all_helices_on_axis = on_axis)
     }
 
-    pub fn set_bezier_revolution_id(&mut self, id: Option<usize>) {
+    pub fn set_bezier_revolution_id(&mut self, id: Option<usize>) -> AppStateOperationResult {
         self.0.make_mut().unrooted_surface.bezier_path_id = id.map(|id| BezierPathId(id as u32));
+        Ok(AppStateOperationOutcome::Replace)
     }
 
-    pub fn set_bezier_revolution_radius(&mut self, radius: f64) {
+    pub fn set_bezier_revolution_radius(&mut self, radius: f64) -> AppStateOperationResult {
         self.0.make_mut().set_surface_revolution_radius(radius);
+        Ok(AppStateOperationOutcome::Replace)
     }
 
-    pub fn set_revolution_axis_position(&mut self, position: f64) {
+    pub fn set_revolution_axis_position(&mut self, position: f64) -> AppStateOperationResult {
         self.0.make_mut().set_surface_axis_position(position);
+        Ok(AppStateOperationOutcome::Replace)
     }
 
-    pub fn set_unrooted_surface(&mut self, surface: &Option<UnrootedRevolutionSurfaceDescriptor>) {
+    pub fn set_unrooted_surface(
+        &mut self,
+        surface: &Option<UnrootedRevolutionSurfaceDescriptor>,
+    ) -> AppStateOperationResult {
         if self.0.unrooted_surface.descriptor.as_ref() != surface.as_ref() {
             self.0.make_mut().set_unrooted_surface(surface.clone());
+            return Ok(AppStateOperationOutcome::Replace);
         }
+
+        Ok(AppStateOperationOutcome::NoOp)
     }
 
-    pub fn toggle_all_helices_on_axis(&mut self) {
-        self.update_parameters(|p| p.all_helices_on_axis ^= true);
+    pub fn toggle_all_helices_on_axis(&mut self) -> AppStateOperationResult {
+        self.update_parameters(|p| p.all_helices_on_axis ^= true)
     }
 
-    pub fn set_background3d(&mut self, bg: Background3D) {
-        self.update_parameters(|p| p.background3d = bg);
+    pub fn set_background3d(&mut self, bg: Background3D) -> AppStateOperationResult {
+        self.update_parameters(|p| p.background3d = bg)
     }
 
-    pub fn set_rendering_mode(&mut self, rendering_mode: RenderingMode) {
-        self.update_parameters(|p| p.rendering_mode = rendering_mode);
+    pub fn set_rendering_mode(&mut self, rendering_mode: RenderingMode) -> AppStateOperationResult {
+        self.update_parameters(|p| p.rendering_mode = rendering_mode)
     }
 
-    pub fn set_scroll_sensitivity(&mut self, sensitivity: f32) {
-        self.update_parameters(|p| p.scroll_sensitivity = sensitivity);
+    pub fn set_scroll_sensitivity(&mut self, sensitivity: f32) -> AppStateOperationResult {
+        self.update_parameters(|p| p.scroll_sensitivity = sensitivity)
     }
 
-    pub fn set_inverted_y_scroll(&mut self, inverted: bool) {
-        self.update_parameters(|p| p.inverted_y_scroll = inverted);
+    pub fn set_inverted_y_scroll(&mut self, inverted: bool) -> AppStateOperationResult {
+        self.update_parameters(|p| p.inverted_y_scroll = inverted)
     }
 
-    fn update_parameters<F>(&mut self, update: F)
+    fn update_parameters<F>(&mut self, update: F) -> AppStateOperationResult
     where
         F: Fn(&mut AppStateParameters),
     {
@@ -473,6 +519,7 @@ impl AppState {
         if let Err(e) = confy::store(APP_NAME, APP_NAME, self.0.parameters.clone()) {
             log::error!("Could not save preferences {e:?}");
         }
+        Ok(AppStateOperationOutcome::Replace)
     }
 
     pub fn get_pasting_status(&self) -> PastingStatus {
@@ -595,8 +642,9 @@ impl AppState {
         self.0.design.get_simulation_state()
     }
 
-    pub fn set_expand_insertion_set(&mut self, expand: bool) {
+    pub fn set_expand_insertion_set(&mut self, expand: bool) -> AppStateOperationResult {
         self.0.make_mut().show_insertion_discriminants = !expand;
+        Ok(AppStateOperationOutcome::Replace)
     }
 
     pub fn get_new_selection(&self) -> Option<Vec<Selection>> {
