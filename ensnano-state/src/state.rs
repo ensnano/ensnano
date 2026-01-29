@@ -203,18 +203,6 @@ impl MainState {
 
     pub fn apply_design_operation(&mut self, operation: DesignOperation) {
         log::debug!("Applying operation {operation:?}");
-        // let result = self.app_state.apply_design_op(operation.clone());
-        // match self.app_state.apply_design_op(operation.clone()) {
-        //     Err(OperationError::FinishFirst) => {
-        //         self.modify_state(|s: &mut AppState| {
-        //             s.notify(InteractorNotification::FinishOperation)
-        //         });
-        //         self.apply_design_operation(operation);
-        //     }
-        //     _ => {
-        //         self.apply_operation_result(result);
-        //     }
-        // }
 
         self.modify_state(move |app_state: &mut AppState| {
             let mut result = app_state.apply_design_op(operation.clone());
@@ -418,24 +406,6 @@ impl MainState {
     pub fn optimize_shift(&mut self) {
         self.modify_state(|app_state: &mut AppState| app_state.optimize_shift());
     }
-
-    // pub fn apply_operation_result(&mut self, result: Result<OperationUndoability, OperationError>) {
-    //     match result {
-    //         Ok(OperationUndoability::Undoable { state, label }) => {
-    //             self.save_old_state(state, label);
-    //         }
-    //         Ok(OperationUndoability::NotUndoable) => (),
-    //         Err(e) => log::warn!("{e:?}"),
-    //     }
-    //     if let Some(new_selection) = self.app_state.get_new_selection() {
-    //         // we ignore and override the result of the set_selection
-    //         // to not make it a reversable operation
-    //         self.modify_state(|s: &mut AppState| {
-    //             _ = s.set_selection(&new_selection, &None);
-    //             Ok(AppStateOperationOutcome::Replace)
-    //         });
-    //     }
-    // }
 
     pub fn request_copy(&mut self) {
         let reader = self.app_state.get_design_interactor();
