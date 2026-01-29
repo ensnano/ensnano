@@ -379,7 +379,10 @@ impl MainState {
                 }
             }
             Ok(AppStateOperationOutcome::Replace | AppStateOperationOutcome::NoOp) => {}
-            Err(e) => log::warn!("{e:?}"),
+            Err(e) => {
+                self.app_state = old_state;
+                log::warn!("{e:?}");
+            }
         }
     }
 
