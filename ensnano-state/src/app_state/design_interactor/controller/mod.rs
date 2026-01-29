@@ -16,7 +16,7 @@ use self::{
 };
 use crate::{
     app_state::{
-        AddressPointer, channel_reader::ChannelReader,
+        AddressPointer, channel_reader::ScaffoldShiftReader,
         design_interactor::controller::simulations::SimulationInterface,
     },
     design::{
@@ -395,8 +395,6 @@ impl Controller {
             }
         }
 
-        println!("is returned : {}", returned_interface.is_some());
-
         Ok((
             AppStateOperationOutcome::Push {
                 label: "Simulation".into(),
@@ -724,27 +722,26 @@ impl Controller {
     }
 
     pub fn optimize_shift(
-        &self,
-        chanel_reader: &mut ChannelReader,
+        &mut self,
+        chanel_reader: &mut ScaffoldShiftReader,
         nucl_collection: Arc<NuclCollection>,
         design: &Design,
-    ) -> Result<(OperationResult, Self), OperationError> {
+    ) -> AppStateOperationResult {
         match self.check_compatibility(&DesignOperation::SetScaffoldShift(0)) {
             OperationCompatibility::Incompatible => Err(OperationError::IncompatibleState(
                 self.state.state_name().to_owned(),
             )),
-            OperationCompatibility::Compatible | OperationCompatibility::FinishFirst => Ok(self
-                .ok_no_op(
-                    |c, d| c.start_shift_optimization(d, chanel_reader, nucl_collection),
-                    design,
-                )),
+            OperationCompatibility::Compatible | OperationCompatibility::FinishFirst => {
+                self.start_shift_optimization(design, chanel_reader, nucl_collection);
+                Ok(AppStateOperationOutcome::NoOp)
+            }
         }
     }
 
     fn start_shift_optimization(
         &mut self,
         design: &Design,
-        chanel_reader: &mut ChannelReader,
+        chanel_reader: &mut ScaffoldShiftReader,
         nucl_collection: Arc<NuclCollection>,
     ) {
         self.state = ControllerState::OptimizingScaffoldPosition;
@@ -959,16 +956,6 @@ impl Controller {
                 StatePersistence::Transitory
             }
         }
-    }
-
-    /// Apply an operation that modifies the interactor and not the design, and that cannot fail.
-    fn ok_no_op<F>(&self, interactor_op: F, design: &Design) -> (OperationResult, Self)
-    where
-        F: FnOnce(&mut Self, &Design),
-    {
-        let mut new_controller = self.clone();
-        interactor_op(&mut new_controller, design);
-        (OperationResult::NoOp, new_controller)
     }
 
     fn apply<F>(

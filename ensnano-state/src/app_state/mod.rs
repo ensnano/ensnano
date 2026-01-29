@@ -20,7 +20,7 @@ use ensnano_design::Design;
 
 use self::{
     address_pointer::AddressPointer,
-    channel_reader::ChannelReader,
+    channel_reader::ScaffoldShiftReader,
     design_interactor::{
         DesignInteractor, InteractorResult,
         controller::{
@@ -339,7 +339,6 @@ impl AppState {
             .update_simulation(operation)?;
 
         if let Some(interface) = interface {
-            println!("updating simulation");
             self.0
                 .make_mut()
                 .simulation_interface_handle
@@ -533,12 +532,13 @@ impl AppState {
         self.0.design.can_iterate_duplication()
     }
 
-    pub fn optimize_shift(
-        &mut self,
-        reader: &mut ChannelReader,
-    ) -> Result<OperationUndoability, OperationError> {
-        let result = self.0.design.optimize_shift(reader);
-        self.handle_operation_result(result)
+    pub fn optimize_shift(&mut self) -> AppStateOperationResult {
+        let mut reader = self.0.channel_reader.clone();
+        self.0
+            .make_mut()
+            .design
+            .make_mut()
+            .optimize_shift(&mut reader)
     }
 
     pub fn is_in_stable_state(&self) -> bool {
@@ -677,6 +677,8 @@ pub struct AppState_ {
     pub path_to_current_design: Option<PathBuf>,
     pub unrooted_surface: CurrentUnrootedSurface,
     pub simulation_interface_handle: SimulationInterfaceHandle,
+    // channel reader for simulations
+    pub channel_reader: ScaffoldShiftReader,
 }
 
 #[derive(Clone, Default)]

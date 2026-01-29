@@ -1,15 +1,15 @@
+use crate::app_state::transitions::OperationUndoability;
 use crate::multiplexer::Multiplexer;
 use crate::operation::{AppStateOperation, AppStateOperationOutcome};
 use crate::{
     app_state::{
         AppState, SaveDesignError,
         action::Action,
-        channel_reader::ChannelReader,
         design_interactor::controller::{
             InteractorNotification, OperationError, clipboard::CopyOperation,
             simulations::SimulationOperation,
         },
-        transitions::{AppStateTransition, OperationUndoability, TransitionLabel},
+        transitions::{AppStateTransition, TransitionLabel},
     },
     design::{
         operation::DesignOperation,
@@ -79,8 +79,6 @@ pub struct MainState {
     pub applications_cursor: Option<CursorIcon>,
     pub gui_cursor: CursorIcon,
     pub cursor: CursorIcon,
-    // channel reader for simulations
-    pub channel_reader: ChannelReader,
 }
 
 impl MainState {
@@ -108,7 +106,6 @@ impl MainState {
             applications_cursor: None,
             gui_cursor: Default::default(),
             cursor: Default::default(),
-            channel_reader: Default::default(),
         }
     }
 
@@ -410,9 +407,7 @@ impl MainState {
     }
 
     pub fn optimize_shift(&mut self) {
-        let reader = &mut self.channel_reader;
-        let result = self.app_state.optimize_shift(reader);
-        self.apply_operation_result(result);
+        self.modify_state(|app_state: &mut AppState| app_state.optimize_shift());
     }
 
     pub fn apply_operation_result(&mut self, result: Result<OperationUndoability, OperationError>) {

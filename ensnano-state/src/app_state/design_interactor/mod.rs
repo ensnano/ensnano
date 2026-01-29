@@ -11,7 +11,7 @@ use self::{
 };
 use crate::{
     app_state::{
-        SaveDesignError, address_pointer::AddressPointer, channel_reader::ChannelReader,
+        SaveDesignError, address_pointer::AddressPointer, channel_reader::ScaffoldShiftReader,
         design_interactor::controller::simulations::SimulationInterface,
     },
     design::{operation::DesignOperation, selection::Selection},
@@ -58,14 +58,13 @@ pub struct DesignInteractor {
 
 impl DesignInteractor {
     pub(super) fn optimize_shift(
-        &self,
-        reader: &mut ChannelReader,
-    ) -> Result<InteractorResult, OperationError> {
+        &mut self,
+        reader: &mut ScaffoldShiftReader,
+    ) -> AppStateOperationResult {
         let nucl_map = self.presenter.get_owned_nucl_collection();
-        let result = self
-            .controller
-            .optimize_shift(reader, nucl_map, &self.design);
-        self.handle_operation_result(result)
+        self.controller
+            .make_mut()
+            .optimize_shift(reader, nucl_map, &self.design)
     }
 
     pub(super) fn is_building_hyperboloid(&self) -> bool {

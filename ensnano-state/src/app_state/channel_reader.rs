@@ -7,10 +7,10 @@ use crate::app_state::design_interactor::{
 };
 use std::sync::{Arc, Mutex, Weak, mpsc};
 
-#[derive(Default)]
-pub struct ChannelReader {
-    scaffold_shift_optimization_progress: Option<mpsc::Receiver<f32>>,
-    scaffold_shift_optimization_result: Option<mpsc::Receiver<ShiftOptimizationResult>>,
+#[derive(Default, Clone)]
+pub struct ScaffoldShiftReader {
+    scaffold_shift_optimization_progress: Option<Arc<Mutex<mpsc::Receiver<f32>>>>,
+    scaffold_shift_optimization_result: Option<Arc<Mutex<mpsc::Receiver<ShiftOptimizationResult>>>>,
 }
 
 #[derive(Default, Clone)]
@@ -30,7 +30,7 @@ pub enum SimulationInterfaceUpdate {
     SimulationExpired,
 }
 
-impl ChannelReader {
+impl ScaffoldShiftReader {
     pub fn get_updates(&mut self) -> Vec<ChannelReaderUpdate> {
         let mut updates = Vec::new();
         if let Some(progress) = self.get_scaffold_shift_optimization_progress() {
@@ -47,21 +47,21 @@ impl ChannelReader {
     fn get_scaffold_shift_optimization_progress(&self) -> Option<f32> {
         self.scaffold_shift_optimization_progress
             .as_ref()
-            .and_then(|chanel| chanel.try_recv().ok())
+            .and_then(|channel| channel.lock().unwrap().try_recv().ok())
     }
 
     fn get_scaffold_shift_optimization_result(&self) -> Option<ShiftOptimizationResult> {
         self.scaffold_shift_optimization_result
             .as_ref()
-            .and_then(|chanel| chanel.try_recv().ok())
+            .and_then(|channel| channel.lock().unwrap().try_recv().ok())
     }
 
-    pub fn attach_result_chanel(&mut self, chanel: mpsc::Receiver<ShiftOptimizationResult>) {
-        self.scaffold_shift_optimization_result = Some(chanel);
+    pub fn attach_result_chanel(&mut self, channel: mpsc::Receiver<ShiftOptimizationResult>) {
+        self.scaffold_shift_optimization_result = Some(Arc::new(Mutex::new(channel)));
     }
 
-    pub fn attach_progress_chanel(&mut self, chanel: mpsc::Receiver<f32>) {
-        self.scaffold_shift_optimization_progress = Some(chanel);
+    pub fn attach_progress_chanel(&mut self, channel: mpsc::Receiver<f32>) {
+        self.scaffold_shift_optimization_progress = Some(Arc::new(Mutex::new(channel)));
     }
 }
 

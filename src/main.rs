@@ -502,7 +502,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 resized |= first_iteration;
                 first_iteration = false;
 
-                for update in main_state.channel_reader.get_updates() {
+                for update in main_state
+                    .app_state
+                    .0
+                    .make_mut()
+                    .channel_reader
+                    .get_updates()
+                {
                     match update {
                         ChannelReaderUpdate::ScaffoldShiftOptimizationProgress(x) => {
                             main_state
