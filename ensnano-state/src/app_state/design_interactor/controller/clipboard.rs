@@ -1,9 +1,16 @@
-use crate::app_state::{
-    address_pointer::AddressPointer,
-    design_interactor::controller::{Controller, ControllerState, DuplicationEdge, OperationError},
+use std::borrow::Cow;
+
+use crate::{
+    app_state::{
+        address_pointer::AddressPointer,
+        design_interactor::controller::{
+            Controller, ControllerState, DuplicationEdge, OperationError,
+        },
+    },
+    operation::{AppStateOperationOutcome, AppStateOperationResult},
 };
 use ensnano_design::{
-    Design, MutStrandAndData, UpToDateDesign,
+    Design, MutStrandAndData,
     domains::{Domain, helix_interval::HelixInterval},
     grid::{Edge, GridData, GridId, GridPosition, HelixGridPosition, grid_collection::FreeGridId},
     helices::Helices,
@@ -137,17 +144,17 @@ impl Controller {
 
     pub fn set_templates(
         &mut self,
-        data: &UpToDateDesign,
+        design: &Design,
+        grid_data: &GridData,
         strand_ids: Vec<usize>,
     ) -> Result<(), OperationError> {
         let mut templates = Vec::with_capacity(strand_ids.len());
         for id in &strand_ids {
-            let strand = data
-                .design
+            let strand = design
                 .strands
                 .get(id)
                 .ok_or(OperationError::StrandDoesNotExist(*id))?;
-            let template = self.strand_to_template(strand, &data.design.helices, data.grid_data)?;
+            let template = self.strand_to_template(strand, &design.helices, grid_data)?;
             templates.push(template);
         }
         let mut edges = vec![];
@@ -159,9 +166,9 @@ impl Controller {
                     edges.push(Self::edge_between_strands(
                         *s_id1,
                         *s_id2,
-                        &data.design.helices,
-                        &data.design.strands,
-                        data.grid_data,
+                        &design.helices,
+                        &design.strands,
+                        grid_data,
                     ));
                 }
             }
@@ -268,18 +275,18 @@ impl Controller {
 
     pub(super) fn position_copy(
         &mut self,
-        mut design: Design,
+        design: &mut Design,
         position: Option<PastePosition>,
-    ) -> Result<Design, OperationError> {
+    ) -> Result<(), OperationError> {
         let mut data = design.mut_strand_and_data();
         match self.clipboard.as_ref() {
             Clipboard::Strands(_) => {
                 self.position_strand_copies(&mut data, position.and_then(PastePosition::to_nucl))?;
-                Ok(design)
+                Ok(())
             }
             Clipboard::Xovers(_) => {
-                self.position_xover_copies(&mut design, position.and_then(PastePosition::to_nucl))?;
-                Ok(design)
+                self.position_xover_copies(design, position.and_then(PastePosition::to_nucl))?;
+                Ok(())
             }
             Clipboard::Grids(grid_ids) => {
                 let grid_ids: Vec<_> = grid_ids
@@ -289,14 +296,14 @@ impl Controller {
                 design
                     .copy_grids(&grid_ids, Vec3::zero(), Rotor3::identity())
                     .map_err(OperationError::GridCopyError)?;
-                Ok(design)
+                Ok(())
             }
             Clipboard::Empty => Err(OperationError::EmptyClipboard),
             Clipboard::Helices(helices) => {
                 let helices = helices.clone();
                 log::info!("positioning helices copy");
-                self.position_helices_copy(&mut design, helices, position)?;
-                Ok(design)
+                self.position_helices_copy(design, helices, position)?;
+                Ok(())
             }
         }
     }
@@ -508,38 +515,40 @@ impl Controller {
         true
     }
 
-    pub(super) fn apply_paste(&mut self, design: Design) -> Result<Design, OperationError> {
+    pub(super) fn apply_paste(&mut self, design: &mut Design) -> Result<(), OperationError> {
         match self.state {
             ControllerState::PastingXovers { .. }
             | ControllerState::DoingFirstXoversDuplication { .. } => {
-                self.apply_paste_xovers(design)
+                self.apply_paste_xovers();
             }
             ControllerState::PositioningStrandPastingPoint { .. }
             | ControllerState::PositioningStrandDuplicationPoint { .. } => {
-                self.apply_paste_strands(design)
+                self.apply_paste_strands(design)?;
             }
             ControllerState::PositioningHelicesPastingPoint { .. }
             | ControllerState::PositioningHelicesDuplicationPoint { .. } => {
-                self.apply_paste_helices(design)
+                self.apply_paste_helices();
             }
-            _ => Err(OperationError::IncompatibleState(format!(
-                "Duplication impossible in state {}",
-                self.state.state_name()
-            ))),
+            _ => {
+                return Err(OperationError::IncompatibleState(format!(
+                    "Duplication impossible in state {}",
+                    self.state.state_name()
+                )));
+            }
         }
+
+        Ok(())
     }
 
-    fn apply_paste_xovers(&mut self, design: Design) -> Result<Design, OperationError> {
+    fn apply_paste_xovers(&mut self) {
         self.state = ControllerState::Normal;
-        Ok(design)
     }
 
-    fn apply_paste_helices(&mut self, design: Design) -> Result<Design, OperationError> {
+    fn apply_paste_helices(&mut self) {
         self.state = ControllerState::Normal;
-        Ok(design)
     }
 
-    fn apply_paste_strands(&mut self, mut design: Design) -> Result<Design, OperationError> {
+    fn apply_paste_strands(&mut self, design: &mut Design) -> Result<(), OperationError> {
         let pasted_strands = match &self.state {
             ControllerState::PositioningStrandPastingPoint { pasted_strands, .. }
             | ControllerState::PositioningStrandDuplicationPoint { pasted_strands, .. } => {
@@ -550,9 +559,9 @@ impl Controller {
                 self.state.state_name()
             ))),
         }?;
-        Self::add_pasted_strands_to_design(&mut self.color_idx, &mut design, pasted_strands)?;
+        Self::add_pasted_strands_to_design(&mut self.color_idx, design, pasted_strands)?;
         self.state = ControllerState::Normal;
-        Ok(design)
+        Ok(())
     }
 
     fn add_pasted_strands_to_design(
@@ -586,10 +595,7 @@ impl Controller {
         Ok(())
     }
 
-    pub(super) fn apply_duplication(
-        &mut self,
-        mut design: Design,
-    ) -> Result<Design, OperationError> {
+    pub(super) fn apply_duplication(&mut self, design: &mut Design) -> Result<(), OperationError> {
         let state = &mut self.state;
         match state.clone() {
             ControllerState::PositioningStrandDuplicationPoint {
@@ -602,7 +608,7 @@ impl Controller {
                 if let Some((nucl, duplication_edge)) = pasting_point.zip(duplication_edge) {
                     Self::add_pasted_strands_to_design(
                         &mut self.color_idx,
-                        &mut design,
+                        design,
                         &pasted_strands,
                     )?;
                     *state = ControllerState::WithPendingStrandDuplication {
@@ -614,7 +620,7 @@ impl Controller {
                     // If it is not possible to duplicate here, cancel the duplication
                     self.state = ControllerState::Normal;
                 }
-                Ok(design)
+                Ok(())
             }
             ControllerState::WithPendingStrandDuplication {
                 last_pasting_point,
@@ -634,17 +640,13 @@ impl Controller {
                     .ok_or(OperationError::CannotPasteHere)?;
                 let (pasted_strands, _) =
                     self.paste_clipboard(&clipboard, new_duplication_point, &mut data)?;
-                Self::add_pasted_strands_to_design(
-                    &mut self.color_idx,
-                    &mut design,
-                    &pasted_strands,
-                )?;
+                Self::add_pasted_strands_to_design(&mut self.color_idx, design, &pasted_strands)?;
                 self.state = ControllerState::WithPendingStrandDuplication {
                     last_pasting_point: new_duplication_point,
                     duplication_edge,
                     clipboard,
                 };
-                Ok(design)
+                Ok(())
             }
             ControllerState::DoingFirstXoversDuplication {
                 xovers,
@@ -661,7 +663,7 @@ impl Controller {
                 } else {
                     self.state = ControllerState::Normal;
                 }
-                Ok(design)
+                Ok(())
             }
             ControllerState::WithPendingXoverDuplication {
                 last_pasting_point,
@@ -701,7 +703,7 @@ impl Controller {
                     duplication_edge,
                     xovers,
                 };
-                Ok(design)
+                Ok(())
             }
             ControllerState::WithPendingHelicesDuplication {
                 last_pasting_point,
@@ -741,7 +743,7 @@ impl Controller {
                     helices,
                 };
                 drop(helices_mut);
-                Ok(design)
+                Ok(())
             }
             ControllerState::PositioningHelicesDuplicationPoint {
                 pasting_point,
@@ -758,7 +760,7 @@ impl Controller {
                 } else {
                     self.state = ControllerState::Normal;
                 }
-                Ok(design)
+                Ok(())
             }
             _ => Err(OperationError::IncompatibleState(format!(
                 "Pasting helices impossible in state {}",
@@ -965,4 +967,86 @@ pub enum CopyOperation {
     PositionPastingPoint(Option<PastePosition>),
     Paste,
     Duplicate,
+}
+
+fn get_outcome(controller: &Controller, label: Cow<'static, str>) -> AppStateOperationOutcome {
+    if controller.is_in_persistent_state().is_persistent() {
+        AppStateOperationOutcome::Push { label }
+    } else {
+        AppStateOperationOutcome::Replace
+    }
+}
+
+impl CopyOperation {
+    // Assumes that the provided design has up to date grid data.
+    pub fn apply(
+        self,
+        controller: &mut Controller,
+        design: &mut Design,
+    ) -> AppStateOperationResult {
+        match self {
+            Self::CopyStrands(strand_ids) => {
+                controller.set_templates(design, design.get_unchecked_grid_data(), strand_ids)?;
+            }
+            Self::CopyXovers(xovers) => {
+                controller.copy_xovers(xovers)?;
+            }
+            Self::CopyHelices(helices) => {
+                controller.copy_helices(helices)?;
+            }
+            Self::PositionPastingPoint(nucl) => {
+                if controller.get_pasting_point() != Some(nucl) {
+                    if let Some(pasted_design) = controller.get_design_being_pasted_on() {
+                        *design = pasted_design.clone_inner();
+                    }
+                    controller.position_copy(design, nucl)?;
+                    return Ok(get_outcome(controller, "Position pasting point".into()));
+                }
+            }
+            Self::InitStrandsDuplication(strand_ids) => {
+                controller.set_templates(design, design.get_unchecked_grid_data(), strand_ids)?;
+                let clipboard = controller.clipboard.as_ref().get_strand_clipboard()?;
+                controller.state = ControllerState::PositioningStrandDuplicationPoint {
+                    pasted_strands: vec![],
+                    duplication_edge: None,
+                    pasting_point: None,
+                    clipboard,
+                };
+            }
+            Self::Duplicate => {
+                controller.apply_duplication(design)?;
+                return Ok(get_outcome(controller, "Duplicate".into()));
+            }
+            Self::Paste => {
+                log::info!("nb helices {}", design.helices.len());
+                controller.apply_paste(design)?;
+                return Ok(AppStateOperationOutcome::Push {
+                    label: "Paste".into(),
+                });
+            }
+            Self::InitXoverDuplication(xovers) => {
+                controller.copy_xovers(xovers.clone())?;
+                controller.state = ControllerState::DoingFirstXoversDuplication {
+                    initial_design: AddressPointer::new(design.clone()),
+                    duplication_edge: None,
+                    pasting_point: None,
+                    xovers,
+                };
+            }
+            Self::InitHelicesDuplication(helices) => {
+                controller.copy_helices(helices.clone())?;
+                controller.state = ControllerState::PositioningHelicesDuplicationPoint {
+                    pasting_point: None,
+                    duplication_edge: None,
+                    initial_design: AddressPointer::new(design.clone()),
+                    helices,
+                };
+            }
+            Self::CopyGrids(grid_ids) => {
+                controller.copy_grids(design, grid_ids)?;
+            }
+        }
+
+        Ok(AppStateOperationOutcome::NoOp)
+    }
 }

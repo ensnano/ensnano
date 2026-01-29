@@ -30,7 +30,7 @@ use crate::{
     utils::operation::{SimpleOperation, TranslateBezierPathVertex},
 };
 use ensnano_design::{
-    CameraId, Design, UpToDateDesign,
+    CameraId, Design,
     bezier_plane::{
         BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
         import_from_svg::{SvgImportError, read_first_svg_path},
@@ -147,87 +147,11 @@ impl Controller {
     }
 
     pub fn apply_copy_operation(
-        &self,
-        up_to_date_design: UpToDateDesign,
+        &mut self,
+        design: &mut Design,
         operation: CopyOperation,
-    ) -> Result<(OperationResult, Self), OperationError> {
-        match operation {
-            CopyOperation::CopyStrands(strand_ids) => self.apply_no_op(
-                |c, _d| c.set_templates(&up_to_date_design, strand_ids),
-                up_to_date_design.design,
-            ),
-            CopyOperation::CopyXovers(xovers) => {
-                self.apply_no_op(|c, _d| c.copy_xovers(xovers), up_to_date_design.design)
-            }
-            CopyOperation::CopyHelices(helices) => {
-                self.apply_no_op(|c, _d| c.copy_helices(helices), up_to_date_design.design)
-            }
-            CopyOperation::PositionPastingPoint(nucl) => {
-                if self.get_pasting_point() == Some(nucl) {
-                    Ok((OperationResult::NoOp, self.clone()))
-                } else {
-                    let design_pasted_on = if let Some(p) = self.get_design_being_pasted_on() {
-                        p.as_ref()
-                    } else {
-                        up_to_date_design.design
-                    };
-                    self.apply(|c, d| c.position_copy(d, nucl), design_pasted_on)
-                }
-            }
-            CopyOperation::InitStrandsDuplication(strand_ids) => self.apply_no_op(
-                |c, _d| {
-                    c.set_templates(&up_to_date_design, strand_ids)?;
-                    let clipboard = c.clipboard.as_ref().get_strand_clipboard()?;
-                    c.state = ControllerState::PositioningStrandDuplicationPoint {
-                        pasted_strands: vec![],
-                        duplication_edge: None,
-                        pasting_point: None,
-                        clipboard,
-                    };
-                    Ok(())
-                },
-                up_to_date_design.design,
-            ),
-            CopyOperation::Duplicate => {
-                self.apply(Self::apply_duplication, up_to_date_design.design)
-            }
-            CopyOperation::Paste => {
-                log::info!("nb helices {}", up_to_date_design.design.helices.len());
-                self.make_undoable(
-                    self.apply(Self::apply_paste, up_to_date_design.design),
-                    "Paste".into(),
-                )
-            }
-            CopyOperation::InitXoverDuplication(xovers) => self.apply_no_op(
-                |c, d| {
-                    c.copy_xovers(xovers.clone())?;
-                    c.state = ControllerState::DoingFirstXoversDuplication {
-                        initial_design: AddressPointer::new(d.clone()),
-                        duplication_edge: None,
-                        pasting_point: None,
-                        xovers,
-                    };
-                    Ok(())
-                },
-                up_to_date_design.design,
-            ),
-            CopyOperation::InitHelicesDuplication(helices) => self.apply_no_op(
-                |c, d| {
-                    c.copy_helices(helices.clone())?;
-                    c.state = ControllerState::PositioningHelicesDuplicationPoint {
-                        pasting_point: None,
-                        duplication_edge: None,
-                        initial_design: AddressPointer::new(d.clone()),
-                        helices,
-                    };
-                    Ok(())
-                },
-                up_to_date_design.design,
-            ),
-            CopyOperation::CopyGrids(grid_ids) => {
-                self.apply_no_op(|c, d| c.copy_grids(d, grid_ids), up_to_date_design.design)
-            }
-        }
+    ) -> AppStateOperationResult {
+        operation.apply(self, design)
     }
 
     fn check_state_compatible_with_simulation(&self) -> Result<(), OperationError> {
@@ -887,14 +811,6 @@ impl Controller {
         }
     }
 
-    fn return_design(&self, design: Design, label: Cow<'static, str>) -> OperationResult {
-        if self.is_in_persistent_state().is_persistent() {
-            OperationResult::Push { design, label }
-        } else {
-            OperationResult::Replace(design)
-        }
-    }
-
     pub fn get_simulation_state(&self) -> SimulationState {
         match self.state {
             ControllerState::Simulating { .. } => SimulationState::RigidHelices,
@@ -956,50 +872,6 @@ impl Controller {
                 StatePersistence::Transitory
             }
         }
-    }
-
-    fn apply<F>(
-        &self,
-        design_op: F,
-        design: &Design,
-    ) -> Result<(OperationResult, Self), OperationError>
-    where
-        F: FnOnce(&mut Self, Design) -> Result<Design, OperationError>,
-    {
-        let mut new_controller = self.clone();
-        let returned_design = design_op(&mut new_controller, design.clone())?;
-        Ok((
-            self.return_design(returned_design, "".into()),
-            new_controller,
-        ))
-    }
-
-    fn make_undoable(
-        &self,
-        result: Result<(OperationResult, Self), OperationError>,
-        label: Cow<'static, str>,
-    ) -> Result<(OperationResult, Self), OperationError> {
-        if self.state.is_undoable_once() {
-            match result {
-                Ok((ok_op, interactor)) => Ok((ok_op.into_undoable(label), interactor)),
-                Err(e) => Err(e),
-            }
-        } else {
-            result
-        }
-    }
-
-    fn apply_no_op<F>(
-        &self,
-        interactor_op: F,
-        design: &Design,
-    ) -> Result<(OperationResult, Self), OperationError>
-    where
-        F: FnOnce(&mut Self, &Design) -> Result<(), OperationError>,
-    {
-        let mut new_controller = self.clone();
-        interactor_op(&mut new_controller, design)?;
-        Ok((OperationResult::NoOp, new_controller))
     }
 
     pub fn turn_selection_into_grid(
@@ -3020,15 +2892,6 @@ pub enum OperationResult {
     NoOp,
 }
 
-impl OperationResult {
-    fn into_undoable(self, label: Cow<'static, str>) -> Self {
-        match self {
-            Self::Replace(design) | Self::Push { design, .. } => Self::Push { design, label },
-            Self::NoOp => Self::NoOp,
-        }
-    }
-}
-
 // Some values are only used for logging the error, which Rust considers to be unused
 #[derive(Debug)]
 pub enum OperationError {
@@ -3455,14 +3318,14 @@ impl ControllerState {
         }
     }
 
-    /// Return true if the operation is undoable only when going from this state to normal
-    fn is_undoable_once(&self) -> bool {
-        matches!(
-            self,
-            Self::PositioningStrandDuplicationPoint { .. }
-                | Self::PositioningStrandPastingPoint { .. }
-        )
-    }
+    // /// Return true if the operation is undoable only when going from this state to normal
+    // fn is_undoable_once(&self) -> bool {
+    //     matches!(
+    //         self,
+    //         Self::PositioningStrandDuplicationPoint { .. }
+    //             | Self::PositioningStrandPastingPoint { .. }
+    //     )
+    // }
 }
 
 #[derive(Copy, Clone)]

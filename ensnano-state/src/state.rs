@@ -1,4 +1,3 @@
-use crate::app_state::transitions::OperationUndoability;
 use crate::multiplexer::Multiplexer;
 use crate::operation::{AppStateOperation, AppStateOperationOutcome};
 use crate::{
@@ -199,8 +198,7 @@ impl MainState {
     }
 
     pub fn apply_copy_operation(&mut self, operation: CopyOperation) {
-        let result = self.app_state.apply_copy_operation(operation);
-        self.apply_operation_result(result);
+        self.modify_state(|app_state: &mut AppState| app_state.apply_copy_operation(operation));
     }
 
     pub fn apply_design_operation(&mut self, operation: DesignOperation) {
@@ -410,23 +408,23 @@ impl MainState {
         self.modify_state(|app_state: &mut AppState| app_state.optimize_shift());
     }
 
-    pub fn apply_operation_result(&mut self, result: Result<OperationUndoability, OperationError>) {
-        match result {
-            Ok(OperationUndoability::Undoable { state, label }) => {
-                self.save_old_state(state, label);
-            }
-            Ok(OperationUndoability::NotUndoable) => (),
-            Err(e) => log::warn!("{e:?}"),
-        }
-        if let Some(new_selection) = self.app_state.get_new_selection() {
-            // we ignore and override the result of the set_selection
-            // to not make it a reversable operation
-            self.modify_state(|s: &mut AppState| {
-                _ = s.set_selection(&new_selection, &None);
-                Ok(AppStateOperationOutcome::Replace)
-            });
-        }
-    }
+    // pub fn apply_operation_result(&mut self, result: Result<OperationUndoability, OperationError>) {
+    //     match result {
+    //         Ok(OperationUndoability::Undoable { state, label }) => {
+    //             self.save_old_state(state, label);
+    //         }
+    //         Ok(OperationUndoability::NotUndoable) => (),
+    //         Err(e) => log::warn!("{e:?}"),
+    //     }
+    //     if let Some(new_selection) = self.app_state.get_new_selection() {
+    //         // we ignore and override the result of the set_selection
+    //         // to not make it a reversable operation
+    //         self.modify_state(|s: &mut AppState| {
+    //             _ = s.set_selection(&new_selection, &None);
+    //             Ok(AppStateOperationOutcome::Replace)
+    //         });
+    //     }
+    // }
 
     pub fn request_copy(&mut self) {
         let reader = self.app_state.get_design_interactor();
@@ -544,8 +542,7 @@ impl MainState {
     }
 
     pub fn set_visibility_sieve(&mut self, selection: Vec<Selection>, compl: bool) {
-        let result = self.app_state.set_visibility_sieve(selection, compl);
-        self.apply_operation_result(result);
+        self.modify_state(|s: &mut AppState| s.set_visibility_sieve(selection, compl));
     }
 
     pub fn need_save(&self) -> bool {

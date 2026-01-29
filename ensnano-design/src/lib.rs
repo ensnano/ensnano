@@ -144,7 +144,7 @@ pub struct Design {
         skip,
         alias = "instanciated_grid_data", // cspell: disable-line
     )]
-    instantiated_grid_data: Option<GridData>,
+    pub instantiated_grid_data: Option<GridData>,
 
     #[serde(skip, default)]
     cached_curve: Arc<CurveCache>,
@@ -196,6 +196,16 @@ impl Design {
 
     /// Update self if necessary and returns an up-to-date reference to self.
     pub fn get_up_to_date(&mut self) -> UpToDateDesign<'_> {
+        self.make_up_to_date();
+        UpToDateDesign {
+            design: self,
+            grid_data: self.instantiated_grid_data.as_ref().unwrap(),
+            paths_data: self.instantiated_paths.as_ref().unwrap(),
+        }
+    }
+
+    /// Update self if necessary
+    pub fn make_up_to_date(&mut self) {
         let helix_parameters = self
             .helix_parameters
             .as_ref()
@@ -218,11 +228,6 @@ impl Design {
         if self.needs_update() {
             let grid_data = GridData::new_by_updating_design(self);
             self.instantiated_grid_data = Some(grid_data);
-        }
-        UpToDateDesign {
-            design: self,
-            grid_data: self.instantiated_grid_data.as_ref().unwrap(),
-            paths_data: self.instantiated_paths.as_ref().unwrap(),
         }
     }
 
@@ -247,6 +252,12 @@ impl Design {
             ));
         }
         self.instantiated_paths.as_ref().unwrap()
+    }
+
+    pub fn get_unchecked_grid_data(&self) -> &GridData {
+        self.instantiated_grid_data
+            .as_ref()
+            .expect("Called get_unchecked_grid_data on non updated design")
     }
 
     fn needs_update(&self) -> bool {
@@ -534,7 +545,7 @@ pub trait AdditionalStructure: Send + Sync {
     fn number_of_sections(&self) -> usize;
 }
 
-/// An immutable reference to a design whose helices paths and grid data are guaranteed to be up-to
+/// A mutable reference to a design whose helices paths and grid data are guaranteed to be up-to
 /// date.
 pub struct UpToDateDesign<'a> {
     pub design: &'a Design,

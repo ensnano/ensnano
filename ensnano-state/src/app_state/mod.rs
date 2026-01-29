@@ -18,21 +18,19 @@ pub mod transitions;
 #[cfg(test)]
 use ensnano_design::Design;
 
-use self::{
-    address_pointer::AddressPointer,
-    channel_reader::ScaffoldShiftReader,
-    design_interactor::{
-        DesignInteractor, InteractorResult,
-        controller::{
-            InteractorNotification, OperationError, clipboard::CopyOperation,
-            simulations::SimulationOperation,
-        },
-        presenter::SimulationUpdate,
-    },
-    transitions::OperationUndoability,
-};
 use crate::{
-    app_state::channel_reader::SimulationInterfaceHandle,
+    app_state::{
+        address_pointer::AddressPointer,
+        channel_reader::{ScaffoldShiftReader, SimulationInterfaceHandle},
+        design_interactor::{
+            DesignInteractor,
+            controller::{
+                InteractorNotification, OperationError, clipboard::CopyOperation,
+                simulations::SimulationOperation,
+            },
+            presenter::SimulationUpdate,
+        },
+    },
     design::{
         operation::DesignOperation,
         selection::{CenterOfSelection, Selection},
@@ -309,14 +307,8 @@ impl AppState {
         self.0.make_mut().design.make_mut().apply_operation(op)
     }
 
-    pub fn apply_copy_operation(
-        &mut self,
-        op: CopyOperation,
-    ) -> Result<OperationUndoability, OperationError> {
-        let self_mut = self.0.make_mut();
-        let design_mut = self_mut.design.make_mut();
-        let result = design_mut.apply_copy_operation(op);
-        self.handle_operation_result(result)
+    pub fn apply_copy_operation(&mut self, op: CopyOperation) -> AppStateOperationResult {
+        self.0.make_mut().design.make_mut().apply_copy_operation(op)
     }
 
     pub fn update_pending_operation(
@@ -346,52 +338,6 @@ impl AppState {
         }
 
         Ok(outcome)
-    }
-
-    fn handle_operation_result(
-        &mut self,
-        result: Result<InteractorResult, OperationError>,
-    ) -> Result<OperationUndoability, OperationError> {
-        log::trace!("handle operation result");
-        match result {
-            Ok(InteractorResult::Push {
-                interactor: mut design,
-                label,
-            }) => {
-                let previous_state = Some(self.clone());
-
-                let new_selection = design.get_next_selection();
-
-                self.set_interactor(design);
-
-                if let Some(selection) = new_selection {
-                    _ = self.set_selection(&selection, &None);
-                }
-
-                if let Some(state) = previous_state {
-                    Ok(OperationUndoability::Undoable {
-                        state,
-                        label: label.into(),
-                    })
-                } else {
-                    Ok(OperationUndoability::NotUndoable)
-                }
-            }
-            Ok(InteractorResult::Replace(mut design)) => {
-                let new_selection = design.get_next_selection();
-                self.set_interactor(design);
-
-                if let Some(selection) = new_selection {
-                    _ = self.set_selection(&selection, &None);
-                }
-
-                Ok(OperationUndoability::NotUndoable)
-            }
-            Err(e) => {
-                log::error!("error {e:?}");
-                Err(e)
-            }
-        }
     }
 
     pub fn notify(&mut self, notification: InteractorNotification) -> AppStateOperationResult {
@@ -549,13 +495,12 @@ impl AppState {
         &mut self,
         selection: Vec<Selection>,
         compl: bool,
-    ) -> Result<OperationUndoability, OperationError> {
-        let result = self
-            .0
+    ) -> AppStateOperationResult {
+        self.0
+            .make_mut()
             .design
-            .clone_inner()
-            .with_visibility_sieve(selection, compl);
-        self.handle_operation_result(Ok(result))
+            .make_mut()
+            .set_visibility_sieve(selection, compl)
     }
 
     pub fn design_was_modified(&self, other: &Self) -> bool {

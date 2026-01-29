@@ -7,6 +7,7 @@ use crate::app_state::{AppState, design_interactor::controller::OperationError};
 /// An operation has been successfully applied on a design, resulting in a new modified design. The
 /// variants of these enums indicate different ways in which the result should be handled.
 /// A save of the current design is always done before we do an operation.
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum AppStateOperationOutcome {
     /// Push the previous design unto the undo stack.
     Push {
