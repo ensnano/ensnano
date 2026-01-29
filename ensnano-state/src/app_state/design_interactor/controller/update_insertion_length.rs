@@ -9,12 +9,12 @@ use ensnano_design::{
 };
 
 impl Controller {
-    pub(super) fn update_insertion_length(
+    pub fn update_insertion_length(
         &mut self,
-        mut design: Design,
+        design: &mut Design,
         insertion_point: InsertionPoint,
         length: usize,
-    ) -> Result<Design, OperationError> {
+    ) -> Result<(), OperationError> {
         let s_id = design
             .strands
             .get_strand_nucl(&insertion_point.nucl)
@@ -46,7 +46,7 @@ impl Controller {
                 strand_mut.junctions.remove(d_id);
                 strand_mut.merge_consecutive_domains();
             }
-            Ok(design)
+            Ok(())
         } else if length > 0 {
             // if the nucl is the 5' end of the insertion we want it to be the 3' end of the
             // resulting strand, and therefore be on the 5' end of the split
@@ -122,7 +122,7 @@ impl Controller {
                 Self::make_cycle(&mut design.strands, s_id, true)?;
             }
 
-            Ok(design)
+            Ok(())
         } else {
             // Nothing to do
             Err(OperationError::NotImplemented)

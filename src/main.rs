@@ -110,7 +110,6 @@ use ensnano_state::{
                 simulations::SimulationOperation,
             },
         },
-        transitions::OperationUndoability,
     },
     design::{
         operation::{DesignOperation, DesignRotation, DesignTranslation, IsometryTarget},
@@ -543,7 +542,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             main_state.app_state.apply_simulation_update(update);
                         }
                         SimulationInterfaceUpdate::SimulationExpired => {
-                            main_state.update_simulation(SimulationOperation::Stop);
+                            main_state.apply_simulation_operation(SimulationOperation::Stop);
                         }
                     }
                 }
@@ -1166,7 +1165,7 @@ impl MainStateView<'_> {
     }
 
     fn update_simulation(&mut self, request: SimulationOperation) {
-        self.main_state.update_simulation(request);
+        self.main_state.apply_simulation_operation(request);
     }
 
     fn set_roll_of_selected_helices(&mut self, roll: f32) {
@@ -1347,17 +1346,11 @@ impl MainStateView<'_> {
         shift: usize,
     ) -> Result<SetScaffoldSequenceOk, SetScaffoldSequenceError> {
         let len = sequence.chars().filter(|c| c.is_alphabetic()).count();
-        match self
-            .main_state
-            .app_state
-            .apply_design_op(DesignOperation::SetScaffoldSequence { sequence, shift })
-        {
-            Ok(OperationUndoability::Undoable { state, label }) => {
-                self.main_state.save_old_state(state, label);
-            }
-            Ok(OperationUndoability::NotUndoable) => (),
-            Err(e) => return Err(SetScaffoldSequenceError(format!("{e:?}"))),
-        }
+
+        self.main_state.modify_state(|app_state: &mut AppState| {
+            app_state.apply_design_op(DesignOperation::SetScaffoldSequence { sequence, shift })
+        });
+
         let default_shift = self.get_design_interactor().default_shift();
         let scaffold_length = self.get_scaffold_length().unwrap_or(0);
         let target_scaffold_length = if len == scaffold_length {

@@ -305,12 +305,8 @@ impl AppState {
         state.design = AddressPointer::new(interactor);
     }
 
-    pub fn apply_design_op(
-        &mut self,
-        op: DesignOperation,
-    ) -> Result<OperationUndoability, OperationError> {
-        let result = self.0.design.apply_operation(op);
-        self.handle_operation_result(result)
+    pub fn apply_design_op(&mut self, op: DesignOperation) -> AppStateOperationResult {
+        self.0.make_mut().design.make_mut().apply_operation(op)
     }
 
     pub fn apply_copy_operation(
@@ -326,9 +322,12 @@ impl AppState {
     pub fn update_pending_operation(
         &mut self,
         op: Arc<dyn SimpleOperation>,
-    ) -> Result<OperationUndoability, OperationError> {
-        let result = self.0.design.update_pending_operation(op);
-        self.handle_operation_result(result)
+    ) -> AppStateOperationResult {
+        self.0
+            .make_mut()
+            .design
+            .make_mut()
+            .update_pending_operation(op)
     }
 
     pub fn update_simulation(&mut self, operation: SimulationOperation) -> AppStateOperationResult {

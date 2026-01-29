@@ -15,7 +15,7 @@ use crate::{
         design_interactor::controller::simulations::SimulationInterface,
     },
     design::{operation::DesignOperation, selection::Selection},
-    operation::AppStateOperationOutcome,
+    operation::{AppStateOperationOutcome, AppStateOperationResult},
     utils::operation::{CurrentOpState, SimpleOperation},
 };
 use ensnano_design::{
@@ -73,13 +73,12 @@ impl DesignInteractor {
     }
 
     pub(super) fn apply_operation(
-        &self,
+        &mut self,
         operation: DesignOperation,
-    ) -> Result<InteractorResult, OperationError> {
-        let result = self
-            .controller
-            .apply_operation(self.design.as_ref(), operation);
-        self.handle_operation_result(result)
+    ) -> AppStateOperationResult {
+        self.controller
+            .make_mut()
+            .apply_operation(self.design.make_mut(), operation)
     }
 
     pub(super) fn apply_copy_operation(
@@ -102,18 +101,26 @@ impl DesignInteractor {
     }
 
     pub(super) fn update_pending_operation(
-        &self,
+        &mut self,
         operation: Arc<dyn SimpleOperation>,
-    ) -> Result<InteractorResult, OperationError> {
+    ) -> AppStateOperationResult {
         let op_is_new = self.is_in_stable_state();
+        // let result = self
         let result = self
             .controller
-            .update_pending_operation(self.design.as_ref(), operation.clone());
-        let mut ret = self.handle_operation_result(result);
-        if let Ok(ret) = ret.as_mut() {
-            ret.set_operation_state(operation, op_is_new);
+            .make_mut()
+            .update_pending_operation(self.design.make_mut(), operation.clone());
+
+        // Pacome notes : this part of the code is imported from the previous
+        // set_operation_state method
+
+        if op_is_new {
+            self.current_operation_id += 1;
+            log::info!("New operation id {}", self.current_operation_id);
         }
-        ret
+        self.current_operation = Some(operation);
+
+        result
     }
 
     #[expect(clippy::complexity)]
@@ -373,21 +380,6 @@ pub(super) enum InteractorResult {
         label: std::borrow::Cow<'static, str>,
     },
     Replace(DesignInteractor),
-}
-
-impl InteractorResult {
-    pub(super) fn set_operation_state(
-        &mut self,
-        operation: Arc<dyn SimpleOperation>,
-        new_op: bool,
-    ) {
-        let (Self::Push { interactor, .. } | Self::Replace(interactor)) = self;
-        if new_op {
-            interactor.current_operation_id += 1;
-            log::info!("New operation id {}", interactor.current_operation_id);
-        }
-        interactor.current_operation = Some(operation);
-    }
 }
 
 #[cfg(test)]

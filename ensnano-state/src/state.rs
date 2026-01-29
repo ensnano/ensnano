@@ -208,88 +208,33 @@ impl MainState {
 
     pub fn apply_design_operation(&mut self, operation: DesignOperation) {
         log::debug!("Applying operation {operation:?}");
-        let result = self.app_state.apply_design_op(operation.clone());
-        if matches!(result, Err(OperationError::FinishFirst)) {
-            self.modify_state(|s: &mut AppState| s.notify(InteractorNotification::FinishOperation));
-            // recursive call to retry the operation
-            self.apply_design_operation(operation);
-        } else {
-            self.apply_operation_result(result);
-        }
-    }
-
-    pub fn start_helix_simulation(&mut self, parameters: RigidBodyConstants) {
-        let presenter = self.app_state.0.design.presenter.clone();
+        // let result = self.app_state.apply_design_op(operation.clone());
+        // match self.app_state.apply_design_op(operation.clone()) {
+        //     Err(OperationError::FinishFirst) => {
+        //         self.modify_state(|s: &mut AppState| {
+        //             s.notify(InteractorNotification::FinishOperation)
+        //         });
+        //         self.apply_design_operation(operation);
+        //     }
+        //     _ => {
+        //         self.apply_operation_result(result);
+        //     }
+        // }
 
         self.modify_state(move |app_state: &mut AppState| {
-            let op = SimulationOperation::StartHelices {
-                presenter: presenter.as_ref(),
-                parameters,
-            };
-            app_state.update_simulation(op)
+            let mut result = app_state.apply_design_op(operation.clone());
+
+            // we ask to finish the current operation, and try again.
+            while matches!(result, Err(OperationError::FinishFirst)) {
+                app_state.notify(InteractorNotification::FinishOperation)?;
+                result = app_state.apply_design_op(operation.clone());
+            }
+
+            result
         });
     }
 
-    pub fn start_grid_simulation(&mut self, parameters: RigidBodyConstants) {
-        let presenter = self.app_state.0.design.presenter.clone();
-
-        self.modify_state(move |app_state: &mut AppState| {
-            let op = SimulationOperation::StartGrids {
-                presenter: presenter.as_ref(),
-                parameters,
-            };
-            app_state.update_simulation(op)
-        });
-    }
-
-    pub fn start_revolution_simulation(&mut self, desc: RevolutionSurfaceSystemDescriptor) {
-        self.modify_state(move |app_state: &mut AppState| {
-            let op = SimulationOperation::RevolutionRelaxation { system: desc };
-            app_state.update_simulation(op)
-        });
-    }
-
-    pub fn start_twist(&mut self, grid_id: GridId) {
-        let presenter = self.app_state.0.design.presenter.clone();
-
-        self.modify_state(move |app_state: &mut AppState| {
-            let op = SimulationOperation::StartTwist {
-                presenter: presenter.as_ref(),
-                grid_id,
-            };
-            app_state.update_simulation(op)
-        });
-    }
-
-    pub fn start_roll_simulation(&mut self, target_helices: Option<Vec<usize>>) {
-        let presenter = self.app_state.0.design.presenter.clone();
-
-        self.modify_state(move |app_state: &mut AppState| {
-            let op = SimulationOperation::StartRoll {
-                presenter: presenter.as_ref(),
-                target_helices,
-            };
-            app_state.update_simulation(op)
-        });
-    }
-
-    pub fn update_rapier_parameters(&mut self, parameters: RapierParameters) {
-        let presenter = self.app_state.0.design.presenter.clone();
-
-        self.modify_state(move |app_state: &mut AppState| {
-            let op = SimulationOperation::UpdateRapierParameters {
-                presenter: presenter.as_ref(),
-                parameters,
-            };
-            app_state.update_simulation(op)
-        });
-    }
-
-    // NOTE : rename to apply_simulation_operation
-    pub fn update_simulation(&mut self, request: SimulationOperation) {
-        self.modify_state(move |app_state: &mut AppState| app_state.update_simulation(request));
-    }
-
+    /// Variant of the apply_design_operation method that does push operations.
     pub fn apply_silent_operation(&mut self, operation: DesignOperation) {
         match self.app_state.apply_design_op(operation.clone()) {
             Ok(_) => (),
@@ -301,6 +246,66 @@ impl MainState {
             }
             Err(e) => log::warn!("{e:?}"),
         }
+    }
+
+    pub fn start_helix_simulation(&mut self, parameters: RigidBodyConstants) {
+        let presenter = self.app_state.0.design.presenter.clone();
+        let op = SimulationOperation::StartHelices {
+            presenter: presenter.as_ref(),
+            parameters,
+        };
+
+        self.apply_simulation_operation(op);
+    }
+
+    pub fn start_grid_simulation(&mut self, parameters: RigidBodyConstants) {
+        let presenter = self.app_state.0.design.presenter.clone();
+        let op = SimulationOperation::StartGrids {
+            presenter: presenter.as_ref(),
+            parameters,
+        };
+
+        self.apply_simulation_operation(op);
+    }
+
+    pub fn start_revolution_simulation(&mut self, desc: RevolutionSurfaceSystemDescriptor) {
+        let op = SimulationOperation::RevolutionRelaxation { system: desc };
+
+        self.apply_simulation_operation(op);
+    }
+
+    pub fn start_twist(&mut self, grid_id: GridId) {
+        let presenter = self.app_state.0.design.presenter.clone();
+        let op = SimulationOperation::StartTwist {
+            presenter: presenter.as_ref(),
+            grid_id,
+        };
+
+        self.apply_simulation_operation(op);
+    }
+
+    pub fn start_roll_simulation(&mut self, target_helices: Option<Vec<usize>>) {
+        let presenter = self.app_state.0.design.presenter.clone();
+        let op = SimulationOperation::StartRoll {
+            presenter: presenter.as_ref(),
+            target_helices,
+        };
+
+        self.apply_simulation_operation(op);
+    }
+
+    pub fn update_rapier_parameters(&mut self, parameters: RapierParameters) {
+        let presenter = self.app_state.0.design.presenter.clone();
+        let op = SimulationOperation::UpdateRapierParameters {
+            presenter: presenter.as_ref(),
+            parameters,
+        };
+
+        self.apply_simulation_operation(op);
+    }
+
+    pub fn apply_simulation_operation(&mut self, request: SimulationOperation) {
+        self.modify_state(move |app_state: &mut AppState| app_state.update_simulation(request));
     }
 
     pub fn save_old_state(&mut self, old_state: AppState, label: TransitionLabel) {
@@ -384,12 +389,24 @@ impl MainState {
     }
 
     pub fn update_pending_operation(&mut self, operation: Arc<dyn SimpleOperation>) {
-        let result = self.app_state.update_pending_operation(operation.clone());
-        if matches!(result, Err(OperationError::FinishFirst)) {
-            self.modify_state(|s: &mut AppState| s.notify(InteractorNotification::FinishOperation));
-            self.update_pending_operation(operation);
-        }
-        self.apply_operation_result(result);
+        // let result = self.app_state.update_pending_operation(operation.clone());
+        // if matches!(result, Err(OperationError::FinishFirst)) {
+        //     self.modify_state(|s: &mut AppState| s.notify(InteractorNotification::FinishOperation));
+        //     self.update_pending_operation(operation);
+        // }
+        // self.apply_operation_result(result);
+
+        self.modify_state(move |app_state: &mut AppState| {
+            let mut result = app_state.update_pending_operation(operation.clone());
+
+            // we ask to finish the current operation, and try again.
+            while matches!(result, Err(OperationError::FinishFirst)) {
+                app_state.notify(InteractorNotification::FinishOperation)?;
+                result = app_state.update_pending_operation(operation.clone());
+            }
+
+            result
+        });
     }
 
     pub fn optimize_shift(&mut self) {
