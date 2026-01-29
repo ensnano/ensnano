@@ -472,7 +472,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 scale_factor_changed |= multiplexer.check_scale_factor(&window);
                 let mut redraw = resized || scale_factor_changed;
                 redraw |= main_state.update_cursor(&multiplexer);
-                redraw |= gui.fetch_change(
+                redraw |= gui.fetch_change_gui_manager(
                     &window,
                     &gui_theme,
                     &theme::gui_style(&gui_theme),
@@ -752,7 +752,7 @@ fn handle_window_event(
             // Get viewports from the partition
 
             // If there are events pending
-            main_state_view.gui.update(
+            main_state_view.gui.update_gui_manager(
                 main_state_view.multiplexer,
                 gui_theme,
                 &theme::gui_style(gui_theme),

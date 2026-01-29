@@ -132,7 +132,7 @@ impl GuiState {
         }
     }
 
-    pub fn update(
+    pub fn update_gui_state(
         &mut self,
         size: Size,
         cursor: Cursor,
@@ -355,7 +355,7 @@ impl GuiComponent {
         if !self.state.is_queue_empty() || resized {
             // We update iced
             self.redraw = true;
-            self.state.update(
+            self.state.update_gui_state(
                 convert_size_f32(area.size),
                 cursor,
                 &mut self.renderer,
@@ -599,7 +599,7 @@ impl GuiManager {
     }
 
     /// Ask the gui component to process the event that they have received
-    pub fn fetch_change(
+    pub fn fetch_change_gui_manager(
         &mut self,
         window: &Window,
         theme: &iced::Theme,
@@ -614,7 +614,7 @@ impl GuiManager {
     }
 
     /// Ask the gui component to process the event and messages that they have received.
-    pub fn update(
+    pub fn update_gui_manager(
         &mut self,
         multiplexer: &Multiplexer,
         theme: &iced::Theme,
