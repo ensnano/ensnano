@@ -356,6 +356,14 @@ impl MainState {
         }
     }
 
+    /// The main method for state modification.
+    ///
+    /// All modifications of the state should go through this methods.
+    /// It applies the modification (which has to implement AppStateOperation,
+    /// which is the case of closures that implement FnMut(&mut AppState) -> AppStateOperationResult)
+    /// on a copy of the state. It then places the old state on the undo stack
+    /// depending on what is returned, or reverts all operations if an error
+    /// is returned instead.
     pub fn modify_state(
         &mut self,
         modification: impl AppStateOperation,
