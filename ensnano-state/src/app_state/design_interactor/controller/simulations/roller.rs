@@ -5,12 +5,9 @@
 //! them. These springs aim at minimizing the difference between the cross-over length and the
 //! normal distance between two consecutive nucleotides.
 
-use crate::app_state::{
-    channel_reader::ChannelReader,
-    design_interactor::{
-        controller::simulations::SimulationInterface,
-        presenter::{Presenter, SimulationUpdate},
-    },
+use crate::app_state::design_interactor::{
+    controller::simulations::SimulationInterface,
+    presenter::{Presenter, SimulationUpdate},
 };
 use ensnano_design::{Design, helices::Helix, nucl::Nucl, parameters::HelixParameters};
 use std::{
@@ -38,7 +35,6 @@ impl PhysicalSystem {
     pub(crate) fn start_new(
         presenter: &Presenter,
         target_helices: Option<Vec<usize>>,
-        reader: &mut ChannelReader,
     ) -> Arc<Mutex<RollInterface>> {
         let helices: Vec<Helix> = presenter.get_helices().values().cloned().collect();
         let keys: Vec<usize> = presenter.get_helices().keys().copied().collect();
@@ -56,8 +52,6 @@ impl PhysicalSystem {
             helix_parameters,
         };
         let interface = Arc::new(Mutex::new(RollInterface::default()));
-        let interface_dyn: Arc<Mutex<dyn SimulationInterface>> = interface.clone();
-        reader.attach_state(&interface_dyn);
 
         let system = Self {
             data,

@@ -32,6 +32,7 @@ use self::{
     transitions::OperationUndoability,
 };
 use crate::{
+    app_state::channel_reader::SimulationInterfaceHandle,
     design::{
         operation::DesignOperation,
         selection::{CenterOfSelection, Selection},
@@ -330,20 +331,23 @@ impl AppState {
         self.handle_operation_result(result)
     }
 
-    pub fn start_simulation(
-        &mut self,
-        operation: SimulationOperation,
-    ) -> Result<OperationUndoability, OperationError> {
-        let result = self.0.design.start_simulation(operation);
-        self.handle_operation_result(result)
-    }
+    pub fn update_simulation(&mut self, operation: SimulationOperation) -> AppStateOperationResult {
+        let (outcome, interface) = self
+            .0
+            .make_mut()
+            .design
+            .make_mut()
+            .update_simulation(operation)?;
 
-    pub fn update_simulation(
-        &mut self,
-        request: SimulationOperation,
-    ) -> Result<OperationUndoability, OperationError> {
-        let result = self.0.design.update_simulation(request);
-        self.handle_operation_result(result)
+        if let Some(interface) = interface {
+            println!("updating simulation");
+            self.0
+                .make_mut()
+                .simulation_interface_handle
+                .attach_state(&interface);
+        }
+
+        Ok(outcome)
     }
 
     fn handle_operation_result(
@@ -673,6 +677,7 @@ pub struct AppState_ {
     pub exporting: bool,
     pub path_to_current_design: Option<PathBuf>,
     pub unrooted_surface: CurrentUnrootedSurface,
+    pub simulation_interface_handle: SimulationInterfaceHandle,
 }
 
 #[derive(Clone, Default)]

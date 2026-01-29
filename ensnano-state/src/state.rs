@@ -58,7 +58,6 @@ pub struct MainState {
     pub pending_actions: VecDeque<Action>,
     pub undo_stack: Vec<AppStateTransition>,
     pub redo_stack: Vec<AppStateTransition>,
-    pub channel_reader: ChannelReader,
     pub messages: Arc<Mutex<GuiMessages>>,
     pub applications: HashMap<GuiComponentType, Arc<Mutex<dyn Application>>>,
     pub focused_component: Option<GuiComponentType>,
@@ -80,6 +79,8 @@ pub struct MainState {
     pub applications_cursor: Option<CursorIcon>,
     pub gui_cursor: CursorIcon,
     pub cursor: CursorIcon,
+    // channel reader for simulations
+    pub channel_reader: ChannelReader,
 }
 
 impl MainState {
@@ -94,7 +95,6 @@ impl MainState {
             pending_actions: VecDeque::new(),
             undo_stack: Vec::new(),
             redo_stack: Vec::new(),
-            channel_reader: Default::default(),
             messages,
             applications: Default::default(),
             focused_component: None,
@@ -108,6 +108,7 @@ impl MainState {
             applications_cursor: None,
             gui_cursor: Default::default(),
             cursor: Default::default(),
+            channel_reader: Default::default(),
         }
     }
 
@@ -219,78 +220,74 @@ impl MainState {
 
     pub fn start_helix_simulation(&mut self, parameters: RigidBodyConstants) {
         let presenter = self.app_state.0.design.presenter.clone();
-        let result = self
-            .app_state
-            .start_simulation(SimulationOperation::StartHelices {
+
+        self.modify_state(move |app_state: &mut AppState| {
+            let op = SimulationOperation::StartHelices {
                 presenter: presenter.as_ref(),
                 parameters,
-                reader: &mut self.channel_reader,
-            });
-        self.apply_operation_result(result);
+            };
+            app_state.update_simulation(op)
+        });
     }
 
     pub fn start_grid_simulation(&mut self, parameters: RigidBodyConstants) {
         let presenter = self.app_state.0.design.presenter.clone();
-        let result = self
-            .app_state
-            .start_simulation(SimulationOperation::StartGrids {
+
+        self.modify_state(move |app_state: &mut AppState| {
+            let op = SimulationOperation::StartGrids {
                 presenter: presenter.as_ref(),
                 parameters,
-                reader: &mut self.channel_reader,
-            });
-        self.apply_operation_result(result);
+            };
+            app_state.update_simulation(op)
+        });
     }
 
     pub fn start_revolution_simulation(&mut self, desc: RevolutionSurfaceSystemDescriptor) {
-        let result = self
-            .app_state
-            .start_simulation(SimulationOperation::RevolutionRelaxation {
-                system: desc,
-                reader: &mut self.channel_reader,
-            });
-        self.apply_operation_result(result);
+        self.modify_state(move |app_state: &mut AppState| {
+            let op = SimulationOperation::RevolutionRelaxation { system: desc };
+            app_state.update_simulation(op)
+        });
     }
 
     pub fn start_twist(&mut self, grid_id: GridId) {
         let presenter = self.app_state.0.design.presenter.clone();
-        let result = self
-            .app_state
-            .start_simulation(SimulationOperation::StartTwist {
+
+        self.modify_state(move |app_state: &mut AppState| {
+            let op = SimulationOperation::StartTwist {
                 presenter: presenter.as_ref(),
-                reader: &mut self.channel_reader,
                 grid_id,
-            });
-        self.apply_operation_result(result);
+            };
+            app_state.update_simulation(op)
+        });
     }
 
     pub fn start_roll_simulation(&mut self, target_helices: Option<Vec<usize>>) {
         let presenter = self.app_state.0.design.presenter.clone();
-        let result = self
-            .app_state
-            .start_simulation(SimulationOperation::StartRoll {
+
+        self.modify_state(move |app_state: &mut AppState| {
+            let op = SimulationOperation::StartRoll {
                 presenter: presenter.as_ref(),
-                reader: &mut self.channel_reader,
                 target_helices,
-            });
-        self.apply_operation_result(result);
+            };
+            app_state.update_simulation(op)
+        });
     }
 
     pub fn update_rapier_parameters(&mut self, parameters: RapierParameters) {
         let presenter = self.app_state.0.design.presenter.clone();
-        let result = self
-            .app_state
-            .start_simulation(SimulationOperation::UpdateRapierParameters {
+
+        self.modify_state(move |app_state: &mut AppState| {
+            let op = SimulationOperation::UpdateRapierParameters {
                 presenter: presenter.as_ref(),
-                reader: &mut self.channel_reader,
                 parameters,
-            });
-        self.apply_operation_result(result);
+            };
+            app_state.update_simulation(op)
+        });
     }
 
     // NOTE : rename to apply_simulation_operation
     pub fn update_simulation(&mut self, request: SimulationOperation) {
-        let result = self.app_state.update_simulation(request);
-        self.apply_operation_result(result);
+        self.modify_state(move |app_state: &mut AppState| app_state.update_simulation(request));
     }
 
     pub fn apply_silent_operation(&mut self, operation: DesignOperation) {
@@ -361,7 +358,7 @@ impl MainState {
 
     pub fn modify_state(
         &mut self,
-        mut modification: impl AppStateOperation,
+        modification: impl AppStateOperation,
         // undo_label: Option<TransitionLabel>,
     ) {
         let old_state = self.app_state.clone();

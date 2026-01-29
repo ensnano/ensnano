@@ -11,6 +11,10 @@ use std::sync::{Arc, Mutex, Weak, mpsc};
 pub struct ChannelReader {
     scaffold_shift_optimization_progress: Option<mpsc::Receiver<f32>>,
     scaffold_shift_optimization_result: Option<mpsc::Receiver<ShiftOptimizationResult>>,
+}
+
+#[derive(Default, Clone)]
+pub struct SimulationInterfaceHandle {
     simulation_interface: Option<Weak<Mutex<dyn SimulationInterface>>>,
 }
 
@@ -19,6 +23,9 @@ pub enum ChannelReaderUpdate {
     ScaffoldShiftOptimizationProgress(f32),
     /// The optimum scaffold position has been found
     ScaffoldShiftOptimizationResult(ShiftOptimizationResult),
+}
+
+pub enum SimulationInterfaceUpdate {
     SimulationUpdate(Box<dyn SimulationUpdate>),
     SimulationExpired,
 }
@@ -33,23 +40,6 @@ impl ChannelReader {
         }
         if let Some(result) = self.get_scaffold_shift_optimization_result() {
             updates.push(ChannelReaderUpdate::ScaffoldShiftOptimizationResult(result));
-        }
-        let mut invalidated = false;
-        if let Some(interface_ptr) = self.simulation_interface.as_ref() {
-            if let Some(interface) = interface_ptr.upgrade() {
-                if !interface.lock().unwrap().still_valid() {
-                    invalidated = true;
-                    updates.push(ChannelReaderUpdate::SimulationExpired);
-                }
-                if let Some(new_state) = interface.lock().unwrap().get_simulation_state() {
-                    updates.push(ChannelReaderUpdate::SimulationUpdate(new_state));
-                }
-            } else {
-                invalidated = true;
-            }
-        }
-        if invalidated {
-            self.simulation_interface = None;
         }
         updates
     }
@@ -72,6 +62,30 @@ impl ChannelReader {
 
     pub fn attach_progress_chanel(&mut self, chanel: mpsc::Receiver<f32>) {
         self.scaffold_shift_optimization_progress = Some(chanel);
+    }
+}
+
+impl SimulationInterfaceHandle {
+    pub fn get_updates(&mut self) -> Vec<SimulationInterfaceUpdate> {
+        let mut updates = Vec::new();
+        let mut invalidated = false;
+        if let Some(interface_ptr) = self.simulation_interface.as_ref() {
+            if let Some(interface) = interface_ptr.upgrade() {
+                if !interface.lock().unwrap().still_valid() {
+                    invalidated = true;
+                    updates.push(SimulationInterfaceUpdate::SimulationExpired);
+                }
+                if let Some(new_state) = interface.lock().unwrap().get_simulation_state() {
+                    updates.push(SimulationInterfaceUpdate::SimulationUpdate(new_state));
+                }
+            } else {
+                invalidated = true;
+            }
+        }
+        if invalidated {
+            self.simulation_interface = None;
+        }
+        updates
     }
 
     pub fn attach_state(&mut self, state_chanel: &Arc<Mutex<dyn SimulationInterface>>) {

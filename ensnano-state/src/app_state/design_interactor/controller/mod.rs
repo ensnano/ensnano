@@ -15,7 +15,10 @@ use self::{
     },
 };
 use crate::{
-    app_state::{AddressPointer, channel_reader::ChannelReader},
+    app_state::{
+        AddressPointer, channel_reader::ChannelReader,
+        design_interactor::controller::simulations::SimulationInterface,
+    },
     design::{
         operation::{
             BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
@@ -23,6 +26,7 @@ use crate::{
         },
         selection::{Selection, list_of_helices},
     },
+    operation::AppStateOperationOutcome,
     utils::operation::{SimpleOperation, TranslateBezierPathVertex},
 };
 use ensnano_design::{
@@ -488,30 +492,41 @@ impl Controller {
         Ok(())
     }
 
+    #[expect(clippy::complexity)]
     pub fn apply_simulation_operation(
-        &self,
-        mut design: Design,
+        &mut self,
+        design: &mut Design,
         operation: SimulationOperation,
-    ) -> Result<(OperationResult, Self), OperationError> {
-        let mut ret = self.clone();
+    ) -> Result<
+        (
+            AppStateOperationOutcome,
+            Option<Arc<Mutex<dyn SimulationInterface>>>,
+        ),
+        OperationError,
+    > {
+        let mut returned_interface = None;
+        // let mut ret = self.clone();
         match operation {
-            SimulationOperation::RevolutionRelaxation { system, reader } => {
+            SimulationOperation::RevolutionRelaxation { system } => {
                 self.check_state_compatible_with_simulation()?;
-                println!("system {system:#?}");
-                let interface = RevolutionSystemThread::start_new(system, reader)?;
-                ret.state = ControllerState::Relaxing {
+                let interface = RevolutionSystemThread::start_new(system)?;
+                let dyn_interface: Arc<Mutex<dyn SimulationInterface>> = interface.clone();
+                returned_interface = Some(dyn_interface);
+                self.state = ControllerState::Relaxing {
                     interface,
                     _initial_design: AddressPointer::new(design.clone()),
                 };
+                //reader.attach_state(&ret_dyn);
             }
             SimulationOperation::StartHelices {
                 presenter,
                 parameters,
-                reader,
             } => {
                 self.check_state_compatible_with_simulation()?;
-                let interface = HelixSystemThread::start_new(presenter, parameters, reader)?;
-                ret.state = ControllerState::Simulating {
+                let interface = HelixSystemThread::start_new(presenter, parameters)?;
+                let dyn_interface: Arc<Mutex<dyn SimulationInterface>> = interface.clone();
+                returned_interface = Some(dyn_interface);
+                self.state = ControllerState::Simulating {
                     interface,
                     initial_design: AddressPointer::new(design.clone()),
                 };
@@ -519,18 +534,18 @@ impl Controller {
             SimulationOperation::StartGrids {
                 presenter,
                 parameters,
-                reader,
             } => {
                 self.check_state_compatible_with_simulation()?;
-                let interface = GridsSystemThread::start_new(presenter, parameters, reader)?;
-                ret.state = ControllerState::SimulatingGrids {
+                let interface = GridsSystemThread::start_new(presenter, parameters)?;
+                let dyn_interface: Arc<Mutex<dyn SimulationInterface>> = interface.clone();
+                returned_interface = Some(dyn_interface);
+                self.state = ControllerState::SimulatingGrids {
                     interface,
                     _initial_design: AddressPointer::new(design.clone()),
                 };
             }
             SimulationOperation::UpdateRapierParameters {
                 presenter,
-                reader,
                 parameters,
             } => {
                 // if no simulation is requested, no operation is necessary
@@ -545,10 +560,12 @@ impl Controller {
                         }
                     } else {
                         // the simulation is starting, we save the initial design
-                        ret.state = ControllerState::RapierSimulating {
-                            interface: RapierPhysicalSystem::start_new(
-                                presenter, reader, parameters,
-                            ),
+                        let interface = RapierPhysicalSystem::start_new(presenter, parameters);
+                        let dyn_interface: Arc<Mutex<dyn SimulationInterface>> = interface.clone();
+                        returned_interface = Some(dyn_interface);
+
+                        self.state = ControllerState::RapierSimulating {
+                            interface,
                             initial_design: AddressPointer::new(design.clone()),
                         };
                     }
@@ -557,33 +574,32 @@ impl Controller {
             SimulationOperation::StartRoll {
                 presenter,
                 target_helices,
-                reader,
             } => {
                 self.check_state_compatible_with_simulation()?;
-                let interface = PhysicalSystem::start_new(presenter, target_helices, reader);
-                ret.state = ControllerState::Rolling {
+                let interface = PhysicalSystem::start_new(presenter, target_helices);
+                let dyn_interface: Arc<Mutex<dyn SimulationInterface>> = interface.clone();
+                returned_interface = Some(dyn_interface);
+                self.state = ControllerState::Rolling {
                     _interface: interface,
                     _initial_design: AddressPointer::new(design.clone()),
                 };
             }
-            SimulationOperation::StartTwist {
-                grid_id,
-                presenter,
-                reader,
-            } => {
+            SimulationOperation::StartTwist { grid_id, presenter } => {
                 self.check_state_compatible_with_simulation()?;
-                let interface = Twister::start_new(presenter, grid_id, reader)
+                let interface = Twister::start_new(presenter, grid_id)
                     .ok_or(OperationError::GridDoesNotExist(grid_id))?;
-                ret.state = ControllerState::Twisting {
+                let dyn_interface: Arc<Mutex<dyn SimulationInterface>> = interface.clone();
+                returned_interface = Some(dyn_interface);
+                self.state = ControllerState::Twisting {
                     _interface: interface,
                     _initial_design: AddressPointer::new(design.clone()),
                     grid_id,
                 };
             }
             SimulationOperation::UpdateParameters { new_parameters } => {
-                if let ControllerState::Simulating { interface, .. } = &ret.state {
+                if let ControllerState::Simulating { interface, .. } = &self.state {
                     interface.lock().unwrap().parameters_update = Some(new_parameters);
-                } else if let ControllerState::SimulatingGrids { interface, .. } = &ret.state {
+                } else if let ControllerState::SimulatingGrids { interface, .. } = &self.state {
                     interface.lock().unwrap().parameters_update = Some(new_parameters);
                 } else {
                     return Err(OperationError::IncompatibleState(
@@ -591,53 +607,54 @@ impl Controller {
                     ));
                 }
             }
-            SimulationOperation::Stop => match &ret.state {
+            SimulationOperation::Stop => match &self.state {
                 ControllerState::Simulating { initial_design, .. } => {
-                    ret.state = ControllerState::WithPausedSimulation {
+                    self.state = ControllerState::WithPausedSimulation {
                         initial_design: initial_design.clone(),
                     };
                 }
                 ControllerState::SimulatingGrids { .. }
                 | ControllerState::Rolling { .. }
                 | ControllerState::Twisting { .. } => {
-                    ret.state = ControllerState::Normal;
+                    self.state = ControllerState::Normal;
                 }
                 ControllerState::Relaxing { interface, .. } => {
                     interface.lock().unwrap().kill();
                     design.additional_structure = None;
-                    ret.state = ControllerState::Normal;
+                    self.state = ControllerState::Normal;
                 }
                 ControllerState::RapierSimulating {
                     interface,
                     initial_design,
                 } => {
                     interface.lock().unwrap().kill();
-                    ret.state = ControllerState::WithPausedSimulation {
+                    self.state = ControllerState::WithPausedSimulation {
                         initial_design: initial_design.clone(),
                     }
                 }
                 _ => (),
             },
             SimulationOperation::Reset => {
-                if let ControllerState::WithPausedSimulation { initial_design } = &ret.state {
-                    let returned_design = initial_design.clone_inner();
-                    ret.state = ControllerState::Normal;
-                    return Ok((
-                        OperationResult::Push {
-                            design: returned_design,
-                            label: "Simulation".into(),
-                        },
-                        ret,
-                    ));
+                if let ControllerState::WithPausedSimulation { initial_design } = &self.state {
+                    *design = initial_design.clone_inner();
+                    self.state = ControllerState::Normal;
                 }
             }
             SimulationOperation::FinishRelaxation => {
-                if let ControllerState::Relaxing { interface, .. } = &ret.state {
+                if let ControllerState::Relaxing { interface, .. } = &self.state {
                     interface.lock().unwrap().finish();
                 }
             }
         }
-        Ok((self.return_design(design, "Simulation".into()), ret))
+
+        println!("is returned : {}", returned_interface.is_some());
+
+        Ok((
+            AppStateOperationOutcome::Push {
+                label: "Simulation".into(),
+            },
+            returned_interface,
+        ))
     }
 
     fn change_strand_name(

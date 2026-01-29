@@ -22,13 +22,13 @@ pub enum AppStateOperationOutcome {
 pub type AppStateOperationResult = Result<AppStateOperationOutcome, OperationError>;
 
 pub trait AppStateOperation {
-    fn apply(&mut self, state: &mut AppState) -> AppStateOperationResult;
+    fn apply(self, state: &mut AppState) -> AppStateOperationResult;
 }
 
-impl<F: Fn(&mut AppState) -> Result<AppStateOperationOutcome, OperationError>> AppStateOperation
+impl<F: FnOnce(&mut AppState) -> Result<AppStateOperationOutcome, OperationError>> AppStateOperation
     for F
 {
-    fn apply(&mut self, state: &mut AppState) -> AppStateOperationResult {
+    fn apply(self, state: &mut AppState) -> AppStateOperationResult {
         self(state)
     }
 }

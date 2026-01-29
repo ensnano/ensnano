@@ -10,8 +10,12 @@ use self::{
     presenter::{Presenter, SimulationUpdate, apply_simulation_update, update_presenter},
 };
 use crate::{
-    app_state::{SaveDesignError, address_pointer::AddressPointer, channel_reader::ChannelReader},
+    app_state::{
+        SaveDesignError, address_pointer::AddressPointer, channel_reader::ChannelReader,
+        design_interactor::controller::simulations::SimulationInterface,
+    },
     design::{operation::DesignOperation, selection::Selection},
+    operation::AppStateOperationOutcome,
     utils::operation::{CurrentOpState, SimpleOperation},
 };
 use ensnano_design::{
@@ -29,7 +33,11 @@ use ensnano_utils::{
     app_state_parameters::suggestion_parameters::SuggestionParameters, clipboard::ClipboardContent,
     consts::UPDATE_VISIBILITY_SIEVE_LABEL, strand_builder::StrandBuilder,
 };
-use std::{io::Write as _, path::PathBuf, sync::Arc};
+use std::{
+    io::Write as _,
+    path::PathBuf,
+    sync::{Arc, Mutex},
+};
 
 /// The `DesignInteractor` handles all read/write operations on the design. It is a stateful struct
 /// so it is meant to be cheap to clone.
@@ -108,24 +116,20 @@ impl DesignInteractor {
         ret
     }
 
-    pub(super) fn start_simulation(
-        &self,
-        operation: SimulationOperation,
-    ) -> Result<InteractorResult, OperationError> {
-        let result = self
-            .controller
-            .apply_simulation_operation(self.design.clone_inner(), operation);
-        self.handle_operation_result(result)
-    }
-
+    #[expect(clippy::complexity)]
     pub(super) fn update_simulation(
-        &self,
+        &mut self,
         operation: SimulationOperation,
-    ) -> Result<InteractorResult, OperationError> {
-        let result = self
-            .controller
-            .apply_simulation_operation(self.design.clone_inner(), operation);
-        self.handle_operation_result(result)
+    ) -> Result<
+        (
+            AppStateOperationOutcome,
+            Option<Arc<Mutex<dyn SimulationInterface>>>,
+        ),
+        OperationError,
+    > {
+        self.controller
+            .make_mut()
+            .apply_simulation_operation(self.design.make_mut(), operation)
     }
 
     fn handle_operation_result(

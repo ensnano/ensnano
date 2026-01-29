@@ -1,9 +1,6 @@
-use crate::app_state::{
-    channel_reader::ChannelReader,
-    design_interactor::{
-        controller::simulations::SimulationInterface,
-        presenter::{Presenter, SimulationUpdate},
-    },
+use crate::app_state::design_interactor::{
+    controller::simulations::SimulationInterface,
+    presenter::{Presenter, SimulationUpdate},
 };
 use ahash::RandomState;
 use ensnano_design::{Design, helices::NuclCollection, parameters::HelixParameters};
@@ -22,7 +19,6 @@ pub(crate) struct RapierPhysicalSystem {
 impl RapierPhysicalSystem {
     pub(crate) fn start_new(
         presenter: &Presenter,
-        reader: &mut ChannelReader,
         parameters: RapierParameters,
     ) -> Arc<Mutex<RapierInterface>> {
         let system = RapierPhysicsSystem::full_simulation(
@@ -49,9 +45,6 @@ impl RapierPhysicalSystem {
             system,
             interface: Arc::downgrade(&interface),
         };
-
-        let interface_dyn: Arc<Mutex<dyn SimulationInterface>> = interface.clone();
-        reader.attach_state(&interface_dyn);
 
         result.run();
         interface

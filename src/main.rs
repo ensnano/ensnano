@@ -101,7 +101,7 @@ use ensnano_state::{
     app_state::{
         AppState, LoadDesignError, SaveDesignError,
         action::Action,
-        channel_reader::ChannelReaderUpdate,
+        channel_reader::{ChannelReaderUpdate, SimulationInterfaceUpdate},
         design_interactor::{
             DesignInteractor,
             controller::{
@@ -528,10 +528,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 log::warn!("{:?}", result.err().unwrap());
                             }
                         }
-                        ChannelReaderUpdate::SimulationUpdate(update) => {
+                    }
+                }
+
+                for update in main_state
+                    .app_state
+                    .0
+                    .make_mut()
+                    .simulation_interface_handle
+                    .get_updates()
+                {
+                    match update {
+                        SimulationInterfaceUpdate::SimulationUpdate(update) => {
                             main_state.app_state.apply_simulation_update(update);
                         }
-                        ChannelReaderUpdate::SimulationExpired => {
+                        SimulationInterfaceUpdate::SimulationExpired => {
                             main_state.update_simulation(SimulationOperation::Stop);
                         }
                     }
