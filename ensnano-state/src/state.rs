@@ -411,7 +411,7 @@ impl MainState {
         }
         if let Some(new_selection) = self.app_state.get_new_selection() {
             // we ignore and override the result of the set_selection
-            // to not make it a reversable operation
+            // to not make it a reversible operation
             self.modify_state(|s: &mut AppState| {
                 _ = s.set_selection(&new_selection, &None);
                 Ok(AppStateOperationOutcome::Replace)

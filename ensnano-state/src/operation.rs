@@ -1,8 +1,7 @@
+use crate::app_state::{AppState, design_interactor::controller::OperationError};
 use std::borrow::Cow;
 
-use crate::app_state::{AppState, design_interactor::controller::OperationError};
-
-/// The result of an appstate operation.
+/// The result of an AppState operation.
 ///
 /// An operation has been successfully applied on a design, resulting in a new modified design. The
 /// variants of these enums indicate different ways in which the result should be handled.
