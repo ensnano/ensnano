@@ -312,7 +312,11 @@ impl OperationInput {
         }
     }
 
-    fn update_value(&mut self, value_id: usize, values_str: String) -> Option<Arc<dyn SimpleOperation>> {
+    fn update_value(
+        &mut self,
+        value_id: usize,
+        values_str: String,
+    ) -> Option<Arc<dyn SimpleOperation>> {
         if let Some(op) = self.operation.as_ref().with_new_value(value_id, values_str) {
             self.operation = op.clone();
             Some(op)

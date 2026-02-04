@@ -73,7 +73,7 @@ pub struct LeftPanelState {
     contextual_panel: ContextualPanel,
     camera_shortcut: CameraShortcutPanel,
     // Pacome notes : this is a mistake; if the app state gets
-    // mutated somewhere, there is no synchronisation.
+    // mutated somewhere, there is no synchronization.
     application_state: AppState,
     exports_menu: ExportMenu,
 }
