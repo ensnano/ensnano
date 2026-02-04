@@ -2870,28 +2870,6 @@ impl Controller {
     }
 }
 
-/// An operation has been successfully applied on a design, resulting in a new modified design. The
-/// variants of these enums indicate different ways in which the result should be handled
-pub enum OperationResult {
-    /// Push the current design on the undo stack and replace it by the wrapped value. This variant
-    /// is produced when the operation has been performed on a non transitory design and can be
-    /// undone.
-    Push {
-        design: Design,
-        /// A description of the operation that was applied
-        label: Cow<'static, str>,
-    },
-    /// Replace the current design by the wrapped value. This variant is produced when the
-    /// operation has been performed on a transitory design and should not been undone.
-    ///
-    /// This happens for example for operations that are performed by drag and drop, where each new
-    /// mouse movement produce a new design. In this case, the successive design should not be
-    /// pushed on the undo stack, since an undo is expected to revert back to the state prior to
-    /// the whole drag and drop operation.
-    Replace(Design),
-    NoOp,
-}
-
 // Some values are only used for logging the error, which Rust considers to be unused
 #[derive(Debug)]
 pub enum OperationError {
