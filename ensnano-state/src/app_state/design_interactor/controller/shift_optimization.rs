@@ -1,5 +1,5 @@
 use crate::app_state::{
-    channel_reader::ChannelReader, design_interactor::controller::OperationError,
+    channel_reader::ScaffoldShiftReader, design_interactor::controller::OperationError,
 };
 use ensnano_design::{Design, domains::Domain, helices::NuclCollection, nucl::Nucl};
 use std::{
@@ -81,7 +81,7 @@ pub fn read_scaffold_seq(
 pub(crate) fn optimize_shift(
     design: Arc<Design>,
     nucl_collection: Arc<NuclCollection>,
-    chanel_reader: &mut ChannelReader,
+    chanel_reader: &mut ScaffoldShiftReader,
 ) {
     let (progress_snd, progress_rcv) = mpsc::channel();
     let (result_snd, result_rcv) = mpsc::channel();

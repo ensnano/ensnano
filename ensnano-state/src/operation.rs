@@ -6,6 +6,7 @@ use std::borrow::Cow;
 /// An operation has been successfully applied on a design, resulting in a new modified design. The
 /// variants of these enums indicate different ways in which the result should be handled.
 /// A save of the current design is always done before we do an operation.
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum AppStateOperationOutcome {
     /// Push the previous design unto the undo stack.
     Push {
@@ -21,13 +22,13 @@ pub enum AppStateOperationOutcome {
 pub type AppStateOperationResult = Result<AppStateOperationOutcome, OperationError>;
 
 pub trait AppStateOperation {
-    fn apply(&mut self, state: &mut AppState) -> AppStateOperationResult;
+    fn apply(self, state: &mut AppState) -> AppStateOperationResult;
 }
 
-impl<F: Fn(&mut AppState) -> Result<AppStateOperationOutcome, OperationError>> AppStateOperation
+impl<F: FnOnce(&mut AppState) -> Result<AppStateOperationOutcome, OperationError>> AppStateOperation
     for F
 {
-    fn apply(&mut self, state: &mut AppState) -> AppStateOperationResult {
+    fn apply(self, state: &mut AppState) -> AppStateOperationResult {
         self(state)
     }
 }

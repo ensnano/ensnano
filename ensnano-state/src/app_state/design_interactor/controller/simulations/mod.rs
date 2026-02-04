@@ -3,9 +3,8 @@ pub mod revolutions;
 pub mod roller;
 pub mod twister;
 
-use crate::app_state::{
-    channel_reader::ChannelReader,
-    design_interactor::{Presenter, controller::OperationError, presenter::SimulationUpdate},
+use crate::app_state::design_interactor::{
+    Presenter, controller::OperationError, presenter::SimulationUpdate,
 };
 use ahash::RandomState;
 use ensnano_design::{
@@ -809,14 +808,11 @@ impl HelixSystemThread {
     pub(super) fn start_new(
         presenter: &Presenter,
         rigid_parameters: RigidBodyConstants,
-        reader: &mut ChannelReader,
     ) -> Result<Arc<Mutex<HelixSystemInterface>>, OperationError> {
         let interval_results = read_intervals(presenter)?;
         let helix_system =
             make_flexible_helices_system((0., 1.), rigid_parameters, presenter, &interval_results)?;
         let ret = Arc::new(Mutex::new(HelixSystemInterface::default()));
-        let ret_dyn: Arc<Mutex<dyn SimulationInterface>> = ret.clone();
-        reader.attach_state(&ret_dyn);
         let helix_system_thread = Self::new(helix_system, &ret, interval_results);
         helix_system_thread.run();
         Ok(ret)
@@ -899,12 +895,9 @@ impl GridsSystemThread {
     pub(super) fn start_new(
         presenter: &Presenter,
         rigid_parameters: RigidBodyConstants,
-        reader: &mut ChannelReader,
     ) -> Result<Arc<Mutex<GridSystemInterface>>, OperationError> {
         let grid_system = make_grid_system(presenter, (0., 1.), rigid_parameters)?;
         let ret = Arc::new(Mutex::new(GridSystemInterface::default()));
-        let ret_dyn: Arc<Mutex<dyn SimulationInterface>> = ret.clone();
-        reader.attach_state(&ret_dyn);
         let grid_system_thread = Self {
             grid_system,
             interface: Arc::downgrade(&ret),
@@ -1225,16 +1218,14 @@ pub struct IntervalResult {
     intervals: Vec<(isize, isize)>,
 }
 
-pub enum SimulationOperation<'pres, 'reader> {
+pub enum SimulationOperation<'pres> {
     StartHelices {
         presenter: &'pres Presenter,
         parameters: RigidBodyConstants,
-        reader: &'reader mut ChannelReader,
     },
     StartGrids {
         presenter: &'pres Presenter,
         parameters: RigidBodyConstants,
-        reader: &'reader mut ChannelReader,
     },
     UpdateParameters {
         new_parameters: RigidBodyConstants,
@@ -1243,22 +1234,18 @@ pub enum SimulationOperation<'pres, 'reader> {
     Reset,
     StartRoll {
         presenter: &'pres Presenter,
-        reader: &'reader mut ChannelReader,
         target_helices: Option<Vec<usize>>,
     },
     StartTwist {
         grid_id: GridId,
         presenter: &'pres Presenter,
-        reader: &'reader mut ChannelReader,
     },
     RevolutionRelaxation {
         system: RevolutionSurfaceSystemDescriptor,
-        reader: &'reader mut ChannelReader,
     },
     FinishRelaxation,
     UpdateRapierParameters {
         presenter: &'pres Presenter,
-        reader: &'reader mut ChannelReader,
         parameters: RapierParameters,
     },
 }

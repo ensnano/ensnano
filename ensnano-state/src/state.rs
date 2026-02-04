@@ -4,12 +4,11 @@ use crate::{
     app_state::{
         AppState, SaveDesignError,
         action::Action,
-        channel_reader::ChannelReader,
         design_interactor::controller::{
             InteractorNotification, OperationError, clipboard::CopyOperation,
             simulations::SimulationOperation,
         },
-        transitions::{AppStateTransition, OperationUndoability, TransitionLabel},
+        transitions::{AppStateTransition, TransitionLabel},
     },
     design::{
         operation::DesignOperation,
@@ -58,7 +57,6 @@ pub struct MainState {
     pub pending_actions: VecDeque<Action>,
     pub undo_stack: Vec<AppStateTransition>,
     pub redo_stack: Vec<AppStateTransition>,
-    pub channel_reader: ChannelReader,
     pub messages: Arc<Mutex<GuiMessages>>,
     pub applications: HashMap<GuiComponentType, Arc<Mutex<dyn Application>>>,
     pub focused_component: Option<GuiComponentType>,
@@ -94,7 +92,6 @@ impl MainState {
             pending_actions: VecDeque::new(),
             undo_stack: Vec::new(),
             redo_stack: Vec::new(),
-            channel_reader: Default::default(),
             messages,
             applications: Default::default(),
             focused_component: None,
@@ -201,98 +198,26 @@ impl MainState {
     }
 
     pub fn apply_copy_operation(&mut self, operation: CopyOperation) {
-        let result = self.app_state.apply_copy_operation(operation);
-        self.apply_operation_result(result);
+        self.modify_state(|app_state: &mut AppState| app_state.apply_copy_operation(operation));
     }
 
     pub fn apply_design_operation(&mut self, operation: DesignOperation) {
         log::debug!("Applying operation {operation:?}");
-        let result = self.app_state.apply_design_op(operation.clone());
-        if matches!(result, Err(OperationError::FinishFirst)) {
-            self.modify_state(|s: &mut AppState| s.notify(InteractorNotification::FinishOperation));
-            // recursive call to retry the operation
-            self.apply_design_operation(operation);
-        } else {
-            self.apply_operation_result(result);
-        }
+
+        self.modify_state(move |app_state: &mut AppState| {
+            let mut result = app_state.apply_design_op(operation.clone());
+
+            // we ask to finish the current operation, and try again.
+            while matches!(result, Err(OperationError::FinishFirst)) {
+                app_state.notify(InteractorNotification::FinishOperation)?;
+                result = app_state.apply_design_op(operation.clone());
+            }
+
+            result
+        });
     }
 
-    pub fn start_helix_simulation(&mut self, parameters: RigidBodyConstants) {
-        let presenter = self.app_state.0.design.presenter.clone();
-        let result = self
-            .app_state
-            .start_simulation(SimulationOperation::StartHelices {
-                presenter: presenter.as_ref(),
-                parameters,
-                reader: &mut self.channel_reader,
-            });
-        self.apply_operation_result(result);
-    }
-
-    pub fn start_grid_simulation(&mut self, parameters: RigidBodyConstants) {
-        let presenter = self.app_state.0.design.presenter.clone();
-        let result = self
-            .app_state
-            .start_simulation(SimulationOperation::StartGrids {
-                presenter: presenter.as_ref(),
-                parameters,
-                reader: &mut self.channel_reader,
-            });
-        self.apply_operation_result(result);
-    }
-
-    pub fn start_revolution_simulation(&mut self, desc: RevolutionSurfaceSystemDescriptor) {
-        let result = self
-            .app_state
-            .start_simulation(SimulationOperation::RevolutionRelaxation {
-                system: desc,
-                reader: &mut self.channel_reader,
-            });
-        self.apply_operation_result(result);
-    }
-
-    pub fn start_twist(&mut self, grid_id: GridId) {
-        let presenter = self.app_state.0.design.presenter.clone();
-        let result = self
-            .app_state
-            .start_simulation(SimulationOperation::StartTwist {
-                presenter: presenter.as_ref(),
-                reader: &mut self.channel_reader,
-                grid_id,
-            });
-        self.apply_operation_result(result);
-    }
-
-    pub fn start_roll_simulation(&mut self, target_helices: Option<Vec<usize>>) {
-        let presenter = self.app_state.0.design.presenter.clone();
-        let result = self
-            .app_state
-            .start_simulation(SimulationOperation::StartRoll {
-                presenter: presenter.as_ref(),
-                reader: &mut self.channel_reader,
-                target_helices,
-            });
-        self.apply_operation_result(result);
-    }
-
-    pub fn update_rapier_parameters(&mut self, parameters: RapierParameters) {
-        let presenter = self.app_state.0.design.presenter.clone();
-        let result = self
-            .app_state
-            .start_simulation(SimulationOperation::UpdateRapierParameters {
-                presenter: presenter.as_ref(),
-                reader: &mut self.channel_reader,
-                parameters,
-            });
-        self.apply_operation_result(result);
-    }
-
-    // NOTE : rename to apply_simulation_operation
-    pub fn update_simulation(&mut self, request: SimulationOperation) {
-        let result = self.app_state.update_simulation(request);
-        self.apply_operation_result(result);
-    }
-
+    /// Variant of the apply_design_operation method that does push operations.
     pub fn apply_silent_operation(&mut self, operation: DesignOperation) {
         match self.app_state.apply_design_op(operation.clone()) {
             Ok(_) => (),
@@ -304,6 +229,66 @@ impl MainState {
             }
             Err(e) => log::warn!("{e:?}"),
         }
+    }
+
+    pub fn start_helix_simulation(&mut self, parameters: RigidBodyConstants) {
+        let presenter = self.app_state.0.design.presenter.clone();
+        let op = SimulationOperation::StartHelices {
+            presenter: presenter.as_ref(),
+            parameters,
+        };
+
+        self.apply_simulation_operation(op);
+    }
+
+    pub fn start_grid_simulation(&mut self, parameters: RigidBodyConstants) {
+        let presenter = self.app_state.0.design.presenter.clone();
+        let op = SimulationOperation::StartGrids {
+            presenter: presenter.as_ref(),
+            parameters,
+        };
+
+        self.apply_simulation_operation(op);
+    }
+
+    pub fn start_revolution_simulation(&mut self, desc: RevolutionSurfaceSystemDescriptor) {
+        let op = SimulationOperation::RevolutionRelaxation { system: desc };
+
+        self.apply_simulation_operation(op);
+    }
+
+    pub fn start_twist(&mut self, grid_id: GridId) {
+        let presenter = self.app_state.0.design.presenter.clone();
+        let op = SimulationOperation::StartTwist {
+            presenter: presenter.as_ref(),
+            grid_id,
+        };
+
+        self.apply_simulation_operation(op);
+    }
+
+    pub fn start_roll_simulation(&mut self, target_helices: Option<Vec<usize>>) {
+        let presenter = self.app_state.0.design.presenter.clone();
+        let op = SimulationOperation::StartRoll {
+            presenter: presenter.as_ref(),
+            target_helices,
+        };
+
+        self.apply_simulation_operation(op);
+    }
+
+    pub fn update_rapier_parameters(&mut self, parameters: RapierParameters) {
+        let presenter = self.app_state.0.design.presenter.clone();
+        let op = SimulationOperation::UpdateRapierParameters {
+            presenter: presenter.as_ref(),
+            parameters,
+        };
+
+        self.apply_simulation_operation(op);
+    }
+
+    pub fn apply_simulation_operation(&mut self, request: SimulationOperation) {
+        self.modify_state(move |app_state: &mut AppState| app_state.update_simulation(request));
     }
 
     pub fn save_old_state(&mut self, old_state: AppState, label: TransitionLabel) {
@@ -359,9 +344,17 @@ impl MainState {
         }
     }
 
+    /// The main method for state modification.
+    ///
+    /// All modifications of the state should go through this methods.
+    /// It applies the modification (which has to implement AppStateOperation,
+    /// which is the case of closures that implement FnMut(&mut AppState) -> AppStateOperationResult)
+    /// on a copy of the state. It then places the old state on the undo stack
+    /// depending on what is returned, or reverts all operations if an error
+    /// is returned instead.
     pub fn modify_state(
         &mut self,
-        mut modification: impl AppStateOperation,
+        modification: impl AppStateOperation,
         // undo_label: Option<TransitionLabel>,
     ) {
         let old_state = self.app_state.clone();
@@ -382,41 +375,36 @@ impl MainState {
                 }
             }
             Ok(AppStateOperationOutcome::Replace | AppStateOperationOutcome::NoOp) => {}
-            Err(e) => log::warn!("{e:?}"),
+            Err(e) => {
+                self.app_state = old_state;
+                log::warn!("{e:?}");
+            }
         }
     }
 
     pub fn update_pending_operation(&mut self, operation: Arc<dyn SimpleOperation>) {
-        let result = self.app_state.update_pending_operation(operation.clone());
-        if matches!(result, Err(OperationError::FinishFirst)) {
-            self.modify_state(|s: &mut AppState| s.notify(InteractorNotification::FinishOperation));
-            self.update_pending_operation(operation);
-        }
-        self.apply_operation_result(result);
+        // let result = self.app_state.update_pending_operation(operation.clone());
+        // if matches!(result, Err(OperationError::FinishFirst)) {
+        //     self.modify_state(|s: &mut AppState| s.notify(InteractorNotification::FinishOperation));
+        //     self.update_pending_operation(operation);
+        // }
+        // self.apply_operation_result(result);
+
+        self.modify_state(move |app_state: &mut AppState| {
+            let mut result = app_state.update_pending_operation(operation.clone());
+
+            // we ask to finish the current operation, and try again.
+            while matches!(result, Err(OperationError::FinishFirst)) {
+                app_state.notify(InteractorNotification::FinishOperation)?;
+                result = app_state.update_pending_operation(operation.clone());
+            }
+
+            result
+        });
     }
 
     pub fn optimize_shift(&mut self) {
-        let reader = &mut self.channel_reader;
-        let result = self.app_state.optimize_shift(reader);
-        self.apply_operation_result(result);
-    }
-
-    pub fn apply_operation_result(&mut self, result: Result<OperationUndoability, OperationError>) {
-        match result {
-            Ok(OperationUndoability::Undoable { state, label }) => {
-                self.save_old_state(state, label);
-            }
-            Ok(OperationUndoability::NotUndoable) => (),
-            Err(e) => log::warn!("{e:?}"),
-        }
-        if let Some(new_selection) = self.app_state.get_new_selection() {
-            // we ignore and override the result of the set_selection
-            // to not make it a reversible operation
-            self.modify_state(|s: &mut AppState| {
-                _ = s.set_selection(&new_selection, &None);
-                Ok(AppStateOperationOutcome::Replace)
-            });
-        }
+        self.modify_state(|app_state: &mut AppState| app_state.optimize_shift());
     }
 
     pub fn request_copy(&mut self) {
@@ -535,8 +523,7 @@ impl MainState {
     }
 
     pub fn set_visibility_sieve(&mut self, selection: Vec<Selection>, compl: bool) {
-        let result = self.app_state.set_visibility_sieve(selection, compl);
-        self.apply_operation_result(result);
+        self.modify_state(|s: &mut AppState| s.set_visibility_sieve(selection, compl));
     }
 
     pub fn need_save(&self) -> bool {

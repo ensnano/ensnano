@@ -4,14 +4,18 @@ pub mod presenter;
 
 use self::{
     controller::{
-        Controller, InteractorNotification, OperationError, OperationResult,
-        clipboard::CopyOperation, simulations::SimulationOperation,
+        Controller, InteractorNotification, OperationError, clipboard::CopyOperation,
+        simulations::SimulationOperation,
     },
     presenter::{Presenter, SimulationUpdate, apply_simulation_update, update_presenter},
 };
 use crate::{
-    app_state::{SaveDesignError, address_pointer::AddressPointer, channel_reader::ChannelReader},
+    app_state::{
+        SaveDesignError, address_pointer::AddressPointer, channel_reader::ScaffoldShiftReader,
+        design_interactor::controller::simulations::SimulationInterface,
+    },
     design::{operation::DesignOperation, selection::Selection},
+    operation::{AppStateOperationOutcome, AppStateOperationResult},
     utils::operation::{CurrentOpState, SimpleOperation},
 };
 use ensnano_design::{
@@ -29,7 +33,11 @@ use ensnano_utils::{
     app_state_parameters::suggestion_parameters::SuggestionParameters, clipboard::ClipboardContent,
     consts::UPDATE_VISIBILITY_SIEVE_LABEL, strand_builder::StrandBuilder,
 };
-use std::{io::Write as _, path::PathBuf, sync::Arc};
+use std::{
+    io::Write as _,
+    path::PathBuf,
+    sync::{Arc, Mutex},
+};
 
 /// The `DesignInteractor` handles all read/write operations on the design. It is a stateful struct
 /// so it is meant to be cheap to clone.
@@ -50,14 +58,13 @@ pub struct DesignInteractor {
 
 impl DesignInteractor {
     pub(super) fn optimize_shift(
-        &self,
-        reader: &mut ChannelReader,
-    ) -> Result<InteractorResult, OperationError> {
+        &mut self,
+        reader: &mut ScaffoldShiftReader,
+    ) -> AppStateOperationResult {
         let nucl_map = self.presenter.get_owned_nucl_collection();
-        let result = self
-            .controller
-            .optimize_shift(reader, nucl_map, &self.design);
-        self.handle_operation_result(result)
+        self.controller
+            .make_mut()
+            .optimize_shift(reader, nucl_map, &self.design)
     }
 
     pub(super) fn is_building_hyperboloid(&self) -> bool {
@@ -65,100 +72,75 @@ impl DesignInteractor {
     }
 
     pub(super) fn apply_operation(
-        &self,
+        &mut self,
         operation: DesignOperation,
-    ) -> Result<InteractorResult, OperationError> {
-        let result = self
-            .controller
-            .apply_operation(self.design.as_ref(), operation);
-        self.handle_operation_result(result)
+    ) -> AppStateOperationResult {
+        self.controller
+            .make_mut()
+            .apply_operation(self.design.make_mut(), operation)
     }
 
     pub(super) fn apply_copy_operation(
         &mut self,
         operation: CopyOperation,
-    ) -> Result<InteractorResult, OperationError> {
+    ) -> AppStateOperationResult {
         log::info!("Applying copy operation");
         log::info!("nb helices {}", self.design.helices.len());
         let tried_up_to_date = self.design.try_get_up_to_date();
-        if let Some(up_to_date) = tried_up_to_date {
-            log::info!("up to date helices {}", up_to_date.design.helices.len());
-            let result = self.controller.apply_copy_operation(up_to_date, operation);
-            self.handle_operation_result(result)
+        // Pacome notes : here the UpToDateDesign is no longer used.
+        // we could replace the return of this method to a Option<()>,
+        // or even a boolean.
+        if tried_up_to_date.is_some() {
+            log::info!("up to date helices {}", self.design.helices.len());
+            self.controller
+                .make_mut()
+                .apply_copy_operation(self.design.make_mut(), operation)
         } else {
-            let design_mut = self.design.make_mut();
-            let up_to_date = design_mut.get_up_to_date();
-            let result = self.controller.apply_copy_operation(up_to_date, operation);
-            self.handle_operation_result(result)
+            let design = self.design.make_mut();
+            design.make_up_to_date();
+            self.controller
+                .make_mut()
+                .apply_copy_operation(design, operation)
         }
     }
 
     pub(super) fn update_pending_operation(
-        &self,
+        &mut self,
         operation: Arc<dyn SimpleOperation>,
-    ) -> Result<InteractorResult, OperationError> {
+    ) -> AppStateOperationResult {
         let op_is_new = self.is_in_stable_state();
+        // let result = self
         let result = self
             .controller
-            .update_pending_operation(self.design.as_ref(), operation.clone());
-        let mut ret = self.handle_operation_result(result);
-        if let Ok(ret) = ret.as_mut() {
-            ret.set_operation_state(operation, op_is_new);
+            .make_mut()
+            .update_pending_operation(self.design.make_mut(), operation.clone());
+
+        // Pacome notes : this part of the code is imported from the previous
+        // set_operation_state method
+
+        if op_is_new {
+            self.current_operation_id += 1;
+            log::info!("New operation id {}", self.current_operation_id);
         }
-        ret
+        self.current_operation = Some(operation);
+
+        result
     }
 
-    pub(super) fn start_simulation(
-        &self,
-        operation: SimulationOperation,
-    ) -> Result<InteractorResult, OperationError> {
-        let result = self
-            .controller
-            .apply_simulation_operation(self.design.clone_inner(), operation);
-        self.handle_operation_result(result)
-    }
-
+    #[expect(clippy::complexity)]
     pub(super) fn update_simulation(
-        &self,
+        &mut self,
         operation: SimulationOperation,
-    ) -> Result<InteractorResult, OperationError> {
-        let result = self
-            .controller
-            .apply_simulation_operation(self.design.clone_inner(), operation);
-        self.handle_operation_result(result)
-    }
-
-    fn handle_operation_result(
-        &self,
-        result: Result<(OperationResult, Controller), OperationError>,
-    ) -> Result<InteractorResult, OperationError> {
-        match result {
-            Ok((OperationResult::Replace(design), mut controller)) => {
-                let mut ret = self.clone();
-                ret.new_selection = controller.next_selection.take();
-                ret.controller = AddressPointer::new(controller);
-                ret.design = AddressPointer::new(design);
-                Ok(InteractorResult::Replace(ret))
-            }
-            Ok((OperationResult::Push { design, label }, mut controller)) => {
-                let mut ret = self.clone();
-                ret.current_operation = None;
-                ret.new_selection = controller.next_selection.take();
-                ret.controller = AddressPointer::new(controller);
-                ret.design = AddressPointer::new(design);
-                Ok(InteractorResult::Push {
-                    interactor: ret,
-                    label,
-                })
-            }
-            Ok((OperationResult::NoOp, mut controller)) => {
-                let mut ret = self.clone();
-                ret.new_selection = controller.next_selection.take();
-                ret.controller = AddressPointer::new(controller);
-                Ok(InteractorResult::Replace(ret))
-            }
-            Err(e) => Err(e),
-        }
+    ) -> Result<
+        (
+            AppStateOperationOutcome,
+            Option<Arc<Mutex<dyn SimulationInterface>>>,
+        ),
+        OperationError,
+    > {
+        self.controller
+            .make_mut()
+            .apply_simulation_operation(self.design.make_mut(), operation)
     }
 
     pub(super) fn get_current_operation_state(&self) -> Option<CurrentOpState> {
@@ -274,19 +256,18 @@ impl DesignInteractor {
         self.controller.can_iterate_duplication()
     }
 
-    pub(super) fn with_visibility_sieve(
-        mut self,
+    pub(super) fn set_visibility_sieve(
+        &mut self,
         selection: Vec<Selection>,
         compl: bool,
-    ) -> InteractorResult {
-        let mut presenter = self.presenter.clone_inner();
-        presenter.set_visibility_sieve(selection, compl);
-        self.presenter = AddressPointer::new(presenter);
-        self.design = AddressPointer::new(self.design.clone_inner());
-        InteractorResult::Push {
-            interactor: self,
+    ) -> AppStateOperationResult {
+        self.presenter
+            .make_mut()
+            .set_visibility_sieve(selection, compl);
+
+        Ok(AppStateOperationOutcome::Push {
             label: UPDATE_VISIBILITY_SIEVE_LABEL.into(),
-        }
+        })
     }
 
     pub(super) fn get_new_selection(&self) -> Option<Vec<Selection>> {
@@ -360,39 +341,11 @@ impl DesignInteractor {
     }
 }
 
-/// An operation has been successfully applied to the design, resulting in a new modified
-/// interactor. The variants of these enum indicate different ways in which the result should be
-/// handled
-pub(super) enum InteractorResult {
-    Push {
-        interactor: DesignInteractor,
-        label: std::borrow::Cow<'static, str>,
-    },
-    Replace(DesignInteractor),
-}
-
-impl InteractorResult {
-    pub(super) fn set_operation_state(
-        &mut self,
-        operation: Arc<dyn SimpleOperation>,
-        new_op: bool,
-    ) {
-        let (Self::Push { interactor, .. } | Self::Replace(interactor)) = self;
-        if new_op {
-            interactor.current_operation_id += 1;
-            log::info!("New operation id {}", interactor.current_operation_id);
-        }
-        interactor.current_operation = Some(operation);
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::{
-        app_state::{
-            AppState, design_interactor::controller::clipboard::PastePosition, transitions,
-        },
+        app_state::{AppState, design_interactor::controller::clipboard::PastePosition},
         design::operation::InsertionPoint,
         utils::operation::GridHelixCreation,
     };
@@ -1269,10 +1222,8 @@ mod tests {
             )))
             .unwrap();
         assert!(matches!(
-            app_state
-                .apply_copy_operation(CopyOperation::Paste)
-                .unwrap(),
-            transitions::OperationUndoability::Undoable { .. }
+            app_state.apply_copy_operation(CopyOperation::Paste),
+            Ok(AppStateOperationOutcome::Push { .. })
         ));
     }
 
