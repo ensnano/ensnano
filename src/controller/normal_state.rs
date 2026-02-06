@@ -128,7 +128,6 @@ impl AutomataState for NormalState {
                 self
             }
             Action::ApplyPaste => {
-                println!("Applying paste");
                 main_state.apply_paste();
                 self
             }
