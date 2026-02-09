@@ -1,6 +1,6 @@
 //! This module provides utilities for drawing text in the applications
 
-use fontdue::Font;
+use fontdue::{Font, FontSettings};
 use std::rc::Rc;
 use wgpu::{
     BindGroup, BindGroupLayout, Device, Extent3d, Queue, Sampler, TextureView, util::DeviceExt as _,
@@ -68,7 +68,7 @@ impl Letter {
         } else {
             include_bytes!("../../fonts/Inconsolata-Regular.ttf")
         };
-        let font = Font::from_bytes(font, fontdue::FontSettings::default()).unwrap();
+        let font = Font::from_bytes(font, FontSettings::default()).unwrap();
         let (metrics, _) = font.rasterize(character, size.height as f32);
 
         let min_x = 0.0;

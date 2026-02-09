@@ -61,16 +61,17 @@ enum LayoutNode {
 ///
 type LayoutNodePtr = Rc<RefCell<LayoutNode>>;
 
+// Note : this doc test does not compile because of
+// the dependency path. Simpler to remove it for now.
+// # Example
+//
+//     use layout_manager;
+//     let mut layout = LayoutTree::new();
+//     let (top_bar, content_section) = layout.hsplit(0, 0.05, false);
+//     let (left_panel, main_section) = layout.vsplit(content_section, 0.2, true);
+
+///
 /// Data structure representing the partition of the window.
-///
-/// # Example
-///
-///     use layout_manager;
-///     let mut layout = LayoutTree::new();
-///     let (top_bar, content_section) = layout.hsplit(0, 0.05, false);
-///     let (left_panel, main_section) = layout.vsplit(content_section, 0.2, true);
-///
-///
 pub(crate) struct LayoutTree {
     /// The root node of the LayoutTree.
     root: LayoutNodePtr,

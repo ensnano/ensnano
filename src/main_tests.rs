@@ -1,6 +1,5 @@
 //! Test suite for the `MainState` structure
 
-use crate::state::MainState;
 use ensnano_design::nucl::Nucl;
 use ensnano_state::{
     app_state::{
@@ -9,6 +8,7 @@ use ensnano_state::{
     },
     design::{operation::DesignOperation, selection::Selection},
     gui::messages::GuiMessages,
+    state::MainState,
     utils::application::{Application, Camera3D, Notification},
 };
 use ensnano_utils::{
@@ -30,11 +30,9 @@ use winit::{
 struct DummyScene;
 
 impl Application for DummyScene {
-    type AppState = AppState;
-
     fn on_notify(&mut self, _notification: Notification) {}
 
-    fn needs_redraw(&mut self, _dt: Duration, _app_state: Self::AppState) -> bool {
+    fn needs_redraw(&mut self, _dt: Duration, _: &mut MainState) -> bool {
         false
     }
 
@@ -53,7 +51,7 @@ impl Application for DummyScene {
         &mut self,
         _event: &WindowEvent,
         _position: PhysicalPosition<f64>,
-        _app_state: &Self::AppState,
+        _: &mut MainState,
     ) -> Option<CursorIcon> {
         None
     }
@@ -115,7 +113,7 @@ fn empty_selections_dont_pollute_undo_stack() {
 #[test]
 fn recolor_staple_undoable() {
     let mut state = new_state();
-    state.apply_operation(DesignOperation::RecolorStaples);
+    state.apply_design_operation(DesignOperation::RecolorStaples);
     assert!(!state.undo_stack.is_empty());
 }
 

@@ -3,7 +3,7 @@ use crate::{
     design::operation::{DesignOperation, HyperboloidRequest, InsertionPoint},
     gui::requests::RigidBodyParametersRequest,
     requests::Requests,
-    utils::{application::Notification, operation::Operation},
+    utils::{application::Notification, operation::SimpleOperation},
 };
 use ensnano_design::{
     CameraId,
@@ -252,7 +252,7 @@ impl Requests {
         self.fitting = Some(());
     }
 
-    pub fn update_current_operation(&mut self, operation: Arc<dyn Operation>) {
+    pub fn update_current_operation(&mut self, operation: Arc<dyn SimpleOperation>) {
         self.operation_update = Some(operation);
         self.suspend_op = Some(());
     }
@@ -357,7 +357,7 @@ impl Requests {
         self.check_xover_parameters = Some(parameters);
     }
 
-    pub fn follow_stereographic_camera(&mut self, follow: bool) {
+    pub fn set_follow_stereographic_camera(&mut self, follow: bool) {
         self.follow_stereographic_camera = Some(follow);
     }
 

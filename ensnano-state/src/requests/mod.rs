@@ -5,6 +5,7 @@
 pub mod impl_flatscene;
 pub mod impl_gui;
 pub mod impl_scene;
+pub mod poll;
 
 use crate::{
     app_state::action::Action,
@@ -12,7 +13,7 @@ use crate::{
         operation::HyperboloidRequest,
         selection::{CenterOfSelection, Selection},
     },
-    utils::{application::AppId, operation::Operation},
+    utils::{application::AppId, operation::SimpleOperation},
 };
 use ensnano_design::{
     design_element::{DesignElementKey, DnaAttribute},
@@ -54,7 +55,7 @@ pub struct Requests {
     /// A request to change the sensitivity of scrolling
     pub scroll_sensitivity: Option<f32>,
     pub make_grids: Option<()>,
-    pub operation_update: Option<Arc<dyn Operation>>,
+    pub operation_update: Option<Arc<dyn SimpleOperation>>,
     pub toggle_persistent_helices: Option<bool>,
     pub new_grid: Option<GridTypeDescr>,
     pub new_bezier_plane: Option<()>,

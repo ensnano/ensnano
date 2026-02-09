@@ -1,5 +1,5 @@
 use crate::{
-    app_state::design_interactor::controller::{Controller, ErrOperation},
+    app_state::design_interactor::controller::{Controller, OperationError},
     design::operation::InsertionPoint,
 };
 use ensnano_design::{
@@ -9,33 +9,33 @@ use ensnano_design::{
 };
 
 impl Controller {
-    pub(super) fn update_insertion_length(
+    pub fn update_insertion_length(
         &mut self,
-        mut design: Design,
+        design: &mut Design,
         insertion_point: InsertionPoint,
         length: usize,
-    ) -> Result<Design, ErrOperation> {
+    ) -> Result<(), OperationError> {
         let s_id = design
             .strands
             .get_strand_nucl(&insertion_point.nucl)
-            .ok_or(ErrOperation::NuclDoesNotExist(insertion_point.nucl))?;
+            .ok_or(OperationError::NuclDoesNotExist(insertion_point.nucl))?;
         let strand_mut = design
             .strands
             .get_mut(&s_id)
-            .ok_or(ErrOperation::StrandDoesNotExist(s_id))?;
+            .ok_or(OperationError::StrandDoesNotExist(s_id))?;
 
         let cyclic = strand_mut.is_cyclic;
         if cyclic {
             let prime3 = strand_mut
                 .get_3prime()
-                .ok_or(ErrOperation::CouldNotGetPrime3of(s_id))?;
+                .ok_or(OperationError::CouldNotGetPrime3of(s_id))?;
             Self::split_strand(&mut design.strands, &prime3, None, &mut self.color_idx)?;
         }
 
         let strand_mut = design
             .strands
             .get_mut(&s_id)
-            .ok_or(ErrOperation::StrandDoesNotExist(s_id))?;
+            .ok_or(OperationError::StrandDoesNotExist(s_id))?;
 
         if let Some(insertion_mut) = get_insertion_length_mut(strand_mut, insertion_point) {
             if length > 0 {
@@ -46,7 +46,7 @@ impl Controller {
                 strand_mut.junctions.remove(d_id);
                 strand_mut.merge_consecutive_domains();
             }
-            Ok(design)
+            Ok(())
         } else if length > 0 {
             // if the nucl is the 5' end of the insertion we want it to be the 3' end of the
             // resulting strand, and therefore be on the 5' end of the split
@@ -61,7 +61,7 @@ impl Controller {
             let strand_mut = design
                 .strands
                 .get_mut(&s_id)
-                .ok_or(ErrOperation::StrandDoesNotExist(s_id))?;
+                .ok_or(OperationError::StrandDoesNotExist(s_id))?;
             if cfg!(test) {
                 println!(
                     "junction after split {}",
@@ -122,10 +122,10 @@ impl Controller {
                 Self::make_cycle(&mut design.strands, s_id, true)?;
             }
 
-            Ok(design)
+            Ok(())
         } else {
             // Nothing to do
-            Err(ErrOperation::NotImplemented)
+            Err(OperationError::NotImplemented)
         }
     }
 }

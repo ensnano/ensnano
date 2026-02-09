@@ -5,7 +5,7 @@ use ensnano_design::{
     strands::Strand,
 };
 use itertools::Itertools as _;
-use rust_xlsxwriter::{Color, Format, Workbook};
+use rust_xlsxwriter::{Color, Format, Workbook, worksheet::Worksheet};
 use serde::Serialize;
 use std::{
     collections::{BTreeMap, HashMap},
@@ -69,8 +69,6 @@ impl DesignInteractor {
     }
 
     pub fn write_staples_xlsx(&self, xlsx_path: &Path) {
-        // use simple_excel_writer::{row, Row, Workbook};
-
         let all_group_names: Vec<String> = self.presenter.get_names_of_all_groups();
         let mut group_map: HashMap<&String, usize> = HashMap::new();
         for (j, name) in all_group_names.iter().enumerate() {
@@ -82,7 +80,7 @@ impl DesignInteractor {
             .content
             .get_staples(&self.presenter.current_design, &self.presenter);
 
-        let mut wb = Workbook::new(); //create(xlsx_path.to_str().unwrap());
+        let mut wb = Workbook::new();
         let mut sheets: BTreeMap<usize, Vec<Vec<&str>>> = BTreeMap::new();
 
         let interval_strs: Vec<_> = staples
@@ -137,7 +135,7 @@ impl DesignInteractor {
 
         // Add one sheet per plate
         for (sheet_id, rows) in &sheets {
-            let sheet: &mut rust_xlsxwriter::Worksheet = wb
+            let sheet: &mut Worksheet = wb
                 .add_worksheet()
                 .set_name(format!("Plate {sheet_id}"))
                 .expect("Excel error: cannot create worksheet");
@@ -192,7 +190,7 @@ impl DesignInteractor {
             sheet.autofit();
         }
 
-        let sheet: &mut rust_xlsxwriter::Worksheet = wb
+        let sheet: &mut Worksheet = wb
             .add_worksheet()
             .set_name("All staples".to_owned())
             .expect("Excel error: cannot create worksheet");

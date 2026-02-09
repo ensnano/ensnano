@@ -4,7 +4,7 @@ use ensnano_state::{
     app_state::AppState,
     gui::messages::StatusBarMessage,
     requests::Requests,
-    utils::operation::{CurrentOpState, Operation},
+    utils::operation::{CurrentOpState, SimpleOperation},
 };
 use ensnano_utils::{PastingStatus, keyboard_priority::keyboard_priority, ui_size::UiSize};
 use iced::{
@@ -192,7 +192,7 @@ struct OperationInput {
     values_str: Vec<String>,
     parameters: Vec<StatusParameter>,
     op_id: usize,
-    operation: Arc<dyn Operation>,
+    operation: Arc<dyn SimpleOperation>,
     inputted_values: HashMap<usize, String>,
 }
 
@@ -312,7 +312,11 @@ impl OperationInput {
         }
     }
 
-    fn update_value(&mut self, value_id: usize, values_str: String) -> Option<Arc<dyn Operation>> {
+    fn update_value(
+        &mut self,
+        value_id: usize,
+        values_str: String,
+    ) -> Option<Arc<dyn SimpleOperation>> {
         if let Some(op) = self.operation.as_ref().with_new_value(value_id, values_str) {
             self.operation = op.clone();
             Some(op)

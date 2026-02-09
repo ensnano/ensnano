@@ -1,6 +1,6 @@
-use chebyshev_polynomials::ChebyshevPolynomial;
-use ensnano_design::curves::{
-    CurveDescriptor, revolution::InterpolationDescriptor, torus::CurveDescriptor2D,
+use ensnano_design::{
+    chebyshev_polynomials::{self, ChebyshevPolynomial},
+    curves::{CurveDescriptor, revolution::InterpolationDescriptor, torus::CurveDescriptor2D},
 };
 use ensnano_utils::surfaces::{RevolutionSurfaceSystemDescriptor, RootedRevolutionSurface};
 use std::f64::consts::TAU;

@@ -26,7 +26,7 @@ mod view;
 
 use crate::{
     camera2d::{Camera2D, FitRectangle},
-    controller::{Consequence, Controller},
+    controller::{Consequence, FlatSceneController},
     data::Data,
     flat_types::FlatNucl,
     view::View,
@@ -39,6 +39,7 @@ use ensnano_state::{
         selection::{Selection, extract_nucls_and_xover_ends},
     },
     requests::Requests,
+    state::MainState,
     utils::{
         application::{AppId, Application, Notification},
         operation::{CrossCut, Cut, Xover},
@@ -84,7 +85,7 @@ pub struct FlatScene {
     /// Handle the data representing the design.
     data: Vec<DataPtr>,
     /// Handle inputs.
-    controller: Vec<Controller>,
+    controller: Vec<FlatSceneController>,
     /// The area on which the flatscene is displayed.
     area: DrawArea,
     /// The size of the window on which the flatscene is displayed.
@@ -163,7 +164,7 @@ impl FlatScene {
         let data = Rc::new(RefCell::new(Data::new(view.clone(), reader, 0, requests)));
         //data.borrow_mut().perform_update();
         // TODO is this update necessary ?
-        let controller = Controller::new(
+        let controller = FlatSceneController::new(
             view.clone(),
             data.clone(),
             self.window_size,
@@ -208,20 +209,20 @@ impl FlatScene {
         &mut self,
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
-        app_state: &AppState,
+        main_state: &mut MainState,
     ) -> Option<CursorIcon> {
         if let Some(controller) = self.controller.get_mut(self.selected_design) {
-            let consequence = controller.input(event, cursor_position, app_state);
+            let consequence = controller.input(event, cursor_position, main_state);
             let icon = controller.get_icon();
-            self.read_consequence(consequence, Some(app_state));
+            self.read_consequence(consequence, Some(main_state));
             icon
         } else {
             None
         }
     }
 
-    fn read_consequence(&self, consequence: Consequence, new_state: Option<&AppState>) {
-        let app_state = new_state.unwrap_or(&self.old_state);
+    fn read_consequence(&self, consequence: Consequence, main_state: Option<&mut MainState>) {
+        let app_state = main_state.map_or(&self.old_state, |s| &s.app_state);
         match consequence {
             Consequence::Xover(nucl1, nucl2) => {
                 let (prime5_id, prime3_id) =
@@ -503,13 +504,13 @@ impl FlatScene {
     }
 
     /// Ask the view if it has been modified since the last drawing
-    fn needs_redraw_(&mut self, new_state: AppState) -> bool {
+    fn needs_redraw_(&mut self, new_state: &AppState) -> bool {
         self.check_timers();
         if let Some(view) = self.view.get(self.selected_design) {
             self.data[self.selected_design]
                 .borrow_mut()
-                .perform_update(&new_state, &self.old_state);
-            self.old_state = new_state;
+                .perform_update(new_state, &self.old_state);
+            self.old_state = new_state.clone();
             let ret = view.borrow().needs_redraw();
             if ret {
                 log::debug!("Flatscene requests redraw");
@@ -679,8 +680,6 @@ impl FlatScene {
 }
 
 impl Application for FlatScene {
-    type AppState = AppState;
-
     fn on_notify(&mut self, notification: Notification) {
         match notification {
             Notification::ToggleText(b) => {
@@ -790,9 +789,9 @@ impl Application for FlatScene {
         &mut self,
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
-        app_state: &AppState,
+        main_state: &mut MainState,
     ) -> Option<CursorIcon> {
-        self.input(event, cursor_position, app_state)
+        self.input(event, cursor_position, main_state)
     }
 
     fn on_redraw_request(
@@ -803,13 +802,13 @@ impl Application for FlatScene {
         self.draw_view(encoder, target);
     }
 
-    fn needs_redraw(&mut self, _: Duration, app_state: AppState) -> bool {
+    fn needs_redraw(&mut self, _: Duration, main_state: &mut MainState) -> bool {
         let now = Instant::now();
         if (now - self.last_update).as_millis() < 25 {
             false
         } else {
             self.last_update = now;
-            self.needs_redraw_(app_state)
+            self.needs_redraw_(&main_state.app_state)
         }
     }
 

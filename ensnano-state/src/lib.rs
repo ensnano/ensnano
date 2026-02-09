@@ -1,6 +1,9 @@
 pub mod app_state;
 pub mod design;
 pub mod gui;
+pub mod multiplexer;
+pub mod operation;
 pub mod requests;
 pub mod scene;
+pub mod state;
 pub mod utils;

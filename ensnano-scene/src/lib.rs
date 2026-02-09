@@ -9,7 +9,7 @@ mod stl;
 pub mod view;
 
 use crate::{
-    controller::{Consequence, Controller, automata::WidgetTarget},
+    controller::{Consequence, SceneController, automata::WidgetTarget},
     data::Data,
     element_selector::{ElementSelector, SceneElement},
     maths_3d::FiniteVec3,
@@ -32,11 +32,12 @@ use ensnano_state::{
         },
     },
     requests::Requests,
+    state::MainState,
     utils::{
         application::{AppId, Application, Camera3D, Notification},
         operation::{
             BezierControlPointTranslation, GridHelixCreation, GridRotation, GridTranslation,
-            HelixRotation, HelixTranslation, Operation, TranslateBezierPathVertex,
+            HelixRotation, HelixTranslation, SimpleOperation, TranslateBezierPathVertex,
             TranslateBezierSheetCorner,
         },
     },
@@ -73,7 +74,7 @@ pub struct Scene {
     /// The Object that handles the designs data
     data: Rc<RefCell<Data>>,
     /// The Object that handles input and notifications
-    controller: Controller,
+    controller: SceneController,
     /// The limits of the area on which the scene is displayed
     area: DrawArea,
     element_selector: ElementSelector,
@@ -122,7 +123,7 @@ impl Scene {
             initial_state.get_design_reader(),
             view.clone(),
         )));
-        let controller = Controller::new(view.clone(), data.clone(), window_size, area.size);
+        let controller = SceneController::new(view.clone(), data.clone(), window_size, area.size);
         let element_selector = ElementSelector::new(
             device,
             queue,
@@ -162,21 +163,21 @@ impl Scene {
         &mut self,
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
-        app_state: &AppState,
+        main_state: &mut MainState,
     ) -> Option<CursorIcon> {
         let consequence = self.controller.input(
             event,
             cursor_position,
             &mut self.element_selector,
-            app_state,
+            main_state,
         );
-        self.read_consequence(consequence, app_state);
+        self.read_consequence(consequence, main_state);
         self.controller.get_icon()
     }
 
-    fn check_timers(&mut self, app_state: &AppState) {
+    fn check_timers(&mut self, main_state: &mut MainState) {
         let consequence = self.controller.check_timers();
-        self.read_consequence(consequence, app_state);
+        self.read_consequence(consequence, main_state);
     }
 
     fn set_pivot_point(&mut self, app_state: &AppState) {
@@ -196,7 +197,9 @@ impl Scene {
         self.controller.set_pivot_point(pivot);
     }
 
-    fn read_consequence(&mut self, consequence: Consequence, app_state: &AppState) {
+    // NOTE : this will be removed when we start using main_state
+    #[expect(clippy::needless_pass_by_ref_mut)]
+    fn read_consequence(&mut self, consequence: Consequence, main_state: &mut MainState) {
         if !matches!(consequence, Consequence::Nothing) {
             log::info!("Consequence {consequence:?}");
         }
@@ -204,7 +207,7 @@ impl Scene {
             Consequence::Nothing => (),
             Consequence::CameraMoved => self.notify(SceneNotification::CameraMoved),
             Consequence::CameraTranslated(dx, dy) => {
-                self.set_pivot_point(app_state);
+                self.set_pivot_point(&main_state.app_state);
                 self.controller.translate_camera(dx, dy);
                 self.notify(SceneNotification::CameraMoved);
             }
@@ -213,7 +216,7 @@ impl Scene {
                 self.data.borrow_mut().end_free_xover();
             }
             Consequence::QuickXoverAttempt { nucl, doubled } => {
-                let suggestions = app_state.get_design_reader().get_suggestions();
+                let suggestions = main_state.app_state.get_design_reader().get_suggestions();
                 let mut pair = suggestions
                     .iter()
                     .find(|(a, b)| *a == nucl || *b == nucl)
@@ -244,8 +247,8 @@ impl Scene {
                 if let Some(t) = translation {
                     match target {
                         WidgetTarget::Object => {
-                            self.translate_selected_design(t, app_state);
-                            if app_state.get_current_group_id().is_none() {
+                            self.translate_selected_design(t, &main_state.app_state);
+                            if main_state.app_state.get_current_group_id().is_none() {
                                 self.translate_group_pivot(t);
                             }
                         }
@@ -280,7 +283,7 @@ impl Scene {
                 if let Some(pivot) = self.view.borrow().get_group_pivot() {
                     self.requests.lock().unwrap().set_current_group_pivot(pivot);
                     if target == WidgetTarget::Pivot
-                        && app_state.get_widget_basis() == WidgetBasis::World
+                        && main_state.app_state.get_widget_basis() == WidgetBasis::World
                     {
                         self.requests.lock().unwrap().toggle_widget_basis();
                     }
@@ -298,8 +301,13 @@ impl Scene {
                     if rotation.bv.mag() > 1e-3 {
                         match target {
                             WidgetTarget::Object => {
-                                self.rotate_selected_design(rotation, origin, positive, app_state);
-                                if app_state.get_current_group_id().is_none() {
+                                self.rotate_selected_design(
+                                    rotation,
+                                    origin,
+                                    positive,
+                                    &main_state.app_state,
+                                );
+                                if main_state.app_state.get_current_group_id().is_none() {
                                     self.requests.lock().unwrap().rotate_group_pivot(rotation);
                                 }
                             }
@@ -314,12 +322,12 @@ impl Scene {
                 }
             }
             Consequence::Swing(x, y) => {
-                self.set_pivot_point(app_state);
+                self.set_pivot_point(&main_state.app_state);
                 self.controller.swing(-x, -y);
                 self.notify(SceneNotification::CameraMoved);
             }
             Consequence::Tilt(x) => {
-                self.set_pivot_point(app_state);
+                self.set_pivot_point(&main_state.app_state);
                 let angle = x as f32 * -TAU;
                 self.controller.continuous_tilt(angle);
                 self.notify(SceneNotification::CameraMoved);
@@ -339,17 +347,23 @@ impl Scene {
                     .unwrap()
                     .update_builder_position(position);
             }
-            Consequence::Candidate(element) => self.set_candidate(element, app_state),
+            Consequence::Candidate(element) => self.set_candidate(element, &main_state.app_state),
             Consequence::PivotElement(element) => {
-                self.data.borrow_mut().set_pivot_element(element, app_state);
+                self.data
+                    .borrow_mut()
+                    .set_pivot_element(element, &main_state.app_state);
                 let pivot = self.data.borrow().get_pivot_position();
                 self.view.borrow_mut().update(ViewUpdate::FogCenter(pivot));
             }
             Consequence::ElementSelected(element, adding) => {
                 if adding {
-                    self.add_selection(element, app_state.get_selection(), app_state);
+                    self.add_selection(
+                        element,
+                        main_state.app_state.get_selection(),
+                        &main_state.app_state,
+                    );
                 } else {
-                    self.select(element, app_state);
+                    self.select(element, &main_state.app_state);
                 }
             }
             Consequence::MoveFreeXover(element, position) => self
@@ -383,7 +397,7 @@ impl Scene {
                                     y,
                                 },
                             )),
-                            app_state,
+                            &main_state.app_state,
                         );
                     }
                 } else {
@@ -399,13 +413,19 @@ impl Scene {
                             length,
                             position,
                         }));
-                    self.select(Some(SceneElement::Grid(design_id, grid_id)), app_state);
+                    self.select(
+                        Some(SceneElement::Grid(design_id, grid_id)),
+                        &main_state.app_state,
+                    );
                 }
             }
             Consequence::PasteCandidate(element) => self.pasting_candidate(element),
             Consequence::Paste(element) => self.attempt_paste(element),
             Consequence::DoubleClick(element) => {
-                let selection = self.data.borrow().to_selection(element, app_state);
+                let selection = self
+                    .data
+                    .borrow()
+                    .to_selection(element, &main_state.app_state);
                 if let Some(selection) = selection {
                     self.requests
                         .lock()
@@ -415,7 +435,8 @@ impl Scene {
             }
             Consequence::InitBuild(nucls) => {
                 if let Some(xover_id) = nucls.first().copied().and_then(|n| {
-                    app_state
+                    main_state
+                        .app_state
                         .get_design_reader()
                         .get_id_of_xover_involving_nucl(n)
                 }) {
@@ -436,8 +457,10 @@ impl Scene {
                     .update(ViewUpdate::FogCenter(Some(Vec3::zero())));
             }
             Consequence::CheckXovers => {
-                let xovers =
-                    list_of_xover_ids(app_state.get_selection(), &app_state.get_design_reader());
+                let xovers = list_of_xover_ids(
+                    main_state.app_state.get_selection(),
+                    &main_state.app_state.get_design_reader(),
+                );
                 if let Some((_, xovers)) = xovers {
                     self.requests
                         .lock()
@@ -474,14 +497,15 @@ impl Scene {
                 vertex_id,
             } => {
                 let mut vertices = vec![BezierVertexId { path_id, vertex_id }];
-                if app_state
+                if main_state
+                    .app_state
                     .get_selection()
                     .contains(&Selection::BezierVertex(BezierVertexId {
                         path_id,
                         vertex_id,
                     }))
                 {
-                    for v in app_state.get_selection().iter().filter_map(|s| {
+                    for v in main_state.app_state.get_selection().iter().filter_map(|s| {
                         if let Selection::BezierVertex(v) = s {
                             Some(v)
                         } else {
@@ -656,7 +680,7 @@ impl Scene {
 
         let group_id = app_state.get_current_group_id();
 
-        let translation_op: Arc<dyn Operation> = if !control_points.is_empty() {
+        let translation_op: Arc<dyn SimpleOperation> = if !control_points.is_empty() {
             Arc::new(BezierControlPointTranslation {
                 control_points,
                 right: Vec3::unit_x().rotated_by(rotor),
@@ -739,43 +763,44 @@ impl Scene {
         );
         log::debug!("rotating grids {grids:?}");
         let group_id = app_state.get_current_group_id();
-        let rotation: Arc<dyn Operation> = if let Some(grid_ids) = grids.filter(|v| !v.is_empty()) {
-            Arc::new(GridRotation {
-                grid_ids,
-                angle,
-                plane,
-                origin,
-                design_id: 0,
-                group_id,
-                replace: false,
-            })
-        } else {
-            match self.data.borrow().get_selected_element(app_state) {
-                Selection::Helix {
-                    design_id,
-                    helix_id,
-                    ..
-                } => Arc::new(HelixRotation {
-                    helices: helices.unwrap_or_else(|| vec![helix_id]),
+        let rotation: Arc<dyn SimpleOperation> =
+            if let Some(grid_ids) = grids.filter(|v| !v.is_empty()) {
+                Arc::new(GridRotation {
+                    grid_ids,
                     angle,
                     plane,
                     origin,
-                    design_id: design_id as usize,
+                    design_id: 0,
                     group_id,
                     replace: false,
-                }),
-                Selection::Grid(d_id, g_id) => Arc::new(GridRotation {
-                    grid_ids: vec![g_id],
-                    angle,
-                    plane,
-                    origin,
-                    design_id: d_id as usize,
-                    group_id,
-                    replace: false,
-                }),
-                _ => return,
-            }
-        };
+                })
+            } else {
+                match self.data.borrow().get_selected_element(app_state) {
+                    Selection::Helix {
+                        design_id,
+                        helix_id,
+                        ..
+                    } => Arc::new(HelixRotation {
+                        helices: helices.unwrap_or_else(|| vec![helix_id]),
+                        angle,
+                        plane,
+                        origin,
+                        design_id: design_id as usize,
+                        group_id,
+                        replace: false,
+                    }),
+                    Selection::Grid(d_id, g_id) => Arc::new(GridRotation {
+                        grid_ids: vec![g_id],
+                        angle,
+                        plane,
+                        origin,
+                        design_id: d_id as usize,
+                        group_id,
+                        replace: false,
+                    }),
+                    _ => return,
+                }
+            };
 
         self.requests.lock().unwrap().update_operation(rotation);
     }
@@ -789,30 +814,6 @@ impl Scene {
             self.notify(SceneNotification::NewCameraPosition(position));
             self.controller.set_pivot_point(pivot_point.try_into().ok());
         }
-    }
-
-    fn need_redraw(&mut self, dt: Duration, new_state: AppState) -> bool {
-        self.check_timers(&new_state);
-        if self.controller.camera_is_moving() {
-            self.notify(SceneNotification::CameraMoved);
-        }
-        self.controller.update_data();
-        if self.update.need_update {
-            self.perform_update(dt);
-        }
-        self.data
-            .borrow_mut()
-            .update_design_reader(new_state.get_design_reader());
-        self.data
-            .borrow_mut()
-            .update_view(&new_state, &self.older_state);
-        let mut ret = new_state.draw_options_were_updated(&self.older_state);
-        self.older_state = new_state;
-        ret |= self.view.borrow().need_redraw();
-        if ret {
-            log::debug!("Scene requests redraw");
-        }
-        ret
     }
 
     /// Draw the scene
@@ -1144,8 +1145,6 @@ pub enum SceneNotification {
 }
 
 impl Application for Scene {
-    type AppState = AppState;
-
     fn on_notify(&mut self, notification: Notification) {
         log::info!("scene notified {notification:?}");
         let older_state = self.older_state.clone();
@@ -1240,7 +1239,7 @@ impl Application for Scene {
         &mut self,
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
-        app_state: &AppState,
+        main_state: &mut MainState,
     ) -> Option<CursorIcon> {
         self.element_selector
             .set_stereographic(self.is_stereographic());
@@ -1250,7 +1249,7 @@ impl Application for Scene {
         } else {
             self.controller.set_stereography(None);
         }
-        self.input(event, cursor_position, app_state)
+        self.input(event, cursor_position, main_state)
     }
 
     fn on_resize(&mut self, window_size: PhySize, area: DrawArea) {
@@ -1266,8 +1265,30 @@ impl Application for Scene {
         self.draw_view(encoder, target, &older_state);
     }
 
-    fn needs_redraw(&mut self, dt: Duration, app_state: AppState) -> bool {
-        self.need_redraw(dt, app_state)
+    fn needs_redraw(&mut self, dt: Duration, main_state: &mut MainState) -> bool {
+        self.check_timers(main_state);
+        if self.controller.camera_is_moving() {
+            self.notify(SceneNotification::CameraMoved);
+        }
+        self.controller.update_data();
+        if self.update.need_update {
+            self.perform_update(dt);
+        }
+        self.data
+            .borrow_mut()
+            .update_design_reader(main_state.app_state.get_design_reader());
+        self.data
+            .borrow_mut()
+            .update_view(&main_state.app_state, &self.older_state);
+        let mut ret = main_state
+            .app_state
+            .draw_options_were_updated(&self.older_state);
+        self.older_state = main_state.app_state.clone();
+        ret |= self.view.borrow().need_redraw();
+        if ret {
+            log::debug!("Scene requests redraw");
+        }
+        ret
     }
 
     fn get_position_for_new_grid(&self) -> Option<(Vec3, Rotor3)> {

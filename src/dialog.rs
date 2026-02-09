@@ -39,7 +39,7 @@ impl YesNoQuestion {
 
 pub(crate) fn yes_no_dialog(message: Cow<'static, str>) -> YesNoQuestion {
     let msg = rfd::AsyncMessageDialog::new()
-        .set_description(message.as_ref())
+        .set_description(message.to_string())
         .set_buttons(rfd::MessageButtons::YesNo)
         .show();
     let (snd, rcv) = mpsc::channel();
@@ -69,7 +69,7 @@ pub(crate) fn blocking_message(
 ) -> MustAckMessage {
     let msg = rfd::AsyncMessageDialog::new()
         .set_level(level)
-        .set_description(message.as_ref())
+        .set_description(message.to_string())
         .show();
     let (snd, rcv) = mpsc::channel();
     thread::spawn(move || {

@@ -14,7 +14,7 @@ pub struct AppStateTransition {
 /// A label describing an operation.
 /// To create a `TransitionLabel`, use its `From<String>` or `From<'static str>` implementation
 #[derive(Clone, Debug)]
-pub struct TransitionLabel(Cow<'static, str>);
+pub struct TransitionLabel(pub Cow<'static, str>);
 
 impl<T: Into<Cow<'static, str>>> From<T> for TransitionLabel {
     fn from(x: T) -> Self {
@@ -29,7 +29,7 @@ impl AsRef<str> for TransitionLabel {
 }
 
 #[derive(Debug)]
-pub enum OkOperation {
+pub enum OperationUndoability {
     NotUndoable,
     Undoable {
         state: AppState,

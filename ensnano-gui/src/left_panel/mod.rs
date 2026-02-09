@@ -72,6 +72,8 @@ pub struct LeftPanelState {
     revolution_tab: RevolutionTab,
     contextual_panel: ContextualPanel,
     camera_shortcut: CameraShortcutPanel,
+    // Pacome notes : this is a mistake; if the app state gets
+    // mutated somewhere, there is no synchronization.
     application_state: AppState,
     exports_menu: ExportMenu,
 }
@@ -622,8 +624,10 @@ impl Program for LeftPanelState {
                 Command::none()
             }
             LeftPanelMessage::OpenLink(link) => {
-                // ATM we continue even in case of error, later any error will be prompted to user
-                let _ = open::that(link);
+                if let Err(err) = open::that(link) {
+                    // TODO: show the error in the UI
+                    log::warn!("Failed to open '{link}': {err}");
+                }
                 Command::none()
             }
             LeftPanelMessage::NewApplicationState(state) => {
@@ -714,7 +718,10 @@ impl Program for LeftPanelState {
                 Command::none()
             }
             LeftPanelMessage::FollowStereographicCamera(b) => {
-                self.requests.lock().unwrap().follow_stereographic_camera(b);
+                self.requests
+                    .lock()
+                    .unwrap()
+                    .set_follow_stereographic_camera(b);
                 Command::none()
             }
             LeftPanelMessage::ShowStereographicCamera(b) => {

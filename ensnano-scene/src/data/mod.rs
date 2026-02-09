@@ -1360,7 +1360,7 @@ impl Data {
             // scalebar
             plain_rectangles.extend(design.get_scalebar_plain_rectangles_raw());
 
-            if app_state.show_bezier_paths() {
+            if app_state.does_show_bezier_paths() {
                 let (bezier_spheres, bezier_tubes) = design.get_bezier_paths_elements(app_state);
                 spheres.extend(bezier_spheres);
                 tubes.extend(bezier_tubes);
@@ -1387,7 +1387,7 @@ impl Data {
             }
         }
         self.update_free_xover(app_state.get_candidates());
-        let (sheet_instances, corner_spheres) = if app_state.show_bezier_paths() {
+        let (sheet_instances, corner_spheres) = if app_state.does_show_bezier_paths() {
             self.designs[0].get_bezier_sheets(app_state)
         } else {
             (Default::default(), Default::default())

@@ -1,6 +1,10 @@
-use crate::design::selection::Selection;
+use crate::{
+    app_state::design_interactor::controller::{Controller, OperationError},
+    design::selection::Selection,
+    operation::{AppStateOperationOutcome, AppStateOperationResult},
+};
 use ensnano_design::{
-    CameraId,
+    CameraId, Design,
     bezier_plane::{
         BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
     },
@@ -15,7 +19,7 @@ use ensnano_design::{
     organizer_tree::{GroupId, OrganizerTree},
     parameters::HelixParameters,
 };
-use std::path::PathBuf;
+use std::{path::PathBuf, sync::Arc};
 use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
 
 /// An operation that can be performed on a design
@@ -293,6 +297,260 @@ impl DesignOperation {
             Self::MakeSeveralXovers { .. } => "Multiple xovers".into(),
             _ => "Unnamed operation".into(),
         }
+    }
+
+    fn outcome(&self) -> AppStateOperationOutcome {
+        let label = self.label();
+
+        AppStateOperationOutcome::Push { label }
+    }
+
+    pub fn apply(
+        self,
+        controller: &mut Controller,
+        design: &mut Design,
+    ) -> AppStateOperationResult {
+        let outcome = self.outcome();
+
+        match self {
+            Self::RecolorStaples => {
+                controller.fancy_recolor_staples(design);
+            }
+            Self::SetScaffoldSequence { sequence, shift } => {
+                controller.set_scaffold_sequence(design, sequence, shift);
+            }
+            Self::SetScaffoldShift(shift) => {
+                controller.set_scaffold_shift(design, shift);
+            }
+            Self::HelicesToGrid(selection) => {
+                controller.turn_selection_into_grid(design, selection)?;
+            }
+            Self::AddGrid(descriptor) => {
+                controller.add_grid(design, descriptor);
+            }
+            Self::ChangeColor { color, strands } => {
+                controller.change_color_strands(design, color, strands);
+            }
+            Self::SetHelicesPersistence {
+                grid_ids,
+                persistent,
+            } => {
+                controller.set_helices_persistence(design, grid_ids, persistent);
+            }
+            Self::SetSmallSpheres { grid_ids, small } => {
+                controller.set_small_spheres(design, grid_ids, small);
+            }
+            Self::SnapHelices {
+                pivots,
+                translation,
+            } => {
+                controller.snap_helices(design, pivots, translation);
+            }
+            Self::SetIsometry {
+                helix,
+                segment_idx,
+                isometry,
+            } => {
+                controller.set_isometry(design, helix, segment_idx, isometry);
+            }
+            Self::RotateHelices {
+                helices,
+                center,
+                angle,
+            } => {
+                controller.rotate_helices(design, helices, center, angle);
+            }
+            Self::ApplySymmetryToHelices {
+                helices,
+                centers,
+                symmetry,
+            } => {
+                controller.apply_symmetry_to_helices(design, helices, centers, symmetry);
+            }
+            Self::Translation(translation) => {
+                controller.apply_translation(design, translation)?;
+            }
+            Self::Rotation(rotation) => {
+                controller.apply_rotation(design, rotation)?;
+            }
+            Self::RequestStrandBuilders { nucls } => {
+                controller.request_strand_builders(design, nucls)?;
+            }
+            Self::MoveBuilders(n) => {
+                controller.move_strand_builders(design, n)?;
+            }
+            Self::Cut { nucl, .. } => {
+                controller.cut(design, nucl)?;
+            }
+            Self::AddGridHelix {
+                position,
+                length,
+                start,
+            } => {
+                controller.add_grid_helix(design, position, start, length)?;
+            }
+            Self::AddTwoPointsBezier { start, end } => {
+                controller.add_two_points_bezier(design, start, end)?;
+            }
+            Self::CrossCut {
+                target_3prime,
+                source_id,
+                target_id,
+                nucl,
+            } => {
+                controller.apply_cross_cut(design, source_id, target_id, nucl, target_3prime)?;
+            }
+            Self::Xover {
+                prime5_id,
+                prime3_id,
+            } => {
+                controller.apply_merge(design, prime5_id, prime3_id)?;
+            }
+            Self::GeneralXover { source, target } => {
+                controller.apply_general_cross_over(design, source, target)?;
+            }
+            Self::RmStrands { strand_ids } => {
+                controller.delete_strands(design, strand_ids)?;
+            }
+            Self::RmHelices { h_ids } => {
+                controller.delete_helices(design, h_ids)?;
+            }
+            Self::RmXovers { xovers } => {
+                controller.delete_xovers(design, &xovers)?;
+            }
+            Self::SetScaffoldId(s_id) => {
+                design.scaffold_id = s_id;
+            }
+            Self::HyperboloidOperation(op) => {
+                controller.apply_hyperboloid_operation(design, op)?;
+            }
+            Self::SetRollHelices { helices, roll } => {
+                controller.set_roll_helices(design, helices, roll)?;
+            }
+            Self::SetVisibilityHelix { helix, visible } => {
+                controller.set_visibility_helix(design, helix, visible)?;
+            }
+            Self::FlipHelixGroup { helix } => {
+                controller.flip_helix_group(design, helix)?;
+            }
+            Self::UpdateAttribute {
+                attribute,
+                elements,
+            } => {
+                controller.update_attribute(design, attribute, elements)?;
+            }
+            Self::FlipAnchors { nucls } => {
+                controller.flip_anchors(design, nucls)?;
+            }
+            Self::CleanDesign => {
+                //TODO
+                return Err(OperationError::NotImplemented);
+            }
+            Self::AttachObject { object, grid, x, y } => {
+                controller.attach_object(design, object, grid, x, y)?;
+            }
+            Self::SetOrganizerTree(tree) => {
+                design.organizer_tree = Some(Arc::new(tree));
+            }
+            Self::SetStrandName { s_id, name } => {
+                controller.change_strand_name(design, s_id, name)?;
+            }
+            Self::SetGroupPivot { group_id, pivot } => {
+                controller.set_group_pivot(design, group_id, pivot)?;
+            }
+            Self::CreateNewCamera {
+                position,
+                orientation,
+                pivot_position,
+            } => {
+                controller.create_camera(design, position, orientation, pivot_position);
+            }
+            Self::DeleteCamera(camera_id) => {
+                controller.delete_camera(design, camera_id)?;
+            }
+            Self::SetCameraName { camera_id, name } => {
+                controller.set_camera_name(design, camera_id, name)?;
+            }
+            Self::SetGridPosition { grid_id, position } => {
+                controller.set_grid_position(design, grid_id, position)?;
+            }
+            Self::SetGridOrientation {
+                grid_id,
+                orientation,
+            } => {
+                controller.set_grid_orientation(design, grid_id, orientation)?;
+            }
+            Self::SetGridNbTurn { grid_id, nb_turn } => {
+                controller.set_grid_nb_turn(design, grid_id, nb_turn as f64)?;
+            }
+            Self::MakeSeveralXovers { xovers, doubled } => {
+                controller.apply_several_xovers(design, xovers, doubled)?;
+            }
+
+            Self::CheckXovers { xovers } => {
+                controller.check_xovers(design, xovers)?;
+            }
+            Self::SetRainbowScaffold(b) => {
+                design.rainbow_scaffold = b;
+            }
+            Self::SetGlobalHelixParameters {
+                helix_parameters: parameters,
+            } => {
+                design.helix_parameters = Some(parameters);
+            }
+            Self::SetInsertionLength {
+                insertion_point,
+                length,
+            } => {
+                controller.update_insertion_length(design, insertion_point, length)?;
+            }
+            Self::AddBezierPlane { desc } => {
+                controller.add_bezier_plane(design, desc);
+            }
+            Self::CreateBezierPath { first_vertex } => {
+                controller.create_bezier_path(design, first_vertex);
+            }
+            Self::AppendVertexToPath { path_id, vertex } => {
+                controller.append_vertex_to_bezier_path(design, path_id, vertex)?;
+            }
+            Self::MoveBezierVertex { vertices, position } => {
+                controller.move_bezier_vertices(design, vertices, position)?;
+            }
+            Self::SetBezierVertexPosition {
+                vertex_id,
+                position,
+            } => {
+                controller.set_bezier_vertex_position(design, vertex_id, position)?;
+            }
+            Self::TurnPathVerticesIntoGrid { path_id, grid_type } => {
+                controller.turn_bezier_path_into_grids(design, path_id, grid_type)?;
+            }
+
+            Self::ApplyHomothethyOnBezierPlane { homothethy } => {
+                controller.apply_homothethy_on_bezier_plane(design, homothethy);
+            }
+            Self::SetVectorOfBezierTangent(requested_vector) => {
+                controller.set_bezier_tangent(design, requested_vector)?;
+            }
+            Self::MakeBezierPathCyclic { path_id, cyclic } => {
+                controller.make_bezier_path_cyclic(design, path_id, cyclic)?;
+            }
+            Self::RmFreeGrids { grid_ids } => {
+                controller.delete_free_grids(design, grid_ids)?;
+            }
+            Self::RmBezierVertices { vertices } => {
+                controller.rm_bezier_vertices(design, vertices)?;
+            }
+            Self::Add3DObject {
+                file_path,
+                design_path,
+            } => controller.add_3d_object(design, file_path, design_path)?,
+            Self::ImportSvgPath { path } => {
+                controller.import_svg_path(design, path)?;
+            }
+        }
+
+        Ok(outcome)
     }
 }
 

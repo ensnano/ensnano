@@ -1,4 +1,4 @@
-use crate::design::selection::Selection;
+use crate::{design::selection::Selection, state::MainState};
 use ensnano_design::group_attributes::GroupPivot;
 use ensnano_utils::graphics::{DrawArea, FogParameters};
 use std::{path::Path, sync::Arc, time::Duration};
@@ -27,7 +27,6 @@ impl Default for Camera3D {
 }
 
 pub trait Application {
-    type AppState;
     /// For notification about the data
     fn on_notify(&mut self, notification: Notification);
     /// The method must be called when the window is resized or when the drawing area is modified
@@ -37,11 +36,13 @@ pub trait Application {
         &mut self,
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
-        app_state: &Self::AppState,
+        main_state: &mut MainState,
     ) -> Option<CursorIcon>;
     /// The method is used to forwards redraw_requests to applications
     fn on_redraw_request(&mut self, encoder: &mut wgpu::CommandEncoder, target: &wgpu::TextureView);
-    fn needs_redraw(&mut self, dt: Duration, app_state: Self::AppState) -> bool;
+    // !!! this should only have to use a &AppState instead of &mut MainState,
+    // but some current implementations of the trait require it through timers?
+    fn needs_redraw(&mut self, dt: Duration, main_state: &mut MainState) -> bool;
     fn get_position_for_new_grid(&self) -> Option<(Vec3, Rotor3)> {
         None
     }

@@ -31,7 +31,7 @@ mod tests {
 
         // When a new state is created with this methods it should be considered to have a new
         // selection but the same selection
-        state = state.with_selection(vec![Selection::Strand(0, 0)], None);
+        _ = state.set_selection(&[Selection::Strand(0, 0)], &None);
         assert!(state.selection_was_updated(&old_state));
     }
 
@@ -40,7 +40,7 @@ mod tests {
         let mut state = AppState::default();
         let old_selection_mode = state.get_selection_mode();
         let old_state = state.clone();
-        state = state.with_selection_mode(SelectionMode::Helix);
+        _ = state.set_selection_mode(SelectionMode::Helix);
         assert_eq!(old_state.get_selection_mode(), old_selection_mode);
         assert_eq!(state.get_selection_mode(), SelectionMode::Helix);
         assert!(!state.selection_was_updated(&old_state));

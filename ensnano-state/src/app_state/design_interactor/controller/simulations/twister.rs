@@ -1,13 +1,10 @@
-use crate::app_state::{
-    channel_reader::ChannelReader,
-    design_interactor::{
-        Presenter,
-        controller::simulations::{
-            SimulationInterface,
-            roller::{DesignData, RollSystem},
-        },
-        presenter::SimulationUpdate,
+use crate::app_state::design_interactor::{
+    Presenter,
+    controller::simulations::{
+        SimulationInterface,
+        roller::{DesignData, RollSystem},
     },
+    presenter::SimulationUpdate,
 };
 use ensnano_design::{
     Design,
@@ -47,7 +44,6 @@ impl Twister {
     pub(crate) fn start_new(
         presenter: &Presenter,
         target_grid: GridId,
-        reader: &mut ChannelReader,
     ) -> Option<Arc<Mutex<TwistInterface>>> {
         let mut helices: Vec<Helix> = Vec::new();
         let mut keys: Vec<usize> = Vec::new();
@@ -80,8 +76,6 @@ impl Twister {
         };
 
         let interface = Arc::new(Mutex::new(TwistInterface::default()));
-        let interface_dyn: Arc<Mutex<dyn SimulationInterface>> = interface.clone();
-        reader.attach_state(&interface_dyn);
 
         let initial_state = if let Some(grid) = FreeGridId::try_from_grid_id(target_grid)
             .and_then(|target_grid| presenter.get_design().free_grids.get(&target_grid))

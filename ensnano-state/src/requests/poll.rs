@@ -2,7 +2,7 @@
 //! object.
 
 use crate::state::MainState;
-use ensnano_state::{
+use crate::{
     app_state::{action::Action, design_interactor::controller::clipboard::PastePosition},
     design::{
         operation::{DesignOperation, HyperboloidOperation},
@@ -12,7 +12,7 @@ use ensnano_state::{
     utils::application::Notification,
 };
 
-pub(crate) fn poll_all(requests: &mut Requests, main_state: &mut MainState) {
+pub fn poll_all(requests: &mut Requests, main_state: &mut MainState) {
     if requests.fitting.take().is_some() {
         main_state.push_action(Action::NotifyApps(Notification::FitRequest));
     }
@@ -327,7 +327,7 @@ pub(crate) fn poll_all(requests: &mut Requests, main_state: &mut MainState) {
     }
 
     if let Some(b) = requests.set_show_h_bonds.take() {
-        main_state.set_show_h_bonds(b);
+        main_state.show_h_bonds(b);
     }
 
     if let Some(b) = requests.set_show_bezier_paths.take() {
@@ -355,7 +355,7 @@ pub(crate) fn poll_all(requests: &mut Requests, main_state: &mut MainState) {
     }
 
     if let Some(surface) = requests.new_unrooted_surface.take() {
-        main_state.set_unrooted_surface(surface);
+        main_state.set_unrooted_surface(&surface);
     }
 
     if requests.switched_to_revolution_tab.take().is_some() {

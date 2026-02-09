@@ -91,7 +91,8 @@ impl<D: Drawable> Drawer<D> {
         fake: bool,
     ) {
         self.update_object();
-        if self.vertex_buffer.is_some() {
+        // Should probably check the other option fields that are unwrapped
+        if let Some(vertex_buffer) = &self.vertex_buffer {
             let pipeline = if fake {
                 if self.pipeline_fake.is_none() {
                     self.pipeline_fake = Some(self.create_pipeline(viewer_bind_group_layout, true));
@@ -109,7 +110,7 @@ impl<D: Drawable> Drawer<D> {
                 render_pass
                     .set_vertex_buffer(0, self.fake_vertex_buffer.as_ref().unwrap().slice(..));
             } else {
-                render_pass.set_vertex_buffer(0, self.vertex_buffer.as_ref().unwrap().slice(..));
+                render_pass.set_vertex_buffer(0, vertex_buffer.slice(..));
             }
             render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
             render_pass.set_bind_group(VIEWER_BINDING_ID, viewer_bind_group, &[]);
@@ -157,7 +158,7 @@ impl<D: Drawable> Drawer<D> {
             wgpu::BlendState::ALPHA_BLENDING
         };
 
-        let sample_count = if !fake { SAMPLE_COUNT } else { 1 };
+        let sample_count = if fake { 1 } else { SAMPLE_COUNT };
 
         let targets = &[Some(wgpu::ColorTargetState {
             format,

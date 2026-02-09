@@ -11,7 +11,7 @@ use ensnano_design::{
 use std::sync::Arc;
 use ultraviolet::{Bivec3, Rotor3, Vec2, Vec3};
 
-pub trait Operation: std::fmt::Debug + Sync + Send {
+pub trait SimpleOperation: std::fmt::Debug + Sync + Send {
     /// The effect of self that must be sent as a notifications to the targeted designs
     fn effect(&self) -> DesignOperation;
 
@@ -19,7 +19,7 @@ pub trait Operation: std::fmt::Debug + Sync + Send {
     fn description(&self) -> String;
 
     /// Produce an new operation by setting the value of the `n`-th parameter to `val`.
-    fn with_new_value(&self, _n: usize, _val: String) -> Option<Arc<dyn Operation>> {
+    fn with_new_value(&self, _n: usize, _val: String) -> Option<Arc<dyn SimpleOperation>> {
         None
     }
 
@@ -40,7 +40,7 @@ pub trait Operation: std::fmt::Debug + Sync + Send {
 }
 
 pub struct CurrentOpState {
-    pub current_operation: Arc<dyn Operation>,
+    pub current_operation: Arc<dyn SimpleOperation>,
     pub operation_id: usize,
 }
 
@@ -55,7 +55,7 @@ pub struct GridRotation {
     pub replace: bool,
 }
 
-impl Operation for GridRotation {
+impl SimpleOperation for GridRotation {
     fn parameters(&self) -> &[&'static str] {
         &["angle"]
     }
@@ -81,7 +81,7 @@ impl Operation for GridRotation {
         )
     }
 
-    fn with_new_value(&self, n: usize, val: String) -> Option<Arc<dyn Operation>> {
+    fn with_new_value(&self, n: usize, val: String) -> Option<Arc<dyn SimpleOperation>> {
         if n == 0 {
             let degrees: f32 = val.parse().ok()?;
             Some(Arc::new(Self {
@@ -110,7 +110,7 @@ pub struct HelixRotation {
     pub replace: bool,
 }
 
-impl Operation for HelixRotation {
+impl SimpleOperation for HelixRotation {
     fn parameters(&self) -> &[&'static str] {
         &["angle"]
     }
@@ -136,7 +136,7 @@ impl Operation for HelixRotation {
         )
     }
 
-    fn with_new_value(&self, n: usize, val: String) -> Option<Arc<dyn Operation>> {
+    fn with_new_value(&self, n: usize, val: String) -> Option<Arc<dyn SimpleOperation>> {
         if n == 0 {
             let degrees: f32 = val.parse().ok()?;
             Some(Arc::new(Self {
@@ -166,7 +166,7 @@ pub struct BezierControlPointTranslation {
     pub group_id: Option<GroupId>,
 }
 
-impl Operation for BezierControlPointTranslation {
+impl SimpleOperation for BezierControlPointTranslation {
     fn parameters(&self) -> &[&'static str] {
         &["x", "y", "z"]
     }
@@ -188,7 +188,7 @@ impl Operation for BezierControlPointTranslation {
         format!("Translate control points {:?}", self.control_points,)
     }
 
-    fn with_new_value(&self, n: usize, val: String) -> Option<Arc<dyn Operation>> {
+    fn with_new_value(&self, n: usize, val: String) -> Option<Arc<dyn SimpleOperation>> {
         match n {
             0 => {
                 let new_x: f32 = val.parse().ok()?;
@@ -223,7 +223,7 @@ pub struct TranslateBezierPathVertex {
     pub y: f32,
 }
 
-impl Operation for TranslateBezierPathVertex {
+impl SimpleOperation for TranslateBezierPathVertex {
     fn description(&self) -> String {
         String::from("Positioning BezierPath Vertex")
     }
@@ -244,7 +244,7 @@ pub struct TranslateBezierSheetCorner {
     pub moving_corner: Vec2,
 }
 
-impl Operation for TranslateBezierSheetCorner {
+impl SimpleOperation for TranslateBezierSheetCorner {
     fn description(&self) -> String {
         String::from("Translating BezierSheet Corner")
     }
@@ -276,7 +276,7 @@ pub struct HelixTranslation {
     pub replace: bool,
 }
 
-impl Operation for HelixTranslation {
+impl SimpleOperation for HelixTranslation {
     fn parameters(&self) -> &[&'static str] {
         &["x", "y", "z"]
     }
@@ -301,7 +301,7 @@ impl Operation for HelixTranslation {
         )
     }
 
-    fn with_new_value(&self, n: usize, val: String) -> Option<Arc<dyn Operation>> {
+    fn with_new_value(&self, n: usize, val: String) -> Option<Arc<dyn SimpleOperation>> {
         match n {
             0 => {
                 let new_x: f32 = val.parse().ok()?;
@@ -350,7 +350,7 @@ pub struct GridTranslation {
     pub replace: bool,
 }
 
-impl Operation for GridTranslation {
+impl SimpleOperation for GridTranslation {
     fn parameters(&self) -> &[&'static str] {
         &["x", "y", "z"]
     }
@@ -375,7 +375,7 @@ impl Operation for GridTranslation {
         )
     }
 
-    fn with_new_value(&self, n: usize, val: String) -> Option<Arc<dyn Operation>> {
+    fn with_new_value(&self, n: usize, val: String) -> Option<Arc<dyn SimpleOperation>> {
         match n {
             0 => {
                 let new_x: f32 = val.parse().ok()?;
@@ -420,7 +420,7 @@ pub struct GridHelixCreation {
     pub length: usize,
 }
 
-impl Operation for GridHelixCreation {
+impl SimpleOperation for GridHelixCreation {
     fn values(&self) -> Vec<String> {
         vec![self.x.to_string(), self.y.to_string()]
     }
@@ -446,7 +446,7 @@ impl Operation for GridHelixCreation {
         )
     }
 
-    fn with_new_value(&self, n: usize, val: String) -> Option<Arc<dyn Operation>> {
+    fn with_new_value(&self, n: usize, val: String) -> Option<Arc<dyn SimpleOperation>> {
         match n {
             0 => {
                 let new_x: f32 = val.parse().ok()?;
@@ -477,7 +477,7 @@ pub struct Cut {
     pub nucl: Nucl,
 }
 
-impl Operation for Cut {
+impl SimpleOperation for Cut {
     fn effect(&self) -> DesignOperation {
         DesignOperation::Cut { nucl: self.nucl }
     }
@@ -486,7 +486,7 @@ impl Operation for Cut {
         format!("Cut on nucleotide {}", self.nucl)
     }
 
-    fn with_new_value(&self, _n: usize, _val: String) -> Option<Arc<dyn Operation>> {
+    fn with_new_value(&self, _n: usize, _val: String) -> Option<Arc<dyn SimpleOperation>> {
         None
     }
 }
@@ -498,7 +498,7 @@ pub struct Xover {
     pub undo: bool,
 }
 
-impl Operation for Xover {
+impl SimpleOperation for Xover {
     fn effect(&self) -> DesignOperation {
         DesignOperation::Xover {
             prime5_id: self.prime5_id,
@@ -525,7 +525,7 @@ pub struct CrossCut {
     pub target_3prime: bool,
 }
 
-impl Operation for CrossCut {
+impl SimpleOperation for CrossCut {
     fn effect(&self) -> DesignOperation {
         DesignOperation::CrossCut {
             source_id: self.source_id,

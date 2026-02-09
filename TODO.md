@@ -1,5 +1,16 @@
 # TODO
 
+- Group selections with pivots (still a bit unclear, but at least review the selection code)
+- Editable dna parameters instead of help menu when selecting an helix
+- When selecting different objects, possibility to modify similar fields at the same time
+- Ability to duplicate objects with Ctrl+C Ctrl+V
+- Import a design in an existing design
+- "Object" tab with Torus, Sphere, Circle, Nanotube... with editable parameters
+- Showing distance by selecting two nucleotides (exact UI unclear)
+- Limit undo pile (100 undos)
+- Recycle the identifiers
+- Possibility to remap the identifiers
+
 ## Bugs
 
 - Moving/scrolling and rotating at the same time make the camera go crazy
@@ -8,6 +19,8 @@
 - Request fit doesn't work properly anymore, both in 2D and 3D
 - Organizer Tree slider doesn't work with the mouse
 - Distance fog is broken ([NS message](https://discord.com/channels/689053746604670995/1419689469472411691/1459186505888170035))
+- Maximization of window on startup is slow and ugly
+- Crash when finishing diverging relaxation computation: `memory allocation of XXXXXXXXXXXX bytes failed`
 
 ## Bugs that should be fixed
 
@@ -49,10 +62,11 @@
 
 - Vector export (SVG?)
 - When moving a crossover, show the length of the neighbor too
-- Show size of the crossovers
+- Show crossover length based on helix parameters, not default parameters
 
 ## GUI
 
+- Tabs same colors as top icons (green when selected)
 - Double click on organizer tree should teleport in 2D and 3D scenes
 - Better looking tabs (and show active)
 - `3D`, `2D` and `3D+2D` should be "radio buttons" with the active one shown like the selection 
@@ -105,6 +119,7 @@
 
 ## Refactor
 
+- Simplify window creation
 - Merge `MainState` and `MainStateView` structs?
 - Remove in-file modules:
   - `abscissa_converter`
@@ -124,7 +139,6 @@
   - `AdditionalStructure` (ensnano_design)
   - `RawDrawer`
   - `DesignElementKeySelection`
-  - `MultiplexerExt`
   - `GridInstanceExt`
 - Remove enums with one variant -> struct or raw value:
   - `AppOperation`

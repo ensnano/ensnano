@@ -1,5 +1,4 @@
-use crate::multiplexer::Multiplexer;
-use ensnano_state::{app_state::AppState, utils::application::Application};
+use ensnano_state::{multiplexer::Multiplexer, state::MainState, utils::application::Application};
 use ensnano_utils::graphics::GuiComponentType;
 use std::{
     collections::HashMap,
@@ -14,7 +13,7 @@ use winit::{
 
 /// The scheduler is responsible for running the different applications
 pub(crate) struct Scheduler {
-    applications: HashMap<GuiComponentType, Arc<Mutex<dyn Application<AppState = AppState>>>>,
+    applications: HashMap<GuiComponentType, Arc<Mutex<dyn Application>>>,
     needs_redraw: Vec<GuiComponentType>,
 }
 
@@ -28,7 +27,7 @@ impl Scheduler {
 
     pub(crate) fn add_application(
         &mut self,
-        application: Arc<Mutex<dyn Application<AppState = AppState>>>,
+        application: Arc<Mutex<dyn Application>>,
         element_type: GuiComponentType,
     ) {
         self.applications.insert(element_type, application);
@@ -40,26 +39,24 @@ impl Scheduler {
         event: &WindowEvent,
         area: GuiComponentType,
         cursor_position: PhysicalPosition<f64>,
-        app_state: AppState,
+        main_state: &mut MainState,
     ) -> Option<CursorIcon> {
         let app = self.applications.get_mut(&area)?;
         app.lock()
             .unwrap()
-            .on_event(event, cursor_position, &app_state)
+            .on_event(event, cursor_position, main_state)
     }
 
     pub(crate) fn check_redraw(
         &mut self,
         multiplexer: &Multiplexer,
         dt: Duration,
-        app_state: AppState,
+        main_state: &mut MainState,
     ) -> bool {
         log::debug!("Scheduler checking redraw");
         self.needs_redraw.clear();
         for (area, app) in &mut self.applications {
-            if multiplexer.is_showing(area)
-                && app.lock().unwrap().needs_redraw(dt, app_state.clone())
-            {
+            if multiplexer.is_showing(area) && app.lock().unwrap().needs_redraw(dt, main_state) {
                 self.needs_redraw.push(*area);
             }
         }

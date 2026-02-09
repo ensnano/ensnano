@@ -90,7 +90,7 @@ impl GuiTab for CameraTab {
             self.fog.view(ui_size),
             extra_jump(),
             row![
-                subsection("Visibility", ui_size),
+                subsection("H-bond", ui_size),
                 pick_list(
                     vec![
                         HBondDisplay::No,

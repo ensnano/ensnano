@@ -1,5 +1,5 @@
 use crate::app_state::{
-    channel_reader::ChannelReader, design_interactor::controller::ErrOperation,
+    channel_reader::ScaffoldShiftReader, design_interactor::controller::OperationError,
 };
 use ensnano_design::{Design, domains::Domain, helices::NuclCollection, nucl::Nucl};
 use std::{
@@ -20,14 +20,14 @@ pub fn read_scaffold_seq(
     design: &Design,
     nucl_collection: &NuclCollection,
     shift: usize,
-) -> Result<BTreeMap<Nucl, char>, ErrOperation> {
+) -> Result<BTreeMap<Nucl, char>, OperationError> {
     let nb_skip = if let Some(sequence) = design.scaffold_sequence.as_ref() {
         if sequence.is_empty() {
-            return Err(ErrOperation::EmptyScaffoldSequence);
+            return Err(OperationError::EmptyScaffoldSequence);
         }
         sequence.len() - (shift % sequence.len())
     } else {
-        return Err(ErrOperation::EmptyScaffoldSequence);
+        return Err(OperationError::EmptyScaffoldSequence);
     };
     if let Some(mut sequence) = design
         .scaffold_sequence
@@ -35,11 +35,11 @@ pub fn read_scaffold_seq(
         .map(|s| s.chars().cycle().skip(nb_skip))
     {
         let mut basis_map = BTreeMap::new();
-        let s_id = design.scaffold_id.ok_or(ErrOperation::NoScaffoldSet)?;
+        let s_id = design.scaffold_id.ok_or(OperationError::NoScaffoldSet)?;
         let strand = design
             .strands
             .get(&s_id)
-            .ok_or(ErrOperation::StrandDoesNotExist(s_id))?;
+            .ok_or(OperationError::StrandDoesNotExist(s_id))?;
         for domain in &strand.domains {
             if let Domain::HelixDomain(dom) = domain {
                 for nucl_position in dom.iter() {
@@ -73,7 +73,7 @@ pub fn read_scaffold_seq(
         }
         Ok(basis_map)
     } else {
-        Err(ErrOperation::EmptyScaffoldSequence)
+        Err(OperationError::EmptyScaffoldSequence)
     }
 }
 
@@ -81,7 +81,7 @@ pub fn read_scaffold_seq(
 pub(crate) fn optimize_shift(
     design: Arc<Design>,
     nucl_collection: Arc<NuclCollection>,
-    chanel_reader: &mut ChannelReader,
+    chanel_reader: &mut ScaffoldShiftReader,
 ) {
     let (progress_snd, progress_rcv) = mpsc::channel();
     let (result_snd, result_rcv) = mpsc::channel();
@@ -106,7 +106,7 @@ fn get_shift_optimization_result(
         .scaffold_sequence
         .as_ref()
         .map(String::len)
-        .ok_or(ErrOperation::NoScaffoldSet)?;
+        .ok_or(OperationError::NoScaffoldSet)?;
     for shift in 0..len {
         if shift % 100 == 0 {
             log_err!(progress_channel.send(shift as f32 / len as f32));
@@ -227,4 +227,4 @@ pub struct ShiftOptimizationOk {
     pub score: String,
 }
 
-pub type ShiftOptimizationResult = Result<ShiftOptimizationOk, ErrOperation>;
+pub type ShiftOptimizationResult = Result<ShiftOptimizationOk, OperationError>;
