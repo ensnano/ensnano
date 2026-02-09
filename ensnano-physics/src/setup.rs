@@ -419,7 +419,12 @@ fn build_strong_springs(
         let helix = helices
             .get(id)
             .expect("Couldn't find an helix in spring creation");
-        let reference = SpringAnchorsReference::new(helix, distance, global_parameters);
+        let reference = SpringAnchorsReference::new(
+            helix,
+            distance,
+            global_parameters,
+            rapier_parameters.ignore_local_parameters,
+        );
 
         let mut last_index = None;
 

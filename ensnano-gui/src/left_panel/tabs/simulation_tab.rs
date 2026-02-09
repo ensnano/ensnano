@@ -244,6 +244,7 @@ impl GuiTab for SimulationTab {
                 &self.rapier_parameter_fields,
                 ui_size
             ),
+            ignore_local_parameters_checkbox(&self.rapier_parameters, ui_size),
             view_rapier_parameters(
                 self.rapier_parameters,
                 &self.rapier_parameter_fields,
@@ -296,6 +297,25 @@ fn kcut_threshold_editor(
         text(parameters.k_cut_threshold)
     ]
     .align_items(Alignment::Center)
+    .into()
+}
+
+fn ignore_local_parameters_checkbox(
+    parameters: &RapierParameters,
+    ui_size: UiSize,
+) -> iced::Element<'static, LeftPanelMessage> {
+    let parameters = parameters.clone();
+    right_checkbox(
+        parameters.ignore_local_parameters,
+        "Ignore local helix parameters",
+        move |value| {
+            LeftPanelMessage::UpdateRapierParameters(RapierParameters {
+                ignore_local_parameters: value,
+                ..parameters
+            })
+        },
+        ui_size,
+    )
     .into()
 }
 

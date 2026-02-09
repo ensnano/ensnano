@@ -71,10 +71,17 @@ fn pair(
 impl SpringAnchorsReference {
     /// Initializes a new reference with the given Helix's parameters,
     /// and to a provided distance. Higher distance means
-    pub(crate) fn new(helix: &Helix, distance: u32, default_parameters: &HelixParameters) -> Self {
+    pub(crate) fn new(
+        helix: &Helix,
+        distance: u32,
+        default_parameters: &HelixParameters,
+        ignore_local_parameters: bool,
+    ) -> Self {
         let helix_parameters = helix.helix_parameters;
         let mut helix = Helix::new(Vec3::default(), Rotor3::default());
-        helix.helix_parameters = helix_parameters;
+        if !ignore_local_parameters {
+            helix.helix_parameters = helix_parameters;
+        }
 
         let (nucleotide_forward, nucleotide_backward, center) = pair(&helix, default_parameters, 0);
         // let (_, _, next_center) = pair(&helix, default_parameters, 1);
@@ -268,7 +275,7 @@ mod tests {
 
         let helix = Helix::new(Vec3::zero(), Rotor3::default());
 
-        let reference = SpringAnchorsReference::new(&helix, 1, &parameters);
+        let reference = SpringAnchorsReference::new(&helix, 1, &parameters, false);
         let reference_backward_nucleotide = vec_to_vector(helix.space_pos(&parameters, 0, false));
 
         let eps: f32 = 1e-5;
