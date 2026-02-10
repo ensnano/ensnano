@@ -52,13 +52,13 @@ impl CircleInstance {
 pub(crate) struct CircleDrawer {
     device: Rc<Device>,
     /// A possible updates to the instances to be drawn. Must be taken into account before drawing
-    /// next frame
+    /// next frame.
     new_instances: Option<Rc<Vec<CircleInstance>>>,
     /// The number of instance to draw.
     number_instances: usize,
-    /// The data sent the the GPU
+    /// The data sent the the GPU.
     instances_bg: DynamicBindGroup,
-    /// The pipeline created by `self`
+    /// The pipeline created by `self`.
     pipeline: Option<RenderPipeline>,
 }
 

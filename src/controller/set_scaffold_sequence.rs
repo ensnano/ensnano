@@ -13,7 +13,7 @@ use crate::{
 use ensnano_utils::StandardSequence;
 use std::path::{Path, PathBuf};
 
-/// User is in the process of setting the sequence of the scaffold
+/// User is in the process of setting the sequence of the scaffold.
 pub(super) struct SetScaffoldSequence {
     step: Step,
     shift: usize,
@@ -61,7 +61,7 @@ enum Step {
     /// The user has chosen a sequence file. The content of the file is checked.
     GotPath(PathBuf),
     /// The new sequence of the scaffold has been decided, user is asked if they want to optimize
-    /// the starting position
+    /// the starting position.
     SetSequence(String),
     /// The user has chosen to optimize the scaffold position.
     OptimizeScaffoldPosition { design_id: usize },

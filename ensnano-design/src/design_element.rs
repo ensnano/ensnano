@@ -233,7 +233,7 @@ impl DesignElementKey {
     }
 }
 
-/// Default sections of the DesignElement
+/// Default sections of the DesignElement.
 ///
 /// NOTE: This enum derives TryFromPrimitive. This allow to get the section from an usize with the
 ///       method .try_into().

@@ -20,7 +20,7 @@ pub struct FlatIdx(pub usize);
 pub struct FlatHelix {
     /// The identifier of the helix in the flatscene data structures.
     pub flat: FlatIdx,
-    /// The segment that the helix represents
+    /// The segment that the helix represents.
     pub segment: HelixSegment,
     pub segment_left: Option<isize>,
 }
@@ -225,7 +225,7 @@ impl<T: Flat> std::ops::Index<FlatIdx> for Vec<T> {
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Eq, Ord, Hash)]
 pub struct FlatPosition(pub isize);
 
-/// The nucleotide type manipulated by the flatscene
+/// The nucleotide type manipulated by the flatscene.
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Eq, Ord, Hash)]
 pub struct FlatNucl {
     pub helix: FlatHelix,

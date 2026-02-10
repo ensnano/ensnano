@@ -29,9 +29,9 @@ use ultraviolet::{Rotor3, Vec2, Vec3};
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Eq, Ord, Serialize, Hash)]
 pub enum GridId {
-    /// The grid has been created manually
+    /// The grid has been created manually.
     FreeGrid(usize),
-    /// The grid is bind to a bezier path vertex
+    /// The grid is bind to a bezier path vertex.
     BezierPathGrid(BezierVertexId),
 }
 
@@ -79,10 +79,10 @@ pub enum GridTypeDescr {
         ///
         /// Note that this value is subject to the constraint
         /// |Ω| ≤ Z * r / sqrt(2π)
-        /// where
+        /// where:
         ///  * Ω is `self.nb_turn_per_100_nt`,
         ///  * Z is `100.0 * Parameters::step`
-        ///  * r is `self.radius`
+        ///  * r is `self.radius`.
         nb_turn_per_100_nt: f64,
     },
 }
@@ -462,7 +462,7 @@ pub trait GridDivision {
     }
 
     /// If the helix at position (x, y) should be a curve instead of a cylinder, this method must be
-    /// overridden
+    /// overridden.
     fn curve(&self, _x: isize, _y: isize, _info: CurveInfo) -> Option<Arc<CurveDescriptor>>;
 }
 
@@ -612,25 +612,25 @@ impl GridDivision for HoneyComb {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Copy, PartialEq)]
 pub struct HelixGridPosition {
-    /// Identifier of the grid
+    /// Identifier of the grid.
     pub grid: GridId,
-    /// x coordinate on the grid
+    /// x coordinate on the grid.
     pub x: isize,
-    /// y coordinate on the grid
+    /// y coordinate on the grid.
     pub y: isize,
-    /// Position of the axis that intersect the grid
+    /// Position of the axis that intersect the grid.
     pub axis_pos: isize,
-    /// Roll of the helix with respect to the grid
+    /// Roll of the helix with respect to the grid.
     pub roll: f32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Copy, PartialEq, Hash, Eq)]
 pub struct GridPosition {
-    /// Identifier of the grid
+    /// Identifier of the grid.
     pub grid: GridId,
-    /// x coordinate on the grid
+    /// x coordinate on the grid.
     pub x: isize,
-    /// y coordinate on the grid
+    /// y coordinate on the grid.
     pub y: isize,
 }
 
@@ -684,14 +684,14 @@ pub enum Edge {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-/// An object lying on a grid
+/// An object lying on a grid.
 pub enum GridObject {
     Helix(usize),
     /// A point on the grid through which a bezier helix goes.
     BezierPoint {
-        /// The helix to which the point belong
+        /// The helix to which the point belong.
         helix_id: usize,
-        /// The position of the point in the list of BezierEnds,
+        /// The position of the point in the list of BezierEnds.
         n: usize,
     },
 }
@@ -805,7 +805,7 @@ impl GridData {
         ret
     }
 
-    /// Reposition all the helices at their correct space position
+    /// Reposition all the helices at their correct space position.
     fn reposition_all_helices(&mut self) {
         let mut helices_mut = self.source_helices.make_mut();
         for (h_id, h) in helices_mut.iter_mut() {
@@ -1109,7 +1109,7 @@ impl GridData {
         self.object_to_pos.get(&GridObject::Helix(h_id)).copied()
     }
 
-    /// Return a list of pairs ((x, y), h_id) of all the used helices on the grid g_id
+    /// Return a list of pairs ((x, y), h_id) of all the used helices on the grid g_id.
     pub fn get_helices_grid_key_coord(&self, g_id: GridId) -> Vec<((isize, isize), usize)> {
         self.pos_to_object
             .iter()

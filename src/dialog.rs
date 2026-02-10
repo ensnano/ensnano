@@ -29,7 +29,7 @@ impl DialogFilter {
 
 pub(crate) type DialogFilters = &'static [DialogFilter];
 
-/// A question to which the user must answer yes or no
+/// A question to which the user must answer yes or no.
 pub(crate) struct YesNoQuestion(mpsc::Receiver<bool>);
 impl YesNoQuestion {
     pub(crate) fn answer(&self) -> Option<bool> {
@@ -55,7 +55,7 @@ pub(crate) fn yes_no_dialog(message: Cow<'static, str>) -> YesNoQuestion {
     YesNoQuestion(rcv)
 }
 
-/// A message that the user must acknowledge
+/// A message that the user must acknowledge.
 pub(crate) struct MustAckMessage(mpsc::Receiver<()>);
 impl MustAckMessage {
     pub(crate) fn was_ack(&self) -> bool {

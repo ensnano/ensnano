@@ -22,14 +22,14 @@ use ensnano_design::{
 use std::{path::PathBuf, sync::Arc};
 use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
 
-/// An operation that can be performed on a design
+/// An operation that can be performed on a design.
 #[derive(Debug, Clone)]
 pub enum DesignOperation {
-    /// Rotate an element of the design
+    /// Rotate an element of the design.
     Rotation(DesignRotation),
-    /// Translate an element of the design
+    /// Translate an element of the design.
     Translation(DesignTranslation),
-    /// Add an helix on a grid
+    /// Add an helix on a grid.
     AddGridHelix {
         position: HelixGridPosition,
         start: isize,
@@ -50,13 +50,13 @@ pub enum DesignOperation {
     Cut {
         nucl: Nucl,
     },
-    /// Make a cross-over between two nucleotides, splitting the source and target strands if needed
+    /// Make a cross-over between two nucleotides, splitting the source and target strands if needed.
     GeneralXover {
         source: Nucl,
         target: Nucl,
     },
     /// Merge two strands by making a cross-over between the 3'end of prime_5 and the 5'end of
-    /// prime_3
+    /// prime_3.
     Xover {
         prime5_id: usize,
         prime3_id: usize,
@@ -68,24 +68,24 @@ pub enum DesignOperation {
         target_id: usize,
         nucl: Nucl,
     },
-    /// Delete a strand
+    /// Delete a strand.
     RmStrands {
         strand_ids: Vec<usize>,
     },
-    /// Add a grid to the design
+    /// Add a grid to the design.
     AddGrid(GridDescriptor),
-    /// Pick a new color at random for all the strands that are not the scaffold
+    /// Pick a new color at random for all the strands that are not the scaffold.
     RecolorStaples,
-    /// Change the color of a set of strands
+    /// Change the color of a set of strands.
     ChangeColor {
         color: u32,
         strands: Vec<usize>,
     },
-    /// Set the strand with a given id as the scaffold
+    /// Set the strand with a given id as the scaffold.
     SetScaffoldId(Option<usize>),
-    /// Change the shift of the scaffold without changing the sequence
+    /// Change the shift of the scaffold without changing the sequence.
     SetScaffoldShift(usize),
-    /// Change the sequence and the shift of the scaffold
+    /// Change the sequence and the shift of the scaffold.
     SetScaffoldSequence {
         sequence: String,
         shift: usize,
@@ -105,7 +105,7 @@ pub enum DesignOperation {
         grid_ids: Vec<GridId>,
         small: bool,
     },
-    /// Apply a translation to the 2d representation of helices holding each pivot
+    /// Apply a translation to the 2d representation of helices holding each pivot.
     SnapHelices {
         pivots: Vec<(Nucl, usize)>,
         translation: Vec2,
@@ -205,7 +205,7 @@ pub enum DesignOperation {
         path_id: BezierPathId,
         vertex: BezierVertex,
     },
-    /// Move the first vertex to `position` and apply the same translation to the other vertices
+    /// Move the first vertex to `position` and apply the same translation to the other vertices.
     MoveBezierVertex {
         vertices: Vec<BezierVertexId>,
         position: Vec2,
@@ -559,12 +559,12 @@ impl DesignOperation {
 pub struct DesignRotation {
     pub origin: Vec3,
     pub rotation: Rotor3,
-    /// The element of the design on which the rotation will be applied
+    /// The element of the design on which the rotation will be applied.
     pub target: IsometryTarget,
     pub group_id: Option<GroupId>,
 }
 
-/// A translation of an element of a design
+/// A translation of an element of a design.
 #[derive(Clone, Debug)]
 pub struct DesignTranslation {
     pub translation: Vec3,
@@ -620,23 +620,23 @@ pub struct BezierPlaneHomothethy {
     pub moving_corner: Vec2,
 }
 
-/// A element on which an isometry must be applied
+/// A element on which an isometry must be applied.
 #[derive(Clone, Debug)]
 pub enum IsometryTarget {
-    /// An helix of the design
+    /// An helix of the design.
     Helices(Vec<usize>, bool),
-    /// A grid of the design
+    /// A grid of the design.
     Grids(Vec<GridId>),
-    /// The pivot of a group
+    /// The pivot of a group.
     GroupPivot(GroupId),
-    /// The control points of bezier curves
+    /// The control points of bezier curves.
     ControlPoint(Vec<(usize, BezierControlPoint)>),
 }
 
 #[derive(Clone, Debug, Copy)]
 pub struct NewBezierTangentVector {
     pub vertex_id: BezierVertexId,
-    /// Whether `new_vector` is the vector of the inward or outward tangent
+    /// Whether `new_vector` is the vector of the inward or outward tangent.
     pub tangent_in: bool,
     pub full_symmetry_other_tangent: bool,
     pub new_vector: Vec2,

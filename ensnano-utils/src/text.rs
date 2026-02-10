@@ -1,4 +1,4 @@
-//! This module provides utilities for drawing text in the applications
+//! This module provides utilities for drawing text in the applications.
 
 use fontdue::{Font, FontSettings};
 use std::rc::Rc;

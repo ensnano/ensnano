@@ -199,7 +199,7 @@ impl<'a> SentenceRectangle<'a> {
 
 /// A 2d line given by an origin and a direction vector.
 ///
-/// The equation of the line is (x - origin.x) * direction.y - (y + origin.y) * direction.x = 0
+/// The equation of the line is (x - origin.x) * direction.y - (y + origin.y) * direction.x = 0.
 #[derive(Debug)]
 pub struct Line {
     pub origin: Vec2,
@@ -216,7 +216,7 @@ impl Line {
         (point.y - self.origin.y) * self.direction.x - (point.x - self.origin.x) * self.direction.y
     }
 
-    /// Return the smallest translation to be applied to point to put in on the positive side of self
+    /// Return the smallest translation to be applied to point to put in on the positive side of self.
     fn shift(&self, point: Vec2) -> Vec2 {
         if self.equation(point) > 0.0 {
             self.project_point(point) - point

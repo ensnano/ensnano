@@ -1,6 +1,6 @@
 //! ENSnano theme.
 //!
-//! The theme of the GUI is defined here
+//! The theme of the GUI is defined here.
 
 use iced::{
     Background, Border, Color,
@@ -12,7 +12,7 @@ use iced::{
 use iced_aw::widgets::tab_bar;
 use std::rc::Rc;
 
-/// Color palette
+/// Color palette.
 pub const GUI_PALETTE: Palette = Palette {
     background: Color::from_rgb(0.1, 0.1, 0.1),
     text: Color::WHITE,
@@ -46,7 +46,7 @@ fn scale_color(color: Color, scale: f32) -> Color {
 #[derive(Default)]
 pub struct GuiBackground;
 
-// Implement the style sheet using GUI_PALETTE
+// Implement the style sheet using GUI_PALETTE.
 impl container::StyleSheet for GuiBackground {
     type Style = iced::Theme;
 

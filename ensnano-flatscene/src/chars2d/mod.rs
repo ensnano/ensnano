@@ -13,7 +13,7 @@ use wgpu::{BindGroupLayout, Device, Queue, RenderPass, RenderPipeline, include_s
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub(crate) struct CharInstance {
-    /// The top left of the glyph's bounding box
+    /// The top left of the glyph's bounding box.
     pub top_left: Vec2,
     pub rotation: Mat2,
     pub size: f32,
@@ -24,13 +24,13 @@ pub(crate) struct CharInstance {
 pub(crate) struct CharDrawer {
     device: Rc<Device>,
     /// A possible updates to the instances to be drawn. Must be taken into account before drawing
-    /// next frame
+    /// next frame.
     new_instances: Option<Rc<Vec<CharInstance>>>,
     /// The number of instance to draw.
     number_instances: usize,
-    /// The data sent the the GPU
+    /// The data sent the the GPU.
     instances_bg: DynamicBindGroup,
-    /// The pipeline created by `self`
+    /// The pipeline created by `self`.
     pipeline: Option<RenderPipeline>,
     letter: Rc<Letter>,
 }

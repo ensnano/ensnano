@@ -180,7 +180,7 @@ impl FogChoices {
     }
 }
 
-/// Messages from ColorPicker
+/// Messages from ColorPicker.
 #[derive(Debug, Clone, Copy)]
 pub enum ColorPickerMessage {
     HueChanged(f64),
@@ -189,7 +189,7 @@ pub enum ColorPickerMessage {
     FinishChangingColor,
 }
 
-/// Message sent to the gui component
+/// Message sent to the gui component.
 pub struct GuiMessages {
     pub left_panel: VecDeque<LeftPanelMessage>,
     pub top_bar: VecDeque<TopBarMessage>,
@@ -414,7 +414,7 @@ pub enum OrganizerMessage {
     },
     /// Taking or releasing keyboard priority.
     SetKeyboardPriority(PriorityRequest),
-    /// Ask Iced application to focus on this element
+    /// Ask Iced application to focus on this element.
     SetFocus(Id),
 }
 
@@ -525,9 +525,9 @@ pub enum TopBarMessage {
     SceneFitRequested,
     AlignHorizon,
     OpenFileButtonPressed,
-    /// Request to save file, e.g. clicked on “Save” button
+    /// Request to save file, e.g. clicked on “Save” button.
     FileSaveRequested,
-    /// Request to save file as, e.g. clicked on “Save As” button
+    /// Request to save file as, e.g. clicked on “Save As” button.
     SaveAsRequested,
     Resize(LogicalSize<f64>),
     ToggleView(SplitMode),

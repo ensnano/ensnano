@@ -26,7 +26,7 @@ pub enum DesignOperationError {
     CouldNotGetVertex(BezierVertexId),
 }
 
-/// The minimum number of helices required to infer a grid
+/// The minimum number of helices required to infer a grid.
 pub const MIN_HELICES_TO_MAKE_GRID: usize = 4;
 
 /// Try to create a grid from a set of helices.
@@ -39,7 +39,7 @@ pub fn make_grid_from_helices(
     Ok(())
 }
 
-/// Attach an helix to a grid. The target grid position must be empty
+/// Attach an helix to a grid. The target grid position must be empty.
 pub fn attach_object_to_grid(
     design: &mut Design,
     object: GridObject,
@@ -112,7 +112,7 @@ pub fn translate_helices(
     helices_translator.translate_helices(snap, helices, translation)
 }
 
-/// Rotate helices by a given rotation
+/// Rotate helices by a given rotation.
 ///
 /// If snap is true, the helices are mapped to grid position.
 /// If this rotation would cause helices to compete with other helices for a grid position,

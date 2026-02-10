@@ -41,7 +41,7 @@ impl UiSize {
         }
     }
 
-    /// Size of an icon
+    /// Size of an icon.
     pub fn icon(&self) -> f32 {
         match self {
             Self::Small => 14.0,
@@ -90,12 +90,12 @@ impl UiSize {
         20.0
     }
 
-    /// The full height of the top_bar
+    /// The full height of the top_bar.
     pub fn top_bar_height(&self) -> f64 {
         (self.button() + 2.0 * self.button_pad() + 2.0 * self.button_spacing()) as f64
     }
 
-    /// The full height of the tab_bar
+    /// The full height of the tab_bar.
     pub fn tab_bar_height(&self) -> f32 {
         self.icon() + 25.0
         // TODO: This 25.0 is not satisfying. Someday I should find some way to compute

@@ -300,7 +300,7 @@ const PARAMETER_FIELD_LIVE_EDITABILITY: [bool; RAPIER_FLOAT_PARAMETERS_COUNT] = 
     true, true, true, true,
 ];
 
-/// Updates the parameters using the fields
+/// Updates the parameters using the fields.
 fn apply_parameter_fields(
     fields: &HashMap<String, String>,
     parameters: &RapierParameters,

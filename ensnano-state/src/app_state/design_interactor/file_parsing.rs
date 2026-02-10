@@ -17,7 +17,7 @@ use std::path::{Path, PathBuf};
 use version_compare::Cmp;
 
 impl DesignInteractor {
-    /// Create a new data by reading a file. At the moment, the supported format are
+    /// Create a new data by reading a file. At the moment, the supported format are:
     /// * codenano
     /// * icednano
     pub fn new_with_path(json_path: &PathBuf) -> Result<Self, LoadDesignError> {
@@ -45,7 +45,7 @@ impl DesignInteractor {
     }
 }
 
-/// Create a design by parsing a file
+/// Create a design by parsing a file.
 #[expect(clippy::panic_in_result_fn)] // FIXME
 fn read_file<P: AsRef<Path> + std::fmt::Debug>(path: P) -> Result<Design, LoadDesignError> {
     let json_str =

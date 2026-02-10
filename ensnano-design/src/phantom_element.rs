@@ -1,5 +1,5 @@
 //! Encoding of phantom element identifier.
-//! The identifier is an integer of the form helix_id * max_pos_id + pos_id;
+//! The identifier is an integer of the form helix_id * max_pos_id + pos_id.
 //!
 //! helix_id is the identifier of the helix and pos_id is of the form
 //! position * nb_kind + element_kid
@@ -7,16 +7,16 @@
 //! 0 for forward nucl
 //! 1 for backward nucl
 //! 2 for forward bond
-//! 3 for backward bond
+//! 3 for backward bond.
 //!
 //! and position is a number between -PHANTOM_RANGE and PHANTOM_RANGE that is made positive by
-//! adding PHANTOM_RANGE to it
+//! adding PHANTOM_RANGE to it.
 
 use crate::nucl::Nucl;
 
 pub const PHANTOM_RANGE: i32 = 1000;
 
-/// Generate the identifier of a phantom nucleotide
+/// Generate the identifier of a phantom nucleotide.
 pub fn phantom_helix_encoder_nucl(
     design_id: u32,
     helix_id: u32,
@@ -30,7 +30,7 @@ pub fn phantom_helix_encoder_nucl(
     (helix + pos_id) | (design_id << 24)
 }
 
-/// Generate the identifier of a phantom bond
+/// Generate the identifier of a phantom bond.
 pub fn phantom_helix_encoder_bond(
     design_id: u32,
     helix_id: u32,

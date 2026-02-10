@@ -1,5 +1,5 @@
 //! A good description of the cadnano file format can be found at
-//! <https://github.com/UC-Davis-molecular-computing/scadnano-python-package/blob/main/misc/cadnano-format-specs/v2.txt>
+//! <https://github.com/UC-Davis-molecular-computing/scadnano-python-package/blob/main/misc/cadnano-format-specs/v2.txt>.
 
 mod parity_graph;
 
@@ -323,12 +323,12 @@ struct CadnanoHelix {
     skip: Vec<isize>,
     stap: Vec<(isize, isize, isize, isize)>,
     /// Each entry is a pair `(prime5_pos, color)` where `prime5_pos` is the position of
-    /// the 5' end and color is an u32 of the form 0x00_RR_GG_BB
+    /// the 5' end and color is an u32 of the form 0x00_RR_GG_BB.
     stap_colors: Vec<(isize, u32)>,
-    /// Unused, can be left empty
+    /// Unused, can be left empty.
     #[serde(rename = "scafLoop")]
     scaf_loop: Vec<isize>,
-    /// Unused, can be left empty
+    /// Unused, can be left empty.
     #[serde(rename = "stapLoop")]
     stap_loop: Vec<isize>,
 }

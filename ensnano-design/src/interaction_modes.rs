@@ -59,22 +59,22 @@ impl SelectionMode {
     }
 }
 
-/// Describe the action currently done by the user when they click left
+/// Describe the action currently done by the user when they click left.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub enum ActionMode {
-    /// User is moving the camera
+    /// User is moving the camera.
     #[default]
     Normal,
-    /// User can translate objects and move the camera
+    /// User can translate objects and move the camera.
     Translate,
-    /// User can rotate objects and move the camera
+    /// User can rotate objects and move the camera.
     Rotate,
     /// User is creating helices with two strands starting at a given position and with a given
     /// length.
     BuildHelix { position: isize, length: usize },
-    /// User can cut strands
+    /// User can cut strands.
     Cut,
-    /// User is drawing a bezier path
+    /// User is drawing a bezier path.
     EditBezierPath,
 }
 

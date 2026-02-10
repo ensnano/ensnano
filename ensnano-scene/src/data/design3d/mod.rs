@@ -1,4 +1,4 @@
-//! This module handles the instantiation of designs as 3D geometric objects
+//! This module handles the instantiation of designs as 3D geometric objects.
 
 mod bezier_paths;
 
@@ -43,12 +43,12 @@ use ensnano_utils::{
 use std::{collections::BTreeMap, f32::consts::TAU, rc::Rc};
 use ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
 
-/// An object that handles the 3d graphical representation of a `Design`
+/// An object that handles the 3d graphical representation of a `Design`.
 pub struct Design3D {
     pub design_reader: DesignInteractor,
     id: u32,
     symbol_map: HashMap<char, usize>,
-    /// indicate if all helices must be on axis (helices_off_axis = false)
+    /// indicate if all helices must be on axis (helices_off_axis = false).
     pub all_helices_on_axis: bool,
 }
 
@@ -66,7 +66,7 @@ impl Design3D {
         }
     }
 
-    /// Convert a list of ids into a list of instances
+    /// Convert a list of ids into a list of instances.
     pub fn id_to_raw_instances(&self, ids: Vec<u32>) -> Vec<RawDnaInstance> {
         let mut ret = Vec::new();
         for id in &ids {
@@ -77,7 +77,7 @@ impl Design3D {
         ret
     }
 
-    /// Return the list of raw sphere instances to be displayed to represent the design
+    /// Return the list of raw sphere instances to be displayed to represent the design.
     pub fn get_spheres_raw(&self, show_insertion_discriminants: bool) -> Rc<Vec<RawDnaInstance>> {
         let visible_nucls_ids = self.design_reader.get_all_visible_nucl_ids();
         let mut ret = self.id_to_raw_instances(visible_nucls_ids);
@@ -243,7 +243,7 @@ impl Design3D {
         }
     }
 
-    /// Return the list of tube instances to be displayed to represent the design
+    /// Return the list of tube instances to be displayed to represent the design.
     #[expect(clippy::items_after_statements)]
     pub fn get_tubes_raw(&self, show_insertion_discriminants: bool) -> Rc<Vec<RawDnaInstance>> {
         let mut visible_bonds_ids = self.design_reader.get_all_visible_bond_ids();
@@ -516,7 +516,7 @@ impl Design3D {
             .collect()
     }
 
-    /// Return (h bonds instances, ellipsoids instances)
+    /// Return (h bonds instances, ellipsoids instances).
     pub(super) fn get_all_h_bonds(&self) -> HBondsInstances {
         let mut full_h_bonds = Vec::new();
         let mut partial_h_bonds = Vec::new();
@@ -606,7 +606,7 @@ impl Design3D {
     }
 
     /// Auxiliary function that computes the length-adjusted color of a bond
-    /// return None if color does not need to be adjusted
+    /// return None if color does not need to be adjusted.
     pub fn length_adjusted_color_and_radius_for_bond(
         &self,
         id1: u32,
@@ -633,7 +633,7 @@ impl Design3D {
         Some((0x_00_00_00, 1.0))
     }
 
-    /// Convert return an instance representing the object with identifier `id`
+    /// Convert return an instance representing the object with identifier `id`.
     pub fn make_raw_instances(&self, id: u32) -> Option<Vec<RawDnaInstance>> {
         let kind = self.get_object_type(id)?;
         let raw_instances = match kind {
@@ -1156,7 +1156,7 @@ impl Design3D {
         self.design_reader.get_xover_coloring(id)
     }
 
-    /// Return the middle point of `self` in the world coordinates
+    /// Return the middle point of `self` in the world coordinates.
     pub fn middle_point(&self) -> Vec3 {
         let (min, max) = self.boundaries();
         let middle = (min + max) / 2.;
@@ -1194,7 +1194,7 @@ impl Design3D {
         (min, max)
     }
 
-    /// Return the list of corners of grid with no helices on them
+    /// Return the list of corners of grid with no helices on them.
     fn get_all_naked_grids_corners(&self) -> Vec<Vec3> {
         let mut ret = Vec::new();
         for (grid_id, grid) in &self.get_grid() {

@@ -1,13 +1,13 @@
 use ultraviolet::{Mat4, Vec4};
 
 #[derive(Debug, Copy, Clone)]
-/// The instantiation of an object
+/// The instantiation of an object.
 pub struct Instance;
 
 #[repr(C)]
 #[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct InstanceRaw {
-    /// The model matrix of the instance
+    /// The model matrix of the instance.
     pub model: Mat4,
     pub color: Vec4,
     pub id: Vec4,

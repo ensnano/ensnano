@@ -45,16 +45,16 @@ const ZOOM_THRESHOLD: f32 = 7.0;
 
 #[derive(Debug, Clone)]
 pub struct Helix {
-    /// The first drawn nucleotide
+    /// The first drawn nucleotide.
     left: isize,
-    /// The first nucleotide that is not drawn
+    /// The first nucleotide that is not drawn.
     right: isize,
     pub isometry: FullIsometry,
     scale: f32,
     color: u32,
     z_index: i32,
     stroke_width: f32,
-    /// The position of self in the Helix vector of the design
+    /// The position of self in the Helix vector of the design.
     pub flat_id: FlatHelix,
     pub real_id: usize,
     pub visible: bool,
@@ -225,7 +225,7 @@ impl Helix {
         }
     }
 
-    /// Return the position of the nucleotide in the 2d drawing
+    /// Return the position of the nucleotide in the 2d drawing.
     pub fn get_nucl_position(&self, nucl: &FlatNucl, shift: Shift) -> Vec2 {
         let mut local_position = nucl.flat_position.0 as f32 * Vec2::unit_x()
             + match shift {
@@ -282,7 +282,7 @@ impl Helix {
             .transform_point2(self.scale * local_position)
     }
 
-    /// Return the position at which the 3' tick should end
+    /// Return the position at which the 3' tick should end.
     pub fn get_arrow_end(&self, nucl: &FlatNucl) -> Vec2 {
         let mut local_position = nucl.flat_position.0 as f32 * Vec2::unit_x()
             + if nucl.forward {
@@ -300,7 +300,7 @@ impl Helix {
             .transform_point2(self.scale * local_position)
     }
 
-    /// Return the nucleotide displayed at position (x, y) or None if (x, y) is outside the helix
+    /// Return the nucleotide displayed at position (x, y) or None if (x, y) is outside the helix.
     pub fn get_click(&self, x: f32, y: f32, bounded: bool) -> Option<(FlatPosition, bool)> {
         let click = {
             let ret = Vec2::new(x, y);
@@ -392,7 +392,7 @@ impl Helix {
         (FlatPosition(position), forward)
     }
 
-    /// Return true if (x, y) is on the circle representing self
+    /// Return true if (x, y) is on the circle representing self.
     pub fn click_on_circle(&self, x: f32, y: f32, camera: &CameraPtr) -> bool {
         if let Some(center) = self.get_circle(camera, &BTreeMap::new()) {
             (center.center - Vec2::new(x, y)).mag() < center.radius
@@ -610,7 +610,7 @@ impl Helix {
         }
     }
 
-    /// A default nucleotide position for when the helix cannot be seen by the camera
+    /// A default nucleotide position for when the helix cannot be seen by the camera.
     pub fn default_pivot(&self) -> FlatNucl {
         FlatNucl {
             flat_position: self.get_flat_left().left().left().left(),
@@ -620,7 +620,7 @@ impl Helix {
     }
 
     /// Return the center of the visible portion of the helix. Return None if the helix is
-    /// invisible (out of screen)
+    /// invisible (out of screen).
     pub fn visible_center(&self, camera: &CameraPtr) -> Option<Vec2> {
         let (left, right) = self.screen_intersection(camera)?;
         if self.left as f32 > right || (self.right as f32) < left {
@@ -914,7 +914,7 @@ impl Helix {
         self.screen_rectangle_intersection(camera, 0., 0.025, 1., 0.975, HelixLine::Middle)
     }
 
-    /// Return the coordinates at which self's axis intersect a rectangle on the screen
+    /// Return the coordinates at which self's axis intersect a rectangle on the screen.
     fn screen_rectangle_intersection(
         &self,
         camera: &CameraPtr,
@@ -1071,17 +1071,17 @@ pub(super) fn rectangle_intersect(rect_0: Vec2, rect_1: Vec2, a: Vec2, b: Vec2) 
             .is_some()
 }
 
-/// Represent a slight shift from the center of the square representing nucleotide
+/// Represent a slight shift from the center of the square representing nucleotide.
 pub enum Shift {
-    /// No shift, the returned point will be on the center of the nucleotide
+    /// No shift, the returned point will be on the center of the nucleotide.
     No,
-    /// The returned point will be slightly shifted in the 5' direction
+    /// The returned point will be slightly shifted in the 5' direction.
     Prime5,
-    /// The returned point will be slightly shifted in the 3' direction
+    /// The returned point will be slightly shifted in the 3' direction.
     Prime3,
-    /// The returned point will be slightly shifted in the 5' direction outside the helix
+    /// The returned point will be slightly shifted in the 5' direction outside the helix.
     Prime5Outside,
-    /// The returned point will be slightly shifted in the 3' direction outside the helix
+    /// The returned point will be slightly shifted in the 3' direction outside the helix.
     Prime3Outside,
 }
 

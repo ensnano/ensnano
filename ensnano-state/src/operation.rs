@@ -10,7 +10,7 @@ use std::borrow::Cow;
 pub enum AppStateOperationOutcome {
     /// Push the previous design unto the undo stack.
     Push {
-        /// A description of the operation that was applied
+        /// A description of the operation that was applied.
         label: Cow<'static, str>,
     },
     /// An operation happened, but it is not worth putting on the undo stack.

@@ -114,34 +114,34 @@ pub enum SplitMode {
 
 pub type PhySize = PhysicalSize<u32>;
 
-/// A structure that represents an area on which an element can be drawn
+/// A structure that represents an area on which an element can be drawn.
 #[derive(Clone, Copy, Debug)]
 pub struct DrawArea {
-    /// The top left corner of the element
+    /// The top left corner of the element.
     pub position: PhysicalPosition<u32>,
-    /// The *physical* size of the element
+    /// The *physical* size of the element.
     pub size: PhySize,
 }
 
 /// The different elements represented on the scene. Each element is instantiated once.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub enum GuiComponentType {
-    /// The top menu bar
+    /// The top menu bar.
     TopBar,
-    /// The 3D scene
+    /// The 3D scene.
     Scene,
-    /// The flat Scene
+    /// The flat Scene.
     FlatScene,
-    /// The Left Panel
+    /// The Left Panel.
     LeftPanel,
-    /// The status bar
+    /// The status bar.
     StatusBar,
     GridPanel,
-    /// An overlay area
+    /// An overlay area.
     Overlay(usize),
-    /// An area that has not been attributed to an element
+    /// An area that has not been attributed to an element.
     Unattributed,
-    /// A stereographic version of the 3D view
+    /// A stereographic version of the 3D view.
     StereographicScene,
 }
 
@@ -165,7 +165,7 @@ impl GuiComponentType {
 pub struct LoopoutNucl {
     pub position: Vec3,
     pub color: u32,
-    /// The identifier of the bond representing the whole loopout involving this nucleotide
+    /// The identifier of the bond representing the whole loopout involving this nucleotide.
     pub repr_bond_identifier: u32,
     pub basis: Option<char>,
 }
@@ -175,7 +175,7 @@ pub struct LoopoutBond {
     pub position_prime5: Vec3,
     pub position_prime3: Vec3,
     pub color: u32,
-    /// The identifier of the bond representing the whole loopout involving this bond
+    /// The identifier of the bond representing the whole loopout involving this bond.
     pub repr_bond_identifier: u32,
 }
 

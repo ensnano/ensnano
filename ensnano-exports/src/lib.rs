@@ -1,4 +1,4 @@
-//! Exports utilities from ENSnano to other file formats used in DNA nanotechnologies
+//! Exports utilities from ENSnano to other file formats used in DNA nanotechnologies.
 
 pub mod cadnano;
 pub mod oxdna;
@@ -10,7 +10,7 @@ use pdb::PdbError;
 use rand::seq::IndexedRandom as _;
 use std::{collections::HashMap, io::Write as _, path::PathBuf};
 
-/// The file formats to which an export is implemented
+/// The file formats to which an export is implemented.
 #[derive(Debug, Clone)]
 pub enum ExportType {
     Cadnano,
@@ -34,7 +34,7 @@ const SUCCESSFUL_EXPORT_MSG_PREFIX: &str = "Successfully exported to";
 
 impl ExportSuccess {
     /// A message telling that the export operation was successful and giving the path to which
-    /// the export was made
+    /// the export was made.
     pub fn message(&self) -> String {
         match self {
             Self::Cadnano(p) | Self::Pdb(p) => {
@@ -76,7 +76,7 @@ impl From<std::io::Error> for ExportError {
     }
 }
 
-/// A collection mapping nucleotide location to their basis
+/// A collection mapping nucleotide location to their basis.
 type BasisMap = HashMap<Nucl, char, ahash::RandomState>;
 
 struct BasisMapper<'a> {
@@ -134,7 +134,7 @@ fn rand_pick(list: &[char]) -> char {
 
 const CANONICAL_BASES: &[char] = &['A', 'T', 'G', 'C', 'U'];
 
-/// Perform a symbol conversion based on this [list](http://www.hgmd.cf.ac.uk/docs/nuc_lett.html)
+/// Perform a symbol conversion based on this [list](http://www.hgmd.cf.ac.uk/docs/nuc_lett.html).
 fn rand_base_from_symbol(symbol: char, compl_a: char) -> char {
     match symbol {
         c if CANONICAL_BASES.contains(&c) => c,

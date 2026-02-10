@@ -158,10 +158,10 @@ pub struct DrawingStyle {
     pub with_cones: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub on_axis: Option<bool>,
-    /// (r_min, r_max) display curvature on the helix cylinder with a gradient for radius from r_min to r_max
+    /// (r_min, r_max) display curvature on the helix cylinder with a gradient for radius from r_min to r_max.
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub curvature: Option<(f32, f32)>,
-    /// (t_min, t_max) display torsion on the helix cylinder with a gradient for torsion from t_min to t_max
+    /// (t_min, t_max) display torsion on the helix cylinder with a gradient for torsion from t_min to t_max.
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub torsion: Option<(f32, f32)>,
 }

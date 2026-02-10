@@ -28,11 +28,11 @@ pub const TEXTURE_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8UnormS
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum ObjectType {
-    /// A nucleotide identified by its identifier
+    /// A nucleotide identified by its identifier.
     Nucleotide(u32),
     /// A bond, identified by the identifier of the two nucleotides that it binds.
     Bond(u32, u32),
-    /// A bond, identified by the identifier of the four nucleotides prev_nucl, nucl1, nucl2, next_nucl. If prev == nucl1 or newt == nucl2, it needs a lid
+    /// A bond, identified by the identifier of the four nucleotides prev_nucl, nucl1, nucl2, next_nucl. If prev == nucl1 or newt == nucl2, it needs a lid.
     SlicedBond(u32, u32, u32, u32),
     /// A Helix cylinder, identified by the identifier of the two nucleotides at its ends.
     HelixCylinder(u32, u32),
@@ -54,7 +54,7 @@ impl ObjectType {
     }
 }
 
-/// The referential in which one wants to get an element's coordinates
+/// The referential in which one wants to get an element's coordinates.
 #[derive(Debug, Clone, Copy)]
 pub enum Referential {
     World,
@@ -164,7 +164,7 @@ impl WidgetBasis {
     }
 }
 
-/// Information about the domain being elongated
+/// Information about the domain being elongated.
 #[derive(Debug, Clone)]
 pub struct StrandBuildingStatus {
     pub nt_length: usize,
@@ -200,7 +200,7 @@ impl PastingStatus {
 }
 
 #[derive(Debug, Clone, Copy)]
-/// One of the standard scaffold sequence shipped with ENSnano
+/// One of the standard scaffold sequence shipped with ENSnano.
 #[derive(Default)]
 pub enum StandardSequence {
     P4844,
@@ -229,7 +229,7 @@ impl StandardSequence {
         }
     }
 
-    /// Return the variant of Self whose associated sequence length is closest to n
+    /// Return the variant of Self whose associated sequence length is closest to n.
     pub fn from_length(n: usize) -> Self {
         let mut best_score = isize::MAX;
         let mut ret = Self::default();

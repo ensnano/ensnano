@@ -42,17 +42,17 @@ use ultraviolet::Vec3;
 /// requests.
 #[derive(Default)]
 pub struct Requests {
-    /// A change of the rotation mode
+    /// A change of the rotation mode.
     pub action_mode: Option<ActionMode>,
-    /// A change of the selection mode
+    /// A change of the selection mode.
     pub selection_mode: Option<SelectionMode>,
-    /// A request to move the camera so that the frustum fits the design
+    /// A request to move the camera so that the frustum fits the design.
     pub fitting: Option<()>,
-    /// A request to change the color of the selected strand
+    /// A request to change the color of the selected strand.
     pub strand_color_change: Option<u32>,
-    /// A request to show/hide the sequences
+    /// A request to show/hide the sequences.
     pub toggle_text: Option<bool>,
-    /// A request to change the sensitivity of scrolling
+    /// A request to change the sensitivity of scrolling.
     pub scroll_sensitivity: Option<f32>,
     pub make_grids: Option<()>,
     pub operation_update: Option<Arc<dyn SimpleOperation>>,

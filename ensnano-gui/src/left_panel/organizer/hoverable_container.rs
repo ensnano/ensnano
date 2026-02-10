@@ -1,14 +1,14 @@
-//! Allow widgets to emit messages when hovered
+//! Allow widgets to emit messages when hovered.
 //!
 //! A [`HoverableContainer`] is an widget that produces a messages when hovered or unhovered.
 //!
-//! This widget is greatly inspired by
+//! This widget is greatly inspired by:
 //!
-//!    <https://giesch.dev/iced-hoverable/>
+//!    <https://giesch.dev/iced-hoverable/>.
 //!
-//! see also
+//! see also:
 //!
-//!    <https://docs.rs/iced_widget/0.12.1/src/iced_widget/container.rs.html>
+//!    <https://docs.rs/iced_widget/0.12.1/src/iced_widget/container.rs.html>.
 
 use ensnano_state::gui::messages::OrganizerMessage;
 use iced::{

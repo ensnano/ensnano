@@ -15,7 +15,7 @@ use crate::{
 use std::borrow::Cow;
 
 pub(crate) struct AutomataController {
-    /// The sate of the windows
+    /// The sate of the windows.
     state: Box<dyn AutomataState + 'static>,
 }
 
@@ -42,7 +42,7 @@ impl AutomataController {
 }
 
 trait AutomataState {
-    /// Operate on [MainStateView] and return the new State of the automata
+    /// Operate on [MainStateView] and return the new State of the automata.
     fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn AutomataState>;
 }
 

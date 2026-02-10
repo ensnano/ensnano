@@ -9,7 +9,7 @@ use ultraviolet::Vec3;
 /// We want to find the shortest line between the segment (P1, P2) and (P3, P4).
 /// This line is a line (Pa, Pb) where Pa = P1 + mua (P2 - P1).
 /// This function returns mua
-/// http://paulbourke.net/geometry/pointlineplane/
+/// http://paulbourke.net/geometry/pointlineplane/.
 fn mu_unprojection(p1: Vec3, p2: Vec3, p3: Vec3, p4: Vec3) -> Option<f32> {
     ((p2 - p1).cross(p4 - p3).mag() > 1e-3).then(|| {
         let d = |x: Vec3, y: Vec3, z: Vec3, w: Vec3| (x - y).dot(z - w);
@@ -22,7 +22,7 @@ fn mu_unprojection(p1: Vec3, p2: Vec3, p3: Vec3, p4: Vec3) -> Option<f32> {
 }
 
 /// Create a line that goes from the camera to a point on the screen and project that line on a
-/// line of the world
+/// line of the world.
 pub(crate) fn unproject_point_on_line(
     objective_origin: Vec3,
     objective_direction: Vec3,
@@ -45,7 +45,7 @@ pub(crate) fn unproject_point_on_line(
 
 const DIST_TO_CAMERA_PENALTY: f32 = 0.001;
 
-/// Shoot a ray from the camera and project a point of the world on that line
+/// Shoot a ray from the camera and project a point of the world on that line.
 pub(crate) fn distance_to_cursor_with_penalty(
     objective: Vec3,
     camera: CameraPtr,
@@ -80,7 +80,7 @@ pub(crate) fn distance_to_cursor_with_penalty(
 
 /// Shoot a ray from the camera and compute its intersection with the plane P: (p- p0).dot(n) - 0
 /// if the intersection if the point p, the return value is the coordinates of the point p.
-/// If the line and the plane are parallel, None is returned
+/// If the line and the plane are parallel, None is returned.
 pub(crate) fn unproject_point_on_plane(
     objective_origin: Vec3,
     objective_normal: Vec3,
@@ -102,7 +102,7 @@ pub(crate) fn unproject_point_on_plane(
     })
 }
 
-/// Convert a point on the screen into a point in the world. Useful for casting rays
+/// Convert a point on the screen into a point in the world. Useful for casting rays.
 fn ndc_to_world(
     x_ndc: f32,
     y_ndc: f32,
@@ -260,7 +260,7 @@ impl From<FiniteVec3> for Vec3 {
     }
 }
 
-/// A plane in space defined by an origin and a normal
+/// A plane in space defined by an origin and a normal.
 #[derive(Debug)]
 pub(crate) struct Plane {
     pub origin: Vec3,

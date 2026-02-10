@@ -12,10 +12,10 @@ use std::sync::Arc;
 use ultraviolet::{Bivec3, Rotor3, Vec2, Vec3};
 
 pub trait SimpleOperation: std::fmt::Debug + Sync + Send {
-    /// The effect of self that must be sent as a notifications to the targeted designs
+    /// The effect of self that must be sent as a notifications to the targeted designs.
     fn effect(&self) -> DesignOperation;
 
-    /// A description of self of display in the GUI
+    /// A description of self of display in the GUI.
     fn description(&self) -> String;
 
     /// Produce an new operation by setting the value of the `n`-th parameter to `val`.
@@ -23,7 +23,7 @@ pub trait SimpleOperation: std::fmt::Debug + Sync + Send {
         None
     }
 
-    /// The set of parameters that can be modified via a GUI component
+    /// The set of parameters that can be modified via a GUI component.
     fn parameters(&self) -> &[&'static str] {
         &[]
     }
@@ -33,7 +33,7 @@ pub trait SimpleOperation: std::fmt::Debug + Sync + Send {
         vec![]
     }
 
-    /// If true, this new operation is applied to the last initial state instead
+    /// If true, this new operation is applied to the last initial state instead.
     fn replace_previous(&self) -> bool {
         false
     }
@@ -521,7 +521,7 @@ pub struct CrossCut {
     pub source_id: usize,
     pub target_id: usize,
     pub nucl: Nucl,
-    /// True if the target strand will be the 3 prime part of the merged strand
+    /// True if the target strand will be the 3 prime part of the merged strand.
     pub target_3prime: bool,
 }
 
