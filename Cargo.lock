@@ -838,7 +838,6 @@ name = "ensnano_design"
 version = "0.7.0"
 dependencies = [
  "ahash",
- "ensnano_upcoming",
  "iced",
  "icondata",
  "log",
@@ -984,15 +983,6 @@ dependencies = [
  "version-compare",
  "wgpu",
  "winit",
-]
-
-[[package]]
-name = "ensnano_upcoming"
-version = "0.1.0"
-source = "git+ssh://git@gitlab.aliens-lyon.fr/nschaban/ensnano-upcoming.git#59653d445b375f86d6b0a86cff614e1b7c20b97f"
-dependencies = [
- "serde",
- "ultraviolet",
 ]
 
 [[package]]
