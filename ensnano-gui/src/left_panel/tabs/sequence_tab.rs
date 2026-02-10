@@ -156,6 +156,7 @@ impl GuiTab for SequenceTab {
                 "Rainbow Scaffold",
                 LeftPanelMessage::RainbowScaffold,
                 ui_size,
+                true
             ),
             extra_jump(),
             // add_set_scaffold_sequence_button!

@@ -5,8 +5,8 @@
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct RapierParameters {
     pub is_simulation_running: bool,
-    pub simulation_type: RapierSimulationType,
-    pub k_cut_threshold: u32,
+    pub cap_ups: bool,
+    pub target_ups: u32,
     pub ignore_local_parameters: bool,
     pub linear_damping: f32,
     pub angular_damping: f32,
@@ -33,8 +33,8 @@ pub const RAPIER_FLOAT_PARAMETERS_COUNT: usize = 18;
 impl RapierParameters {
     const DEFAULT: Self = Self {
         is_simulation_running: false,
-        simulation_type: RapierSimulationType::Full,
-        k_cut_threshold: 8,
+        cap_ups: false,
+        target_ups: 24,
         ignore_local_parameters: true,
         linear_damping: 0.06,
         angular_damping: 0.6,
@@ -101,25 +101,6 @@ impl RapierParameters {
         self.squish_strength = array[15];
         self.squish_damping = array[16];
         self.squish_soft_cutoff = array[17];
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum RapierSimulationType {
-    Full,
-    Rigid,
-    Cut,
-    KCut,
-}
-
-impl std::fmt::Display for RapierSimulationType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(match self {
-            Self::Full => "Full",
-            Self::Rigid => "Rigid",
-            Self::Cut => "Cut",
-            Self::KCut => "KCut",
-        })
     }
 }
 

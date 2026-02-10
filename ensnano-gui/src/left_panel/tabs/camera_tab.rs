@@ -108,12 +108,14 @@ impl GuiTab for CameraTab {
                 "Show stereographic camera",
                 LeftPanelMessage::ShowStereographicCamera,
                 ui_size,
+                true
             ),
             right_checkbox(
                 app_state.follow_stereographic_camera(),
                 "Follow stereographic camera",
                 LeftPanelMessage::FollowStereographicCamera,
                 ui_size,
+                true
             ),
             extra_jump(),
             row![

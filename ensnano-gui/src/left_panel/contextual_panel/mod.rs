@@ -854,6 +854,7 @@ impl AddStrandMenu {
                 "Add double strand on helix",
                 LeftPanelMessage::AddDoubleStrandHelix,
                 ui_size,
+                true
             ),
             row![
                 column![

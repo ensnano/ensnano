@@ -312,6 +312,7 @@ impl Program for LeftPanelState {
             }
             LeftPanelMessage::UpdateRapierParameters(parameters) => {
                 self.simulation_tab.rapier_parameters = parameters;
+                self.simulation_tab.update_parameters_fields();
                 self.requests
                     .lock()
                     .unwrap()

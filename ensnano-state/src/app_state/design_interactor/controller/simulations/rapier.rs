@@ -8,6 +8,7 @@ use ensnano_physics::{parameters::RapierParameters, simulation::RapierPhysicsSys
 use std::{
     collections::HashMap,
     sync::{Arc, Mutex, Weak},
+    time::{Duration, Instant},
 };
 
 #[derive(Default)]
@@ -53,6 +54,8 @@ impl RapierPhysicalSystem {
     pub(crate) fn run(mut self) {
         std::thread::spawn(move || {
             while let Some(interface) = self.interface.upgrade() {
+                let start_time = Instant::now();
+
                 let Ok(parameters) = interface.try_lock().map(|i| i.parameters) else {
                     continue;
                 };
@@ -61,6 +64,15 @@ impl RapierPhysicalSystem {
                 // we get the positions
                 if let Ok(mut guard) = interface.try_lock() {
                     guard.space_position = self.system.get_positions();
+                }
+
+                if parameters.cap_ups {
+                    let target = Duration::from_secs_f32(1.0 / parameters.target_ups as f32);
+                    let elapsed = start_time.elapsed();
+
+                    if let Some(wait_time) = target.checked_sub(elapsed) {
+                        std::thread::sleep(wait_time);
+                    }
                 }
             }
         });
