@@ -8,7 +8,7 @@ use std::ops::Range;
 
 /// Holds the intermediary representation
 /// of a nucleotide pair.
-/// Handles the case of free nucleotides;
+/// Handles the case of free nucleotides.
 #[derive(Copy, Clone, Debug)]
 pub(crate) enum IntermediaryPair {
     OnlyForward(u32, Nucl),
@@ -66,7 +66,7 @@ pub(crate) struct IntermediaryHelix {
 
 /// Takes in the crossovers of the design as design elements,
 /// and detects the helices that are cyclic, and should be
-/// constructed using strong springs
+/// constructed using strong springs.
 pub(crate) fn compute_cyclic_helices(elements: &Vec<DesignElement>) -> Vec<usize> {
     let mut result = vec![];
 

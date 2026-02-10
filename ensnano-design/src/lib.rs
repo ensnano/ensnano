@@ -1,6 +1,6 @@
 //! This module defines the ensnano format.
 //! All other format supported by ensnano are converted into this format and
-//! run-time manipulations of designs are performed on an `ensnano::Design` structure
+//! run-time manipulations of designs are performed on an `ensnano::Design` structure.
 
 #[cfg(test)]
 mod tests;
@@ -72,16 +72,16 @@ pub struct Design {
     )]
     pub helix_parameters: Option<HelixParameters>,
 
-    /// The strand that is the scaffold if the design is an origami
+    /// The strand that is the scaffold if the design is an origami.
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub scaffold_id: Option<usize>,
 
-    /// The sequence of the scaffold if the design is an origami
+    /// The sequence of the scaffold if the design is an origami.
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub scaffold_sequence: Option<String>,
 
     /// The shifting of the scaffold if the design is an origami. This is used to reduce the number
-    /// of anti-pattern in the staples sequences
+    /// of anti-pattern in the staples sequences.
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub scaffold_shift: Option<usize>,
 
@@ -91,7 +91,7 @@ pub struct Design {
     #[serde(default, skip_serializing, alias = "grids")]
     old_grids: Vec<GridDescriptor>,
 
-    /// The cross-over suggestion groups
+    /// The cross-over suggestion groups.
     #[serde(skip_serializing_if = "groups_is_empty", default)]
     pub groups: Arc<BTreeMap<usize, bool>>,
 
@@ -111,7 +111,7 @@ pub struct Design {
     )]
     pub small_spheres: Arc<HashSet<GridId>>,
 
-    /// The set of nucleotides that must not move during physical simulations
+    /// The set of nucleotides that must not move during physical simulations.
     #[serde(skip_serializing_if = "HashSet::is_empty", default)]
     pub anchors: HashSet<Nucl>,
 
@@ -136,7 +136,7 @@ pub struct Design {
     #[serde(default, skip_serializing_if = "HashSet::is_empty")]
     pub checked_xovers: HashSet<usize>,
 
-    /// True if the colors of the scaffold's nucleotides should make a rainbow
+    /// True if the colors of the scaffold's nucleotides should make a rainbow.
     #[serde(default)]
     pub rainbow_scaffold: bool,
 
@@ -177,7 +177,7 @@ impl Design {
     /// If this methods returns `None`, one needs to call `Design::get_up_to_date` to get an
     /// `UpToDateDesign` reference to the data.
     /// Having an option to not mutate the design is meant to prevent unnecessary run-time cloning
-    /// of the design
+    /// of the design.
     pub fn try_get_up_to_date(&self) -> Option<UpToDateDesign<'_>> {
         let paths_data = self
             .instantiated_paths
@@ -204,7 +204,7 @@ impl Design {
         }
     }
 
-    /// Update self if necessary
+    /// Update self if necessary.
     pub fn make_up_to_date(&mut self) {
         let helix_parameters = self
             .helix_parameters

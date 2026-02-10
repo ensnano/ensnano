@@ -31,7 +31,7 @@ pub struct HelixParameters {
     /// Gap between two neighboring helices.
     pub inter_helix_gap: f32,
 
-    /// The inclination of paired phosphates relative to the helical axis
+    /// The inclination of paired phosphates relative to the helical axis.
     #[serde(default)]
     pub inclination: f32,
 }
@@ -73,7 +73,7 @@ impl HelixParameters {
 
     /// Value used for versions >= 0.4.1.
     /// Taken from "Design Principles for Single-Stranded RNA Origami Structures, Geary & Andersen
-    /// 2014
+    /// 2014.
     pub const GEARY_2014_DNA_P_STICK: Self = {
         let helix_radius = 0.93;
         Self {
@@ -95,7 +95,7 @@ impl HelixParameters {
 
     /// Value used for RNA designs
     /// Taken from "Design Principles for Single-Stranded RNA Origami Structures, Geary & Andersen
-    /// 2014
+    /// 2014.
     pub const GEARY_2014_RNA_P_STICK: Self = {
         let helix_radius = 0.87;
         Self {
@@ -167,32 +167,32 @@ impl HelixParameters {
         ret
     }
 
-    /// The angle AOC_2 where
+    /// The angle AOC_2 where:
     ///
     /// * A is a base on the helix
     /// * B is the base paired to A
     /// * O is the projection of A on the axis of the helix
     /// * C is the 3' neighbor of A
-    /// * C_2 is the projection of C in the AOB plane
+    /// * C_2 is the projection of C in the AOB plane.
     fn angle_aoc2(&self) -> f32 {
         TAU / self.bases_per_turn
     }
 
-    /// The distance |AC| where
+    /// The distance |AC| where:
     ///
     /// * A is a base on the helix
-    /// * C is the 3' neighbor of A
+    /// * C is the 3' neighbor of A.
     pub fn dist_ac(&self) -> f32 {
         (self.dist_ac2() * self.dist_ac2() + self.rise * self.rise).sqrt()
     }
 
-    /// The distance |AC_2| where
+    /// The distance |AC_2| where:
     ///
     /// * A is a base on the helix
     /// * B is the base paired to A
     /// * O is the projection of A on the axis of the helix
     /// * C is the 3' neighbor of A
-    /// * C_2 is the projection of C in the AOB plane
+    /// * C_2 is the projection of C in the AOB plane.
     pub fn dist_ac2(&self) -> f32 {
         SQRT_2 * (1. - self.angle_aoc2().cos()).sqrt() * self.helix_radius
     }

@@ -374,7 +374,7 @@ impl Presenter {
     }
 
     /// Return a string describing the decomposition of the length of the strand `s_id` into the
-    /// sum of the length of its domains
+    /// sum of the length of its domains.
     pub fn decompose_length(&self, s_id: usize) -> String {
         let mut ret = String::new();
         if let Some(strand) = self.current_design.strands.get(&s_id) {

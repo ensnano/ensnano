@@ -24,7 +24,7 @@ const SYNC_ROLLS_INSTEAD_OF_COPY_ROLLS: bool = false; // false is ENSnano defaul
 
 /// A structure performing physical simulation on a design.
 pub(crate) struct PhysicalSystem {
-    /// The data representing the design on which the simulation is performed
+    /// The data representing the design on which the simulation is performed.
     data: DesignData,
     /// The structure that handles the simulation of the rotation springs.
     roller: RollSystem,
@@ -263,7 +263,7 @@ impl RollSystem {
         }
     }
 
-    /// Do one step of simulation with time step dt
+    /// Do one step of simulation with time step dt.
     pub(super) fn solve_one_step(&mut self, data: &mut DesignData, lr: f32) -> f32 {
         self.time_scale = 1.;
         self.update_acceleration(data);

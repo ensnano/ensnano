@@ -190,7 +190,7 @@ pub fn list_of_strands(selection: &[Selection]) -> Option<(usize, Vec<usize>)> {
     Some((design_id as usize, strands))
 }
 
-/// Convert a selection of bonds into a list of cross-overs
+/// Convert a selection of bonds into a list of cross-overs.
 pub fn list_of_xover_ids(
     selection: &[Selection],
     reader: &DesignInteractor,
@@ -219,7 +219,7 @@ pub fn list_of_xover_ids(
     Some((design_id as usize, xovers.into_iter().collect()))
 }
 
-/// Convert a selection of bonds into a list of cross-overs
+/// Convert a selection of bonds into a list of cross-overs.
 pub fn list_of_xover_as_nucl_pairs(
     selection: &[Selection],
     reader: &DesignInteractor,
@@ -356,7 +356,7 @@ pub fn set_of_grids_containing_selection(
     Some(ret)
 }
 
-/// Return true iff the selection is only made of helices that are not attached to a grid
+/// Return true iff the selection is only made of helices that are not attached to a grid.
 pub fn all_helices_no_grid(selection: &[Selection], reader: &DesignInteractor) -> bool {
     let design_id = selection.first().and_then(Selection::get_design);
     let mut nb_helices = 0;
@@ -387,7 +387,7 @@ pub fn all_helices_no_grid(selection: &[Selection], reader: &DesignInteractor) -
     nb_helices >= 4
 }
 
-/// Extract all the elements of the form Selection::Nucl(_) from a slice of selection
+/// Extract all the elements of the form Selection::Nucl(_) from a slice of selection.
 pub fn extract_nucls_from_selection(selection: &[Selection]) -> Vec<Nucl> {
     let mut ret = vec![];
     for s in selection {

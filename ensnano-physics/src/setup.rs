@@ -27,7 +27,7 @@ const NUCLEOTIDE_RADIUS: f32 = 0.32;
 /// full simulation (all bases are simulated),
 /// rigid helices (helices are one rigid body),
 /// or sliced rigid helices (helices are rigid bodies
-/// separated at crossovers)
+/// separated at crossovers).
 pub(crate) trait SimulationSetup {
     // creates rigid bodes and assigns the provided
     // colliders to them

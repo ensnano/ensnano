@@ -215,7 +215,7 @@ struct GuiComponent {
 }
 
 impl GuiComponent {
-    /// Initialize the top bar gui component
+    /// Initialize the top bar gui component.
     fn top_bar(
         mut renderer: iced::Renderer,
         window: &Window,
@@ -249,7 +249,7 @@ impl GuiComponent {
         }
     }
 
-    /// Initialize the left panel gui component
+    /// Initialize the left panel gui component.
     fn left_panel(
         mut renderer: iced::Renderer,
         window: &Window,
@@ -405,18 +405,18 @@ impl GuiComponent {
 
 /// The manager of the graphical user interface.
 ///
-/// The manager contains a [`GuiComponent`] for each [`GuiComponentType`] (top_bar, left_panel, etc…)
+/// The manager contains a [`GuiComponent`] for each [`GuiComponentType`] (top_bar, left_panel, etc…).
 pub struct GuiManager {
-    /// WGPU Settings
+    /// WGPU Settings.
     wgpu_settings: iced_wgpu::Settings,
-    /// WGPU device
+    /// WGPU device.
     pub device: Rc<Device>,
-    /// WGPU queue
+    /// WGPU queue.
     pub queue: Rc<Queue>,
     resized: bool,
     requests: Arc<Mutex<Requests>>,
     parameters: AppStateParameters,
-    /// [`GuiComponent`] mapped by [`GuiComponentType`]
+    /// [`GuiComponent`] mapped by [`GuiComponentType`].
     components: HashMap<GuiComponentType, GuiComponent>,
 }
 
@@ -542,12 +542,12 @@ impl GuiManager {
         );
     }
 
-    /// Forward an event to the appropriate gui component
+    /// Forward an event to the appropriate gui component.
     pub fn forward_event(&mut self, area: GuiComponentType, event: Event) {
         self.components.get_mut(&area).unwrap().forward_event(event);
     }
 
-    /// Clear the focus of all components of the GUI
+    /// Clear the focus of all components of the GUI.
     pub fn clear_focus(&mut self) {
         for elt in self.components.values_mut() {
             elt.forward_event(Event::Mouse(mouse::Event::CursorMoved {
@@ -565,7 +565,7 @@ impl GuiManager {
         }
     }
 
-    /// Forward a message to the appropriate gui component
+    /// Forward a message to the appropriate gui component.
     pub fn forward_messages(&mut self, messages: &mut GuiMessages) {
         for m in messages.top_bar.drain(..) {
             self.components
@@ -598,7 +598,7 @@ impl GuiManager {
         self.resized = true;
     }
 
-    /// Ask the gui component to process the event that they have received
+    /// Ask the gui component to process the event that they have received.
     pub fn fetch_change_gui_manager(
         &mut self,
         window: &Window,

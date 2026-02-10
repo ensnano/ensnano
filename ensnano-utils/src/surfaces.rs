@@ -184,7 +184,7 @@ impl UnrootedRevolutionSurfaceDescriptor {
 
     /// Approximate the area of the surface by slicing it into strips of triangles.
     ///
-    /// The surface is split into `nb_strip` strips of 2 * `nb_section_per_strip` triangles
+    /// The surface is split into `nb_strip` strips of 2 * `nb_section_per_strip` triangles.
     pub fn approx_surface_area(&self, nb_strip: usize, nb_section_per_strip: usize) -> Option<f64> {
         if matches!(self.revolution_radius, RevolutionSurfaceRadius::Inside(_)) {
             return None;
@@ -447,12 +447,12 @@ impl std::fmt::Display for EquadiffSolvingMethod {
     }
 }
 
-/// The position of the axis of revolution of a revolution surface
+/// The position of the axis of revolution of a revolution surface.
 #[derive(Debug, Clone, PartialEq, Copy)]
 pub enum RevolutionSurfaceRadius {
-    /// The axis is on the left of the leftmost point of the section
+    /// The axis is on the left of the leftmost point of the section.
     Left(f64),
-    /// The axis is on the right of the rightmost point of the section
+    /// The axis is on the right of the rightmost point of the section.
     Right(f64),
     /// The axis is inside the section.
     Inside(f64),
@@ -468,8 +468,8 @@ impl RevolutionSurfaceRadius {
     /// Convert to Self from an f64. The sign indicate the position of the revolution axis relative
     /// to the section.
     ///
-    /// Positive value indicate that the axis of revolution is on the right of the section
-    /// Negative value indicate that the axis of revolution is on the left of the section
+    /// Positive value indicate that the axis of revolution is on the right of the section.
+    /// Negative value indicate that the axis of revolution is on the left of the section.
     pub fn from_signed_f64(radius: f64) -> Self {
         if radius.is_sign_positive() {
             Self::Right(radius)
@@ -481,8 +481,8 @@ impl RevolutionSurfaceRadius {
     /// Convert self to an f64. The sign indicate the position of the revolution axis relative to
     /// the section.
     ///
-    /// Positive value indicate that the axis of revolution is on the right of the section
-    /// Negative value indicate that the axis of revolution is on the left of the section
+    /// Positive value indicate that the axis of revolution is on the right of the section.
+    /// Negative value indicate that the axis of revolution is on the left of the section.
     pub fn to_signed_f64(self) -> Option<f64> {
         match self {
             Self::Left(x) => Some(-x),
@@ -614,7 +614,7 @@ impl RootedRevolutionSurface {
 }
 
 /// Compute the area of the triangles of the strip using the formula
-/// area(ABC) = 1/2 * mag(AB cross AC)
+/// area(ABC) = 1/2 * mag(AB cross AC).
 fn area_strip<I: Iterator<Item = DVec3> + Clone>(vertices: I, nb_section_per_strip: usize) -> f64 {
     vertices
         .clone()

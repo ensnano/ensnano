@@ -30,7 +30,7 @@ impl OxDnaNucl {
 pub struct OxDnaConfig {
     time: f32,
     boundaries: [f32; 3],
-    /// total energy, U and K
+    /// total energy, U and K.
     kinetic_energies: [f32; 3],
     nucls: Vec<OxDnaNucl>,
 }

@@ -51,7 +51,7 @@ pub enum Action {
     NotifyApps(Notification),
     TurnSelectionIntoGrid,
     AddGrid(GridTypeDescr),
-    /// Change the color of all the selected strands
+    /// Change the color of all the selected strands.
     ChangeColorStrand(u32),
     FinishChangingColor,
     ToggleHelicesPersistence(bool),
@@ -84,7 +84,7 @@ pub enum Action {
     },
     DeleteSelection,
     ScaffoldToSelection,
-    /// Save the nucleotides 3D positions by strand as a json file in the design directory
+    /// Save the nucleotides 3D positions by strand as a json file in the design directory.
     GetDesignPathAndNotify(fn(Option<Arc<Path>>) -> Notification),
     SuspendOp,
     Fog(FogParameters),

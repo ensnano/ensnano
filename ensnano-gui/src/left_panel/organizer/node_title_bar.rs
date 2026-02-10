@@ -17,7 +17,7 @@ use iced::{
     widget::{Row, Space, button, container, horizontal_space, mouse_area, row, text, text_input},
 };
 
-/// A data structure whose view is a "title bar" for a group or a section
+/// A data structure whose view is a "title bar" for a group or a section.
 pub(super) struct NodeTitleBar {
     pub(super) state: GroupState,
     pub(super) attribute_displayers: Vec<AttributeDisplayer>,

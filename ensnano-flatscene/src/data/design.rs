@@ -23,15 +23,15 @@ use std::{
 use ultraviolet::{Isometry2, Rotor2, Vec2};
 
 pub(super) struct Design2d {
-    /// The 2d helices
+    /// The 2d helices.
     helices: HelixVec<Helix2d>,
-    /// Maps id of helices in design to location in self.helices
+    /// Maps id of helices in design to location in self.helices.
     id_map: FlatHelixMaps,
-    /// the 2d strands
+    /// the 2d strands.
     strands: Vec<Strand>,
-    /// A pointer to the design
+    /// A pointer to the design.
     design: DesignInteractor,
-    /// The strand being pasted,
+    /// The strand being pasted.
     pasted_strands: Vec<Strand>,
     last_flip_other: Option<FlatHelix>,
     removed: BTreeSet<FlatIdx>,
@@ -67,7 +67,7 @@ impl Design2d {
         self.known_map = std::ptr::null();
     }
 
-    /// Re-read the design and update the 2d data accordingly
+    /// Re-read the design and update the 2d data accordingly.
     pub(super) fn update(&mut self, design: DesignInteractor) {
         self.design = design;
         log::trace!("updating design");
@@ -191,7 +191,7 @@ impl Design2d {
         }
     }
 
-    /// Add a nucleotide to self and increase the left/right bond the the 2d segment representation
+    /// Add a nucleotide to self and increase the left/right bond the the 2d segment representation.
     fn read_nucl(&mut self, nucl: &Nucl) {
         if let Some(flat_nucl) = FlatNucl::from_real(nucl, &self.id_map) {
             let helix2d = &mut self.helices[flat_nucl.helix.flat];
@@ -463,18 +463,18 @@ impl Design2d {
     }
 }
 
-/// Store the information needed to represent an helix from the design
+/// Store the information needed to represent an helix from the design.
 #[derive(Debug)]
 pub struct Helix2d {
-    /// The id of the helix within the design
+    /// The id of the helix within the design.
     pub id: usize,
-    /// The smallest position of a nucleotide represented on this helix segment
+    /// The smallest position of a nucleotide represented on this helix segment.
     pub left: isize,
-    /// The largest position of a nucleotide represented on this helix segment
+    /// The largest position of a nucleotide represented on this helix segment.
     pub right: isize,
-    /// The largest value that can be taken by self.right
+    /// The largest value that can be taken by self.right.
     pub max_right: Option<isize>,
-    /// The smallest value that can be taken by self.left
+    /// The smallest value that can be taken by self.left.
     pub min_left: Option<isize>,
     pub isometry: FullIsometry,
     pub visible: bool,

@@ -58,12 +58,12 @@ impl Camera2D {
         self.end_movement();
     }
 
-    /// Return the globals
+    /// Return the globals.
     pub fn get_globals(&self) -> &Globals {
         &self.globals
     }
 
-    /// Return the globals if self was updated,
+    /// Return the globals if self was updated.
     pub fn update(&mut self) -> Option<&Globals> {
         self.was_updated.then(|| {
             self.was_updated = false;
@@ -72,21 +72,21 @@ impl Camera2D {
     }
 
     /// Moves the camera, according to a mouse movement expressed in *normalized screen
-    /// coordinates*
+    /// coordinates*.
     pub fn process_mouse(&mut self, delta_x: f32, delta_y: f32) -> (f32, f32) {
         let (x, y) = self.transform_vec(delta_x, delta_y);
         self.translate_by_vec(x, y);
         (x, y)
     }
 
-    /// Translate self by a vector expressed in world coordinates
+    /// Translate self by a vector expressed in world coordinates.
     pub fn translate_by_vec(&mut self, x: f32, y: f32) {
         self.globals.scroll_offset[0] = self.old_globals.scroll_offset[0] - x;
         self.globals.scroll_offset[1] = self.old_globals.scroll_offset[1] - y;
         self.was_updated = true;
     }
 
-    /// Perform a zoom so that the point under the cursor stays at the same position on display
+    /// Perform a zoom so that the point under the cursor stays at the same position on display.
     pub fn process_scroll(
         &mut self,
         delta: &MouseScrollDelta,
@@ -122,7 +122,7 @@ impl Camera2D {
         self.was_updated = true;
     }
 
-    /// Notify the camera that the size of the drawing area has been modified
+    /// Notify the camera that the size of the drawing area has been modified.
     pub fn resize(&mut self, res_x: f32, res_y: f32) {
         self.globals.resolution[0] = res_x;
         self.globals.resolution[1] = res_y;
@@ -140,7 +140,7 @@ impl Camera2D {
     }
 
     /// Convert a *vector* in screen coordinate to a vector in world coordinate. (Does not apply
-    /// the translation)
+    /// the translation).
     fn transform_vec(&self, mut x: f32, mut y: f32) -> (f32, f32) {
         x *= self.globals.symmetry.x;
         y *= self.globals.symmetry.y;
@@ -185,7 +185,7 @@ impl Camera2D {
         }
     }
 
-    /// Convert a *point* in world coordinates to a point in normalized screen ([0, 1] * [0, 1]) coordinates
+    /// Convert a *point* in world coordinates to a point in normalized screen ([0, 1] * [0, 1]) coordinates.
     pub fn world_to_norm_screen(&self, x_world: f32, y_world: f32) -> (f32, f32) {
         // The screen coordinates have the y axis pointed down, and so does the 2d world
         // coordinates. So we do not flip the y axis.
@@ -428,7 +428,7 @@ impl FitRectangle {
         self
     }
 
-    /// Multiply the height of a rectangle by `factor` while preserving it's center of mass
+    /// Multiply the height of a rectangle by `factor` while preserving it's center of mass.
     fn adjust_height(mut self, factor: f32, y_center: f32) -> Self {
         self.y_min -= factor * y_center;
         self.y_max += factor * (1.0 - y_center);

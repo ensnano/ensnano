@@ -8,44 +8,44 @@ use std::cmp::Ordering;
 
 #[derive(Clone, Debug)]
 pub struct StrandBuilder {
-    /// The nucleotide that can move
+    /// The nucleotide that can move.
     pub moving_end: Nucl,
-    /// The initial position of the moving end
+    /// The initial position of the moving end.
     pub initial_position: isize,
-    /// Axis of the support helix on which the domain lies
+    /// Axis of the support helix on which the domain lies.
     pub axis: OwnedAxis,
-    /// The identifier of the domain being edited
+    /// The identifier of the domain being edited.
     identifier: DomainIdentifier,
     /// The fixed_end of the domain being edited, `None` if the domain is new and can go in both
-    /// direction
+    /// direction.
     fixed_end: Option<isize>,
-    /// The eventual other strand being modified by the current modification
+    /// The eventual other strand being modified by the current modification.
     neighbor_strand: Option<NeighborDescriptor>,
     /// The direction in which the end of neighbor_strand can go, starting from its initial
-    /// position
+    /// position.
     neighbor_direction: Option<EditDirection>,
     /// The minimum position to which the edited domain can go. It corresponds to the eventual
-    /// minimum position of the neighbor_strand or to the other end of the domain being edited
+    /// minimum position of the neighbor_strand or to the other end of the domain being edited.
     min_pos: Option<isize>,
     /// The maximum position to which the edited domain can go. It corresponds to the eventual
-    /// maximum position of the neighbor_strand, or to the other end of the domain being edited
+    /// maximum position of the neighbor_strand, or to the other end of the domain being edited.
     max_pos: Option<isize>,
-    /// An eventual neighbor that was detached during the movement
+    /// An eventual neighbor that was detached during the movement.
     detached_neighbor: Option<NeighborDescriptor>,
 }
 
 impl StrandBuilder {
     /// Create a strand that will build a new strand. This means that the initial position
-    /// corresponds to a phantom nucleotide
+    /// corresponds to a phantom nucleotide.
     /// # Argument
     ///
-    /// * identifier: The identifier of the domain that will be created
+    /// * identifier: The identifier of the domain that will be created.
     ///
-    /// * nucl: The fixed end of the domain that will be created
+    /// * nucl: The fixed end of the domain that will be created.
     ///
-    /// * axis: The axis of the helix on which the domain will be created
+    /// * axis: The axis of the helix on which the domain will be created.
     ///
-    /// * neighbor: An eventual existing neighbor of the strand being created
+    /// * neighbor: An eventual existing neighbor of the strand being created.
     pub fn init_empty(
         identifier: DomainIdentifier,
         nucl: Nucl,
@@ -82,18 +82,18 @@ impl StrandBuilder {
     }
 
     /// Create a strand that will edit an existing domain. This means that the initial position
-    /// corresponds to an end of an existing domain
+    /// corresponds to an end of an existing domain.
     /// # Argument
     ///
-    /// * identifier: The identifier of the domain that will be created
+    /// * identifier: The identifier of the domain that will be created.
     ///
-    /// * nucl: The moving end of the domain that will be created
+    /// * nucl: The moving end of the domain that will be created.
     ///
-    /// * axis: The axis of the helix on which the domain will be created
+    /// * axis: The axis of the helix on which the domain will be created.
     ///
-    /// * other_end: The position of the fixed end of the domain that will be edited
+    /// * other_end: The position of the fixed end of the domain that will be edited.
     ///
-    /// * neighbor: An eventual existing neighbor of the strand being created
+    /// * neighbor: An eventual existing neighbor of the strand being created.
     pub fn init_existing(
         identifier: DomainIdentifier,
         nucl: Nucl,
@@ -156,7 +156,7 @@ impl StrandBuilder {
     }
 
     /// Attach a new neighbor. This function must be called when the moving end goes to a position
-    /// where it is next to an existing domain
+    /// where it is next to an existing domain.
     fn attach_neighbor(&mut self, descriptor: &NeighborDescriptor) -> bool {
         // To prevent attaching to self or attaching to the same neighbor or attaching to a
         // neighbor in the wrong direction
@@ -279,7 +279,7 @@ impl StrandBuilder {
         }
     }
 
-    /// Apply the modification on the data
+    /// Apply the modification on the data.
     pub fn update(&mut self, design: &mut Design) {
         Self::update_strand(
             design,
@@ -339,18 +339,18 @@ impl StrandBuilder {
     }
 }
 
-/// The direction in which a moving end can go
+/// The direction in which a moving end can go.
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum EditDirection {
-    /// In both direction
+    /// In both direction.
     Both,
-    /// Only on position smaller that the initial position
+    /// Only on position smaller that the initial position.
     Negative,
-    /// Only on position bigger that the initial position
+    /// Only on position bigger that the initial position.
     Positive,
 }
 
-/// Describes a domain being edited
+/// Describes a domain being edited.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct NeighborDescriptor {
     pub identifier: DomainIdentifier,

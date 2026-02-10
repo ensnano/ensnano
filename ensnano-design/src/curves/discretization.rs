@@ -24,7 +24,7 @@ impl Curve {
     /// Pre-compute the frames around which the nucleotides will be positioned.
     ///
     /// This is done by an iterative discretization algorithm that computes forward positions
-    /// (f_0,... f_n) (for the forward strand) and backwards positions (b_0,..., b_n) (for the backward strand), so that
+    /// (f_0,... f_n) (for the forward strand) and backwards positions (b_0,..., b_n) (for the backward strand), so that:
     /// * The curvilinear distance between f_{i} and f_{i + 1} is `nucl_rise`.
     /// * The curvilinear distance between b_{i} and b_{i + 1} is `nucl_rise`.
     /// * The curvilinear distance between f_{i} and b_{i} is `inclination`.
@@ -283,7 +283,7 @@ impl Curve {
         }
     }
 
-    /// Compute the discrete torsion given 4 points
+    /// Compute the discrete torsion given 4 points.
     fn discrete_torsion(points: [&DVec3; 4]) -> f64 {
         let p0 = *points[0];
         let p1 = *points[1];
@@ -346,7 +346,7 @@ impl Curve {
         }
     }
 
-    /// NS: Should not be used to compute length of a translated curve because speed(t) outputs then a wrong value
+    /// NS: Should not be used to compute length of a translated curve because speed(t) outputs then a wrong value.
     pub fn length_by_discretization(&self, t0: f64, t1: f64, nb_step: usize) -> f64 {
         if t0 > t1 {
             log::error!(
@@ -377,7 +377,7 @@ impl Curve {
         len
     }
 
-    /// NS: Use UP as reference point which should be changed (it should use initial frame directly or a rotation of it)
+    /// NS: Use UP as reference point which should be changed (it should use initial frame directly or a rotation of it).
     fn translation_axis(&self, t: f64, current_axis: &DMat3) -> DMat3 {
         let mut ret = *current_axis;
         if let Some(frame) = self.geometry.initial_frame() {
@@ -399,7 +399,7 @@ impl Curve {
         ret
     }
 
-    /// Allow to select the iterative axis computation method
+    /// Allow to select the iterative axis computation method.
     #[inline]
     fn iterative_axis(&self, t: f64, previous: Option<&DMat3>) -> DMat3 {
         match ITERATIVE_AXIS_ALGORITHM {
@@ -455,7 +455,7 @@ impl Curve {
         }
     }
 
-    /// Return a value of t_min that would allow self to have nucl
+    /// Return a value of t_min that would allow self to have nucl.
     pub fn left_extension_to_have_nucl(
         &self,
         nucl: isize,
@@ -487,7 +487,7 @@ impl Curve {
         }
     }
 
-    /// Return a value of t_max that would allow self to have nucl
+    /// Return a value of t_max that would allow self to have nucl.
     pub fn right_extension_to_have_nucl(
         &self,
         nucl: isize,
@@ -528,7 +528,7 @@ impl Curve {
 
     /// NS: compute chebyshev polynomials interpolating curvilinear abscissa and its inverse
     /// NS: do not use .speed(t) which does NOT work with translated curve -- this function is used for translated curves
-    /// NS: it would be better to use a bezier interpolation to compute the chebyshev polynomial (it's smoother) and should reduce the degree
+    /// NS: it would be better to use a bezier interpolation to compute the chebyshev polynomial (it's smoother) and should reduce the degree.
     fn compute_polynomials(&self) -> Option<PreComputedPolynomials> {
         self.geometry.pre_compute_polynomials().then(|| {
             let mut t = self.geometry.t_min();
@@ -579,7 +579,7 @@ impl Curve {
     }
 }
 
-/// Polynomials computed at the start of the discretization procedure
+/// Polynomials computed at the start of the discretization procedure.
 struct PreComputedPolynomials {
     curvilinear_abscissa: ChebyshevPolynomial,
     inverse_abscissa: ChebyshevPolynomial,

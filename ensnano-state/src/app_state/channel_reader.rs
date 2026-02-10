@@ -1,5 +1,5 @@
 //! This module defines the [ChannelReader] struct which is in charge of communication with
-//! computation threads that can be spawned by the program
+//! computation threads that can be spawned by the program.
 
 use crate::app_state::design_interactor::{
     controller::{shift_optimization::ShiftOptimizationResult, simulations::SimulationInterface},
@@ -19,9 +19,9 @@ pub struct SimulationInterfaceHandle {
 }
 
 pub enum ChannelReaderUpdate {
-    /// Progress has been made in the optimization of the scaffold position
+    /// Progress has been made in the optimization of the scaffold position.
     ScaffoldShiftOptimizationProgress(f32),
-    /// The optimum scaffold position has been found
+    /// The optimum scaffold position has been found.
     ScaffoldShiftOptimizationResult(ShiftOptimizationResult),
 }
 

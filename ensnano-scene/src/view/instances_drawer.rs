@@ -12,17 +12,17 @@ use wgpu::{
     ShaderModule,
 };
 
-/// A type that represents a vertex
+/// A type that represents a vertex.
 pub trait Vertexable {
-    /// The raw type that is sent to the shaders
+    /// The raw type that is sent to the shaders.
     type RawType: bytemuck::Pod + bytemuck::Zeroable;
-    /// The vertex state descriptor used to create the pipeline
+    /// The vertex state descriptor used to create the pipeline.
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a>;
     /// Convert self into a raw vertex.
     fn to_raw(&self) -> Self::RawType;
 }
 
-/// A type that provides additional resources needed to draw a mesh
+/// A type that provides additional resources needed to draw a mesh.
 pub trait ResourceProvider {
     /// Description of the additional resources (eg textures) needed to draw the mesh.
     fn resources_layout() -> &'static [wgpu::BindGroupLayoutEntry] {
@@ -57,13 +57,13 @@ pub trait ResourceProvider {
 
 impl ResourceProvider for () {}
 
-/// A type that represents a mesh
+/// A type that represents a mesh.
 pub trait Instantiable {
-    /// The type that represents the vertices of the mesh
+    /// The type that represents the vertices of the mesh.
     type Vertex: Vertexable;
-    /// The type that will represents the instance data
+    /// The type that will represents the instance data.
     type RawInstance: bytemuck::Pod + bytemuck::Zeroable;
-    /// The type that will provide additional resources needed to draw the mesh
+    /// The type that will provide additional resources needed to draw the mesh.
     type Resource: ResourceProvider;
     /// The vertices of the mesh.
     ///
@@ -83,22 +83,22 @@ pub trait Instantiable {
     fn indices() -> Vec<u16>
     where
         Self: Sized;
-    /// The primitive topology used to draw the mesh
+    /// The primitive topology used to draw the mesh.
     fn primitive_topology() -> PrimitiveTopology
     where
         Self: Sized;
-    /// The vertex shader used to draw the mesh
+    /// The vertex shader used to draw the mesh.
     fn vertex_module(device: &Device) -> ShaderModule
     where
         Self: Sized;
-    /// The fragment shader used to draw the mesh
+    /// The fragment shader used to draw the mesh.
     fn fragment_module(device: &Device) -> ShaderModule
     where
         Self: Sized;
-    /// Return the data that will represent self in the shader
+    /// Return the data that will represent self in the shader.
     fn to_raw_instance(&self) -> Self::RawInstance;
 
-    /// Return the content of the vertex buffer
+    /// Return the content of the vertex buffer.
     fn raw_vertices() -> Vec<<Self::Vertex as Vertexable>::RawType>
     where
         Self: Sized,
@@ -119,7 +119,7 @@ pub trait Instantiable {
         None
     }
 
-    /// Return the content of the vertex buffer, or `None` if `custom_vertex` is not overwritten
+    /// Return the content of the vertex buffer, or `None` if `custom_vertex` is not overwritten.
     fn custom_raw_vertices(&self) -> Option<Vec<<Self::Vertex as Vertexable>::RawType>> {
         self.custom_vertices()
             .map(|v| v.iter().map(Vertexable::to_raw).collect())
@@ -162,21 +162,21 @@ pub trait Instantiable {
     }
 }
 
-/// An object that draws an instanced mesh
+/// An object that draws an instanced mesh.
 pub struct InstanceDrawer<D: Instantiable + ?Sized> {
-    /// The pipeline that will render the mesh
+    /// The pipeline that will render the mesh.
     pipeline: RenderPipeline,
-    /// The vertex buffer used to draw the mesh
+    /// The vertex buffer used to draw the mesh.
     vertex_buffer: wgpu::Buffer,
-    /// The index buffer used to draw the mesh
+    /// The index buffer used to draw the mesh.
     index_buffer: wgpu::Buffer,
-    /// The bind group containing the instances data
+    /// The bind group containing the instances data.
     instances: DynamicBindGroup,
-    /// The bind group containing the additional resources need to draw the mesh
+    /// The bind group containing the additional resources need to draw the mesh.
     additional_bind_group: Option<wgpu::BindGroup>,
-    /// The number of instances
+    /// The number of instances.
     nb_instances: u32,
-    /// The number of vertex indices
+    /// The number of vertex indices.
     nb_indices: u32,
     resource: D::Resource,
     device: Rc<Device>,

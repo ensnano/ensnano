@@ -68,19 +68,19 @@ impl CodenanoStrand {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
-/// Colors
+/// Colors.
 pub enum CodenanoColor {
     /// Colors encoded as u32.
     Int(u32),
-    /// Hexadecimal colors
+    /// Hexadecimal colors.
     Hex(String),
-    /// Three distinct fields for red, green and blue
+    /// Three distinct fields for red, green and blue.
     Rgb {
-        /// Red field
+        /// Red field.
         r: u8,
-        /// Green field
+        /// Green field.
         g: u8,
-        /// Blue field
+        /// Blue field.
         b: u8,
     },
 }

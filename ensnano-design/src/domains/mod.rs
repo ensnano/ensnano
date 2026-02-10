@@ -13,7 +13,7 @@ use std::{borrow::Cow, sync::Arc};
 /// of nucleotides that are not on an helix and form an independent loop.
 #[derive(Clone, Serialize, Deserialize)]
 pub enum Domain {
-    /// An interval of nucleotides on an helix
+    /// An interval of nucleotides on an helix.
     HelixDomain(HelixInterval),
     /// A set of nucleotides not on an helix.
     Insertion {
@@ -149,7 +149,7 @@ impl Domain {
         }
     }
 
-    /// Split self at position `n`, putting `n` on the 5' prime half of the split
+    /// Split self at position `n`, putting `n` on the 5' prime half of the split.
     pub fn split(&self, n: usize) -> Option<(Self, Self)> {
         match self {
             Self::Insertion { .. } => None,
@@ -356,7 +356,7 @@ struct InsertionAccumulator {
     sequence: String,
 }
 
-/// Return a list of domains that validate the condition SaneDomains
+/// Return a list of domains that validate the condition SaneDomains.
 ///
 /// SaneDomains: There must always be a Domain::HelixDomain between two Domain::Insertion. If the
 /// strand is cyclic, this include the first and the last domain.

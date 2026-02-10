@@ -16,10 +16,9 @@ const RESIZE_REGION_WIDTH: f64 = 0.001;
 /// Node of a [LayoutTree], representing a region of the window.
 ///
 /// Each variant contains four attributes (`left`, `top`, `right`, `bottom`) that represent the
-/// positions of the boundaries of the area, expressed as a fraction between 0.0 and 1.0
+/// positions of the boundaries of the area, expressed as a fraction between 0.0 and 1.0.
 ///
-/// To learn more about recursive data structures in Rust, see [here](https://rust-leipzig.github.io/architecture/2016/12/20/idiomatic-trees-in-rust/)
-///
+/// To learn more about recursive data structures in Rust, see [here](https://rust-leipzig.github.io/architecture/2016/12/20/idiomatic-trees-in-rust/).
 #[derive(Clone, Debug)]
 enum LayoutNode {
     /// A leaf of a [LayoutTree]. It represents an area that can be drawn on.
@@ -205,7 +204,7 @@ impl LayoutTree {
         self.attribute_element(parent_ident, new_leaf);
     }
 
-    /// Get the Element owning the pixel `(x, y)`
+    /// Get the Element owning the pixel `(x, y)`.
     pub(super) fn get_area_pixel(&self, x: f64, y: f64) -> PixelRegion {
         let identifier = self.root.borrow().get_area_pixel(x, y);
         if let PixelRegion::Area(identifier) = identifier {
@@ -215,7 +214,7 @@ impl LayoutTree {
         }
     }
 
-    /// Return the boundaries of the area attributed to an element
+    /// Return the boundaries of the area attributed to an element.
     pub(crate) fn get_area(&self, element: GuiComponentType) -> Option<(f64, f64, f64, f64)> {
         let area_id = *self.area_identifiers.get(&element)?;
         match *self.areas[area_id].borrow() {
@@ -284,7 +283,7 @@ impl LayoutNode {
     /// Return value:
     ///
     /// A pair `(t, b)` where `t` is a pointer to the top area and `b` is a pointer to the bottom
-    /// area
+    /// area.
     pub(crate) fn hsplit(
         &mut self,
         top_proportion: f64,
@@ -337,17 +336,17 @@ impl LayoutNode {
 
     /// Vertically split the current area in two.
     ///
-    /// Arguments
+    /// Arguments:
     ///
     /// * `left_proportion` — the proportion of the initial area attributed to the left area. It
     ///   must be between 0. and 1.
     /// * `left_ident` — identifier be given to the left area.
     /// * `right_ident` — identifier be given to the right area.
     ///
-    /// Return value
+    /// Return value:
     ///
     /// A pair `(l, r)` where `l` is a pointer to the left area and `r` is a pointer to the right
-    /// area
+    /// area.
     pub(crate) fn vsplit(
         &mut self,
         left_proportion: f64,
@@ -475,7 +474,7 @@ impl LayoutNode {
         merged_node
     }
 
-    /// Return the identifier of the leaf owning pixel `(x, y)`
+    /// Return the identifier of the leaf owning pixel `(x, y)`.
     pub(crate) fn get_area_pixel(&self, x: f64, y: f64) -> PixelRegion {
         match self {
             Self::Area { identifier, .. } => PixelRegion::Area(*identifier),
@@ -665,10 +664,10 @@ impl LayoutNode {
 /// Types of region in which a pixel may lie.
 #[derive(Debug)]
 pub(super) enum PixelRegion {
-    /// The pixel is on a region attributed to a certain element
+    /// The pixel is on a region attributed to a certain element.
     Element(GuiComponentType),
-    /// The pixel is on a region where clicking must resize a panel
+    /// The pixel is on a region where clicking must resize a panel.
     Resize(usize),
-    /// The pixel is on a given area
+    /// The pixel is on a given area.
     Area(usize),
 }

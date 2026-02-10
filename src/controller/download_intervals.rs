@@ -22,17 +22,17 @@ pub(super) struct DownloadIntervals {
 
 #[derive(Default)]
 enum Step {
-    /// The staple downloading request has just started
+    /// The staple downloading request has just started.
     #[default]
     Init,
-    /// Asking the user where to write the result
+    /// Asking the user where to write the result.
     AskingPath(AskingPath_),
-    /// The path was asked, waiting for user to chose it
+    /// The path was asked, waiting for user to chose it.
     PathAsked {
         path_input: PathInput,
         design_id: usize,
     },
-    /// Downloading
+    /// Downloading.
     Downloading { path: PathBuf },
 }
 

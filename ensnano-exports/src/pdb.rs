@@ -1,5 +1,5 @@
 //! Export to pdb file format. The method used here is an adaptation from the one used in
-//! [tacOxDNA](https://github.com/lorenzo-rovigatti/tacoxDNA)
+//! [tacOxDNA](https://github.com/lorenzo-rovigatti/tacoxDNA).
 
 use crate::{
     BasisMapper,

@@ -8,7 +8,7 @@
 //!     [f32; 3] – Vertex 1               - 12 bytes
 //!     [f32; 3] – Vertex 2               - 12 bytes
 //!     [f32; 3] – Vertex 3               - 12 bytes
-//!     u16      – Attribute byte count   -  2 bytes
+//!     u16      – Attribute byte count   -  2 bytes.
 
 use crate::view::{
     Mesh,

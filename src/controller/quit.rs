@@ -23,7 +23,7 @@ enum QuitStep {
     Init {
         /// None if there is no need to save
         /// Some(Some(path)) if there is a need to save at a known path
-        /// Some(None) if there is a need to save at an unknown path
+        /// Some(None) if there is a need to save at an unknown path.
         need_save: Option<Option<PathBuf>>,
     },
     Quitting,

@@ -1,7 +1,7 @@
 use rayon::iter::{IntoParallelRefIterator as _, ParallelIterator as _};
 
 /// A linear combinations of Chebyshev's polynomials of first kind, defined on an closed interval
-/// of ℝ
+/// of ℝ.
 #[derive(Debug, Clone)]
 pub struct ChebyshevPolynomial {
     /// The coefficients of the linear combination.
@@ -59,7 +59,7 @@ const DEGREE_MAX: usize = 100;
 /// Interpolate a black box function on interval [a, b].
 ///
 /// Return a Chebyshev's Polynomial P so that for p in points_for_error_eval,
-/// |P(p) - f(p)| < error_max
+/// |P(p) - f(p)| < error_max.
 fn interpolate_fun<F>(
     f: Box<F>,
     a: f64,
@@ -80,7 +80,7 @@ where
 ///
 /// If points is empty, return a null polynomial,
 /// If points has length 1, return a constant polynomial equal to the value of the function at this
-/// point
+/// point.
 pub fn interpolate_points(point_values: Vec<(f64, f64)>, error_max: f64) -> ChebyshevPolynomial {
     if point_values.is_empty() {
         ChebyshevPolynomial {
@@ -274,7 +274,7 @@ mod tests {
     }
 
     #[test]
-    /// Check that the equation `T_n(cos theta) = cos(n theta)` is verified
+    /// Check that the equation `T_n(cos theta) = cos(n theta)` is verified.
     fn trigonometric_property() {
         for n in 0..10 {
             let polynomial = get_tn(n);

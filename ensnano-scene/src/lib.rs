@@ -65,17 +65,17 @@ use winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon};
 
 const PNG_SIZE: u32 = 8192;
 
-/// A structure responsible of the 3D display of the designs
+/// A structure responsible of the 3D display of the designs.
 pub struct Scene {
-    /// The update to be performed before next frame
+    /// The update to be performed before next frame.
     update: SceneUpdate,
-    /// The Object that handles the drawing to the 3d texture
+    /// The Object that handles the drawing to the 3d texture.
     view: ViewPtr,
-    /// The Object that handles the designs data
+    /// The Object that handles the designs data.
     data: Rc<RefCell<Data>>,
-    /// The Object that handles input and notifications
+    /// The Object that handles input and notifications.
     controller: SceneController,
-    /// The limits of the area on which the scene is displayed
+    /// The limits of the area on which the scene is displayed.
     area: DrawArea,
     element_selector: ElementSelector,
     older_state: AppState,
@@ -94,13 +94,13 @@ impl Scene {
     /// Create a new scene.
     /// # Argument
     ///
-    /// * `device` a reference to a `Device` object. This can be seen as a socket to the GPU
+    /// * `device` a reference to a `Device` object. This can be seen as a socket to the GPU.
     ///
     /// * `queue` the command queue of `device`.
     ///
-    /// * `window_size` the *Physical* size of the window in which the application is displayed
+    /// * `window_size` the *Physical* size of the window in which the application is displayed.
     ///
-    /// * `area` the limits, in *physical* size of the area on which the scene is displayed
+    /// * `area` the limits, in *physical* size of the area on which the scene is displayed.
     pub fn new(
         device: Rc<Device>,
         queue: Rc<Queue>,
@@ -148,7 +148,7 @@ impl Scene {
         }
     }
 
-    /// Remove all designs
+    /// Remove all designs.
     fn clear_design(&self) {
         self.data.borrow_mut().clear_designs();
     }
@@ -816,7 +816,7 @@ impl Scene {
         }
     }
 
-    /// Draw the scene
+    /// Draw the scene.
     fn draw_view(
         &self,
         encoder: &mut wgpu::CommandEncoder,
@@ -1096,7 +1096,7 @@ impl Scene {
         println!("Export failed!");
     }
 
-    /// Send a notification to the scene
+    /// Send a notification to the scene.
     pub fn notify(&mut self, notification: SceneNotification) {
         match notification {
             SceneNotification::NewCameraPosition(position) => {
@@ -1127,19 +1127,19 @@ impl Scene {
     }
 }
 
-/// A structure that stores the element that needs to be updated in a scene
+/// A structure that stores the element that needs to be updated in a scene.
 #[derive(Default)]
 pub struct SceneUpdate {
     pub need_update: bool,
     pub camera_update: bool,
 }
 
-/// A notification to be given to the scene
+/// A notification to be given to the scene.
 pub enum SceneNotification {
     /// The camera has moved. As a consequence, the projection and view matrix must be
     /// updated.
     CameraMoved,
-    /// The drawing area has been modified
+    /// The drawing area has been modified.
     NewSize(PhySize, DrawArea),
     NewCameraPosition(Vec3),
 }

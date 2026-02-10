@@ -31,7 +31,7 @@ fn random_force(max_magnitude: f32, rng: &mut impl Rng) -> Vector<f32> {
     magnitude * dir
 }
 
-/// Applies a random force to each nucleotide
+/// Applies a random force to each nucleotide.
 fn brownian_motion_step(
     system: &mut RapierPhysicsSystem,
     parameters: &RapierParameters,

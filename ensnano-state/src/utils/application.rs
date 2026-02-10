@@ -27,18 +27,18 @@ impl Default for Camera3D {
 }
 
 pub trait Application {
-    /// For notification about the data
+    /// For notification about the data.
     fn on_notify(&mut self, notification: Notification);
-    /// The method must be called when the window is resized or when the drawing area is modified
+    /// The method must be called when the window is resized or when the drawing area is modified.
     fn on_resize(&mut self, window_size: PhysicalSize<u32>, area: DrawArea);
-    /// The methods is used to forwards the window events to applications
+    /// The methods is used to forwards the window events to applications.
     fn on_event(
         &mut self,
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
         main_state: &mut MainState,
     ) -> Option<CursorIcon>;
-    /// The method is used to forwards redraw_requests to applications
+    /// The method is used to forwards redraw_requests to applications.
     fn on_redraw_request(&mut self, encoder: &mut wgpu::CommandEncoder, target: &wgpu::TextureView);
     // !!! this should only have to use a &AppState instead of &mut MainState,
     // but some current implementations of the trait require it through timers?
@@ -58,14 +58,14 @@ pub trait Application {
 }
 
 #[derive(Clone, Debug)]
-/// A notification that must be send to the application
+/// A notification that must be send to the application.
 pub enum Notification {
-    /// The application must show/hide the sequences
+    /// The application must show/hide the sequences.
     ToggleText(bool),
     FitRequest,
-    /// The designs have been deleted
+    /// The designs have been deleted.
     ClearDesigns,
-    /// The 3d camera must face a given target
+    /// The 3d camera must face a given target.
     CameraTarget((Vec3, Vec3)),
     TeleportCamera(Camera3D),
     CameraRotation(f32, f32, f32),

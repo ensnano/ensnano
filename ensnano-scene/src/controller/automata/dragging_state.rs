@@ -29,10 +29,10 @@ use winit::{
 };
 
 pub(super) struct DraggedCursor<'a, 'b> {
-    /// The cursor position when the mouse button was pressed
+    /// The cursor position when the mouse button was pressed.
     clicked_position: PhysicalPosition<f64>,
     /// The *normalized* difference between the current cursor position and the position of the
-    /// cursor when the mouse button was pressed
+    /// cursor when the mouse button was pressed.
     delta_position: PhysicalPosition<f64>,
     /// The current cursor position normalized by the size of the scene's area.
     normalized_position: PhysicalPosition<f64>,
@@ -76,15 +76,15 @@ impl ClickInfo {
     }
 }
 
-/// A object mapping cursor movement to their consequences
+/// A object mapping cursor movement to their consequences.
 pub(super) trait DraggingTransitionTable {
-    /// The consequences of moving the cursor
+    /// The consequences of moving the cursor.
     fn on_cursor_moved(&mut self, cursor: DraggedCursor<'_, '_>) -> Option<Consequence>;
     fn on_button_released(&self) -> Option<Consequence>;
-    /// A description of the state that the controller automata is in
+    /// A description of the state that the controller automata is in.
     fn description() -> &'static str;
     /// If not None, the cursor icon that should be used when the controller's automata is in this
-    /// state
+    /// state.
     fn cursor() -> Option<CursorIcon> {
         None
     }
@@ -98,9 +98,9 @@ pub(super) trait DraggingTransitionTable {
 /// A state in which the user is holding a mouse button while moving the cursor.
 pub(super) struct DraggingState<Table: DraggingTransitionTable> {
     current_cursor_position: PhysicalPosition<f64>,
-    /// The position of the cursor when the mouse button was pressed
+    /// The position of the cursor when the mouse button was pressed.
     clicked_position: PhysicalPosition<f64>,
-    /// The button that was pressed to enter this state
+    /// The button that was pressed to enter this state.
     clicked_button: MouseButton,
     /// A object mapping cursor movement to transitions in the controller's automata.
     transition_table: Table,
@@ -211,7 +211,7 @@ impl<Table: DraggingTransitionTable> ControllerState for DraggingState<Table> {
 
 /// The user is moving the camera.
 ///
-/// Cursor movements translate the camera
+/// Cursor movements translate the camera.
 pub(super) struct TranslatingCamera {
     from_nucl: Option<Nucl>,
 }
@@ -261,9 +261,9 @@ pub(super) fn translating_camera(
     }
 }
 
-/// The user is rotating the camera
+/// The user is rotating the camera.
 ///
-/// Cursor movements rotate the camera
+/// Cursor movements rotate the camera.
 pub(super) struct RotatingCamera;
 
 impl DraggingTransitionTable for RotatingCamera {
@@ -300,9 +300,9 @@ impl DraggingTransitionTable for RotatingCamera {
 
 dragging_state_constructor! {rotating_camera, RotatingCamera}
 
-/// The user is tilting the camera
+/// The user is tilting the camera.
 ///
-/// Cursor movements tilt the camera
+/// Cursor movements tilt the camera.
 pub(super) struct TiltingCamera;
 
 impl DraggingTransitionTable for TiltingCamera {
@@ -336,17 +336,17 @@ impl DraggingTransitionTable for TiltingCamera {
 
 dragging_state_constructor! {tilting_camera, TiltingCamera}
 
-/// The user is making a cross-over
+/// The user is making a cross-over.
 ///
-/// Cursor movement set the xover target
+/// Cursor movement set the xover target.
 pub(super) struct MakingXover {
-    /// The origin of the cross-over being made
+    /// The origin of the cross-over being made.
     origin: XoverOrigin,
-    /// The element that is currently under the cursor
+    /// The element that is currently under the cursor.
     target_element: Option<SceneElement>,
-    /// The xover that will be attempted when releasing the button
+    /// The xover that will be attempted when releasing the button.
     current_xover: Option<(Nucl, Nucl, usize)>,
-    /// Whether the attempted xover should be automatically optimized
+    /// Whether the attempted xover should be automatically optimized.
     magic_xover: bool,
 }
 
@@ -412,7 +412,7 @@ pub(super) fn making_xover(
     }
 }
 
-/// The user is moving strand builders
+/// The user is moving strand builders.
 pub(super) struct BuildingStrands {
     to_initialize: Option<Vec<Nucl>>,
 }

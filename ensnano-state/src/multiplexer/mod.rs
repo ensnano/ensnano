@@ -175,7 +175,7 @@ impl Multiplexer {
         ret
     }
 
-    /// Return a view of the texture on which the element must be rendered
+    /// Return a view of the texture on which the element must be rendered.
     pub fn get_texture_view(&self, element_type: GuiComponentType) -> Option<&wgpu::TextureView> {
         match element_type {
             GuiComponentType::StereographicScene => self
@@ -707,7 +707,7 @@ impl Multiplexer {
         }
     }
 
-    /// Maps *physical* pixels to an element
+    /// Maps *physical* pixels to an element.
     fn pixel_to_element(&self, pixel: PhysicalPosition<f64>) -> PixelRegion {
         let pixel_u32 = pixel.cast::<u32>();
         for (n, overlay) in self.overlays.iter().enumerate() {
@@ -726,12 +726,12 @@ impl Multiplexer {
         self.get_draw_area(element)
     }
 
-    /// Return the *physical* position of the cursor, in the focused element coordinates
+    /// Return the *physical* position of the cursor, in the focused element coordinates.
     pub fn get_cursor_position(&self) -> PhysicalPosition<f64> {
         self.cursor_position
     }
 
-    /// Return the focused element
+    /// Return the focused element.
     pub fn focused_element(&self) -> Option<GuiComponentType> {
         self.focus
     }
@@ -815,7 +815,7 @@ fn create_pipeline(device: &Device, bg_layout: &wgpu::BindGroupLayout) -> wgpu::
     device.create_render_pipeline(&desc)
 }
 
-/// Multiplexer state
+/// Multiplexer state.
 enum State {
     Resizing {
         mouse_position: PhysicalPosition<f64>,

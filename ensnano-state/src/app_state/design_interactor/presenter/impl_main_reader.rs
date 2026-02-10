@@ -14,9 +14,9 @@ use std::{
 };
 
 pub enum DownloadStapleError {
-    /// No strand is set as the scaffold
+    /// No strand is set as the scaffold.
     NoScaffoldSet,
-    /// There is no sequence set for the scaffold
+    /// There is no sequence set for the scaffold.
     ScaffoldSequenceNotSet,
 }
 

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-/// Parameters of strand suggestions
+/// Parameters of strand suggestions.
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct SuggestionParameters {
     pub include_scaffold: bool,

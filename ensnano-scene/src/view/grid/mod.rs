@@ -206,10 +206,10 @@ pub struct GridInstanceRaw {
     pub design_id: u32,       // padding 0,
 }
 
-/// A structure that manages the pipeline that draw the grids
+/// A structure that manages the pipeline that draw the grids.
 pub struct GridManager {
     /// A possible updates to the instances to be drawn. Must be taken into account before drawing
-    /// next frame
+    /// next frame.
     new_instances: Option<BTreeMap<GridId, GridInstance>>,
     instances: BTreeMap<GridId, GridInstance>,
     selected: Vec<(usize, GridId)>,
@@ -235,7 +235,7 @@ impl GridManager {
         }
     }
 
-    /// Request an update of the set of instances to draw. This update take effects on the next frame
+    /// Request an update of the set of instances to draw. This update take effects on the next frame.
     pub fn new_instances(&mut self, instances: BTreeMap<GridId, GridInstance>) {
         self.new_instances = Some(instances);
     }
@@ -255,7 +255,7 @@ impl GridManager {
         }
     }
 
-    /// Draw the instances of the mesh on the render pass
+    /// Draw the instances of the mesh on the render pass.
     pub fn draw<'a>(
         &'a mut self,
         render_pass: &mut RenderPass<'a>,

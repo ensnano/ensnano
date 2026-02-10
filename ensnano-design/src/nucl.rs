@@ -114,7 +114,7 @@ impl std::fmt::Display for Nucl {
 /// The virtual position of a nucleotide.
 ///
 /// Two nucleotides on different helices with the same support helix will be mapped
-/// to the same `VirtualNucl` if they are at the same position on that support helix
+/// to the same `VirtualNucl` if they are at the same position on that support helix.
 #[derive(Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Hash, Debug, PartialOrd, Ord)]
 pub struct VirtualNucl(pub(crate) Nucl);
 

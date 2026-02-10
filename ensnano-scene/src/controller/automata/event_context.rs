@@ -80,7 +80,7 @@ impl<'a> EventContext<'a> {
 
     /// If element is a grid, get the grid disc corresponding to the grid position under the
     /// current cursor.
-    /// Otherwise, return element
+    /// Otherwise, return element.
     pub(crate) fn convert_grid_to_grid_disc(
         &self,
         element: Option<SceneElement>,
@@ -134,7 +134,7 @@ impl<'a> EventContext<'a> {
         self.controller.data.borrow().can_start_builder(element)
     }
 
-    /// Project the current cursor position on an axis
+    /// Project the current cursor position on an axis.
     pub(crate) fn get_projection_on_axis(&self, axis: Axis) -> Option<isize> {
         let normalized_cursor_position = self.normalized_cursor_position();
         self.controller.view.borrow().compute_projection_axis(
@@ -172,7 +172,7 @@ impl<'a> EventContext<'a> {
         self.controller.data.borrow().attempt_xover(source, target)
     }
 
-    /// Return a reference to the current ModifiersState
+    /// Return a reference to the current ModifiersState.
     pub(crate) fn get_modifiers(&self) -> &ModifiersState {
         &self.controller.current_modifiers_state
     }
@@ -231,7 +231,7 @@ impl<'a> EventContext<'a> {
     }
 
     /// If there is a bezier plane under the cursor, return it's identifier and the coordinates of
-    /// the projection of the cursor on the plane
+    /// the projection of the cursor on the plane.
     pub(crate) fn get_plane_under_cursor(
         &self,
     ) -> Option<(BezierPlaneId, BezierPlaneIntersection)> {
@@ -284,7 +284,7 @@ impl<'a> EventContext<'a> {
         self.controller.data.borrow().get_grid_object(position)
     }
 
-    /// Return the SceneElement on which to place the camera rotation pivot
+    /// Return the SceneElement on which to place the camera rotation pivot.
     pub(crate) fn get_pivot_element(&mut self) -> Option<SceneElement> {
         match self.pixel_reader.set_selected_id(self.cursor_position) {
             Some(SceneElement::Grid(d_id, g_id)) => {

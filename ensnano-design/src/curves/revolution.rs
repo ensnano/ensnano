@@ -15,9 +15,9 @@ use ultraviolet::{DRotor2, DVec2, DVec3, Isometry2, Mat3, Rotor2, Vec2};
 pub struct InterpolatedCurveDescriptor {
     pub curve: CurveDescriptor2D,
     pub half_turns_count: isize,
-    /// Radius of the revolution trajectory
+    /// Radius of the revolution trajectory.
     pub revolution_radius: f64,
-    /// Scale factor of the section
+    /// Scale factor of the section.
     pub curve_scale_factor: f64,
     pub interpolation: Vec<InterpolationDescriptor>,
     #[serde(alias = "chevyshev_smoothening")] // cspell: disable-line
@@ -37,7 +37,7 @@ pub struct InterpolatedCurveDescriptor {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub full_turn_at_nt: Option<isize>,
 
-    /// Choose the iterative frame algorithm used to discretize
+    /// Choose the iterative frame algorithm used to discretize.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub use_original_iterative_frame_algorithm: Option<bool>,
 }
@@ -244,10 +244,10 @@ pub(super) struct Revolution {
     half_turns_count: isize,
     /// The element at index i of this vector is a polynomial interpolating the function that maps
     /// a point x in [curvilinear_abscissa(i), curvilinear_abscissa(i+1)] to a time t so that
-    /// curvilinear_abscissa(t) = x
+    /// curvilinear_abscissa(t) = x.
     inverse_curvilinear_abscissa: Vec<ChebyshevPolynomial>,
     /// The element at index i of this vector is a polynomial interpolating the curvilinear
-    /// abscissa between 0 and t for t in [i, i+1]
+    /// abscissa between 0 and t for t in [i, i+1].
     curvilinear_abscissa: Vec<ChebyshevPolynomial>,
     init_revolution_angle: f64,
     nb_turn: f64,
@@ -261,7 +261,7 @@ pub(super) struct Revolution {
 const NB_POINT_INTERPOLATION: usize = 100_000;
 const INTERPOLATION_ERROR: f64 = 1e-4;
 impl Revolution {
-    /// Computes the polynomials that interpolate the curvilinear function and its inverse
+    /// Computes the polynomials that interpolate the curvilinear function and its inverse.
     fn init_interpolators(&mut self) {
         let mut abscissa = 0.;
 

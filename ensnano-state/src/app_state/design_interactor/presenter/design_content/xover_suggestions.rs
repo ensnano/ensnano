@@ -42,7 +42,7 @@ impl XoverSuggestions {
         }
     }
 
-    /// Return the list of all suggested crossovers
+    /// Return the list of all suggested crossovers.
     pub(super) fn get_suggestions(
         &self,
         design: &Design,
@@ -58,7 +58,7 @@ impl XoverSuggestions {
         self.trim_suggestion(&ret, design, suggestion_parameters)
     }
 
-    /// Return the list of all suggested crossovers
+    /// Return the list of all suggested crossovers.
     fn get_suggestions_groups(
         &self,
         ret: &mut Vec<(Nucl, Nucl, f32)>,

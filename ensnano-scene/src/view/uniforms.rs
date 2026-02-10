@@ -36,18 +36,18 @@ pub struct Stereography {
 }
 
 impl Stereography {
-    /// The view matrix of the camera
+    /// The view matrix of the camera.
     pub fn calc_matrix(&self) -> Option<Mat4> {
         let at = self.position? + self.direction()?;
         Some(Mat4::look_at(self.position?, at, self.up_vec()?))
     }
 
-    /// The direction of the camera, expressed in the world coordinates
+    /// The direction of the camera, expressed in the world coordinates.
     fn direction(&self) -> Option<Vec3> {
         Some(self.orientation?.reversed() * Vec3::from([0., 0., -1.]))
     }
 
-    /// The right vector of the camera, expressed in the world coordinates
+    /// The right vector of the camera, expressed in the world coordinates.
     fn right_vec(&self) -> Option<Vec3> {
         Some(self.orientation?.reversed() * Vec3::from([1., 0., 0.]))
     }

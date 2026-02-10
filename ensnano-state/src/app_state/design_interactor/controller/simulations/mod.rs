@@ -573,7 +573,7 @@ impl RigidHelix {
     }
 }
 
-/// Return the length of the shortest line between a point of [a, b] and a point of [c, d]
+/// Return the length of the shortest line between a point of [a, b] and a point of [c, d].
 // TODO: fix lints (this function scares me)
 #[expect(clippy::branches_sharing_code, clippy::many_single_char_names)]
 fn distance_segment(a: Vec3, b: Vec3, c: Vec3, d: Vec3) -> (f32, Vec3, Vec3, Vec3) {
@@ -741,7 +741,7 @@ fn center_of_mass_helices(helices: &[RigidHelix]) -> Vec3 {
     ret / total_mass
 }
 
-/// The Inertia matrix of a point with respect to the origin
+/// The Inertia matrix of a point with respect to the origin.
 fn inertia_point(point: Vec3) -> Mat3 {
     Mat3::new(
         Vec3::new(
@@ -906,7 +906,7 @@ impl GridsSystemThread {
         Ok(ret)
     }
 
-    /// Spawn a thread to run the physical simulation
+    /// Spawn a thread to run the physical simulation.
     fn run(mut self) {
         std::thread::spawn(move || {
             while let Some(interface_ptr) = self.interface.upgrade() {
@@ -1251,7 +1251,7 @@ pub enum SimulationOperation<'pres> {
 }
 
 pub trait SimulationInterface: Send {
-    /// Return the state of the design as determined by the current advancement of the simulation
+    /// Return the state of the design as determined by the current advancement of the simulation.
     fn get_simulation_state(&mut self) -> Option<Box<dyn SimulationUpdate>>;
     /// return true if the simulation should still be running. By overriding this methods, some
     /// simulations can implement automatic termination conditions.
@@ -1322,11 +1322,11 @@ struct GridsSystem {
 
 #[derive(Debug)]
 pub struct RigidGrid {
-    /// Center of mass of of the grid in world coordinates
+    /// Center of mass of of the grid in world coordinates.
     center_of_mass: Vec3,
-    /// Center of mass of the grid in the grid coordinates
+    /// Center of mass of the grid in the grid coordinates.
     center_of_mass_from_grid: Vec3,
-    /// Orientation of the grid in the world coordinates
+    /// Orientation of the grid in the world coordinates.
     orientation: Rotor3,
     inertia_inverse: Mat3,
     mass: f32,

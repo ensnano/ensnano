@@ -449,13 +449,13 @@ mod color_square {
     };
     use iced_wgpu::primitive::Custom;
 
-    /// The State of a [ColorSquare]
+    /// The State of a [ColorSquare].
     #[derive(Default, Clone, Eq, PartialEq)]
     pub(super) struct ColorSquareState {
         clicked: bool,
     }
 
-    /// A ColorSquare Widget
+    /// A ColorSquare Widget.
     pub struct ColorSquare {
         color: iced::Color,
         on_click: Box<dyn Fn(iced::Color) -> ColorMessage>,

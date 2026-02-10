@@ -12,7 +12,7 @@ use ultraviolet::{DMat3, DVec3};
 const NB_DISCRETIZATION_STEP: usize = 100;
 
 impl Curve {
-    ///Older version of the discretization algorithm
+    ///Older version of the discretization algorithm.
     pub(super) fn discretize_legacy(&mut self, nucl_rise: f64, inclination: f64) {
         let nb_step = NB_DISCRETIZATION_STEP;
 
