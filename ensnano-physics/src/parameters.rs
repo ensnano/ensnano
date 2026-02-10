@@ -5,6 +5,8 @@
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct RapierParameters {
     pub is_simulation_running: bool,
+    pub cap_ups: bool,
+    pub target_ups: u32,
     pub ignore_local_parameters: bool,
     pub linear_damping: f32,
     pub angular_damping: f32,
@@ -31,6 +33,8 @@ pub const RAPIER_FLOAT_PARAMETERS_COUNT: usize = 18;
 impl RapierParameters {
     const DEFAULT: Self = Self {
         is_simulation_running: false,
+        cap_ups: false,
+        target_ups: 24,
         ignore_local_parameters: true,
         linear_damping: 0.06,
         angular_damping: 0.6,

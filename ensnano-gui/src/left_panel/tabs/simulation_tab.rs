@@ -18,7 +18,7 @@ use ensnano_utils::{
 };
 use iced::{
     Alignment,
-    widget::{Column, Space, column, row, scrollable, text, text_input},
+    widget::{Column, Space, checkbox, column, row, scrollable, text, text_input},
 };
 use iced_aw::TabLabel;
 use std::{
@@ -300,6 +300,10 @@ fn apply_parameter_fields(
     let mut result = *parameters;
     result.set_parameters_array(&array);
 
+    if let Some(value) = fields.get("Target UPS:") {
+        result.target_ups = value.parse::<u32>().unwrap_or(parameters.target_ups);
+    }
+
     result
 }
 
@@ -343,13 +347,56 @@ fn rapier_parameters_field_editor(
     .into()
 }
 
+fn view_ups(
+    parameters: RapierParameters,
+    fields: &HashMap<String, String>,
+    ui_size: UiSize,
+) -> iced::Element<'static, LeftPanelMessage> {
+    let description = "Target UPS:";
+    let default_field_value = parameters.target_ups.to_string();
+    let current_value = fields.get(description).unwrap_or(&default_field_value);
+
+    row![
+        text(description),
+        Space::with_width(ui_size.checkbox_spacing()),
+        checkbox("", parameters.cap_ups).on_toggle(move |value| {
+            LeftPanelMessage::UpdateRapierParameters(RapierParameters {
+                cap_ups: value,
+                ..parameters
+            })
+        }),
+        Space::with_width(ui_size.checkbox_spacing()),
+        keyboard_priority(
+            "Rapier parameters ".to_owned() + description,
+            LeftPanelMessage::SetKeyboardPriority,
+            if parameters.cap_ups {
+                text_input(current_value, current_value)
+                    .on_input(move |str| {
+                        LeftPanelMessage::UpdateRapierParameterField(description.to_owned(), str)
+                    })
+                    .on_submit(LeftPanelMessage::UpdateRapierParameters(
+                        apply_parameter_fields(fields, &parameters),
+                    ))
+                    // }
+                    .width(70)
+            } else {
+                text_input(current_value, current_value).width(70)
+            }
+        )
+    ]
+    .align_items(Alignment::Center)
+    .into()
+}
+
 fn view_rapier_parameters(
     parameters: RapierParameters,
     fields: &HashMap<String, String>,
     ui_size: UiSize,
 ) -> iced::Element<'static, LeftPanelMessage> {
     let mut elements: Vec<iced::Element<'static, LeftPanelMessage>> =
-        vec![subsection("Rapier parameters", ui_size).into()];
+        vec![subsection("Relaxation parameters", ui_size).into()];
+
+    elements.push(view_ups(parameters, fields, ui_size));
 
     let values = parameters.parameters_array();
 
