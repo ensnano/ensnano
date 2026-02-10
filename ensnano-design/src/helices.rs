@@ -842,27 +842,6 @@ pub enum OwnedAxis {
     },
 }
 
-impl Axis<'_> {
-    pub fn to_owned(self) -> OwnedAxis {
-        match self {
-            Self::Line { origin, direction } => OwnedAxis::Line { origin, direction },
-            Self::Curve {
-                shift,
-                points,
-                nucl_t0,
-                orientation,
-                position,
-            } => OwnedAxis::Curve {
-                shift,
-                points: points.to_vec(),
-                nucl_t0,
-                orientation,
-                position,
-            },
-        }
-    }
-}
-
 impl OwnedAxis {
     pub fn borrow(&self) -> Axis<'_> {
         match self {
@@ -888,6 +867,25 @@ impl OwnedAxis {
 }
 
 impl Axis<'_> {
+    pub fn to_owned(self) -> OwnedAxis {
+        match self {
+            Self::Line { origin, direction } => OwnedAxis::Line { origin, direction },
+            Self::Curve {
+                shift,
+                points,
+                nucl_t0,
+                orientation,
+                position,
+            } => OwnedAxis::Curve {
+                shift,
+                points: points.to_vec(),
+                nucl_t0,
+                orientation,
+                position,
+            },
+        }
+    }
+
     #[must_use]
     pub fn transformed(&self, model_matrix: &Mat4) -> Self {
         match self {

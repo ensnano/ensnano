@@ -169,7 +169,7 @@ impl IntermediaryHelix {
         self.single_ranges
             .extend(self.compute_ranges_only(IntermediaryPair::is_only_backward));
 
-        self.single_ranges.sort_by(|r, s| r.start.cmp(&s.start));
+        self.single_ranges.sort_by_key(|r| r.start);
     }
 
     fn compute_ranges_only<F: Fn(&IntermediaryPair) -> bool>(

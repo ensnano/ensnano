@@ -58,9 +58,7 @@ impl<T: Default + Clone> AddressPointer<T> {
     pub fn make_mut(&mut self) -> &mut T {
         Arc::make_mut(&mut self.0)
     }
-}
 
-impl<T: Clone + Default> AddressPointer<T> {
     /// Return a clone of the pointed value.
     pub fn clone_inner(&self) -> T {
         self.0.deref().clone()
