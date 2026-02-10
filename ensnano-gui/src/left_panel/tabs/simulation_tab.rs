@@ -18,7 +18,7 @@ use ensnano_utils::{
 };
 use iced::{
     Alignment,
-    widget::{Column, Space, checkbox, column, row, scrollable, text, text_input},
+    widget::{Column, Space, checkbox, column, row, scrollable, slider, text, text_input},
 };
 use iced_aw::TabLabel;
 use std::{
@@ -138,6 +138,24 @@ impl SimulationTab {
             let helices_active = sim_state.is_none() || sim_state.simulating_helices();
             go_stop.view(helices_active, sim_state.simulating_helices())
         }
+    }
+
+    /// Updates the fields using the parameters.
+    ///
+    /// Used when modifications to the parameters are made by
+    /// actors that are not the fields, like other parts of the GUI.
+    pub fn update_parameters_fields(&mut self) {
+        let array = self.rapier_parameters.parameters_array();
+
+        for k in 0..PARAMETER_FIELD_NAMES.len() {
+            self.rapier_parameter_fields
+                .insert(PARAMETER_FIELD_NAMES[k].to_owned(), array[k].to_string());
+        }
+
+        self.rapier_parameter_fields.insert(
+            "Target UPS:".to_owned(),
+            self.rapier_parameters.target_ups.to_string(),
+        );
     }
 }
 
@@ -282,6 +300,7 @@ const PARAMETER_FIELD_LIVE_EDITABILITY: [bool; RAPIER_FLOAT_PARAMETERS_COUNT] = 
     true, true, true, true,
 ];
 
+/// Updates the parameters using the fields
 fn apply_parameter_fields(
     fields: &HashMap<String, String>,
     parameters: &RapierParameters,
@@ -366,22 +385,30 @@ fn view_ups(
             })
         }),
         Space::with_width(ui_size.checkbox_spacing()),
+        slider(1..=300, parameters.target_ups.clamp(1, 300), move |value| {
+            LeftPanelMessage::UpdateRapierParameters(RapierParameters {
+                target_ups: value,
+                ..parameters
+            })
+        })
+        .width(70),
+        Space::with_width(ui_size.checkbox_spacing()),
         keyboard_priority(
             "Rapier parameters ".to_owned() + description,
             LeftPanelMessage::SetKeyboardPriority,
-            if parameters.cap_ups {
-                text_input(current_value, current_value)
-                    .on_input(move |str| {
-                        LeftPanelMessage::UpdateRapierParameterField(description.to_owned(), str)
-                    })
-                    .on_submit(LeftPanelMessage::UpdateRapierParameters(
-                        apply_parameter_fields(fields, &parameters),
-                    ))
-                    // }
-                    .width(70)
-            } else {
-                text_input(current_value, current_value).width(70)
-            }
+            text_input(current_value, current_value)
+                .on_input(move |str| {
+                    LeftPanelMessage::UpdateRapierParameterField(description.to_owned(), str)
+                })
+                .on_submit(LeftPanelMessage::UpdateRapierParameters(RapierParameters {
+                    target_ups: current_value
+                        .parse::<u32>()
+                        .unwrap_or(parameters.target_ups)
+                        // prevents division by 0 related crash
+                        .max(1),
+                    ..parameters
+                }))
+                .width(70)
         )
     ]
     .align_items(Alignment::Center)
