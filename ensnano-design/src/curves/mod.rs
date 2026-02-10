@@ -15,9 +15,11 @@ pub mod tube_spiral;
 pub mod twist;
 
 #[cfg(feature = "ensnano_upcoming")]
-use self::sphere_concentric_circle::{
-    PillTennisBallSeamDescriptor, SphereTennisBallSeamDescriptor,
-};
+use self::sphere_concentric_circle::PillTennisBallSeamDescriptor;
+
+#[cfg(feature = "ensnano_upcoming")]
+use ensnano_upcoming::SphereTennisBallSeamDescriptor;
+
 use self::{
     bezier::{
         BezierEnd, CubicBezierConstructor, InstantiatedPiecewiseBezier,
