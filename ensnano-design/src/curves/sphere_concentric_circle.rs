@@ -165,11 +165,7 @@ pub struct SphereTennisBallSeamDescriptor {
 }
 
 impl SphereTennisBallSeamDescriptor {
-    pub(super) fn with_helix_parameters(
-        self,
-        helix_parameters: HelixParameters,
-    ) -> SphereTennisBallSeam {
-        let theta_0 = self.theta_0_deg * PI / 180.;
+    pub(super) fn to_tennis_ball_seam(self) -> SphereTennisBallSeam {
         let phi = self.phi_deg * PI / 180.;
         let z_radius = self.radius * phi.cos();
         let z = self.radius * phi.sin();
@@ -178,13 +174,10 @@ impl SphereTennisBallSeamDescriptor {
         let t3 = t2 + PI * z_radius;
         let perimeter = t3 + PI * z;
         SphereTennisBallSeam {
-            _parameters: helix_parameters,
-            _theta_0: theta_0,
             t1,
             t2,
             t3,
             perimeter,
-            _phi: phi,
             z_radius,
             z,
             target_nb_nt: self.target_nb_nt,
@@ -193,11 +186,8 @@ impl SphereTennisBallSeamDescriptor {
 }
 
 pub(super) struct SphereTennisBallSeam {
-    pub _parameters: HelixParameters,
-    pub _theta_0: f64,
     pub z_radius: f64,
     pub z: f64,
-    pub _phi: f64,
     pub t1: f64,
     pub t2: f64,
     pub t3: f64,
@@ -209,9 +199,6 @@ impl SphereTennisBallSeam {
     pub(super) fn t_max(&self) -> f64 {
         self.perimeter
     }
-}
-
-impl Curved for SphereTennisBallSeam {
     fn position(&self, t: f64) -> DVec3 {
         let t = t.rem_euclid(self.perimeter);
         if t < self.t1 {
@@ -312,6 +299,20 @@ impl Curved for SphereTennisBallSeam {
             y: self.z * t.sin(),
             z: self.z * t.cos(),
         }
+    }
+}
+
+impl Curved for SphereTennisBallSeam {
+    fn position(&self, t: f64) -> DVec3 {
+        self.position(t)
+    }
+
+    fn speed(&self, t: f64) -> DVec3 {
+        self.speed(t)
+    }
+
+    fn acceleration(&self, t: f64) -> DVec3 {
+        self.acceleration(t)
     }
 
     fn curvilinear_abscissa(&self, t: f64) -> Option<f64> {

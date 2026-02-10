@@ -11,6 +11,7 @@ workspace = true
 
 [dependencies]
 ahash.workspace = true
+ensnano_upcoming.workspace = true
 iced.workspace = true
 icondata.workspace = true
 log.workspace = true

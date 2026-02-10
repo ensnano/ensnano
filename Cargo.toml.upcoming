@@ -27,7 +27,7 @@ repository = "https://github.com/ensnano/ensnano"
 version = "0.7.0"
 
 [workspace.dependencies]
-ensnano_design = { path = "ensnano-design" }
+ensnano_design = { path = "ensnano-design", features = ["ensnano_upcoming"] }
 ensnano_exports = { path = "ensnano-exports" }
 ensnano_flatscene = { path = "ensnano-flatscene" }
 ensnano_gui = { path = "ensnano-gui" }
@@ -105,7 +105,6 @@ ensnano_gui.workspace = true
 ensnano_scene.workspace = true
 ensnano_state.workspace = true
 ensnano_utils.workspace = true
-ensnano_upcoming.workspace = true
 
 confy.workspace = true
 dirs.workspace = true
@@ -144,7 +143,6 @@ log_after_renderer_setup = []
 dx12_only = []
 # This feature gates content in the ensnano_upcoming private
 # crate
-ensnano_upcoming = []
 
 [lints]
 workspace = true

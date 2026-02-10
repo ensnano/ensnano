@@ -23,11 +23,11 @@ pub enum CubicBezierControlPoint {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-/// A control point of a bezier curve
+/// A control point of a bezier curve.
 pub enum BezierControlPoint {
-    /// One of the control points of a cubic bezier curve
+    /// One of the control points of a cubic bezier curve.
     CubicBezier(CubicBezierControlPoint),
-    /// One of the control points of a piecewise bezier curve
+    /// One of the control points of a piecewise bezier curve.
     PiecewiseBezier(usize),
 }
 
@@ -48,7 +48,7 @@ impl CubicBezierConstructor {
         CubicBezier::new(self)
     }
 
-    /// Returns an iterator over the control points of self
+    /// Returns an iterator over the control points of self.
     pub fn iter(&self) -> impl Iterator<Item = (CubicBezierControlPoint, &Vec3)> {
         [
             (CubicBezierControlPoint::Start, &self.start),
@@ -306,7 +306,7 @@ impl InstantiatedPiecewiseBezier {
         }
     }
 
-    /// Return the CubicBezier with index i
+    /// Return the CubicBezier with index i.
     fn ith_cubic_bezier(&self, i: usize) -> CubicBezier {
         CubicBezier::new(CubicBezierConstructor {
             start: self.ends.iter().cycle().nth(i).unwrap().position, // p_i.position
@@ -348,16 +348,16 @@ impl InstantiatedPiecewiseBezier {
 /// Let (p_i, c-_i, c+_i)_{0 <= i < n} be the end points, the curve is defined on [0, n] by
 /// C(t) = B_i({t}) where i = 1 -  ⌊t⌋ and {t} = t - ⌊t⌋ and B_i is the bezier curve with extremities
 /// p_i and p_{i + 1} and whose tangents at positions p_i and p_{i +1} is proportional to c+_i and
-/// c-_{i+1}
+/// c-_{i+1}.
 ///
-/// Note that c-_0 and c+_{n - 1} are never used
+/// Note that c-_0 and c+_{n - 1} are never used.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct BezierEnd {
-    /// The position of the end point, denoted p_i in the above definition
+    /// The position of the end point, denoted p_i in the above definition.
     pub position: GridPosition,
-    /// The inward derivative coefficient, denoted c-_i in the above definition
+    /// The inward derivative coefficient, denoted c-_i in the above definition.
     pub inward_coeff: f32,
-    /// The outward derivative coefficient, denoted c+_i in the above definition
+    /// The outward derivative coefficient, denoted c+_i in the above definition.
     pub outward_coeff: f32,
 }
 

@@ -1,6 +1,6 @@
 //! This module defines the ensnano format.
 //! All other format supported by ensnano are converted into this format and
-//! run-time manipulations of designs are performed on an `ensnano::Design` structure
+//! run-time manipulations of designs are performed on an `ensnano::Design` structure.
 
 #[cfg(test)]
 mod tests;

@@ -30,7 +30,7 @@ impl HelixTimeMap {
         self.time_nucl(n) * self.square_per_time
     }
 
-    /// Same as nucl_to_x_conversion but for "non integer nucl positions"
+    /// Same as nucl_to_x_conversion but for "non integer nucl positions".
     pub fn x_conversion(&self, x: f64) -> f64 {
         let nucl_idx = x.floor() as isize;
         let left = self.time_nucl(nucl_idx) * self.square_per_time;

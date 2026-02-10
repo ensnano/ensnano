@@ -20,14 +20,14 @@ const NB_STEPS: usize = 10_000_000;
 
 const EPSILON_DERIVATIVE: f64 = 1e-6;
 
-/// A torus
+/// A torus.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Torus {
-    /// The angle shift a t = 0 along the slice
+    /// The angle shift a t = 0 along the slice.
     pub theta0: f64,
-    /// The number of helices on each slice
+    /// The number of helices on each slice.
     pub half_nb_helix: usize,
-    /// The radius of the torus
+    /// The radius of the torus.
     pub big_radius: f64,
 }
 
@@ -355,7 +355,7 @@ impl CurveDescriptor2D {
         ret
     }
 
-    /// Return the coordinates of the point on the revolution surface obtained by revolving self
+    /// Return the coordinates of the point on the revolution surface obtained by revolving self.
     pub fn point_on_surface(&self, point: &PointOnSurface) -> DVec3 {
         let point2d = self.point(point.section_parameter);
         Self::_3d(point2d, &point.clone().into())
@@ -367,7 +367,7 @@ impl CurveDescriptor2D {
         Self::_3d(point2d, &point.clone().into())
     }
 
-    /// Return the derivative of the position on surface with respect to the section parameter
+    /// Return the derivative of the position on surface with respect to the section parameter.
     pub fn derivative_position_on_surface_wrp_section_parameter(
         &self,
         point: &PointOnSurface,
@@ -376,7 +376,7 @@ impl CurveDescriptor2D {
         Self::_3d(point2d, &point.clone().into())
     }
 
-    /// Return the derivative of the position on surface with respect to the section parameter
+    /// Return the derivative of the position on surface with respect to the section parameter.
     pub fn second_derivative_position_on_surface_wrp_section_parameter(
         &self,
         point: &PointOnSurface,
@@ -430,9 +430,9 @@ impl CurveDescriptor2D {
 #[derive(Debug, Clone)]
 /// The geometric parameters needed to convert a 2D point to a point on a revolution surface.
 pub struct PointOnSurface {
-    /// Parameter along the surface of the curve, in [0, 1]
+    /// Parameter along the surface of the curve, in [0, 1].
     pub section_parameter: f64,
-    /// Angle of revolution in [0, 2pi]
+    /// Angle of revolution in [0, 2pi].
     pub revolution_angle: f64,
     pub revolution_axis_position: f64,
     pub section_half_turn_per_revolution: isize,
@@ -442,7 +442,7 @@ pub struct PointOnSurface {
 #[derive(Debug, Clone)]
 /// The geometric parameters needed internally to convert a 2D point to a point on a revolution surface.
 ///
-/// They can be deduced from a `PointOnSurface`
+/// They can be deduced from a `PointOnSurface`.
 pub(super) struct PointOnSurface_ {
     pub revolution_angle: f64,
     pub revolution_axis_position: f64,
@@ -600,9 +600,9 @@ fn binary_search(goal: f64, slice: &[f64]) -> Option<usize> {
 pub(super) struct TwistedTorus {
     instantiated_curve: Arc<InstantiatedEllipse>,
     descriptor: TwistedTorusDescriptor,
-    /// A scaling of the revolving curve so that the correct number of helices fit in the shape
+    /// A scaling of the revolving curve so that the correct number of helices fit in the shape.
     scale: f64,
-    /// The unscaled perimeter of the revolving curve
+    /// The unscaled perimeter of the revolving curve.
     perimeter: f64,
     nb_turn_per_helix: usize,
     helix_parameters: HelixParameters,
@@ -611,15 +611,15 @@ pub(super) struct TwistedTorus {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct TwistedTorusDescriptor {
     pub curve: CurveDescriptor2D,
-    /// Number of time the shape appears in a full turn
+    /// Number of time the shape appears in a full turn.
     // cspell:disable-next-line
     #[serde(alias = "half_twist_count_per_turn", alias = "symetry_per_turn")]
     pub symmetry_per_turn: isize,
-    /// Radius of the structure,
+    /// Radius of the structure.
     pub big_radius: OrderedFloat<f64>,
     pub number_of_helix_per_section: usize,
     pub helix_index_shift_per_turn: isize,
-    // Common to all helices of the shape
+    // Common to all helices of the shape.
     pub initial_curvilinear_abscissa: OrderedFloat<f64>,
     pub initial_index_shift: isize,
 }

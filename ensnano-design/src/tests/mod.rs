@@ -609,7 +609,7 @@ fn correct_insertion_right_to_left() {
     assert_good_strand(&strand, objective);
 }
 
-/// A strand whose initial topology is [H1: 0 -> 3] [@5] [@3] [H1: 4 -> 7] [@5] [H2: 0 <- 7]
+/// A strand whose initial topology is [H1: 0 -> 3] [@5] [@3] [H1: 4 -> 7] [@5] [H2: 0 <- 7].
 fn strand_with_insertion() -> Strand {
     let strand_str = include_str!("./strand_with_insertion.json");
     let strand: Strand = serde_json::from_str(strand_str).expect("Could not parse strand");

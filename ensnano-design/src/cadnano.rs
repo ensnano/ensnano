@@ -225,7 +225,7 @@ fn subtract_skips(nucl: usize, helix: usize, vstrands: &[VStrand]) -> isize {
 }
 
 impl Design {
-    /// Create a design from a cadnano file
+    /// Create a design from a cadnano file.
     pub fn from_cadnano(nano: &CadnanoDesign) -> Self {
         let vstrands = &nano.vstrands;
         let mut seen: HashSet<(usize, usize, bool)> = HashSet::new();
