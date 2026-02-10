@@ -111,14 +111,14 @@ impl<
 /// The controller's automata between the moment the button is pressed and the moment it is
 /// released.
 pub(super) struct PointAndClicking {
-    /// The position of the cursor when the mouse button was pressed
+    /// The position of the cursor when the mouse button was pressed.
     clicked_position: PhysicalPosition<f64>,
-    /// The button that was pressed
+    /// The button that was pressed.
     pressed_button: MouseButton,
-    /// The consequences of releasing of clicking of the object initially pointed by the cursor
+    /// The consequences of releasing of clicking of the object initially pointed by the cursor.
     release_consequences: Consequence,
     /// An `OptionalTransition` triggered by releasing the button that was pressed to enter the
-    /// state
+    /// state.
     release_transition: OptionalTransitionPtr,
     /// An `OptionalTransition` triggered by moving the cursor far away from
     /// `self.clicked_position`.
@@ -132,7 +132,7 @@ pub(super) struct PointAndClicking {
     /// If Some(_), a function that will update `self.long_hold_state` when the cursor position
     /// changes.
     long_hold_state_maker: Option<ContextDependentTransitionPtr>,
-    /// A description of the current state of the controller's automata
+    /// A description of the current state of the controller's automata.
     description: &'static str,
     clicked_date: Instant,
 }
@@ -272,7 +272,7 @@ impl PointAndClicking {
     /// A state in which the user is setting the pivot around which camera translation occur.
     ///
     /// If the cursor is moved away from it's initial position, the controller's automata
-    /// transition to "Rotating Camera" state
+    /// transition to "Rotating Camera" state.
     pub(super) fn setting_pivot(
         clicked_position: PhysicalPosition<f64>,
         pivot_element: Option<SceneElement>,
@@ -324,7 +324,7 @@ impl PointAndClicking {
         }
     }
 
-    /// A state in which the user may be performing a double click
+    /// A state in which the user may be performing a double click.
     ///
     /// If the user clicks on the element a second time in a short (i.e. < `LONG_HOLDING_TIME` )
     /// time interval, this triggers a "double click" consequence.
@@ -347,7 +347,7 @@ impl PointAndClicking {
         }
     }
 
-    /// A state in which the user is pasting something
+    /// A state in which the user is pasting something.
     pub(super) fn pasting(
         clicked_position: PhysicalPosition<f64>,
         element: Option<SceneElement>,

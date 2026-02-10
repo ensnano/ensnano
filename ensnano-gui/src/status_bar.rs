@@ -186,9 +186,9 @@ impl Program for StatusBarState {
 }
 
 struct OperationInput {
-    /// The values obtained with Operation::values
+    /// The values obtained with Operation::values.
     values: Vec<String>,
-    /// The String in the text inputs,
+    /// The String in the text inputs.
     values_str: Vec<String>,
     parameters: Vec<StatusParameter>,
     op_id: usize,

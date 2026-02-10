@@ -32,17 +32,17 @@ use winit::{
 
 /// An object handling input and notification for the scene.
 pub(crate) struct SceneController {
-    /// A pointer to the View
+    /// A pointer to the View.
     view: ViewPtr,
-    /// A pointer to the data
+    /// A pointer to the data.
     data: Rc<RefCell<Data>>,
-    /// The event that modify the camera are forwarded to the camera_controller
+    /// The event that modify the camera are forwarded to the camera_controller.
     camera_controller: CameraController,
-    /// The size of the window
+    /// The size of the window.
     window_size: PhySize,
-    /// The size of the drawing area
+    /// The size of the drawing area.
     area_size: PhySize,
-    /// The current modifiers
+    /// The current modifiers.
     current_modifiers_state: ModifiersState,
     state: State,
     stereography: Option<Stereography>,
@@ -99,12 +99,12 @@ pub(crate) enum Consequence {
     PivotCenter,
     CheckXovers,
     AlignWithStereo,
-    /// Append a vertex to a bezier path
+    /// Append a vertex to a bezier path.
     CreateBezierVertex {
-        /// The position of the created vertex
+        /// The position of the created vertex.
         vertex: BezierVertex,
         /// The identifier of the path to which the vertex is being appended. If this is None, a
-        /// new path is being created
+        /// new path is being created.
         path: Option<BezierPathId>,
     },
     MoveBezierVertex {
@@ -369,22 +369,22 @@ impl SceneController {
         }
     }
 
-    /// True if the camera is moving and its position must be updated before next frame
+    /// True if the camera is moving and its position must be updated before next frame.
     pub(crate) fn camera_is_moving(&self) -> bool {
         self.camera_controller.is_moving()
     }
 
-    /// Set the pivot point of the camera
+    /// Set the pivot point of the camera.
     pub(crate) fn set_pivot_point(&mut self, point: Option<FiniteVec3>) {
         self.camera_controller.set_pivot_point(point);
     }
 
-    /// Swing the camera around its pivot point
+    /// Swing the camera around its pivot point.
     pub(crate) fn swing(&mut self, x: f64, y: f64) {
         self.camera_controller.swing(x, y);
     }
 
-    /// Moves the camera according to its speed and the time elapsed since previous frame
+    /// Moves the camera according to its speed and the time elapsed since previous frame.
     pub(crate) fn update_camera(&mut self, dt: Duration) {
         self.camera_controller.update_camera(
             dt,
@@ -396,7 +396,7 @@ impl SceneController {
             .notify_camera_movement(&self.camera_controller);
     }
 
-    /// Handles a resizing of the window and/or drawing area
+    /// Handles a resizing of the window and/or drawing area.
     pub(crate) fn resize(&mut self, window_size: PhySize, area_size: PhySize) {
         self.window_size = window_size;
         self.area_size = area_size;

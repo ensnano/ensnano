@@ -11,7 +11,7 @@ use std::{borrow::Cow, collections::BTreeMap, fmt::Write as _};
 /// A collection of strands, that maps strand identifier to strands.
 ///
 /// It contains all the information about the "topology of the design".  Information about
-/// cross-over or helix interval are obtained via this structure
+/// cross-over or helix interval are obtained via this structure.
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct Strands(pub(super) BTreeMap<usize, Strand>);
 
@@ -61,7 +61,7 @@ impl Strands {
         self.0.values().any(Strand::has_insertions)
     }
 
-    /// Return the strand end status of nucl
+    /// Return the strand end status of nucl.
     pub fn is_strand_end(&self, nucl: &Nucl) -> Extremity {
         for s in self.0.values() {
             if !s.is_cyclic && s.get_5prime() == Some(*nucl) {
@@ -94,7 +94,7 @@ impl Strands {
         self.is_domain_end(nucl).to_opt().is_some() && self.is_strand_end(nucl).to_opt().is_none()
     }
 
-    /// Return true if at least one strand goes through helix h_id
+    /// Return true if at least one strand goes through helix h_id.
     pub fn uses_helix(&self, h_id: usize) -> bool {
         for s in self.0.values() {
             for d in &s.domains {
@@ -203,7 +203,7 @@ pub enum DomainJunction {
     UnidentifiedXover,
     /// A cross-over with an identifier.
     IdentifiedXover(usize),
-    /// A link between two neighboring domains
+    /// A link between two neighboring domains.
     Adjacent,
     /// Indicate that the previous domain is the end of the strand.
     Prime3,
@@ -243,7 +243,7 @@ pub struct Strand {
     #[serde(default)]
     pub color: u32,
     /// A name of the strand, used for strand export. If the name is `None`, the exported strand
-    /// will be given a name corresponding to the position of its 5' nucleotide
+    /// will be given a name corresponding to the position of its 5' nucleotide.
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub name: Option<Cow<'static, str>>,
 }
@@ -307,7 +307,7 @@ impl Strand {
         self.domains.iter().map(Domain::length).sum()
     }
 
-    /// Merge all consecutive domains that are on the same helix
+    /// Merge all consecutive domains that are on the same helix.
     pub fn merge_consecutive_domains(&mut self) {
         let mut to_merge = vec![];
         for n in 0..self.domains.len() - 1 {
@@ -598,9 +598,9 @@ impl Strand {
     /// If `identified` is true (i.e. during the first pass), read the IdentifiedXover
     /// and insert them in the xover_ids.
     /// If `identified` is false (i.e. during the second pass), read the unidentified Xover and
-    /// provide them with identifier
+    /// provide them with identifier.
     ///
-    /// Assumes that self.junctions is either empty or a Vec with the following properties.
+    /// Assumes that self.junctions is either empty or a Vec with the following properties:
     /// * Its length is equal to self.domains.length
     /// * All the junctions are appropriate.
     pub fn read_junctions(&mut self, xover_ids: &mut IdGenerator<(Nucl, Nucl)>, identified: bool) {
@@ -683,7 +683,7 @@ impl Strand {
 
 /// Add the correct junction between current and next to junctions.
 /// Assumes and preserve the following invariant
-/// Invariant read_junctions::PrevDomain: One of the following is true
+/// Invariant read_junctions::PrevDomain: One of the following is true:
 /// * the strand is not cyclic
 /// * the strand is cyclic and its first domain is NOT and insertion.
 /// * previous domain points to some Domain::HelixDomain.
@@ -767,7 +767,7 @@ pub fn read_junctions(domains: &[Domain], cyclic: bool) -> Vec<DomainJunction> {
     ret
 }
 
-/// Return the appropriate junction between two HelixInterval
+/// Return the appropriate junction between two HelixInterval.
 fn junction(prime5: &HelixInterval, prime3: &HelixInterval) -> DomainJunction {
     let prime5_nucl = prime5.prime3();
     let prime3_nucl = prime3.prime5();
@@ -779,7 +779,7 @@ fn junction(prime5: &HelixInterval, prime3: &HelixInterval) -> DomainJunction {
     }
 }
 
-/// The return type for methods that ask if a nucleotide is the end of a domain/strand/xover
+/// The return type for methods that ask if a nucleotide is the end of a domain/strand/xover.
 #[derive(Debug, Clone, Copy)]
 pub enum Extremity {
     No,
@@ -810,7 +810,7 @@ impl Extremity {
     }
 }
 
-/// The index of a nucleotide on a Strand
+/// The index of a nucleotide on a Strand.
 pub struct PositionOnStrand {
     pub domain_id: usize,
     pub pos_on_domain: usize,

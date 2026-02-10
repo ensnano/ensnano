@@ -5,7 +5,7 @@ use std::{collections::BTreeMap, sync::Arc};
 #[derive(
     Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Default, Hash,
 )]
-/// Identifier of a free grid
+/// Identifier of a free grid.
 pub struct FreeGridId(pub usize);
 
 impl FreeGridId {
@@ -23,7 +23,7 @@ impl FreeGridId {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Default)]
-/// Collection of free grids descriptor
+/// Collection of free grids descriptor.
 pub struct FreeGrids(pub(super) Arc<BTreeMap<FreeGridId, Arc<GridDescriptor>>>);
 
 impl FreeGrids {

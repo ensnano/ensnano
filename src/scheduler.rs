@@ -11,7 +11,7 @@ use winit::{
     window::CursorIcon,
 };
 
-/// The scheduler is responsible for running the different applications
+/// The scheduler is responsible for running the different applications.
 pub(crate) struct Scheduler {
     applications: HashMap<GuiComponentType, Arc<Mutex<dyn Application>>>,
     needs_redraw: Vec<GuiComponentType>,
@@ -33,7 +33,7 @@ impl Scheduler {
         self.applications.insert(element_type, application);
     }
 
-    /// Forwards an event to the appropriate application
+    /// Forwards an event to the appropriate application.
     pub(crate) fn forward_event(
         &mut self,
         event: &WindowEvent,
@@ -63,7 +63,7 @@ impl Scheduler {
         !self.needs_redraw.is_empty()
     }
 
-    /// Request an application to draw on a texture
+    /// Request an application to draw on a texture.
     pub(crate) fn draw_apps(
         &mut self,
         encoder: &mut wgpu::CommandEncoder,
@@ -77,7 +77,7 @@ impl Scheduler {
         }
     }
 
-    /// Notify all applications that the size of the window has been modified
+    /// Notify all applications that the size of the window has been modified.
     pub(crate) fn forward_new_size(
         &mut self,
         window_size: PhysicalSize<u32>,

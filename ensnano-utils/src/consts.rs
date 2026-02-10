@@ -170,9 +170,9 @@ pub const PRINTABLE_CHARS: &[char] = &[
 ];
 pub const NB_PRINTABLE_CHARS: usize = PRINTABLE_CHARS.len();
 
-/// The factor by which the width of candidate highlighted strands is multiplied
+/// The factor by which the width of candidate highlighted strands is multiplied.
 pub const CANDIDATE_STRAND_HIGHLIGHT_FACTOR_2D: f32 = 1.7;
-/// The factor by which the width of selected highlighted strands is multiplied
+/// The factor by which the width of selected highlighted strands is multiplied.
 pub const SELECTED_STRAND_HIGHLIGHT_FACTOR_2D: f32 =
     1. + 2. * (CANDIDATE_STRAND_HIGHLIGHT_FACTOR_2D - 1.);
 

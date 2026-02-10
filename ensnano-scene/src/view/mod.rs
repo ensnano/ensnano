@@ -8,11 +8,11 @@ mod drawable;
 pub mod gltf_drawer;
 pub mod grid;
 pub mod grid_disc;
-/// A HandleDrawer draws the widget for translating objects
+/// A HandleDrawer draws the widget for translating objects.
 pub mod handle_drawer;
 pub mod instances_drawer;
 pub mod letter;
-/// A RotationWidget draws the widget for rotating objects
+/// A RotationWidget draws the widget for rotating objects.
 pub mod rotation_widget;
 pub mod sheet_2d;
 /// A `Uniform` is a structure that manages view and projection matrices.
@@ -84,19 +84,19 @@ pub struct View {
     /// The camera, that is in charge of producing the view and projection matrices.
     camera: CameraPtr,
     projection: ProjectionPtr,
-    /// The depth texture is updated every time the size of the drawing area is modified
+    /// The depth texture is updated every time the size of the drawing area is modified.
     depth_texture: Texture,
     /// The fake depth texture is updated every time the size of the drawing area is modified and
-    /// has a sample count of 1
+    /// has a sample count of 1.
     fake_depth_texture: Texture,
-    /// The handle drawers draw handles to translate the elements
+    /// The handle drawers draw handles to translate the elements.
     handle_drawers: HandlesDrawer,
-    /// The rotation widget draw the widget to rotate the elements
+    /// The rotation widget draw the widget to rotate the elements.
     rotation_widget: RotationWidget,
     /// A possible update of the size of the drawing area, must be taken into account before
-    /// drawing the next frame
+    /// drawing the next frame.
     new_size: Option<PhySize>,
-    /// The pipelines that draw the basis symbols
+    /// The pipelines that draw the basis symbols.
     letter_drawer: Vec<InstanceDrawer<LetterInstance>>,
     helix_letter_drawer: Vec<InstanceDrawer<LetterInstance>>,
     device: Rc<Device>,
@@ -120,7 +120,7 @@ pub struct View {
     external_objects_drawer: Object3DDrawer,
     stereography: Stereography,
     sheets_drawer: InstanceDrawer<Sheet2D>,
-    // Post-processing shader parameters. TODO: bundle in InstanceDrawer or a new struct
+    // Post-processing shader parameters. TODO: bundle in InstanceDrawer or a new struct.
     queue: Rc<Queue>,
     post_processing_pipeline: wgpu::RenderPipeline,
     post_processing_bind_group_layout: wgpu::BindGroupLayout,
@@ -534,7 +534,7 @@ impl View {
         self.need_redraw | self.redraw_twice
     }
 
-    /// Draw the scene
+    /// Draw the scene.
     pub fn draw(
         &mut self,
         encoder: &mut wgpu::CommandEncoder,
@@ -911,12 +911,12 @@ impl View {
             .or_else(|| self.rotation_widget.get_pivot_position())
     }
 
-    /// Get a pointer to the camera
+    /// Get a pointer to the camera.
     pub fn get_camera(&self) -> CameraPtr {
         self.camera.clone()
     }
 
-    /// A pointer to the projection camera
+    /// A pointer to the projection camera.
     pub fn get_projection(&self) -> ProjectionPtr {
         self.projection.clone()
     }
@@ -1096,16 +1096,16 @@ impl View {
     }
 }
 
-/// An notification to be given to the view
+/// An notification to be given to the view.
 #[derive(Debug)]
 pub enum ViewUpdate {
     /// The camera has moved and the view and projection matrix must be updated.
     Camera,
-    /// The size of the drawing area has been modified
+    /// The size of the drawing area has been modified.
     Size(PhySize),
-    /// The set of model matrices has been modified
+    /// The set of model matrices has been modified.
     ModelMatrices(Vec<Mat4>),
-    /// The set of phantom instances has been modified
+    /// The set of phantom instances has been modified.
     Handles(Option<HandlesDescriptor>),
     RotationWidget(Option<RotationWidgetDescriptor>),
     Letter(Vec<Vec<LetterInstance>>),

@@ -10,14 +10,14 @@ use ultraviolet::{Isometry2, Rotor2, Rotor3, Vec2, Vec3};
 /// A structure made of helices arranged circularly on two planes.
 #[derive(Clone, Debug)]
 pub struct Hyperboloid {
-    /// The number of helices on each plane
+    /// The number of helices on each plane.
     pub radius: usize,
     /// The angle between the two planes.
     pub shift: f32,
     /// The distance between the planes.
     pub length: f32,
     /// The difference between the actual sheet radius and the radius needed for the helices to
-    /// fit perfectly at the tightest point of the hyperboloid
+    /// fit perfectly at the tightest point of the hyperboloid.
     pub radius_shift: f32,
 
     /// A forced grid radius, for when user modifies the shift but still wants the radius in the
@@ -27,10 +27,10 @@ pub struct Hyperboloid {
     ///
     /// Note that this value is subject to the constraint
     /// |Ω| ≤ Z * r / sqrt(2π)
-    /// where
+    /// where:
     ///  * Ω is `self.nb_turn_per_100_nt`,
     ///  * Z is `100.0 * Parameters::step`
-    ///  * r is `self.radius`
+    ///  * r is `self.radius`.
     pub nb_turn_per_100_nt: f64,
 }
 
@@ -126,7 +126,7 @@ impl Hyperboloid {
     }
 
     /// Return the radii of the sheet so that the helices respectively fits perfectly at the center of the
-    /// hyperboloid or at the extremity of the hyperboloid
+    /// hyperboloid or at the extremity of the hyperboloid.
     fn sheet_radii(&self, helix_parameters: &HelixParameters) -> (f32, f32) {
         // First determine the radius in the center of the hyperboloid.
         let angle = PI / self.radius as f32;
@@ -138,14 +138,14 @@ impl Hyperboloid {
         // + delta), sin(theta + delta), h), the radius in the center is
         // r =  R * (((cos(theta) + cos(theta + delta)/ 2)^2 + (sin(theta) + sin(theta+delta))/2)^2)
         // this is a constant to we can take theta = 0 which gives
-        // r = R * 1/4 (2 + 2cos(delta))
+        // r = R * 1/4 (2 + 2cos(delta)).
         (
             (2. * center_radius / (2. + 2. * self.shift.cos()).sqrt()),
             center_radius,
         )
     }
 
-    /// Return true iff the grid supporting self contains the point (x, y)
+    /// Return true iff the grid supporting self contains the point (x, y).
     pub fn contains_point(&self, helix_parameters: &HelixParameters, x: f32, y: f32) -> bool {
         let r = self.grid_radius(helix_parameters);
         x.abs() <= r && y.abs() <= r

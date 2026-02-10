@@ -1874,7 +1874,7 @@ impl Controller {
         Ok(())
     }
 
-    /// Split a strand at nucl, and return the id of the newly created strand
+    /// Split a strand at nucl, and return the id of the newly created strand.
     ///
     /// The part of the strand that contains nucl is given the original
     /// strand's id, the other part is given a new id.
@@ -2039,12 +2039,12 @@ impl Controller {
         Ok(new_id)
     }
 
-    /// Split a cyclic strand at nucl
+    /// Split a cyclic strand at nucl.
     ///
     /// If `force_end` is `Some(true)`, nucl will be the new 5' end of the strand.
     /// If `force_end` is `Some(false)` nucl will be the new 3' end of the strand.
     /// If `force_end` is `None`, nucl will be the new 3' end of the strand unless nucl is the 3'
-    /// prime extremity of a crossover, in which case nucl will be the new 5' end of the strand
+    /// prime extremity of a crossover, in which case nucl will be the new 5' end of the strand.
     fn break_cycle(mut strand: Strand, nucl: Nucl, force_end: Option<bool>) -> Strand {
         let mut last_dom = None;
         let mut replace_last_dom = None;
@@ -2437,7 +2437,7 @@ impl Controller {
     }
 
     /// Cut the target strand at nucl and the make a cross over from the source strand to the part
-    /// that contains nucl
+    /// that contains nucl.
     fn cross_cut(
         strands: &mut Strands,
         source_strand: usize,
@@ -2870,14 +2870,14 @@ impl Controller {
     }
 }
 
-// Some values are only used for logging the error, which Rust considers to be unused
+// Some values are only used for logging the error, which Rust considers to be unused.
 #[derive(Debug)]
 pub enum OperationError {
     GroupHasNoPivot(GroupId),
     NotImplemented,
-    /// The operation cannot be applied on the current selection
+    /// The operation cannot be applied on the current selection.
     BadSelection,
-    /// The controller is in a state incompatible with applying the operation
+    /// The controller is in a state incompatible with applying the operation.
     IncompatibleState(String),
     CannotBuildOn(Nucl),
     CutNonExistentStrand,
@@ -3312,7 +3312,7 @@ pub enum InteractorNotification {
     NewSelection,
 }
 
-/// Return the appropriate junction between two HelixInterval
+/// Return the appropriate junction between two HelixInterval.
 pub fn junction(prime5: &HelixInterval, prime3: &HelixInterval) -> DomainJunction {
     let prime5_nucl = prime5.prime3();
     let prime3_nucl = prime3.prime5();

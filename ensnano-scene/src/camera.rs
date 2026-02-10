@@ -30,7 +30,7 @@ pub(crate) type ProjectionPtr = Rc<RefCell<Projection>>;
 
 #[derive(Debug, Clone)]
 pub struct Camera {
-    /// The eye of the camera
+    /// The eye of the camera.
     pub position: Vec3,
     /// The orientation of the camera.
     ///
@@ -45,18 +45,18 @@ impl Camera {
         Self { position, rotor }
     }
 
-    /// The view matrix of the camera
+    /// The view matrix of the camera.
     pub fn calc_matrix(&self) -> Mat4 {
         let at = self.position + self.direction();
         Mat4::look_at(self.position, at, self.up_vec())
     }
 
-    /// The direction of the camera, expressed in the world coordinates
+    /// The direction of the camera, expressed in the world coordinates.
     pub fn direction(&self) -> Vec3 {
         self.rotor.reversed() * Vec3::from([0., 0., -1.])
     }
 
-    /// The right vector of the camera, expressed in the world coordinates
+    /// The right vector of the camera, expressed in the world coordinates.
     pub fn right_vec(&self) -> Vec3 {
         self.rotor.reversed() * Vec3::from([1., 0., 0.])
     }
@@ -75,7 +75,7 @@ impl Camera {
 /// This structure holds the information needed to compute the projection matrix.
 pub struct Projection {
     aspect: f32,
-    /// Field of view in *radians*
+    /// Field of view in *radians*.
     fovy: f32,
     znear: f32,
     zfar: f32,
@@ -226,9 +226,9 @@ pub(crate) struct CameraController {
     zoom_plane: Option<Plane>,
     x_scroll: f32,
     y_scroll: f32,
-    /// The xz angle accumulated during a free camera rotation
+    /// The xz angle accumulated during a free camera rotation.
     free_xz_angle: f32,
-    /// The yz angle accumulated during a free camera rotation
+    /// The yz angle accumulated during a free camera rotation.
     free_yz_angle: f32,
     current_constrained_rotation: Option<ConstrainedRotation>,
     surface_point: Option<SurfacePoint>,
@@ -378,7 +378,7 @@ impl CameraController {
         self.projection.borrow_mut().stereographic_zoom *= STEREOGRAPHIC_ZOOM_STEP.powf(direction);
     }
 
-    /// Translate the camera
+    /// Translate the camera.
     fn translate_camera(&mut self, surface_info_provider: &Data) {
         let right = self.mouse_horizontal;
         let up = -self.mouse_vertical;
@@ -418,7 +418,7 @@ impl CameraController {
         self.mouse_vertical = 0.0;
     }
 
-    /// Move the camera according to the keyboard input
+    /// Move the camera according to the keyboard input.
     fn move_camera(
         &mut self,
         dt: Duration,
@@ -713,7 +713,7 @@ impl CameraController {
     }
 
     /// Modify the camera's rotor so that the camera looks at `point`.
-    /// `point` is given in the world's coordinates
+    /// `point` is given in the world's coordinates.
     fn look_at_point(&self, point: Vec3, up: Vec3) {
         let new_direction = (point - self.camera.borrow().position).normalized();
         let right = new_direction.cross(up);
@@ -723,7 +723,7 @@ impl CameraController {
     }
 
     /// Modify the camera's rotor so that the camera looks at `self.position + point`.
-    /// `point` is given in the world's coordinates
+    /// `point` is given in the world's coordinates.
     pub(crate) fn look_at_orientation(&mut self, point: Vec3, up: Vec3, pivot: Option<Vec3>) {
         let dist = pivot.map(|p| (self.camera.borrow().position - p).mag());
         let point = self.camera.borrow().position + point;

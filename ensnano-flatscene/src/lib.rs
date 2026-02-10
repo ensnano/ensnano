@@ -1,4 +1,4 @@
-//! This module handles the 2D view
+//! This module handles the 2D view.
 //!
 //! # Coordinate systems
 //!
@@ -78,7 +78,7 @@ fn png_resolution([w, h]: [f32; 2]) -> [f32; 2] {
     }
 }
 
-/// A Flatscene handles one design at a time
+/// A Flatscene handles one design at a time.
 pub struct FlatScene {
     /// Handle the data to send to the GPU.
     view: Vec<ViewPtr>,
@@ -90,7 +90,7 @@ pub struct FlatScene {
     area: DrawArea,
     /// The size of the window on which the flatscene is displayed.
     window_size: PhySize,
-    /// The identifier of the design being drawn
+    /// The identifier of the design being drawn.
     selected_design: usize,
     /// Graphics device.
     device: Rc<Device>,
@@ -132,7 +132,7 @@ impl FlatScene {
 
     /// Add a design to the scene.
     ///
-    /// This creates a new `View`, a new `Data` and a new `Controller`
+    /// This creates a new `View`, a new `Data` and a new `Controller`.
     fn add_design(&mut self, reader: DesignInteractor, requests: Arc<Mutex<Requests>>) {
         let height = if self.is_split {
             self.area.size.height as f32 / 2.
@@ -184,7 +184,7 @@ impl FlatScene {
         }
     }
 
-    /// Draw the view of the currently selected design
+    /// Draw the view of the currently selected design.
     fn draw_view(&self, encoder: &mut wgpu::CommandEncoder, target: &wgpu::TextureView) {
         if let Some(view) = self.view.get(self.selected_design) {
             log::trace!("draw flatscene");
@@ -192,7 +192,7 @@ impl FlatScene {
         }
     }
 
-    /// This function must be called when the drawing area of the flatscene is modified
+    /// This function must be called when the drawing area of the flatscene is modified.
     fn resize(&mut self, window_size: PhySize, area: DrawArea) {
         self.window_size = window_size;
         self.area = area;
@@ -204,7 +204,7 @@ impl FlatScene {
         }
     }
 
-    /// Handle an input that happened while the cursor was on the flatscene drawing area
+    /// Handle an input that happened while the cursor was on the flatscene drawing area.
     fn input(
         &mut self,
         event: &WindowEvent,
@@ -503,7 +503,7 @@ impl FlatScene {
             .xover_request(source, target, self.selected_design);
     }
 
-    /// Ask the view if it has been modified since the last drawing
+    /// Ask the view if it has been modified since the last drawing.
     fn needs_redraw_(&mut self, new_state: &AppState) -> bool {
         self.check_timers();
         if let Some(view) = self.view.get(self.selected_design) {

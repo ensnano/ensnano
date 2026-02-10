@@ -7,12 +7,12 @@ pub struct AppStateTransition {
     pub state: AppState,
     /// A label describing the operation that was performed. It is meant to be displayed in app.
     pub label: TransitionLabel,
-    /// The position of the 3d scene's camera at the moment the operation was performed
+    /// The position of the 3d scene's camera at the moment the operation was performed.
     pub camera_3d: Camera3D,
 }
 
 /// A label describing an operation.
-/// To create a `TransitionLabel`, use its `From<String>` or `From<'static str>` implementation
+/// To create a `TransitionLabel`, use its `From<String>` or `From<'static str>` implementation.
 #[derive(Clone, Debug)]
 pub struct TransitionLabel(pub Cow<'static, str>);
 

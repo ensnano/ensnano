@@ -43,7 +43,7 @@ use std::{
 /// so it is meant to be cheap to clone.
 #[derive(Clone, Default)]
 pub struct DesignInteractor {
-    /// The current design
+    /// The current design.
     pub design: AddressPointer<Design>,
     /// The structure that handles "read" operations. The graphic components of EnsNano access the
     /// presenter via a trait that defines each components needs.
@@ -401,21 +401,21 @@ mod tests {
         test_sane_strand(strand);
     }
 
-    /// A design with one strand h1: 0 -> 5 ; h2: 0 <- 5
+    /// A design with one strand h1: 0 -> 5 ; h2: 0 <- 5.
     fn one_xover() -> AppState {
         let path = test_path("one_xover.json");
         AppState::import_design(path).ok().unwrap()
     }
 
     /// A design with one strand h1: -1 -> 7 ; h2: -1 <- 7 ; h3: 0 -> 9 that can be pasted on
-    /// helices 4, 5 and 6
+    /// helices 4, 5 and 6.
     fn pastable_design() -> AppState {
         let path = test_path("pastable.json");
         AppState::import_design(path).ok().unwrap()
     }
 
     /// A design with one cyclic strand h1: -1 -> 7 ; h2: -1 <- 7 ; h3: 0 -> 9 that can be pasted on
-    /// helices 4, 5 and 6
+    /// helices 4, 5 and 6.
     fn pastable_cyclic() -> AppState {
         let path = test_path("pastable_cyclic.json");
         AppState::import_design(path).ok().unwrap()
@@ -518,7 +518,7 @@ mod tests {
     const INSERTION_LEN_4: usize = 97;
 
     /// Test insertions on prime5 of strand, in middle of domains in prime 5 of xover in prime 3 of
-    /// xover and in prime3 of strand
+    /// xover and in prime3 of strand.
     fn non_cyclic_strand_with_insertions() -> AppState {
         // A design with one strand h1: -1 -> 7 ; h2: -1 <- 7 ; h3: 0 -> 9
         let mut app_state = pastable_design();
@@ -606,7 +606,7 @@ mod tests {
     }
 
     /// Add an insertion on 5'end of a xover, split the strand and check that the junctions are
-    /// correct
+    /// correct.
     #[test]
     fn correct_junctions_after_split() {
         // A design with one strand h1: -1 -> 7 ; h2: -1 <- 7 ; h3: 0 -> 9
@@ -663,7 +663,7 @@ mod tests {
     }
 
     /// Add an insertion on 3'end of a strand and check that the last two junctions are in correct
-    /// order
+    /// order.
     #[test]
     fn junction_on_xover_ends() {
         // A design with one strand h1: -1 -> 7 ; h2: -1 <- 7 ; h3: 0 -> 9
@@ -717,7 +717,7 @@ mod tests {
     }
 
     /// Add an insertion on 3'end of a strand and check that the last two junctions are in correct
-    /// order
+    /// order.
     #[test]
     fn junction_on_xover_and_3prime_ends() {
         // A design with one strand h1: -1 -> 7 ; h2: -1 <- 7 ; h3: 0 -> 9
@@ -900,7 +900,7 @@ mod tests {
 
     #[test]
     /// Test insertions on prime5 of strand, in middle of domains in prime 5 of xover in prime 3 of
-    /// xover and in prime3 of strand
+    /// xover and in prime3 of strand.
     fn insertions_on_cyclic_strand() {
         // A design with one strand h1: -1 -> 7 ; h2: -1 <- 7 ; h3: 0 -> 9
         let mut app_state = pastable_cyclic();
@@ -1591,7 +1591,7 @@ mod tests {
         }
     }
 
-    /// A design with two strands h1: 0 -> 5 and h1: 6 -> 10
+    /// A design with two strands h1: 0 -> 5 and h1: 6 -> 10.
     fn two_neighbor_one_helix() -> AppState {
         let path = test_path("two_neighbor_strands.ens");
         AppState::import_design(path).ok().unwrap()
@@ -1677,7 +1677,7 @@ mod tests {
         assert_good_strand(strand, "[H1: 6 -> 10] [H1: 0 -> 5]");
     }
 
-    /// A design with two strands [h1: 0 -> 10] and [@10] [h2: 0 <- 10]
+    /// A design with two strands [h1: 0 -> 10] and [@10] [h2: 0 <- 10].
     fn loopout_5prime_end() -> AppState {
         let path = test_path("loopout_5prime.ens");
         AppState::import_design(path).ok().unwrap()

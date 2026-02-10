@@ -15,7 +15,7 @@ use ultraviolet::{Rotor3, Vec3};
 
 /// An internal structure, which is made from an Helix
 /// and computes the ideal spring anchor points to enforce
-/// a rigid, straight DNA or RNA strand
+/// a rigid, straight DNA or RNA strand.
 #[derive(Clone, Debug)]
 pub(crate) struct SpringAnchorsReference {
     nucleotide_forward: OVector<f32, Const<3>>,
@@ -35,7 +35,7 @@ pub(crate) struct SpringAnchorsReference {
 
 /// Turns two nucleotides 90° around the "up" axis,
 /// resulting in "left" and "right" anchors for
-/// better stability
+/// better stability.
 fn turn_points(
     forward: OVector<f32, Const<3>>,
     backward: OVector<f32, Const<3>>,
@@ -70,7 +70,7 @@ fn pair(
 
 impl SpringAnchorsReference {
     /// Initializes a new reference with the given Helix's parameters,
-    /// and to a provided distance. Higher distance means
+    /// and to a provided distance. Higher distance means.
     pub(crate) fn new(
         helix: &Helix,
         distance: u32,
@@ -189,7 +189,7 @@ impl SpringAnchorsReference {
     /// This uses both uses the precomputed reference in self,
     /// and a sequence of two rotations to place it in the orientation
     /// of the desired nucleotide.
-    /// Return order : (forward, backward, left, right)
+    /// Return order : (forward, backward, left, right).
     pub(crate) fn get_up_spring_anchors(
         &self,
         forward_nucleotide: OVector<f32, Const<3>>,
@@ -224,7 +224,7 @@ impl SpringAnchorsReference {
     /// This uses both uses the precomputed reference in self,
     /// and a sequence of two rotations to place it in the orientation
     /// of the desired nucleotide.
-    /// Return order : (forward, backward, left, right)
+    /// Return order : (forward, backward, left, right).
     pub(crate) fn get_down_spring_anchors(
         &self,
         forward_nucleotide: OVector<f32, Const<3>>,

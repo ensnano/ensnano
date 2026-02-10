@@ -563,7 +563,7 @@ impl Data {
         self.design.get_strand_id(nucl)
     }
 
-    /// Return the strand ids and the value of target_3prime to construct a CrossCut operation
+    /// Return the strand ids and the value of target_3prime to construct a CrossCut operation.
     pub fn cut_cross(&self, from: FlatNucl, to: FlatNucl) -> Option<(usize, usize, bool)> {
         // After the cut, the target will be the 3' end of the merge iff the source nucl is the
         // 3' end of the source strand
@@ -573,7 +573,7 @@ impl Data {
         Some((from, to, target_3prime))
     }
 
-    /// Return Some(true) if nucl is a 3' end, Some(false) if nucl is a 5' end and None otherwise
+    /// Return Some(true) if nucl is a 3' end, Some(false) if nucl is a 5' end and None otherwise.
     pub fn is_strand_end(&self, nucl: FlatNucl) -> Option<bool> {
         let nucl = nucl.to_real();
         self.design
@@ -1103,7 +1103,7 @@ impl GraphicalSelection {
 }
 
 /// Remove the element of `old_translation_pivots` and `old_rotation_pivots` that corresponds to an
-/// element existing in `selection`
+/// element existing in `selection`.
 fn apply_symmetric_difference_to_pivots(
     old_translation_pivots: &mut Vec<FlatNucl>,
     old_rotation_pivots: &mut Vec<Vec2>,

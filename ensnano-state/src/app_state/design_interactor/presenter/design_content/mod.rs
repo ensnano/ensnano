@@ -36,32 +36,32 @@ const PRINTOUT_NUCL_POSITIONS: bool = false; // true;
 
 #[derive(Default, Clone)]
 pub struct DesignContent {
-    /// Maps identifier of elements to their object type
+    /// Maps identifier of elements to their object type.
     pub object_type: HashMap<u32, ObjectType>,
-    /// Maps identifier of nucleotide to Nucleotide objects
+    /// Maps identifier of nucleotide to Nucleotide objects.
     pub nucleotide: HashMap<u32, Nucl>,
-    /// Maps identifier of bonds to the pair of nucleotides involved in the bond
+    /// Maps identifier of bonds to the pair of nucleotides involved in the bond.
     pub nucleotides_involved: HashMap<u32, (Nucl, Nucl)>,
-    /// Maps identifier of element to their position in the Model's coordinates
+    /// Maps identifier of element to their position in the Model's coordinates.
     pub space_position: HashMap<u32, [f32; 3]>,
-    /// Maps identifier of nucl element to their axis position in the Model's coordinates
+    /// Maps identifier of nucl element to their axis position in the Model's coordinates.
     pub axis_space_position: HashMap<u32, [f32; 3]>,
-    /// Maps identifier of nucl element to whether the element is on axis or not in the Model's coordinates
+    /// Maps identifier of nucl element to whether the element is on axis or not in the Model's coordinates.
     pub on_axis: HashMap<u32, bool>,
-    /// Maps a Nucl object to its identifier
+    /// Maps a Nucl object to its identifier.
     pub nucl_collection: Arc<NuclCollection>,
-    /// Maps a pair of nucleotide forming a bond to the identifier of the bond
+    /// Maps a pair of nucleotide forming a bond to the identifier of the bond.
     pub identifier_bond: HashMap<(Nucl, Nucl), u32>,
-    /// Maps the identifier of a element to the identifier of the strands to which it belongs
+    /// Maps the identifier of a element to the identifier of the strands to which it belongs.
     pub strand_map: HashMap<u32, usize>,
-    /// Maps the identifier of a element to the identifier of the helix to which it belongs
+    /// Maps the identifier of a element to the identifier of the helix to which it belongs.
     pub helix_map: HashMap<u32, usize>,
-    /// Maps the identifier of an element to its color
+    /// Maps the identifier of an element to its color.
     pub color_map: HashMap<u32, u32>,
-    /// Maps the identifier of an element to its radius
+    /// Maps the identifier of an element to its radius.
     pub radius_map: HashMap<u32, f32>,
     pub letter_map: Arc<HashMap<Nucl, char>>,
-    // Maps each nucleotide to if it is the result of a virtual clone
+    // Maps each nucleotide to if it is the result of a virtual clone.
     pub is_clone_map: HashMap<u32, bool>,
     pub elements: Vec<DesignElement>,
     pub suggestions: Vec<(Nucl, Nucl)>,
@@ -72,7 +72,7 @@ pub struct DesignContent {
     pub insertion_length: HashMap<u32, usize>,
     pub xover_coloring_map: HashMap<u32, bool>,
     pub with_cones_map: HashMap<u32, bool>,
-    // min value, max value and rainbow fn(t, min, max) -> color
+    // min value, max value and rainbow fn(t, min, max) -> color.
     pub scalebar: Option<Scalebar>,
 }
 
@@ -143,7 +143,7 @@ impl DesignContent {
         Some(grid.position_helix(position.x, position.y))
     }
 
-    /// Return a list of pairs ((x, y), h_id) of all the used helices on the grid g_id
+    /// Return a list of pairs ((x, y), h_id) of all the used helices on the grid g_id.
     pub fn get_helices_grid_key_coord(&self, g_id: GridId) -> Vec<((isize, isize), usize)> {
         self.grid_manager.get_helices_grid_key_coord(g_id)
     }
@@ -398,7 +398,7 @@ impl DesignContent {
             .collect()
     }
 
-    /// Update all the hash maps - called after every edit operation
+    /// Update all the hash maps - called after every edit operation.
     pub fn make_hash_maps(
         mut design: Design,
         xover_ids: &JunctionsIds,

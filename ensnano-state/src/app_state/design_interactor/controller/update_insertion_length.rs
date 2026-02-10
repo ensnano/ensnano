@@ -131,7 +131,7 @@ impl Controller {
 }
 
 /// If there already is an insertion at insertion point, return a mutable reference to its
-/// length. Otherwise return None
+/// length. Otherwise return None.
 fn get_insertion_length_mut(
     strand: &mut Strand,
     insertion_point: InsertionPoint,

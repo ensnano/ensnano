@@ -253,7 +253,7 @@ impl FilteredFreeEnd {
 }
 
 /// If nucl is visible on cam2, and not on cam 1, convert the position of the nucl in cam2
-/// screen coordinate then back to cam1 world coordinate
+/// screen coordinate then back to cam1 world coordinate.
 fn alternative_position(position: Vec2, cam1: &CameraPtr, cam2: &CameraPtr) -> Option<Vec2> {
     if cam1.borrow().bottom == cam2.borrow().bottom {
         None
@@ -298,13 +298,13 @@ fn one_point_one_camera(input: TwoCameraAndPoints<'_>) -> bool {
     }
 }
 
-/// An object that builds the vertices used to draw a strand
+/// An object that builds the vertices used to draw a strand.
 struct StrandVertexBuilder<'a> {
-    /// The Builder that builds normal path of the strand
+    /// The Builder that builds normal path of the strand.
     main_path_builder: BuilderWithAttributes,
-    /// The Builder that builds the vertices of the split cross overs
+    /// The Builder that builds the vertices of the split cross overs.
     split_cross_over_builder: BuilderWithAttributes,
-    /// The current position of the path builders
+    /// The current position of the path builders.
     last_point: Option<Vec2>,
     /// The sign attribute is used to handle the width of the path. The sign should be flipped
     /// between each extremity of a stroke that should be thin in the middle.
@@ -312,7 +312,7 @@ struct StrandVertexBuilder<'a> {
     main_camera: &'a CameraPtr,
     alternative_camera: &'a CameraPtr,
     main_builder_is_drawing: bool,
-    /// The depth attribute is used to generate the z coordinate of the vertices
+    /// The depth attribute is used to generate the z coordinate of the vertices.
     depth: f32,
 }
 
@@ -516,11 +516,11 @@ impl<'a> StrandVertexBuilder<'a> {
 /// An object that reads nucleotides and decide whether drawing the next nucleotide means drawing a
 /// cross-over or a strand's domain.
 struct StrandTopologyReader<'a> {
-    /// The number of points that have been drawn on the current helix
+    /// The number of points that have been drawn on the current helix.
     nb_point_helix: usize,
-    /// The last nucleotide that has been drawn to
+    /// The last nucleotide that has been drawn to.
     last_nucl: Option<FlatNucl>,
-    /// The the helices that can translate nucleotide to points in the plane
+    /// The the helices that can translate nucleotide to points in the plane.
     helices: &'a [Helix],
 }
 
@@ -614,6 +614,6 @@ enum DrawingInstruction {
         to: Vec2,
         depth_to: f32,
     },
-    /// End the drawing by drawing a free end
+    /// End the drawing by drawing a free end.
     FreeEndPrime3(Vec2),
 }

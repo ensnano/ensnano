@@ -52,17 +52,17 @@ pub struct Data {
     view: ViewPtr,
     /// A `Design3D` is associated to each design.
     designs: Vec<Design3D>,
-    /// The set of candidates elements
+    /// The set of candidates elements.
     candidate_element: Option<SceneElement>,
     /// The kind of selection being performed if app_state.get_selection_mode() is SelectionMode::Nucl.
     ///
     /// Can be toggled by selecting the same element several
-    /// time
+    /// time.
     sub_selection_mode: SelectionMode,
     /// A position determined by the current selection. If only one nucleotide is selected, it's
     /// the position of the nucleotide.
     selected_position: Option<Vec3>,
-    /// The element around which the camera rotates
+    /// The element around which the camera rotates.
     pivot_element: Option<SceneElement>,
     pivot_update: bool,
     pivot_position: Option<Vec3>,
@@ -109,12 +109,12 @@ impl Data {
         }
     }
 
-    /// Add a new design to be drawn
+    /// Add a new design to be drawn.
     pub fn update_design_reader(&mut self, design_reader: DesignInteractor) {
         self.designs[0] = Design3D::new(design_reader, 0);
     }
 
-    /// Remove all designs to be drawn
+    /// Remove all designs to be drawn.
     pub fn clear_designs(&mut self) {
         self.candidate_element = None;
         self.reset_selection();
@@ -125,7 +125,7 @@ impl Data {
         self.view.borrow_mut().clear_design();
     }
 
-    /// Forwards all needed update to the view
+    /// Forwards all needed update to the view.
     pub fn update_view(&mut self, app_state: &AppState, older_app_state: &AppState) {
         if self.discs_need_update(app_state, older_app_state) {
             self.update_discs(app_state);
@@ -329,7 +329,7 @@ impl Data {
         self.pivot_update = true;
     }
 
-    /// Convert a selection into a set of elements
+    /// Convert a selection into a set of elements.
     fn expand_selection(
         &self,
         object_type: ObjectType,
@@ -390,7 +390,7 @@ impl Data {
         ret
     }
 
-    /// Return the instances of selected spheres
+    /// Return the instances of selected spheres.
     pub fn get_selected_spheres(
         &self,
         selection: &[Selection],
@@ -436,7 +436,7 @@ impl Data {
         ret
     }
 
-    /// Return the instances of selected tubes
+    /// Return the instances of selected tubes.
     pub fn get_selected_tubes(
         &self,
         selection: &[Selection],
@@ -482,7 +482,7 @@ impl Data {
         Rc::new(ret)
     }
 
-    /// Return the instances of candidate spheres
+    /// Return the instances of candidate spheres.
     pub fn get_candidate_spheres(
         &self,
         candidates: &[Selection],
@@ -528,7 +528,7 @@ impl Data {
         Rc::new(ret)
     }
 
-    /// Return the instances of candidate tubes
+    /// Return the instances of candidate tubes.
     pub fn get_candidate_tubes(
         &self,
         candidates: &[Selection],
@@ -574,7 +574,7 @@ impl Data {
         Rc::new(ret)
     }
 
-    /// Return the identifier of the group of the selected element
+    /// Return the identifier of the group of the selected element.
     pub fn get_selected_group(&self, app_state: &AppState) -> Option<u32> {
         match self.selected_element(app_state) {
             Some(SceneElement::DesignElement(design_id, element_id)) => {
@@ -615,7 +615,7 @@ impl Data {
             .map(|x| x as u32)
     }
 
-    /// Return the set of elements in a given group
+    /// Return the set of elements in a given group.
     fn get_group_member(&self, element: &Selection) -> HashSet<u32> {
         match element {
             Selection::Nucleotide(d_id, nucl) => self.designs[*d_id as usize]
@@ -651,7 +651,7 @@ impl Data {
         }
     }
 
-    /// Return the position of a given element, either in the world pov or in the model pov
+    /// Return the position of a given element, either in the world pov or in the model pov.
     fn get_element_position(
         &self,
         element: &SceneElement,
@@ -697,7 +697,7 @@ impl Data {
     }
 
     /// Update the selection by selecting the group to which a given nucleotide belongs. Return the
-    /// selected group
+    /// selected group.
     pub fn set_selection(
         &mut self,
         element: Option<SceneElement>,
@@ -780,7 +780,7 @@ impl Data {
     }
 
     /// If source is some nucleotide, target is some nucleotide and both nucleotides are
-    /// on the same design, return the pair of nucleotides. Otherwise return None
+    /// on the same design, return the pair of nucleotides. Otherwise return None.
     pub fn attempt_xover(
         &self,
         source: Option<&SceneElement>,
@@ -831,12 +831,12 @@ impl Data {
         };
     }
 
-    /// Clear self.selected
+    /// Clear self.selected.
     pub fn reset_selection(&mut self) {
         self.selected_position = None;
     }
 
-    /// Notify the view that the selected elements have been modified
+    /// Notify the view that the selected elements have been modified.
     fn update_selection(&mut self, selection: &[Selection], app_state: &AppState) {
         // little hack to avoid going several time through the same helix if several segments are
         // selected
@@ -926,7 +926,7 @@ impl Data {
         self.view.borrow_mut().set_selected_grid(grids);
     }
 
-    /// Return the sets of elements of the phantom helix
+    /// Return the sets of elements of the phantom helix.
     pub fn get_phantom_instances(
         &self,
         app_state: &AppState,
@@ -1122,7 +1122,7 @@ impl Data {
         }
     }
 
-    /// Set the set of candidates to a given nucleotide
+    /// Set the set of candidates to a given nucleotide.
     pub fn set_candidate(
         &mut self,
         element: Option<SceneElement>,
@@ -1174,7 +1174,7 @@ impl Data {
         }
     }
 
-    /// Clear the set of candidates to a given nucleotide
+    /// Clear the set of candidates to a given nucleotide.
     pub fn reset_candidate(&mut self) {
         self.candidate_element = None;
     }
@@ -1220,7 +1220,7 @@ impl Data {
         )
     }
 
-    /// Notify the view that the instances of candidates have changed
+    /// Notify the view that the instances of candidates have changed.
     fn update_candidate(&self, candidates: &[Selection], app_state: &AppState) {
         self.view.borrow_mut().update(ViewUpdate::RawDna(
             Mesh::CandidateTube,
@@ -1525,7 +1525,7 @@ impl Data {
             .update(ViewUpdate::GridLetter(letters));
     }
 
-    /// Notify the view of an update of the model matrices
+    /// Notify the view of an update of the model matrices.
     fn update_matrices(&self) {
         let mut matrices = Vec::new();
         for design in &self.designs {
@@ -1546,7 +1546,7 @@ impl Data {
             .and_then(|d| d.get_fitting_camera_position(basis, fovy, ratio))
     }
 
-    /// Return the point in the middle of the selected design
+    /// Return the point in the middle of the selected design.
     pub fn get_middle_point(&self, design_id: u32) -> Vec3 {
         self.designs[design_id as usize].middle_point()
     }
@@ -1763,7 +1763,7 @@ impl Data {
         }
     }
 
-    /// Return a default selected element when no center of selection was provided
+    /// Return a default selected element when no center of selection was provided.
     fn default_element(&self, app_state: &AppState) -> Option<SceneElement> {
         log::trace!("Using default element");
         let selected_object = app_state.get_selection().first()?;

@@ -138,9 +138,6 @@ version.workspace = true
 [features]
 log_after_renderer_setup = []
 dx12_only = []
-# This feature gates content in the ensnano_upcoming private
-# crate
-ensnano_upcoming = []
 
 [lints]
 workspace = true
@@ -247,7 +244,6 @@ big_endian_bytes = "allow"
 clone_on_ref_ptr = "allow" # TODO: warn (too much manual work for now)
 cognitive_complexity = "allow" # TODO: warn (surprisingly good suggestions)
 default_numeric_fallback = "allow"
-doc_paragraphs_missing_punctuation = "allow"
 else_if_without_else = "allow"
 exhaustive_enums = "allow"
 exhaustive_structs = "allow"

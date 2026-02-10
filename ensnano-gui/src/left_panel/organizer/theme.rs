@@ -1,4 +1,4 @@
-//! Customize the theme of ENSnano
+//! Customize the theme of ENSnano.
 
 use iced::{
     Background, Border, Color, Shadow, Vector,
@@ -61,7 +61,7 @@ impl ColorGradient {
     }
 }
 
-/// “Parent” theme
+/// “Parent” theme.
 pub(super) struct OrganizerTheme {
     gradient: ColorGradient,
     text_color: Color,
@@ -70,7 +70,7 @@ pub(super) struct OrganizerTheme {
     max_level: usize,
 }
 
-/// “Level” theme
+/// “Level” theme.
 #[derive(Debug, Copy, Clone)]
 pub(super) struct OrganizerThemeLevel {
     gradient: ColorGradient,
@@ -87,7 +87,7 @@ pub(crate) enum SelectionType {
     Full,
 }
 
-/// “Selection” theme
+/// “Selection” theme.
 struct OrganizerThemeSelection {
     selected: SelectionType,
     text_color: Color,
@@ -95,7 +95,7 @@ struct OrganizerThemeSelection {
     border_color: Color,
 }
 
-/// Implements the [Button](button::Button) style sheet for [`OrganizerThemeSelection`]
+/// Implements the [Button](button::Button) style sheet for [`OrganizerThemeSelection`].
 impl button::StyleSheet for OrganizerThemeSelection {
     type Style = iced::Theme;
     //type Style = iced_style::theme::Button;
@@ -147,7 +147,7 @@ impl button::StyleSheet for OrganizerThemeSelection {
     }
 }
 
-/// Implements the [Button](button::Button) style sheet for [`OrganizerThemeLevel`]
+/// Implements the [Button](button::Button) style sheet for [`OrganizerThemeLevel`].
 impl button::StyleSheet for OrganizerThemeLevel {
     type Style = ();
     //type Style = iced_style::theme::Button;
@@ -192,7 +192,7 @@ impl button::StyleSheet for OrganizerThemeLevel {
     }
 }
 
-/// Implements the [Container](container::Container) style sheet for [`OrganizerThemeLevel`]
+/// Implements the [Container](container::Container) style sheet for [`OrganizerThemeLevel`].
 impl container::StyleSheet for OrganizerThemeLevel {
     type Style = iced::Theme;
 

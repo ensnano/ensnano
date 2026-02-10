@@ -63,17 +63,8 @@ pub struct RawDnaInstance {
     _padding: [f32; 1],
 }
 
-// impl RawDnaInstance {
-//     pub fn with_expected_length(self, expected_length: f32) -> Self {
-//         Self {
-//             expected_length,
-//             ..self
-//         }
-//     }
-// }
-
 pub struct PlainRectangleInstance {
-    /// The position in space
+    /// The position in space.
     pub position: Vec3,
     pub color: Vec4,
     pub id: u32,
@@ -154,7 +145,7 @@ impl Instantiable for PlainRectangleInstance {
 }
 
 pub struct SphereInstance {
-    /// The position in space
+    /// The position in space.
     pub position: Vec3,
     pub color: Vec4,
     pub id: u32,
@@ -427,7 +418,7 @@ impl Instantiable for TubeInstance {
     }
 }
 
-/// TUBE TIP INSTANCE
+/// TUBE TIP INSTANCE.
 pub struct TubeLidInstance {
     pub position: Vec3,
     pub rotor: Rotor3,
@@ -506,7 +497,7 @@ impl Instantiable for TubeLidInstance {
     }
 }
 
-/// SLICED TUBE INSTANCE
+/// SLICED TUBE INSTANCE.
 pub struct SlicedTubeInstance {
     pub position: Vec3,
     pub rotor: Rotor3,
@@ -616,7 +607,7 @@ impl Instantiable for SlicedTubeInstance {
     }
 }
 
-/// CONE INSTANCE
+/// CONE INSTANCE.
 pub struct ConeInstance {
     pub position: Vec3,
     pub rotor: Rotor3,

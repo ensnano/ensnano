@@ -527,12 +527,12 @@ impl ControllerState for NormalState {
     }
 }
 
-/// What is being affected by the translation
+/// What is being affected by the translation.
 #[derive(Clone, Debug, Copy, Eq, PartialEq)]
 pub(crate) enum WidgetTarget {
-    /// The selected elements
+    /// The selected elements.
     Object,
-    /// The selection's pivot
+    /// The selection's pivot.
     Pivot,
 }
 

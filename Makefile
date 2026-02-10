@@ -148,7 +148,11 @@ win:
 upcoming:
 	mv -i Cargo.toml Cargo.toml.noupcoming
 	mv -i Cargo.toml.upcoming Cargo.toml
+	mv -i ensnano-design/Cargo.toml ensnano-design/Cargo.toml.noupcoming
+	mv -i ensnano-design/Cargo.toml.upcoming ensnano-design/Cargo.toml
 
 noupcoming:
 	mv -i Cargo.toml Cargo.toml.upcoming
 	mv -i Cargo.toml.noupcoming Cargo.toml
+	mv -i ensnano-design/Cargo.toml ensnano-design/Cargo.toml.upcoming
+	mv -i ensnano-design/Cargo.toml.noupcoming ensnano-design/Cargo.toml

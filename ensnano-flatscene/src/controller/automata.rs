@@ -993,7 +993,7 @@ impl ControllerState for ReleasedPivot {
 
 /// This state in entered when use user has clicked after realizing a pivot. If the user moves
 /// their mouse, go in moving camera mode without unselecting the helix. If the user release their
-/// click without moving their mouse, clear selection
+/// click without moving their mouse, clear selection.
 pub(super) struct LeavingPivot {
     translation_pivots: Vec<FlatNucl>,
     rotation_pivots: Vec<Vec2>,
@@ -2392,7 +2392,7 @@ impl ControllerState for Pasting {
     }
 }
 
-/// The user is drawing a selection
+/// The user is drawing a selection.
 struct DraggingSelection {
     pub mouse_position: PhysicalPosition<f64>,
     pub fixed_corner: PhysicalPosition<f64>,

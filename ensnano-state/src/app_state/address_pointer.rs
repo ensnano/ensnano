@@ -58,9 +58,7 @@ impl<T: Default + Clone> AddressPointer<T> {
     pub fn make_mut(&mut self) -> &mut T {
         Arc::make_mut(&mut self.0)
     }
-}
 
-impl<T: Clone + Default> AddressPointer<T> {
     /// Return a clone of the pointed value.
     pub fn clone_inner(&self) -> T {
         self.0.deref().clone()
@@ -68,7 +66,7 @@ impl<T: Clone + Default> AddressPointer<T> {
 }
 
 impl<T: Default + PartialEq> AddressPointer<T> {
-    /// Test the content of two pointers for equality
+    /// Test the content of two pointers for equality.
     pub fn content_equal(&self, content: &T) -> bool {
         self.0.as_ref() == content
     }

@@ -1030,7 +1030,7 @@ impl View {
     /// Currently these circles are:
     ///  * Helices circles
     ///  * Cross-over suggestions
-    ///  * Torsion indications
+    ///  * Torsion indications.
     fn generate_circle_instances(&self, camera: &CameraPtr) -> Vec<CircleInstance> {
         let mut ret = Vec::new();
         self.collect_helices_circles(&mut ret, camera);
@@ -1047,7 +1047,7 @@ impl View {
         ret
     }
 
-    /// Add the helices circles to the list of circle instances
+    /// Add the helices circles to the list of circle instances.
     fn collect_helices_circles(&self, circles: &mut Vec<CircleInstance>, camera: &CameraPtr) {
         for h in &self.helices {
             if let Some(circle) = h.get_circle(camera, self.groups.as_ref()) {
@@ -1086,7 +1086,7 @@ impl View {
         }
     }
 
-    /// Collect the cross-over suggestions
+    /// Collect the cross-over suggestions.
     fn collect_suggestions(&self, circles: &mut Vec<CircleInstance>) {
         let mut last_blue = None;
         let mut k = 1000;
@@ -1112,7 +1112,7 @@ impl View {
         }
     }
 
-    /// Collect the candidate/selection circles
+    /// Collect the candidate/selection circles.
     fn collect_nucl_highlight(&self, circles: &mut Vec<CircleInstance>) {
         for n in &self.candidate_nucl {
             if let Some(h1) = self.helices.get(n.helix.flat.0) {

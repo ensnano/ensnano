@@ -621,7 +621,7 @@ impl Organizer {
         self.must_update_tree = true;
     }
 
-    /// Update the elements in the tree and return true if the tree graph was modified
+    /// Update the elements in the tree and return true if the tree graph was modified.
     pub(super) fn update_elements(&mut self, elements: &[DesignElement]) -> bool {
         for s in &mut self.sections {
             s.elements.clear();
@@ -685,7 +685,7 @@ enum GroupContent {
     },
     Node {
         id: OrganizerNodeId,
-        /// Name of the Group
+        /// Name of the Group.
         name: String,
         expanded: bool,
         view: NodeTitleBar,
@@ -874,7 +874,7 @@ impl GroupContent {
         }
     }
 
-    /// Add content to an existing group
+    /// Add content to an existing group.
     fn add_content(&mut self, id_local: &[usize], content: Vec<DesignElementKey>) -> Option<()> {
         match self {
             Self::Leaf { .. } => {
@@ -1207,7 +1207,7 @@ impl GroupContent {
     /// Auxiliary function for deletion of useless leaves.
     ///
     /// If self is a Leaf return true iff it owns an element that is *not* in elements.keys(), and
-    /// in this case adds its own node identifier to `ids_to_remove`
+    /// in this case adds its own node identifier to `ids_to_remove`.
     ///
     /// If self is a group, apply recursively this process to all its children and then return
     /// true iff all the children need to be removed.

@@ -602,9 +602,9 @@ impl AppState {
 
 #[derive(Clone, Default)]
 pub struct AppState_ {
-    /// The set of currently selected objects
+    /// The set of currently selected objects.
     pub selection: AppStateSelection,
-    /// The set of objects that are "one click away from being selected"
+    /// The set of objects that are "one click away from being selected".
     pub candidates: AddressPointer<Vec<Selection>>,
     pub selection_mode: SelectionMode,
     /// A pointer to the design currently being edited. The pointed design is never mutated.
@@ -622,7 +622,7 @@ pub struct AppState_ {
     pub path_to_current_design: Option<PathBuf>,
     pub unrooted_surface: CurrentUnrootedSurface,
     pub simulation_interface_handle: SimulationInterfaceHandle,
-    // channel reader for simulations
+    /// channel reader for simulations.
     pub channel_reader: ScaffoldShiftReader,
 }
 

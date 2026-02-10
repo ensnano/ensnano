@@ -4,7 +4,7 @@ use crate::create_buffer_with_data;
 use std::rc::Rc;
 use wgpu::{BindGroup, BindGroupLayout, Buffer, BufferDescriptor, Device, Queue};
 
-/// A bind group with an associated buffer whose size may vary
+/// A bind group with an associated buffer whose size may vary.
 pub struct DynamicBindGroup {
     layout: BindGroupLayout,
     buffer: Buffer,
@@ -119,7 +119,7 @@ impl DynamicBindGroup {
     }
 }
 
-/// A structure that manages a bind group associated to a uniform buffer
+/// A structure that manages a bind group associated to a uniform buffer.
 pub struct UniformBindGroup {
     layout: BindGroupLayout,
     buffer: Buffer,

@@ -77,7 +77,7 @@ pub fn read_scaffold_seq(
     }
 }
 
-/// Shift the scaffold at an optimized position and return the corresponding score
+/// Shift the scaffold at an optimized position and return the corresponding score.
 pub(crate) fn optimize_shift(
     design: Arc<Design>,
     nucl_collection: Arc<NuclCollection>,
@@ -130,7 +130,7 @@ fn get_shift_optimization_result(
 }
 
 /// Evaluate a scaffold position. The score of the position is given by
-/// score = nb((A|T)^7) + 10 nb(G^4 | C ^4) + 100 nb (G^5 | C^5) + 1000 nb (G^6 | C^6)
+/// score = nb((A|T)^7) + 10 nb(G^4 | C ^4) + 100 nb (G^5 | C^5) + 1000 nb (G^6 | C^6).
 #[expect(clippy::needless_raw_strings)]
 fn evaluate_shift(design: &Design, basis_map: &BTreeMap<Nucl, char>) -> (usize, String) {
     let mut ret = 0;

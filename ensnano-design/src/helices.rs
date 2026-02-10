@@ -25,7 +25,7 @@ use std::{
 };
 use ultraviolet::{DRotor3, DVec3, Isometry2, Mat4, Rotor3, Vec2, Vec3};
 
-/// A structure mapping helices identifier to `Helix` objects
+/// A structure mapping helices identifier to `Helix` objects.
 #[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct Helices(pub(super) Arc<BTreeMap<usize, Arc<Helix>>>);
 
@@ -145,10 +145,10 @@ pub struct Helix {
     /// Position of the origin of the helix axis.
     pub position: Vec3,
 
-    /// Orientation of the helix
+    /// Orientation of the helix.
     pub orientation: Rotor3,
 
-    /// Helix Parameters of the helix
+    /// Helix Parameters of the helix.
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub helix_parameters: Option<HelixParameters>,
 
@@ -165,11 +165,11 @@ pub struct Helix {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub grid_position: Option<HelixGridPosition>,
 
-    /// Representation of the helix in 2d
+    /// Representation of the helix in 2d.
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub isometry2d: Option<Isometry2>,
 
-    /// Additional segments for representing the helix in 2d
+    /// Additional segments for representing the helix in 2d.
     #[serde(
         skip_serializing_if = "Vec::is_empty",
         default,
@@ -178,7 +178,7 @@ pub struct Helix {
     pub additional_isometries: Vec<AdditionalHelix2D>,
 
     #[serde(default = "Vec2::one")]
-    /// Symmetry applied inside the representation of the helix in 2d
+    /// Symmetry applied inside the representation of the helix in 2d.
     pub symmetry: Vec2,
 
     /// Roll of the helix. A roll equal to 0 means that the nucleotide 0 of the forward strand is
@@ -203,7 +203,7 @@ pub struct Helix {
     )]
     pub(crate) instantiated_curve: Option<InstantiatedCurve>,
 
-    // TODO: remove? Seems to always be 0.0
+    // TODO: remove? Seems to always be 0.0.
     #[serde(default, skip_serializing_if = "f32_is_zero")]
     pub(crate) delta_bases_per_turn: f32,
 
@@ -211,7 +211,7 @@ pub struct Helix {
     pub initial_nt_index: isize,
 
     /// An optional helix whose roll is copied from and to which self transfer forces applying
-    /// to its roll
+    /// to its roll.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub support_helix: Option<usize>,
 
@@ -596,7 +596,7 @@ impl Helix {
         self.theta_n_to_space_pos(&p, n, theta, forward)
     }
 
-    ///Return an helix that makes an ideal cross-over with self at position n
+    ///Return an helix that makes an ideal cross-over with self at position n.
     #[must_use]
     pub fn ideal_neighbor(&self, n: isize, forward: bool, p: &HelixParameters) -> Self {
         let p = match self.helix_parameters {
@@ -811,7 +811,7 @@ impl NuclCollection {
     }
 }
 
-/// Represents the axis of an helix
+/// Represents the axis of an helix.
 #[derive(Debug, Clone, Copy)]
 pub enum Axis<'a> {
     Line {
@@ -842,27 +842,6 @@ pub enum OwnedAxis {
     },
 }
 
-impl Axis<'_> {
-    pub fn to_owned(self) -> OwnedAxis {
-        match self {
-            Self::Line { origin, direction } => OwnedAxis::Line { origin, direction },
-            Self::Curve {
-                shift,
-                points,
-                nucl_t0,
-                orientation,
-                position,
-            } => OwnedAxis::Curve {
-                shift,
-                points: points.to_vec(),
-                nucl_t0,
-                orientation,
-                position,
-            },
-        }
-    }
-}
-
 impl OwnedAxis {
     pub fn borrow(&self) -> Axis<'_> {
         match self {
@@ -888,6 +867,25 @@ impl OwnedAxis {
 }
 
 impl Axis<'_> {
+    pub fn to_owned(self) -> OwnedAxis {
+        match self {
+            Self::Line { origin, direction } => OwnedAxis::Line { origin, direction },
+            Self::Curve {
+                shift,
+                points,
+                nucl_t0,
+                orientation,
+                position,
+            } => OwnedAxis::Curve {
+                shift,
+                points: points.to_vec(),
+                nucl_t0,
+                orientation,
+                position,
+            },
+        }
+    }
+
     #[must_use]
     pub fn transformed(&self, model_matrix: &Mat4) -> Self {
         match self {
@@ -912,14 +910,15 @@ impl Axis<'_> {
     }
 }
 
-/// An additional 2d helix used to represent an helix in the 2d view
+/// An additional 2d helix used to represent an helix in the 2d view.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AdditionalHelix2D {
     /// The minimum nucleotide index of the helix.
-    /// Nucleotides with small indices are represented by the previous helix
+    ///
+    /// Nucleotides with small indices are represented by the previous helix.
     pub left: isize,
     /// The Isometry to be applied after applying the isometry of the main helix 2d representation
-    /// to obtain this segment
+    /// to obtain this segment.
     pub additional_isometry: Option<Isometry2>,
     pub additional_symmetry: Option<Vec2>,
 }

@@ -230,7 +230,7 @@ fn get_sheet_instance(desc: SheetDescriptor) -> Sheet2D {
     ret
 }
 
-/// Returns a sphere representing the corner of a bezier sheet
+/// Returns a sphere representing the corner of a bezier sheet.
 fn sheet_corner_instance(corner_desc: BezierSheetCornerDesc) -> RawDnaInstance {
     let position = corner_desc
         .sheet

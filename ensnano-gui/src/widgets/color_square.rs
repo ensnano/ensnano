@@ -18,13 +18,13 @@ use iced_wgpu::primitive::Custom;
 
 const DEFAULT_SIZE: f32 = 90.0;
 
-/// The State of a [ColorSquare]
+/// The State of a [ColorSquare].
 #[derive(Default, Clone, Eq, PartialEq)]
 pub(crate) struct ColorSquareState {
     clicked: bool,
 }
 
-/// A ColorSquare Widget
+/// A ColorSquare Widget.
 pub struct ColorSquare {
     width: Length,
     height: Length,

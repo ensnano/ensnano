@@ -25,7 +25,7 @@ use iced_runtime::{Command, Program};
 use std::sync::{Arc, Mutex};
 use winit::dpi::LogicalSize;
 
-/// Top bar object
+/// Top bar object.
 pub struct TopBarState {
     /// ENSnano requests handle to which forwards messages.
     requests: Arc<Mutex<Requests>>,

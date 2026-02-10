@@ -1,4 +1,4 @@
-//! Test suite for the `MainState` structure
+//! Test suite for the `MainState` structure.
 
 use ensnano_design::nucl::Nucl;
 use ensnano_state::{
@@ -118,7 +118,7 @@ fn recolor_staple_undoable() {
 }
 
 /// A design with one strand h1: -1 -> 7 ; h2: -1 <- 7 ; h3: 0 -> 9 that can be pasted on
-/// helices 4, 5 and 6
+/// helices 4, 5 and 6.
 fn pastable_design() -> AppState {
     let path = test_path("pastable.json");
     AppState::import_design(path).ok().unwrap()

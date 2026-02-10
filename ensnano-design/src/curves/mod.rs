@@ -14,6 +14,9 @@ pub mod torus_concentric_circle;
 pub mod tube_spiral;
 pub mod twist;
 
+#[cfg(feature = "ensnano_upcoming")]
+use ensnano_upcoming::{PillTennisBallSeamDescriptor, SphereTennisBallSeamDescriptor};
+
 use self::{
     bezier::{
         BezierEnd, CubicBezierConstructor, InstantiatedPiecewiseBezier,
@@ -23,10 +26,7 @@ use self::{
     chebyshev::{PolynomialCoordinates, PolynomialCoordinates_},
     circle_curve::CircleDescriptor,
     revolution::{InterpolatedCurveDescriptor, InterpolationDescriptor},
-    sphere_concentric_circle::{
-        PillConcentricStadiumDescriptor, PillTennisBallSeamDescriptor,
-        SphereConcentricCircleDescriptor, SphereTennisBallSeamDescriptor,
-    },
+    sphere_concentric_circle::PillConcentricStadiumDescriptor,
     sphere_like_spiral::SphereLikeSpiralDescriptor,
     spiral_cylinder::SpiralCylinderDescriptor,
     supertwist::SuperTwist,
@@ -41,6 +41,7 @@ use self::{
 use crate::{
     bezier_plane::{BezierPathData, BezierPathId},
     chebyshev_polynomials::{self, ChebyshevPolynomial},
+    curves::sphere_concentric_circle::SphereConcentricCircleDescriptor,
     grid::{Edge, GridData, GridPosition, grid_collection::FreeGrids},
     helices::{AdditionalHelix2D, Helix},
     parameters::HelixParameters,
@@ -55,7 +56,7 @@ use std::{
 };
 use ultraviolet::{DMat3, DVec3, Isometry2, Rotor3, Vec2, Vec3};
 
-/// To compute curvilinear abscissa over long distances
+/// To compute curvilinear abscissa over long distances.
 const DELTA_MAX: f64 = 256.0;
 
 const EPSILON: f64 = 1e-6;
@@ -69,7 +70,7 @@ pub trait Curved {
     /// The upper bound of the definition domain of `Self::position`.
     ///
     /// By default this is 1.0, but for curves that are infinite
-    /// this value may be overridden to allow the helix to have more nucleotides
+    /// this value may be overridden to allow the helix to have more nucleotides.
     fn t_max(&self) -> f64 {
         1.0
     }
@@ -77,7 +78,7 @@ pub trait Curved {
     /// The lower bound of the definition domain of `Self::position`.
     ///
     /// By default this is 0.0, but for curves that are infinite
-    /// this value may be overridden to allow the helix to have more nucleotides
+    /// this value may be overridden to allow the helix to have more nucleotides.
     fn t_min(&self) -> f64 {
         0.0
     }
@@ -104,7 +105,7 @@ pub trait Curved {
     /// The curvature of the curve at point `t`.
     ///
     /// This is the radius of the osculating circle of the curve at the point `t`.
-    /// See `https://en.wikipedia.org/wiki/Curvature`
+    /// See `https://en.wikipedia.org/wiki/Curvature`.
     fn curvature(&self, t: f64) -> f64 {
         let speed = self.speed(t);
         let numerator = speed.cross(self.acceleration(t)).mag();
@@ -114,7 +115,7 @@ pub trait Curved {
 
     /// The torsion of the curve at point `t`.
     ///
-    /// See `https://en.wikipedia.org/wiki/Torsion_of_a_curve`
+    /// See `https://en.wikipedia.org/wiki/Torsion_of_a_curve`.
     fn torsion(&self, t: f64) -> f64 {
         let eps: f64 = 1e-3;
         let p0 = self.position(t);
@@ -135,7 +136,7 @@ pub trait Curved {
         self.torsion(t).abs()
     }
 
-    /// The bounds of the curve
+    /// The bounds of the curve.
     fn bounds(&self) -> CurveBounds;
 
     /// Curved for which there exists a closed formula for the curvilinear abscissa can override
@@ -151,7 +152,7 @@ pub trait Curved {
     }
 
     /// If the rise along the curve is not the same than for straight helices, this method should
-    /// be overridden
+    /// be overridden.
     fn rise_ratio(&self) -> Option<f64> {
         None
     }
@@ -220,13 +221,13 @@ pub trait Curved {
     }
 
     /// This method can be overridden to express the fact the a curve is a portion of a surface.
-    /// In that case return the information about the surface at the point corresponding to time t
+    /// In that case return the information about the surface at the point corresponding to time t.
     fn surface_info_time(&self, _t: f64, _helix_id: usize) -> Option<SurfaceInfo> {
         None
     }
 
     /// This method can be overridden to express the fact the a curve is a portion of a surface.
-    /// In that case return the information about the surface at the specified point
+    /// In that case return the information about the surface at the specified point.
     fn surface_info(&self, _point: SurfacePoint) -> Option<SurfaceInfo> {
         None
     }
@@ -244,7 +245,7 @@ pub trait Curved {
     }
 
     /// Return true if the discretization algorithm should precompute polynomials for the
-    /// curvilinear abscissa
+    /// curvilinear abscissa.
     fn pre_compute_polynomials(&self) -> bool {
         false
     }
@@ -256,18 +257,18 @@ pub trait Curved {
     fn abscissa_converter(&self) -> Option<AbscissaConverter> {
         None
     }
-    /// Choose the iterative frame algorithm used to discretize
+    /// Choose the iterative frame algorithm used to discretize.
     fn use_original_iterative_frame_algorithm(&self) -> bool {
         false
     }
 }
 
-/// The bounds of the curve. This describe the interval in which t can be taken
+/// The bounds of the curve. This describe the interval in which t can be taken.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CurveBounds {
-    /// t ∈ [t_min, t_max]
+    /// t ∈ [t_min, t_max].
     Finite,
-    /// t ∈ ]-∞, +∞[
+    /// t ∈ ]-∞, +∞[.
     BiInfinite,
 }
 
@@ -285,7 +286,7 @@ pub struct SurfaceInfo {
     pub point: SurfacePoint,
     pub section_tangent: Vec2,
     /// A frame where the up vector is normal to the revolution plane, and the right vector is
-    /// tangent to the revolution circle
+    /// tangent to the revolution circle.
     pub local_frame: Rotor3,
     pub position: Vec3,
 }
@@ -296,21 +297,21 @@ pub struct SurfaceInfo {
 pub struct Curve {
     /// The object describing the curve.
     pub geometry: Arc<dyn Curved + Sync + Send>,
-    /// The precomputed points along the curve for the forward strand
+    /// The precomputed points along the curve for the forward strand.
     pub(crate) positions_forward: Vec<DVec3>,
-    /// The precomputed points along the curve for the backward strand
+    /// The precomputed points along the curve for the backward strand.
     pub(crate) positions_backward: Vec<DVec3>,
-    /// The precomputed orthogonal frames moving along the curve for the forward strand
+    /// The precomputed orthogonal frames moving along the curve for the forward strand.
     axis_forward: Vec<DMat3>,
-    /// The precomputed orthogonal frames moving along the curve for the backward strand
+    /// The precomputed orthogonal frames moving along the curve for the backward strand.
     axis_backward: Vec<DMat3>,
-    /// The precomputed values of the curve's curvature
+    /// The precomputed values of the curve's curvature.
     curvature: Vec<f64>,
-    /// The precomputed values of the curve's torsion
+    /// The precomputed values of the curve's torsion.
     torsion: Vec<f64>,
-    /// The index in positions that was reached when t became non-negative
+    /// The index in positions that was reached when t became non-negative.
     nucl_t0: usize,
-    /// The time point at which nucleotides where positioned
+    /// The time point at which nucleotides where positioned.
     t_nucl: Arc<Vec<f64>>,
     nucl_pos_full_turn: Option<f64>,
     /// The first nucleotide of each additional helix segment needed to represent the curve.
@@ -547,7 +548,7 @@ pub fn perpendicular_basis(point: DVec3) -> DMat3 {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-/// A descriptor of the curve that can be serialized
+/// A descriptor of the curve that can be serialized.
 pub enum CurveDescriptor {
     Bezier(CubicBezierConstructor),
     SphereLikeSpiral(SphereLikeSpiralDescriptor),
@@ -555,9 +556,11 @@ pub enum CurveDescriptor {
     TubeSpiral(TubeSpiralDescriptor),
     SphereConcentricCircle(SphereConcentricCircleDescriptor),
     Circle(CircleDescriptor),
+    #[cfg(feature = "ensnano_upcoming")]
     SphereTennisBallSeam(SphereTennisBallSeamDescriptor),
-    PillConcentricStadium(PillConcentricStadiumDescriptor),
+    #[cfg(feature = "ensnano_upcoming")]
     PillTennisBallSeam(PillTennisBallSeamDescriptor),
+    PillConcentricStadium(PillConcentricStadiumDescriptor),
     Twist(Twist),
     Torus(Torus),
     TorusConcentricCircle(TorusConcentricCircleDescriptor),
@@ -700,7 +703,7 @@ pub struct InstantiatedCurveDescriptor {
 }
 
 impl InstantiatedCurveDescriptor {
-    /// Reads the design data to resolve the reference to elements of the design
+    /// Reads the design data to resolve the reference to elements of the design.
     pub fn instantiate(desc: Arc<CurveDescriptor>, grid_reader: &GridData) -> Self {
         let instance = match desc.as_ref() {
             CurveDescriptor::Bezier(b) => InstantiatedCurveDescriptor_::Bezier(b.clone()),
@@ -712,14 +715,16 @@ impl InstantiatedCurveDescriptor {
             CurveDescriptor::SphereConcentricCircle(t) => {
                 InstantiatedCurveDescriptor_::SphereConcentricCircle(t.clone())
             }
+            #[cfg(feature = "ensnano_upcoming")]
             CurveDescriptor::SphereTennisBallSeam(t) => {
                 InstantiatedCurveDescriptor_::SphereTennisBallSeam(t.clone())
             }
-            CurveDescriptor::PillConcentricStadium(t) => {
-                InstantiatedCurveDescriptor_::PillConcentricStadium(t.clone())
-            }
+            #[cfg(feature = "ensnano_upcoming")]
             CurveDescriptor::PillTennisBallSeam(t) => {
                 InstantiatedCurveDescriptor_::PillTennisBallSeam(t.clone())
+            }
+            CurveDescriptor::PillConcentricStadium(t) => {
+                InstantiatedCurveDescriptor_::PillConcentricStadium(t.clone())
             }
             CurveDescriptor::SpiralCylinder(t) => {
                 InstantiatedCurveDescriptor_::SpiralCylinder(t.clone())
@@ -817,15 +822,17 @@ impl InstantiatedCurveDescriptor {
             CurveDescriptor::SphereConcentricCircle(s) => Some(
                 InstantiatedCurveDescriptor_::SphereConcentricCircle(s.clone()),
             ),
+            #[cfg(feature = "ensnano_upcoming")]
             CurveDescriptor::SphereTennisBallSeam(s) => Some(
                 InstantiatedCurveDescriptor_::SphereTennisBallSeam(s.clone()),
             ),
-            CurveDescriptor::PillConcentricStadium(s) => Some(
-                InstantiatedCurveDescriptor_::PillConcentricStadium(s.clone()),
-            ),
+            #[cfg(feature = "ensnano_upcoming")]
             CurveDescriptor::PillTennisBallSeam(s) => {
                 Some(InstantiatedCurveDescriptor_::PillTennisBallSeam(s.clone()))
             }
+            CurveDescriptor::PillConcentricStadium(s) => Some(
+                InstantiatedCurveDescriptor_::PillConcentricStadium(s.clone()),
+            ),
             CurveDescriptor::SpiralCylinder(s) => {
                 Some(InstantiatedCurveDescriptor_::SpiralCylinder(s.clone()))
             }
@@ -863,7 +870,7 @@ impl InstantiatedCurveDescriptor {
     }
 
     /// Return true if the instantiated curve descriptor was built using these curve descriptor and
-    /// grid data
+    /// grid data.
     fn is_up_to_date(
         &self,
         desc: &Arc<CurveDescriptor>,
@@ -945,9 +952,11 @@ enum InstantiatedCurveDescriptor_ {
     TubeSpiral(TubeSpiralDescriptor),
     Circle(CircleDescriptor),
     SphereConcentricCircle(SphereConcentricCircleDescriptor),
+    #[cfg(feature = "ensnano_upcoming")]
     SphereTennisBallSeam(SphereTennisBallSeamDescriptor),
-    PillConcentricStadium(PillConcentricStadiumDescriptor),
+    #[cfg(feature = "ensnano_upcoming")]
     PillTennisBallSeam(PillTennisBallSeamDescriptor),
+    PillConcentricStadium(PillConcentricStadiumDescriptor),
     SpiralCylinder(SpiralCylinderDescriptor),
     Twist(Twist),
     Torus(Torus),
@@ -972,11 +981,11 @@ enum InstantiatedCurveDescriptor_ {
 /// design have been replaced by their actual position in space using the data in `grids`.
 #[derive(Clone, Debug)]
 pub struct InstantiatedPiecewiseBezierDescriptor {
-    /// The instantiated descriptor
+    /// The instantiated descriptor.
     desc: InstantiatedPiecewiseBezier,
-    /// The data that was used to map grid positions to space position
+    /// The data that was used to map grid positions to space position.
     grids: FreeGrids,
-    /// The data that was used to map BezierVertex to grids
+    /// The data that was used to map BezierVertex to grids.
     paths_data: Option<BezierPathData>,
 }
 
@@ -1072,15 +1081,16 @@ impl InstantiatedCurveDescriptor_ {
                 constructor.with_helix_parameters(*helix_parameters),
                 helix_parameters,
             )),
+            #[cfg(feature = "ensnano_upcoming")]
             Self::SphereTennisBallSeam(constructor) => Arc::new(Curve::new(
-                constructor.with_helix_parameters(*helix_parameters),
+                constructor.to_tennis_ball_seam(),
                 helix_parameters,
             )),
+            #[cfg(feature = "ensnano_upcoming")]
+            Self::PillTennisBallSeam(constructor) => {
+                Arc::new(Curve::new(constructor.construct(), helix_parameters))
+            }
             Self::PillConcentricStadium(constructor) => Arc::new(Curve::new(
-                constructor.with_helix_parameters(*helix_parameters),
-                helix_parameters,
-            )),
-            Self::PillTennisBallSeam(constructor) => Arc::new(Curve::new(
                 constructor.with_helix_parameters(*helix_parameters),
                 helix_parameters,
             )),
@@ -1164,15 +1174,17 @@ impl InstantiatedCurveDescriptor_ {
                 constructor.clone().with_helix_parameters(*helix_parameters),
                 helix_parameters,
             ))),
+            #[cfg(feature = "ensnano_upcoming")]
             Self::SphereTennisBallSeam(constructor) => Some(Arc::new(Curve::new(
-                constructor.clone().with_helix_parameters(*helix_parameters),
+                constructor.clone().to_tennis_ball_seam(),
+                helix_parameters,
+            ))),
+            #[cfg(feature = "ensnano_upcoming")]
+            Self::PillTennisBallSeam(constructor) => Some(Arc::new(Curve::new(
+                constructor.clone().construct(),
                 helix_parameters,
             ))),
             Self::PillConcentricStadium(constructor) => Some(Arc::new(Curve::new(
-                constructor.clone().with_helix_parameters(*helix_parameters),
-                helix_parameters,
-            ))),
-            Self::PillTennisBallSeam(constructor) => Some(Arc::new(Curve::new(
                 constructor.clone().with_helix_parameters(*helix_parameters),
                 helix_parameters,
             ))),
@@ -1239,13 +1251,15 @@ impl InstantiatedCurveDescriptor_ {
             Self::SphereConcentricCircle(constructor) => Some(Curve::compute_length(
                 constructor.clone().with_helix_parameters(*helix_parameters),
             )),
+            #[cfg(feature = "ensnano_upcoming")]
             Self::SphereTennisBallSeam(constructor) => Some(Curve::compute_length(
-                constructor.clone().with_helix_parameters(*helix_parameters),
+                constructor.clone().to_tennis_ball_seam(),
             )),
+            #[cfg(feature = "ensnano_upcoming")]
+            Self::PillTennisBallSeam(constructor) => {
+                Some(Curve::compute_length(constructor.clone().construct()))
+            }
             Self::PillConcentricStadium(constructor) => Some(Curve::compute_length(
-                constructor.clone().with_helix_parameters(*helix_parameters),
-            )),
-            Self::PillTennisBallSeam(constructor) => Some(Curve::compute_length(
                 constructor.clone().with_helix_parameters(*helix_parameters),
             )),
             Self::Twist(twist) => Some(Curve::compute_length(twist.clone())),
@@ -1300,13 +1314,15 @@ impl InstantiatedCurveDescriptor_ {
             Self::SphereConcentricCircle(constructor) => Some(Curve::path(
                 constructor.clone().with_helix_parameters(*helix_parameters),
             )),
-            Self::SphereTennisBallSeam(constructor) => Some(Curve::path(
-                constructor.clone().with_helix_parameters(*helix_parameters),
-            )),
+            #[cfg(feature = "ensnano_upcoming")]
+            Self::SphereTennisBallSeam(constructor) => {
+                Some(Curve::path(constructor.clone().to_tennis_ball_seam()))
+            }
+            #[cfg(feature = "ensnano_upcoming")]
+            Self::PillTennisBallSeam(constructor) => {
+                Some(Curve::path(constructor.clone().construct()))
+            }
             Self::PillConcentricStadium(constructor) => Some(Curve::path(
-                constructor.clone().with_helix_parameters(*helix_parameters),
-            )),
-            Self::PillTennisBallSeam(constructor) => Some(Curve::path(
                 constructor.clone().with_helix_parameters(*helix_parameters),
             )),
             Self::Twist(twist) => Some(Curve::path(twist.clone())),
@@ -1349,13 +1365,13 @@ impl InstantiatedCurveDescriptor_ {
 }
 
 #[derive(Default, Clone)]
-/// A map from curve descriptor to instantiated curves to avoid duplication of computations
+/// A map from curve descriptor to instantiated curves to avoid duplication of computations.
 pub struct CurveCache(pub(crate) HashMap<TwistedTorusDescriptor, Arc<Curve>>);
 
 #[derive(Clone)]
-/// An instantiated curve with pre-computed nucleotides positions and orientations
+/// An instantiated curve with pre-computed nucleotides positions and orientations.
 pub(super) struct InstantiatedCurve {
-    /// A descriptor of the instantiated curve
+    /// A descriptor of the instantiated curve.
     pub source: Arc<InstantiatedCurveDescriptor>,
     pub curve: Arc<Curve>,
 }
@@ -1387,7 +1403,7 @@ impl Helix {
                 .is_none()
         } else {
             // If helix should not be a curved, the descriptor is up-to-date iff there is no
-            // descriptor
+            // descriptor.
             self.instantiated_descriptor.is_some()
         }
     }

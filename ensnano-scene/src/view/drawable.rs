@@ -36,18 +36,18 @@ pub(super) trait Drawable {
     }
 }
 
-/// A structure that draw one object
+/// A structure that draw one object.
 pub(super) struct Drawer<D: Drawable> {
     device: Rc<Device>,
-    /// An update in the axis defining the planes to be drawn
+    /// An update in the axis defining the planes to be drawn.
     new_object: Option<D>,
-    /// The pipeline created by `self`
+    /// The pipeline created by `self`.
     pipeline: Option<RenderPipeline>,
-    /// The pipeline created by `self` for drawing on the fake texture
+    /// The pipeline created by `self` for drawing on the fake texture.
     pipeline_fake: Option<RenderPipeline>,
-    /// The vertices to draw in order to draw the object
+    /// The vertices to draw in order to draw the object.
     vertex_buffer: Option<wgpu::Buffer>,
-    /// The vertices to draw in order to draw on the fake texture
+    /// The vertices to draw in order to draw on the fake texture.
     fake_vertex_buffer: Option<wgpu::Buffer>,
     index_buffer: wgpu::Buffer,
     primitive_topology: wgpu::PrimitiveTopology,

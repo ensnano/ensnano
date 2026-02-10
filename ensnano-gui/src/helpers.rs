@@ -15,7 +15,7 @@ use iced::{
 
 const JUMP_SIZE: f32 = 4.0;
 
-/// Add vertical space of fixed amount
+/// Add vertical space of fixed amount.
 pub(crate) fn extra_jump() -> Space {
     jump_by(JUMP_SIZE)
 }
@@ -27,12 +27,12 @@ pub(crate) fn jump_by(amount: impl Into<Length>) -> Space {
 
 // === TEXT FUNCTIONS ===
 
-/// Section title widget
+/// Section title widget.
 pub(crate) fn section<'a>(title: impl ToString, ui_size: UiSize) -> Text<'a> {
     text(title).size(ui_size.head_text()).font(INTER_BOLD_FONT)
 }
 
-/// Section subtitle widget
+/// Section subtitle widget.
 pub(crate) fn subsection<'a>(title: impl ToString, ui_size: UiSize) -> Text<'a> {
     text(title).size(ui_size.intermediate_text())
 }
@@ -163,15 +163,20 @@ pub(crate) fn right_checkbox<'a, Message>(
     label: impl ToString,
     toggle_message: impl Fn(bool) -> Message + 'a,
     ui_size: UiSize,
+    enabled: bool,
 ) -> Row<'a, Message>
 where
     Message: 'a,
 {
     row![
         text(label),
-        checkbox("", is_checked)
-            .on_toggle(toggle_message)
-            .size(ui_size.checkbox()),
+        if enabled {
+            checkbox("", is_checked)
+                .on_toggle(toggle_message)
+                .size(ui_size.checkbox())
+        } else {
+            checkbox("", is_checked).size(ui_size.checkbox())
+        }
     ]
     .spacing(ui_size.checkbox_spacing())
 }
