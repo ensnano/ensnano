@@ -71,6 +71,7 @@ impl GuiTab for ParametersTab {
                 "Inverse direction",
                 LeftPanelMessage::InvertScroll,
                 ui_size,
+                true
             ),
             jump_by(10),
             section("DNA/RNA model", ui_size),

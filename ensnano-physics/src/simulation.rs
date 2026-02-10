@@ -3,9 +3,7 @@
 use crate::{
     helices::build_helices,
     parameters::RapierParameters,
-    setup::{
-        CutHelicesSetup, FullSimulationSetup, KCutHelicesSetup, RigidHelicesSetup, build_simulation,
-    },
+    setup::{FullSimulationSetup, build_simulation},
 };
 use ahash::HashMap;
 use ensnano_design::{
@@ -48,48 +46,16 @@ impl RapierPhysicsSystem {
     ) -> Self {
         let intermediary = build_helices(elements, nucleotide, is_clone_map);
 
-        match rapier_parameters.simulation_type {
-            crate::parameters::RapierSimulationType::Full => build_simulation(
-                FullSimulationSetup,
-                &intermediary,
-                nucl_collection,
-                elements,
-                space_position,
-                helices,
-                &parameters,
-                &rapier_parameters,
-            ),
-            crate::parameters::RapierSimulationType::Rigid => build_simulation(
-                RigidHelicesSetup,
-                &intermediary,
-                nucl_collection,
-                elements,
-                space_position,
-                helices,
-                &parameters,
-                &rapier_parameters,
-            ),
-            crate::parameters::RapierSimulationType::Cut => build_simulation(
-                CutHelicesSetup,
-                &intermediary,
-                nucl_collection,
-                elements,
-                space_position,
-                helices,
-                &parameters,
-                &rapier_parameters,
-            ),
-            crate::parameters::RapierSimulationType::KCut => build_simulation(
-                KCutHelicesSetup,
-                &intermediary,
-                nucl_collection,
-                elements,
-                space_position,
-                helices,
-                &parameters,
-                &rapier_parameters,
-            ),
-        }
+        build_simulation(
+            FullSimulationSetup,
+            &intermediary,
+            nucl_collection,
+            elements,
+            space_position,
+            helices,
+            &parameters,
+            &rapier_parameters,
+        )
     }
 
     fn reset_forces(&mut self) {

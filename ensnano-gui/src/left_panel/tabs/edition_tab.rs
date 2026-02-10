@@ -140,6 +140,7 @@ impl GuiTab for EditionTab {
                     )
                 },
                 ui_size,
+                true
             ),
             right_checkbox(
                 suggestion_parameters.include_intra_strand,
@@ -148,6 +149,7 @@ impl GuiTab for EditionTab {
                     suggestion_parameters.with_intra_strand(b)
                 ),
                 ui_size,
+                true
             ),
             right_checkbox(
                 suggestion_parameters.include_xover_ends,
@@ -156,6 +158,7 @@ impl GuiTab for EditionTab {
                     suggestion_parameters.with_xover_ends(b)
                 ),
                 ui_size,
+                true
             ),
             right_checkbox(
                 suggestion_parameters.ignore_groups,
@@ -164,6 +167,7 @@ impl GuiTab for EditionTab {
                     suggestion_parameters.with_ignore_groups(b)
                 ),
                 ui_size,
+                true
             ),
             subsection("Tighten 2D helices", ui_size),
             // add_tighten_helices_button!

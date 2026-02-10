@@ -5,11 +5,8 @@ use crate::{
         discrete_value::RequestFactory,
         tabs::{GuiTab, gostop::GoStop},
     },
-    theme::BadValue,
 };
-use ensnano_physics::parameters::{
-    RAPIER_FLOAT_PARAMETERS_COUNT, RapierParameters, RapierSimulationType,
-};
+use ensnano_physics::parameters::{RAPIER_FLOAT_PARAMETERS_COUNT, RapierParameters};
 use ensnano_state::{
     app_state::AppState,
     gui::messages::{FactoryId, ValueId},
@@ -21,7 +18,7 @@ use ensnano_utils::{
 };
 use iced::{
     Alignment,
-    widget::{Column, Space, column, pick_list, row, scrollable, text, text_input},
+    widget::{Column, Space, column, row, scrollable, text, text_input},
 };
 use iced_aw::TabLabel;
 use std::{
@@ -180,70 +177,52 @@ impl GuiTab for SimulationTab {
                 "Volume exclusion",
                 LeftPanelMessage::VolumeExclusion,
                 ui_size,
+                true
             ),
             right_checkbox(
                 brownian_motion,
                 "Unmatched nt jiggling",
                 LeftPanelMessage::BrownianMotion,
                 ui_size,
+                true
             ),
             Column::with_children(
                 self.brownian_factory
                     .view(brownian_motion, ui_size.main_text())
             ),
             section("Relaxation", ui_size),
-            column![
-                row![pick_list(
-                    [
-                        RapierSimulationType::Full,
-                        RapierSimulationType::Rigid,
-                        RapierSimulationType::Cut,
-                        RapierSimulationType::KCut,
-                    ],
-                    Some(self.rapier_parameters.simulation_type),
-                    |simulation_type| LeftPanelMessage::UpdateRapierParameters(RapierParameters {
-                        simulation_type,
-                        ..self.rapier_parameters
-                    }),
-                )],
-                row![
-                    text_button("Start", ui_size).on_press_maybe(
-                        if self.rapier_parameters.is_simulation_running {
-                            None
-                        } else {
-                            Some(LeftPanelMessage::UpdateRapierParameters(
-                                apply_parameter_fields(
-                                    &self.rapier_parameter_fields,
-                                    &RapierParameters {
-                                        is_simulation_running: true,
-                                        ..self.rapier_parameters
-                                    },
-                                ),
-                            ))
-                        }
-                    ),
-                    Space::with_width(ui_size.button_spacing()),
-                    text_button("Stop", ui_size).on_press_maybe(
-                        if !self.rapier_parameters.is_simulation_running || sim_state.is_paused() {
-                            None
-                        } else {
-                            Some(LeftPanelMessage::StopSimulation)
-                        }
-                    ),
-                    Space::with_width(ui_size.button_spacing()),
-                    text_button("Reset", ui_size).on_press_maybe(
-                        sim_state
-                            .is_paused()
-                            .then(|| LeftPanelMessage::ResetSimulation)
-                    ),
-                ],
-            ]
+            column![row![
+                text_button("Start", ui_size).on_press_maybe(
+                    if self.rapier_parameters.is_simulation_running {
+                        None
+                    } else {
+                        Some(LeftPanelMessage::UpdateRapierParameters(
+                            apply_parameter_fields(
+                                &self.rapier_parameter_fields,
+                                &RapierParameters {
+                                    is_simulation_running: true,
+                                    ..self.rapier_parameters
+                                },
+                            ),
+                        ))
+                    }
+                ),
+                Space::with_width(ui_size.button_spacing()),
+                text_button("Stop", ui_size).on_press_maybe(
+                    if !self.rapier_parameters.is_simulation_running || sim_state.is_paused() {
+                        None
+                    } else {
+                        Some(LeftPanelMessage::StopSimulation)
+                    }
+                ),
+                Space::with_width(ui_size.button_spacing()),
+                text_button("Reset", ui_size).on_press_maybe(
+                    sim_state
+                        .is_paused()
+                        .then(|| LeftPanelMessage::ResetSimulation)
+                ),
+            ],]
             .spacing(ui_size.button_spacing()),
-            kcut_threshold_editor(
-                &self.rapier_parameters,
-                &self.rapier_parameter_fields,
-                ui_size
-            ),
             ignore_local_parameters_checkbox(&self.rapier_parameters, ui_size),
             view_rapier_parameters(
                 self.rapier_parameters,
@@ -255,49 +234,6 @@ impl GuiTab for SimulationTab {
 
         scrollable(content).into()
     }
-}
-
-fn kcut_threshold_editor(
-    parameters: &RapierParameters,
-    fields: &HashMap<String, String>,
-    ui_size: UiSize,
-) -> iced::Element<'static, LeftPanelMessage> {
-    row![
-        "KCut threshold",
-        Space::with_width(ui_size.checkbox_spacing()),
-        text_button("-", ui_size).on_press_maybe(
-            (parameters.simulation_type == RapierSimulationType::KCut).then(|| {
-                let new_value = if parameters.k_cut_threshold <= 1 {
-                    1
-                } else {
-                    parameters.k_cut_threshold - 1
-                };
-                LeftPanelMessage::UpdateRapierParameters(apply_parameter_fields(
-                    fields,
-                    &RapierParameters {
-                        k_cut_threshold: new_value,
-                        ..*parameters
-                    },
-                ))
-            })
-        ),
-        text_button("+", ui_size).on_press_maybe(
-            (parameters.simulation_type == RapierSimulationType::KCut).then(|| {
-                let new_value = parameters.k_cut_threshold + 1;
-                LeftPanelMessage::UpdateRapierParameters(apply_parameter_fields(
-                    fields,
-                    &RapierParameters {
-                        k_cut_threshold: new_value,
-                        ..*parameters
-                    },
-                ))
-            })
-        ),
-        Space::with_width(ui_size.checkbox_spacing()),
-        text(parameters.k_cut_threshold)
-    ]
-    .align_items(Alignment::Center)
-    .into()
 }
 
 fn ignore_local_parameters_checkbox(
@@ -315,6 +251,7 @@ fn ignore_local_parameters_checkbox(
             })
         },
         ui_size,
+        !parameters.is_simulation_running,
     )
     .into()
 }
@@ -338,6 +275,11 @@ const PARAMETER_FIELD_NAMES: [&str; RAPIER_FLOAT_PARAMETERS_COUNT] = [
     "Planar squish strength",
     "Planar squish damping",
     "Planar squish soft cutoff",
+];
+
+const PARAMETER_FIELD_LIVE_EDITABILITY: [bool; RAPIER_FLOAT_PARAMETERS_COUNT] = [
+    false, false, false, false, false, false, false, false, false, false, true, true, true, true,
+    true, true, true, true,
 ];
 
 fn apply_parameter_fields(
@@ -367,6 +309,7 @@ fn rapier_parameters_field_editor(
     ui_size: UiSize,
     fields: &HashMap<String, String>,
     parameters: &RapierParameters,
+    enabled: bool,
 ) -> iced::Element<'static, LeftPanelMessage> {
     let description = description.to_string();
     let default_field_value = default_value.to_string();
@@ -381,16 +324,19 @@ fn rapier_parameters_field_editor(
             // if parameters.is_simulation_running {
             //     text_input(current_value, current_value)
             // } else {
-            text_input(current_value, current_value)
-                .on_input(move |str| {
-                    LeftPanelMessage::UpdateRapierParameterField(description.clone(), str)
-                })
-                .on_submit(LeftPanelMessage::UpdateRapierParameters(
-                    apply_parameter_fields(fields, parameters,)
-                ))
-                // }
-                .width(70)
-                .style(BadValue(true)),
+            if enabled {
+                text_input(current_value, current_value)
+                    .on_input(move |str| {
+                        LeftPanelMessage::UpdateRapierParameterField(description.clone(), str)
+                    })
+                    .on_submit(LeftPanelMessage::UpdateRapierParameters(
+                        apply_parameter_fields(fields, parameters),
+                    ))
+                    // }
+                    .width(70)
+            } else {
+                text_input(current_value, current_value).width(70)
+            }
         )
     ]
     .align_items(Alignment::Center)
@@ -408,12 +354,14 @@ fn view_rapier_parameters(
     let values = parameters.parameters_array();
 
     for k in 0..PARAMETER_FIELD_NAMES.len() {
+        let enabled = PARAMETER_FIELD_LIVE_EDITABILITY[k] || !parameters.is_simulation_running;
         elements.push(rapier_parameters_field_editor(
             PARAMETER_FIELD_NAMES[k],
             values[k],
             ui_size,
             fields,
             &parameters,
+            enabled,
         ));
     }
 

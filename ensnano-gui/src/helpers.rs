@@ -163,15 +163,20 @@ pub(crate) fn right_checkbox<'a, Message>(
     label: impl ToString,
     toggle_message: impl Fn(bool) -> Message + 'a,
     ui_size: UiSize,
+    enabled: bool,
 ) -> Row<'a, Message>
 where
     Message: 'a,
 {
     row![
         text(label),
-        checkbox("", is_checked)
-            .on_toggle(toggle_message)
-            .size(ui_size.checkbox()),
+        if enabled {
+            checkbox("", is_checked)
+                .on_toggle(toggle_message)
+                .size(ui_size.checkbox())
+        } else {
+            checkbox("", is_checked).size(ui_size.checkbox())
+        }
     ]
     .spacing(ui_size.checkbox_spacing())
 }
