@@ -304,7 +304,7 @@ fn ignore_local_parameters_checkbox(
     parameters: &RapierParameters,
     ui_size: UiSize,
 ) -> iced::Element<'static, LeftPanelMessage> {
-    let parameters = parameters.clone();
+    let parameters = *parameters;
     right_checkbox(
         parameters.ignore_local_parameters,
         "Ignore local helix parameters",
