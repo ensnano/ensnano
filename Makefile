@@ -156,3 +156,12 @@ noupcoming:
 	mv -i Cargo.toml.noupcoming Cargo.toml
 	mv -i ensnano-design/Cargo.toml ensnano-design/Cargo.toml.upcoming
 	mv -i ensnano-design/Cargo.toml.noupcoming ensnano-design/Cargo.toml
+
+newupcoming:
+	mv -i Cargo.toml Cargo.toml.saved
+	cat Cargo.toml.prefix Cargo.toml.middle.upcoming Cargo.toml.suffix > Cargo.toml
+
+newnoupcoming:
+	mv -i Cargo.toml Cargo.toml.saved
+	cat Cargo.toml.prefix Cargo.toml.middle.noupcoming Cargo.toml.suffix > Cargo.toml
+
