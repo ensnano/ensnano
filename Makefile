@@ -15,6 +15,7 @@ SHADERS := $(patsubst %.frag,%.frag.spv,$(FRAG_SRCS)) $(patsubst %.vert,%.vert.s
 
 validate:
 	@rustup update
+	@$(MAKE) -s shaders
 	@$(MAKE) -s format
 	@$(MAKE) -s spell # If the command fails, install npm
 	@cargo machete # If the command fails: cargo install cargo-machete
