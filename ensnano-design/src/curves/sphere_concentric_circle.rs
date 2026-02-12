@@ -1,5 +1,7 @@
 // TODO: check all unused fields (starting with _)
 
+#[cfg(feature = "ensnano_upcoming")]
+use crate::curves::CurveConstructor;
 use crate::{
     curves::{CurveBounds, Curved, time_nucl_map::AbscissaConverter},
     parameters::HelixParameters,
@@ -9,7 +11,10 @@ use std::f64::consts::{PI, TAU};
 use ultraviolet::DVec3;
 
 #[cfg(feature = "ensnano_upcoming")]
-use ensnano_upcoming::{PillTennisBallSeam, SphereTennisBallSeam};
+use ensnano_upcoming::{
+    PillConcentricStadium, PillConcentricStadiumDescriptor, PillTennisBallSeam,
+    SphereTennisBallSeam,
+};
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct SphereConcentricCircleDescriptor {
@@ -245,168 +250,31 @@ impl Curved for PillTennisBallSeam {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct PillConcentricStadiumDescriptor {
-    pub radius: f64,
-    pub length: f64,
-    pub helix_index: i32, // 0 is the equator, negative for below the equator, positive above
-    pub helix_index_shift: Option<f64>, // -0.5 if you want to center the equator between the helices
-    pub inter_helix_center_gap: Option<f64>, // in nm, by default 2.65nm
-    pub is_closed: Option<bool>,
-    pub target_nb_nt: Option<usize>,
-    pub abscissa_converter_factor: Option<f64>,
-}
+#[cfg(feature = "ensnano_upcoming")]
+impl CurveConstructor for PillConcentricStadiumDescriptor {
+    type Curve = PillConcentricStadium;
 
-impl PillConcentricStadiumDescriptor {
-    pub(super) fn with_helix_parameters(
-        self,
-        helix_parameters: HelixParameters,
-    ) -> PillConcentricStadium {
-        let helix_index = self.helix_index as f64 + self.helix_index_shift.unwrap_or(0.);
-        let inter_helix_center_gap = self
-            .inter_helix_center_gap
-            .unwrap_or(HelixParameters::INTER_CENTER_GAP as f64);
-        let phi = PI / 2.0 - helix_index * inter_helix_center_gap / self.radius;
-        let z_radius = self.radius * phi.sin();
-        let z = self.radius * phi.cos();
-        let t1 = self.length;
-        let t2 = t1 + PI * z_radius;
-        let t3 = t2 + self.length;
-        let perimeter = TAU * z_radius + 2.0 * self.length;
-
-        PillConcentricStadium {
-            _parameters: helix_parameters,
-            _radius: self.radius,
-            length: self.length,
-            _helix_index: helix_index,
-            _inter_helix_center_gap: inter_helix_center_gap,
-            t1,
-            t2,
-            t3,
-            perimeter,
-            _phi: phi,
-            z_radius,
-            z,
-            t_min: 0.,
-            t_max: 1.,
-            is_closed: self.is_closed,
-            target_nb_nt: self.target_nb_nt,
-            abscissa_converter_factor: Some(
-                self.abscissa_converter_factor.unwrap_or(1.)
-                    * HelixParameters::GEARY_2014_DNA.rise as f64
-                    / helix_parameters.rise as f64,
-            ),
-        }
+    fn instantiate_with_parameters(&self, parameters: HelixParameters) -> PillConcentricStadium {
+        self.instanciate(
+            HelixParameters::INTER_CENTER_GAP as f64,
+            parameters.rise as f64,
+            HelixParameters::GEARY_2014_DNA.rise as f64,
+        )
     }
 }
 
-pub(super) struct PillConcentricStadium {
-    pub _parameters: HelixParameters,
-    pub _radius: f64,
-    pub length: f64,
-    pub _helix_index: f64,
-    pub _inter_helix_center_gap: f64,
-    pub t1: f64,
-    pub t2: f64,
-    pub t3: f64,
-    pub perimeter: f64,
-    pub _phi: f64,
-    pub z_radius: f64,
-    pub z: f64,
-    pub t_min: f64,
-    pub t_max: f64,
-    pub is_closed: Option<bool>,
-    pub target_nb_nt: Option<usize>,
-    pub abscissa_converter_factor: Option<f64>,
-}
-
+#[cfg(feature = "ensnano_upcoming")]
 impl Curved for PillConcentricStadium {
     fn position(&self, t: f64) -> DVec3 {
-        let t = (t * self.perimeter).rem_euclid(self.perimeter);
-        if t < self.t1 {
-            return DVec3 {
-                x: self.z_radius,
-                y: -self.length / 2.0 + t,
-                z: self.z,
-            };
-        }
-        if t < self.t2 {
-            let t = (t - self.t1) / self.z_radius;
-            return DVec3 {
-                x: self.z_radius * t.cos(),
-                y: self.length / 2.0 + self.z_radius * t.sin(),
-                z: self.z,
-            };
-        }
-        if t < self.t3 {
-            return DVec3 {
-                x: -self.z_radius,
-                y: self.length / 2.0 - (t - self.t2),
-                z: self.z,
-            };
-        }
-        let t = (t - self.t3) / self.z_radius;
-        DVec3 {
-            x: -self.z_radius * t.cos(),
-            y: -self.length / 2.0 - self.z_radius * t.sin(),
-            z: self.z,
-        }
+        self.position(t)
     }
 
     fn speed(&self, t: f64) -> DVec3 {
-        let t = (t * self.perimeter).rem_euclid(self.perimeter);
-        if t < self.t1 {
-            return DVec3 {
-                x: 0.0,
-                y: 1.0,
-                z: 0.0,
-            };
-        }
-        if t < self.t2 {
-            let t = (t - self.t1) / self.z_radius;
-            return DVec3 {
-                x: -self.z_radius * t.sin(),
-                y: self.z_radius * t.cos(),
-                z: 0.0,
-            };
-        }
-        if t < self.t3 {
-            return DVec3 {
-                x: 0.0,
-                y: -1.0,
-                z: 0.0,
-            };
-        }
-        let t = (t - self.t3) / self.z_radius;
-        DVec3 {
-            x: self.z_radius * t.sin(),
-            y: -self.z_radius * t.cos(),
-            z: self.z,
-        }
+        self.speed(t)
     }
 
     fn acceleration(&self, t: f64) -> DVec3 {
-        let t = (t * self.perimeter).rem_euclid(self.perimeter);
-        if t < self.t1 {
-            return DVec3::zero();
-        }
-        if t < self.t2 {
-            let t = (t - self.t1) / self.z_radius;
-            return DVec3 {
-                x: -self.z_radius * t.cos(),
-                y: -self.z_radius * t.sin(),
-                z: 0.0,
-            };
-        }
-        if t < self.t3 {
-            return DVec3::zero();
-        }
-        let t = (t - self.t3) / self.z_radius;
-        DVec3 {
-            x: self.z_radius * t.cos(),
-            y: self.z_radius * t.sin(),
-            z: self.z,
-        }
+        self.acceleration(t)
     }
 
     fn curvilinear_abscissa(&self, t: f64) -> Option<f64> {

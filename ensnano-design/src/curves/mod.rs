@@ -15,7 +15,9 @@ pub mod tube_spiral;
 pub mod twist;
 
 #[cfg(feature = "ensnano_upcoming")]
-use ensnano_upcoming::{PillTennisBallSeamDescriptor, SphereTennisBallSeamDescriptor};
+use ensnano_upcoming::{
+    PillConcentricStadiumDescriptor, PillTennisBallSeamDescriptor, SphereTennisBallSeamDescriptor,
+};
 
 use self::{
     bezier::{
@@ -26,7 +28,6 @@ use self::{
     chebyshev::{PolynomialCoordinates, PolynomialCoordinates_},
     circle_curve::CircleDescriptor,
     revolution::{InterpolatedCurveDescriptor, InterpolationDescriptor},
-    sphere_concentric_circle::PillConcentricStadiumDescriptor,
     sphere_like_spiral::SphereLikeSpiralDescriptor,
     spiral_cylinder::SpiralCylinderDescriptor,
     supertwist::SuperTwist,
@@ -547,6 +548,12 @@ pub fn perpendicular_basis(point: DVec3) -> DMat3 {
     DMat3::new(axis_x, axis_y, axis_z)
 }
 
+pub trait CurveConstructor {
+    type Curve: Curved;
+
+    fn instantiate_with_parameters(&self, parameters: HelixParameters) -> Self::Curve;
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 /// A descriptor of the curve that can be serialized.
 pub enum CurveDescriptor {
@@ -560,6 +567,7 @@ pub enum CurveDescriptor {
     SphereTennisBallSeam(SphereTennisBallSeamDescriptor),
     #[cfg(feature = "ensnano_upcoming")]
     PillTennisBallSeam(PillTennisBallSeamDescriptor),
+    #[cfg(feature = "ensnano_upcoming")]
     PillConcentricStadium(PillConcentricStadiumDescriptor),
     Twist(Twist),
     Torus(Torus),
@@ -723,6 +731,7 @@ impl InstantiatedCurveDescriptor {
             CurveDescriptor::PillTennisBallSeam(t) => {
                 InstantiatedCurveDescriptor_::PillTennisBallSeam(t.clone())
             }
+            #[cfg(feature = "ensnano_upcoming")]
             CurveDescriptor::PillConcentricStadium(t) => {
                 InstantiatedCurveDescriptor_::PillConcentricStadium(t.clone())
             }
@@ -830,6 +839,7 @@ impl InstantiatedCurveDescriptor {
             CurveDescriptor::PillTennisBallSeam(s) => {
                 Some(InstantiatedCurveDescriptor_::PillTennisBallSeam(s.clone()))
             }
+            #[cfg(feature = "ensnano_upcoming")]
             CurveDescriptor::PillConcentricStadium(s) => Some(
                 InstantiatedCurveDescriptor_::PillConcentricStadium(s.clone()),
             ),
@@ -956,6 +966,7 @@ enum InstantiatedCurveDescriptor_ {
     SphereTennisBallSeam(SphereTennisBallSeamDescriptor),
     #[cfg(feature = "ensnano_upcoming")]
     PillTennisBallSeam(PillTennisBallSeamDescriptor),
+    #[cfg(feature = "ensnano_upcoming")]
     PillConcentricStadium(PillConcentricStadiumDescriptor),
     SpiralCylinder(SpiralCylinderDescriptor),
     Twist(Twist),
@@ -1090,8 +1101,9 @@ impl InstantiatedCurveDescriptor_ {
             Self::PillTennisBallSeam(constructor) => {
                 Arc::new(Curve::new(constructor.construct(), helix_parameters))
             }
+            #[cfg(feature = "ensnano_upcoming")]
             Self::PillConcentricStadium(constructor) => Arc::new(Curve::new(
-                constructor.with_helix_parameters(*helix_parameters),
+                constructor.instantiate_with_parameters(*helix_parameters),
                 helix_parameters,
             )),
             Self::Twist(twist) => Arc::new(Curve::new(twist, helix_parameters)),
@@ -1184,8 +1196,11 @@ impl InstantiatedCurveDescriptor_ {
                 constructor.clone().construct(),
                 helix_parameters,
             ))),
+            #[cfg(feature = "ensnano_upcoming")]
             Self::PillConcentricStadium(constructor) => Some(Arc::new(Curve::new(
-                constructor.clone().with_helix_parameters(*helix_parameters),
+                constructor
+                    .clone()
+                    .instantiate_with_parameters(*helix_parameters),
                 helix_parameters,
             ))),
             Self::Twist(twist) => Some(Arc::new(Curve::new(twist.clone(), helix_parameters))),
@@ -1259,8 +1274,11 @@ impl InstantiatedCurveDescriptor_ {
             Self::PillTennisBallSeam(constructor) => {
                 Some(Curve::compute_length(constructor.clone().construct()))
             }
+            #[cfg(feature = "ensnano_upcoming")]
             Self::PillConcentricStadium(constructor) => Some(Curve::compute_length(
-                constructor.clone().with_helix_parameters(*helix_parameters),
+                constructor
+                    .clone()
+                    .instantiate_with_parameters(*helix_parameters),
             )),
             Self::Twist(twist) => Some(Curve::compute_length(twist.clone())),
             Self::Torus(torus) => Some(Curve::compute_length(torus.clone())),
@@ -1322,8 +1340,11 @@ impl InstantiatedCurveDescriptor_ {
             Self::PillTennisBallSeam(constructor) => {
                 Some(Curve::path(constructor.clone().construct()))
             }
+            #[cfg(feature = "ensnano_upcoming")]
             Self::PillConcentricStadium(constructor) => Some(Curve::path(
-                constructor.clone().with_helix_parameters(*helix_parameters),
+                constructor
+                    .clone()
+                    .instantiate_with_parameters(*helix_parameters),
             )),
             Self::Twist(twist) => Some(Curve::path(twist.clone())),
             Self::Torus(torus) => Some(Curve::path(torus.clone())),
