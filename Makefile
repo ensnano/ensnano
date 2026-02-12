@@ -15,6 +15,7 @@ SHADERS := $(patsubst %.frag,%.frag.spv,$(FRAG_SRCS)) $(patsubst %.vert,%.vert.s
 
 validate:
 	@rustup update
+	@$(MAKE) -s shaders
 	@$(MAKE) -s format
 	@$(MAKE) -s spell # If the command fails, install npm
 	@cargo machete # If the command fails: cargo install cargo-machete
@@ -146,22 +147,14 @@ win:
 	make $(WINDOWS_BIN)
 
 upcoming:
-	mv -i Cargo.toml Cargo.toml.noupcoming
-	mv -i Cargo.toml.upcoming Cargo.toml
-	mv -i ensnano-design/Cargo.toml ensnano-design/Cargo.toml.noupcoming
-	mv -i ensnano-design/Cargo.toml.upcoming ensnano-design/Cargo.toml
-
-noupcoming:
-	mv -i Cargo.toml Cargo.toml.upcoming
-	mv -i Cargo.toml.noupcoming Cargo.toml
-	mv -i ensnano-design/Cargo.toml ensnano-design/Cargo.toml.upcoming
-	mv -i ensnano-design/Cargo.toml.noupcoming ensnano-design/Cargo.toml
-
-newupcoming:
 	mv -i Cargo.toml Cargo.toml.saved
 	cat Cargo.toml.prefix Cargo.toml.middle.upcoming Cargo.toml.suffix > Cargo.toml
+	mv -i ensnano-design/Cargo.toml ensnano-design/Cargo.toml.saved
+	cat ensnano-design/Cargo.toml.prefix ensnano-design/Cargo.toml.middle.upcoming ensnano-design/Cargo.toml.suffix > ensnano-design/Cargo.toml
 
-newnoupcoming:
+noupcoming:
 	mv -i Cargo.toml Cargo.toml.saved
 	cat Cargo.toml.prefix Cargo.toml.middle.noupcoming Cargo.toml.suffix > Cargo.toml
+	mv -i ensnano-design/Cargo.toml ensnano-design/Cargo.toml.saved
+	cat ensnano-design/Cargo.toml.prefix ensnano-design/Cargo.toml.middle.noupcoming ensnano-design/Cargo.toml.suffix > ensnano-design/Cargo.toml
 

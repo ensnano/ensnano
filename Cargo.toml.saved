@@ -28,6 +28,7 @@ version = "0.7.0"
 
 [workspace.dependencies]
 ensnano_design = { path = "ensnano-design", features = ["ensnano_upcoming"] }
+ensnano_upcoming = { git = "ssh://git@gitlab.aliens-lyon.fr/nschaban/ensnano-upcoming.git" }
 ensnano_exports = { path = "ensnano-exports" }
 ensnano_flatscene = { path = "ensnano-flatscene" }
 ensnano_gui = { path = "ensnano-gui" }
@@ -35,7 +36,7 @@ ensnano_physics = { path = "ensnano-physics" }
 ensnano_scene = { path = "ensnano-scene" }
 ensnano_state = { path = "ensnano-state" }
 ensnano_utils = { path = "ensnano-utils" }
-ensnano_upcoming = { git = "ssh://git@gitlab.aliens-lyon.fr/nschaban/ensnano-upcoming.git" }
+
 ahash = "0.8"
 bytemuck = "1.24"
 chrono = "0.4"
@@ -156,7 +157,8 @@ non_ascii_idents = "warn"
 redundant_imports = "warn"
 redundant_lifetimes = "warn"
 single_use_lifetimes = "warn"
-# TODO: enable the following 2 lints once the feature is stabilized (rust 1.94 maybe)
+# TODO: enable the following 2 lints once the feature is stabilized (rust 1.95 maybe)
+# The lint names are likely to change so Ctrl+F "supertrait" in the list of lints
 # supertrait_item_shadowing_definition = "warn"
 # supertrait_item_shadowing_usage = "warn"
 trivial_numeric_casts = "warn"
