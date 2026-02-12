@@ -1,17 +1,4 @@
-
-[package]
-name = "ensnano_design"
-version.workspace = true
-authors.workspace = true
-edition.workspace = true
-license.workspace = true
-
-[lints]
-workspace = true
-
-[dependencies]
 ahash.workspace = true
-ensnano_upcoming.workspace = true
 iced.workspace = true
 icondata.workspace = true
 log.workspace = true

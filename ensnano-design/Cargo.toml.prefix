@@ -1,0 +1,12 @@
+
+[package]
+name = "ensnano_design"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]

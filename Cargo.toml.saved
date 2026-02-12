@@ -1,0 +1,309 @@
+[workspace]
+members = [
+    "ensnano-design",
+    "ensnano-exports",
+    "ensnano-flatscene",
+    "ensnano-gui",
+    "ensnano-physics",
+    "ensnano-scene",
+    "ensnano-state",
+    "ensnano-utils",
+]
+resolver = "3"
+
+[workspace.package]
+authors = [
+    "thenlevy <nicolaspierrelevy@gmail.com>",
+    "Nicolas Schabanel <nicolas.schabanel@gmail.com>",
+    "Joris Picot <joris.picot@ens-lyon.fr>",
+    "Pacôme Perrotin <pacome.perrotin@gmail.com>",
+    "Axel Brisse <axel.brisse@gmail.com>",
+    "Eliott Mercier Del Forno <eliottmercierjuge@gmail.com>",
+]
+edition = "2024"
+homepage = "https://www.ens-lyon.fr/ensnano/"
+license = "GPL-3.0-or-later"
+repository = "https://github.com/ensnano/ensnano"
+version = "0.7.0"
+
+[workspace.dependencies]
+ensnano_design = { path = "ensnano-design", features = ["ensnano_upcoming"] }
+ensnano_upcoming = { git = "ssh://git@gitlab.aliens-lyon.fr/nschaban/ensnano-upcoming.git" }
+ensnano_exports = { path = "ensnano-exports" }
+ensnano_flatscene = { path = "ensnano-flatscene" }
+ensnano_gui = { path = "ensnano-gui" }
+ensnano_physics = { path = "ensnano-physics" }
+ensnano_scene = { path = "ensnano-scene" }
+ensnano_state = { path = "ensnano-state" }
+ensnano_utils = { path = "ensnano-utils" }
+
+ahash = "0.8"
+bytemuck = "1.24"
+chrono = "0.4"
+color_space = "0.5"
+confy = { version = "2.0", default-features = false, features = [
+    "yaml_conf",
+] }
+dirs = "6.0"
+fontdue = "0.9"
+futures = { version = "0.3", default-features = false }
+futures-channel = "0.3"
+gltf = "1.4"
+iced = { version = "0.12", features = ["advanced", "image", "svg"] }
+iced_aw = { version = "0.9", default-features = false, features = [
+    "tabs",
+    "tab_bar",
+] }
+iced_graphics = "0.12"
+iced_runtime = "0.12"
+iced_wgpu = "0.12"
+iced_winit = "0.12"
+icondata = { version = "0.7", default-features = false, features = [
+    "bootstrap-icons",
+    "material-design-icons",
+] }
+image = "0.23"
+int-enum = "1.2"
+itertools = "0.14"
+log = "0.4"
+lyon = "1.0"
+mathru = "0.13"
+nom_stl = "0.2"
+num = { version = "0.4", default-features = false }
+num_enum = "0.7"
+open = "5.3"
+ordered-float = { version = "5.1", default-features = false, features = ["serde"] }
+paste = "1.0"
+png = "0.18"
+pretty_env_logger = "0.5"
+quadrature = "0.1"
+rand = "0.9"
+rand_distr = "0.5"
+rapier3d = { version = "0.31", features = ["parallel", "simd-stable"] }
+rayon = "1.11"
+regex = "1.12"
+relative-path = "1.7"
+rfd = "0.17"
+rust_xlsxwriter = "0.92"
+serde = { version = "1.0", features = ["derive", "rc"] }
+serde_json = "1.0"
+serde_with = "1.11"
+strum = { version = "0.27", features = ["derive"] }
+svg = "0.18"
+ultraviolet = { version = "0.10", features = [ "bytemuck", "f64", "serde" ] }
+version-compare = "0.2"
+wgpu = { version = "0.19", features = ["spirv"] }
+winit = "0.29"
+
+[dependencies]
+ensnano_design.workspace = true
+ensnano_exports.workspace = true
+ensnano_flatscene.workspace = true
+ensnano_gui.workspace = true
+ensnano_scene.workspace = true
+ensnano_state.workspace = true
+ensnano_utils.workspace = true
+
+confy.workspace = true
+dirs.workspace = true
+futures.workspace = true
+iced.workspace = true
+iced_graphics.workspace = true
+iced_runtime.workspace = true
+iced_wgpu.workspace = true
+iced_winit.workspace = true
+log.workspace = true
+pretty_env_logger.workspace = true
+rfd.workspace = true
+ultraviolet.workspace = true
+wgpu.workspace = true
+winit.workspace = true
+
+# Enable max optimizations for dependencies, but not for our code:
+[profile.dev.package."*"]
+opt-level = 3
+
+[package]
+authors.workspace = true
+categories = ["graphics", "science", "simulation"]
+description = "A 3D graphical application for DNA nanostructures"
+edition.workspace = true
+keywords = ["dna", "ensnano", "nanostructures"]
+homepage.workspace = true
+license.workspace = true
+name = "ensnano"
+repository.workspace = true
+readme = "README.md"
+version.workspace = true
+
+[features]
+log_after_renderer_setup = []
+dx12_only = []
+
+[lints]
+workspace = true
+
+[workspace.lints.rust]
+closure_returning_async_block = "warn"
+deref_into_dyn_supertrait = "warn"
+explicit_outlives_requirements = "warn"
+impl_trait_overcaptures = "warn"
+impl_trait_redundant_captures = "warn"
+macro_use_extern_crate = "warn"
+meta_variable_misuse = "warn"
+missing_docs = "allow" # TODO: warn (major undertaking)
+missing_unsafe_on_extern = "warn"
+non_ascii_idents = "warn"
+redundant_imports = "warn"
+redundant_lifetimes = "warn"
+single_use_lifetimes = "warn"
+# TODO: enable the following 2 lints once the feature is stabilized (rust 1.95 maybe)
+# The lint names are likely to change so Ctrl+F "supertrait" in the list of lints
+# supertrait_item_shadowing_definition = "warn"
+# supertrait_item_shadowing_usage = "warn"
+trivial_numeric_casts = "warn"
+unit_bindings = "warn"
+# TODO: unqualified_local_imports = "warn" (not stabilized yet)
+unreachable_pub = "warn"
+unsafe_attr_outside_unsafe = "warn"
+unsafe_code = "warn"
+unsafe_op_in_unsafe_fn = "warn"
+unstable_features = "warn"
+unused_crate_dependencies = "warn"
+unused_extern_crates = "warn"
+unused_import_braces = "warn"
+unused_lifetimes = "warn"
+unused_macro_rules = "warn"
+unused_qualifications = "warn"
+variant_size_differences = "warn"
+
+[workspace.lints.clippy]
+# Warn or deny all lints by default
+cargo = { level = "deny", priority = -1 }
+complexity = { level = "warn", priority = -1 }
+correctness = { level = "deny", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+perf = { level = "deny", priority = -1 }
+restriction = { level = "warn", priority = -1 }
+style = { level = "warn", priority = -1 }
+suspicious = { level = "deny", priority = -1 }
+
+# cargo
+cargo_common_metadata = "allow" # respected for root crate, too annoying for packages
+multiple_crate_versions = "allow"
+
+# nursery
+derive_partial_eq_without_eq = "allow"
+missing_const_for_fn = "allow" # TODO: warn
+option_if_let_else = "allow"
+redundant_pub_crate = "allow"
+significant_drop_in_scrutinee = "allow" # TODO: warn (requires testing to avoid deadlocks)
+suboptimal_flops = "allow"
+tuple_array_conversions = "allow"
+while_float = "allow"
+
+# pedantic
+assigning_clones = "allow"
+cast_lossless = "allow"
+cast_possible_truncation = "allow"
+cast_possible_wrap = "allow"
+cast_precision_loss = "allow"
+cast_sign_loss = "allow"
+default_trait_access = "allow"
+doc_markdown = "allow" # TODO: warn
+fn_params_excessive_bools = "allow"
+if_not_else = "allow"
+iter_without_into_iter = "allow"
+manual_midpoint = "allow"
+many_single_char_names = "allow"
+missing_errors_doc = "allow" # TODO: warn
+missing_fields_in_debug = "allow"
+missing_panics_doc = "allow" # TODO: warn
+must_use_candidate = "allow"
+needless_pass_by_value = "allow" # TODO: warn
+option_option = "allow"
+similar_names = "allow"
+stable_sort_primitive = "allow"
+struct_excessive_bools = "allow"
+struct_field_names = "allow"
+too_many_lines = "allow" # TODO: warn
+trivially_copy_pass_by_ref = "allow"
+unnecessary_box_returns = "allow" # TODO: warn
+unnecessary_wraps = "allow" # TODO: warn (some functions wrap because they need to conform to an API)
+unreadable_literal = "allow"
+unused_self = "allow" # TODO: warn (weird that we have 64 occurrences)
+
+# restriction
+allow_attributes_without_reason = "allow"
+arbitrary_source_item_ordering = "allow"
+arithmetic_side_effects = "allow"
+as_conversions = "allow"
+as_underscore = "allow"
+assertions_on_result_states = "allow"
+big_endian_bytes = "allow"
+clone_on_ref_ptr = "allow" # TODO: warn (too much manual work for now)
+cognitive_complexity = "allow" # TODO: warn (surprisingly good suggestions)
+default_numeric_fallback = "allow"
+else_if_without_else = "allow"
+exhaustive_enums = "allow"
+exhaustive_structs = "allow"
+expect_used = "allow"
+field_scoped_visibility_modifiers = "allow"
+float_arithmetic = "allow"
+impl_trait_in_params = "allow"
+implicit_return = "allow"
+indexing_slicing = "allow"
+integer_division = "allow"
+integer_division_remainder_used = "allow"
+iter_over_hash_type = "allow"
+let_underscore_must_use = "allow"
+let_underscore_untyped = "allow"
+little_endian_bytes = "allow"
+min_ident_chars = "allow"
+missing_assert_message = "allow"
+missing_docs_in_private_items = "allow" # TODO: warn (major undertaking)
+missing_inline_in_public_items = "allow"
+missing_trait_methods = "allow"
+mod_module_files = "allow"
+module_name_repetitions = "allow"
+modulo_arithmetic = "allow"
+non_ascii_literal = "allow"
+panic = "allow" # TODO: warn (use assert!, todo!, unreachable! or proper error handling)
+partial_pub_fields = "allow"
+pathbuf_init_then_push = "allow"
+pattern_type_mismatch = "allow"
+pointer_format = "allow"
+precedence_bits = "allow"
+print_stdout = "allow" # TODO: warn and use log! everywhere
+pub_with_shorthand = "allow"
+question_mark_used = "allow"
+rc_buffer = "allow" # TODO: warn
+return_and_then = "allow"
+same_name_method = "allow" # TODO: warn once single-impl traits are removed
+semicolon_outside_block = "allow"
+shadow_reuse = "allow"
+shadow_same = "allow"
+shadow_unrelated = "allow"
+single_call_fn = "allow"
+single_char_lifetime_names = "allow"
+std_instead_of_alloc = "allow"
+std_instead_of_core = "allow"
+string_add = "allow"
+string_slice = "allow"
+todo = "allow" # TODO: warn
+unreachable = "allow"
+unseparated_literal_suffix = "allow"
+unwrap_in_result = "allow"
+unwrap_used = "allow"
+use_debug = "allow" 
+wildcard_enum_match_arm = "allow"
+
+# style
+len_without_is_empty = "allow"
+new_without_default = "allow"
+wrong_self_convention = "allow" # TODO: warn
+
+# suspicious
+arc_with_non_send_sync = "allow" # TODO: warn (requires understand the multiplexer)
+blanket_clippy_restriction_lints = "allow"

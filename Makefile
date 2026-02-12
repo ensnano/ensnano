@@ -147,22 +147,14 @@ win:
 	make $(WINDOWS_BIN)
 
 upcoming:
-	mv -i Cargo.toml Cargo.toml.noupcoming
-	mv -i Cargo.toml.upcoming Cargo.toml
-	mv -i ensnano-design/Cargo.toml ensnano-design/Cargo.toml.noupcoming
-	mv -i ensnano-design/Cargo.toml.upcoming ensnano-design/Cargo.toml
-
-noupcoming:
-	mv -i Cargo.toml Cargo.toml.upcoming
-	mv -i Cargo.toml.noupcoming Cargo.toml
-	mv -i ensnano-design/Cargo.toml ensnano-design/Cargo.toml.upcoming
-	mv -i ensnano-design/Cargo.toml.noupcoming ensnano-design/Cargo.toml
-
-newupcoming:
 	mv -i Cargo.toml Cargo.toml.saved
 	cat Cargo.toml.prefix Cargo.toml.middle.upcoming Cargo.toml.suffix > Cargo.toml
+	mv -i ensnano-design/Cargo.toml ensnano-design/Cargo.toml.saved
+	cat ensnano-design/Cargo.toml.prefix ensnano-design/Cargo.toml.middle.upcoming ensnano-design/Cargo.toml.suffix > ensnano-design/Cargo.toml
 
-newnoupcoming:
+noupcoming:
 	mv -i Cargo.toml Cargo.toml.saved
 	cat Cargo.toml.prefix Cargo.toml.middle.noupcoming Cargo.toml.suffix > Cargo.toml
+	mv -i ensnano-design/Cargo.toml ensnano-design/Cargo.toml.saved
+	cat ensnano-design/Cargo.toml.prefix ensnano-design/Cargo.toml.middle.noupcoming ensnano-design/Cargo.toml.suffix > ensnano-design/Cargo.toml
 
