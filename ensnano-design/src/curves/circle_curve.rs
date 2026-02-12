@@ -7,8 +7,7 @@ use std::f64::consts::TAU;
 use ultraviolet::DVec3;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub(super) struct CircleCurve {
-    pub _parameters: HelixParameters,
+pub struct CircleCurve {
     pub radius: f64,
     pub z: f64,
     pub perimeter: f64,
@@ -113,11 +112,10 @@ pub struct CircleDescriptor {
 }
 
 impl CircleDescriptor {
-    pub(super) fn with_helix_parameters(self, helix_parameters: &HelixParameters) -> CircleCurve {
-        let circle_helix_parameters = self.helix_parameters.unwrap_or(*helix_parameters);
+    pub(super) fn with_helix_parameters(self, _helix_parameters: &HelixParameters) -> CircleCurve {
+        // let circle_helix_parameters = self.helix_parameters.unwrap_or(*helix_parameters);
         let perimeter = TAU * self.radius;
         CircleCurve {
-            _parameters: circle_helix_parameters,
             radius: self.radius,
             z: 0.,
             perimeter,
