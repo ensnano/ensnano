@@ -93,6 +93,14 @@ impl HelixParameters {
 
     pub const GEARY_2014_DNA: Self = parameters_from_p_stick_model!(Self::GEARY_2014_DNA_P_STICK);
 
+    pub const CADNANO_DNA: Self = {
+        let param = parameters_from_p_stick_model!(Self::GEARY_2014_DNA_P_STICK);
+        Self {
+            bases_per_turn: 32.0/3.0,
+            ..param
+        }
+    };
+
     /// Value used for RNA designs
     /// Taken from "Design Principles for Single-Stranded RNA Origami Structures, Geary & Andersen
     /// 2014.
@@ -238,7 +246,7 @@ impl std::fmt::Display for NamedParameter {
     }
 }
 
-pub const NAMED_DNA_PARAMETERS: [NamedParameter; 7] = [
+pub const NAMED_DNA_PARAMETERS: [NamedParameter; 8] = [
     NamedParameter {
         name: "Geary et al 2014 B-DNA",
         value: HelixParameters::GEARY_2014_DNA,
@@ -262,6 +270,10 @@ pub const NAMED_DNA_PARAMETERS: [NamedParameter; 7] = [
     NamedParameter {
         name: "Geary et al 2014 A-RNA Phosphate balls",
         value: HelixParameters::GEARY_2014_RNA_P_STICK,
+    },
+    NamedParameter {
+        name: "Cadnano 10.67",
+        value: HelixParameters::CADNANO_DNA,
     },
     NamedParameter {
         name: "Triplex DNA Helix with 2 helices",
