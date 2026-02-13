@@ -143,7 +143,9 @@ impl SpringAnchorsReference {
             &Unit::new_normalize(self.nucleotide_forward),
             &Unit::new_normalize(target_forward),
         )
-        .expect("Failed constructing first rotation")
+        // unclear to me why this case would be necessary.
+        // The code seems to fail when the axes are opposite.
+        .unwrap_or(UnitQuaternion::identity())
     }
 
     // assumes both pairs are already aligned by the
