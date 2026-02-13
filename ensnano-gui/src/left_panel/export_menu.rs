@@ -1,5 +1,5 @@
-use ensnano_exports::ExportType;
 use ensnano_state::gui::messages::LeftPanelMessage;
+use ensnano_utils::export::ExportType;
 use iced::widget::{button, column, scrollable};
 
 #[derive(Default)]

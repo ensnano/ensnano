@@ -6,17 +6,10 @@ pub mod pdb;
 
 use cadnano::CadnanoError;
 use ensnano_design::{Design, nucl::Nucl};
+use ensnano_utils::export::ExportType;
 use pdb::PdbError;
 use rand::seq::IndexedRandom as _;
 use std::{collections::HashMap, io::Write as _, path::PathBuf};
-
-/// The file formats to which an export is implemented.
-#[derive(Debug, Clone)]
-pub enum ExportType {
-    Cadnano,
-    Pdb,
-    Oxdna,
-}
 
 /// A value returned by the export functions when exports was successful.
 ///

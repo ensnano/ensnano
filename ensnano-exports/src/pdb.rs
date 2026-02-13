@@ -3,11 +3,12 @@
 
 use crate::{
     BasisMapper,
-    oxdna::{OXDNA_LEN_FACTOR, free_oxdna_nucl, oxdna_nucl},
+    oxdna::{free_oxdna_nucl, oxdna_nucl},
     rand_base_from_symbol,
 };
 use ahash::AHashMap;
 use ensnano_design::{Design, domains::Domain, nucl::Nucl};
+use ensnano_utils::consts::OXDNA_LEN_FACTOR;
 use itertools::Itertools as _;
 use std::{
     borrow::Cow,

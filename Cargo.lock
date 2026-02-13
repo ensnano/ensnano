@@ -865,6 +865,7 @@ version = "0.7.0"
 dependencies = [
  "ahash",
  "ensnano_design",
+ "ensnano_utils",
  "itertools",
  "rand 0.9.2",
  "serde",
@@ -900,7 +901,6 @@ version = "0.7.0"
 dependencies = [
  "color_space",
  "ensnano_design",
- "ensnano_exports",
  "ensnano_physics",
  "ensnano_state",
  "ensnano_utils",
@@ -964,7 +964,6 @@ dependencies = [
  "confy",
  "dirs",
  "ensnano_design",
- "ensnano_exports",
  "ensnano_physics",
  "ensnano_utils",
  "iced",

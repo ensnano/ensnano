@@ -2,11 +2,9 @@ use crate::{BasisMapper, rand_base};
 use ensnano_design::{
     Design, domains::Domain, helices::Helix, nucl::Nucl, parameters::HelixParameters,
 };
+use ensnano_utils::consts::{BACKBONE_TO_CM, OXDNA_LEN_FACTOR};
 use std::{f32::consts::TAU, io::Write as _, mem::ManuallyDrop, path::Path};
 use ultraviolet::{Mat3, Rotor3, Vec3};
-
-pub const OXDNA_LEN_FACTOR: f32 = 1. / 0.8518;
-pub const BACKBONE_TO_CM: f32 = 0.34 * OXDNA_LEN_FACTOR;
 
 pub struct OxDnaNucl {
     pub position: Vec3,

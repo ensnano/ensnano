@@ -14,12 +14,12 @@ use ensnano_design::{
     organizer_tree::{GroupId, OrganizerNodeId, OrganizerTree},
     parameters::NamedParameter,
 };
-use ensnano_exports::ExportType;
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
     app_state_parameters::{
         check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
     },
+    export::ExportType,
     graphics::{Background3D, HBondDisplay, RenderingMode, SplitMode, fog_kind},
     keyboard_priority::PriorityRequest,
     surfaces::EquadiffSolvingMethod,

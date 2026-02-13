@@ -23,13 +23,13 @@ use ensnano_design::{
     nucl::Nucl,
     strands::Extremity,
 };
-use ensnano_exports::{ExportResult, ExportType, oxdna::BACKBONE_TO_CM};
 use ensnano_utils::{
     Referential, ScaffoldInfo,
     app_state_parameters::suggestion_parameters::SuggestionParameters,
+    consts::BACKBONE_TO_CM,
     strand_builder::{NeighborDescriptor, get_neighbor_nucl},
 };
-use std::{collections::BTreeMap, fmt::Write as _, path::PathBuf, sync::Arc};
+use std::{collections::BTreeMap, fmt::Write as _, sync::Arc};
 use ultraviolet::{Mat4, Rotor3, Vec3};
 
 type JunctionsIds = IdGenerator<(Nucl, Nucl)>;
@@ -498,14 +498,14 @@ impl Presenter {
             .map(|t| t.0)
     }
 
-    pub fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
-        ensnano_exports::export(
-            &self.current_design,
-            export_type,
-            Some(self.content.letter_map.as_ref()),
-            export_path,
-        )
-    }
+    // pub fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
+    //     ensnano_exports::export(
+    //         &self.current_design,
+    //         export_type,
+    //         Some(self.content.letter_map.as_ref()),
+    //         export_path,
+    //     )
+    // }
 
     pub fn get_bezier_path_2d(&self, path_id: BezierPathId) -> Option<InstantiatedPiecewiseBezier> {
         self.current_design
