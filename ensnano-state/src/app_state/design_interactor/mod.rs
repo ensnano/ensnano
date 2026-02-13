@@ -27,7 +27,6 @@ use ensnano_design::{
     organizer_tree::GroupId,
     parameters::HelixParameters,
 };
-use ensnano_exports::{ExportResult, ExportType};
 use ensnano_utils::{
     PastingStatus, SimulationState,
     app_state_parameters::suggestion_parameters::SuggestionParameters, clipboard::ClipboardContent,
@@ -295,9 +294,9 @@ impl DesignInteractor {
         Ok(())
     }
 
-    pub fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
-        self.presenter.export(export_path, export_type)
-    }
+    // pub fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
+    //     self.presenter.export(export_path, export_type)
+    // }
 
     pub fn get_strand_domain(&self, s_id: usize, d_id: usize) -> Option<&Domain> {
         self.presenter.get_strand_domain(s_id, d_id)

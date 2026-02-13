@@ -181,3 +181,7 @@ pub const SELECTION_2D_CYCLE_TIME_LIMIT_MS: u64 = 2_000;
 // steel blue
 pub const BEZIER_SHEET_CORNER_COLOR: u32 = 0x46_82_B4;
 pub const BEZIER_SHEET_CORNER_RADIUS: f32 = 15.0;
+
+// OXDNA export consts
+pub const BACKBONE_TO_CM: f32 = 0.34 * OXDNA_LEN_FACTOR;
+pub const OXDNA_LEN_FACTOR: f32 = 1. / 0.8518;

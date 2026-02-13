@@ -89,7 +89,7 @@ use crate::{
     scheduler::Scheduler,
 };
 use ensnano_design::{CameraId, grid::GridId, group_attributes::GroupPivot};
-use ensnano_exports::{ExportResult, ExportType};
+use ensnano_exports::ExportResult;
 use ensnano_flatscene::FlatScene;
 use ensnano_gui::{
     GuiManager,
@@ -128,6 +128,7 @@ use ensnano_utils::{
     RigidBodyConstants, TEXTURE_FORMAT,
     app_state_parameters::AppStateParameters,
     consts::{APP_NAME, NO_DESIGN_TITLE, SEC_BETWEEN_BACKUPS, WELCOME_MSG},
+    export::ExportType,
     graphics::{GuiComponentType, PhySize, SplitMode},
     surfaces::RevolutionSurfaceSystemDescriptor,
     ui_size::UiSize,
@@ -975,7 +976,37 @@ impl MainStateView<'_> {
     }
 
     fn export(&mut self, path: &PathBuf, export_type: ExportType) -> ExportResult {
-        let ret = self.main_state.app_state.export(path, export_type);
+        let ret = ensnano_exports::export(
+            &self.main_state.app_state.0.design.design,
+            export_type,
+            Some(
+                &self
+                    .main_state
+                    .app_state
+                    .0
+                    .design
+                    .presenter
+                    .content
+                    .letter_map,
+            ),
+            path,
+            &self
+                .main_state
+                .app_state
+                .0
+                .design
+                .presenter
+                .content
+                .space_position,
+            &self
+                .main_state
+                .app_state
+                .0
+                .design
+                .presenter
+                .content
+                .nucl_collection,
+        );
         self.set_exporting(false);
         ret
     }

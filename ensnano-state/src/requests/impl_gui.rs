@@ -14,13 +14,13 @@ use ensnano_design::{
     organizer_tree::{GroupId, OrganizerTree},
     parameters::HelixParameters,
 };
-use ensnano_exports::ExportType;
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
     RigidBodyConstants, RollRequest,
     app_state_parameters::{
         check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
     },
+    export::ExportType,
     graphics::{Background3D, FogParameters, HBondDisplay, RenderingMode, SplitMode},
     keyboard_priority::PriorityRequest,
     overlay::OverlayType,
