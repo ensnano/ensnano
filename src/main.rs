@@ -990,6 +990,22 @@ impl MainStateView<'_> {
                     .letter_map,
             ),
             path,
+            &self
+                .main_state
+                .app_state
+                .0
+                .design
+                .presenter
+                .content
+                .space_position,
+            &self
+                .main_state
+                .app_state
+                .0
+                .design
+                .presenter
+                .content
+                .nucl_collection,
         );
         self.set_exporting(false);
         ret

@@ -6,8 +6,8 @@ use crate::{
     oxdna::{free_oxdna_nucl, oxdna_nucl},
     rand_base_from_symbol,
 };
-use ahash::AHashMap;
-use ensnano_design::{Design, domains::Domain, nucl::Nucl};
+use ahash::{AHashMap, HashMap};
+use ensnano_design::{Design, domains::Domain, helices::NuclCollection, nucl::Nucl};
 use ensnano_utils::consts::OXDNA_LEN_FACTOR;
 use itertools::Itertools as _;
 use std::{
@@ -672,6 +672,8 @@ pub(super) fn pdb_export(
     design: &Design,
     mut basis_map: BasisMapper,
     out_path: &PathBuf,
+    space_position: &HashMap<u32, [f32; 3]>,
+    nucl_collection: &NuclCollection,
 ) -> Result<(), PdbError> {
     let helix_parameters = design.helix_parameters.unwrap_or_default();
     let na_kind = if helix_parameters.name().name.contains("RNA") {
@@ -689,7 +691,16 @@ pub(super) fn pdb_export(
             if let Domain::HelixDomain(dom) = d {
                 for position in dom.iter() {
                     let helix = design.helices.get(&dom.helix).unwrap();
-                    let ox_nucl = oxdna_nucl(helix, position, dom.forward, &helix_parameters);
+                    let mut ox_nucl = oxdna_nucl(helix, position, dom.forward, &helix_parameters);
+                    // if space position contains a position, we use it to override the oxdna code
+                    if let Some(id) = nucl_collection.get_identifier(&Nucl {
+                        helix: dom.helix,
+                        position,
+                        forward: dom.forward,
+                    }) && let Some(position) = space_position.get(id)
+                    {
+                        ox_nucl.position = position.into();
+                    }
                     let nucl = Nucl {
                         position,
                         helix: dom.helix,

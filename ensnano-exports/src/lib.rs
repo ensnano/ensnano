@@ -4,12 +4,13 @@ pub mod cadnano;
 pub mod oxdna;
 pub mod pdb;
 
+use ahash::HashMap;
 use cadnano::CadnanoError;
-use ensnano_design::{Design, nucl::Nucl};
+use ensnano_design::{Design, helices::NuclCollection, nucl::Nucl};
 use ensnano_utils::export::ExportType;
 use pdb::PdbError;
 use rand::seq::IndexedRandom as _;
-use std::{collections::HashMap, io::Write as _, path::PathBuf};
+use std::{io::Write as _, path::PathBuf};
 
 /// A value returned by the export functions when exports was successful.
 ///
@@ -70,7 +71,7 @@ impl From<std::io::Error> for ExportError {
 }
 
 /// A collection mapping nucleotide location to their basis.
-type BasisMap = HashMap<Nucl, char, ahash::RandomState>;
+type BasisMap = HashMap<Nucl, char>;
 
 struct BasisMapper<'a> {
     map: Option<&'a BasisMap>,
@@ -98,7 +99,7 @@ impl<'a> BasisMapper<'a> {
     fn new(map: Option<&'a BasisMap>) -> Self {
         Self {
             map,
-            alternative: HashMap::new(),
+            alternative: HashMap::default(),
         }
     }
 }
@@ -154,6 +155,8 @@ pub fn export(
     export_type: ExportType,
     basis_map: Option<&BasisMap>,
     export_path: &PathBuf,
+    space_position: &HashMap<u32, [f32; 3]>,
+    nucl_collection: &NuclCollection,
 ) -> Result<ExportSuccess, ExportError> {
     let basis_mapper = BasisMapper::new(basis_map);
     match export_type {
@@ -170,7 +173,13 @@ pub fn export(
             })
         }
         ExportType::Pdb => {
-            pdb::pdb_export(design, basis_mapper, export_path)?;
+            pdb::pdb_export(
+                design,
+                basis_mapper,
+                export_path,
+                space_position,
+                nucl_collection,
+            )?;
             Ok(ExportSuccess::Pdb(export_path.clone()))
         }
         ExportType::Cadnano => {
