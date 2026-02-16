@@ -97,6 +97,7 @@ impl HelixParameters {
         let param = parameters_from_p_stick_model!(Self::GEARY_2014_DNA_P_STICK);
         Self {
             bases_per_turn: 32.0/3.0,
+            helix_radius: 1.0,
             ..param
         }
     };
