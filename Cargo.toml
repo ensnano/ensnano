@@ -213,6 +213,7 @@ default_trait_access = "allow"
 doc_markdown = "allow" # TODO: warn
 fn_params_excessive_bools = "allow"
 if_not_else = "allow"
+implicit_hasher = "allow" # TODO: warn
 iter_without_into_iter = "allow"
 manual_midpoint = "allow"
 many_single_char_names = "allow"

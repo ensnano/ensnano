@@ -145,7 +145,7 @@ impl SpringAnchorsReference {
         )
         // unclear to me why this case would be necessary.
         // The code seems to fail when the axes are opposite.
-        .unwrap_or(UnitQuaternion::identity())
+        .unwrap_or_else(UnitQuaternion::identity)
     }
 
     // assumes both pairs are already aligned by the
