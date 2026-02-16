@@ -15,7 +15,6 @@ use ensnano_design::{
     grid::{GridDescriptor, GridTypeDescr},
     parameters::HelixParameters,
 };
-use ensnano_exports::ExportType;
 use ensnano_state::{
     app_state::{action::Action, design_interactor::controller::simulations::SimulationOperation},
     design::{
@@ -24,7 +23,7 @@ use ensnano_state::{
     },
     utils::application::Notification,
 };
-use ensnano_utils::consts::ENS_EXTENSION;
+use ensnano_utils::{consts::ENS_EXTENSION, export::ExportType};
 use std::path::Path;
 
 /// User is interacting with graphical components.

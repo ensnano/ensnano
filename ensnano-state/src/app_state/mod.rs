@@ -47,7 +47,6 @@ use ensnano_design::{
     organizer_tree::GroupId,
     scadnano::ScadnanoImportError,
 };
-use ensnano_exports::{ExportResult, ExportType};
 use ensnano_utils::{
     PastingStatus, SimulationState, StrandBuildingStatus, WidgetBasis,
     app_state_parameters::{
@@ -362,10 +361,10 @@ impl AppState {
         self.0.design.clone_inner()
     }
 
-    pub fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
-        self.get_design_interactor()
-            .export(export_path, export_type)
-    }
+    // pub fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
+    //     self.get_design_interactor()
+    //         .export(export_path, export_type)
+    // }
 
     pub fn get_selection(&self) -> &[Selection] {
         &self.0.selection.selection

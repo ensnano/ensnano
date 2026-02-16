@@ -1,3 +1,5 @@
+use ensnano_utils::export::ExportType;
+
 use super::{
     AutomataState, TransitionMessage, YesNo,
     messages::{
@@ -12,7 +14,6 @@ use crate::{
     MainStateView,
     dialog::{self, DialogFilters, PathInput},
 };
-use ensnano_exports::ExportType;
 use std::path::{Path, PathBuf};
 
 pub(super) struct Quit {

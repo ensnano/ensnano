@@ -7,6 +7,7 @@ pub mod buffer_dimensions;
 pub mod clipboard;
 pub mod colors;
 pub mod consts;
+pub mod export;
 pub mod filename;
 pub mod graphics;
 pub mod instance;

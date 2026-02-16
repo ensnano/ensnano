@@ -9,10 +9,10 @@ use ensnano_design::{
     group_attributes::GroupPivot,
     parameters::HelixParameters,
 };
-use ensnano_exports::ExportType;
 use ensnano_physics::parameters::RapierParameters;
 use ensnano_utils::{
     RigidBodyConstants, RollRequest,
+    export::ExportType,
     graphics::{FogParameters, SplitMode},
     overlay::OverlayType,
     surfaces::RevolutionSurfaceSystemDescriptor,
