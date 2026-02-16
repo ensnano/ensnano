@@ -255,7 +255,7 @@ impl CurveConstructor for PillConcentricStadiumDescriptor {
     type Curve = PillConcentricStadium;
 
     fn instantiate_with_parameters(&self, parameters: HelixParameters) -> PillConcentricStadium {
-        self.instanciate(
+        self.instantiate(
             HelixParameters::INTER_CENTER_GAP as f64,
             parameters.rise as f64,
             HelixParameters::GEARY_2014_DNA.rise as f64,
