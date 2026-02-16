@@ -27,7 +27,8 @@ repository = "https://github.com/ensnano/ensnano"
 version = "0.7.0"
 
 [workspace.dependencies]
-ensnano_design = { path = "ensnano-design" }
+ensnano_design = { path = "ensnano-design", features = ["ensnano_upcoming"] }
+ensnano_upcoming = { path = "../ensnano-upcoming" } # git = "ssh://git@gitlab.aliens-lyon.fr/nschaban/ensnano-upcoming.git" }
 ensnano_exports = { path = "ensnano-exports" }
 ensnano_flatscene = { path = "ensnano-flatscene" }
 ensnano_gui = { path = "ensnano-gui" }
@@ -213,6 +214,7 @@ default_trait_access = "allow"
 doc_markdown = "allow" # TODO: warn
 fn_params_excessive_bools = "allow"
 if_not_else = "allow"
+implicit_hasher = "allow" # TODO: warn
 iter_without_into_iter = "allow"
 manual_midpoint = "allow"
 many_single_char_names = "allow"

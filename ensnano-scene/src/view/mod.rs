@@ -71,7 +71,8 @@ static MODEL_BG_ENTRY: &[wgpu::BindGroupLayoutEntry] = &[wgpu::BindGroupLayoutEn
 }];
 
 const CAMERA_NEAR: f32 = 0.1;
-const CAMERA_FAR: f32 = 1000.0;
+const SKYBOX_DIST: f32 = 2000.;
+const CAMERA_FAR: f32 = 2. * SKYBOX_DIST;
 
 // Focal in mm of the camera lense based on a 24x36mm camera from which the Field of View Y (fovy)
 // is computed in view/mod.rs - default was 17mm
@@ -280,7 +281,7 @@ impl View {
             false,
             "skybox",
         );
-        skybox_cube.new_instances(vec![SkyBox::new(500.)]);
+        skybox_cube.new_instances(vec![SkyBox::new(SKYBOX_DIST)]);
 
         log::info!("Create external objects drawer");
         let external_objects_drawer = Object3DDrawer::new(device.clone());
