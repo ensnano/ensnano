@@ -76,7 +76,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 
     // Don't outline the skybox
     let d11 = load_depth(center, vec2<i32>(0, 0));
-    if d11 > 300.0 { // TODO: get skybox size (500) in uniform
+    if d11 > 1200.0 { // TODO: get skybox size in uniform
         return vec4<f32>(0.0, 0.0, 0.0, 0.0);
     }
 
