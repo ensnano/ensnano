@@ -27,8 +27,7 @@ repository = "https://github.com/ensnano/ensnano"
 version = "0.7.0"
 
 [workspace.dependencies]
-ensnano_design = { path = "ensnano-design", features = ["ensnano_upcoming"] }
-ensnano_upcoming = { path = "../ensnano-upcoming" } # git = "ssh://git@gitlab.aliens-lyon.fr/nschaban/ensnano-upcoming.git" }
+ensnano_design = { path = "ensnano-design" }
 ensnano_exports = { path = "ensnano-exports" }
 ensnano_flatscene = { path = "ensnano-flatscene" }
 ensnano_gui = { path = "ensnano-gui" }
