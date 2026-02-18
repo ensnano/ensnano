@@ -292,7 +292,7 @@ impl RevolutionTab {
         let half_turn_count = match curve {
             CurveDescriptor2D::Ellipse {
                 twist, ..
-            } => { twist as isize }
+            } => { twist.unwrap_or(0) as isize }
             _ => { 0 }
         };
 

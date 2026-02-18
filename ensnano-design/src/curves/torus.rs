@@ -134,7 +134,8 @@ pub enum CurveDescriptor2D {
     Ellipse {
         semi_minor_axis: OrderedFloat<f64>,
         semi_major_axis: OrderedFloat<f64>,
-        twist: usize,
+        #[serde(skip_serializing_if = "Option::is_none", default)]
+        twist: Option<usize>,
     },
     TwoBalls {
         radius_extern: OrderedFloat<f64>,

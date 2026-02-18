@@ -42,7 +42,7 @@ fn build_ellipse(parameters: &[InstantiatedParameter], _: &AppState) -> Option<C
     Some(CurveDescriptor2D::Ellipse {
         semi_minor_axis: b.into(),
         semi_major_axis: a.into(),
-        twist,
+        twist: Some(twist),
     })
 }
 
