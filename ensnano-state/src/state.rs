@@ -214,6 +214,8 @@ impl MainState {
             }
 
             // if a new selection is made, we apply it here
+            // note : this could be done better if the operations did
+            // this directly
             if let Some(selection) = app_state
                 .get_design_interactor()
                 .controller
