@@ -639,6 +639,7 @@ mod tests {
             curve: CurveDescriptor2D::Ellipse {
                 semi_minor_axis: r.into(),
                 semi_major_axis: r.into(),
+                twist:0,
             },
             revolution_radius: RevolutionSurfaceRadius::Left(R - r),
             half_turn_count: 0,

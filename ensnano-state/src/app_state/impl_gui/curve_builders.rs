@@ -16,6 +16,10 @@ pub(super) const ELLIPSE_BUILDER: CurveDescriptorBuilder = CurveDescriptorBuilde
             name: "Semi minor axis",
             default_value: InstantiatedParameter::Float(10.0),
         },
+        CurveDescriptorParameter {
+            name: "Twist (Nb of half turns per revolution)",
+            default_value: InstantiatedParameter::Uint(0),
+        },
     ],
     build: &build_ellipse,
     bezier_path_id: &no_bezier_path_id,
@@ -31,9 +35,14 @@ fn build_ellipse(parameters: &[InstantiatedParameter], _: &AppState) -> Option<C
         .get(1)
         .copied()
         .and_then(InstantiatedParameter::get_float)?;
+    let twist = parameters
+        .get(2)
+        .copied()
+        .and_then(InstantiatedParameter::get_uint)?;
     Some(CurveDescriptor2D::Ellipse {
         semi_minor_axis: b.into(),
         semi_major_axis: a.into(),
+        twist,
     })
 }
 

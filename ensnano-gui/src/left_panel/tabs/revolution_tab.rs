@@ -167,7 +167,7 @@ impl CurveDescriptorWidget {
 
 pub(crate) struct RevolutionTab {
     curve_descriptor_widget: Option<CurveDescriptorWidget>,
-    half_turn_count: ParameterWidget,
+    // half_turn_count: ParameterWidget,
     radius_input: ParameterWidget,
     scaling: Option<RevolutionScaling>,
     nb_spiral_state_input: ParameterWidget,
@@ -190,7 +190,7 @@ impl Default for RevolutionTab {
         let init_parameter = RevolutionSimulationParameters::default();
         Self {
             curve_descriptor_widget: None,
-            half_turn_count: ParameterWidget::new(InstantiatedParameter::Int(0)),
+            // half_turn_count: ParameterWidget::new(InstantiatedParameter::Int(0)),
             radius_input: ParameterWidget::new(InstantiatedParameter::Float(0.)),
             scaling: None,
             nb_spiral_state_input: ParameterWidget::new(InstantiatedParameter::Uint(2)),
@@ -250,7 +250,7 @@ impl RevolutionTab {
             param => {
                 let widget = match param {
                     RevolutionParameterId::SectionParameter(_) => unreachable!(),
-                    RevolutionParameterId::HalfTurnCount => &mut self.half_turn_count,
+                    // RevolutionParameterId::HalfTurnCount => &mut self.half_turn_count,
                     RevolutionParameterId::NbSpiral => &mut self.nb_spiral_state_input,
                     RevolutionParameterId::RevolutionRadius => &mut self.radius_input,
                     RevolutionParameterId::ScaffoldLenTarget => &mut self.scaffold_len_target,
@@ -273,6 +273,7 @@ impl RevolutionTab {
         &self,
         app_state: &AppState,
     ) -> Option<UnrootedRevolutionSurfaceDescriptor> {
+        println!("lis unrooted surface");
         let curve = self
             .curve_descriptor_widget
             .as_ref()
@@ -282,10 +283,19 @@ impl RevolutionTab {
             .get_value()
             .and_then(InstantiatedParameter::get_float)
             .map(RevolutionSurfaceRadius::from_signed_f64)?;
-        let half_turn_count = self
-            .half_turn_count
-            .get_value()
-            .and_then(InstantiatedParameter::get_int)?;
+
+        // let half_turn_count = self
+        //     .half_turn_count
+        //     .get_value()
+        //     .and_then(InstantiatedParameter::get_int)?;
+
+        // NICOLAS: now half_turn_count only works for Ellipse
+        let half_turn_count = match curve {
+            CurveDescriptor2D::Ellipse {
+                twist, ..
+            } => { twist as isize }
+            _ => { 0 }
+        };
 
         let (curve_plane_position, curve_plane_orientation) = self
             .curve_descriptor_widget
@@ -496,11 +506,11 @@ impl GuiTab for RevolutionTab {
 
         let content = column![
             section("Revolution Surfaces", ui_size),
-            checkbox("Show bezier paths", app_state.get_show_bezier_paths())
+            checkbox("Show revolution axis", app_state.get_show_bezier_paths())
                 .on_toggle(LeftPanelMessage::SetShowBezierPaths),
             column![
                 extra_jump(),
-                subsection("Section parameters", ui_size),
+                subsection("Revolution surface parameters", ui_size),
                 row![
                     "Curve type",
                     Space::with_width(ui_size.checkbox_spacing()),
@@ -521,15 +531,22 @@ impl GuiTab for RevolutionTab {
                 },
             ],
             column![
-                extra_jump(),
-                subsection("Revolution parameters", ui_size),
                 row![
-                    "Nb Half Turns",
+                    "Revolution Radius",
                     Space::with_width(ui_size.checkbox_spacing()),
-                    self.half_turn_count
-                        .input_view(RevolutionParameterId::HalfTurnCount),
+                    self.radius_input
+                        .input_view(RevolutionParameterId::RevolutionRadius),
                 ]
                 .align_items(Alignment::Center),
+                extra_jump(),
+                subsection("DNA routing parameters", ui_size),
+                // row![
+                //     "Nb Half Turns",
+                //     Space::with_width(ui_size.checkbox_spacing()),
+                //     self.half_turn_count
+                //         .input_view(RevolutionParameterId::HalfTurnCount),
+                // ]
+                // .align_items(Alignment::Center),
                 text(self.scaling.map_or_else(
                     || "Nb helix: ###".into(),
                     |RevolutionScaling { nb_helix }| format!("Nb helix: {nb_helix}")
@@ -542,13 +559,6 @@ impl GuiTab for RevolutionTab {
                 ]
                 .align_items(Alignment::Center),
                 shift_buttons,
-                row![
-                    "Revolution Radius",
-                    Space::with_width(ui_size.checkbox_spacing()),
-                    self.radius_input
-                        .input_view(RevolutionParameterId::RevolutionRadius),
-                ]
-                .align_items(Alignment::Center),
             ]
             .spacing(2),
             column![

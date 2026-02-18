@@ -134,6 +134,7 @@ pub enum CurveDescriptor2D {
     Ellipse {
         semi_minor_axis: OrderedFloat<f64>,
         semi_major_axis: OrderedFloat<f64>,
+        twist: usize,
     },
     TwoBalls {
         radius_extern: OrderedFloat<f64>,
@@ -161,6 +162,7 @@ impl CurveDescriptor2D {
             Self::Ellipse {
                 semi_minor_axis,
                 semi_major_axis,
+                ..
             } => {
                 let a = f64::from(*semi_major_axis);
                 let b = f64::from(*semi_minor_axis);
@@ -390,6 +392,7 @@ impl CurveDescriptor2D {
             Self::Ellipse {
                 semi_major_axis,
                 semi_minor_axis,
+                ..
             } => {
                 let a = f64::from(*semi_major_axis);
                 let b = f64::from(*semi_minor_axis);
@@ -406,6 +409,7 @@ impl CurveDescriptor2D {
             Self::Ellipse {
                 semi_minor_axis,
                 semi_major_axis,
+                ..
             } => {
                 let a = f64::from(*semi_major_axis);
                 let b = f64::from(*semi_minor_axis);
@@ -421,6 +425,7 @@ impl CurveDescriptor2D {
             Self::Ellipse {
                 semi_minor_axis,
                 semi_major_axis,
+                ..
             } => Arc::new(InstantiatedEllipse::new(*semi_minor_axis, *semi_major_axis)),
             _ => todo!(),
         }
