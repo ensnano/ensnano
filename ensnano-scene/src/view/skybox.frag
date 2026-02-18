@@ -24,7 +24,5 @@ void main() {
         color = SAND_COLOR;
     }
 
-    color = SKY_COLOR;
-
     f_color = vec4(color, 1.);
 }

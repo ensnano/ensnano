@@ -7,7 +7,7 @@
 use crate::vec_to_vector;
 use ensnano_design::{helices::Helix, parameters::HelixParameters};
 use rapier3d::{
-    na::{Const, OVector, Rotation2, Unit, UnitQuaternion},
+    na::{Const, OVector, Rotation2, Unit, UnitQuaternion, Vector3},
     prelude::*,
 };
 use std::f32::consts::FRAC_PI_2;
@@ -143,9 +143,8 @@ impl SpringAnchorsReference {
             &Unit::new_normalize(self.nucleotide_forward),
             &Unit::new_normalize(target_forward),
         )
-        // unclear to me why this case would be necessary.
-        // The code seems to fail when the axes are opposite.
-        .unwrap_or_else(UnitQuaternion::identity)
+        // The code fails when the axis are close to opposite directions.
+        .unwrap_or(UnitQuaternion::face_towards(&-Vector3::z(), &-Vector3::y()))
     }
 
     // assumes both pairs are already aligned by the

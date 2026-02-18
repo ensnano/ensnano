@@ -10,7 +10,6 @@ license.workspace = true
 workspace = true
 
 [dependencies]
-ensnano_upcoming.workspace = true
 ahash.workspace = true
 iced.workspace = true
 icondata.workspace = true
