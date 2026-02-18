@@ -144,7 +144,7 @@ impl SpringAnchorsReference {
             &Unit::new_normalize(target_forward),
         )
         // The code fails when the axis are close to opposite directions.
-        .unwrap_or(UnitQuaternion::face_towards(&-Vector3::z(), &-Vector3::y()))
+        .unwrap_or_else(|| UnitQuaternion::face_towards(&-Vector3::z(), &-Vector3::y()))
     }
 
     // assumes both pairs are already aligned by the
