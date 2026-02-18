@@ -213,6 +213,17 @@ impl MainState {
                 result = app_state.apply_design_op(operation.clone());
             }
 
+            // if a new selection is made, we apply it here
+            if let Some(selection) = app_state
+                .get_design_interactor()
+                .controller
+                .make_mut()
+                .next_selection
+                .take()
+            {
+                app_state.set_selection(&selection, &None)?;
+            }
+
             result
         });
     }
