@@ -273,7 +273,6 @@ impl RevolutionTab {
         &self,
         app_state: &AppState,
     ) -> Option<UnrootedRevolutionSurfaceDescriptor> {
-        println!("lis unrooted surface");
         let curve = self
             .curve_descriptor_widget
             .as_ref()
