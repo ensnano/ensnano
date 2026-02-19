@@ -1,5 +1,8 @@
 use crate::{
-    app_state::design_interactor::controller::{Controller, OperationError},
+    app_state::{
+        AppState,
+        design_interactor::controller::{Controller, OperationError},
+    },
     design::operation::InsertionPoint,
 };
 use ensnano_design::{
@@ -10,11 +13,11 @@ use ensnano_design::{
 
 impl Controller {
     pub fn update_insertion_length(
-        &mut self,
-        design: &mut Design,
+        state: &mut AppState,
         insertion_point: InsertionPoint,
         length: usize,
     ) -> Result<(), OperationError> {
+        let (design, controller) = state.design_controller_mut();
         let s_id = design
             .strands
             .get_strand_nucl(&insertion_point.nucl)
@@ -29,7 +32,12 @@ impl Controller {
             let prime3 = strand_mut
                 .get_3prime()
                 .ok_or(OperationError::CouldNotGetPrime3of(s_id))?;
-            Self::split_strand(&mut design.strands, &prime3, None, &mut self.color_idx)?;
+            Self::split_strand(
+                &mut design.strands,
+                &prime3,
+                None,
+                &mut controller.color_idx,
+            )?;
         }
 
         let strand_mut = design
@@ -56,7 +64,7 @@ impl Controller {
                 &mut design.strands,
                 &insertion_point.nucl,
                 forced_end,
-                &mut self.color_idx,
+                &mut controller.color_idx,
             )?;
             let strand_mut = design
                 .strands
