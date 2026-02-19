@@ -111,10 +111,10 @@ impl Controller {
         operation: DesignOperation,
     ) -> AppStateOperationResult {
         log::debug!("operation {operation:?}");
-        match state.0.design.controller.check_compatibility(&operation) {
+        match state.controller().check_compatibility(&operation) {
             OperationCompatibility::Incompatible => {
                 return Err(OperationError::IncompatibleState(
-                    state.0.design.controller.state.state_name().into(),
+                    state.controller().state.state_name().into(),
                 ));
             }
             OperationCompatibility::FinishFirst => return Err(OperationError::FinishFirst),
@@ -126,40 +126,13 @@ impl Controller {
     }
 
     pub fn update_pending_operation(
-        // &mut self,
-        // design: &mut Design,
         state: &mut AppState,
         operation: Arc<dyn SimpleOperation>,
     ) -> AppStateOperationResult {
         let effect = operation.effect();
 
-        if operation.replace_previous()
-            && let ControllerState::WithPendingOp { .. } = &state.0.design.controller.state
-        {
-            let result = Controller::apply_operation(state, effect)?;
-            state
-                .0
-                .make_mut()
-                .design
-                .make_mut()
-                .controller
-                .make_mut()
-                .state
-                .update_operation(operation);
-
-            return Ok(result);
-        }
-
-        let result = Controller::apply_operation(state, effect)?;
-        state
-            .0
-            .make_mut()
-            .design
-            .make_mut()
-            .controller
-            .make_mut()
-            .state
-            .update_operation(operation);
+        let result = Self::apply_operation(state, effect)?;
+        state.controller_mut().state.update_operation(operation);
 
         Ok(result)
     }
@@ -368,26 +341,16 @@ impl Controller {
     ) -> Result<(), OperationError> {
         // the hyperboloid grid is always the last one that was added to the design
         let grid_id = state
-            .0
-            .design
-            .design
+            .design()
             .free_grids
             .keys()
             .max()
             .copied()
             .ok_or(OperationError::GridDoesNotExist(GridId::FreeGrid(0)))?;
-        let helix_parameters = state.0.design.design.helix_parameters.unwrap_or_default();
+        let helix_parameters = state.design().helix_parameters.unwrap_or_default();
         let (helices, nb_nucl) = hyperboloid.make_helices(&helix_parameters);
         let nb_nucl = nb_nucl.min(5000);
-        let mut helices_mut = state
-            .0
-            .make_mut()
-            .design
-            .make_mut()
-            .design
-            .make_mut()
-            .helices
-            .make_mut();
+        let mut helices_mut = state.design_mut().helices.make_mut();
         let mut keys = Vec::with_capacity(helices.len());
         for (i, mut h) in helices.into_iter().enumerate() {
             let origin = hyperboloid.origin_helix(&helix_parameters, i as isize, 0);
@@ -417,14 +380,9 @@ impl Controller {
         drop(helices_mut);
         for key in keys {
             for b in &[true, false] {
-                let new_key = Controller::add_strand(state, key, 0, *b);
+                let new_key = Self::add_strand(state, key, 0, *b);
                 if let Domain::HelixDomain(ref mut dom) = state
-                    .0
-                    .make_mut()
-                    .design
-                    .make_mut()
-                    .design
-                    .make_mut()
+                    .design_mut()
                     .strands
                     .get_mut(&new_key)
                     .unwrap()
@@ -502,10 +460,10 @@ impl Controller {
         log::info!("updating attribute {attribute:?}, {elements:?}");
         for elt in &elements {
             match attribute {
-                DnaAttribute::Visible(b) => Controller::make_element_visible(state, elt, b)?,
-                DnaAttribute::XoverGroup(g) => Controller::set_xover_group_of_elt(state, elt, g)?,
+                DnaAttribute::Visible(b) => Self::make_element_visible(state, elt, b)?,
+                DnaAttribute::XoverGroup(g) => Self::set_xover_group_of_elt(state, elt, g)?,
                 DnaAttribute::LockedForSimulations(locked) => {
-                    Controller::set_lock_during_simulation(state, elt, locked)?;
+                    Self::set_lock_during_simulation(state, elt, locked)?;
                 }
             }
         }
@@ -596,16 +554,9 @@ impl Controller {
                 orientation,
                 request,
             } => {
-                let initial_design = state.0.design.design.clone();
+                let initial_design = state.interactor().design.clone();
 
-                state
-                    .0
-                    .make_mut()
-                    .design
-                    .make_mut()
-                    .controller
-                    .make_mut()
-                    .state = ControllerState::MakingHyperboloid {
+                state.controller_mut().state = ControllerState::MakingHyperboloid {
                     position,
                     orientation,
                     initial_design,
@@ -614,8 +565,8 @@ impl Controller {
                 let hyperboloid = request.to_grid();
                 let grid_descriptor =
                     GridDescriptor::hyperboloid(position, orientation, hyperboloid.clone());
-                Controller::add_grid(state, grid_descriptor);
-                Controller::add_hyperboloid_helices(state, &hyperboloid, position, orientation)?;
+                Self::add_grid(state, grid_descriptor);
+                Self::add_hyperboloid_helices(state, &hyperboloid, position, orientation)?;
                 Ok(())
             }
             HyperboloidOperation::Update(request) => {
@@ -623,19 +574,14 @@ impl Controller {
                     position,
                     orientation,
                     initial_design,
-                } = state.0.design.controller.state.clone()
+                } = state.controller().state.clone()
                 {
-                    state.0.make_mut().design.make_mut().design = initial_design;
+                    state.interactor_mut().design = initial_design;
                     let hyperboloid = request.to_grid();
                     let grid_descriptor =
                         GridDescriptor::hyperboloid(position, orientation, hyperboloid.clone());
-                    Controller::add_grid(state, grid_descriptor);
-                    Controller::add_hyperboloid_helices(
-                        state,
-                        &hyperboloid,
-                        position,
-                        orientation,
-                    )?;
+                    Self::add_grid(state, grid_descriptor);
+                    Self::add_hyperboloid_helices(state, &hyperboloid, position, orientation)?;
                     Ok(())
                 } else {
                     Err(OperationError::IncompatibleState(
@@ -645,17 +591,10 @@ impl Controller {
             }
             HyperboloidOperation::Cancel => {
                 if let ControllerState::MakingHyperboloid { initial_design, .. } =
-                    state.0.design.controller.state.clone()
+                    state.controller().state.clone()
                 {
-                    state.0.make_mut().design.make_mut().design = initial_design;
-                    state
-                        .0
-                        .make_mut()
-                        .design
-                        .make_mut()
-                        .controller
-                        .make_mut()
-                        .state = ControllerState::Normal;
+                    state.interactor_mut().design = initial_design;
+                    state.controller_mut().state = ControllerState::Normal;
                     Ok(())
                 } else {
                     Err(OperationError::IncompatibleState(
@@ -664,7 +603,7 @@ impl Controller {
                 }
             }
             HyperboloidOperation::Finalize => {
-                if let ControllerState::MakingHyperboloid { .. } = state.0.design.controller.state {
+                if let ControllerState::MakingHyperboloid { .. } = state.controller().state {
                     state
                         .0
                         .make_mut()
@@ -839,12 +778,9 @@ impl Controller {
         }
     }
 
-    fn update_state_not_design(&mut self, design: &Design) {
+    fn update_state_not_design(&mut self) {
         if !matches!(self.state, ControllerState::ApplyingOperation { .. }) {
-            self.state = ControllerState::ApplyingOperation {
-                design: AddressPointer::new(design.clone()),
-                operation: None,
-            };
+            self.state = ControllerState::ApplyingOperation { operation: None };
         }
     }
 
@@ -897,10 +833,7 @@ impl Controller {
         selection: Vec<Selection>,
     ) -> Result<(), OperationError> {
         let helices = list_of_helices(&selection).ok_or(OperationError::BadSelection)?;
-        make_grid_from_helices(
-            state.0.make_mut().design.make_mut().design.make_mut(),
-            &helices.1,
-        )?;
+        make_grid_from_helices(state.design_mut(), &helices.1)?;
         Ok(())
     }
 
@@ -942,8 +875,6 @@ impl Controller {
             .controller
             .make_mut()
             .state = ControllerState::ApplyingOperation {
-            // TODO : remove this nasty field
-            design: state.0.design.design.clone(),
             operation: Some(Arc::new(TranslateBezierPathVertex {
                 vertices: vec![BezierVertexId {
                     path_id,
@@ -959,7 +890,7 @@ impl Controller {
             vertex_id: 0,
         })];
 
-        state.set_selection(&selection, &None);
+        _ = state.set_selection(&selection, &None);
     }
 
     pub fn append_vertex_to_bezier_path(
@@ -988,8 +919,6 @@ impl Controller {
             .controller
             .make_mut()
             .state = ControllerState::ApplyingOperation {
-            // TODO : remove this field
-            design: state.0.design.design.clone(),
             operation: Some(Arc::new(TranslateBezierPathVertex {
                 vertices: vec![BezierVertexId { path_id, vertex_id }],
                 x: vertex.position.x,
@@ -1002,7 +931,7 @@ impl Controller {
             vertex_id,
         })];
 
-        state.set_selection(&selection, &None);
+        state.set_selection(&selection, &None)?;
 
         Ok(())
     }
@@ -1095,7 +1024,7 @@ impl Controller {
             }
             drop(new_paths);
 
-            state.set_selection(&next_selection, &None);
+            state.set_selection(&next_selection, &None)?;
 
             Ok(())
         } else {
@@ -1155,7 +1084,7 @@ impl Controller {
         request: NewBezierTangentVector,
     ) -> Result<(), OperationError> {
         let (design, controller) = state.design_controller_mut();
-        controller.update_state_not_design(design);
+        controller.update_state_not_design();
 
         let mut new_paths = design.bezier_paths.make_mut();
         let path_id = request.vertex_id.path_id;
@@ -1307,20 +1236,16 @@ impl Controller {
     ) -> Result<(), OperationError> {
         match translation.target {
             IsometryTarget::Helices(helices, snap) => {
-                Controller::do_translate_helices(state, snap, helices, translation.translation)?;
+                Self::do_translate_helices(state, snap, helices, translation.translation)?;
             }
             IsometryTarget::Grids(grid_ids) => {
-                Controller::translate_grids(state, grid_ids, translation.translation)?;
+                Self::translate_grids(state, grid_ids, translation.translation)?;
             }
             IsometryTarget::GroupPivot(group_id) => {
-                Controller::translate_group_pivot(state, translation.translation, group_id)?;
+                Self::translate_group_pivot(state, translation.translation, group_id)?;
             }
             IsometryTarget::ControlPoint(control_points) => {
-                Controller::translate_control_points(
-                    state,
-                    control_points,
-                    translation.translation,
-                )?;
+                Self::translate_control_points(state, control_points, translation.translation)?;
             }
         }
 
@@ -1399,19 +1324,13 @@ impl Controller {
     ) -> Result<(), OperationError> {
         match rotation.target {
             IsometryTarget::GroupPivot(g_id) => {
-                Controller::rotate_group_pivot(state, rotation.rotation, g_id)?;
+                Self::rotate_group_pivot(state, rotation.rotation, g_id)?;
             }
             IsometryTarget::Helices(helices, snap) => {
-                Controller::rotate_helices_3d(
-                    state,
-                    snap,
-                    helices,
-                    rotation.rotation,
-                    rotation.origin,
-                );
+                Self::rotate_helices_3d(state, snap, helices, rotation.rotation, rotation.origin)?;
             }
             IsometryTarget::Grids(grid_ids) => {
-                Controller::rotate_grids(state, grid_ids, rotation.rotation, rotation.origin);
+                Self::rotate_grids(state, grid_ids, rotation.rotation, rotation.origin);
             }
             IsometryTarget::ControlPoint(_) => {
                 return Err(OperationError::NotImplemented);
@@ -1441,12 +1360,7 @@ impl Controller {
         helices: Vec<usize>,
         translation: Vec3,
     ) -> Result<(), DesignOperationError> {
-        translate_helices(
-            state.0.make_mut().design.make_mut().design.make_mut(),
-            snap,
-            helices,
-            translation,
-        )
+        translate_helices(state.design_mut(), snap, helices, translation)
     }
 
     fn translate_control_points(
@@ -1492,13 +1406,7 @@ impl Controller {
         rotation: Rotor3,
         origin: Vec3,
     ) -> Result<(), DesignOperationError> {
-        rotate_helices_3d(
-            state.0.make_mut().design.make_mut().design.make_mut(),
-            snap,
-            helices,
-            rotation,
-            origin,
-        )
+        rotate_helices_3d(state.design_mut(), snap, helices, rotation, origin)
     }
 
     fn translate_grids(
@@ -1566,7 +1474,7 @@ impl Controller {
             }
         }
 
-        let bezier_planes = state.0.design.design.bezier_planes.clone();
+        let bezier_planes = state.design().bezier_planes.clone();
         let mut new_paths = state
             .0
             .make_mut()
@@ -1606,7 +1514,7 @@ impl Controller {
     pub fn fancy_recolor_staples(state: &mut AppState) {
         let mut drawing_styles = HashMap::<DesignElementKey, DrawingStyle>::default();
 
-        if let Some(t) = &state.0.design.design.organizer_tree {
+        if let Some(t) = &state.design().organizer_tree {
             // Read drawing style -> this should be a function on its own, the exact same code is used in design-content
             let prefix = "style:"; // PREFIX SHOULD BELONG TO CONST.RS
             let h = t.get_hashmap_to_all_group_names_with_prefix(prefix);
@@ -1624,11 +1532,11 @@ impl Controller {
             }
         }
 
-        let scaffold_id = state.0.design.design.scaffold_id;
+        let scaffold_id = state.design().scaffold_id;
 
-        let design_interactor = state.0.make_mut().design.make_mut();
+        let (design, controller) = state.design_controller_mut();
 
-        for (s_id, strand) in design_interactor.design.make_mut().strands.iter_mut() {
+        for (s_id, strand) in design.strands.iter_mut() {
             // recoloring only concerns the non-scaffold strands
             if Some(*s_id) != scaffold_id {
                 // Compute strand drawing style
@@ -1640,7 +1548,7 @@ impl Controller {
                 let color = if let Some(shade) = strand_style.color_shade {
                     random_color_with_shade(shade, strand_style.hue_range)
                 } else {
-                    new_color(&mut design_interactor.controller.make_mut().color_idx)
+                    new_color(&mut controller.color_idx)
                 };
 
                 strand.color = color;
@@ -1648,28 +1556,14 @@ impl Controller {
         }
     }
 
-    pub fn set_scaffold_sequence(state: &mut AppState, sequence: String, shift: usize) {
-        state
-            .0
-            .make_mut()
-            .design
-            .make_mut()
-            .design
-            .make_mut()
-            .scaffold_sequence = Some(sequence);
-        state
-            .0
-            .make_mut()
-            .design
-            .make_mut()
-            .design
-            .make_mut()
-            .scaffold_shift = Some(shift);
+    pub fn set_scaffold_sequence(design: &mut Design, sequence: String, shift: usize) {
+        design.scaffold_sequence = Some(sequence);
+        design.scaffold_shift = Some(shift);
     }
 
     pub fn set_scaffold_shift(state: &mut AppState, shift: usize) {
         if matches!(
-            state.0.design.controller.state,
+            state.controller().state,
             ControllerState::OptimizingScaffoldPosition
         ) {
             state
@@ -1749,29 +1643,9 @@ impl Controller {
     pub fn set_small_spheres(state: &mut AppState, grid_ids: Vec<GridId>, small: bool) {
         for g_id in grid_ids {
             if small {
-                Arc::make_mut(
-                    &mut state
-                        .0
-                        .make_mut()
-                        .design
-                        .make_mut()
-                        .design
-                        .make_mut()
-                        .small_spheres,
-                )
-                .insert(g_id);
+                Arc::make_mut(&mut state.design_mut().small_spheres).insert(g_id);
             } else {
-                Arc::make_mut(
-                    &mut &mut state
-                        .0
-                        .make_mut()
-                        .design
-                        .make_mut()
-                        .design
-                        .make_mut()
-                        .small_spheres,
-                )
-                .remove(&g_id);
+                Arc::make_mut(&mut state.design_mut().small_spheres).remove(&g_id);
             }
         }
     }
@@ -1906,12 +1780,12 @@ impl Controller {
             .collect();
         for nucl in nucls {
             builders.push(
-                Controller::request_one_builder(state, nucl, &ignored_domains)
+                Self::request_one_builder(state, nucl, &ignored_domains)
                     .ok_or(OperationError::CannotBuildOn(nucl))?,
             );
         }
         log::info!("Ignored domains: {ignored_domains:?}");
-        let initial_design = state.0.design.design.clone();
+        let initial_design = state.interactor().design.clone();
         state.controller_mut().state = ControllerState::BuildingStrand {
             builders,
             initializing: true,
@@ -1930,14 +1804,14 @@ impl Controller {
     ) -> Option<StrandBuilder> {
         // if there is a strand that passes through the nucleotide
         if state.design().strands.get_strand_nucl(&nucl).is_some() {
-            Controller::strand_builder_on_existing(state, nucl, ignored_domains)
+            Self::strand_builder_on_existing(state, nucl, ignored_domains)
         } else {
-            Controller::new_strand_builder(state, nucl)
+            Self::new_strand_builder(state, nucl)
         }
     }
 
     fn strand_builder_on_existing(
-        state: &mut AppState,
+        state: &AppState,
         nucl: Nucl,
         ignored_domains: &[DomainIdentifier],
     ) -> Option<StrandBuilder> {
@@ -2005,7 +1879,7 @@ impl Controller {
         if left.is_some() && right.is_some() {
             return None;
         }
-        let new_key = Controller::init_strand(state, nucl);
+        let new_key = Self::init_strand(state, nucl);
         let axis = state
             .design()
             .helices
@@ -2034,35 +1908,21 @@ impl Controller {
     }
 
     fn add_strand(state: &mut AppState, helix: usize, position: isize, forward: bool) -> usize {
-        let new_key = if let Some(k) = state.0.design.design.strands.keys().max() {
+        let new_key = if let Some(k) = state.design().strands.keys().max() {
             *k + 1
         } else {
             0
         };
-        let color = new_color(
-            &mut state
-                .0
-                .make_mut()
-                .design
-                .make_mut()
-                .controller
-                .make_mut()
-                .color_idx,
-        );
+        let color = new_color(&mut state.controller_mut().color_idx);
         state
-            .0
-            .make_mut()
-            .design
-            .make_mut()
-            .design
-            .make_mut()
+            .design_mut()
             .strands
             .insert(new_key, Strand::init(helix, position, forward, color));
         new_key
     }
 
     pub fn move_strand_builders(state: &mut AppState, n: isize) -> Result<(), OperationError> {
-        let current_design = state.0.design.design.clone();
+        let current_design = state.design().clone();
 
         if let ControllerState::BuildingStrand {
             initial_design,
@@ -2370,14 +2230,7 @@ impl Controller {
         start: isize,
         length: usize,
     ) -> Result<(), OperationError> {
-        let grid_manager = state
-            .0
-            .make_mut()
-            .design
-            .make_mut()
-            .design
-            .make_mut()
-            .get_updated_grid_data();
+        let grid_manager = state.design_mut().get_updated_grid_data();
         if grid_manager.pos_to_object(position.light()).is_some() {
             return Err(OperationError::GridPositionAlreadyUsed);
         }
@@ -2395,27 +2248,13 @@ impl Controller {
                 position.grid,
             ))
         }?;
-        let helix_id = state
-            .0
-            .make_mut()
-            .design
-            .make_mut()
-            .design
-            .make_mut()
-            .helices
-            .make_mut()
-            .push_helix(helix);
+        let helix_id = state.design_mut().helices.make_mut().push_helix(helix);
 
         if length > 0 {
             for b in &[false, true] {
-                let new_key = Controller::add_strand(state, helix_id, start, *b);
+                let new_key = Self::add_strand(state, helix_id, start, *b);
                 if let Domain::HelixDomain(ref mut dom) = state
-                    .0
-                    .make_mut()
-                    .design
-                    .make_mut()
-                    .design
-                    .make_mut()
+                    .design_mut()
                     .strands
                     .get_mut(&new_key)
                     .unwrap()
@@ -2434,14 +2273,7 @@ impl Controller {
         end: HelixGridPosition,
     ) -> Result<(), OperationError> {
         log::info!("Add {start:?} {end:?}");
-        let grid_manager = state
-            .0
-            .make_mut()
-            .design
-            .make_mut()
-            .design
-            .make_mut()
-            .get_updated_grid_data();
+        let grid_manager = state.design_mut().get_updated_grid_data();
         if let Some(obj) = grid_manager.pos_to_object(start.light()) {
             if grid_manager.pos_to_object(end.light()).is_some() {
                 return Err(OperationError::GridPositionAlreadyUsed);
@@ -2449,38 +2281,24 @@ impl Controller {
             let (_, tangent) = grid_manager
                 .get_tangents_between_two_points(start.light(), end.light())
                 .ok_or(OperationError::GridDoesNotExist(end.grid))?;
-            return Controller::add_bezier_point(state, obj, end.light(), tangent, true);
+            return Self::add_bezier_point(state, obj, end.light(), tangent, true);
         } else if let Some(obj) = grid_manager.pos_to_object(end.light()) {
             let (tangent, _) = grid_manager
                 .get_tangents_between_two_points(start.light(), end.light())
                 .ok_or(OperationError::GridDoesNotExist(end.grid))?;
-            return Controller::add_bezier_point(state, obj, start.light(), tangent, false);
+            return Self::add_bezier_point(state, obj, start.light(), tangent, false);
         }
         let helix = Helix::new_bezier_two_points(grid_manager, start, end)?;
 
         let length = helix.nb_bezier_nucls();
 
-        let helix_id = state
-            .0
-            .make_mut()
-            .design
-            .make_mut()
-            .design
-            .make_mut()
-            .helices
-            .make_mut()
-            .push_helix(helix);
+        let helix_id = state.design_mut().helices.make_mut().push_helix(helix);
 
         if length > 0 {
             for b in &[false, true] {
-                let new_key = Controller::add_strand(state, helix_id, 0, *b);
+                let new_key = Self::add_strand(state, helix_id, 0, *b);
                 if let Domain::HelixDomain(ref mut dom) = state
-                    .0
-                    .make_mut()
-                    .design
-                    .make_mut()
-                    .design
-                    .make_mut()
+                    .design_mut()
                     .strands
                     .get_mut(&new_key)
                     .unwrap()
@@ -2502,15 +2320,7 @@ impl Controller {
     ) -> Result<(), OperationError> {
         match object {
             GridObject::BezierPoint { helix_id, n } => {
-                let mut helices_mut = state
-                    .0
-                    .make_mut()
-                    .design
-                    .make_mut()
-                    .design
-                    .make_mut()
-                    .helices
-                    .make_mut();
+                let mut helices_mut = state.design_mut().helices.make_mut();
                 let helix_ref = helices_mut
                     .get_mut(&helix_id)
                     .ok_or(OperationError::HelixDoesNotExists(helix_id))?;
@@ -3157,7 +2967,7 @@ impl Controller {
     pub fn import_svg_path(design: &mut Design, path: PathBuf) -> Result<(), OperationError> {
         // The imported bezier path will be attached to plane 0 so we need to ensure that it exists
         if design.bezier_planes.get(&BezierPlaneId(0)).is_none() {
-            Controller::add_bezier_plane(design, Default::default());
+            Self::add_bezier_plane(design, Default::default());
         }
 
         let mut paths = design.bezier_paths.make_mut();
@@ -3268,7 +3078,6 @@ enum ControllerState {
         operation: Arc<dyn SimpleOperation>,
     },
     ApplyingOperation {
-        design: AddressPointer<Design>,
         operation: Option<Arc<dyn SimpleOperation>>,
     },
     PositioningStrandPastingPoint {

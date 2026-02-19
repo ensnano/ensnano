@@ -119,6 +119,18 @@ impl AppState {
 
     // NOTE PACOME : this method is temporary while the overall structure
     // stays messy
+    pub fn interactor_mut(&mut self) -> &mut DesignInteractor {
+        self.0.make_mut().design.make_mut()
+    }
+
+    // NOTE PACOME : this method is temporary while the overall structure
+    // stays messy
+    pub fn interactor(&mut self) -> &DesignInteractor {
+        &self.0.design
+    }
+
+    // NOTE PACOME : this method is temporary while the overall structure
+    // stays messy
     pub fn design(&self) -> &Design {
         &self.0.design.design
     }

@@ -7,7 +7,7 @@ use crate::{
     operation::{AppStateOperationOutcome, AppStateOperationResult},
 };
 use ensnano_design::{
-    CameraId, Design,
+    CameraId,
     bezier_plane::{
         BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
     },
@@ -316,7 +316,7 @@ impl DesignOperation {
                 Controller::fancy_recolor_staples(state);
             }
             Self::SetScaffoldSequence { sequence, shift } => {
-                Controller::set_scaffold_sequence(state, sequence, shift);
+                Controller::set_scaffold_sequence(state.design_mut(), sequence, shift);
             }
             Self::SetScaffoldShift(shift) => {
                 Controller::set_scaffold_shift(state, shift);

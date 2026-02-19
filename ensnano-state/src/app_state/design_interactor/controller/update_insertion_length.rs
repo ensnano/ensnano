@@ -6,7 +6,6 @@ use crate::{
     design::operation::InsertionPoint,
 };
 use ensnano_design::{
-    Design,
     domains::Domain,
     strands::{DomainJunction, Strand},
 };

@@ -324,7 +324,7 @@ impl DesignInteractor {
 mod tests {
     use super::*;
     use crate::{
-        app_state::{AppState, design_interactor::controller::clipboard::PastePosition},
+        app_state::design_interactor::controller::clipboard::PastePosition,
         design::operation::{DesignOperation, InsertionPoint},
         utils::operation::GridHelixCreation,
     };
