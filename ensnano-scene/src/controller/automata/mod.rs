@@ -418,8 +418,6 @@ impl ControllerState for NormalState {
                         let path_id = context.get_bezier_vertex_being_edited().map(|v| v.path_id);
 
                         if let Some((plane_id, intersection)) = context.get_plane_under_cursor() {
-                            println!("a");
-                            println!("{intersection:?}");
                             let click_info =
                                 ClickInfo::new(MouseButton::Left, context.cursor_position);
 
