@@ -160,6 +160,10 @@ impl CurveDescriptorWidget {
         (self.builder.bezier_path_id)(&self.instantiated_parameters())
     }
 
+    fn get_rotational_symmetry_order(&self) -> Option<usize> {
+        (self.builder.rotational_symmetry_order)(&self.instantiated_parameters())
+    }
+
     fn get_frame(&self, app_state: &AppState) -> Option<Frame> {
         (self.builder.frame)(&self.instantiated_parameters(), app_state)
     }
@@ -167,7 +171,7 @@ impl CurveDescriptorWidget {
 
 pub(crate) struct RevolutionTab {
     curve_descriptor_widget: Option<CurveDescriptorWidget>,
-    // half_turn_count: ParameterWidget,
+    twist: ParameterWidget, // half_turn_count
     radius_input: ParameterWidget,
     scaling: Option<RevolutionScaling>,
     nb_spiral_state_input: ParameterWidget,
@@ -190,7 +194,7 @@ impl Default for RevolutionTab {
         let init_parameter = RevolutionSimulationParameters::default();
         Self {
             curve_descriptor_widget: None,
-            // half_turn_count: ParameterWidget::new(InstantiatedParameter::Int(0)),
+            twist: ParameterWidget::new(InstantiatedParameter::Uint(0)),
             radius_input: ParameterWidget::new(InstantiatedParameter::Float(0.)),
             scaling: None,
             nb_spiral_state_input: ParameterWidget::new(InstantiatedParameter::Uint(2)),
@@ -233,7 +237,13 @@ impl RevolutionTab {
     pub(crate) fn get_current_bezier_path_id(&self) -> Option<usize> {
         self.curve_descriptor_widget
             .as_ref()
-            .and_then(CurveDescriptorWidget::get_bezier_path_id)
+            .and_then(CurveDescriptorWidget::get_rotational_symmetry_order)
+    }
+
+    pub(crate) fn get_rotational_symmetry_order(&self) -> Option<usize> {
+        self.curve_descriptor_widget
+            .as_ref()
+            .and_then(CurveDescriptorWidget::get_rotational_symmetry_order)
     }
 
     pub(crate) fn update_builder_parameter(
@@ -250,7 +260,7 @@ impl RevolutionTab {
             param => {
                 let widget = match param {
                     RevolutionParameterId::SectionParameter(_) => unreachable!(),
-                    // RevolutionParameterId::HalfTurnCount => &mut self.half_turn_count,
+                    RevolutionParameterId::Twist => &mut self.twist,
                     RevolutionParameterId::NbSpiral => &mut self.nb_spiral_state_input,
                     RevolutionParameterId::RevolutionRadius => &mut self.radius_input,
                     RevolutionParameterId::ScaffoldLenTarget => &mut self.scaffold_len_target,
@@ -283,18 +293,16 @@ impl RevolutionTab {
             .and_then(InstantiatedParameter::get_float)
             .map(RevolutionSurfaceRadius::from_signed_f64)?;
 
-        // let half_turn_count = self
-        //     .half_turn_count
-        //     .get_value()
-        //     .and_then(InstantiatedParameter::get_int)?;
+        let half_turn_count = self
+            .twist
+            .get_value()
+            .and_then(InstantiatedParameter::get_uint)
+            .unwrap_or(0) as isize;
 
-        // NICOLAS: now half_turn_count only works for Ellipse
-        let half_turn_count = match curve {
-            CurveDescriptor2D::Ellipse {
-                twist, ..
-            } => { twist.unwrap_or(0) as isize }
-            _ => { 0 }
-        };
+        let rotational_symmetry_order = curve.rotational_symmetry_order();
+
+        // // NICOLAS: now half_turn_count only works for Ellipse
+        // let half_turn_count = curve.twist();
 
         let (curve_plane_position, curve_plane_orientation) = self
             .curve_descriptor_widget
@@ -306,6 +314,7 @@ impl RevolutionTab {
             curve,
             revolution_radius,
             half_turn_count,
+            rotational_symmetry_order,
             curve_plane_position,
             curve_plane_orientation,
         })
@@ -531,6 +540,16 @@ impl GuiTab for RevolutionTab {
             ],
             column![
                 row![
+                    "Twist (Nb of 1/order-turns)",  
+                    // self.get_rotational_symmetry_order().map_or_else(
+                    //     || "Twist (Nb of turns)".into(),
+                    //     |sym_order| format!("Twist (Nb of 1/{sym_order}-turns)").as_str()),
+                    Space::with_width(ui_size.checkbox_spacing()),
+                    self.twist // half_turn_count
+                        .input_view(RevolutionParameterId::Twist), // ::HalfTurnCount
+                ]
+                .align_items(Alignment::Center),
+                row![
                     "Revolution Radius",
                     Space::with_width(ui_size.checkbox_spacing()),
                     self.radius_input
@@ -539,13 +558,6 @@ impl GuiTab for RevolutionTab {
                 .align_items(Alignment::Center),
                 extra_jump(),
                 subsection("DNA routing parameters", ui_size),
-                // row![
-                //     "Nb Half Turns",
-                //     Space::with_width(ui_size.checkbox_spacing()),
-                //     self.half_turn_count
-                //         .input_view(RevolutionParameterId::HalfTurnCount),
-                // ]
-                // .align_items(Alignment::Center),
                 text(self.scaling.map_or_else(
                     || "Nb helix: ###".into(),
                     |RevolutionScaling { nb_helix }| format!("Nb helix: {nb_helix}")

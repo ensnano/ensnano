@@ -16,13 +16,10 @@ pub(super) const ELLIPSE_BUILDER: CurveDescriptorBuilder = CurveDescriptorBuilde
             name: "Semi minor axis",
             default_value: InstantiatedParameter::Float(10.0),
         },
-        CurveDescriptorParameter {
-            name: "Twist (Nb of half turns per revolution)",
-            default_value: InstantiatedParameter::Uint(0),
-        },
     ],
     build: &build_ellipse,
     bezier_path_id: &no_bezier_path_id,
+    rotational_symmetry_order: &no_rotational_symmetry_order,
     frame: &default_frame,
 };
 
@@ -35,14 +32,9 @@ fn build_ellipse(parameters: &[InstantiatedParameter], _: &AppState) -> Option<C
         .get(1)
         .copied()
         .and_then(InstantiatedParameter::get_float)?;
-    let twist = parameters
-        .get(2)
-        .copied()
-        .and_then(InstantiatedParameter::get_uint)?;
     Some(CurveDescriptor2D::Ellipse {
         semi_minor_axis: b.into(),
         semi_major_axis: a.into(),
-        twist: Some(twist),
     })
 }
 
@@ -68,6 +60,7 @@ pub(super) const TWO_SPHERES_BUILDER: CurveDescriptorBuilder = CurveDescriptorBu
     ],
     build: &build_two_spheres,
     bezier_path_id: &no_bezier_path_id,
+    rotational_symmetry_order: &no_rotational_symmetry_order,
     frame: &default_frame,
 };
 
@@ -106,12 +99,19 @@ fn build_two_spheres(
 
 pub(super) const BEZIER_CURVE_BUILDER: CurveDescriptorBuilder = CurveDescriptorBuilder {
     curve_name: "Bezier",
-    parameters: &[CurveDescriptorParameter {
-        name: "Path n°",
-        default_value: InstantiatedParameter::Uint(0),
-    }],
+    parameters: &[
+        CurveDescriptorParameter {
+            name: "Path n°",
+            default_value: InstantiatedParameter::Uint(0),
+        },
+        CurveDescriptorParameter {
+            name: "Rotational Symmetry order",
+            default_value: InstantiatedParameter::Uint(1),
+        },
+    ],
     build: &build_bezier,
     bezier_path_id: &get_bezier_path_id,
+    rotational_symmetry_order: &get_rotational_symmetry_order,
     frame: &get_bezier_frame,
 };
 
@@ -121,15 +121,34 @@ fn build_bezier(parameters: &[InstantiatedParameter], app: &AppState) -> Option<
         .copied()
         .and_then(InstantiatedParameter::get_uint)?;
 
-    app.0
+    let bezier = app.0
         .design
         .clone_inner()
-        .get_bezier_path_2d(BezierPathId(curve_id as u32))
-        .map(CurveDescriptor2D::Bezier)
+        .get_bezier_path_2d(BezierPathId(curve_id as u32));
+
+    if let Some(bezier) = bezier {
+        let rotational_symmetry_order = Some(parameters
+            .get(1)
+            .copied()
+            .and_then(InstantiatedParameter::get_uint)
+            .unwrap_or(1)
+            .max(1)); // 0 is not allowed
+
+        return Some(CurveDescriptor2D::Bezier {
+            bezier,
+            rotational_symmetry_order,
+        })
+    } else { 
+        return None;
+    }
 }
 
 fn no_bezier_path_id(_: &[InstantiatedParameter]) -> Option<usize> {
     None
+}
+
+fn no_rotational_symmetry_order(_: &[InstantiatedParameter]) -> Option<usize> {
+    Some(1)
 }
 
 fn get_bezier_path_id(parameters: &[InstantiatedParameter]) -> Option<usize> {
@@ -137,6 +156,14 @@ fn get_bezier_path_id(parameters: &[InstantiatedParameter]) -> Option<usize> {
         .first()
         .copied()
         .and_then(InstantiatedParameter::get_uint)
+}
+
+fn get_rotational_symmetry_order(parameters: &[InstantiatedParameter]) -> Option<usize> {
+    let value = parameters
+        .get(1)
+        .copied()
+        .and_then(InstantiatedParameter::get_uint)?;
+    Some(value.max(1))
 }
 
 fn get_bezier_frame(

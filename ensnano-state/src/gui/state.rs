@@ -1,7 +1,7 @@
 #[derive(Debug, Clone, Copy)]
 pub enum RevolutionParameterId {
     SectionParameter(usize),
-    // HalfTurnCount, 
+    Twist, // HalfTurnCount,
     RevolutionRadius,
     NbSpiral,
     NbSectionPerSegment,

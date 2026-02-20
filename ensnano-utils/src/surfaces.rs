@@ -39,6 +39,7 @@ pub struct UnrootedRevolutionSurfaceDescriptor {
     pub curve: CurveDescriptor2D,
     pub revolution_radius: RevolutionSurfaceRadius,
     pub half_turn_count: isize,
+    pub rotational_symmetry_order: usize,
     pub curve_plane_position: Vec3,
     pub curve_plane_orientation: Rotor3,
 }
@@ -639,10 +640,10 @@ mod tests {
             curve: CurveDescriptor2D::Ellipse {
                 semi_minor_axis: r.into(),
                 semi_major_axis: r.into(),
-                twist:0,
             },
             revolution_radius: RevolutionSurfaceRadius::Left(R - r),
             half_turn_count: 0,
+            rotational_symmetry_order: 2,
             curve_plane_position: Vec3::zero(),
             curve_plane_orientation: Rotor3::identity(),
         };
