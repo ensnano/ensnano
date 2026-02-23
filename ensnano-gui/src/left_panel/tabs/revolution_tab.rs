@@ -38,6 +38,9 @@ enum ParameterKind {
     Uint,
 }
 
+use std::borrow::Cow;
+
+
 struct ParameterWidget {
     current_text: String,
     parameter_kind: ParameterKind,
@@ -470,7 +473,13 @@ impl GuiTab for RevolutionTab {
         Command::none()
     }
 
-    fn content(&self, ui_size: UiSize, app_state: &AppState) -> iced::Element<'_, Self::Message> {
+    // fn _rot_sym_label<'a>(&'a self) -> String {
+    //     self.get_rotational_symmetry_order().clone().map_or_else(
+    //         || "Twist (Nb of turns)".into(),
+    //         |sym_order| format!("Twist (Nb of 1/{sym_order}-turns)"))
+    // }
+
+    fn content<'a>(&'a self, ui_size: UiSize, app_state: &AppState) -> iced::Element<'_, Self::Message> {
         let desc = self.get_revolution_system(app_state, false);
 
         let shift_buttons = {
@@ -512,6 +521,12 @@ impl GuiTab for RevolutionTab {
             column![button]
         };
 
+        // let string_= self.get_rotational_symmetry_order().clone().map_or_else(
+        //                 || "Twist (Nb of turns)".into(),
+        //                 |sym_order| format!("Twist (Nb of 1/{sym_order}-turns)"));
+
+        // let str_ = string_.as_str(); 
+        // println!("DEBUG: {str_}");
         let content = column![
             section("Revolution Surfaces", ui_size),
             checkbox("Show revolution axis", app_state.get_show_bezier_paths())
@@ -540,10 +555,10 @@ impl GuiTab for RevolutionTab {
             ],
             column![
                 row![
-                    "Twist (Nb of 1/order-turns)",  
-                    // self.get_rotational_symmetry_order().map_or_else(
-                    //     || "Twist (Nb of turns)".into(),
-                    //     |sym_order| format!("Twist (Nb of 1/{sym_order}-turns)").as_str()),
+                    "Twist (Nb of (1/order)-turns)",  
+                    // str_,
+                    // Cow::<&'a String>::Owned(&string_).as_str(),
+                    // self._rot_sym_label.as_str().into(),
                     Space::with_width(ui_size.checkbox_spacing()),
                     self.twist // half_turn_count
                         .input_view(RevolutionParameterId::Twist), // ::HalfTurnCount
