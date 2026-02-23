@@ -11,11 +11,10 @@ use self::{
 };
 use crate::{
     app_state::{
-        AppState, SaveDesignError, address_pointer::AddressPointer,
-        channel_reader::ScaffoldShiftReader,
+        SaveDesignError, address_pointer::AddressPointer, channel_reader::ScaffoldShiftReader,
         design_interactor::controller::simulations::SimulationInterface,
     },
-    design::selection::Selection,
+    design::{operation::DesignOperation, selection::Selection},
     operation::{AppStateOperationOutcome, AppStateOperationResult},
     utils::operation::{CurrentOpState, SimpleOperation},
 };
@@ -53,6 +52,7 @@ pub struct DesignInteractor {
     pub simulation_update: Option<Arc<dyn SimulationUpdate>>,
     pub current_operation: Option<Arc<dyn SimpleOperation>>,
     pub current_operation_id: usize,
+    pub new_selection: Option<Vec<Selection>>,
 }
 
 impl DesignInteractor {
@@ -68,6 +68,15 @@ impl DesignInteractor {
 
     pub(super) fn is_building_hyperboloid(&self) -> bool {
         self.controller.is_building_hyperboloid()
+    }
+
+    pub(super) fn apply_operation(
+        &mut self,
+        operation: DesignOperation,
+    ) -> AppStateOperationResult {
+        self.controller
+            .make_mut()
+            .apply_operation(self.design.make_mut(), operation)
     }
 
     pub(super) fn apply_copy_operation(
@@ -95,21 +104,24 @@ impl DesignInteractor {
     }
 
     pub(super) fn update_pending_operation(
-        state: &mut AppState,
+        &mut self,
         operation: Arc<dyn SimpleOperation>,
     ) -> AppStateOperationResult {
-        let op_is_new = state.0.design.is_in_stable_state();
+        let op_is_new = self.is_in_stable_state();
         // let result = self
-        let result = Controller::update_pending_operation(state, operation.clone());
+        let result = self
+            .controller
+            .make_mut()
+            .update_pending_operation(self.design.make_mut(), operation.clone());
 
         // Pacome notes : this part of the code is imported from the previous
         // set_operation_state method
 
         if op_is_new {
-            state.0.make_mut().design.make_mut().current_operation_id += 1;
-            log::info!("New operation id {}", state.0.design.current_operation_id);
+            self.current_operation_id += 1;
+            log::info!("New operation id {}", self.current_operation_id);
         }
-        state.0.make_mut().design.make_mut().current_operation = Some(operation);
+        self.current_operation = Some(operation);
 
         result
     }
@@ -257,6 +269,14 @@ impl DesignInteractor {
         })
     }
 
+    pub(super) fn get_new_selection(&self) -> Option<Vec<Selection>> {
+        self.controller.get_new_selection()
+    }
+
+    pub fn get_next_selection(&mut self) -> Option<Vec<Selection>> {
+        self.new_selection.take()
+    }
+
     pub fn get_clipboard_content(&self) -> ClipboardContent {
         self.controller.get_clipboard_content()
     }
@@ -324,8 +344,8 @@ impl DesignInteractor {
 mod tests {
     use super::*;
     use crate::{
-        app_state::design_interactor::controller::clipboard::PastePosition,
-        design::operation::{DesignOperation, InsertionPoint},
+        app_state::{AppState, design_interactor::controller::clipboard::PastePosition},
+        design::operation::InsertionPoint,
         utils::operation::GridHelixCreation,
     };
     use ensnano_design::{
