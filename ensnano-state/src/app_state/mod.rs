@@ -15,6 +15,9 @@ pub mod impl_app3d;
 pub mod impl_gui;
 pub mod transitions;
 
+#[cfg(test)]
+use ensnano_design::Design;
+
 use crate::{
     app_state::{
         address_pointer::AddressPointer,
@@ -22,7 +25,7 @@ use crate::{
         design_interactor::{
             DesignInteractor,
             controller::{
-                Controller, InteractorNotification, OperationError, clipboard::CopyOperation,
+                InteractorNotification, OperationError, clipboard::CopyOperation,
                 simulations::SimulationOperation,
             },
             presenter::SimulationUpdate,
@@ -35,7 +38,6 @@ use crate::{
     operation::{AppStateOperationOutcome, AppStateOperationResult},
     utils::operation::SimpleOperation,
 };
-use ensnano_design::Design;
 use ensnano_design::{
     SavingInformation,
     bezier_plane::BezierPathId,
@@ -109,49 +111,6 @@ impl AppState {
         let mut with_forgot_update = ret.0.clone_inner();
         with_forgot_update.updated_once = false;
         Ok(Self(AddressPointer::new(with_forgot_update)))
-    }
-
-    // NOTE PACOME : this method is temporary while the overall structure
-    // stays messy
-    pub fn design_mut(&mut self) -> &mut Design {
-        self.0.make_mut().design.make_mut().design.make_mut()
-    }
-
-    // NOTE PACOME : this method is temporary while the overall structure
-    // stays messy
-    pub fn interactor_mut(&mut self) -> &mut DesignInteractor {
-        self.0.make_mut().design.make_mut()
-    }
-
-    // NOTE PACOME : this method is temporary while the overall structure
-    // stays messy
-    pub fn interactor(&mut self) -> &DesignInteractor {
-        &self.0.design
-    }
-
-    // NOTE PACOME : this method is temporary while the overall structure
-    // stays messy
-    pub fn design(&self) -> &Design {
-        &self.0.design.design
-    }
-
-    // NOTE PACOME : this method is temporary while the structure
-    // stays messy
-    pub fn controller_mut(&mut self) -> &mut Controller {
-        self.0.make_mut().design.make_mut().controller.make_mut()
-    }
-
-    // NOTE PACOME : this method is temporary while the structure
-    // stays messy
-    pub fn controller(&self) -> &Controller {
-        &self.0.design.controller
-    }
-
-    // NOTE PACOME : this method is temporary while the structure
-    // stays messy
-    pub fn design_controller_mut(&mut self) -> (&mut Design, &mut Controller) {
-        let binding = self.0.make_mut().design.make_mut();
-        (binding.design.make_mut(), binding.controller.make_mut())
     }
 
     pub fn set_selection(
@@ -344,7 +303,7 @@ impl AppState {
     }
 
     pub fn apply_design_op(&mut self, op: DesignOperation) -> AppStateOperationResult {
-        Controller::apply_operation(self, op)
+        self.0.make_mut().design.make_mut().apply_operation(op)
     }
 
     pub fn apply_copy_operation(&mut self, op: CopyOperation) -> AppStateOperationResult {
@@ -355,7 +314,11 @@ impl AppState {
         &mut self,
         op: Arc<dyn SimpleOperation>,
     ) -> AppStateOperationResult {
-        DesignInteractor::update_pending_operation(self, op)
+        self.0
+            .make_mut()
+            .design
+            .make_mut()
+            .update_pending_operation(op)
     }
 
     pub fn update_simulation(&mut self, operation: SimulationOperation) -> AppStateOperationResult {
@@ -629,6 +592,10 @@ impl AppState {
     pub fn set_expand_insertion_set(&mut self, expand: bool) -> AppStateOperationResult {
         self.0.make_mut().show_insertion_discriminants = !expand;
         Ok(AppStateOperationOutcome::Replace)
+    }
+
+    pub fn get_new_selection(&self) -> Option<Vec<Selection>> {
+        self.0.design.get_new_selection()
     }
 }
 
