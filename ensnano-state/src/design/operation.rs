@@ -1,10 +1,13 @@
 use crate::{
-    app_state::design_interactor::controller::{Controller, OperationError},
+    app_state::{
+        AppState,
+        design_interactor::controller::{Controller, OperationError},
+    },
     design::selection::Selection,
     operation::{AppStateOperationOutcome, AppStateOperationResult},
 };
 use ensnano_design::{
-    CameraId, Design,
+    CameraId,
     bezier_plane::{
         BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
     },
@@ -305,92 +308,88 @@ impl DesignOperation {
         AppStateOperationOutcome::Push { label }
     }
 
-    pub fn apply(
-        self,
-        controller: &mut Controller,
-        design: &mut Design,
-    ) -> AppStateOperationResult {
+    pub fn apply(self, state: &mut AppState) -> AppStateOperationResult {
         let outcome = self.outcome();
 
         match self {
             Self::RecolorStaples => {
-                controller.fancy_recolor_staples(design);
+                Controller::fancy_recolor_staples(state);
             }
             Self::SetScaffoldSequence { sequence, shift } => {
-                controller.set_scaffold_sequence(design, sequence, shift);
+                Controller::set_scaffold_sequence(state.design_mut(), sequence, shift);
             }
             Self::SetScaffoldShift(shift) => {
-                controller.set_scaffold_shift(design, shift);
+                Controller::set_scaffold_shift(state, shift);
             }
             Self::HelicesToGrid(selection) => {
-                controller.turn_selection_into_grid(design, selection)?;
+                Controller::turn_selection_into_grid(state, selection)?;
             }
             Self::AddGrid(descriptor) => {
-                controller.add_grid(design, descriptor);
+                Controller::add_grid(state, descriptor);
             }
             Self::ChangeColor { color, strands } => {
-                controller.change_color_strands(design, color, strands);
+                Controller::change_color_strands(state, color, strands);
             }
             Self::SetHelicesPersistence {
                 grid_ids,
                 persistent,
             } => {
-                controller.set_helices_persistence(design, grid_ids, persistent);
+                Controller::set_helices_persistence(state, grid_ids, persistent);
             }
             Self::SetSmallSpheres { grid_ids, small } => {
-                controller.set_small_spheres(design, grid_ids, small);
+                Controller::set_small_spheres(state, grid_ids, small);
             }
             Self::SnapHelices {
                 pivots,
                 translation,
             } => {
-                controller.snap_helices(design, pivots, translation);
+                Controller::snap_helices(state, pivots, translation);
             }
             Self::SetIsometry {
                 helix,
                 segment_idx,
                 isometry,
             } => {
-                controller.set_isometry(design, helix, segment_idx, isometry);
+                Controller::set_isometry(state, helix, segment_idx, isometry);
             }
             Self::RotateHelices {
                 helices,
                 center,
                 angle,
             } => {
-                controller.rotate_helices(design, helices, center, angle);
+                Controller::rotate_helices(state, helices, center, angle);
             }
             Self::ApplySymmetryToHelices {
                 helices,
                 centers,
                 symmetry,
             } => {
-                controller.apply_symmetry_to_helices(design, helices, centers, symmetry);
+                Controller::apply_symmetry_to_helices(state, helices, centers, symmetry);
             }
             Self::Translation(translation) => {
-                controller.apply_translation(design, translation)?;
+                Controller::apply_translation(state, translation)?;
             }
             Self::Rotation(rotation) => {
-                controller.apply_rotation(design, rotation)?;
+                Controller::apply_rotation(state, rotation)?;
             }
             Self::RequestStrandBuilders { nucls } => {
-                controller.request_strand_builders(design, nucls)?;
+                Controller::request_strand_builders(state, nucls)?;
             }
             Self::MoveBuilders(n) => {
-                controller.move_strand_builders(design, n)?;
+                Controller::move_strand_builders(state, n)?;
             }
             Self::Cut { nucl, .. } => {
-                controller.cut(design, nucl)?;
+                Controller::cut(state, nucl)?;
             }
             Self::AddGridHelix {
                 position,
                 length,
                 start,
             } => {
-                controller.add_grid_helix(design, position, start, length)?;
+                Controller::add_grid_helix(state, position, start, length)?;
             }
             Self::AddTwoPointsBezier { start, end } => {
-                controller.add_two_points_bezier(design, start, end)?;
+                Controller::add_two_points_bezier(state, start, end)?;
             }
             Self::CrossCut {
                 target_3prime,
@@ -398,155 +397,162 @@ impl DesignOperation {
                 target_id,
                 nucl,
             } => {
-                controller.apply_cross_cut(design, source_id, target_id, nucl, target_3prime)?;
+                Controller::apply_cross_cut(state, source_id, target_id, nucl, target_3prime)?;
             }
             Self::Xover {
                 prime5_id,
                 prime3_id,
             } => {
-                controller.apply_merge(design, prime5_id, prime3_id)?;
+                Controller::apply_merge(state, prime5_id, prime3_id)?;
             }
             Self::GeneralXover { source, target } => {
-                controller.apply_general_cross_over(design, source, target)?;
+                Controller::apply_general_cross_over(state, source, target)?;
             }
             Self::RmStrands { strand_ids } => {
-                controller.delete_strands(design, strand_ids)?;
+                Controller::delete_strands(state, strand_ids)?;
             }
             Self::RmHelices { h_ids } => {
-                controller.delete_helices(design, h_ids)?;
+                Controller::delete_helices(state, h_ids)?;
             }
             Self::RmXovers { xovers } => {
-                controller.delete_xovers(design, &xovers)?;
+                Controller::delete_xovers(state, &xovers)?;
             }
             Self::SetScaffoldId(s_id) => {
-                design.scaffold_id = s_id;
+                state.design_mut().scaffold_id = s_id;
             }
             Self::HyperboloidOperation(op) => {
-                controller.apply_hyperboloid_operation(design, op)?;
+                Controller::apply_hyperboloid_operation(state, op)?;
             }
             Self::SetRollHelices { helices, roll } => {
-                controller.set_roll_helices(design, helices, roll)?;
+                Controller::set_roll_helices(state, helices, roll)?;
             }
             Self::SetVisibilityHelix { helix, visible } => {
-                controller.set_visibility_helix(design, helix, visible)?;
+                Controller::set_visibility_helix(state, helix, visible)?;
             }
             Self::FlipHelixGroup { helix } => {
-                controller.flip_helix_group(design, helix)?;
+                Controller::flip_helix_group(state, helix)?;
             }
             Self::UpdateAttribute {
                 attribute,
                 elements,
             } => {
-                controller.update_attribute(design, attribute, elements)?;
+                Controller::update_attribute(state, attribute, elements)?;
             }
             Self::FlipAnchors { nucls } => {
-                controller.flip_anchors(design, nucls)?;
+                Controller::flip_anchors(state, nucls)?;
             }
             Self::CleanDesign => {
                 //TODO
                 return Err(OperationError::NotImplemented);
             }
             Self::AttachObject { object, grid, x, y } => {
-                controller.attach_object(design, object, grid, x, y)?;
+                Controller::attach_object(state.design_mut(), object, grid, x, y)?;
             }
             Self::SetOrganizerTree(tree) => {
-                design.organizer_tree = Some(Arc::new(tree));
+                state.design_mut().organizer_tree = Some(Arc::new(tree));
             }
             Self::SetStrandName { s_id, name } => {
-                controller.change_strand_name(design, s_id, name)?;
+                Controller::change_strand_name(state, s_id, name)?;
             }
             Self::SetGroupPivot { group_id, pivot } => {
-                controller.set_group_pivot(design, group_id, pivot)?;
+                Controller::set_group_pivot(state.design_mut(), group_id, pivot)?;
             }
             Self::CreateNewCamera {
                 position,
                 orientation,
                 pivot_position,
             } => {
-                controller.create_camera(design, position, orientation, pivot_position);
+                Controller::create_camera(
+                    state.design_mut(),
+                    position,
+                    orientation,
+                    pivot_position,
+                );
             }
             Self::DeleteCamera(camera_id) => {
-                controller.delete_camera(design, camera_id)?;
+                Controller::delete_camera(state.design_mut(), camera_id)?;
             }
             Self::SetCameraName { camera_id, name } => {
-                controller.set_camera_name(design, camera_id, name)?;
+                Controller::set_camera_name(state.design_mut(), camera_id, name)?;
             }
             Self::SetGridPosition { grid_id, position } => {
-                controller.set_grid_position(design, grid_id, position)?;
+                Controller::set_grid_position(state.design_mut(), grid_id, position)?;
             }
             Self::SetGridOrientation {
                 grid_id,
                 orientation,
             } => {
-                controller.set_grid_orientation(design, grid_id, orientation)?;
+                Controller::set_grid_orientation(state.design_mut(), grid_id, orientation)?;
             }
             Self::SetGridNbTurn { grid_id, nb_turn } => {
-                controller.set_grid_nb_turn(design, grid_id, nb_turn as f64)?;
+                Controller::set_grid_nb_turn(state.design_mut(), grid_id, nb_turn as f64)?;
             }
             Self::MakeSeveralXovers { xovers, doubled } => {
-                controller.apply_several_xovers(design, xovers, doubled)?;
+                Controller::apply_several_xovers(state, xovers, doubled)?;
             }
 
             Self::CheckXovers { xovers } => {
-                controller.check_xovers(design, xovers)?;
+                Controller::check_xovers(state.design_mut(), xovers)?;
             }
             Self::SetRainbowScaffold(b) => {
-                design.rainbow_scaffold = b;
+                state.design_mut().rainbow_scaffold = b;
             }
             Self::SetGlobalHelixParameters {
                 helix_parameters: parameters,
             } => {
-                design.helix_parameters = Some(parameters);
+                state.design_mut().helix_parameters = Some(parameters);
             }
             Self::SetInsertionLength {
                 insertion_point,
                 length,
             } => {
-                controller.update_insertion_length(design, insertion_point, length)?;
+                Controller::update_insertion_length(state, insertion_point, length)?;
             }
             Self::AddBezierPlane { desc } => {
-                controller.add_bezier_plane(design, desc);
+                Controller::add_bezier_plane(state.design_mut(), desc);
             }
             Self::CreateBezierPath { first_vertex } => {
-                controller.create_bezier_path(design, first_vertex);
+                Controller::create_bezier_path(state, first_vertex);
             }
             Self::AppendVertexToPath { path_id, vertex } => {
-                controller.append_vertex_to_bezier_path(design, path_id, vertex)?;
+                Controller::append_vertex_to_bezier_path(state, path_id, vertex)?;
             }
             Self::MoveBezierVertex { vertices, position } => {
-                controller.move_bezier_vertices(design, vertices, position)?;
+                Controller::move_bezier_vertices(state, vertices, position)?;
             }
             Self::SetBezierVertexPosition {
                 vertex_id,
                 position,
             } => {
-                controller.set_bezier_vertex_position(design, vertex_id, position)?;
+                Controller::set_bezier_vertex_position(state, vertex_id, position)?;
             }
             Self::TurnPathVerticesIntoGrid { path_id, grid_type } => {
-                controller.turn_bezier_path_into_grids(design, path_id, grid_type)?;
+                Controller::turn_bezier_path_into_grids(state, path_id, grid_type)?;
             }
 
             Self::ApplyHomothethyOnBezierPlane { homothethy } => {
-                controller.apply_homothethy_on_bezier_plane(design, homothethy);
+                Controller::apply_homothethy_on_bezier_plane(state.design_mut(), homothethy);
             }
             Self::SetVectorOfBezierTangent(requested_vector) => {
-                controller.set_bezier_tangent(design, requested_vector)?;
+                Controller::set_bezier_tangent(state, requested_vector)?;
             }
             Self::MakeBezierPathCyclic { path_id, cyclic } => {
-                controller.make_bezier_path_cyclic(design, path_id, cyclic)?;
+                Controller::make_bezier_path_cyclic(state.design_mut(), path_id, cyclic)?;
             }
             Self::RmFreeGrids { grid_ids } => {
-                controller.delete_free_grids(design, grid_ids)?;
+                Controller::delete_free_grids(state.design_mut(), grid_ids)?;
             }
             Self::RmBezierVertices { vertices } => {
-                controller.rm_bezier_vertices(design, vertices)?;
+                Controller::rm_bezier_vertices(state.design_mut(), vertices)?;
             }
             Self::Add3DObject {
                 file_path,
                 design_path,
-            } => controller.add_3d_object(design, file_path, design_path)?,
+            } => {
+                Controller::add_3d_object(state.design_mut(), file_path, design_path)?;
+            }
             Self::ImportSvgPath { path } => {
-                controller.import_svg_path(design, path)?;
+                Controller::import_svg_path(state.design_mut(), path)?;
             }
         }
 
