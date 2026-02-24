@@ -19,7 +19,7 @@ pub(super) const ELLIPSE_BUILDER: CurveDescriptorBuilder = CurveDescriptorBuilde
     ],
     build: &build_ellipse,
     bezier_path_id: &no_bezier_path_id,
-    rotational_symmetry_order: &no_rotational_symmetry_order,
+    rotational_symmetry_order: &rotational_symmetry_order_ellipse,
     frame: &default_frame,
 };
 
@@ -37,6 +37,22 @@ fn build_ellipse(parameters: &[InstantiatedParameter], _: &AppState) -> Option<C
         semi_major_axis: a.into(),
     })
 }
+
+fn rotational_symmetry_order_ellipse(parameters: &[InstantiatedParameter]) -> Option<usize> {
+    let a = parameters
+        .first()
+        .copied()
+        .and_then(InstantiatedParameter::get_float)?;
+    let b = parameters
+        .get(1)
+        .copied()
+        .and_then(InstantiatedParameter::get_float)?;
+    if a == b {
+        return Some(0)
+    }
+    return Some(2)
+}
+
 
 pub(super) const TWO_SPHERES_BUILDER: CurveDescriptorBuilder = CurveDescriptorBuilder {
     curve_name: "Two spheres",
