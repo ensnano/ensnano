@@ -114,6 +114,7 @@ fn get_shift_optimization_result(
             && let Err(error) = progress_channel.send(shift as f32 / len as f32)
         {
             log::error!("{error:?}");
+            return Err(OperationError::ShiftOptimizationInterrupted);
         }
         let char_map = read_scaffold_seq(&design, nucl_collection, shift)?;
         let (score, result) = evaluate_shift(&design, &char_map);
