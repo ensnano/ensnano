@@ -299,7 +299,7 @@ impl RevolutionTab {
             .and_then(InstantiatedParameter::get_uint)
             .unwrap_or(0) as isize;
 
-        let rotational_symmetry_order = curve.rotational_symmetry_order();
+        // let rotational_symmetry_order = curve.rotational_symmetry_order();
 
         // // NICOLAS: now half_turn_count only works for Ellipse
         // let half_turn_count = curve.twist();
@@ -314,7 +314,7 @@ impl RevolutionTab {
             curve,
             revolution_radius,
             half_turn_count,
-            rotational_symmetry_order,
+            // rotational_symmetry_order,
             curve_plane_position,
             curve_plane_orientation,
         })
