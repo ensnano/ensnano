@@ -9,7 +9,7 @@ use std::sync::{Arc, Mutex, Weak, mpsc};
 
 #[derive(Default, Clone)]
 pub struct ScaffoldShiftReader {
-    scaffold_shift_optimization_progress: Option<Arc<Mutex<mpsc::Receiver<f32>>>>,
+    pub scaffold_shift_optimization_progress: Option<Arc<Mutex<mpsc::Receiver<f32>>>>,
     scaffold_shift_optimization_result: Option<Arc<Mutex<mpsc::Receiver<ShiftOptimizationResult>>>>,
 }
 

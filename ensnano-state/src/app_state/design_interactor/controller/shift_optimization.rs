@@ -8,13 +8,13 @@ use std::{
     sync::{Arc, mpsc},
 };
 
-macro_rules! log_err {
-    ($x:expr) => {
-        if $x.is_err() {
-            log::error!("Unexpected error")
-        }
-    };
-}
+// macro_rules! log_err {
+//     ($x:expr) => {
+//         if $x.is_err() {
+//             log::error!("Unexpected error")
+//         }
+//     };
+// }
 
 pub fn read_scaffold_seq(
     design: &Design,
@@ -79,23 +79,25 @@ pub fn read_scaffold_seq(
 
 /// Shift the scaffold at an optimized position and return the corresponding score.
 pub(crate) fn optimize_shift(
-    design: Arc<Design>,
+    design: Design,
     nucl_collection: Arc<NuclCollection>,
-    chanel_reader: &mut ScaffoldShiftReader,
+    channel_reader: &mut ScaffoldShiftReader,
 ) {
     let (progress_snd, progress_rcv) = mpsc::channel();
     let (result_snd, result_rcv) = mpsc::channel();
-    chanel_reader.attach_result_chanel(result_rcv);
-    chanel_reader.attach_progress_chanel(progress_rcv);
+    channel_reader.attach_result_chanel(result_rcv);
+    channel_reader.attach_progress_chanel(progress_rcv);
     std::thread::spawn(move || {
-        let result =
-            get_shift_optimization_result(design.as_ref(), progress_snd, nucl_collection.as_ref());
-        log_err!(result_snd.send(result));
+        let result = get_shift_optimization_result(design, progress_snd, nucl_collection.as_ref());
+        if let Err(error) = result_snd.send(result) {
+            log::error!("error in shift optimization thread");
+            log::error!("{error:?}");
+        }
     });
 }
 
 fn get_shift_optimization_result(
-    design: &Design,
+    design: Design,
     progress_channel: mpsc::Sender<f32>,
     nucl_collection: &NuclCollection,
 ) -> ShiftOptimizationResult {
@@ -108,13 +110,15 @@ fn get_shift_optimization_result(
         .map(String::len)
         .ok_or(OperationError::NoScaffoldSet)?;
     for shift in 0..len {
-        if shift % 100 == 0 {
-            log_err!(progress_channel.send(shift as f32 / len as f32));
+        if shift % 100 == 0
+            && let Err(error) = progress_channel.send(shift as f32 / len as f32)
+        {
+            log::error!("{error:?}");
         }
-        let char_map = read_scaffold_seq(design, nucl_collection, shift)?;
-        let (score, result) = evaluate_shift(design, &char_map);
+        let char_map = read_scaffold_seq(&design, nucl_collection, shift)?;
+        let (score, result) = evaluate_shift(&design, &char_map);
         if score < best_score {
-            println!("shift {shift} score {score}");
+            // println!("shift {shift} score {score}");
             best_score = score;
             best_shift = shift;
             best_result = result;

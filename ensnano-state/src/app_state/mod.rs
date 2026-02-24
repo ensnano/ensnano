@@ -479,11 +479,18 @@ impl AppState {
 
     pub fn optimize_shift(&mut self) -> AppStateOperationResult {
         let mut reader = self.0.channel_reader.clone();
-        self.0
+        let result = self
+            .0
             .make_mut()
             .design
             .make_mut()
-            .optimize_shift(&mut reader)
+            .optimize_shift(&mut reader);
+
+        // important ! we need to put the channel reader into
+        // the state, or the newly created Receiver gets dropped.
+        self.0.make_mut().channel_reader = reader;
+
+        result
     }
 
     pub fn is_in_stable_state(&self) -> bool {
