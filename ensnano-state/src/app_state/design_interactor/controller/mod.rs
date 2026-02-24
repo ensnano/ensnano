@@ -657,7 +657,9 @@ impl Controller {
             )),
             OperationCompatibility::Compatible | OperationCompatibility::FinishFirst => {
                 self.start_shift_optimization(design, channel_reader, nucl_collection);
-                Ok(AppStateOperationOutcome::NoOp)
+                Ok(AppStateOperationOutcome::Push {
+                    label: "Started shift optimization".into(),
+                })
             }
         }
     }
@@ -2908,6 +2910,7 @@ pub enum OperationError {
     GridIsNotEmpty(GridId),
     CouldNotMake3DObject,
     SvgImportError(SvgImportError),
+    ShiftOptimizationInterrupted,
 }
 
 impl From<DesignOperationError> for OperationError {
