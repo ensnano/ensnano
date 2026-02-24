@@ -7,8 +7,8 @@ use rapier3d::{
 use std::f32::consts::PI;
 
 impl RapierPhysicsSystem {
-    pub fn brownian_motion_step(&mut self, parameters: &RapierParameters, delta: f32) {
-        brownian_motion_step(self, parameters, delta);
+    pub fn brownian_motion_step(&mut self, parameters: &RapierParameters) {
+        brownian_motion_step(self, parameters);
     }
 }
 
@@ -32,11 +32,7 @@ fn random_force(max_magnitude: f32, rng: &mut impl Rng) -> Vector<f32> {
 }
 
 /// Applies a random force to each nucleotide.
-fn brownian_motion_step(
-    system: &mut RapierPhysicsSystem,
-    parameters: &RapierParameters,
-    delta: f32,
-) {
+fn brownian_motion_step(system: &mut RapierPhysicsSystem, parameters: &RapierParameters) {
     let handles = system.nucleotide_body_map.values().collect::<Vec<_>>();
 
     let max_magnitude = parameters.brownian_motion_strength;
@@ -44,6 +40,9 @@ fn brownian_motion_step(
     if max_magnitude <= 0.0 {
         return;
     }
+
+    // the 2x is arbitrary
+    let delta = parameters.dt * 2.0;
 
     let displacements = handles
         .clone()

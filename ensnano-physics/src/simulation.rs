@@ -66,11 +66,15 @@ impl RapierPhysicsSystem {
     }
 
     pub fn step(&mut self, parameters: &RapierParameters) {
-        self.reset_forces();
-        self.repulsion_step(parameters, 1.0 / 24.0);
-        self.squish_step(parameters, 1.0 / 24.0);
+        // here we synchronise rapier's parameters to our own
+        self.integration_parameters.dt = parameters.dt;
 
-        self.brownian_motion_step(parameters, 1.0 / 24.0);
+        // actual computation starts here
+        self.reset_forces();
+        self.repulsion_step(parameters);
+        self.squish_step(parameters);
+
+        self.brownian_motion_step(parameters);
 
         self.physics_pipeline.step(
             &Vector3::new(0.0, 0.0, 0.0),
