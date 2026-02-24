@@ -5,14 +5,17 @@ use rapier3d::{
 };
 
 impl RapierPhysicsSystem {
-    pub fn squish_step(&mut self, parameters: &RapierParameters, delta: f32) {
-        squish_step(self, parameters, delta);
+    pub fn squish_step(&mut self, parameters: &RapierParameters) {
+        squish_step(self, parameters);
     }
 }
 
 /// Operates a squishing force towards the y = 0 plane.
-fn squish_step(system: &mut RapierPhysicsSystem, parameters: &RapierParameters, delta: f32) {
+fn squish_step(system: &mut RapierPhysicsSystem, parameters: &RapierParameters) {
     let handles = system.nucleotide_body_map.values().collect::<Vec<_>>();
+
+    // the x2 here is arbitrary
+    let delta = parameters.dt * 2.0;
 
     if parameters.squish_strength <= f32::EPSILON {
         return;

@@ -8,8 +8,8 @@ use rapier3d::{
 };
 
 impl RapierPhysicsSystem {
-    pub fn repulsion_step(&mut self, parameters: &RapierParameters, delta: f32) {
-        repulsion_step(self, parameters, delta);
+    pub fn repulsion_step(&mut self, parameters: &RapierParameters) {
+        repulsion_step(self, parameters);
     }
 }
 
@@ -21,8 +21,11 @@ fn simple_kernel_2(r: f32, h: f32) -> f32 {
 
 /// Operates a repulsion between all rigid bodies
 /// based on colliders at proximity.
-fn repulsion_step(system: &mut RapierPhysicsSystem, parameters: &RapierParameters, delta: f32) {
+fn repulsion_step(system: &mut RapierPhysicsSystem, parameters: &RapierParameters) {
     let handles = system.nucleotide_body_map.values().collect::<Vec<_>>();
+
+    // the x2 here is arbitrary
+    let delta = parameters.dt * 2.0;
 
     let forces = handles
         .clone()
