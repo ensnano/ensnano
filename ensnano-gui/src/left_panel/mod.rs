@@ -652,6 +652,8 @@ impl Program for LeftPanelState {
                 if state.get_action_mode() != self.application_state.get_action_mode() {
                     self.contextual_panel.state_updated();
                 }
+                self.sequence_tab
+                    .set_scaffold_shift(state.0.design.design.scaffold_shift.unwrap_or(0));
                 self.application_state = state;
                 let _ = self.revolution_tab.update(&mut self.application_state);
                 Command::none()
