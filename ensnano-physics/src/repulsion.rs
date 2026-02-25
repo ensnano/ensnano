@@ -24,8 +24,7 @@ fn simple_kernel_2(r: f32, h: f32) -> f32 {
 fn repulsion_step(system: &mut RapierPhysicsSystem, parameters: &RapierParameters) {
     let handles = system.nucleotide_body_map.values().collect::<Vec<_>>();
 
-    // the x2 here is arbitrary
-    let delta = parameters.dt * 2.0;
+    let constant_factor = 1.0 / 24.0;
 
     let forces = handles
         .clone()
@@ -72,7 +71,9 @@ fn repulsion_step(system: &mut RapierPhysicsSystem, parameters: &RapierParameter
                 // which we then normalize while keeping its length
                 .map(|v| (v.normalize(), v.norm()))
                 // which we then multiply by that square, and some other constants
-                .map(|(v, d)| v * simple_kernel_2(d, force_range) * delta * force_strength)
+                .map(|(v, d)| {
+                    v * simple_kernel_2(d, force_range) * force_strength * constant_factor
+                })
                 // and we then sum all these forces
                 .sum()
         })

@@ -309,13 +309,15 @@ fn rapier_parameters_field_editor(
     let default_field_value = default_value.to_string();
     let current_value = fields.get(&description).unwrap_or(&default_field_value);
 
+    let unit = parameter.unit();
+
     let copy = *parameters;
 
     row![
         row![text(&description)]
             .align_items(Alignment::Center)
-            .width(Length::FillPortion(3)),
-        Space::with_width(Length::Fill),
+            .width(Length::FillPortion(2)),
+        Space::with_width(ui_size.checkbox_spacing()),
         row![
             keyboard_priority(
                 "Rapier parameters ".to_owned() + &description,
@@ -338,6 +340,8 @@ fn rapier_parameters_field_editor(
                 }
             ),
             Space::with_width(ui_size.checkbox_spacing()),
+            text(unit).width(Length::FillPortion(1)),
+            Space::with_width(ui_size.checkbox_spacing()),
             if enabled {
                 slider(
                     parameter.min_value()..=parameter.max_value(),
@@ -352,7 +356,7 @@ fn rapier_parameters_field_editor(
                 )
                 .step(parameter.increment())
                 .shift_step(parameter.increment() / 10.0)
-                .width(200)
+                .width(Length::FillPortion(2))
             } else {
                 slider(
                     parameter.min_value()..=parameter.max_value(),
@@ -361,7 +365,7 @@ fn rapier_parameters_field_editor(
                         .clamp(parameter.min_value(), parameter.max_value()),
                     |_| LeftPanelMessage::Nothing,
                 )
-                .width(200)
+                .width(Length::FillPortion(2))
             }
         ]
         .align_items(Alignment::Center)
@@ -394,8 +398,8 @@ fn view_ups(
             }),
         ]
         .align_items(Alignment::Center)
-        .width(Length::FillPortion(3)),
-        Space::with_width(Length::Fill),
+        .width(Length::FillPortion(2)),
+        Space::with_width(ui_size.checkbox_spacing()),
         row![
             keyboard_priority(
                 "Rapier parameters ".to_owned() + description,
@@ -421,7 +425,7 @@ fn view_ups(
                     ..parameters
                 })
             })
-            .width(200),
+            .width(Length::FillPortion(2))
         ]
         .align_items(Alignment::Center)
         .width(Length::FillPortion(3)),

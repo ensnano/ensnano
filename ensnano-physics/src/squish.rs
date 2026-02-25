@@ -14,8 +14,7 @@ impl RapierPhysicsSystem {
 fn squish_step(system: &mut RapierPhysicsSystem, parameters: &RapierParameters) {
     let handles = system.nucleotide_body_map.values().collect::<Vec<_>>();
 
-    // the x2 here is arbitrary
-    let delta = parameters.dt * 2.0;
+    let constant_factor = 1.0 / 24.0;
 
     if parameters.squish_strength <= f32::EPSILON {
         return;
@@ -41,11 +40,11 @@ fn squish_step(system: &mut RapierPhysicsSystem, parameters: &RapierParameters) 
                 -parameters.squish_soft_cutoff,
                 parameters.squish_soft_cutoff,
             );
-            let strength =
-                delta * parameters.squish_strength * strength / parameters.squish_soft_cutoff;
+            let strength = constant_factor * parameters.squish_strength * strength
+                / parameters.squish_soft_cutoff;
 
             let damping = -body.linvel()[1];
-            let damping = damping * parameters.squish_damping * delta;
+            let damping = damping * parameters.squish_damping * constant_factor;
 
             vector![0.0, strength + damping, 0.0]
         })
