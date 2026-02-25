@@ -14,7 +14,8 @@ use ultraviolet::{DRotor2, DVec2, DVec3, Isometry2, Mat3, Rotor2, Vec2};
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct InterpolatedCurveDescriptor {
     pub curve: CurveDescriptor2D,
-    pub half_turns_count: isize,
+    #[serde(alias="half_turns_count")]
+    pub twist: isize,
     /// Radius of the revolution trajectory.
     pub revolution_radius: f64,
     /// Scale factor of the section.
@@ -49,13 +50,13 @@ impl InterpolatedCurveDescriptor {
             curve,
             self.interpolation,
             self.chebyshev_smoothening,
-            self.half_turns_count,
+            self.twist,
         );
         let mut ret = Revolution {
             curve,
             revolution_radius: self.revolution_radius,
             curve_scale_factor: self.curve_scale_factor,
-            half_turns_count: self.half_turns_count,
+            half_turns_count: self.twist,
             inverse_curvilinear_abscissa: vec![],
             curvilinear_abscissa: vec![],
             init_revolution_angle: self.revolution_angle_init.unwrap_or(0.),

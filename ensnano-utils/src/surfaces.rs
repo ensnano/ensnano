@@ -586,7 +586,7 @@ impl RootedRevolutionSurface {
             curve_scale_factor: self.scale,
             chebyshev_smoothening: self.rooting_parameters.junction_smoothening,
             interpolation: interpolations,
-            half_turns_count: self.surface.twist,
+            twist: self.surface.twist,
             revolution_radius: -self.surface.get_axis_position_when_scaled(self.scale),
             nb_turn: None,
             revolution_angle_init: None,
