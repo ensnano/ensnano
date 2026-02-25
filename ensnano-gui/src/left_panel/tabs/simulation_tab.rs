@@ -6,7 +6,7 @@ use crate::{
         tabs::{GuiTab, gostop::GoStop},
     },
 };
-use ensnano_physics::parameters::{RAPIER_FLOAT_PARAMETERS_COUNT, RapierParameters};
+use ensnano_physics::parameters::{RapierFloatParameter, RapierParameters};
 use ensnano_state::{
     app_state::AppState,
     gui::messages::{FactoryId, ValueId},
@@ -17,7 +17,7 @@ use ensnano_utils::{
     keyboard_priority::keyboard_priority, ui_size::UiSize,
 };
 use iced::{
-    Alignment,
+    Alignment, Length,
     widget::{Column, Space, checkbox, column, row, scrollable, slider, text, text_input},
 };
 use iced_aw::TabLabel;
@@ -145,11 +145,11 @@ impl SimulationTab {
     /// Used when modifications to the parameters are made by
     /// actors that are not the fields, like other parts of the GUI.
     pub fn update_parameters_fields(&mut self) {
-        let array = self.rapier_parameters.parameters_array();
-
-        for k in 0..PARAMETER_FIELD_NAMES.len() {
-            self.rapier_parameter_fields
-                .insert(PARAMETER_FIELD_NAMES[k].to_owned(), array[k].to_string());
+        for parameter in RapierFloatParameter::values() {
+            self.rapier_parameter_fields.insert(
+                parameter.name().to_owned(),
+                self.rapier_parameters.get_parameter(parameter).to_string(),
+            );
         }
 
         self.rapier_parameter_fields.insert(
@@ -274,50 +274,21 @@ fn ignore_local_parameters_checkbox(
     .into()
 }
 
-const PARAMETER_FIELD_NAMES: [&str; RAPIER_FLOAT_PARAMETERS_COUNT] = [
-    "Linear damping",
-    "Angular damping",
-    "Interbase spring stiffness",
-    "Interbase spring damping",
-    "Crossover stiffness",
-    "Crossover damping",
-    "Crossover rest length",
-    "Free nucleotide stiffness",
-    "Free nucleotide damping",
-    "Free nucleotide rest length",
-    "Repulsion strength",
-    "Repulsion range",
-    "Brownian motion strength",
-    "Entropic springs strength",
-    "Entropic springs damping",
-    "Planar squish strength",
-    "Planar squish damping",
-    "Planar squish soft cutoff",
-];
-
-const PARAMETER_FIELD_LIVE_EDITABILITY: [bool; RAPIER_FLOAT_PARAMETERS_COUNT] = [
-    false, false, false, false, false, false, false, false, false, false, true, true, true, true,
-    true, true, true, true,
-];
-
 /// Updates the parameters using the fields.
 fn apply_parameter_fields(
     fields: &HashMap<String, String>,
     parameters: &RapierParameters,
 ) -> RapierParameters {
-    let default_array = parameters.parameters_array();
-
-    let array = (0..PARAMETER_FIELD_NAMES.len())
-        .map(|k| {
-            fields
-                .get(PARAMETER_FIELD_NAMES[k])
-                .and_then(|str| str.parse::<f32>().ok())
-                .unwrap_or(default_array[k])
-        })
-        .collect::<Vec<_>>();
-
     let mut result = *parameters;
-    result.set_parameters_array(&array);
+
+    for parameter in RapierFloatParameter::values() {
+        if let Some(value) = fields
+            .get(&parameter.name().to_owned())
+            .and_then(|str| str.parse::<f32>().ok())
+        {
+            result.set_parameter(parameter, value);
+        }
+    }
 
     if let Some(value) = fields.get("Target UPS:") {
         result.target_ups = value.parse::<u32>().unwrap_or(parameters.target_ups);
@@ -327,42 +298,78 @@ fn apply_parameter_fields(
 }
 
 fn rapier_parameters_field_editor(
-    description: impl ToString,
-    default_value: f32,
+    parameter: RapierFloatParameter,
     ui_size: UiSize,
     fields: &HashMap<String, String>,
     parameters: &RapierParameters,
     enabled: bool,
 ) -> iced::Element<'static, LeftPanelMessage> {
-    let description = description.to_string();
+    let description = parameter.name().to_owned();
+    let default_value = parameters.get_parameter(parameter);
     let default_field_value = default_value.to_string();
     let current_value = fields.get(&description).unwrap_or(&default_field_value);
 
+    let copy = *parameters;
+
     row![
-        text(&description),
-        Space::with_width(ui_size.checkbox_spacing()),
-        keyboard_priority(
-            "Rapier parameters ".to_owned() + &description,
-            LeftPanelMessage::SetKeyboardPriority,
-            // if parameters.is_simulation_running {
-            //     text_input(current_value, current_value)
-            // } else {
+        row![text(&description)]
+            .align_items(Alignment::Center)
+            .width(Length::FillPortion(3)),
+        Space::with_width(Length::Fill),
+        row![
+            keyboard_priority(
+                "Rapier parameters ".to_owned() + &description,
+                LeftPanelMessage::SetKeyboardPriority,
+                // if parameters.is_simulation_running {
+                //     text_input(current_value, current_value)
+                // } else {
+                if enabled {
+                    text_input(current_value, current_value)
+                        .on_input(move |str| {
+                            LeftPanelMessage::UpdateRapierParameterField(description.clone(), str)
+                        })
+                        .on_submit(LeftPanelMessage::UpdateRapierParameters(
+                            apply_parameter_fields(fields, parameters),
+                        ))
+                        // }
+                        .width(70)
+                } else {
+                    text_input(current_value, current_value).width(70)
+                }
+            ),
+            Space::with_width(ui_size.checkbox_spacing()),
             if enabled {
-                text_input(current_value, current_value)
-                    .on_input(move |str| {
-                        LeftPanelMessage::UpdateRapierParameterField(description.clone(), str)
-                    })
-                    .on_submit(LeftPanelMessage::UpdateRapierParameters(
-                        apply_parameter_fields(fields, parameters),
-                    ))
-                    // }
-                    .width(70)
+                slider(
+                    parameter.min_value()..=parameter.max_value(),
+                    parameters
+                        .get_parameter(parameter)
+                        .clamp(parameter.min_value(), parameter.max_value()),
+                    move |value| {
+                        LeftPanelMessage::UpdateRapierParameters(
+                            copy.with_parameter(parameter, value),
+                        )
+                    },
+                )
+                .step(parameter.increment())
+                .shift_step(parameter.increment() / 10.0)
+                .width(200)
             } else {
-                text_input(current_value, current_value).width(70)
+                slider(
+                    parameter.min_value()..=parameter.max_value(),
+                    parameters
+                        .get_parameter(parameter)
+                        .clamp(parameter.min_value(), parameter.max_value()),
+                    |_| LeftPanelMessage::Nothing,
+                )
+                .width(200)
             }
-        )
+        ]
+        .align_items(Alignment::Center)
+        .width(Length::FillPortion(3)),
+        Space::with_width(Length::FillPortion(1)),
     ]
     .align_items(Alignment::Center)
+    .width(Length::Fill)
     .into()
 }
 
@@ -376,42 +383,52 @@ fn view_ups(
     let current_value = fields.get(description).unwrap_or(&default_field_value);
 
     row![
-        text(description),
-        Space::with_width(ui_size.checkbox_spacing()),
-        checkbox("", parameters.cap_ups).on_toggle(move |value| {
-            LeftPanelMessage::UpdateRapierParameters(RapierParameters {
-                cap_ups: value,
-                ..parameters
-            })
-        }),
-        Space::with_width(ui_size.checkbox_spacing()),
-        slider(1..=300, parameters.target_ups.clamp(1, 300), move |value| {
-            LeftPanelMessage::UpdateRapierParameters(RapierParameters {
-                target_ups: value,
-                ..parameters
-            })
-        })
-        .width(70),
-        Space::with_width(ui_size.checkbox_spacing()),
-        keyboard_priority(
-            "Rapier parameters ".to_owned() + description,
-            LeftPanelMessage::SetKeyboardPriority,
-            text_input(current_value, current_value)
-                .on_input(move |str| {
-                    LeftPanelMessage::UpdateRapierParameterField(description.to_owned(), str)
-                })
-                .on_submit(LeftPanelMessage::UpdateRapierParameters(RapierParameters {
-                    target_ups: current_value
-                        .parse::<u32>()
-                        .unwrap_or(parameters.target_ups)
-                        // prevents division by 0 related crash
-                        .max(1),
+        row![
+            text(description),
+            Space::with_width(ui_size.checkbox_spacing()),
+            checkbox("", parameters.cap_ups).on_toggle(move |value| {
+                LeftPanelMessage::UpdateRapierParameters(RapierParameters {
+                    cap_ups: value,
                     ..parameters
-                }))
-                .width(70)
-        )
+                })
+            }),
+        ]
+        .align_items(Alignment::Center)
+        .width(Length::FillPortion(3)),
+        Space::with_width(Length::Fill),
+        row![
+            keyboard_priority(
+                "Rapier parameters ".to_owned() + description,
+                LeftPanelMessage::SetKeyboardPriority,
+                text_input(current_value, current_value)
+                    .on_input(move |str| {
+                        LeftPanelMessage::UpdateRapierParameterField(description.to_owned(), str)
+                    })
+                    .on_submit(LeftPanelMessage::UpdateRapierParameters(RapierParameters {
+                        target_ups: current_value
+                            .parse::<u32>()
+                            .unwrap_or(parameters.target_ups)
+                            // prevents division by 0 related crash
+                            .max(1),
+                        ..parameters
+                    }))
+                    .width(70),
+            ),
+            Space::with_width(ui_size.checkbox_spacing()),
+            slider(1..=300, parameters.target_ups.clamp(1, 300), move |value| {
+                LeftPanelMessage::UpdateRapierParameters(RapierParameters {
+                    target_ups: value,
+                    ..parameters
+                })
+            })
+            .width(200),
+        ]
+        .align_items(Alignment::Center)
+        .width(Length::FillPortion(3)),
+        Space::with_width(Length::FillPortion(1)),
     ]
     .align_items(Alignment::Center)
+    .width(Length::Fill)
     .into()
 }
 
@@ -425,13 +442,10 @@ fn view_rapier_parameters(
 
     elements.push(view_ups(parameters, fields, ui_size));
 
-    let values = parameters.parameters_array();
-
-    for k in 0..PARAMETER_FIELD_NAMES.len() {
-        let enabled = PARAMETER_FIELD_LIVE_EDITABILITY[k] || !parameters.is_simulation_running;
+    for parameter in RapierFloatParameter::values() {
+        let enabled = parameter.live_editability() || !parameters.is_simulation_running;
         elements.push(rapier_parameters_field_editor(
-            PARAMETER_FIELD_NAMES[k],
-            values[k],
+            parameter,
             ui_size,
             fields,
             &parameters,
@@ -440,6 +454,7 @@ fn view_rapier_parameters(
     }
 
     Column::from_vec(elements)
+        .width(Length::Fill)
         .spacing(ui_size.button_spacing())
         .into()
 }

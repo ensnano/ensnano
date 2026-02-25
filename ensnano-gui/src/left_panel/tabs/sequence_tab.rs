@@ -80,6 +80,11 @@ impl SequenceTab {
     pub fn get_scaffold_shift(&self) -> usize {
         self.scaffold_position
     }
+
+    pub fn set_scaffold_shift(&mut self, value: usize) {
+        self.scaffold_position = value;
+        self.scaffold_position_str = value.to_string();
+    }
 }
 
 impl GuiTab for SequenceTab {

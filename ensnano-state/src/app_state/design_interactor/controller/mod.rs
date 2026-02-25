@@ -647,7 +647,7 @@ impl Controller {
 
     pub fn optimize_shift(
         &mut self,
-        chanel_reader: &mut ScaffoldShiftReader,
+        channel_reader: &mut ScaffoldShiftReader,
         nucl_collection: Arc<NuclCollection>,
         design: &Design,
     ) -> AppStateOperationResult {
@@ -656,8 +656,10 @@ impl Controller {
                 self.state.state_name().to_owned(),
             )),
             OperationCompatibility::Compatible | OperationCompatibility::FinishFirst => {
-                self.start_shift_optimization(design, chanel_reader, nucl_collection);
-                Ok(AppStateOperationOutcome::NoOp)
+                self.start_shift_optimization(design, channel_reader, nucl_collection);
+                Ok(AppStateOperationOutcome::Push {
+                    label: "Started shift optimization".into(),
+                })
             }
         }
     }
@@ -665,15 +667,11 @@ impl Controller {
     fn start_shift_optimization(
         &mut self,
         design: &Design,
-        chanel_reader: &mut ScaffoldShiftReader,
+        channel_reader: &mut ScaffoldShiftReader,
         nucl_collection: Arc<NuclCollection>,
     ) {
         self.state = ControllerState::OptimizingScaffoldPosition;
-        shift_optimization::optimize_shift(
-            Arc::new(design.clone()),
-            nucl_collection,
-            chanel_reader,
-        );
+        shift_optimization::optimize_shift(design.clone(), nucl_collection, channel_reader);
     }
 
     pub fn get_clipboard_content(&self) -> ClipboardContent {
@@ -2912,6 +2910,7 @@ pub enum OperationError {
     GridIsNotEmpty(GridId),
     CouldNotMake3DObject,
     SvgImportError(SvgImportError),
+    ShiftOptimizationInterrupted,
 }
 
 impl From<DesignOperationError> for OperationError {
