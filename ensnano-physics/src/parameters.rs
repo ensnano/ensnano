@@ -173,7 +173,7 @@ impl RapierFloatParameter {
     pub fn increment(&self) -> f32 {
         match self {
             Self::DeltaTime => 1.0 / 120.0,
-            Self::RepulsionRange | Self::CrossoverRestLength | Self::FreeRestLength => 0.1,
+            Self::RepulsionRange | Self::CrossoverRestLength | Self::FreeRestLength => 0.01,
             Self::FreeStiffness
             | Self::CrossoverStiffness
             | Self::InterbaseStiffness
@@ -187,8 +187,40 @@ impl RapierFloatParameter {
             | Self::AngularDamping
             | Self::InterbaseDamping
             | Self::CrossoverDamping
-            | Self::FreeDamping => 1.0,
-            Self::PlanarCutoff => 0.5,
+            | Self::FreeDamping => 0.02,
+            Self::PlanarCutoff => 0.05,
+        }
+    }
+
+    // ⁻⁰¹²³⁴⁵⁶⁷⁸⁹×
+    // A DNA base is 330 daltons (330 grams / mole),
+    // a dalton is  1.666 539 068 x 10-27 kg
+    // N = kg . m . s-2
+    //
+    // base ~= 450 x 10-27 kg ~= 5 x 10-25 kg
+    // pair ~= 10-24 kg
+    //
+    pub fn unit(&self) -> &'static str {
+        match self {
+            Self::DeltaTime => "s",
+            Self::RepulsionStrength => "nN",
+            Self::RepulsionRange
+            | Self::PlanarCutoff
+            | Self::CrossoverRestLength
+            | Self::FreeRestLength
+            | Self::BrownianStrength => "nm",
+            Self::EntropicStrength
+            | Self::InterbaseStiffness
+            | Self::CrossoverStiffness
+            | Self::FreeStiffness
+            | Self::PlanarStrength => "kg.s⁻²",
+            Self::EntropicDamping
+            | Self::InterbaseDamping
+            | Self::CrossoverDamping
+            | Self::FreeDamping
+            | Self::PlanarDamping
+            | Self::LinearDamping
+            | Self::AngularDamping => "kg.s⁻¹",
         }
     }
 }
