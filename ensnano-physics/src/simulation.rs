@@ -66,7 +66,7 @@ impl RapierPhysicsSystem {
     }
 
     pub fn step(&mut self, parameters: &RapierParameters) {
-        // here we synchronise rapier's parameters to our own
+        // here we synchronize rapier's parameters to our own
         self.integration_parameters.dt = parameters.dt;
 
         // actual computation starts here
