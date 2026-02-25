@@ -449,6 +449,7 @@ fn insert_strong_spring(
         )
         .local_anchor1(down_forward)
         .local_anchor2(up_forward)
+        .spring_model(MotorModel::ForceBased)
         .build(),
         true,
     );
@@ -464,6 +465,7 @@ fn insert_strong_spring(
         )
         .local_anchor1(down_backward)
         .local_anchor2(up_backward)
+        .spring_model(MotorModel::ForceBased)
         .build(),
         true,
     );
@@ -479,6 +481,7 @@ fn insert_strong_spring(
         )
         .local_anchor1(down_left)
         .local_anchor2(up_left)
+        .spring_model(MotorModel::ForceBased)
         .build(),
         true,
     );
@@ -494,6 +497,7 @@ fn insert_strong_spring(
         )
         .local_anchor1(down_right)
         .local_anchor2(up_right)
+        .spring_model(MotorModel::ForceBased)
         .build(),
         true,
     );
