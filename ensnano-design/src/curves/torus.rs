@@ -162,7 +162,8 @@ impl CurveDescriptor2D {
 
     pub fn rotational_symmetry_order(&self) -> usize {
         match self {
-            Self::Ellipse { .. } => 2,
+            Self::Ellipse { semi_minor_axis, semi_major_axis } => if semi_minor_axis == semi_major_axis { 0 } else { 2 },
+            Self::Bezier { rotational_symmetry_order, .. } =>  rotational_symmetry_order.unwrap_or(1),
             _ => 1,
         }
     }
@@ -450,7 +451,8 @@ pub struct PointOnSurface {
     /// Angle of revolution in [0, 2pi].
     pub revolution_angle: f64,
     pub revolution_axis_position: f64,
-    pub section_half_turn_per_revolution: isize,
+    pub twist: isize,
+    pub rotational_symmetry_order: usize,
     pub curve_scale_factor: f64,
 }
 
@@ -467,7 +469,11 @@ pub(super) struct PointOnSurface_ {
 
 impl From<PointOnSurface> for PointOnSurface_ {
     fn from(p: PointOnSurface) -> Self {
-        let section_rotation = p.section_half_turn_per_revolution as f64 * p.revolution_angle / 2.;
+        let section_rotation = if p.rotational_symmetry_order > 0 {
+            p.twist as f64 * p.revolution_angle / p.rotational_symmetry_order as f64
+        } else {
+            0f64
+        };
         Self {
             section_rotation,
             revolution_angle: p.revolution_angle,
@@ -644,6 +650,7 @@ impl TwistedTorus {
         descriptor: TwistedTorusDescriptor,
         helix_parameters: &HelixParameters,
     ) -> Self {
+        println!("called23");
         let instantiated_curve = descriptor.curve.clone().instantiate();
         let scale = 2.
             * Self::inter_helix_gap(helix_parameters)
@@ -755,6 +762,8 @@ impl Helix {
         if let Some(CurveDescriptor::TwistedTorus(TwistedTorusDescriptor { curve, .. })) =
             self.curve.as_ref().map(Arc::as_ref)
         {
+            // Never called ?
+            println!("I thought this code would never be called");
             Some(curve)
         } else {
             None

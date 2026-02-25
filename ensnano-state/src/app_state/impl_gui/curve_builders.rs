@@ -3,6 +3,7 @@ use crate::{
     gui::curve::{CurveDescriptorBuilder, CurveDescriptorParameter, InstantiatedParameter},
 };
 use ensnano_design::{bezier_plane::BezierPathId, curves::torus::CurveDescriptor2D};
+use ordered_float::OrderedFloat;
 use ultraviolet::{Rotor3, Vec3};
 
 pub(super) const ELLIPSE_BUILDER: CurveDescriptorBuilder = CurveDescriptorBuilder {
@@ -84,12 +85,12 @@ fn build_two_spheres(
     parameters: &[InstantiatedParameter],
     _: &AppState,
 ) -> Option<CurveDescriptor2D> {
-    let radius_extern = parameters
+    let radius_extern: OrderedFloat<f64>  = parameters
         .first()
         .copied()
         .and_then(InstantiatedParameter::get_float)?
         .into();
-    let radius_intern = parameters
+    let radius_intern: OrderedFloat<f64> = parameters
         .get(1)
         .copied()
         .and_then(InstantiatedParameter::get_float)?
@@ -106,8 +107,8 @@ fn build_two_spheres(
         .into();
 
     Some(CurveDescriptor2D::TwoBalls {
-        radius_extern,
-        radius_intern,
+        radius_extern: radius_extern.max(radius_intern),
+        radius_intern: radius_intern.min(radius_extern),
         radius_tube,
         smooth_ceil,
     })

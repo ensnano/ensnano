@@ -293,7 +293,7 @@ impl RevolutionTab {
             .and_then(InstantiatedParameter::get_float)
             .map(RevolutionSurfaceRadius::from_signed_f64)?;
 
-        let half_turn_count = self
+        let twist = self
             .twist
             .get_value()
             .and_then(InstantiatedParameter::get_uint)
@@ -313,8 +313,7 @@ impl RevolutionTab {
         Some(UnrootedRevolutionSurfaceDescriptor {
             curve,
             revolution_radius,
-            half_turn_count,
-            // rotational_symmetry_order,
+            twist,
             curve_plane_position,
             curve_plane_orientation,
         })
@@ -522,8 +521,7 @@ impl GuiTab for RevolutionTab {
                         || "Twist (Nb of turns)".into(),
                         |sym_order| 
                             match sym_order {
-                                1 => "Twist (Nb of turns)".into(),
-                                0 => "Twist (in Degrees)".into(),
+                                0 | 1 => "Twist (Nb of turns)".into(),
                                 _ => format!("Twist (Nb of 1/{sym_order}-turns)")
                             }).into();
 
