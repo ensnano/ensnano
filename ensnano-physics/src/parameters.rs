@@ -152,7 +152,7 @@ impl RapierFloatParameter {
 
     pub fn max_value(&self) -> f32 {
         match self {
-            Self::DeltaTime => 2.0,
+            Self::DeltaTime => 0.5,
             Self::RepulsionRange
             | Self::CrossoverRestLength
             | Self::FreeRestLength

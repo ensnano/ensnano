@@ -350,6 +350,8 @@ fn rapier_parameters_field_editor(
                         )
                     },
                 )
+                .step(parameter.increment())
+                .shift_step(parameter.increment() / 10.0)
                 .width(200)
             } else {
                 slider(
