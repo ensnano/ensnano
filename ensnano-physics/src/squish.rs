@@ -20,6 +20,9 @@ fn squish_step(system: &mut RapierPhysicsSystem, parameters: &RapierParameters) 
         return;
     }
 
+    let dt0 = RapierParameters::default().dt;
+    let virtual_seconds = parameters.dt / dt0;
+
     let forces = handles
         .clone()
         .par_iter()
@@ -41,7 +44,8 @@ fn squish_step(system: &mut RapierPhysicsSystem, parameters: &RapierParameters) 
                 parameters.squish_soft_cutoff,
             );
             let strength = constant_factor * parameters.squish_strength * strength
-                / parameters.squish_soft_cutoff;
+                / parameters.squish_soft_cutoff
+                / virtual_seconds;
 
             let damping = -body.linvel()[1];
             let damping = damping * parameters.squish_damping * constant_factor;
