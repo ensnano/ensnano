@@ -174,6 +174,7 @@ pub(crate) struct RevolutionTab {
     twist: ParameterWidget, // half_turn_count
     radius_input: ParameterWidget,
     scaling: Option<RevolutionScaling>,
+    nb_helices_input: ParameterWidget,
     nb_spiral_state_input: ParameterWidget,
     shift_generator: Option<ShiftGenerator>,
     pub(crate) shift_idx: isize,
@@ -197,6 +198,7 @@ impl Default for RevolutionTab {
             twist: ParameterWidget::new(InstantiatedParameter::Uint(0)),
             radius_input: ParameterWidget::new(InstantiatedParameter::Float(0.)),
             scaling: None,
+            nb_helices_input: ParameterWidget::new(InstantiatedParameter::Uint(12)),
             nb_spiral_state_input: ParameterWidget::new(InstantiatedParameter::Uint(2)),
             shift_generator: None,
             shift_idx: 0,
@@ -218,7 +220,7 @@ impl Default for RevolutionTab {
                 init_parameter.simulation_step,
             )),
             equadiff_method: init_parameter.method,
-            scaffold_len_target: ParameterWidget::new(InstantiatedParameter::Uint(7249)),
+            scaffold_len_target: ParameterWidget::new(InstantiatedParameter::Uint(8064)),
         }
     }
 }
@@ -261,6 +263,7 @@ impl RevolutionTab {
                 let widget = match param {
                     RevolutionParameterId::SectionParameter(_) => unreachable!(),
                     RevolutionParameterId::Twist => &mut self.twist,
+                    RevolutionParameterId::NbHelices => &mut self.nb_helices_input,
                     RevolutionParameterId::NbSpiral => &mut self.nb_spiral_state_input,
                     RevolutionParameterId::RevolutionRadius => &mut self.radius_input,
                     RevolutionParameterId::ScaffoldLenTarget => &mut self.scaffold_len_target,
@@ -319,11 +322,15 @@ impl RevolutionTab {
         })
     }
 
+/// TODO: I AM EDITING THE NB OF HELICES
+///
+
     pub(crate) fn get_revolution_system(
         &self,
         app_state: &AppState,
         compute_area: bool,
     ) -> Option<RevolutionSurfaceSystemDescriptor> {
+        // println!("starting");
         let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
 
         let rooting_parameters = RootingParameters {
@@ -346,6 +353,7 @@ impl RevolutionTab {
             simulation_parameters,
         };
 
+        // println!("system ok");
         Some(system)
     }
 
@@ -369,11 +377,13 @@ impl RevolutionTab {
     /// otherwise.
     fn try_get_shift_per_turn(&self, app_state: &AppState) -> Option<isize> {
         let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
+        let nb_helices = ((self.nb_helices_input.get_value().and_then(InstantiatedParameter::get_uint).unwrap_or(12)/2)*2).max(4);
         let nb_spiral = self
             .nb_spiral_state_input
             .get_value()
             .and_then(InstantiatedParameter::get_uint)?;
-        let half_nb_helix = self.scaling.as_ref()?.nb_helix / 2;
+        let half_nb_helix = nb_helices / 2;
+        // let half_nb_helix = self.scaling.as_ref()?.nb_helix / 2;
         self.shift_generator
             .as_ref()
             .and_then(|g| g.ith_value(self.shift_idx, nb_spiral, &unrooted_surface, half_nb_helix))
@@ -445,6 +455,11 @@ impl GuiTab for RevolutionTab {
                 format!("{r:.3}"),
             );
         }
+
+        // if let Some(nb_helices) = self.nb_helices_input.get_value().and_then(InstantiatedParameter::get_uint) {
+        //     let nb_helices = (2 * ((nb_helices + 1 ) / 2)).max(4);
+        //     self.update_builder_parameter(RevolutionParameterId::NbHelices, format!("{nb_helices}"));
+        // }
 
         self.scaling = self
             .scaffold_len_target
@@ -572,9 +587,19 @@ impl GuiTab for RevolutionTab {
                 extra_jump(),
                 subsection("DNA routing parameters", ui_size),
                 text(self.scaling.map_or_else(
-                    || "Nb helix: ###".into(),
-                    |RevolutionScaling { nb_helix }| format!("Nb helix: {nb_helix}")
+                    || "No suggested nb helices".into(),
+                    |RevolutionScaling { nb_helix }| format!("Suggested nb helices: {nb_helix}")
                 )),
+                row![
+                    "Nb helices (even)",
+                    Space::with_width(ui_size.checkbox_spacing()),
+                    self.nb_helices_input
+                        .input_view(RevolutionParameterId::NbHelices),
+                    text(self.scaling.map_or_else(
+                        || "".into(),
+                        |RevolutionScaling { nb_helix }| format!("(Suggested: {nb_helix})")))
+                ]
+                .align_items(Alignment::Center),
                 row![
                     "Nb spiral",
                     Space::with_width(ui_size.checkbox_spacing()),
