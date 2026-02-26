@@ -121,10 +121,6 @@ pub(super) const BEZIER_CURVE_BUILDER: CurveDescriptorBuilder = CurveDescriptorB
             name: "Path n°",
             default_value: InstantiatedParameter::Uint(0),
         },
-        CurveDescriptorParameter {
-            name: "Rotational Symmetry order",
-            default_value: InstantiatedParameter::Uint(1),
-        },
     ],
     build: &build_bezier,
     bezier_path_id: &get_bezier_path_id,
@@ -144,17 +140,14 @@ fn build_bezier(parameters: &[InstantiatedParameter], app: &AppState) -> Option<
         .get_bezier_path_2d(BezierPathId(curve_id as u32));
 
     if let Some(bezier) = bezier {
-        let rotational_symmetry_order = Some(parameters
-            .get(1)
-            .copied()
-            .and_then(InstantiatedParameter::get_uint)
-            .unwrap_or(1)
-            .max(1)); // 0 is not allowed
+        // let rotational_symmetry_order = Some(parameters
+        //     .get(1)
+        //     .copied()
+        //     .and_then(InstantiatedParameter::get_uint)
+        //     .unwrap_or(1)
+        //     .max(1)); // 0 is not allowed
 
-        return Some(CurveDescriptor2D::Bezier {
-            bezier,
-            rotational_symmetry_order,
-        })
+        return Some(CurveDescriptor2D::Bezier(bezier))
     } else { 
         return None;
     }

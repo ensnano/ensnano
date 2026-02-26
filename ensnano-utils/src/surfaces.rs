@@ -290,7 +290,6 @@ impl UnrootedRevolutionSurfaceDescriptor {
                                 revolution_axis_position: self.get_revolution_axis_position(),
                                 twist: self.twist,
                                 rotational_symmetry_order: self.rotational_symmetry_order(),
-
                                 curve_scale_factor: 1.,
                             };
                             let position = frame.transform_vec(dvec_to_vec(
@@ -572,8 +571,15 @@ impl RootedRevolutionSurface {
         self.nb_spirals
     }
 
-    pub fn half_turn_count(&self) -> isize {
+    pub fn twist(&self) -> isize {
         self.surface.twist
+    }
+
+    pub fn section_rotation_per_revolution(&self) -> f64 {
+        match self.surface.rotational_symmetry_order() {
+            0 => 0.,
+            x => self.surface.twist as f64 / x as f64,
+        }
     }
 
     pub fn curve_descriptor(
@@ -587,6 +593,7 @@ impl RootedRevolutionSurface {
             chebyshev_smoothening: self.rooting_parameters.junction_smoothening,
             interpolation: interpolations,
             twist: self.surface.twist,
+            rotational_symmetry_order: self.surface.rotational_symmetry_order(),
             revolution_radius: -self.surface.get_axis_position_when_scaled(self.scale),
             nb_turn: None,
             revolution_angle_init: None,

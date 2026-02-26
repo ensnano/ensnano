@@ -152,7 +152,7 @@ impl CurveDescriptor2D {
         match self {
             Self::Parabola { .. } => true,
             Self::Ellipse { .. } | Self::TwoBalls { .. } => false,
-            Self::Bezier { bezier, .. } => !bezier.is_cyclic,
+            Self::Bezier(bezier) => !bezier.is_cyclic,
         }
     }
 
@@ -422,7 +422,7 @@ impl CurveDescriptor2D {
                 -a.abs().max(b.abs())
             }
             Self::TwoBalls { .. } | Self::Parabola { .. } => 0.,
-            Self::Bezier( bezier) => bezier.min_x(),
+            Self::Bezier(bezier) => bezier.min_x(),
         }
     }
 
