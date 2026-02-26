@@ -141,11 +141,7 @@ pub enum CurveDescriptor2D {
         radius_tube: OrderedFloat<f64>,
         smooth_ceil: OrderedFloat<f64>,
     },
-    Bezier {
-        bezier: InstantiatedPiecewiseBezier,
-        #[serde(skip_serializing_if = "Option::is_none", default)]
-        rotational_symmetry_order: Option<usize>,
-    },
+    Bezier(InstantiatedPiecewiseBezier),
     Parabola {
         speed: OrderedFloat<f64>,
     },
@@ -163,7 +159,6 @@ impl CurveDescriptor2D {
     pub fn rotational_symmetry_order(&self) -> usize {
         match self {
             Self::Ellipse { semi_minor_axis, semi_major_axis } => if semi_minor_axis == semi_major_axis { 0 } else { 2 },
-            Self::Bezier { rotational_symmetry_order, .. } =>  rotational_symmetry_order.unwrap_or(1),
             _ => 1,
         }
     }
@@ -268,7 +263,7 @@ impl CurveDescriptor2D {
                     y: speed * speed * t * t,
                 }
             }
-            Self::Bezier{ bezier, .. } => {
+            Self::Bezier(bezier) => {
                 let t = if bezier.is_cyclic {
                     t.rem_euclid(1.)
                 } else {
@@ -410,7 +405,7 @@ impl CurveDescriptor2D {
                 a.abs().max(b.abs())
             }
             Self::TwoBalls { radius_extern, .. } => (*radius_extern).into(),
-            Self::Bezier { bezier, .. } => bezier.max_x(),
+            Self::Bezier(bezier) => bezier.max_x(),
             Self::Parabola { .. } => 0.,
         }
     }
@@ -427,7 +422,7 @@ impl CurveDescriptor2D {
                 -a.abs().max(b.abs())
             }
             Self::TwoBalls { .. } | Self::Parabola { .. } => 0.,
-            Self::Bezier { bezier, .. } => bezier.min_x(),
+            Self::Bezier( bezier) => bezier.min_x(),
         }
     }
 
