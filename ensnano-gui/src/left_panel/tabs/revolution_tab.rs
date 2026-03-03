@@ -322,8 +322,8 @@ impl RevolutionTab {
         })
     }
 
-/// TODO: I AM EDITING THE NB OF HELICES
-///
+    /// TODO: I AM EDITING THE NB OF HELICES
+    ///
 
     pub(crate) fn get_revolution_system(
         &self,
@@ -377,7 +377,14 @@ impl RevolutionTab {
     /// otherwise.
     fn try_get_shift_per_turn(&self, app_state: &AppState) -> Option<isize> {
         let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
-        let nb_helices = ((self.nb_helices_input.get_value().and_then(InstantiatedParameter::get_uint).unwrap_or(12)/2)*2).max(4);
+        let nb_helices = ((self
+            .nb_helices_input
+            .get_value()
+            .and_then(InstantiatedParameter::get_uint)
+            .unwrap_or(12)
+            / 2)
+            * 2)
+        .max(4);
         let nb_spiral = self
             .nb_spiral_state_input
             .get_value()
@@ -532,13 +539,16 @@ impl GuiTab for RevolutionTab {
             column![button]
         };
 
-        let string_: &'_ String = &self.get_rotational_symmetry_order().map_or_else(
-                        || "Twist (Nb of turns)".into(),
-                        |sym_order| 
-                            match sym_order {
-                                0 | 1 => "Twist (Nb of turns)".into(),
-                                _ => format!("Twist (Nb of 1/{sym_order}-turns)")
-                            }).into();
+        let string_: &'_ String = &self
+            .get_rotational_symmetry_order()
+            .map_or_else(
+                || "Twist (Nb of turns)".into(),
+                |sym_order| match sym_order {
+                    0 | 1 => "Twist (Nb of turns)".into(),
+                    _ => format!("Twist (Nb of 1/{sym_order}-turns)"),
+                },
+            )
+            .into();
 
         let content = column![
             section("Revolution Surfaces", ui_size),
@@ -568,7 +578,7 @@ impl GuiTab for RevolutionTab {
             ],
             column![
                 row![
-                    // "Twist (Nb of (1/order)-turns)",  
+                    // "Twist (Nb of (1/order)-turns)",
                     text(string_.as_str()),
                     // Cow::<&'a String>::Owned(&string_).as_str(),
                     // self._rot_sym_label.as_str().into(),
@@ -597,7 +607,8 @@ impl GuiTab for RevolutionTab {
                         .input_view(RevolutionParameterId::NbHelices),
                     text(self.scaling.map_or_else(
                         || "".into(),
-                        |RevolutionScaling { nb_helix }| format!("(Suggested: {nb_helix})")))
+                        |RevolutionScaling { nb_helix }| format!("(Suggested: {nb_helix})")
+                    ))
                 ]
                 .align_items(Alignment::Center),
                 row![

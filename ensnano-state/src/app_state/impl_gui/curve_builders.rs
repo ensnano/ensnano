@@ -49,11 +49,10 @@ fn rotational_symmetry_order_ellipse(parameters: &[InstantiatedParameter]) -> Op
         .copied()
         .and_then(InstantiatedParameter::get_float)?;
     if a == b {
-        return Some(0)
+        return Some(0);
     }
-    return Some(2)
+    return Some(2);
 }
-
 
 pub(super) const TWO_SPHERES_BUILDER: CurveDescriptorBuilder = CurveDescriptorBuilder {
     curve_name: "Two spheres",
@@ -85,7 +84,7 @@ fn build_two_spheres(
     parameters: &[InstantiatedParameter],
     _: &AppState,
 ) -> Option<CurveDescriptor2D> {
-    let radius_extern: OrderedFloat<f64>  = parameters
+    let radius_extern: OrderedFloat<f64> = parameters
         .first()
         .copied()
         .and_then(InstantiatedParameter::get_float)?
@@ -116,12 +115,10 @@ fn build_two_spheres(
 
 pub(super) const BEZIER_CURVE_BUILDER: CurveDescriptorBuilder = CurveDescriptorBuilder {
     curve_name: "Bezier",
-    parameters: &[
-        CurveDescriptorParameter {
-            name: "Path n°",
-            default_value: InstantiatedParameter::Uint(0),
-        },
-    ],
+    parameters: &[CurveDescriptorParameter {
+        name: "Path n°",
+        default_value: InstantiatedParameter::Uint(0),
+    }],
     build: &build_bezier,
     bezier_path_id: &get_bezier_path_id,
     rotational_symmetry_order: &get_rotational_symmetry_order,
@@ -134,7 +131,8 @@ fn build_bezier(parameters: &[InstantiatedParameter], app: &AppState) -> Option<
         .copied()
         .and_then(InstantiatedParameter::get_uint)?;
 
-    let bezier = app.0
+    let bezier = app
+        .0
         .design
         .clone_inner()
         .get_bezier_path_2d(BezierPathId(curve_id as u32));
@@ -147,8 +145,8 @@ fn build_bezier(parameters: &[InstantiatedParameter], app: &AppState) -> Option<
         //     .unwrap_or(1)
         //     .max(1)); // 0 is not allowed
 
-        return Some(CurveDescriptor2D::Bezier(bezier))
-    } else { 
+        return Some(CurveDescriptor2D::Bezier(bezier));
+    } else {
         return None;
     }
 }

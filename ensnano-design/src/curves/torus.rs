@@ -158,7 +158,16 @@ impl CurveDescriptor2D {
 
     pub fn rotational_symmetry_order(&self) -> usize {
         match self {
-            Self::Ellipse { semi_minor_axis, semi_major_axis } => if semi_minor_axis == semi_major_axis { 0 } else { 2 },
+            Self::Ellipse {
+                semi_minor_axis,
+                semi_major_axis,
+            } => {
+                if semi_minor_axis == semi_major_axis {
+                    0
+                } else {
+                    2
+                }
+            }
             _ => 1,
         }
     }

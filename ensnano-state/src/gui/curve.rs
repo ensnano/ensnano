@@ -12,14 +12,15 @@ pub struct CurveDescriptorBuilder {
     pub curve_name: &'static str,
     pub parameters: &'static [CurveDescriptorParameter],
     pub bezier_path_id: &'static (dyn Fn(&[InstantiatedParameter]) -> Option<usize> + Send + Sync),
-    pub rotational_symmetry_order: &'static (dyn Fn(&[InstantiatedParameter]) -> Option<usize> + Send + Sync),
+    pub rotational_symmetry_order:
+        &'static (dyn Fn(&[InstantiatedParameter]) -> Option<usize> + Send + Sync),
     pub build: &'static (
                  dyn Fn(&[InstantiatedParameter], &AppState) -> Option<CurveDescriptor2D>
                      + Send
                      + Sync
              ),
     pub frame:
-        &'static (dyn Fn(&[InstantiatedParameter], &AppState) -> Option<Frame> + Send + Sync),    
+        &'static (dyn Fn(&[InstantiatedParameter], &AppState) -> Option<Frame> + Send + Sync),
 }
 
 impl std::fmt::Debug for CurveDescriptorBuilder {

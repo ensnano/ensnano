@@ -14,7 +14,7 @@ use ultraviolet::{DRotor2, DVec2, DVec3, Isometry2, Mat3, Rotor2, Vec2};
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct InterpolatedCurveDescriptor {
     pub curve: CurveDescriptor2D,
-    #[serde(alias="half_turns_count")]
+    #[serde(alias = "half_turns_count")]
     pub twist: isize,
     pub rotational_symmetry_order: usize,
     /// Radius of the revolution trajectory.
@@ -165,7 +165,7 @@ impl SmoothInterpolatedCurve {
                 smoothening_coeff,
                 // half_turn,
                 twist,
-                rotational_symmetry_order, 
+                rotational_symmetry_order,
                 ..
             } => {
                 // the position on the current segment. If u is close the 0, we interpolate with the
@@ -190,8 +190,9 @@ impl SmoothInterpolatedCurve {
                 if u < a {
                     // second half of the interpolation region, v = 0.5 + 1/2 ( u / a)
                     let v = (1. + u / a) / 2.;
-                    let mut v1 =
-                        (interpolators[prev_idx].evaluate(1. - a + v * a) + section_rotation_per_revolution).rem_euclid(1.); // (interpolators[prev_idx].evaluate(1. - a + v * a) + shift).rem_euclid(1.);
+                    let mut v1 = (interpolators[prev_idx].evaluate(1. - a + v * a)
+                        + section_rotation_per_revolution)
+                        .rem_euclid(1.); // (interpolators[prev_idx].evaluate(1. - a + v * a) + shift).rem_euclid(1.);
                     let v2 = (interpolators[helix_idx].evaluate(v * a)).rem_euclid(1.);
 
                     while v1 > v2 + 0.5 {
@@ -205,7 +206,9 @@ impl SmoothInterpolatedCurve {
                     // first half of the interpolation region
                     let v = (u - (1. - a)) / a / 2.;
                     let v1 = (interpolators[helix_idx].evaluate(1. - a + v * a)).rem_euclid(1.);
-                    let mut v2 = (interpolators[next_idx].evaluate(v * a) - section_rotation_per_revolution).rem_euclid(1.); // (interpolators[next_idx].evaluate(v * a) - shift).rem_euclid(1.);
+                    let mut v2 = (interpolators[next_idx].evaluate(v * a)
+                        - section_rotation_per_revolution)
+                        .rem_euclid(1.); // (interpolators[next_idx].evaluate(v * a) - shift).rem_euclid(1.);
 
                     while v2 > v1 + 0.5 {
                         v2 -= 1.;
