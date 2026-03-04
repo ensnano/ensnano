@@ -129,7 +129,8 @@ impl RapierFloatParameter {
 
     pub fn min_value(&self) -> f32 {
         match self {
-            Self::DeltaTime | Self::RepulsionRange => 0.0001,
+            Self::DeltaTime => 1.0 / 60.0,
+            Self::RepulsionRange => 0.0001,
             Self::RepulsionStrength
             | Self::BrownianStrength
             | Self::EntropicStrength
@@ -152,13 +153,12 @@ impl RapierFloatParameter {
 
     pub fn max_value(&self) -> f32 {
         match self {
-            Self::DeltaTime => 0.5,
-            Self::RepulsionRange
-            | Self::CrossoverRestLength
-            | Self::FreeRestLength
-            | Self::BrownianStrength => 10.0,
+            Self::DeltaTime => 2.0,
+            Self::RepulsionRange | Self::CrossoverRestLength | Self::FreeRestLength => 10.0,
+            Self::BrownianStrength => 0.1,
             Self::FreeStiffness | Self::CrossoverStiffness | Self::InterbaseStiffness => 500.0,
-            Self::RepulsionStrength | Self::EntropicStrength | Self::PlanarStrength => 100.0,
+            Self::RepulsionStrength => 4.0,
+            Self::EntropicStrength | Self::PlanarStrength => 100.0,
             Self::EntropicDamping
             | Self::PlanarDamping
             | Self::LinearDamping
@@ -173,12 +173,14 @@ impl RapierFloatParameter {
     pub fn increment(&self) -> f32 {
         match self {
             Self::DeltaTime => 1.0 / 120.0,
-            Self::RepulsionRange | Self::CrossoverRestLength | Self::FreeRestLength => 0.01,
+            Self::RepulsionRange
+            | Self::CrossoverRestLength
+            | Self::FreeRestLength
+            | Self::BrownianStrength => 0.01,
             Self::FreeStiffness
             | Self::CrossoverStiffness
             | Self::InterbaseStiffness
             | Self::RepulsionStrength
-            | Self::BrownianStrength
             | Self::EntropicStrength
             | Self::PlanarStrength
             | Self::EntropicDamping
