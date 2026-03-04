@@ -694,15 +694,8 @@ impl MainState {
 
     pub fn toggle_external_objects_visibility(&mut self) {
         self.modify_state(|state: &mut AppState| {
-            state
-                .0
-                .make_mut()
-                .design
-                .make_mut()
-                .design
-                .make_mut()
-                .external_3d_objects
-                .toggle_visibility();
+            state.0.make_mut().parameters.show_external_objects =
+                !state.0.parameters.show_external_objects;
 
             Ok(AppStateOperationOutcome::push(
                 "Toggled external objects' visibility",
