@@ -137,7 +137,7 @@ impl UnrootedRevolutionSurfaceDescriptor {
     /// Return the position of the axis of revolution, assuming that the section is scaled.
     ///
     /// Note that the revolution radius is *not* scaled.
-    fn get_axis_position_when_scaled(&self, scale: f64) -> f64 {
+    pub fn get_axis_position_when_scaled(&self, scale: f64) -> f64 {
         match self.revolution_radius {
             RevolutionSurfaceRadius::Left(x) => self.curve.min_x() * scale - x,
             RevolutionSurfaceRadius::Right(x) => x + self.curve.max_x() * scale,
@@ -183,6 +183,12 @@ impl UnrootedRevolutionSurfaceDescriptor {
 
         let area_0 = with_radius_0.approx_surface_area(1000, 1000)?;
         let area_1 = with_radius_1.approx_surface_area(1000, 1000)?;
+
+        // DEBUG
+        // let a = area_0.clone();
+        // let b = area_1 - area_0;
+        // let p = self.curve.perimeter() * TAU;
+        // println!("a:{a} - b:{b} - 2πp:{p}"); // b == p for untwisted revolution curve
 
         Some((area_0, area_1 - area_0))
     }

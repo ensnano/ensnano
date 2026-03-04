@@ -171,7 +171,11 @@ impl CurveDescriptorWidget {
 
 pub(crate) struct RevolutionTab {
     curve_descriptor_widget: Option<CurveDescriptorWidget>,
-    twist: ParameterWidget, // half_turn_count
+    nb_helices: usize,
+    winding: isize,
+    nb_spirals: usize,
+    twist: usize,
+    twist_input: ParameterWidget, // half_turn_count
     radius_input: ParameterWidget,
     scaling: Option<RevolutionScaling>,
     nb_helices_input: ParameterWidget,
@@ -196,9 +200,13 @@ impl Default for RevolutionTab {
         let init_parameter = RevolutionSimulationParameters::default();
         Self {
             curve_descriptor_widget: None,
-            twist: ParameterWidget::new(InstantiatedParameter::Uint(0)),
+            twist_input: ParameterWidget::new(InstantiatedParameter::Uint(0)),
             radius_input: ParameterWidget::new(InstantiatedParameter::Float(0.)),
             scaling: None,
+            nb_helices: 12,
+            winding: 0,
+            twist: 0,
+            nb_spirals: 2,
             nb_helices_input: ParameterWidget::new(InstantiatedParameter::Uint(12)),
             nb_spirals_state_input: ParameterWidget::new(InstantiatedParameter::Uint(2)),
             shift_generator: None,
@@ -264,7 +272,7 @@ impl RevolutionTab {
             param => {
                 let widget = match param {
                     RevolutionParameterId::SectionParameter(_) => unreachable!(),
-                    RevolutionParameterId::Twist => &mut self.twist,
+                    RevolutionParameterId::Twist => &mut self.twist_input,
                     RevolutionParameterId::NbHelices => &mut self.nb_helices_input,
                     RevolutionParameterId::NbSpiral => &mut self.nb_spirals_state_input,
                     RevolutionParameterId::RevolutionRadius => &mut self.radius_input,
@@ -299,7 +307,7 @@ impl RevolutionTab {
             .map(RevolutionSurfaceRadius::from_signed_f64)?;
 
         let twist = self
-            .twist
+            .twist_input
             .get_value()
             .and_then(InstantiatedParameter::get_uint)
             .unwrap_or(0) as isize;
@@ -336,7 +344,7 @@ impl RevolutionTab {
         let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
 
         let rooting_parameters = RootingParameters {
-            nb_helix_per_half_section: self.scaling.as_ref()?.nb_helix / 2,
+            nb_helix_per_half_section: self.get_even_nb_helices_input()? / 2, // self.scaling.as_ref()?.nb_helix / 2,
             shift_per_turn: self.try_get_shift_per_turn(app_state)?,
             junction_smoothening: 0.,
         };
@@ -465,6 +473,70 @@ impl RevolutionTab {
         // FIXME
         false
     }
+
+    pub(crate) fn inc_nb_helices(&mut self) -> usize {
+        self.nb_helices += 2;
+        self.nb_helices
+    }
+
+    pub(crate) fn dec_nb_helices(&mut self) -> usize {
+        self.nb_helices = (self.nb_helices - 2).max(4);
+        self.nb_helices
+    }
+    
+    pub(crate) fn inc_nb_spirals(&mut self) -> usize {
+        self.nb_spirals += 1;
+        self.nb_spirals
+    }
+
+    pub(crate) fn dec_nb_spirals(&mut self) -> usize {
+        self.nb_spirals = (self.nb_spirals - 1).max(1);
+        self.nb_spirals
+    }
+    
+    pub(crate) fn inc_winding(&mut self) -> isize {
+        self.winding += 1;
+        self.winding
+    }
+
+    pub(crate) fn dec_winding(&mut self) -> isize {
+        self.winding = self.winding - 1;
+        self.winding
+    }
+    
+    pub(crate) fn inc_twist(&mut self) -> usize {
+        self.twist += 1;
+        self.twist
+    }
+
+    pub(crate) fn dec_twist(&mut self) -> usize {
+        if self.twist > 0 {
+            self.twist -= 1;
+        }
+        self.twist
+    }
+    
+
+}
+
+macro_rules! button_widget {
+    ($label: expr, $value: expr, $dec_msg: tt, $inc_msg: tt, $comment: expr, $ui_size: expr) => { {
+        let buttons = (button(" - "), button(" + "));
+        let value = if let Some(x) = $value {
+            format!("{}", x)
+        } else {
+            "—".into()
+        };
+        row![
+            text(format!("{}: {:>4}", $label, value)),
+            Space::with_width($ui_size.checkbox_spacing()),
+            buttons.0.on_press(LeftPanelMessage::$dec_msg),
+            buttons.1.on_press(LeftPanelMessage::$inc_msg),        
+            Space::with_width($ui_size.checkbox_spacing()),
+            text(format!("{}", $comment)),
+        ].align_items(Alignment::Center)
+    }
+}
 }
 
 impl GuiTab for RevolutionTab {
@@ -514,52 +586,55 @@ impl GuiTab for RevolutionTab {
         Command::none()
     }
 
-    // fn _rot_sym_label<'a>(&'a self) -> String {
-    //     self.get_rotational_symmetry_order().clone().map_or_else(
-    //         || "Twist (Nb of turns)".into(),
-    //         |sym_order| format!("Twist (Nb of 1/{sym_order}-turns)"))
-    // }
+
+
 
     fn content(&self, ui_size: UiSize, app_state: &AppState) -> iced::Element<'_, Self::Message> {
         let desc = self.get_revolution_system(app_state, false);
 
-        let shift_buttons = {
-            let buttons = (button("-"), button("+"));
-            if let Some(shift) = self.get_shift_per_turn(app_state) {
-                row![
-                    buttons.0.on_press(LeftPanelMessage::DecrRevolutionShift),
-                    buttons.1.on_press(LeftPanelMessage::IncrRevolutionShift),
-                    Space::with_width(ui_size.checkbox_spacing()),
-                    text(format!("Nb shift: {shift}")),
-                ].align_items(Alignment::Center)
-            } else {
-                row![
-                    buttons.0,
-                    buttons.1,
-                    Space::with_width(ui_size.checkbox_spacing()),
-                    "Nb shift: ###",
-                ].align_items(Alignment::Center)
-            }
-        };
+        let nb_helices_buttons= button_widget!(
+            "Nb of helices per section",
+            Some(self.nb_helices), 
+            DecrNbHelices, 
+            IncrNbHelices,
+            self.scaling.map_or_else(
+                || "No suggested nb helices".into(),
+                |RevolutionScaling { nb_helix: sug_nb_helix }| 
+                    format!("Suggested nb helices: {sug_nb_helix}")
+                ),
+            ui_size
+        );
 
-        let nb_spirals_buttons = {
-            let buttons = (button("-"), button("+"));
-            if let Some(nb_sp) = self.get_nb_spirals(app_state) {
-                row![
-                    buttons.0.on_press(LeftPanelMessage::IncrNbSpirals),
-                    buttons.1.on_press(LeftPanelMessage::DecrNbSpirals),
-                    Space::with_width(ui_size.checkbox_spacing()),
-                    text(format!("Nb Spiral Idx: {nb_sp}")),
-                ].align_items(Alignment::Center)
-            } else {
-                row![
-                    buttons.0,
-                    buttons.1,
-                    Space::with_width(ui_size.checkbox_spacing()),
-                    "Nb shift: ###",
-                ].align_items(Alignment::Center)
-            }
-        };
+        let winding_buttons = button_widget!(
+            "Winding parameter",
+            Some(self.winding), // get_shift_per_turn(app_state), 
+            DecrWinding, 
+            IncrWinding,
+            "",
+            ui_size
+        );
+        
+        let nb_spirals_buttons = button_widget!(
+            "Nb of spirals",
+            Some(self.nb_spirals), // self.get_nb_spirals(app_state), 
+            DecrNbSpirals, 
+            IncrNbSpirals,
+            "",
+            ui_size
+        );
+
+        let twist_buttons = button_widget!(
+            { match self.get_rotational_symmetry_order() {
+                None | Some(0) | Some(1) => "Twist (Nb of turns)".into(),
+                Some(sym_order) => format!("Twist (Nb of 1/{sym_order}-turns)"),
+                }
+            },
+            Some(self.twist), // self.get_nb_spirals(app_state), 
+            DecrTwist, 
+            IncrTwist,
+            "",
+            ui_size
+        );
 
         let simulation_buttons = if SimulationState::Relaxing == app_state.get_simulation_state() {
             column![
@@ -627,10 +702,11 @@ impl GuiTab for RevolutionTab {
                     // Cow::<&'a String>::Owned(&string_).as_str(),
                     // self._rot_sym_label.as_str().into(),
                     Space::with_width(ui_size.checkbox_spacing()),
-                    self.twist // half_turn_count
+                    self.twist_input // half_turn_count
                         .input_view(RevolutionParameterId::Twist), // ::HalfTurnCount
                 ]
                 .align_items(Alignment::Center),
+                twist_buttons,
                 row![
                     "Revolution Radius",
                     Space::with_width(ui_size.checkbox_spacing()),
@@ -675,15 +751,16 @@ impl GuiTab for RevolutionTab {
                     )),
                 ]
                 .align_items(Alignment::Center),
+                nb_helices_buttons,
                 row![
-                    "Nb spiral",
+                    "Nb spirals",
                     Space::with_width(ui_size.checkbox_spacing()),
                     self.nb_spirals_state_input
                         .input_view(RevolutionParameterId::NbSpiral),
                     nb_spirals_buttons,
                 ]
                 .align_items(Alignment::Center),
-                shift_buttons,
+                winding_buttons,
             ]
             .spacing(2),
             column![
@@ -767,6 +844,19 @@ impl GuiTab for RevolutionTab {
             ],
         ]
         .spacing(5);
+
+        // DEBUG
+        // if let Some(nb_hx) = even_nb_helices_input {
+        //     if let Some(unrooted_surface) = self.get_current_unrooted_surface(app_state) {
+        //         let rooting_parameters = RootingParameters {
+        //             nb_helix_per_half_section: nb_hx / 2,
+        //             shift_per_turn: self.shift_idx,
+        //             junction_smoothening: 0.,
+        //         };
+
+        //         let surface_descriptor = unrooted_surface.rooted(rooting_parameters, true);
+        //     }
+        // }
 
         scrollable(content).width(Length::Fill).into()
     }

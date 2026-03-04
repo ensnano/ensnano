@@ -22,6 +22,8 @@ use ensnano_utils::{
     clipboard::ClipboardContent,
     graphics::HBondDisplay,
 };
+use std::f64::consts::TAU;
+
 
 impl AppState {
     pub const POSSIBLE_CURVES: &'static [CurveDescriptorBuilder] =
@@ -158,18 +160,37 @@ impl AppState {
             .as_ref()?
             .curve
             .perimeter();
+
         let helix_parameters = self.get_dna_parameters();
         let area_one_nucl = helix_parameters.rise * helix_parameters.inter_helix_axis_gap();
         let scaling_factor = (scaffold_len as f64 * area_one_nucl as f64 / area_surface).sqrt();
+
         let scaled_perimeter = scaling_factor * perimeter_surface;
+        let scaled_revolution_radius = self
+            .0
+            .unrooted_surface
+            .descriptor
+            .as_ref()?
+            .get_axis_position_when_scaled(scaling_factor).abs() 
+            * scaling_factor;
+
+        let twist = self.0.unrooted_surface.descriptor.as_ref()?.twist;
+        let rotational_symmetry_order = self.0.unrooted_surface.descriptor.as_ref()?.curve.rotational_symmetry_order();
+
 
         // We use floor instead of round, because it works better to increase the revolution radius
         // to gain more nucleotide rather than diminishing it.
-        let half_number_helix =
-            (scaled_perimeter / 2. / HelixParameters::INTER_CENTER_GAP as f64).floor() as usize;
+        // let half_number_helix =
+        //     (scaled_perimeter / 2. / HelixParameters::INTER_CENTER_GAP as f64).floor() as usize;
+
+        // New formula taking the twist into account: the helices make go from 0 to twist/rotational_sym_order over the distance 2π*radius hence an angle which must be compensated acording to 1/sqrt(1+u*u)
+        let u = twist as f64 / (TAU * rotational_symmetry_order as f64 * scaled_revolution_radius);
+
+        let nb_helices = (scaled_perimeter / (helix_parameters.inter_helix_axis_gap() as f64 * (1.0 + u*u).sqrt())).round() as usize;
+        let even_nb_helices = 2 * ((nb_helices + 1) / 2);
 
         Some(RevolutionScaling {
-            nb_helix: half_number_helix * 2,
+            nb_helix: even_nb_helices, // half_number_helix * 2,
         })
     }
 
