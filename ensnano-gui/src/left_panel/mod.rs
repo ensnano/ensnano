@@ -921,6 +921,14 @@ impl Program for LeftPanelState {
                 self.revolution_tab.shift_idx -= 1;
                 Command::none()
             }
+            LeftPanelMessage::IncrNbSpirals => {
+                self.revolution_tab.nb_spirals_idx += 1;
+                Command::none()
+            }
+            LeftPanelMessage::DecrNbSpirals => {
+                self.revolution_tab.nb_spirals_idx -= 1;
+                Command::none()
+            }
             LeftPanelMessage::SetKeyboardPriority(priority) => {
                 self.requests
                     .lock()

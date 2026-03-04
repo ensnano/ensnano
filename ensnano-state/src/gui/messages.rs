@@ -392,6 +392,8 @@ pub enum LeftPanelMessage {
     SaveNucleotidesPositions,
     IncrRevolutionShift,
     DecrRevolutionShift,
+    IncrNbSpirals,
+    DecrNbSpirals,
     SetKeyboardPriority(PriorityRequest),
     SetFocus(Id),
 }

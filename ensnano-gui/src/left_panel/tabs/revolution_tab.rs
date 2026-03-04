@@ -175,9 +175,10 @@ pub(crate) struct RevolutionTab {
     radius_input: ParameterWidget,
     scaling: Option<RevolutionScaling>,
     nb_helices_input: ParameterWidget,
-    nb_spiral_state_input: ParameterWidget,
+    nb_spirals_state_input: ParameterWidget,
     shift_generator: Option<ShiftGenerator>,
     pub(crate) shift_idx: isize,
+    pub(crate) nb_spirals_idx: isize,
     scaffold_len_target: ParameterWidget,
 
     nb_section_per_segment_input: ParameterWidget,
@@ -199,9 +200,10 @@ impl Default for RevolutionTab {
             radius_input: ParameterWidget::new(InstantiatedParameter::Float(0.)),
             scaling: None,
             nb_helices_input: ParameterWidget::new(InstantiatedParameter::Uint(12)),
-            nb_spiral_state_input: ParameterWidget::new(InstantiatedParameter::Uint(2)),
+            nb_spirals_state_input: ParameterWidget::new(InstantiatedParameter::Uint(2)),
             shift_generator: None,
             shift_idx: 0,
+            nb_spirals_idx: 0,
             nb_section_per_segment_input: ParameterWidget::new(InstantiatedParameter::Uint(
                 init_parameter.nb_section_per_segment,
             )),
@@ -264,7 +266,7 @@ impl RevolutionTab {
                     RevolutionParameterId::SectionParameter(_) => unreachable!(),
                     RevolutionParameterId::Twist => &mut self.twist,
                     RevolutionParameterId::NbHelices => &mut self.nb_helices_input,
-                    RevolutionParameterId::NbSpiral => &mut self.nb_spiral_state_input,
+                    RevolutionParameterId::NbSpiral => &mut self.nb_spirals_state_input,
                     RevolutionParameterId::RevolutionRadius => &mut self.radius_input,
                     RevolutionParameterId::ScaffoldLenTarget => &mut self.scaffold_len_target,
                     RevolutionParameterId::NbSectionPerSegment => {
@@ -373,22 +375,41 @@ impl RevolutionTab {
         })
     }
 
+    fn get_nb_spirals(&self, app_state: &AppState) -> Option<usize> {
+        let nb_sp = self.nb_spirals_idx.abs() as usize;
+        // println!("Ping {nb_sp}");
+        Some(nb_sp)
+    }
+
+    #[inline(always)]
+    fn get_even_nb_helices_input(&self) -> Option<usize> {
+        let nb_helices = (((
+            self
+            .nb_helices_input
+            .get_value()
+            .and_then(InstantiatedParameter::get_uint)? 
+            + 1 )/ 2)
+            * 2)
+            .max(4);
+        Some(nb_helices)
+    }
+
+    #[inline(always)]
+    fn get_nb_spirals_input(&self) -> Option<usize> {
+        let nb_spiral = self
+            .nb_spirals_state_input
+            .get_value()
+            .and_then(InstantiatedParameter::get_uint)?;
+        Some(nb_spiral)
+    }
+
+
     /// Return the number of shift per turn if `self.shift_generator` is up-to-date, and `None`
     /// otherwise.
     fn try_get_shift_per_turn(&self, app_state: &AppState) -> Option<isize> {
         let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
-        let nb_helices = ((self
-            .nb_helices_input
-            .get_value()
-            .and_then(InstantiatedParameter::get_uint)
-            .unwrap_or(12)
-            / 2)
-            * 2)
-        .max(4);
-        let nb_spiral = self
-            .nb_spiral_state_input
-            .get_value()
-            .and_then(InstantiatedParameter::get_uint)?;
+        let nb_helices = self.get_even_nb_helices_input()?;
+        let nb_spiral = self.get_nb_spirals_input()?;
         let half_nb_helix = nb_helices / 2;
         // let half_nb_helix = self.scaling.as_ref()?.nb_helix / 2;
         self.shift_generator
@@ -477,16 +498,18 @@ impl GuiTab for RevolutionTab {
             });
 
         if self.try_get_shift_per_turn(app_state).is_none()
-            && let Some((unrooted_surface, nb_spiral)) =
+            && let Some((unrooted_surface, nb_spirals)) =
                 self.get_current_unrooted_surface(app_state).zip(
-                    self.nb_spiral_state_input
+                    self.nb_spirals_state_input
                         .get_value()
                         .and_then(InstantiatedParameter::get_uint),
                 )
         {
-            let half_nb_helix = self.scaling.as_ref().map_or(0, |scaling| scaling.nb_helix) / 2;
+            // let half_nb_helix = self.scaling.as_ref().map_or(0, |scaling| scaling.nb_helix) / 2;
+            let nb_helices = self.get_even_nb_helices_input().unwrap_or(0);
+            let half_nb_helices = nb_helices / 2;
             self.shift_generator =
-                unrooted_surface.shifts_to_get_n_spirals(half_nb_helix, nb_spiral);
+                unrooted_surface.shifts_to_get_n_spirals(half_nb_helices, nb_spirals);
         }
         Command::none()
     }
@@ -508,14 +531,33 @@ impl GuiTab for RevolutionTab {
                     buttons.1.on_press(LeftPanelMessage::IncrRevolutionShift),
                     Space::with_width(ui_size.checkbox_spacing()),
                     text(format!("Nb shift: {shift}")),
-                ]
+                ].align_items(Alignment::Center)
             } else {
                 row![
                     buttons.0,
                     buttons.1,
                     Space::with_width(ui_size.checkbox_spacing()),
                     "Nb shift: ###",
-                ]
+                ].align_items(Alignment::Center)
+            }
+        };
+
+        let nb_spirals_buttons = {
+            let buttons = (button("-"), button("+"));
+            if let Some(nb_sp) = self.get_nb_spirals(app_state) {
+                row![
+                    buttons.0.on_press(LeftPanelMessage::IncrNbSpirals),
+                    buttons.1.on_press(LeftPanelMessage::DecrNbSpirals),
+                    Space::with_width(ui_size.checkbox_spacing()),
+                    text(format!("Nb Spiral Idx: {nb_sp}")),
+                ].align_items(Alignment::Center)
+            } else {
+                row![
+                    buttons.0,
+                    buttons.1,
+                    Space::with_width(ui_size.checkbox_spacing()),
+                    "Nb shift: ###",
+                ].align_items(Alignment::Center)
             }
         };
 
@@ -549,6 +591,8 @@ impl GuiTab for RevolutionTab {
                 },
             )
             .into();
+
+        let even_nb_helices_input = self.get_even_nb_helices_input();
 
         let content = column![
             section("Revolution Surfaces", ui_size),
@@ -596,26 +640,47 @@ impl GuiTab for RevolutionTab {
                 .align_items(Alignment::Center),
                 extra_jump(),
                 subsection("DNA routing parameters", ui_size),
-                text(self.scaling.map_or_else(
-                    || "No suggested nb helices".into(),
-                    |RevolutionScaling { nb_helix }| format!("Suggested nb helices: {nb_helix}")
-                )),
+                // text(self.scaling.map_or_else(
+                //     || if let Some(nb_hx) = even_nb_helices_input { 
+                //         format!("Used: {nb_hx} — No suggested nb helices")
+                //     } else {
+                //         "No suggested nb helices".into()
+                //     }
+                //     ,
+                //     |RevolutionScaling { nb_helix: sug_nb_helix }| 
+                //         if let Some(nb_hx) = even_nb_helices_input { 
+                //             format!("Used: {nb_hx} — Suggested nb helices: {sug_nb_helix}")
+                //     } else {
+                //        format!("Suggested nb helices: {sug_nb_helix}")
+                //     }
+                // )),
                 row![
                     "Nb helices (even)",
                     Space::with_width(ui_size.checkbox_spacing()),
                     self.nb_helices_input
                         .input_view(RevolutionParameterId::NbHelices),
                     text(self.scaling.map_or_else(
-                        || "".into(),
-                        |RevolutionScaling { nb_helix }| format!("(Suggested: {nb_helix})")
-                    ))
+                        || if let Some(nb_hx) = even_nb_helices_input { 
+                            format!(" Used: {nb_hx} — No suggested nb helices")
+                        } else {
+                            "No suggested nb helices".into()
+                        }
+                        ,
+                        |RevolutionScaling { nb_helix: sug_nb_helix }| 
+                            if let Some(nb_hx) = even_nb_helices_input { 
+                                format!(" Used: {nb_hx} — Suggested nb helices: {sug_nb_helix}")
+                        } else {
+                        format!(" Suggested nb helices: {sug_nb_helix}")
+                        }
+                    )),
                 ]
                 .align_items(Alignment::Center),
                 row![
                     "Nb spiral",
                     Space::with_width(ui_size.checkbox_spacing()),
-                    self.nb_spiral_state_input
+                    self.nb_spirals_state_input
                         .input_view(RevolutionParameterId::NbSpiral),
+                    nb_spirals_buttons,
                 ]
                 .align_items(Alignment::Center),
                 shift_buttons,

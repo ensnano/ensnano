@@ -85,3 +85,39 @@ impl InstantiatedParameter {
         }
     }
 }
+
+// impl TryInto<f64> for InstantiatedParameter {
+//     type Error = ();
+
+//     // Required method
+//     fn try_into(self) -> Result<f64, Self::Error> {
+//         match self {
+//             Self::Float(x) => Ok(x),
+//             _ => Err(()),
+//         }
+//     }
+// }
+
+// impl TryInto<isize> for InstantiatedParameter {
+//     type Error = ();
+
+//     // Required method
+//     fn try_into(self) -> Result<isize, Self::Error> {
+//         match self {
+//             Self::Int(x) => Ok(x),
+//             _ => Err(()),
+//         }
+//     }
+// }
+
+// impl TryInto<usize> for InstantiatedParameter {
+//     type Error = ();
+
+//     // Required method
+//     fn try_into(self) -> Result<usize, Self::Error> {
+//         match self {
+//             Self::Uint(x) => Ok(x),
+//             _ => Err(()),
+//         }
+//     }
+// }
