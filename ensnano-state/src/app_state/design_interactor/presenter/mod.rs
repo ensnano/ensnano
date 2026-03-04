@@ -50,7 +50,7 @@ pub struct Presenter {
     model_matrix: AddressPointer<Mat4>,
     pub content: AddressPointer<DesignContent>,
     pub junctions_ids: AddressPointer<JunctionsIds>,
-    visibility_sieve: Option<VisibilitySieve>,
+    pub visibility_sieve: Option<VisibilitySieve>,
     invisible_nucls: HashSet<Nucl>,
     h_bonds: AddressPointer<Vec<HBond>>,
 }
@@ -746,8 +746,8 @@ pub trait SimulationUpdate: Send + Sync {
     fn update_design(&self, design: &mut Design);
 }
 
-#[derive(Clone)]
-struct VisibilitySieve {
+#[derive(Clone, PartialEq, Eq)]
+pub struct VisibilitySieve {
     selection: Vec<Selection>,
     compl: bool,
     visible: bool,
