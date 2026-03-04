@@ -70,7 +70,9 @@ fn repulsion_step(system: &mut RapierPhysicsSystem, parameters: &RapierParameter
                     position.translation.vector - collider.position().translation.vector
                 })
                 // which we then filter to only keep valid ranges
-                .filter(|v| v.norm_squared() > 0.0 && v.norm_squared() <= force_range * force_range)
+                .filter(|v| {
+                    v.norm_squared() > f32::EPSILON && v.norm_squared() <= force_range * force_range
+                })
                 // which we then normalize while keeping its length
                 .map(|v| (v.normalize(), v.norm()))
                 // which we then multiply by that square, and some other constants

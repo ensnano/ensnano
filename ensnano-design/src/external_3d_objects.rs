@@ -10,6 +10,10 @@ use ultraviolet::{Rotor3, Vec3};
 const DEFAULT_OPACITY: f32 = 1.0;
 const DEFAULT_COLOR: u32 = 0xdb5530; // orange/red
 
+fn show() -> bool {
+    true
+}
+
 /// An external object to be drawn in the scene.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct External3DObject {
@@ -18,6 +22,8 @@ pub struct External3DObject {
     position: Vec3,
     orientation: Rotor3,
     source_file: String,
+    #[serde(default = "show")]
+    visibility: bool,
 }
 
 pub struct External3DObjectDescriptor {
@@ -30,6 +36,14 @@ impl External3DObject {
         RelativePathBuf::from(&self.source_file).to_path(design_path)
     }
 
+    pub fn is_visible(&self) -> bool {
+        self.visibility
+    }
+
+    pub fn set_visible(&mut self, value: bool) {
+        self.visibility = value;
+    }
+
     pub fn new(desc: External3DObjectDescriptor) -> Option<Self> {
         if let Some(rel_path) = diff_paths(&desc.object_path, &desc.design_path)
             .and_then(|rel_path| RelativePathBuf::from_path(rel_path).ok())
@@ -40,6 +54,7 @@ impl External3DObject {
                 position: Vec3::zero(),
                 orientation: Rotor3::identity(),
                 source_file: rel_path.to_string(),
+                visibility: true,
             })
         } else {
             log::error!(
@@ -87,6 +102,12 @@ impl External3DObjects {
             .min_by_key(|k| k.0)
             .map_or(External3DObjectId(0), |k| External3DObjectId(k.0 + 1));
         Arc::make_mut(&mut self.0).insert(key, object);
+    }
+
+    pub fn toggle_visibility(&mut self) {
+        for (_, object) in Arc::<_>::make_mut(&mut self.0).iter_mut() {
+            object.set_visible(!object.is_visible());
+        }
     }
 }
 

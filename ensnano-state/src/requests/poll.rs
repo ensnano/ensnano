@@ -373,4 +373,8 @@ pub fn poll_all(requests: &mut Requests, main_state: &mut MainState) {
             }
         }
     }
+
+    if requests.toggle_external_objects_visibility.take().is_some() {
+        main_state.toggle_external_objects_visibility();
+    }
 }

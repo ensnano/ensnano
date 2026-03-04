@@ -156,6 +156,8 @@ impl GuiTab for CameraTab {
             ],
             checkbox("Expand insertions", app_state.expand_insertions())
                 .on_toggle(LeftPanelMessage::SetExpandInsertions),
+            text_button("Toggle external objects' visibility", ui_size)
+                .on_press(LeftPanelMessage::ToggleExternalObjectsVisibility),
         ]
         .spacing(5);
 

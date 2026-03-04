@@ -691,4 +691,22 @@ impl MainState {
             .unwrap()
             .on_notify(Notification::TeleportCamera(camera));
     }
+
+    pub fn toggle_external_objects_visibility(&mut self) {
+        self.modify_state(|state: &mut AppState| {
+            state
+                .0
+                .make_mut()
+                .design
+                .make_mut()
+                .design
+                .make_mut()
+                .external_3d_objects
+                .toggle_visibility();
+
+            Ok(AppStateOperationOutcome::push(
+                "Toggled external objects' visibility",
+            ))
+        });
+    }
 }
