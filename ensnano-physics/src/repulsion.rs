@@ -26,6 +26,9 @@ fn repulsion_step(system: &mut RapierPhysicsSystem, parameters: &RapierParameter
 
     let constant_factor = 1.0 / 24.0;
 
+    let dt0 = RapierParameters::default().dt;
+    let virtual_seconds = parameters.dt / dt0;
+
     let forces = handles
         .clone()
         .par_iter()
@@ -73,6 +76,7 @@ fn repulsion_step(system: &mut RapierPhysicsSystem, parameters: &RapierParameter
                 // which we then multiply by that square, and some other constants
                 .map(|(v, d)| {
                     v * simple_kernel_2(d, force_range) * force_strength * constant_factor
+                        / virtual_seconds
                 })
                 // and we then sum all these forces
                 .sum()

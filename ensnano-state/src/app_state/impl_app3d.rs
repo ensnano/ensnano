@@ -139,6 +139,10 @@ impl AppState {
         self.0.unrooted_surface.descriptor != other.0.unrooted_surface.descriptor
     }
 
+    pub fn visibility_was_updated(&self, other: &Self) -> bool {
+        self.0.design.presenter.visibility_sieve != other.0.design.presenter.visibility_sieve
+    }
+
     pub fn get_current_unrooted_surface(&self) -> Option<UnrootedRevolutionSurfaceDescriptor> {
         self.0.unrooted_surface.descriptor.clone()
     }

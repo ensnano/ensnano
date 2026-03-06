@@ -136,6 +136,7 @@ impl Data {
             || app_state.insertion_bond_display_was_modified(older_app_state)
             || app_state.selection_was_updated(older_app_state)
             || app_state.revolution_bezier_updated(older_app_state)
+            || app_state.visibility_was_updated(older_app_state)
         {
             for d in &mut self.designs {
                 d.all_helices_on_axis = app_state.get_draw_options().all_helices_on_axis;

@@ -20,6 +20,7 @@ use rapier3d::{
 };
 
 const NUCLEOTIDE_RADIUS: f32 = 0.32;
+const PAIR_CAPSULE_RADIUS: f32 = 0.1;
 
 /// A trait to represent a strategy of how to attach
 /// colliders to rigid bodies in the simulation.
@@ -228,27 +229,37 @@ fn build_colliders(
                         // we indicate the helix of the nucleotide in user data
                         .user_data(*helix_id as u128);
 
-                    // let capsule = ColliderBuilder::capsule_from_endpoints(
-                    //     point_from_parts(i_p),
-                    //     point_from_parts(j_p),
-                    //     PAIR_CAPSULE_RADIUS,
-                    // );
+                    let middle: Vec<f32> =
+                        i_p.iter().zip(j_p).map(|(a, b)| (a + b) / 2.0).collect();
+                    let i_a: Vec<f32> = i_p.iter().zip(&middle).map(|(a, b)| a - b).collect();
+                    let j_a: Vec<f32> = j_p.iter().zip(&middle).map(|(a, b)| a - b).collect();
+                    let i_a = Point::new(i_a[0], i_a[1], i_a[2]);
+                    let j_a = Point::new(j_a[0], j_a[1], j_a[2]);
+
+                    let capsule =
+                        ColliderBuilder::capsule_from_endpoints(i_a, j_a, PAIR_CAPSULE_RADIUS)
+                            .position(Isometry::translation(middle[0], middle[1], middle[2]))
+                            .collision_groups(InteractionGroups::new(
+                                Group::GROUP_1,
+                                Group::GROUP_1,
+                                InteractionTestMode::And,
+                            ));
 
                     let i_collider_handle =
                         collider_set.insert_with_parent(i_collider, dummy_body, rigid_body_set);
                     let j_collider_handle =
                         collider_set.insert_with_parent(j_collider, dummy_body, rigid_body_set);
 
-                    // let capsule_handle =
-                    //     collider_set.insert_with_parent(capsule, dummy_body, rigid_body_set);
+                    let capsule_handle =
+                        collider_set.insert_with_parent(capsule, dummy_body, rigid_body_set);
 
                     nucleotide_body_map.insert(*i, i_collider_handle);
                     nucleotide_body_map.insert(*j, j_collider_handle);
 
                     collider_map.insert(
                         (n.helix, n.position),
-                        // vec![i_collider_handle, j_collider_handle, capsule_handle],
-                        vec![i_collider_handle, j_collider_handle],
+                        vec![i_collider_handle, j_collider_handle, capsule_handle],
+                        // vec![i_collider_handle, j_collider_handle],
                     );
                 }
                 IntermediaryPair::OnlyForward(id, n) | IntermediaryPair::OnlyBackward(id, n) => {
@@ -449,6 +460,7 @@ fn insert_strong_spring(
         )
         .local_anchor1(down_forward)
         .local_anchor2(up_forward)
+        .spring_model(MotorModel::ForceBased)
         .build(),
         true,
     );
@@ -464,6 +476,7 @@ fn insert_strong_spring(
         )
         .local_anchor1(down_backward)
         .local_anchor2(up_backward)
+        .spring_model(MotorModel::ForceBased)
         .build(),
         true,
     );
@@ -479,6 +492,7 @@ fn insert_strong_spring(
         )
         .local_anchor1(down_left)
         .local_anchor2(up_left)
+        .spring_model(MotorModel::ForceBased)
         .build(),
         true,
     );
@@ -494,6 +508,7 @@ fn insert_strong_spring(
         )
         .local_anchor1(down_right)
         .local_anchor2(up_right)
+        .spring_model(MotorModel::ForceBased)
         .build(),
         true,
     );
@@ -577,6 +592,7 @@ fn build_free_springs(
                     )
                     .local_anchor1(down_offset.translation.vector.into())
                     .local_anchor2(up_offset.translation.vector.into())
+                    .spring_model(MotorModel::ForceBased)
                     .build(),
                     true,
                 );
@@ -652,6 +668,7 @@ fn build_free_springs(
                 )
                 .local_anchor1(down_offset.translation.vector.into())
                 .local_anchor2(up_offset.translation.vector.into())
+                .spring_model(MotorModel::ForceBased)
                 .build(),
                 true,
             );
@@ -733,6 +750,7 @@ pub(crate) fn add_crossover_springs(
             )
             .local_anchor1(a.position_wrt_parent().unwrap().translation.vector.into())
             .local_anchor2(b.position_wrt_parent().unwrap().translation.vector.into())
+            .spring_model(MotorModel::ForceBased)
             .build(),
             true,
         );
