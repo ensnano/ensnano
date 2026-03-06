@@ -2,8 +2,11 @@ use crate::{
     app_state::AppState,
     gui::curve::{CurveDescriptorBuilder, CurveDescriptorParameter, InstantiatedParameter},
 };
-use ensnano_design::{bezier_plane::BezierPathId, curves::torus::CurveDescriptor2D};
+use ensnano_design::{
+    bezier_plane::BezierPathId, curves::bezier, curves::torus::CurveDescriptor2D,
+};
 use ordered_float::OrderedFloat;
+use std::f64::consts::PI;
 use ultraviolet::{Rotor3, Vec3};
 
 pub(super) const ELLIPSE_BUILDER: CurveDescriptorBuilder = CurveDescriptorBuilder {
@@ -192,4 +195,89 @@ fn default_frame(_: &[InstantiatedParameter], app: &AppState) -> Option<(Vec3, R
         .clone_inner()
         .get_default_bezier()
         .map(|plane| (plane.position, plane.orientation))
+}
+
+const MINIMUM_NB_BRANCHES_STAR: usize = 4;
+const STAR_PATH_ID: u64 = 666;
+pub(super) const STAR_BUILDER: CurveDescriptorBuilder = CurveDescriptorBuilder {
+    curve_name: "Star",
+    parameters: &[
+        CurveDescriptorParameter {
+            name: "Nb of branches",
+            default_value: InstantiatedParameter::Uint(5),
+        },
+        CurveDescriptorParameter {
+            name: "External radius",
+            default_value: InstantiatedParameter::Float(20.0),
+        },
+        CurveDescriptorParameter {
+            name: "Internal radius",
+            default_value: InstantiatedParameter::Float(10.0),
+        },
+    ],
+    build: &build_star,
+    bezier_path_id: &no_bezier_path_id,
+    rotational_symmetry_order: &rotational_symmetry_order_star,
+    frame: &default_frame,
+};
+
+fn build_star(parameters: &[InstantiatedParameter], _: &AppState) -> Option<CurveDescriptor2D> {
+    let nb_branches = parameters
+        .first()
+        .copied()
+        .and_then(InstantiatedParameter::get_uint)?
+        .max(MINIMUM_NB_BRANCHES_STAR);
+    let r2: f64 = parameters
+        .get(1)
+        .copied()
+        .and_then(InstantiatedParameter::get_float)?
+        .into();
+    let r1: f64 = parameters
+        .get(2)
+        .copied()
+        .and_then(InstantiatedParameter::get_float)?
+        .into();
+
+    let a = PI / nb_branches as f64;
+    let mut points = Vec::new();
+    for i in 0..nb_branches {
+        let b: f64 = 2. * a * i as f64;
+        points.push(Vec3::new((r1 * b.cos()) as f32, (r1 * b.sin()) as f32, 0.));
+        points.push(Vec3::new(
+            (r2 * (b + a).cos()) as f32,
+            (r2 * (b + a).sin()) as f32,
+            0.,
+        ));
+    }
+
+    let mut bezier_points = Vec::new();
+    for ((u, v), w) in points
+        .iter()
+        .zip(points.iter().cycle().skip(1))
+        .zip(points.iter().cycle().skip(2))
+    {
+        bezier_points.push(bezier::BezierEndCoordinates {
+            position: v.clone(),
+            vector_in: (*w - *u) / 6.,
+            vector_out: (*w - *u) / 6.,
+        });
+    }
+    let bezier = bezier::InstantiatedPiecewiseBezier {
+        ends: bezier_points,
+        is_cyclic: true,
+        t_min: Some(0.),
+        t_max: Some(2. * nb_branches as f64),
+        id: STAR_PATH_ID,
+        discretize_quickly: true,
+    };
+
+    Some(CurveDescriptor2D::Bezier(bezier))
+}
+
+fn rotational_symmetry_order_star(parameters: &[InstantiatedParameter]) -> Option<usize> {
+    let value = parameters
+        .first()
+        .copied()
+        .and_then(InstantiatedParameter::get_uint)?;
+    Some(value.max(MINIMUM_NB_BRANCHES_STAR))
 }

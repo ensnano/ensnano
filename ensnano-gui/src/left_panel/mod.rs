@@ -939,10 +939,23 @@ impl Program for LeftPanelState {
             }
             LeftPanelMessage::IncrTwist => {
                 self.revolution_tab.inc_twist();
-                Command::none()
-            }
+                let unrooted_surface = self
+                    .revolution_tab
+                    .get_current_unrooted_surface(&self.application_state);
+                self.requests
+                    .lock()
+                    .unwrap()
+                    .set_unrooted_surface(unrooted_surface);
+                Command::none()            }
             LeftPanelMessage::DecrTwist => {
                 self.revolution_tab.dec_twist();
+                let unrooted_surface = self
+                    .revolution_tab
+                    .get_current_unrooted_surface(&self.application_state);
+                self.requests
+                    .lock()
+                    .unwrap()
+                    .set_unrooted_surface(unrooted_surface);
                 Command::none()
             }
             LeftPanelMessage::SetKeyboardPriority(priority) => {

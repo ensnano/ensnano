@@ -4,7 +4,7 @@ use ultraviolet::{Rotor3, Vec3};
 
 #[derive(Clone, Copy)]
 pub struct RevolutionScaling {
-    pub nb_helix: usize,
+    pub suggested_nb_helix: usize,
 }
 
 #[derive(Clone)]

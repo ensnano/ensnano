@@ -16,8 +16,11 @@ use ensnano_utils::{
     SimulationState,
     keyboard_priority::keyboard_priority,
     surfaces::{
-        EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceRadius,
-        RevolutionSurfaceSystemDescriptor, RootingParameters, ShiftGenerator,
+        EquadiffSolvingMethod,
+        RevolutionSimulationParameters,
+        RevolutionSurfaceRadius,
+        RevolutionSurfaceSystemDescriptor,
+        RootingParameters, //ShiftGenerator,
         UnrootedRevolutionSurfaceDescriptor,
     },
     ui_size::UiSize,
@@ -30,6 +33,8 @@ use iced::{
 };
 use iced_aw::TabLabel;
 use ultraviolet::{Rotor3, Vec3};
+
+use num::integer::{gcd, lcm};
 
 #[derive(Debug, Clone, Copy)]
 enum ParameterKind {
@@ -180,9 +185,9 @@ pub(crate) struct RevolutionTab {
     scaling: Option<RevolutionScaling>,
     nb_helices_input: ParameterWidget,
     nb_spirals_state_input: ParameterWidget,
-    shift_generator: Option<ShiftGenerator>,
-    pub(crate) shift_idx: isize,
-    pub(crate) nb_spirals_idx: isize,
+    // shift_generator: Option<ShiftGenerator>, // NS: obsolete
+    // pub(crate) shift_idx: isize,
+    // pub(crate) nb_spirals_idx: isize,
     scaffold_len_target: ParameterWidget,
 
     nb_section_per_segment_input: ParameterWidget,
@@ -201,7 +206,7 @@ impl Default for RevolutionTab {
         Self {
             curve_descriptor_widget: None,
             twist_input: ParameterWidget::new(InstantiatedParameter::Uint(0)),
-            radius_input: ParameterWidget::new(InstantiatedParameter::Float(0.)),
+            radius_input: ParameterWidget::new(InstantiatedParameter::Float(10.)),
             scaling: None,
             nb_helices: 12,
             winding: 0,
@@ -209,9 +214,9 @@ impl Default for RevolutionTab {
             nb_spirals: 2,
             nb_helices_input: ParameterWidget::new(InstantiatedParameter::Uint(12)),
             nb_spirals_state_input: ParameterWidget::new(InstantiatedParameter::Uint(2)),
-            shift_generator: None,
-            shift_idx: 0,
-            nb_spirals_idx: 0,
+            // shift_generator: None,
+            // shift_idx: 0,
+            // nb_spirals_idx: 0,
             nb_section_per_segment_input: ParameterWidget::new(InstantiatedParameter::Uint(
                 init_parameter.nb_section_per_segment,
             )),
@@ -306,11 +311,15 @@ impl RevolutionTab {
             .and_then(InstantiatedParameter::get_float)
             .map(RevolutionSurfaceRadius::from_signed_f64)?;
 
-        let twist = self
-            .twist_input
-            .get_value()
-            .and_then(InstantiatedParameter::get_uint)
-            .unwrap_or(0) as isize;
+        // obsolete
+        // let twist = self
+        //     .twist_input
+        //     .get_value()
+        //     .and_then(InstantiatedParameter::get_uint)
+        //     .unwrap_or(0) as isize;
+
+        let (simplified_twist, simplified_rotational_symmetry_order) =
+            self.get_simplified_twist_and_rotational_symmetry_order();
 
         // let rotational_symmetry_order = curve.rotational_symmetry_order();
 
@@ -326,14 +335,12 @@ impl RevolutionTab {
         Some(UnrootedRevolutionSurfaceDescriptor {
             curve,
             revolution_radius,
-            twist,
+            simplified_twist,
+            simplified_rotational_symmetry_order,
             curve_plane_position,
             curve_plane_orientation,
         })
     }
-
-    /// TODO: I AM EDITING THE NB OF HELICES
-    ///
 
     pub(crate) fn get_revolution_system(
         &self,
@@ -344,9 +351,13 @@ impl RevolutionTab {
         let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
 
         let rooting_parameters = RootingParameters {
-            nb_helix_per_half_section: self.get_even_nb_helices_input()? / 2, // self.scaling.as_ref()?.nb_helix / 2,
-            shift_per_turn: self.try_get_shift_per_turn(app_state)?,
+            nb_helices: self.nb_helices,
+            nb_spirals: self.nb_spirals,
+            winding: self.winding,
             junction_smoothening: 0.,
+            // obsolete
+            // nb_helix_per_half_section: self.get_even_nb_helices_input()? / 2, // self.scaling.as_ref()?.nb_helix / 2,
+            // shift_per_turn: self.try_get_shift_per_turn(app_state)?,
         };
 
         let surface_descriptor = unrooted_surface.rooted(rooting_parameters, compute_area);
@@ -367,63 +378,67 @@ impl RevolutionTab {
         Some(system)
     }
 
-    /// Get the number of shift per turn, updating `self.shift_generator` if needed.
-    fn get_shift_per_turn(&self, app_state: &AppState) -> Option<isize> {
-        self.try_get_shift_per_turn(app_state).or_else(|| {
-            // TODO: This update must be done elsewhere.
-            //let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
-            //let nb_spiral = self
-            //    .nb_spiral_state_input
-            //    .get_value()
-            //    .and_then(InstantiatedParameter::get_uint)?;
-            //let half_nb_helix = self.scaling.as_ref()?.nb_helix / 2;
-            //self.shift_generator =
-            //    unrooted_surface.shifts_to_get_n_spirals(half_nb_helix, nb_spiral);
-            self.try_get_shift_per_turn(app_state)
-        })
-    }
+    // obsolete
+    // /// Get the number of shift per turn, updating `self.shift_generator` if needed.
+    // fn get_shift_per_turn(&self, app_state: &AppState) -> Option<isize> {
+    //     self.try_get_shift_per_turn(app_state).or_else(|| {
+    //         // TODO: This update must be done elsewhere.
+    //         //let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
+    //         //let nb_spiral = self
+    //         //    .nb_spiral_state_input
+    //         //    .get_value()
+    //         //    .and_then(InstantiatedParameter::get_uint)?;
+    //         //let half_nb_helix = self.scaling.as_ref()?.nb_helix / 2;
+    //         //self.shift_generator =
+    //         //    unrooted_surface.shifts_to_get_n_spirals(half_nb_helix, nb_spiral);
+    //         self.try_get_shift_per_turn(app_state)
+    //     })
+    // }
 
-    fn get_nb_spirals(&self, app_state: &AppState) -> Option<usize> {
-        let nb_sp = self.nb_spirals_idx.abs() as usize;
-        // println!("Ping {nb_sp}");
-        Some(nb_sp)
-    }
+    // obsolete
+    // fn get_nb_spirals(&self, app_state: &AppState) -> Option<usize> {
+    //     let nb_sp = self.nb_spirals_idx.abs() as usize;
+    //     // println!("Ping {nb_sp}");
+    //     Some(nb_sp)
+    // }
 
-    #[inline(always)]
-    fn get_even_nb_helices_input(&self) -> Option<usize> {
-        let nb_helices = (((
-            self
-            .nb_helices_input
-            .get_value()
-            .and_then(InstantiatedParameter::get_uint)? 
-            + 1 )/ 2)
-            * 2)
-            .max(4);
-        Some(nb_helices)
-    }
+    // obsolete
+    // #[inline(always)]
+    // fn get_even_nb_helices_input(&self) -> Option<usize> {
+    //     let nb_helices = (((self
+    //         .nb_helices_input
+    //         .get_value()
+    //         .and_then(InstantiatedParameter::get_uint)?
+    //         + 1)
+    //         / 2)
+    //         * 2)
+    //     .max(4);
+    //     Some(nb_helices)
+    // }
 
-    #[inline(always)]
-    fn get_nb_spirals_input(&self) -> Option<usize> {
-        let nb_spiral = self
-            .nb_spirals_state_input
-            .get_value()
-            .and_then(InstantiatedParameter::get_uint)?;
-        Some(nb_spiral)
-    }
+    // obsolete
+    // #[inline(always)]
+    // fn get_nb_spirals_input(&self) -> Option<usize> {
+    //     let nb_spiral = self
+    //         .nb_spirals_state_input
+    //         .get_value()
+    //         .and_then(InstantiatedParameter::get_uint)?;
+    //     Some(nb_spiral)
+    // }
 
-
-    /// Return the number of shift per turn if `self.shift_generator` is up-to-date, and `None`
-    /// otherwise.
-    fn try_get_shift_per_turn(&self, app_state: &AppState) -> Option<isize> {
-        let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
-        let nb_helices = self.get_even_nb_helices_input()?;
-        let nb_spiral = self.get_nb_spirals_input()?;
-        let half_nb_helix = nb_helices / 2;
-        // let half_nb_helix = self.scaling.as_ref()?.nb_helix / 2;
-        self.shift_generator
-            .as_ref()
-            .and_then(|g| g.ith_value(self.shift_idx, nb_spiral, &unrooted_surface, half_nb_helix))
-    }
+    // obsolete
+    // /// Return the number of shift per turn if `self.shift_generator` is up-to-date, and `None`
+    // /// otherwise.
+    // fn try_get_shift_per_turn(&self, app_state: &AppState) -> Option<isize> {
+    //     let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
+    //     let nb_helices = self.get_even_nb_helices_input()?;
+    //     let nb_spiral = self.get_nb_spirals_input()?;
+    //     let half_nb_helix = nb_helices / 2;
+    //     // let half_nb_helix = self.scaling.as_ref()?.nb_helix / 2;
+    //     self.shift_generator
+    //         .as_ref()
+    //         .and_then(|g| g.ith_value(self.shift_idx, nb_spiral, &unrooted_surface, half_nb_helix))
+    // }
 
     fn get_simulation_parameters(&self) -> Option<RevolutionSimulationParameters> {
         let nb_section_per_segment = self
@@ -474,53 +489,217 @@ impl RevolutionTab {
         false
     }
 
-    pub(crate) fn inc_nb_helices(&mut self) -> usize {
-        self.nb_helices += 2;
-        self.nb_helices
-    }
-
-    pub(crate) fn dec_nb_helices(&mut self) -> usize {
-        self.nb_helices = (self.nb_helices - 2).max(4);
-        self.nb_helices
-    }
-    
-    pub(crate) fn inc_nb_spirals(&mut self) -> usize {
-        self.nb_spirals += 1;
-        self.nb_spirals
-    }
-
-    pub(crate) fn dec_nb_spirals(&mut self) -> usize {
-        self.nb_spirals = (self.nb_spirals - 1).max(1);
-        self.nb_spirals
-    }
-    
-    pub(crate) fn inc_winding(&mut self) -> isize {
-        self.winding += 1;
-        self.winding
-    }
-
-    pub(crate) fn dec_winding(&mut self) -> isize {
-        self.winding = self.winding - 1;
-        self.winding
-    }
-    
+    /// Increase the twist of the revolution surface
     pub(crate) fn inc_twist(&mut self) -> usize {
         self.twist += 1;
+        self.check_and_adapt_nb_helices();
         self.twist
     }
 
+    /// Decrease the twist of the revolution surface
     pub(crate) fn dec_twist(&mut self) -> usize {
         if self.twist > 0 {
             self.twist -= 1;
         }
+        self.check_and_adapt_nb_helices();
         self.twist
     }
-    
 
+    /// Simplify the fraction twist / rotational_sym_order to allow nb_helices to be a multiple of only normalized_rot_sym_order
+    pub(crate) fn get_simplified_twist_and_rotational_symmetry_order(&self) -> (usize, usize) {
+        match self.get_rotational_symmetry_order() {
+            None => (self.twist, 1),
+            Some(0) => (0, 1),
+            Some(rso) => {
+                let tw = self.twist;
+                // simplify the fraction tw/rso
+                let g = gcd(tw, rso);
+                (tw / g, rso / g)
+            }
+        }
+    }
+
+    /// Increase the number of helices to next multiple of 2 and normalized rotational order symmetry; and adapt the number of spirals if needed
+    pub(crate) fn inc_nb_helices(&mut self) -> usize {
+        let (tw, rso) = self.get_simplified_twist_and_rotational_symmetry_order();
+        let m = lcm(2, rso);
+        println!("{tw} {rso} {m}");
+        self.nb_helices += m;
+        self.check_and_adapt_nb_helices()
+    }
+
+    // Decrease the number of helices to previous multiple of 2 and normalized rotational order symmetry; and adapt the number of spirals if needed
+    pub(crate) fn dec_nb_helices(&mut self) -> usize {
+        let (_, rso) = self.get_simplified_twist_and_rotational_symmetry_order();
+        let m = lcm(2, rso);
+        if self.nb_helices > m {
+            self.nb_helices = self.nb_helices - m;
+        }
+        if self.nb_helices < m.max(4) {
+            self.nb_helices = match m {
+                2 => 4,
+                3 => 6,
+                _ => m,
+            }
+        }
+        self.check_and_adapt_nb_helices()
+    }
+
+    /// Makes sure the number of helices is even and at least 4
+    pub(crate) fn check_and_adapt_nb_helices(&mut self) -> usize {
+        let (_, rso) = self.get_simplified_twist_and_rotational_symmetry_order();
+        let m = lcm(2, rso);
+        let r = self.nb_helices % m;
+        if r != 0 {
+            self.nb_helices = self.nb_helices - r;
+        }
+        if self.nb_helices < m.max(4) {
+            self.nb_helices = match m {
+                2 => 4,
+                3 => 6,
+                _ => m,
+            }
+        }
+        self.check_and_adapt_nb_spirals();
+        self.nb_helices
+    }
+
+    /// Look for the next divisor of number of helices and at most nb_helices
+    pub(crate) fn inc_nb_spirals(&mut self) -> usize {
+        let nb_sp = self.nb_spirals;
+        let nb_hx = self.nb_helices;
+        if self.nb_spirals >= nb_hx / 2 {
+            self.nb_spirals = nb_hx;
+        } else {
+            for i in nb_sp + 1..=nb_hx / 2 {
+                if nb_hx % i == 0 {
+                    self.nb_spirals = i;
+                    break;
+                }
+            }
+        }
+        self.check_and_adapt_winding();
+        self.nb_spirals
+    }
+
+    /// Look for the previous divisor of number of helices and at least 1
+    pub(crate) fn dec_nb_spirals(&mut self) -> usize {
+        let nb_sp = self.nb_spirals;
+        let nb_hx = self.nb_helices;
+        if self.nb_spirals <= 1 {
+            self.nb_spirals = 1;
+        } else {
+            for i in (1..nb_sp).rev() {
+                if nb_hx % i == 0 {
+                    self.nb_spirals = i;
+                    break;
+                }
+            }
+        }
+        self.check_and_adapt_winding();
+        self.nb_spirals
+    }
+
+    /// Make sure the nb of spirals is ≥ 1 and divide nb_helices
+    pub(crate) fn check_and_adapt_nb_spirals(&mut self) -> usize {
+        if self.nb_spirals <= 0 {
+            self.nb_spirals = 1;
+        }
+        if self.nb_helices % self.nb_spirals != 0 {
+            self.dec_nb_spirals();
+        }
+        self.check_and_adapt_winding();
+        self.nb_spirals
+    }
+
+    /// Check and adapt the winding parameter
+    /// Winding parameter must be such that:
+    /// - given n = number of helices per section
+    /// - given s = number of spiraling helices (s divides n)
+    /// - given t,r = the twist and rotational symmetry order with t and r coprime and r dividing n; let d = t*n/r
+    /// - given a winding parameter w, starting from index 0:
+    /// - after a turn the helices reaches the index d+w
+    /// - we want that it returns to its initial position after exactly n/s turns, it follows that:
+    /// - (n/s)*(d+w) is a multiple of n and thus: d + w is a multiple of s, let's say k * s
+    ///     - given that the length of the cycle in term of turns is lcm(d+w, n) / (d+w), it follows that d is a proper winding iff:
+    ///          lcm(d+w, n)/(d+w) = n/s
+    ///       iff lcm(k*s, n/s * s) = s * lcm(k, n/s) = k*s * n/s
+    ///       iff lcm(k, n/s) = k * n/s
+    ///       iff k and n/s are coprime
+    /// Hence, the winding parameters generating s spirals (of n/s turns) are: -d + s * k where k and n/s are coprime
+    pub(crate) fn check_and_adapt_winding(&mut self) -> isize {
+        let wd = self.winding;
+        let nb_hx = self.nb_helices as isize;
+        let nb_sp = self.nb_spirals as isize;
+        let (tw, rso) = self.get_simplified_twist_and_rotational_symmetry_order();
+
+        let d = (tw as isize * nb_hx) / rso as isize;
+        let w = wd + d;
+        if w % nb_sp != 0 || gcd(w / nb_sp, nb_hx / nb_sp) != 1 {
+            self.inc_winding();
+        }
+        self.winding
+    }
+
+    /// Increase the winding parameter
+    pub(crate) fn inc_winding(&mut self) -> isize {
+        let wd = self.winding;
+        let nb_hx = self.nb_helices as isize;
+        let nb_sp = self.nb_spirals as isize;
+        let n_s = nb_hx / nb_sp;
+        let (tw, rso) = self.get_simplified_twist_and_rotational_symmetry_order();
+
+        let d = (tw as isize * nb_hx) / rso as isize;
+        let w = wd + d;
+        let mut k = 1 + w / nb_sp;
+        for i in 0..=n_s {
+            print!("{},", (i * (d + -d + k * nb_sp)) % nb_hx);
+        }
+        println!();
+        while gcd(k, n_s) != 1 {
+            k += 1;
+            for i in 0..=n_s {
+                print!("{},", (i * (d + -d + k * nb_sp)) % nb_hx);
+            }
+            println!();
+        }
+        println!("*");
+
+        self.winding = -d + k * nb_sp;
+        self.winding
+    }
+
+    /// Decrease the winding parameter
+    pub(crate) fn dec_winding(&mut self) -> isize {
+        let wd = self.winding;
+        let nb_hx = self.nb_helices as isize;
+        let nb_sp = self.nb_spirals as isize;
+        let n_s = nb_hx / nb_sp;
+        let (tw, rso) = self.get_simplified_twist_and_rotational_symmetry_order();
+
+        let d = (tw as isize * nb_hx) / rso as isize;
+        let w = wd + d;
+        let mut k = -1 + w / nb_sp;
+        for i in 0..=n_s {
+            print!("{},", (i * (d + -d + k * nb_sp)) % nb_hx);
+        }
+        println!();
+        while gcd(k, n_s) != 1 {
+            k -= 1;
+            for i in 0..=n_s {
+                print!("{},", (i * (d + -d + k * nb_sp)) % nb_hx);
+            }
+            println!();
+        }
+        println!("*");
+
+        self.winding = -d + k * nb_sp;
+        self.winding
+    }
 }
 
 macro_rules! button_widget {
-    ($label: expr, $value: expr, $dec_msg: tt, $inc_msg: tt, $comment: expr, $ui_size: expr) => { {
+    ($label: expr, $value: expr, $dec_msg: tt, $inc_msg: tt, $comment: expr, $ui_size: expr) => {{
         let buttons = (button(" - "), button(" + "));
         let value = if let Some(x) = $value {
             format!("{}", x)
@@ -531,12 +710,12 @@ macro_rules! button_widget {
             text(format!("{}: {:>4}", $label, value)),
             Space::with_width($ui_size.checkbox_spacing()),
             buttons.0.on_press(LeftPanelMessage::$dec_msg),
-            buttons.1.on_press(LeftPanelMessage::$inc_msg),        
+            buttons.1.on_press(LeftPanelMessage::$inc_msg),
             Space::with_width($ui_size.checkbox_spacing()),
             text(format!("{}", $comment)),
-        ].align_items(Alignment::Center)
-    }
-}
+        ]
+        .align_items(Alignment::Center)
+    }};
 }
 
 impl GuiTab for RevolutionTab {
@@ -556,11 +735,6 @@ impl GuiTab for RevolutionTab {
             );
         }
 
-        // if let Some(nb_helices) = self.nb_helices_input.get_value().and_then(InstantiatedParameter::get_uint) {
-        //     let nb_helices = (2 * ((nb_helices + 1 ) / 2)).max(4);
-        //     self.update_builder_parameter(RevolutionParameterId::NbHelices, format!("{nb_helices}"));
-        // }
-
         self.scaling = self
             .scaffold_len_target
             .get_value()
@@ -569,68 +743,68 @@ impl GuiTab for RevolutionTab {
                 app_state.get_recommended_scaling_revolution_surface(len_scaffold)
             });
 
-        if self.try_get_shift_per_turn(app_state).is_none()
-            && let Some((unrooted_surface, nb_spirals)) =
-                self.get_current_unrooted_surface(app_state).zip(
-                    self.nb_spirals_state_input
-                        .get_value()
-                        .and_then(InstantiatedParameter::get_uint),
-                )
-        {
-            // let half_nb_helix = self.scaling.as_ref().map_or(0, |scaling| scaling.nb_helix) / 2;
-            let nb_helices = self.get_even_nb_helices_input().unwrap_or(0);
-            let half_nb_helices = nb_helices / 2;
-            self.shift_generator =
-                unrooted_surface.shifts_to_get_n_spirals(half_nb_helices, nb_spirals);
-        }
+        // NS: obsolete
+        // if self.try_get_shift_per_turn(app_state).is_none()
+        //     && let Some((unrooted_surface, nb_spirals)) =
+        //         self.get_current_unrooted_surface(app_state).zip(
+        //             self.nb_spirals_state_input
+        //                 .get_value()
+        //                 .and_then(InstantiatedParameter::get_uint),
+        //         )
+        // {
+        //     // let half_nb_helix = self.scaling.as_ref().map_or(0, |scaling| scaling.nb_helix) / 2;
+        //     let nb_helices = self.get_even_nb_helices_input().unwrap_or(0);
+        //     let half_nb_helices = nb_helices / 2;
+        //     self.shift_generator =
+        //         unrooted_surface.shifts_to_get_n_spirals(half_nb_helices, nb_spirals);
+        // }
         Command::none()
     }
-
-
-
 
     fn content(&self, ui_size: UiSize, app_state: &AppState) -> iced::Element<'_, Self::Message> {
         let desc = self.get_revolution_system(app_state, false);
 
-        let nb_helices_buttons= button_widget!(
+        let nb_helices_buttons = button_widget!(
             "Nb of helices per section",
-            Some(self.nb_helices), 
-            DecrNbHelices, 
+            Some(self.nb_helices),
+            DecrNbHelices,
             IncrNbHelices,
             self.scaling.map_or_else(
                 || "No suggested nb helices".into(),
-                |RevolutionScaling { nb_helix: sug_nb_helix }| 
-                    format!("Suggested nb helices: {sug_nb_helix}")
-                ),
+                |RevolutionScaling {
+                     suggested_nb_helix: sug_nb_helix,
+                 }| format!("Suggested: about {sug_nb_helix}")
+            ),
             ui_size
         );
 
         let winding_buttons = button_widget!(
             "Winding parameter",
-            Some(self.winding), // get_shift_per_turn(app_state), 
-            DecrWinding, 
+            Some(self.winding), // get_shift_per_turn(app_state),
+            DecrWinding,
             IncrWinding,
             "",
             ui_size
         );
-        
+
         let nb_spirals_buttons = button_widget!(
             "Nb of spirals",
-            Some(self.nb_spirals), // self.get_nb_spirals(app_state), 
-            DecrNbSpirals, 
+            Some(self.nb_spirals), // self.get_nb_spirals(app_state),
+            DecrNbSpirals,
             IncrNbSpirals,
             "",
             ui_size
         );
 
         let twist_buttons = button_widget!(
-            { match self.get_rotational_symmetry_order() {
-                None | Some(0) | Some(1) => "Twist (Nb of turns)".into(),
-                Some(sym_order) => format!("Twist (Nb of 1/{sym_order}-turns)"),
+            {
+                match self.get_rotational_symmetry_order() {
+                    None | Some(0) | Some(1) => "Twist (Nb of turns)".into(),
+                    Some(sym_order) => format!("Twist (Nb of 1/{sym_order}-turns)"),
                 }
             },
-            Some(self.twist), // self.get_nb_spirals(app_state), 
-            DecrTwist, 
+            Some(self.twist), // self.get_nb_spirals(app_state),
+            DecrTwist,
             IncrTwist,
             "",
             ui_size
@@ -656,18 +830,18 @@ impl GuiTab for RevolutionTab {
             column![button]
         };
 
-        let string_: &'_ String = &self
-            .get_rotational_symmetry_order()
-            .map_or_else(
-                || "Twist (Nb of turns)".into(),
-                |sym_order| match sym_order {
-                    0 | 1 => "Twist (Nb of turns)".into(),
-                    _ => format!("Twist (Nb of 1/{sym_order}-turns)"),
-                },
-            )
-            .into();
+        // let string_: &'_ String = &self
+        //     .get_rotational_symmetry_order()
+        //     .map_or_else(
+        //         || "Twist (Nb of turns)".into(),
+        //         |sym_order| match sym_order {
+        //             0 | 1 => "Twist (Nb of turns)".into(),
+        //             _ => format!("Twist (Nb of 1/{sym_order}-turns)"),
+        //         },
+        //     )
+        //     .into();
 
-        let even_nb_helices_input = self.get_even_nb_helices_input();
+        // let even_nb_helices_input = self.get_even_nb_helices_input();
 
         let content = column![
             section("Revolution Surfaces", ui_size),
@@ -696,16 +870,13 @@ impl GuiTab for RevolutionTab {
                 },
             ],
             column![
-                row![
-                    // "Twist (Nb of (1/order)-turns)",
-                    text(string_.as_str()),
-                    // Cow::<&'a String>::Owned(&string_).as_str(),
-                    // self._rot_sym_label.as_str().into(),
-                    Space::with_width(ui_size.checkbox_spacing()),
-                    self.twist_input // half_turn_count
-                        .input_view(RevolutionParameterId::Twist), // ::HalfTurnCount
-                ]
-                .align_items(Alignment::Center),
+                // row![
+                //     text(string_.as_str()),
+                //     Space::with_width(ui_size.checkbox_spacing()),
+                //     self.twist_input // half_turn_count
+                //         .input_view(RevolutionParameterId::Twist), // ::HalfTurnCount
+                // ]
+                // .align_items(Alignment::Center),
                 twist_buttons,
                 row![
                     "Revolution Radius",
@@ -716,50 +887,35 @@ impl GuiTab for RevolutionTab {
                 .align_items(Alignment::Center),
                 extra_jump(),
                 subsection("DNA routing parameters", ui_size),
-                // text(self.scaling.map_or_else(
-                //     || if let Some(nb_hx) = even_nb_helices_input { 
-                //         format!("Used: {nb_hx} — No suggested nb helices")
-                //     } else {
-                //         "No suggested nb helices".into()
-                //     }
-                //     ,
-                //     |RevolutionScaling { nb_helix: sug_nb_helix }| 
-                //         if let Some(nb_hx) = even_nb_helices_input { 
-                //             format!("Used: {nb_hx} — Suggested nb helices: {sug_nb_helix}")
-                //     } else {
-                //        format!("Suggested nb helices: {sug_nb_helix}")
-                //     }
-                // )),
-                row![
-                    "Nb helices (even)",
-                    Space::with_width(ui_size.checkbox_spacing()),
-                    self.nb_helices_input
-                        .input_view(RevolutionParameterId::NbHelices),
-                    text(self.scaling.map_or_else(
-                        || if let Some(nb_hx) = even_nb_helices_input { 
-                            format!(" Used: {nb_hx} — No suggested nb helices")
-                        } else {
-                            "No suggested nb helices".into()
-                        }
-                        ,
-                        |RevolutionScaling { nb_helix: sug_nb_helix }| 
-                            if let Some(nb_hx) = even_nb_helices_input { 
-                                format!(" Used: {nb_hx} — Suggested nb helices: {sug_nb_helix}")
-                        } else {
-                        format!(" Suggested nb helices: {sug_nb_helix}")
-                        }
-                    )),
-                ]
-                .align_items(Alignment::Center),
+                // row![
+                //     "Nb helices (even)",
+                //     Space::with_width(ui_size.checkbox_spacing()),
+                //     self.nb_helices_input
+                //         .input_view(RevolutionParameterId::NbHelices),
+                //     text(self.scaling.map_or_else(
+                //         || if let Some(nb_hx) = even_nb_helices_input {
+                //             format!(" Used: {nb_hx} — No suggested nb helices")
+                //         } else {
+                //             "No suggested nb helices".into()
+                //         },
+                //         |RevolutionScaling {
+                //              nb_helix: sug_nb_helix,
+                //          }| if let Some(nb_hx) = even_nb_helices_input {
+                //             format!(" Used: {nb_hx} — Suggested nb helices: {sug_nb_helix}")
+                //         } else {
+                //             format!(" Suggested nb helices: {sug_nb_helix}")
+                //         }
+                //     )),
+                // ]
+                // .align_items(Alignment::Center),
                 nb_helices_buttons,
-                row![
-                    "Nb spirals",
-                    Space::with_width(ui_size.checkbox_spacing()),
-                    self.nb_spirals_state_input
-                        .input_view(RevolutionParameterId::NbSpiral),
-                    nb_spirals_buttons,
-                ]
-                .align_items(Alignment::Center),
+                // row![
+                //     "Nb spirals",
+                //     Space::with_width(ui_size.checkbox_spacing()),
+                //     self.nb_spirals_state_input
+                //         .input_view(RevolutionParameterId::NbSpiral),
+                // ]
+                nb_spirals_buttons,
                 winding_buttons,
             ]
             .spacing(2),
@@ -844,19 +1000,6 @@ impl GuiTab for RevolutionTab {
             ],
         ]
         .spacing(5);
-
-        // DEBUG
-        // if let Some(nb_hx) = even_nb_helices_input {
-        //     if let Some(unrooted_surface) = self.get_current_unrooted_surface(app_state) {
-        //         let rooting_parameters = RootingParameters {
-        //             nb_helix_per_half_section: nb_hx / 2,
-        //             shift_per_turn: self.shift_idx,
-        //             junction_smoothening: 0.,
-        //         };
-
-        //         let surface_descriptor = unrooted_surface.rooted(rooting_parameters, true);
-        //     }
-        // }
 
         scrollable(content).width(Length::Fill).into()
     }

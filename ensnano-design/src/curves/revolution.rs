@@ -8,7 +8,7 @@ use crate::{
 };
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::f64::consts::{PI, TAU};
+use std::f64::consts::TAU;
 use ultraviolet::{DRotor2, DVec2, DVec3, Isometry2, Mat3, Rotor2, Vec2};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -51,7 +51,6 @@ impl InterpolatedCurveDescriptor {
             curve,
             self.interpolation,
             self.chebyshev_smoothening,
-            // self.twist,
             self.twist,
             self.rotational_symmetry_order,
         );
@@ -182,10 +181,8 @@ impl SmoothInterpolatedCurve {
                 let a = *smoothening_coeff;
 
                 // let shift = if *half_turn { 0.5 } else { 0. };
-                let section_rotation_per_revolution = match rotational_symmetry_order {
-                    0 => 0f64,
-                    x => (*twist as f64 / *x as f64).rem_euclid(1.),
-                };
+                let section_rotation_per_revolution =
+                    (*twist as f64 / *rotational_symmetry_order as f64).rem_euclid(1.);
 
                 if u < a {
                     // second half of the interpolation region, v = 0.5 + 1/2 ( u / a)
@@ -402,7 +399,8 @@ impl Revolution {
     }
 
     fn default_section_rotation_angle(&self, t: f64) -> f64 {
-        PI * self.twist as f64 * t.rem_euclid(1.)
+        //        PI * self.twist as f64 * t.rem_euclid(1.) // Fixed bellow: NS
+        TAU * self.twist as f64 / self.rotational_symmetry_order as f64 * t.rem_euclid(1.)
     }
 
     fn t_to_revolution_angle(&self, t: f64) -> f64 {
