@@ -1160,7 +1160,13 @@ impl InstantiatedCurveDescriptor_ {
                 helix_parameters,
             )),
             Self::InterpolatedCurve(desc) => {
-                Arc::new(Curve::new(desc.instantiate(true), helix_parameters))
+                // Legacy for files without rotational_symmetry_order field
+                let mut desc_clone = desc.clone();
+                if desc.rotational_symmetry_order == 0 {
+                    desc_clone.rotational_symmetry_order = desc.curve.rotational_symmetry_order();
+                } 
+
+                Arc::new(Curve::new(desc_clone.instantiate(true), helix_parameters))
             }
             Self::Chebyshev(coordinates) => Arc::new(Curve::new(coordinates, helix_parameters)),
         }
@@ -1244,10 +1250,12 @@ impl InstantiatedCurveDescriptor_ {
                 },
                 helix_parameters,
             ))),
-            Self::InterpolatedCurve(desc) => Some(Arc::new(Curve::new(
+            Self::InterpolatedCurve(desc) => {
+                Some(Arc::new(Curve::new(
                 desc.clone().instantiate(true),
                 helix_parameters,
-            ))),
+            )))
+            },
             Self::Chebyshev(coordinates) => {
                 Some(Arc::new(Curve::new(coordinates.clone(), helix_parameters)))
             }
@@ -1385,7 +1393,14 @@ impl InstantiatedCurveDescriptor_ {
                 initial_frame: *initial_frame,
                 legacy: *legacy,
             })),
-            Self::InterpolatedCurve(desc) => Some(Curve::path(desc.clone().instantiate(false))),
+            Self::InterpolatedCurve(desc) => {
+                                println!("Fixing it !");
+                let mut desc_clone = desc.clone();
+                if desc.rotational_symmetry_order == 0 {
+                    desc_clone.rotational_symmetry_order = desc.curve.rotational_symmetry_order();
+                } 
+                Some(Curve::path(desc_clone.instantiate(false)))
+            },
             Self::Chebyshev(coordinates) => Some(Curve::path(coordinates.clone())),
         }
     }

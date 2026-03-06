@@ -189,7 +189,7 @@ impl CloseSurfaceTopology {
                 let end = start + self.nb_section_per_segment - 1;
                 let mut segment_thetas = thetas[start..=end].to_vec();
                 let mut next_value =
-                    thetas[self.next_section[end]] + self.target.section_rotation_per_revolution();
+                    thetas[self.next_section[end]] + self.target.section_fraction_rotation_per_revolution();
                 // NS: obsolete
                 // if self.target.twist() % 2 == 1 {
                 //     next_value += 0.5;

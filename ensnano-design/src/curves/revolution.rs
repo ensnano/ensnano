@@ -11,11 +11,16 @@ use serde::{Deserialize, Serialize};
 use std::f64::consts::TAU;
 use ultraviolet::{DRotor2, DVec2, DVec3, Isometry2, Mat3, Rotor2, Vec2};
 
+fn default_rotational_symmetry_order() -> usize {
+    0 // unknown or circle
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct InterpolatedCurveDescriptor {
     pub curve: CurveDescriptor2D,
     #[serde(alias = "half_turns_count")]
     pub twist: isize,
+    #[serde(default = "default_rotational_symmetry_order")]
     pub rotational_symmetry_order: usize,
     /// Radius of the revolution trajectory.
     pub revolution_radius: f64,
