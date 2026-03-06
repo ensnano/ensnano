@@ -14,11 +14,11 @@ pub(super) const ELLIPSE_BUILDER: CurveDescriptorBuilder = CurveDescriptorBuilde
     parameters: &[
         CurveDescriptorParameter {
             name: "Semi major axis",
-            default_value: InstantiatedParameter::Float(20.0),
+            default_value: InstantiatedParameter::Float(10.0),
         },
         CurveDescriptorParameter {
             name: "Semi minor axis",
-            default_value: InstantiatedParameter::Float(10.0),
+            default_value: InstantiatedParameter::Float(5.0),
         },
     ],
     build: &build_ellipse,

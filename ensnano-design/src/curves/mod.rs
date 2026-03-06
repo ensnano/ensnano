@@ -1164,7 +1164,7 @@ impl InstantiatedCurveDescriptor_ {
                 let mut desc_clone = desc.clone();
                 if desc.rotational_symmetry_order == 0 {
                     desc_clone.rotational_symmetry_order = desc.curve.rotational_symmetry_order();
-                } 
+                }
 
                 Arc::new(Curve::new(desc_clone.instantiate(true), helix_parameters))
             }
@@ -1250,12 +1250,10 @@ impl InstantiatedCurveDescriptor_ {
                 },
                 helix_parameters,
             ))),
-            Self::InterpolatedCurve(desc) => {
-                Some(Arc::new(Curve::new(
+            Self::InterpolatedCurve(desc) => Some(Arc::new(Curve::new(
                 desc.clone().instantiate(true),
                 helix_parameters,
-            )))
-            },
+            ))),
             Self::Chebyshev(coordinates) => {
                 Some(Arc::new(Curve::new(coordinates.clone(), helix_parameters)))
             }
@@ -1394,13 +1392,13 @@ impl InstantiatedCurveDescriptor_ {
                 legacy: *legacy,
             })),
             Self::InterpolatedCurve(desc) => {
-                                println!("Fixing it !");
+                println!("Fixing it !");
                 let mut desc_clone = desc.clone();
                 if desc.rotational_symmetry_order == 0 {
                     desc_clone.rotational_symmetry_order = desc.curve.rotational_symmetry_order();
-                } 
+                }
                 Some(Curve::path(desc_clone.instantiate(false)))
-            },
+            }
             Self::Chebyshev(coordinates) => Some(Curve::path(coordinates.clone())),
         }
     }

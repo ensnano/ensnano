@@ -946,7 +946,8 @@ impl Program for LeftPanelState {
                     .lock()
                     .unwrap()
                     .set_unrooted_surface(unrooted_surface);
-                Command::none()            }
+                Command::none()
+            }
             LeftPanelMessage::DecrTwist => {
                 self.revolution_tab.dec_twist();
                 let unrooted_surface = self

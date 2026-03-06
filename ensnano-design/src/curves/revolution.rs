@@ -12,7 +12,7 @@ use std::f64::consts::TAU;
 use ultraviolet::{DRotor2, DVec2, DVec3, Isometry2, Mat3, Rotor2, Vec2};
 
 fn default_rotational_symmetry_order() -> usize {
-    0 // unknown or circle
+    0 // legacy: unknown or circle => will be checked and replaced with the correct value in into_curve() of InstantiatedCurveDescriptor_ in mod.rs 
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

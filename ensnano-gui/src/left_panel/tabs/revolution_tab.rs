@@ -183,11 +183,6 @@ pub(crate) struct RevolutionTab {
     twist_input: ParameterWidget, // half_turn_count
     radius_input: ParameterWidget,
     scaling: Option<RevolutionScaling>,
-    nb_helices_input: ParameterWidget,
-    nb_spirals_state_input: ParameterWidget,
-    // shift_generator: Option<ShiftGenerator>, // NS: obsolete
-    // pub(crate) shift_idx: isize,
-    // pub(crate) nb_spirals_idx: isize,
     scaffold_len_target: ParameterWidget,
 
     nb_section_per_segment_input: ParameterWidget,
@@ -206,17 +201,12 @@ impl Default for RevolutionTab {
         Self {
             curve_descriptor_widget: None,
             twist_input: ParameterWidget::new(InstantiatedParameter::Uint(0)),
-            radius_input: ParameterWidget::new(InstantiatedParameter::Float(10.)),
+            radius_input: ParameterWidget::new(InstantiatedParameter::Float(15.)),
             scaling: None,
-            nb_helices: 12,
+            nb_helices: 16,
             winding: 0,
             twist: 0,
             nb_spirals: 2,
-            nb_helices_input: ParameterWidget::new(InstantiatedParameter::Uint(12)),
-            nb_spirals_state_input: ParameterWidget::new(InstantiatedParameter::Uint(2)),
-            // shift_generator: None,
-            // shift_idx: 0,
-            // nb_spirals_idx: 0,
             nb_section_per_segment_input: ParameterWidget::new(InstantiatedParameter::Uint(
                 init_parameter.nb_section_per_segment,
             )),
@@ -278,8 +268,8 @@ impl RevolutionTab {
                 let widget = match param {
                     RevolutionParameterId::SectionParameter(_) => unreachable!(),
                     RevolutionParameterId::Twist => &mut self.twist_input,
-                    RevolutionParameterId::NbHelices => &mut self.nb_helices_input,
-                    RevolutionParameterId::NbSpiral => &mut self.nb_spirals_state_input,
+                    // RevolutionParameterId::NbHelices => &mut self.nb_helices_input,
+                    // RevolutionParameterId::NbSpiral => &mut self.nb_spirals_state_input,
                     RevolutionParameterId::RevolutionRadius => &mut self.radius_input,
                     RevolutionParameterId::ScaffoldLenTarget => &mut self.scaffold_len_target,
                     RevolutionParameterId::NbSectionPerSegment => {
@@ -917,6 +907,19 @@ impl GuiTab for RevolutionTab {
                 // ]
                 nb_spirals_buttons,
                 winding_buttons,
+                row![
+                    "Target total length",
+                    Space::with_width(ui_size.checkbox_spacing()),
+                    self.scaffold_len_target
+                        .input_view(RevolutionParameterId::ScaffoldLenTarget),
+                ]
+                .align_items(Alignment::Center),
+            ]
+            .spacing(2),
+            column![
+                extra_jump(),
+                section("Relaxation computation", ui_size),
+                simulation_buttons,
             ]
             .spacing(2),
             column![
@@ -927,13 +930,6 @@ impl GuiTab for RevolutionTab {
                     Space::with_width(ui_size.checkbox_spacing()),
                     self.nb_section_per_segment_input
                         .input_view(RevolutionParameterId::NbSectionPerSegment),
-                ]
-                .align_items(Alignment::Center),
-                row![
-                    "Target length",
-                    Space::with_width(ui_size.checkbox_spacing()),
-                    self.scaffold_len_target
-                        .input_view(RevolutionParameterId::ScaffoldLenTarget),
                 ]
                 .align_items(Alignment::Center),
             ]
@@ -991,12 +987,6 @@ impl GuiTab for RevolutionTab {
                         .input_view(RevolutionParameterId::SimulationStep),
                 ]
                 .align_items(Alignment::Center),
-            ]
-            .spacing(2),
-            column![
-                extra_jump(),
-                section("Relaxation computation", ui_size),
-                simulation_buttons,
             ],
         ]
         .spacing(5);

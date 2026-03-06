@@ -52,7 +52,6 @@ pub struct RootingParameters {
 }
 
 impl UnrootedRevolutionSurfaceDescriptor {
-
     pub fn rooted(
         mut self,
         rooting_parameters: RootingParameters,
@@ -512,7 +511,7 @@ impl RootedRevolutionSurface {
         match &mut self.surface.revolution_radius {
             RevolutionSurfaceRadius::Left(x) | RevolutionSurfaceRadius::Right(x) => *x *= scale,
             RevolutionSurfaceRadius::Inside(_) => (),
-        } 
+        }
     }
 
     pub fn get_frame(&self) -> Similarity3 {
