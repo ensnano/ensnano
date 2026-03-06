@@ -1392,7 +1392,7 @@ impl InstantiatedCurveDescriptor_ {
                 legacy: *legacy,
             })),
             Self::InterpolatedCurve(desc) => {
-                println!("Fixing it !");
+                // legacy: fix rotational_symmetry_order if absent in the file
                 let mut desc_clone = desc.clone();
                 if desc.rotational_symmetry_order == 0 {
                     desc_clone.rotational_symmetry_order = desc.curve.rotational_symmetry_order();
