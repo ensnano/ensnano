@@ -1215,11 +1215,11 @@ impl MainStateView<'_> {
 
     fn set_visibility_sieve(&mut self, compl: bool) {
         let selection = self.get_selection().to_vec();
-        self.main_state.set_visibility_sieve(selection, compl);
+        self.main_state.set_visibility_sieve(&selection, compl);
     }
 
     fn clear_visibility_sieve(&mut self) {
-        self.main_state.set_visibility_sieve(vec![], true);
+        self.main_state.set_visibility_sieve(&vec![], true);
     }
 
     fn need_save(&self) -> Option<Option<PathBuf>> {
@@ -1382,7 +1382,10 @@ impl MainStateView<'_> {
         let len = sequence.chars().filter(|c| c.is_alphabetic()).count();
 
         self.main_state.modify_state(|app_state: &mut AppState| {
-            app_state.apply_design_op(DesignOperation::SetScaffoldSequence { sequence, shift })
+            app_state.apply_design_op(DesignOperation::SetScaffoldSequence {
+                sequence: sequence.clone(),
+                shift,
+            })
         });
 
         let default_shift = self.get_design_interactor().default_shift();
