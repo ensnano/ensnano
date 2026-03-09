@@ -807,8 +807,7 @@ impl GuiTab for RevolutionTab {
                 text(
                     app_state
                         .get_reader()
-                        .get_current_length_of_relaxed_shape()
-                        .map_or(String::new(), |l| format!("Current total length: {l}"))
+                        .get_additional_structure_info().unwrap_or("—".into())
                 ),
                 text_button("Finish", ui_size).on_press(LeftPanelMessage::FinishRelaxation),
             ]
@@ -819,6 +818,7 @@ impl GuiTab for RevolutionTab {
             }
             column![button]
         };
+
 
         // let string_: &'_ String = &self
         //     .get_rotational_symmetry_order()

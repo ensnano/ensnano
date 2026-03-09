@@ -281,3 +281,24 @@ fn rotational_symmetry_order_star(parameters: &[InstantiatedParameter]) -> Optio
         .and_then(InstantiatedParameter::get_uint)?;
     Some(value.max(MINIMUM_NB_BRANCHES_STAR))
 }
+
+pub(super) const NONE_BUILDER: CurveDescriptorBuilder = CurveDescriptorBuilder {
+    curve_name: "None",
+    parameters: &[],
+    build: &build_none,
+    bezier_path_id: &no_bezier_path_id,
+    rotational_symmetry_order: &rotational_symmetry_order_none,
+    frame: &none_frame,
+};
+
+fn build_none(parameters: &[InstantiatedParameter], app: &AppState) -> Option<CurveDescriptor2D> {
+    None
+}
+
+fn none_frame(_: &[InstantiatedParameter], app: &AppState) -> Option<(Vec3, Rotor3)> {
+    None
+}
+
+fn rotational_symmetry_order_none(parameters: &[InstantiatedParameter]) -> Option<usize> {
+    None
+}

@@ -1,7 +1,7 @@
 mod curve_builders;
 
 use self::curve_builders::{
-    BEZIER_CURVE_BUILDER, ELLIPSE_BUILDER, STAR_BUILDER, TWO_SPHERES_BUILDER,
+    BEZIER_CURVE_BUILDER, ELLIPSE_BUILDER, STAR_BUILDER, TWO_SPHERES_BUILDER, NONE_BUILDER,
 };
 use crate::{
     app_state::{AppState, NewHelixStrand, design_interactor::DesignInteractor},
@@ -28,6 +28,7 @@ use std::f64::consts::TAU;
 
 impl AppState {
     pub const POSSIBLE_CURVES: &'static [CurveDescriptorBuilder] = &[
+        NONE_BUILDER,
         ELLIPSE_BUILDER,
         TWO_SPHERES_BUILDER,
         BEZIER_CURVE_BUILDER,

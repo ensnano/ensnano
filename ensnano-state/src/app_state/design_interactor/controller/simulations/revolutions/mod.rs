@@ -46,6 +46,7 @@ pub(crate) struct RevolutionSurfaceSystem {
     scaffold_len_target: usize,
     current_scaffold_length: Option<usize>,
     simulation_parameters: RevolutionSimulationParameters,
+    spring_relaxation_state: Option<SpringRelaxationState>,
 }
 
 impl Clone for RevolutionSurfaceSystem {
@@ -58,6 +59,7 @@ impl Clone for RevolutionSurfaceSystem {
             scaffold_len_target: self.scaffold_len_target,
             current_scaffold_length: self.current_scaffold_length,
             simulation_parameters: self.simulation_parameters.clone(),
+            spring_relaxation_state: self.spring_relaxation_state.clone(),
         }
     }
 }
@@ -81,6 +83,7 @@ impl RevolutionSurfaceSystem {
             scaffold_len_target,
             current_scaffold_length: None,
             simulation_parameters,
+            spring_relaxation_state: None,
         }
     }
 
@@ -174,9 +177,11 @@ impl RevolutionSurfaceSystem {
         self.topology.rescale_section(rescaling_factor);
 
         println!("spring_relax state {spring_relaxation_state:?}");
-        spring_relaxation_state
+        let ret = spring_relaxation_state
             .max_ext
-            .max(1. / spring_relaxation_state.min_ext)
+            .max(1. / spring_relaxation_state.min_ext);
+        self.spring_relaxation_state = Some(spring_relaxation_state);
+        ret
     }
 
     fn helix_axis(&self, section_idx: usize, thetas: &[f64]) -> DVec3 {
@@ -357,6 +362,16 @@ impl SpringRelaxationState {
             min_ext: f64::INFINITY,
             max_ext: 0.,
             avg_ext: 0.,
+        }
+    }
+}
+
+impl Clone for SpringRelaxationState {
+    fn clone(&self) -> Self {
+        SpringRelaxationState { 
+            min_ext: self.min_ext.clone(), 
+            max_ext: self.max_ext.clone(), 
+            avg_ext: self.avg_ext.clone()
         }
     }
 }
@@ -542,6 +557,20 @@ impl AdditionalStructure for RevolutionSurfaceSystem {
 
     fn frame(&self) -> Similarity3 {
         self.topology.get_frame()
+    }
+
+    fn info(&self) -> Option<String> {
+        let len = self.current_scaffold_length?;
+        if let Some(srs) = &self.spring_relaxation_state {
+            Some(format!("Total length: {} bp\nInterhelices distance: avg: {:>+3.2}% (min: {:>+3.2}% - max: {:>+3.2}%)",
+                len,
+                100. * (srs.avg_ext - 1.),
+                100. * (srs.min_ext - 1.),
+                100. * (srs.max_ext - 1.),
+            ))
+        } else {
+            Some(format!("Total length: {} bp", len))
+        }
     }
 }
 

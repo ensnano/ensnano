@@ -226,4 +226,12 @@ impl DesignInteractor {
             .as_ref()
             .and_then(|s| s.current_length())
     }
+
+    pub fn get_additional_structure_info(&self) -> Option<String> {
+        self.presenter
+            .current_design
+            .additional_structure
+            .as_ref()
+            .and_then(|s| s.info())
+    }
 }
