@@ -262,7 +262,6 @@ impl RevolutionSurfaceSystem {
     }
 
     fn apply_torsions(&self, system: &mut RelaxationSystem) {
-        println!("torsion called");
         for section_idx in self.topology.balls_with_predecessor_and_successor() {
             let i = self.topology.predecessor(*section_idx);
             let j = *section_idx;
