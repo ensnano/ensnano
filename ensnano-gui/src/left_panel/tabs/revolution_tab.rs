@@ -526,9 +526,9 @@ impl RevolutionTab {
 
     /// Increase the number of helices to next multiple of 2 and normalized rotational order symmetry; and adapt the number of spirals if needed
     pub(crate) fn inc_nb_helices(&mut self) -> usize {
-        let (tw, rso) = self.get_simplified_twist_and_rotational_symmetry_order();
+        let (_tw, rso) = self.get_simplified_twist_and_rotational_symmetry_order();
         let m = lcm(2, rso);
-        println!("{tw} {rso} {m}");
+        // println!("{tw} {rso} {m}");
         self.nb_helices += m;
         self.check_and_adapt_nb_helices()
     }
