@@ -656,18 +656,18 @@ impl RevolutionTab {
         let d = (tw as isize * nb_hx) / rso as isize;
         let w = wd + d;
         let mut k = 1 + w / nb_sp;
-        for i in 0..=n_s {
-            print!("{},", (i * (d + -d + k * nb_sp)) % nb_hx);
-        }
-        println!();
+        // for i in 0..=n_s {
+        //     print!("{},", (i * (d + -d + k * nb_sp)) % nb_hx);
+        // }
+        // println!();
         while gcd(k, n_s) != 1 {
             k += 1;
-            for i in 0..=n_s {
-                print!("{},", (i * (d + -d + k * nb_sp)) % nb_hx);
-            }
-            println!();
+            // for i in 0..=n_s {
+            //     print!("{},", (i * (d + -d + k * nb_sp)) % nb_hx);
+            // }
+            // println!();
         }
-        println!("*");
+        // println!("*");
 
         self.winding = -d + k * nb_sp;
         self.winding
@@ -684,18 +684,18 @@ impl RevolutionTab {
         let d = (tw as isize * nb_hx) / rso as isize;
         let w = wd + d;
         let mut k = -1 + w / nb_sp;
-        for i in 0..=n_s {
-            print!("{},", (i * (d + -d + k * nb_sp)) % nb_hx);
-        }
-        println!();
+        // for i in 0..=n_s {
+        //     print!("{},", (i * (d + -d + k * nb_sp)) % nb_hx);
+        // }
+        // println!();
         while gcd(k, n_s) != 1 {
             k -= 1;
-            for i in 0..=n_s {
-                print!("{},", (i * (d + -d + k * nb_sp)) % nb_hx);
-            }
-            println!();
+            // for i in 0..=n_s {
+            //     print!("{},", (i * (d + -d + k * nb_sp)) % nb_hx);
+            // }
+            // println!();
         }
-        println!("*");
+        // println!("*");
 
         self.winding = -d + k * nb_sp;
         self.winding
@@ -950,7 +950,7 @@ impl GuiTab for RevolutionTab {
             .spacing(2),
             column![
                 extra_jump(),
-                subsection("Simulation parameters", ui_size),
+                subsection("Relaxation parameters", ui_size),
                 row![
                     "Weight of average vs min-max extension (0 ≤ ≤ 1)",
                     Space::with_width(ui_size.checkbox_spacing()),
@@ -1002,7 +1002,7 @@ impl GuiTab for RevolutionTab {
                 ]
                 .align_items(Alignment::Center),
                 row![
-                    "Simulation Step",
+                    "Relaxation Step",
                     Space::with_width(ui_size.checkbox_spacing()),
                     self.simulation_step
                         .input_view(RevolutionParameterId::SimulationStep),

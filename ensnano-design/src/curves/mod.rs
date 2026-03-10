@@ -349,8 +349,8 @@ impl Curve {
             .zip(geometry.curvilinear_abscissa(geometry.t_max()))
         {
             let ret = x1 - x0;
-            println!("length by curvilinear_abscissa = {ret}");
-            return x1 - x0;
+            // println!("length by curvilinear_abscissa = {ret} nm");
+            return ret;
         }
         quadrature::integrate(
             |x| geometry.speed(x).mag(),

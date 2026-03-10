@@ -176,7 +176,7 @@ impl CloseSurfaceTopology {
         let mut ret = Vec::new();
 
         let nb_segment_per_helix = self.nb_segment / self.target.nb_spirals();
-        println!("Nb spirals {}", self.target.nb_spirals());
+        // println!("Nb spirals {}", self.target.nb_spirals());
         for i in 0..self.target.nb_spirals() {
             let mut interpolations = Vec::new();
             let segment_indices = (0..nb_segment_per_helix).map(|n| {
