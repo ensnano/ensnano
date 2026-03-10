@@ -292,6 +292,7 @@ impl RevolutionTab {
                 widget.set_text(text);
             }
         }
+        self.check_and_adapt_nb_helices();
     }
 
     pub(crate) fn get_current_unrooted_surface(
