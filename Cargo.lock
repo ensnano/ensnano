@@ -1008,7 +1008,6 @@ dependencies = [
  "iced_graphics",
  "log",
  "nom_stl",
- "num",
  "rand 0.9.2",
  "rayon",
  "serde",

@@ -13,4 +13,5 @@ pub enum RevolutionParameterId {
     BallMass,
     TimeSpan,
     SimulationStep,
+    AvgVsMinMaxExtWeight,
 }

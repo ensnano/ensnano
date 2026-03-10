@@ -161,9 +161,9 @@ impl CurveDescriptorWidget {
         (self.builder.build)(&self.instantiated_parameters(), app_state)
     }
 
-    fn get_bezier_path_id(&self) -> Option<usize> {
-        (self.builder.bezier_path_id)(&self.instantiated_parameters())
-    }
+    // fn get_bezier_path_id(&self) -> Option<usize> {
+    //     (self.builder.bezier_path_id)(&self.instantiated_parameters())
+    // }
 
     fn get_rotational_symmetry_order(&self) -> Option<usize> {
         (self.builder.rotational_symmetry_order)(&self.instantiated_parameters())
@@ -193,6 +193,7 @@ pub(crate) struct RevolutionTab {
     time_span: ParameterWidget,
     simulation_step: ParameterWidget,
     equadiff_method: EquadiffSolvingMethod,
+    avg_vs_min_max_ext_weight_input: ParameterWidget,
 }
 
 impl Default for RevolutionTab {
@@ -226,6 +227,9 @@ impl Default for RevolutionTab {
             )),
             equadiff_method: init_parameter.method,
             scaffold_len_target: ParameterWidget::new(InstantiatedParameter::Uint(8064)),
+            avg_vs_min_max_ext_weight_input: ParameterWidget::new(InstantiatedParameter::Float(
+                init_parameter.avg_vs_min_max_ext_weight,
+            )),
         }
     }
 }
@@ -281,6 +285,9 @@ impl RevolutionTab {
                     RevolutionParameterId::BallMass => &mut self.ball_mass,
                     RevolutionParameterId::TimeSpan => &mut self.time_span,
                     RevolutionParameterId::SimulationStep => &mut self.simulation_step,
+                    RevolutionParameterId::AvgVsMinMaxExtWeight => {
+                        &mut self.avg_vs_min_max_ext_weight_input
+                    }
                 };
                 widget.set_text(text);
             }
@@ -460,6 +467,12 @@ impl RevolutionTab {
             .get_value()
             .and_then(InstantiatedParameter::get_float)?;
         let method = self.equadiff_method;
+        let avg_vs_min_max_ext_weight = self
+            .avg_vs_min_max_ext_weight_input
+            .get_value()
+            .and_then(InstantiatedParameter::get_float)?
+            .max(0.)
+            .min(1.);
 
         Some(RevolutionSimulationParameters {
             nb_section_per_segment,
@@ -470,6 +483,7 @@ impl RevolutionTab {
             time_span,
             simulation_step,
             method,
+            avg_vs_min_max_ext_weight,
         })
     }
 
@@ -807,7 +821,8 @@ impl GuiTab for RevolutionTab {
                 text(
                     app_state
                         .get_reader()
-                        .get_additional_structure_info().unwrap_or("—".into())
+                        .get_additional_structure_info()
+                        .unwrap_or("—".into())
                 ),
                 text_button("Finish", ui_size).on_press(LeftPanelMessage::FinishRelaxation),
             ]
@@ -818,7 +833,6 @@ impl GuiTab for RevolutionTab {
             }
             column![button]
         };
-
 
         // let string_: &'_ String = &self
         //     .get_rotational_symmetry_order()
@@ -937,6 +951,13 @@ impl GuiTab for RevolutionTab {
             column![
                 extra_jump(),
                 subsection("Simulation parameters", ui_size),
+                row![
+                    "Weight of average vs min-max extension (0 ≤ ≤ 1)",
+                    Space::with_width(ui_size.checkbox_spacing()),
+                    self.avg_vs_min_max_ext_weight_input
+                        .input_view(RevolutionParameterId::AvgVsMinMaxExtWeight),
+                ]
+                .align_items(Alignment::Center),
                 row![
                     "Spring Stiffness",
                     Space::with_width(ui_size.checkbox_spacing()),

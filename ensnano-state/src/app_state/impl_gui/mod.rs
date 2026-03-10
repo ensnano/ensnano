@@ -1,7 +1,7 @@
 mod curve_builders;
 
 use self::curve_builders::{
-    BEZIER_CURVE_BUILDER, ELLIPSE_BUILDER, STAR_BUILDER, TWO_SPHERES_BUILDER, NONE_BUILDER,
+    BEZIER_CURVE_BUILDER, ELLIPSE_BUILDER, NONE_BUILDER, STAR_BUILDER, TWO_SPHERES_BUILDER,
 };
 use crate::{
     app_state::{AppState, NewHelixStrand, design_interactor::DesignInteractor},

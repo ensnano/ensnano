@@ -302,6 +302,7 @@ pub struct RevolutionSimulationParameters {
     pub time_span: f64,
     pub simulation_step: f64,
     pub method: EquadiffSolvingMethod,
+    pub avg_vs_min_max_ext_weight: f64,
 }
 
 impl Default for RevolutionSimulationParameters {
@@ -315,6 +316,7 @@ impl Default for RevolutionSimulationParameters {
             time_span: 5.0e-2,
             simulation_step: 1e-3,
             method: EquadiffSolvingMethod::Ralston,
+            avg_vs_min_max_ext_weight: 0.9,
         }
     }
 }

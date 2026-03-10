@@ -172,8 +172,15 @@ impl RevolutionSurfaceSystem {
             log::error!("error while solving ODE");
         }
 
-        let rescaling_factor =
-            2. / (spring_relaxation_state.min_ext + spring_relaxation_state.max_ext);
+        let coeff = self
+            .simulation_parameters
+            .avg_vs_min_max_ext_weight
+            .min(1.)
+            .max(0.);
+        let factor_avg = 1. / spring_relaxation_state.avg_ext.max(1.0e-2);
+        let factor_min_max =
+            2. / (spring_relaxation_state.min_ext + spring_relaxation_state.max_ext).max(1.0e-2);
+        let rescaling_factor = coeff * factor_avg + (1. - coeff) * factor_min_max;
         self.topology.rescale_section(rescaling_factor);
 
         println!("spring_relax state {spring_relaxation_state:?}");
@@ -349,7 +356,7 @@ struct RelaxationSystem {
     forces: Vec<DVec3>,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 struct SpringRelaxationState {
     min_ext: f64,
     max_ext: f64,
@@ -366,15 +373,15 @@ impl SpringRelaxationState {
     }
 }
 
-impl Clone for SpringRelaxationState {
-    fn clone(&self) -> Self {
-        SpringRelaxationState { 
-            min_ext: self.min_ext.clone(), 
-            max_ext: self.max_ext.clone(), 
-            avg_ext: self.avg_ext.clone()
-        }
-    }
-}
+// impl Clone for SpringRelaxationState {
+//     fn clone(&self) -> Self {
+//         SpringRelaxationState {
+//             min_ext: self.min_ext.clone(),
+//             max_ext: self.max_ext.clone(),
+//             avg_ext: self.avg_ext.clone()
+//         }
+//     }
+// }
 
 impl RelaxationSystem {
     fn into_mathru(self) -> Vector<f64> {
@@ -562,7 +569,8 @@ impl AdditionalStructure for RevolutionSurfaceSystem {
     fn info(&self) -> Option<String> {
         let len = self.current_scaffold_length?;
         if let Some(srs) = &self.spring_relaxation_state {
-            Some(format!("Total length: {} bp\nInterhelices distance: avg: {:>+3.2}% (min: {:>+3.2}% - max: {:>+3.2}%)",
+            Some(format!(
+                "Total length: {} bp\nInterhelices distance: avg: {:>+3.2}% (min: {:>+3.2}% - max: {:>+3.2}%)",
                 len,
                 100. * (srs.avg_ext - 1.),
                 100. * (srs.min_ext - 1.),

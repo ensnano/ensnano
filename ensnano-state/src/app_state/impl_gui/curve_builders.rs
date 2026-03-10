@@ -212,7 +212,7 @@ pub(super) const STAR_BUILDER: CurveDescriptorBuilder = CurveDescriptorBuilder {
         },
         CurveDescriptorParameter {
             name: "Internal radius",
-            default_value: InstantiatedParameter::Float(10.0),
+            default_value: InstantiatedParameter::Float(14.0),
         },
     ],
     build: &build_star,
@@ -291,14 +291,14 @@ pub(super) const NONE_BUILDER: CurveDescriptorBuilder = CurveDescriptorBuilder {
     frame: &none_frame,
 };
 
-fn build_none(parameters: &[InstantiatedParameter], app: &AppState) -> Option<CurveDescriptor2D> {
+fn build_none(_parameters: &[InstantiatedParameter], _app: &AppState) -> Option<CurveDescriptor2D> {
     None
 }
 
-fn none_frame(_: &[InstantiatedParameter], app: &AppState) -> Option<(Vec3, Rotor3)> {
+fn none_frame(_: &[InstantiatedParameter], _app: &AppState) -> Option<(Vec3, Rotor3)> {
     None
 }
 
-fn rotational_symmetry_order_none(parameters: &[InstantiatedParameter]) -> Option<usize> {
+fn rotational_symmetry_order_none(_parameters: &[InstantiatedParameter]) -> Option<usize> {
     None
 }
