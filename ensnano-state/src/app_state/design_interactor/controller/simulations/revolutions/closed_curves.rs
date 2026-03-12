@@ -25,7 +25,8 @@ pub(super) struct CloseSurfaceTopology {
 
 impl CloseSurfaceTopology {
     pub(super) fn new(desc: RevolutionSurfaceSystemDescriptor) -> Self {
-        let nb_segment = 2 * desc.target.rooting_parameters.nb_helix_per_half_section;
+        // let nb_segment = 2 * desc.target.rooting_parameters.nb_helix_per_half_section; // NS: Obsolete
+        let nb_segment = desc.target.rooting_parameters.nb_helices;
         let nb_section_per_segment = desc.simulation_parameters.nb_section_per_segment;
         let total_nb_section = nb_segment * nb_section_per_segment;
 
@@ -124,8 +125,10 @@ impl CloseSurfaceTopology {
 
         for segment_idx in 0..self.nb_segment {
             let theta_init = segment_idx as f64 / self.nb_segment as f64;
-            let delta_theta = self.target.rooting_parameters.shift_per_turn as f64
-                / (self.target.rooting_parameters.nb_helix_per_half_section as f64 * 2.);
+            // let delta_theta = self.target.rooting_parameters.shift_per_turn as f64 // NS: obsolete
+            // / (self.target.rooting_parameters.nb_helix_per_half_section as f64 * 2.);
+            let delta_theta = self.target.rooting_parameters.winding as f64
+                / self.target.rooting_parameters.nb_helices as f64;
 
             for section_idx in 0..self.nb_section_per_segment {
                 let a = section_idx as f64 / self.nb_section_per_segment as f64;
@@ -173,7 +176,7 @@ impl CloseSurfaceTopology {
         let mut ret = Vec::new();
 
         let nb_segment_per_helix = self.nb_segment / self.target.nb_spirals();
-        println!("Nb spirals {}", self.target.nb_spirals());
+        // println!("Nb spirals {}", self.target.nb_spirals());
         for i in 0..self.target.nb_spirals() {
             let mut interpolations = Vec::new();
             let segment_indices = (0..nb_segment_per_helix).map(|n| {
@@ -185,10 +188,12 @@ impl CloseSurfaceTopology {
                 let start = s_idx as usize * self.nb_section_per_segment;
                 let end = start + self.nb_section_per_segment - 1;
                 let mut segment_thetas = thetas[start..=end].to_vec();
-                let mut next_value = thetas[self.next_section[end]];
-                if self.target.half_turn_count() % 2 == 1 {
-                    next_value += 0.5;
-                }
+                let mut next_value = thetas[self.next_section[end]]
+                    + self.target.section_fraction_rotation_per_revolution();
+                // NS: obsolete
+                // if self.target.twist() % 2 == 1 {
+                //     next_value += 0.5;
+                // }
                 let last_value = segment_thetas.last().unwrap();
                 while next_value >= 0.5 + last_value {
                     next_value -= 1.;

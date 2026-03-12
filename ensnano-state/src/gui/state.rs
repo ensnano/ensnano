@@ -1,9 +1,10 @@
 #[derive(Debug, Clone, Copy)]
 pub enum RevolutionParameterId {
     SectionParameter(usize),
-    HalfTurnCount,
+    Twist, // HalfTurnCount,
     RevolutionRadius,
-    NbSpiral,
+    // NbHelices,
+    // NbSpiral,
     NbSectionPerSegment,
     ScaffoldLenTarget,
     SpringStiffness,
@@ -12,4 +13,5 @@ pub enum RevolutionParameterId {
     BallMass,
     TimeSpan,
     SimulationStep,
+    AvgVsMinMaxExtWeight,
 }

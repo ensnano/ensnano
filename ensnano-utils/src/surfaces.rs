@@ -11,7 +11,6 @@ use ensnano_design::{
     parameters::HelixParameters,
     utils::ultraviolet::dvec_to_vec,
 };
-use num::integer::gcd;
 use rayon::iter::{IntoParallelIterator as _, ParallelIterator as _};
 use std::f64::consts::TAU;
 use ultraviolet::{DVec3, Isometry3, Rotor3, Similarity3, Vec3};
@@ -28,7 +27,6 @@ pub struct RevolutionSurfaceSystemDescriptor {
 pub struct RootedRevolutionSurface {
     surface: UnrootedRevolutionSurfaceDescriptor,
     scale: f64,
-    nb_spirals: usize,
     pub rooting_parameters: RootingParameters,
     area_radius_0: f64,
     area_per_radius_unit: f64,
@@ -38,15 +36,18 @@ pub struct RootedRevolutionSurface {
 pub struct UnrootedRevolutionSurfaceDescriptor {
     pub curve: CurveDescriptor2D,
     pub revolution_radius: RevolutionSurfaceRadius,
-    pub half_turn_count: isize,
     pub curve_plane_position: Vec3,
     pub curve_plane_orientation: Rotor3,
+
+    pub simplified_twist: usize,
+    pub simplified_rotational_symmetry_order: usize,
 }
 
 #[derive(Debug, Clone)]
 pub struct RootingParameters {
-    pub nb_helix_per_half_section: usize,
-    pub shift_per_turn: isize,
+    pub nb_helices: usize,
+    pub nb_spirals: usize,
+    pub winding: isize,
     pub junction_smoothening: f64,
 }
 
@@ -56,15 +57,13 @@ impl UnrootedRevolutionSurfaceDescriptor {
         rooting_parameters: RootingParameters,
         compute_areas: bool,
     ) -> RootedRevolutionSurface {
-        let nb_spirals = rooting_parameters.nb_spirals(self.half_turn_count);
         let (mut area_radius_0, mut area_per_radius_unit) = if compute_areas {
             self.area_affine_function().unwrap_or((1., 1.))
         } else {
             (1., 1.)
         };
-        let scale = rooting_parameters.nb_helix_per_half_section as f64
-            * 2.
-            * HelixParameters::INTER_CENTER_GAP as f64
+        // NS: to be fixed later to take into account twist
+        let scale = rooting_parameters.nb_helices as f64 * HelixParameters::INTER_CENTER_GAP as f64
             / self.curve.perimeter();
         area_radius_0 *= scale;
         area_per_radius_unit *= scale;
@@ -77,11 +76,11 @@ impl UnrootedRevolutionSurfaceDescriptor {
             surface: self,
             rooting_parameters,
             scale,
-            nb_spirals,
             area_radius_0,
             area_per_radius_unit,
         }
     }
+
     pub fn get_frame(&self) -> Isometry3 {
         let Similarity3 {
             translation,
@@ -132,7 +131,7 @@ impl UnrootedRevolutionSurfaceDescriptor {
     /// Return the position of the axis of revolution, assuming that the section is scaled.
     ///
     /// Note that the revolution radius is *not* scaled.
-    fn get_axis_position_when_scaled(&self, scale: f64) -> f64 {
+    pub fn get_axis_position_when_scaled(&self, scale: f64) -> f64 {
         match self.revolution_radius {
             RevolutionSurfaceRadius::Left(x) => self.curve.min_x() * scale - x,
             RevolutionSurfaceRadius::Right(x) => x + self.curve.max_x() * scale,
@@ -178,6 +177,12 @@ impl UnrootedRevolutionSurfaceDescriptor {
 
         let area_0 = with_radius_0.approx_surface_area(1000, 1000)?;
         let area_1 = with_radius_1.approx_surface_area(1000, 1000)?;
+
+        // DEBUG
+        // let a = area_0.clone();
+        // let b = area_1 - area_0;
+        // let p = self.curve.perimeter() * TAU;
+        // println!("a:{a} - b:{b} - 2πp:{p}"); // b == p for untwisted revolution curve
 
         Some((area_0, area_1 - area_0))
     }
@@ -225,39 +230,11 @@ impl UnrootedRevolutionSurfaceDescriptor {
             revolution_angle,
             section_parameter,
             revolution_axis_position: self.get_axis_position_when_scaled(scale),
-            section_half_turn_per_revolution: self.half_turn_count,
+            twist: self.simplified_twist as isize,
+            rotational_symmetry_order: self.simplified_rotational_symmetry_order,
             curve_scale_factor: scale,
         };
         self.curve.point_on_surface(&surface_point)
-    }
-
-    pub fn shifts_to_get_n_spirals(
-        &self,
-        half_nb_helix: usize,
-        nb_spirals: usize,
-    ) -> Option<ShiftGenerator> {
-        if nb_spirals == 0 || half_nb_helix == 0 || nb_spirals >= half_nb_helix {
-            return None;
-        }
-
-        let nb_helix = half_nb_helix * 2;
-        nb_helix.is_multiple_of(nb_spirals).then(|| {
-            let additional_shift = if self.half_turn_count % 2 == 1 {
-                half_nb_helix
-            } else {
-                0
-            };
-            let a = nb_helix / nb_spirals;
-            let coprimes = (1..a)
-                .filter(|n| gcd(*n as isize, a as isize) == 1)
-                .collect();
-            ShiftGenerator {
-                coprimes_with_a: coprimes,
-                nb_spirals,
-                additional_shift,
-                nb_section: nb_helix,
-            }
-        })
     }
 
     pub fn meshes(&self) -> Vec<GltfMesh> {
@@ -282,7 +259,9 @@ impl UnrootedRevolutionSurfaceDescriptor {
                                 revolution_angle,
                                 section_parameter: s,
                                 revolution_axis_position: self.get_revolution_axis_position(),
-                                section_half_turn_per_revolution: self.half_turn_count,
+                                twist: self.simplified_twist as isize,
+                                rotational_symmetry_order: self
+                                    .simplified_rotational_symmetry_order,
                                 curve_scale_factor: 1.,
                             };
                             let position = frame.transform_vec(dvec_to_vec(
@@ -313,94 +292,6 @@ impl UnrootedRevolutionSurfaceDescriptor {
     }
 }
 
-impl RootingParameters {
-    fn nb_spirals(&self, surface_half_turn_count: isize) -> usize {
-        // let q be the total shift and n be the number of segments
-        // Spirals seen as set of segments are class of equivalence for the relation ~
-        // where a ~ b iff there exists k1, k2 st a = b  + k1 q + k2 n
-        //
-        // let d = gcd(q, n). If a ~ b then a = b (mod d)
-        //
-        // Reciprocal. if a = b (mod d) there exists x y st xq + yn = d
-        //
-        // a = k (xq + yn) + b
-        // so a ~ b
-        //
-        // So ~ is the relation of equivalence modulo d and has d classes.
-        let additional_shift = if surface_half_turn_count % 2 == 1 {
-            self.nb_helix_per_half_section
-        } else {
-            0
-        };
-        let total_shift = self.shift_per_turn + additional_shift as isize;
-        gcd(total_shift, self.nb_helix_per_half_section as isize * 2) as usize
-    }
-}
-
-/// A structure that can generate values of shift so that the resulting number of spirals is fixed.
-pub struct ShiftGenerator {
-    coprimes_with_a: Vec<usize>,
-    nb_spirals: usize,
-    additional_shift: usize,
-    nb_section: usize,
-}
-
-impl ShiftGenerator {
-    /// Return the i-th value generated by self, and check that self if still valid.
-    pub fn ith_value(
-        &self,
-        i: isize,
-        nb_spirals: usize,
-        surface: &UnrootedRevolutionSurfaceDescriptor,
-        half_nb_helix: usize,
-    ) -> Option<isize> {
-        self.still_valid(nb_spirals, surface, half_nb_helix)
-            .then(|| {
-                // To get a rooting with `d` spirals within `k` segments. We must have
-                // `gcd(total_shift, k) = d` (see the implementation of `Rooting::Parameters::nb_spirals`)
-                // this means that
-                // (1) `d` divides `k`, so `k = a·d` for an integer `a`.
-                // (2) total_shift = b·d` where `a` and `b` are coprimes.
-                //
-                // So if `a = k / d` and `ℤ_a*` is the set of all numbers <= `a` that are coprime with `a`,
-                // the set of total_shift that give the desired amount of spirals is
-                // `Shifts_d = {(n·a + p) * d | n ∈ ℤ, p ∈ ℤ_a* }`
-                let nb_coprime = self.coprimes_with_a.len();
-                let p = {
-                    let idx = i.rem_euclid(nb_coprime as isize) as usize;
-                    self.coprimes_with_a[idx] as isize
-                };
-                let n = i.div_euclid(nb_coprime as isize);
-                let a = (self.nb_section / self.nb_spirals) as isize;
-
-                let total_shift = (n * a + p) * nb_spirals as isize;
-                total_shift - self.additional_shift as isize
-            })
-    }
-
-    fn still_valid(
-        &self,
-        nb_spirals: usize,
-        surface: &UnrootedRevolutionSurfaceDescriptor,
-        half_nb_helix: usize,
-    ) -> bool {
-        if self.nb_spirals != nb_spirals {
-            return false;
-        }
-
-        let nb_helix = half_nb_helix * 2;
-        if nb_helix != self.nb_section {
-            return false;
-        }
-        let expected_additional_shift = if surface.half_turn_count % 2 == 1 {
-            half_nb_helix
-        } else {
-            0
-        };
-        self.additional_shift == expected_additional_shift
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct RevolutionSimulationParameters {
     pub nb_section_per_segment: usize,
@@ -411,6 +302,7 @@ pub struct RevolutionSimulationParameters {
     pub time_span: f64,
     pub simulation_step: f64,
     pub method: EquadiffSolvingMethod,
+    pub avg_vs_min_max_ext_weight: f64,
 }
 
 impl Default for RevolutionSimulationParameters {
@@ -424,6 +316,7 @@ impl Default for RevolutionSimulationParameters {
             time_span: 5.0e-2,
             simulation_step: 1e-3,
             method: EquadiffSolvingMethod::Ralston,
+            avg_vs_min_max_ext_weight: 0.9,
         }
     }
 }
@@ -512,7 +405,8 @@ impl RootedRevolutionSurface {
             revolution_angle,
             section_parameter,
             revolution_axis_position: self.surface.get_axis_position_when_scaled(self.scale),
-            section_half_turn_per_revolution: self.surface.half_turn_count,
+            twist: self.surface.simplified_twist as isize,
+            rotational_symmetry_order: self.surface.simplified_rotational_symmetry_order,
             curve_scale_factor: self.scale,
         };
 
@@ -527,7 +421,8 @@ impl RootedRevolutionSurface {
             revolution_angle,
             section_parameter,
             revolution_axis_position: self.surface.get_axis_position_when_scaled(self.scale),
-            section_half_turn_per_revolution: self.surface.half_turn_count,
+            twist: self.surface.simplified_twist as isize,
+            rotational_symmetry_order: self.surface.simplified_rotational_symmetry_order,
             curve_scale_factor: self.scale,
         };
 
@@ -546,12 +441,9 @@ impl RootedRevolutionSurface {
     }
 
     pub fn total_shift(&self) -> isize {
-        let additional_shift = if self.surface.half_turn_count % 2 == 1 {
-            self.rooting_parameters.nb_helix_per_half_section
-        } else {
-            0
-        };
-        self.rooting_parameters.shift_per_turn + additional_shift as isize
+        let rot_shift = (self.rooting_parameters.nb_helices * self.surface.simplified_twist)
+            / self.surface.simplified_rotational_symmetry_order;
+        self.rooting_parameters.winding + rot_shift as isize
     }
 
     pub fn curve_is_open(&self) -> bool {
@@ -559,11 +451,20 @@ impl RootedRevolutionSurface {
     }
 
     pub fn nb_spirals(&self) -> usize {
-        self.nb_spirals
+        self.rooting_parameters.nb_spirals
     }
 
-    pub fn half_turn_count(&self) -> isize {
-        self.surface.half_turn_count
+    pub fn twist(&self) -> isize {
+        self.surface.simplified_twist as isize
+    }
+
+    pub fn rotational_symmetry_order(&self) -> isize {
+        self.surface.simplified_rotational_symmetry_order as isize
+    }
+
+    pub fn section_fraction_rotation_per_revolution(&self) -> f64 {
+        -(self.surface.simplified_twist as f64
+            / self.surface.simplified_rotational_symmetry_order as f64)
     }
 
     pub fn curve_descriptor(
@@ -576,7 +477,8 @@ impl RootedRevolutionSurface {
             curve_scale_factor: self.scale,
             chebyshev_smoothening: self.rooting_parameters.junction_smoothening,
             interpolation: interpolations,
-            half_turns_count: self.surface.half_turn_count,
+            twist: self.surface.simplified_twist as isize,
+            rotational_symmetry_order: self.surface.simplified_rotational_symmetry_order,
             revolution_radius: -self.surface.get_axis_position_when_scaled(self.scale),
             nb_turn: None,
             revolution_angle_init: None,
@@ -595,15 +497,21 @@ impl RootedRevolutionSurface {
     pub fn rescale_section(&mut self, scaling_factor: f64) {
         self.scale *= scaling_factor;
         self.surface.revolution_radius = self.surface.revolution_radius.scaled(1. / scaling_factor);
-        self.area_per_radius_unit *= scaling_factor.powi(2);
+        // fix by NS: scaling section account just by ^1 not ^2
+        self.area_per_radius_unit *= scaling_factor; //.powi(2); // TO BE CHECKED BY NS
         self.area_radius_0 *= scaling_factor;
     }
 
     pub fn rescale_radius(&mut self, objective: usize, actual: usize) {
-        let incr = (objective as f64 - actual as f64) / self.area_per_radius_unit;
+        // let incr = (objective as f64 - actual as f64) / self.area_per_radius_unit;
 
+        // match &mut self.surface.revolution_radius {
+        //     RevolutionSurfaceRadius::Left(x) | RevolutionSurfaceRadius::Right(x) => *x += incr,
+        //     RevolutionSurfaceRadius::Inside(_) => (),
+        // }
+        let scale = objective as f64 / actual.max(1) as f64;
         match &mut self.surface.revolution_radius {
-            RevolutionSurfaceRadius::Left(x) | RevolutionSurfaceRadius::Right(x) => *x += incr,
+            RevolutionSurfaceRadius::Left(x) | RevolutionSurfaceRadius::Right(x) => *x *= scale,
             RevolutionSurfaceRadius::Inside(_) => (),
         }
     }
@@ -638,10 +546,11 @@ mod tests {
         let surface = UnrootedRevolutionSurfaceDescriptor {
             curve: CurveDescriptor2D::Ellipse {
                 semi_minor_axis: r.into(),
-                semi_major_axis: r.into(),
+                semi_major_axis: R.into(),
             },
             revolution_radius: RevolutionSurfaceRadius::Left(R - r),
-            half_turn_count: 0,
+            simplified_twist: 0,
+            simplified_rotational_symmetry_order: 2,
             curve_plane_position: Vec3::zero(),
             curve_plane_orientation: Rotor3::identity(),
         };

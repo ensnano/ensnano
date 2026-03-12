@@ -1187,6 +1187,16 @@ impl DesignContent {
             println!("points = {s2}\n}}");
         }
 
+        // // PLAYING AROUND
+        // // Get the lengths of the helices attached to a closed bezier curve
+        // for (h_id, h) in design.helices.iter() {
+        //     if let Some(curve) = h.instantiated_curve.as_ref() {
+        //         println!("Helix {h_id} is curved");
+        //         let len = curve.compute_length();
+        //         println!("Helix {h_id}: {len}");
+        //     }
+        // }
+
         // Output
         let mut ret = Self {
             object_type,

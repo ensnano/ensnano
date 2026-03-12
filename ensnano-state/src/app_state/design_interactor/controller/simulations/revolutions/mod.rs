@@ -46,6 +46,7 @@ pub(crate) struct RevolutionSurfaceSystem {
     scaffold_len_target: usize,
     current_scaffold_length: Option<usize>,
     simulation_parameters: RevolutionSimulationParameters,
+    spring_relaxation_state: Option<SpringRelaxationState>,
 }
 
 impl Clone for RevolutionSurfaceSystem {
@@ -58,6 +59,7 @@ impl Clone for RevolutionSurfaceSystem {
             scaffold_len_target: self.scaffold_len_target,
             current_scaffold_length: self.current_scaffold_length,
             simulation_parameters: self.simulation_parameters.clone(),
+            spring_relaxation_state: self.spring_relaxation_state.clone(),
         }
     }
 }
@@ -81,6 +83,7 @@ impl RevolutionSurfaceSystem {
             scaffold_len_target,
             current_scaffold_length: None,
             simulation_parameters,
+            spring_relaxation_state: None,
         }
     }
 
@@ -111,22 +114,22 @@ impl RevolutionSurfaceSystem {
 
         let curve_desc = self.to_curve_desc(false).unwrap();
 
-        let thetas = self
-            .last_thetas
-            .clone()
-            .unwrap_or_else(|| self.topology.theta_ball_init());
+        // let thetas = self
+        //     .last_thetas
+        //     .clone()
+        //     .unwrap_or_else(|| self.topology.theta_ball_init());
         let mut total_len = 0;
         for desc in curve_desc {
             let len = desc.compute_length().unwrap();
-            println!("length ~= {len:?}");
-            println!("length ~= {:?} nt", len / self.helix_parameters.rise as f64);
+            // println!("length ~= {len:?} nm");
+            // println!("length ~= {:?} nt", len / self.helix_parameters.rise as f64);
             total_len += (len / self.helix_parameters.rise as f64).floor() as usize;
         }
 
-        println!("total len {total_len}");
-        let len_by_sum =
-            (self.total_length(&thetas) / (self.helix_parameters.rise as f64)).floor() as usize;
-        println!("total len by sum {len_by_sum}");
+        // println!("total len {total_len} nt");
+        // let len_by_sum =
+        //     (self.total_length(&thetas) / (self.helix_parameters.rise as f64)).floor() as usize;
+        // println!("total len by sum {len_by_sum} nt");
         self.topology
             .rescale_radius(self.scaffold_len_target, total_len);
         total_len
@@ -146,7 +149,7 @@ impl RevolutionSurfaceSystem {
                 second_derivative_thetas: vec![0.; total_nb_section],
             };
             self.apply_springs(&mut system, Some(&mut spring_relaxation_state));
-            println!("initial spring relax state: {spring_relaxation_state:?}");
+            // println!("initial spring relax state: {spring_relaxation_state:?}");
             let rescaling_factor = 1. / spring_relaxation_state.avg_ext;
             self.topology.rescale_section(rescaling_factor);
             *first = false;
@@ -169,14 +172,23 @@ impl RevolutionSurfaceSystem {
             log::error!("error while solving ODE");
         }
 
-        let rescaling_factor =
-            2. / (spring_relaxation_state.min_ext + spring_relaxation_state.max_ext);
+        let coeff = self
+            .simulation_parameters
+            .avg_vs_min_max_ext_weight
+            .min(1.)
+            .max(0.);
+        let factor_avg = 1. / spring_relaxation_state.avg_ext.max(1.0e-2);
+        let factor_min_max =
+            2. / (spring_relaxation_state.min_ext + spring_relaxation_state.max_ext).max(1.0e-2);
+        let rescaling_factor = coeff * factor_avg + (1. - coeff) * factor_min_max;
         self.topology.rescale_section(rescaling_factor);
 
-        println!("spring_relax state {spring_relaxation_state:?}");
-        spring_relaxation_state
+        // println!("spring_relax state {spring_relaxation_state:?}");
+        let ret = spring_relaxation_state
             .max_ext
-            .max(1. / spring_relaxation_state.min_ext)
+            .max(1. / spring_relaxation_state.min_ext);
+        self.spring_relaxation_state = Some(spring_relaxation_state);
+        ret
     }
 
     fn helix_axis(&self, section_idx: usize, thetas: &[f64]) -> DVec3 {
@@ -185,15 +197,15 @@ impl RevolutionSurfaceSystem {
         .normalized()
     }
 
-    fn total_length(&self, thetas: &[f64]) -> f64 {
-        let mut ret = 0.;
-        for i in self.topology.balls_with_successor() {
-            ret += (self.position_section(self.topology.successor(*i), thetas)
-                - self.position_section(*i, thetas))
-            .mag();
-        }
-        ret
-    }
+    // fn total_length(&self, thetas: &[f64]) -> f64 {
+    //     let mut ret = 0.;
+    //     for i in self.topology.balls_with_successor() {
+    //         ret += (self.position_section(self.topology.successor(*i), thetas)
+    //             - self.position_section(*i, thetas))
+    //         .mag();
+    //     }
+    //     ret
+    // }
 
     fn position_section(&self, section_idx: usize, thetas: &[f64]) -> DVec3 {
         let revolution_angle = self.topology.revolution_angle_ball(section_idx);
@@ -344,7 +356,7 @@ struct RelaxationSystem {
     forces: Vec<DVec3>,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 struct SpringRelaxationState {
     min_ext: f64,
     max_ext: f64,
@@ -360,6 +372,16 @@ impl SpringRelaxationState {
         }
     }
 }
+
+// impl Clone for SpringRelaxationState {
+//     fn clone(&self) -> Self {
+//         SpringRelaxationState {
+//             min_ext: self.min_ext.clone(),
+//             max_ext: self.max_ext.clone(),
+//             avg_ext: self.avg_ext.clone()
+//         }
+//     }
+// }
 
 impl RelaxationSystem {
     fn into_mathru(self) -> Vector<f64> {
@@ -542,6 +564,21 @@ impl AdditionalStructure for RevolutionSurfaceSystem {
 
     fn frame(&self) -> Similarity3 {
         self.topology.get_frame()
+    }
+
+    fn info(&self) -> Option<String> {
+        let len = self.current_scaffold_length?;
+        if let Some(srs) = &self.spring_relaxation_state {
+            Some(format!(
+                "Total length: {} bp\nInterhelices distance: avg: {:>+3.2}% (min: {:>+3.2}% - max: {:>+3.2}%)",
+                len,
+                100. * (srs.avg_ext - 1.),
+                100. * (srs.min_ext - 1.),
+                100. * (srs.max_ext - 1.),
+            ))
+        } else {
+            Some(format!("Total length: {} bp", len))
+        }
     }
 }
 

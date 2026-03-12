@@ -8,13 +8,20 @@ use crate::{
 };
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::f64::consts::{PI, TAU};
+use std::f64::consts::TAU;
 use ultraviolet::{DRotor2, DVec2, DVec3, Isometry2, Mat3, Rotor2, Vec2};
+
+fn default_rotational_symmetry_order() -> usize {
+    0 // legacy: unknown or circle => will be checked and replaced with the correct value in into_curve() of InstantiatedCurveDescriptor_ in mod.rs 
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct InterpolatedCurveDescriptor {
     pub curve: CurveDescriptor2D,
-    pub half_turns_count: isize,
+    #[serde(alias = "half_turns_count")]
+    pub twist: isize,
+    #[serde(default = "default_rotational_symmetry_order")]
+    pub rotational_symmetry_order: usize,
     /// Radius of the revolution trajectory.
     pub revolution_radius: f64,
     /// Scale factor of the section.
@@ -49,13 +56,15 @@ impl InterpolatedCurveDescriptor {
             curve,
             self.interpolation,
             self.chebyshev_smoothening,
-            self.half_turns_count,
+            self.twist,
+            self.rotational_symmetry_order,
         );
         let mut ret = Revolution {
             curve,
             revolution_radius: self.revolution_radius,
             curve_scale_factor: self.curve_scale_factor,
-            half_turns_count: self.half_turns_count,
+            twist: self.twist,
+            rotational_symmetry_order: self.rotational_symmetry_order,
             inverse_curvilinear_abscissa: vec![],
             curvilinear_abscissa: vec![],
             init_revolution_angle: self.revolution_angle_init.unwrap_or(0.),
@@ -91,7 +100,9 @@ enum SmoothInterpolatedCurve {
         interpolators: Vec<ChebyshevPolynomial>,
         curve: CurveDescriptor2D,
         smoothening_coeff: f64,
-        half_turn: bool,
+        // half_turn: bool,
+        twist: isize,
+        rotational_symmetry_order: usize,
     },
     Open {
         interpolator: ChebyshevPolynomial,
@@ -105,7 +116,9 @@ impl SmoothInterpolatedCurve {
         curve: CurveDescriptor2D,
         mut interpolations: Vec<InterpolationDescriptor>,
         smoothening_coeff: f64,
-        nb_half_turn: isize,
+        // nb_half_turn: isize,
+        twist: isize,
+        rotational_symmetry_order: usize,
     ) -> Self {
         if curve.is_open() {
             let interpolator = match interpolations.swap_remove(0) {
@@ -140,7 +153,9 @@ impl SmoothInterpolatedCurve {
                 curve,
                 interpolators,
                 smoothening_coeff,
-                half_turn: nb_half_turn.rem_euclid(2) != 0,
+                // half_turn: nb_half_turn.rem_euclid(2) != 0,
+                twist,
+                rotational_symmetry_order,
             }
         }
     }
@@ -152,7 +167,9 @@ impl SmoothInterpolatedCurve {
             Self::Closed {
                 interpolators,
                 smoothening_coeff,
-                half_turn,
+                // half_turn,
+                twist,
+                rotational_symmetry_order,
                 ..
             } => {
                 // the position on the current segment. If u is close the 0, we interpolate with the
@@ -168,13 +185,16 @@ impl SmoothInterpolatedCurve {
                 // Quantify what "close to 0" and "close to 1" mean.
                 let a = *smoothening_coeff;
 
-                let shift = if *half_turn { 0.5 } else { 0. };
+                // let shift = if *half_turn { 0.5 } else { 0. };
+                let section_rotation_per_revolution =
+                    (*twist as f64 / *rotational_symmetry_order as f64).rem_euclid(1.);
 
                 if u < a {
                     // second half of the interpolation region, v = 0.5 + 1/2 ( u / a)
                     let v = (1. + u / a) / 2.;
-                    let mut v1 =
-                        (interpolators[prev_idx].evaluate(1. - a + v * a) + shift).rem_euclid(1.);
+                    let mut v1 = (interpolators[prev_idx].evaluate(1. - a + v * a)
+                        + section_rotation_per_revolution)
+                        .rem_euclid(1.); // (interpolators[prev_idx].evaluate(1. - a + v * a) + shift).rem_euclid(1.);
                     let v2 = (interpolators[helix_idx].evaluate(v * a)).rem_euclid(1.);
 
                     while v1 > v2 + 0.5 {
@@ -188,7 +208,9 @@ impl SmoothInterpolatedCurve {
                     // first half of the interpolation region
                     let v = (u - (1. - a)) / a / 2.;
                     let v1 = (interpolators[helix_idx].evaluate(1. - a + v * a)).rem_euclid(1.);
-                    let mut v2 = (interpolators[next_idx].evaluate(v * a) - shift).rem_euclid(1.);
+                    let mut v2 = (interpolators[next_idx].evaluate(v * a)
+                        - section_rotation_per_revolution)
+                        .rem_euclid(1.); // (interpolators[next_idx].evaluate(v * a) - shift).rem_euclid(1.);
 
                     while v2 > v1 + 0.5 {
                         v2 -= 1.;
@@ -241,7 +263,8 @@ pub(super) struct Revolution {
     curve: SmoothInterpolatedCurve,
     revolution_radius: f64,
     curve_scale_factor: f64,
-    half_turns_count: isize,
+    twist: isize,
+    rotational_symmetry_order: usize,
     /// The element at index i of this vector is a polynomial interpolating the function that maps
     /// a point x in [curvilinear_abscissa(i), curvilinear_abscissa(i+1)] to a time t so that
     /// curvilinear_abscissa(t) = x.
@@ -381,7 +404,8 @@ impl Revolution {
     }
 
     fn default_section_rotation_angle(&self, t: f64) -> f64 {
-        PI * self.half_turns_count as f64 * t.rem_euclid(1.)
+        //        PI * self.twist as f64 * t.rem_euclid(1.) // Fixed bellow: NS
+        TAU * self.twist as f64 / self.rotational_symmetry_order as f64 * t.rem_euclid(1.)
     }
 
     fn t_to_revolution_angle(&self, t: f64) -> f64 {

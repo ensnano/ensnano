@@ -913,12 +913,50 @@ impl Program for LeftPanelState {
                     .request_save_nucleotides_positions();
                 Command::none()
             }
-            LeftPanelMessage::IncrRevolutionShift => {
-                self.revolution_tab.shift_idx += 1;
+            LeftPanelMessage::IncrWinding => {
+                self.revolution_tab.inc_winding();
                 Command::none()
             }
-            LeftPanelMessage::DecrRevolutionShift => {
-                self.revolution_tab.shift_idx -= 1;
+            LeftPanelMessage::DecrWinding => {
+                self.revolution_tab.dec_winding();
+                Command::none()
+            }
+            LeftPanelMessage::IncrNbSpirals => {
+                self.revolution_tab.inc_nb_spirals();
+                Command::none()
+            }
+            LeftPanelMessage::DecrNbSpirals => {
+                self.revolution_tab.dec_nb_spirals();
+                Command::none()
+            }
+            LeftPanelMessage::IncrNbHelices => {
+                self.revolution_tab.inc_nb_helices();
+                Command::none()
+            }
+            LeftPanelMessage::DecrNbHelices => {
+                self.revolution_tab.dec_nb_helices();
+                Command::none()
+            }
+            LeftPanelMessage::IncrTwist => {
+                self.revolution_tab.inc_twist();
+                let unrooted_surface = self
+                    .revolution_tab
+                    .get_current_unrooted_surface(&self.application_state);
+                self.requests
+                    .lock()
+                    .unwrap()
+                    .set_unrooted_surface(unrooted_surface);
+                Command::none()
+            }
+            LeftPanelMessage::DecrTwist => {
+                self.revolution_tab.dec_twist();
+                let unrooted_surface = self
+                    .revolution_tab
+                    .get_current_unrooted_surface(&self.application_state);
+                self.requests
+                    .lock()
+                    .unwrap()
+                    .set_unrooted_surface(unrooted_surface);
                 Command::none()
             }
             LeftPanelMessage::SetKeyboardPriority(priority) => {

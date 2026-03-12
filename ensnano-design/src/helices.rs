@@ -493,6 +493,18 @@ impl Helix {
             .map_or(0, |c| c.curve.as_ref().nb_points())
     }
 
+    pub fn translated_bezier_length(&self, path_is_cyclic: bool) -> f64 {
+        self.instantiated_curve.as_ref().map_or(0., |c| {
+            let geometry = c.curve.clone();
+            // NS: Add -1 or -2 correction to default t_max extension of translated bezier path based on its cyclicity -> TO BE FIXED LATER WHEN CURVE WILL BE REWRITTEN
+            let (t_min, t_max) = (
+                geometry.geometry.t_min(),
+                geometry.geometry.t_max() - (if path_is_cyclic { 2. } else { 1. }),
+            );
+            return geometry.length_by_best_mean(t_min, t_max);
+        })
+    }
+
     pub fn roll_at_pos(&self, n: isize, cst: &HelixParameters) -> f32 {
         let bases_per_turn = match self.helix_parameters {
             None => cst.bases_per_turn,
@@ -776,6 +788,10 @@ impl Helix {
         surface_info.position.rotate_by(self.orientation);
         surface_info.position += self.position;
         Some(surface_info)
+    }
+
+    pub fn get_bezier_path_id(&self) -> Option<BezierPathId> {
+        self.path_id.clone()
     }
 }
 

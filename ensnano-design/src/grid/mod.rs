@@ -868,7 +868,7 @@ impl GridData {
     fn update_all_curves(&mut self, cached_curve: &mut CurveCache) {
         let mut new_helices = self.source_helices.clone();
         for h in new_helices.make_mut().values_mut() {
-            self.update_curve(h, cached_curve);
+            self.update_curve(h, cached_curve); // call to discretize at some point
         }
         let helices: Vec<(usize, &Helix)> =
             new_helices.iter().map(|(h_id, h)| (*h_id, h)).collect();
