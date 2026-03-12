@@ -1164,7 +1164,7 @@ impl InstantiatedCurveDescriptor_ {
                         TwistedTorus::new(desc.clone(), helix_parameters),
                         helix_parameters,
                     ));
-                    println!("Number of nucleotides {}", ret.nb_points());
+                    // println!("Number of nucleotides {}", ret.nb_points());
                     cache.0.insert(desc, ret.clone());
                     ret
                 }
@@ -1510,7 +1510,6 @@ impl Helix {
             let desc = Arc::new(desc);
             self.instantiated_descriptor = Some(desc.clone());
             let hp = &(self.helix_parameters.unwrap_or(*helix_parameters));
-            println!("helix: {} nm {} bpt", hp.rise, hp.bases_per_turn);
             if let Some(curve) = desc.as_ref().instance.try_into_curve(hp) {
                 self.instantiated_curve = Some(InstantiatedCurve {
                     curve,

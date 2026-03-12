@@ -169,7 +169,7 @@ impl GridTypeDescr {
 pub enum GridType {
     Square(SquareGrid),
     Honeycomb(HoneyComb),
-    RotatedHoneycomb(HoneyComb),
+    RotatedHoneycomb(RotatedHoneyComb),
     Hyperboloid(Hyperboloid),
 }
 
@@ -239,7 +239,7 @@ impl GridType {
     }
 
     pub fn rotated_honeycomb(twist: Option<f64>) -> Self {
-        Self::RotatedHoneycomb(HoneyComb { twist })
+        Self::RotatedHoneycomb(RotatedHoneyComb  { twist })
     }
 
     pub fn hyperboloid(h: Hyperboloid) -> Self {
@@ -250,7 +250,7 @@ impl GridType {
         match self {
             Self::Square(SquareGrid { twist }) => GridTypeDescr::Square { twist: *twist },
             Self::Honeycomb(HoneyComb { twist }) => GridTypeDescr::Honeycomb { twist: *twist },
-            Self::RotatedHoneycomb(HoneyComb { twist }) => GridTypeDescr::RotatedHoneycomb { twist: *twist },
+            Self::RotatedHoneycomb(RotatedHoneyComb { twist }) => GridTypeDescr::RotatedHoneycomb { twist: *twist },
             Self::Hyperboloid(h) => GridTypeDescr::Hyperboloid {
                 radius: h.radius,
                 shift: h.shift,
@@ -272,7 +272,8 @@ impl GridType {
     pub fn get_nb_turn(&self) -> Option<f64> {
         match self {
             Self::Square(s) => s.twist,
-            Self::Honeycomb(h) | Self::RotatedHoneycomb(h) => h.twist,
+            Self::Honeycomb(h) => h.twist,
+            Self::RotatedHoneycomb(h) => h.twist,
             Self::Hyperboloid(h) => Some(h.nb_turn_per_100_nt),
         }
     }
@@ -651,7 +652,7 @@ impl GridDivision for RotatedHoneyComb {
             } else {
                 upper
             },
-            y as f32 * r * 3f32.sqrt(),
+            -y as f32 * r * 3f32.sqrt(),
         )
     }
 
@@ -659,7 +660,7 @@ impl GridDivision for RotatedHoneyComb {
         let r = helix_parameters.inter_helix_gap / 2. + helix_parameters.helix_radius;
         let first_guess = (
             (-x / (-3. * r)).floor() as isize,
-            (y / (r * 3f32.sqrt())).round() as isize,
+            (-y / (r * 3f32.sqrt())).round() as isize,
         );
 
         let mut ret = first_guess;

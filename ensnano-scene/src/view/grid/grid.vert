@@ -71,17 +71,18 @@ void main() {
 
     mat4 model_matrix = design_matrix * instances[gl_InstanceIndex].model;
     
-    vec2 coeff = v_grid_type == SQUARE_GRID_TYPE ? vec2(2. * r, 2. * r) : vec2(sqrt(3) * r,  3 * r);
-
-    if (v_grid_type == HYPERBOLOID_GRID_TYPE) {
-        coeff = vec2(1.);
+    vec2 pos;
+    if (v_grid_type == SQUARE_GRID_TYPE) {
+        pos = 2 * r * position;
+    } else if (v_grid_type == HONEYCOMB_GRID_TYPE) {
+        pos = vec2(sqrt(3) * r,  3 * r) * position;
+        pos.y += r;
+    } else if (v_grid_type == ROTATED_HONEYCOMB_GRID_TYPE) {
+        pos = vec2(-3 * r * position.y + r, -sqrt(3) * r * position.x);
+    } else if (v_grid_type == HYPERBOLOID_GRID_TYPE) {
+        pos = position;
     }
 
-    vec2 pos = position * coeff;
-    float y_shift = v_grid_type == SQUARE_GRID_TYPE ? 0.0 : r;
-    if (v_grid_type == HYPERBOLOID_GRID_TYPE) {
-        y_shift = 0.;
-    }
-    vec4 model_space = model_matrix * vec4(0., pos.y + y_shift, pos.x, 1.0); 
+    vec4 model_space = model_matrix * vec4(0., pos.y, pos.x, 1.0); 
     gl_Position = u_proj * u_view * model_space;
 }

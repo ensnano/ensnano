@@ -424,22 +424,22 @@ impl ResourceProvider for GridTextures {
                 ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
                 count: None,
             },
-            wgpu::BindGroupLayoutEntry {
-                binding: 4,
-                visibility: wgpu::ShaderStages::FRAGMENT,
-                ty: wgpu::BindingType::Texture {
-                    multisampled: false,
-                    view_dimension: wgpu::TextureViewDimension::D2,
-                    sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                },
-                count: None,
-            },
-            wgpu::BindGroupLayoutEntry {
-                binding: 5,
-                visibility: wgpu::ShaderStages::FRAGMENT,
-                ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
-                count: None,
-            },
+            // wgpu::BindGroupLayoutEntry {
+            //     binding: 4,
+            //     visibility: wgpu::ShaderStages::FRAGMENT,
+            //     ty: wgpu::BindingType::Texture {
+            //         multisampled: false,
+            //         view_dimension: wgpu::TextureViewDimension::D2,
+            //         sample_type: wgpu::TextureSampleType::Float { filterable: true },
+            //     },
+            //     count: None,
+            // },
+            // wgpu::BindGroupLayoutEntry {
+            //     binding: 5,
+            //     visibility: wgpu::ShaderStages::FRAGMENT,
+            //     ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+            //     count: None,
+            // },
         ]
     }
 
@@ -461,14 +461,14 @@ impl ResourceProvider for GridTextures {
                 binding: 3,
                 resource: wgpu::BindingResource::Sampler(&self.honey_texture.sampler),
             },
-            wgpu::BindGroupEntry {
-                binding: 4,
-                resource: wgpu::BindingResource::TextureView(&self.rotated_honey_texture.view),
-            },
-            wgpu::BindGroupEntry {
-                binding: 5,
-                resource: wgpu::BindingResource::Sampler(&self.rotated_honey_texture.sampler),
-            },
+            // wgpu::BindGroupEntry {
+            //     binding: 4,
+            //     resource: wgpu::BindingResource::TextureView(&self.rotated_honey_texture.view),
+            // },
+            // wgpu::BindGroupEntry {
+            //     binding: 5,
+            //     resource: wgpu::BindingResource::Sampler(&self.rotated_honey_texture.sampler),
+            // },
         ]
     }
 }

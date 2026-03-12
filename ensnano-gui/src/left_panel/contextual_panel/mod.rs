@@ -798,7 +798,7 @@ fn values_of_selection(selection: &Selection, reader: &DesignInteractor) -> Vec<
                 .map(|(k, l1, l2)| format!("Helix {k}: {l2} nt ({l1:.2} nm)"))
                 .collect::<Vec<String>>()
                 .join("\n");
-            vec![format!("{hx_len}\nTotal length: {total_length_nt} nt")]
+            vec![format!("Total length: {total_length_nt} nt\n{hx_len}")]
         }
         _ => Vec::new(),
     }
