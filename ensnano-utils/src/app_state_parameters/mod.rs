@@ -10,6 +10,10 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
+fn show() -> bool {
+    true
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)] // workaround for https://github.com/rust-cli/confy/issues/34
 pub struct AppStateParameters {
@@ -25,6 +29,8 @@ pub struct AppStateParameters {
     pub show_h_bonds: HBondDisplay,
     pub show_bezier_paths: bool,
     pub ui_size: UiSize,
+    #[serde(default = "show")]
+    pub show_external_objects: bool,
 }
 
 impl Default for AppStateParameters {
@@ -42,6 +48,7 @@ impl Default for AppStateParameters {
             show_h_bonds: HBondDisplay::No,
             show_bezier_paths: false,
             ui_size: Default::default(),
+            show_external_objects: true,
         }
     }
 }

@@ -499,7 +499,7 @@ impl AppState {
 
     pub fn set_visibility_sieve(
         &mut self,
-        selection: Vec<Selection>,
+        selection: &[Selection],
         compl: bool,
     ) -> AppStateOperationResult {
         self.0

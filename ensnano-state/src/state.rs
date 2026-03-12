@@ -535,7 +535,7 @@ impl MainState {
         self.modify_state(|s: &mut AppState| s.toggle_widget_basis());
     }
 
-    pub fn set_visibility_sieve(&mut self, selection: Vec<Selection>, compl: bool) {
+    pub fn set_visibility_sieve(&mut self, selection: &[Selection], compl: bool) {
         self.modify_state(|s: &mut AppState| s.set_visibility_sieve(selection, compl));
     }
 
@@ -690,5 +690,16 @@ impl MainState {
             .lock()
             .unwrap()
             .on_notify(Notification::TeleportCamera(camera));
+    }
+
+    pub fn toggle_external_objects_visibility(&mut self) {
+        self.modify_state(|state: &mut AppState| {
+            state.0.make_mut().parameters.show_external_objects =
+                !state.0.parameters.show_external_objects;
+
+            Ok(AppStateOperationOutcome::push(
+                "Toggled external objects' visibility",
+            ))
+        });
     }
 }

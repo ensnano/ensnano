@@ -746,7 +746,7 @@ impl View {
                 log::trace!("..Done");
             }
 
-            if !fake_color {
+            if !fake_color && draw_options.show_external_objects {
                 log::trace!("draw external objects...");
                 self.external_objects_drawer
                     .draw(&mut render_pass, viewer_bind_group);
