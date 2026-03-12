@@ -175,8 +175,7 @@ impl RevolutionSurfaceSystem {
         let coeff = self
             .simulation_parameters
             .avg_vs_min_max_ext_weight
-            .min(1.)
-            .max(0.);
+            .clamp(0., 1.);
         let factor_avg = 1. / spring_relaxation_state.avg_ext.max(1.0e-2);
         let factor_min_max =
             2. / (spring_relaxation_state.min_ext + spring_relaxation_state.max_ext).max(1.0e-2);
@@ -577,7 +576,7 @@ impl AdditionalStructure for RevolutionSurfaceSystem {
                 100. * (srs.max_ext - 1.),
             ))
         } else {
-            Some(format!("Total length: {} bp", len))
+            Some(format!("Total length: {len} bp"))
         }
     }
 }

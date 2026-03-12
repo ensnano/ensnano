@@ -494,6 +494,10 @@ impl Curved for TranslatedPiecewiseBezier {
     fn legacy(&self) -> bool {
         self.legacy
     }
+
+    fn accounts_for_orientation_in_coordinates(&self) -> bool {
+        true
+    }
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]

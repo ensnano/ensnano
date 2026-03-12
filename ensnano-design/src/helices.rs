@@ -501,7 +501,7 @@ impl Helix {
                 geometry.geometry.t_min(),
                 geometry.geometry.t_max() - (if path_is_cyclic { 2. } else { 1. }),
             );
-            return geometry.length_by_best_mean(t_min, t_max);
+            geometry.length_by_best_mean(t_min, t_max)
         })
     }
 
@@ -542,10 +542,11 @@ impl Helix {
             .and_then(|c| {
                 let axis = c.curve.axis_at_pos(n, forward)?;
 
-                // THIS WORKS FOR BEZIER CURVES
-                Some(dvec_to_vec(axis[2]))
-                // THIS WORKS FOR T1
-                // Some(dvec_to_vec(axis[2]).rotated_by(self.orientation))
+                if c.curve.geometry.accounts_for_orientation_in_coordinates() {
+                    Some(dvec_to_vec(axis[2]))
+                } else {
+                    Some(dvec_to_vec(axis[2]).rotated_by(self.orientation))
+                }
             })
             .unwrap_or_else(|| Vec3::unit_x().rotated_by(self.orientation))
     }
@@ -791,7 +792,7 @@ impl Helix {
     }
 
     pub fn get_bezier_path_id(&self) -> Option<BezierPathId> {
-        self.path_id.clone()
+        self.path_id
     }
 }
 

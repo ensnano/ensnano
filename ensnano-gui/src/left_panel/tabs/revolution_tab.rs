@@ -607,7 +607,7 @@ impl RevolutionTab {
 
     /// Make sure the nb of spirals is ≥ 1 and divide nb_helices
     pub(crate) fn check_and_adapt_nb_spirals(&mut self) -> usize {
-        if self.nb_spirals <= 0 {
+        if self.nb_spirals == 0 {
             self.nb_spirals = 1;
         }
         if self.nb_helices % self.nb_spirals != 0 {
