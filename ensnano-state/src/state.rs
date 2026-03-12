@@ -198,9 +198,7 @@ impl MainState {
     }
 
     pub fn apply_copy_operation(&mut self, operation: CopyOperation) {
-        self.modify_state(|app_state: &mut AppState| {
-            app_state.apply_copy_operation(operation.clone())
-        });
+        self.modify_state(|app_state: &mut AppState| app_state.apply_copy_operation(operation));
     }
 
     pub fn apply_design_operation(&mut self, operation: DesignOperation) {
@@ -303,9 +301,7 @@ impl MainState {
     }
 
     pub fn apply_simulation_operation(&mut self, request: SimulationOperation) {
-        self.modify_state(move |app_state: &mut AppState| {
-            app_state.update_simulation(request.clone())
-        });
+        self.modify_state(move |app_state: &mut AppState| app_state.update_simulation(request));
     }
 
     pub fn save_old_state(&mut self, old_state: AppState, label: TransitionLabel) {
@@ -371,7 +367,7 @@ impl MainState {
     /// is returned instead.
     pub fn modify_state(
         &mut self,
-        mut modification: impl AppStateOperation,
+        modification: impl AppStateOperation,
         // undo_label: Option<TransitionLabel>,
     ) {
         let old_state = self.app_state.clone();
@@ -539,7 +535,7 @@ impl MainState {
         self.modify_state(|s: &mut AppState| s.toggle_widget_basis());
     }
 
-    pub fn set_visibility_sieve(&mut self, selection: &Vec<Selection>, compl: bool) {
+    pub fn set_visibility_sieve(&mut self, selection: &[Selection], compl: bool) {
         self.modify_state(|s: &mut AppState| s.set_visibility_sieve(selection, compl));
     }
 
