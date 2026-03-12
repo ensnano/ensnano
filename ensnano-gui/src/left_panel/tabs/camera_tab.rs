@@ -84,6 +84,8 @@ impl GuiTab for CameraTab {
                 text_button("Non-selected", ui_size)
                     .on_press(LeftPanelMessage::ToggleVisibility(true)),
                 text_button("All", ui_size).on_press(LeftPanelMessage::AllVisible),
+                text_button("Ext. Objects", ui_size)
+                    .on_press(LeftPanelMessage::ToggleExternalObjectsVisibility),
             ]
             .width(Length::Fill)
             .spacing(ui_size.button_spacing()),
@@ -156,8 +158,6 @@ impl GuiTab for CameraTab {
             ],
             checkbox("Expand insertions", app_state.expand_insertions())
                 .on_toggle(LeftPanelMessage::SetExpandInsertions),
-            text_button("Toggle external objects' visibility", ui_size)
-                .on_press(LeftPanelMessage::ToggleExternalObjectsVisibility),
         ]
         .spacing(5);
 
