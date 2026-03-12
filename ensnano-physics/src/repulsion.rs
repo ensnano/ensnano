@@ -13,10 +13,9 @@ impl RapierPhysicsSystem {
     }
 }
 
-// Following three functions from the "Particle-based Viscoelastic Fluid Simulation"
 fn simple_kernel_2(r: f32, h: f32) -> f32 {
-    let v = 1.0 - r / h;
-    v * v
+    let v = 1.0 / (r * r) - 1.0 / (h * h);
+    v.max(0.0)
 }
 
 /// Operates a repulsion between all rigid bodies
@@ -70,7 +69,9 @@ fn repulsion_step(system: &mut RapierPhysicsSystem, parameters: &RapierParameter
                     position.translation.vector - collider.position().translation.vector
                 })
                 // which we then filter to only keep valid ranges
-                .filter(|v| v.norm_squared() > 0.0 && v.norm_squared() <= force_range * force_range)
+                .filter(|v| {
+                    v.norm_squared() > f32::EPSILON && v.norm_squared() <= force_range * force_range
+                })
                 // which we then normalize while keeping its length
                 .map(|v| (v.normalize(), v.norm()))
                 // which we then multiply by that square, and some other constants

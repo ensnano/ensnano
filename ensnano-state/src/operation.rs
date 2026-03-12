@@ -19,6 +19,14 @@ pub enum AppStateOperationOutcome {
     NoOp,
 }
 
+impl AppStateOperationOutcome {
+    pub fn push(label: impl Into<Cow<'static, str>>) -> Self {
+        Self::Push {
+            label: label.into(),
+        }
+    }
+}
+
 pub type AppStateOperationResult = Result<AppStateOperationOutcome, OperationError>;
 
 pub trait AppStateOperation {

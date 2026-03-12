@@ -929,6 +929,13 @@ impl Program for LeftPanelState {
                 Command::none()
             }
             LeftPanelMessage::SetFocus(id) => text_input::focus(id),
+            LeftPanelMessage::ToggleExternalObjectsVisibility => {
+                self.requests
+                    .lock()
+                    .unwrap()
+                    .toggle_external_objects_visibility();
+                Command::none()
+            }
         };
 
         let command = Command::batch(vec![

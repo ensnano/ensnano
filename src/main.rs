@@ -1215,11 +1215,11 @@ impl MainStateView<'_> {
 
     fn set_visibility_sieve(&mut self, compl: bool) {
         let selection = self.get_selection().to_vec();
-        self.main_state.set_visibility_sieve(selection, compl);
+        self.main_state.set_visibility_sieve(&selection, compl);
     }
 
     fn clear_visibility_sieve(&mut self) {
-        self.main_state.set_visibility_sieve(vec![], true);
+        self.main_state.set_visibility_sieve(&[], true);
     }
 
     fn need_save(&self) -> Option<Option<PathBuf>> {
