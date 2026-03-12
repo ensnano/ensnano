@@ -40,6 +40,7 @@ use self::{
 use crate::{
     bezier_plane::{BezierPathData, BezierPathId},
     chebyshev_polynomials::{self, ChebyshevPolynomial},
+    curves::discretization::PreComputedPolynomials,
     curves::sphere_concentric_circle::SphereConcentricCircleDescriptor,
     grid::{Edge, GridData, GridPosition, grid_collection::FreeGrids},
     helices::{AdditionalHelix2D, Helix},
@@ -316,6 +317,7 @@ pub struct Curve {
     /// The first nucleotide of each additional helix segment needed to represent the curve.
     additional_segment_left: Vec<usize>,
     pub abscissa_converter: Option<AbscissaConverter>,
+    pub(crate) cached_polynomials: Option<PreComputedPolynomials>,
 }
 
 impl Curve {
@@ -337,13 +339,34 @@ impl Curve {
             nucl_pos_full_turn: None,
             additional_segment_left: Vec::new(),
             abscissa_converter,
+            cached_polynomials: None,
         };
         let len_segment = ret.geometry.rise_ratio().unwrap_or(1.0) * helix_parameters.rise as f64;
         ret.discretize(len_segment, helix_parameters.inclination as f64);
         ret
     }
 
-    fn compute_length<T: Curved + 'static + Sync + Send>(geometry: T) -> f64 {
+    // pub fn compute_translated_bezier_length<T: Curved + 'static + Sync + Send>(geometry: T, path_is_cyclic: bool) -> f64 {
+    //     let (t_min, t_max) = (geometry.t_min(), geometry.t_max() - (if path_is_cyclic { 2. } else { 1. }));
+
+    //     if let Some((x0, x1)) = geometry
+    //         .curvilinear_abscissa(t_min)
+    //         .zip(geometry.curvilinear_abscissa(t_max))
+    //     {
+    //         let ret = x1 - x0;
+    //         // println!("length by curvilinear_abscissa = {ret} nm");
+    //         return ret;
+    //     }
+    //     quadrature::integrate(
+    //         |x| geometry.speed(x).mag(),
+    //         t_min,
+    //         t_max,
+    //         1e-5,
+    //     )
+    //     .integral
+    // }
+
+    pub fn compute_length<T: Curved + 'static + Sync + Send>(geometry: T) -> f64 {
         if let Some((x0, x1)) = geometry
             .curvilinear_abscissa(geometry.t_min())
             .zip(geometry.curvilinear_abscissa(geometry.t_max()))

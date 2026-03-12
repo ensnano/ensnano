@@ -346,6 +346,12 @@ impl ContextualPanel {
                         }
                     }
                 }
+                Selection::BezierControlPoint { .. } => {
+                    column = column.push(text(info_values[0].clone()));
+                }
+                Selection::BezierVertex(_) => {
+                    column = column.push(text(info_values[0].clone()));
+                }
                 _ => (),
             }
             if let Some(builder) = &self.builder {
@@ -769,6 +775,29 @@ fn values_of_selection(selection: &Selection, reader: &DesignInteractor) -> Vec<
             vec![format!("{}", reader.nucl_is_anchor(*nucl))]
         }
         Selection::Xover(_, xover_id) => fmt_xover_len(reader.xover_length(*xover_id)),
+        Selection::BezierControlPoint {
+            helix_id,
+            bezier_control,
+        } => vec![format!(
+            "Helix {:?} BezierControlPoint {:?}",
+            reader.presenter.get_helices().get(helix_id),
+            bezier_control
+        )],
+        Selection::BezierVertex(vertex_id) => {
+            let helices_lengths = reader
+                .presenter
+                .get_lengths_of_helices_attached_to_bezier_path(vertex_id.path_id);
+            if helices_lengths.len() == 0 {
+                return vec!["No Helices attached".into()];
+            }
+            let total_length_nt: usize = helices_lengths.iter().map(|(_, _, l)| *l).sum();
+            let hx_len = helices_lengths
+                .iter()
+                .map(|(k, l1, l2)| format!("Helix {k}: {l2} nt ({l1:.2} nm)"))
+                .collect::<Vec<String>>()
+                .join("\n");
+            vec![format!("{hx_len}\nTotal length: {total_length_nt} nt")]
+        }
         _ => Vec::new(),
     }
 }

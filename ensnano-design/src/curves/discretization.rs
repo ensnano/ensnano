@@ -38,7 +38,8 @@ impl Curve {
         if self.geometry.legacy() {
             return self.discretize_legacy(nucl_rise, inclination);
         }
-        let polynomials = self.compute_polynomials();
+        self.cached_polynomials = self.compute_polynomials();
+        let polynomials = self.cached_polynomials.clone();
 
         let nb_step = if self.geometry.discretize_quickly() {
             NB_FAST_DISCRETIZATION_STEP
@@ -346,6 +347,19 @@ impl Curve {
         }
     }
 
+    pub fn length_by_best_mean(&self, t0: f64, t1: f64) -> f64 {
+        let nb_step = if self.geometry.discretize_quickly() {
+            NB_FAST_DISCRETIZATION_STEP
+        } else {
+            NB_DISCRETIZATION_STEP
+        };
+        let len = match self.cached_polynomials.as_ref() {
+            Some(p) => p.curvilinear_abscissa.evaluate(t1) - p.curvilinear_abscissa.evaluate(t0),
+            None => self.length_by_discretization(t0, t1, nb_step),
+        };
+        len
+    }
+
     /// NS: Should not be used to compute length of a translated curve because speed(t) outputs then a wrong value.
     pub fn length_by_discretization(&self, t0: f64, t1: f64, nb_step: usize) -> f64 {
         if t0 > t1 {
@@ -580,7 +594,8 @@ impl Curve {
 }
 
 /// Polynomials computed at the start of the discretization procedure.
-struct PreComputedPolynomials {
+#[derive(Clone)]
+pub(crate) struct PreComputedPolynomials {
     curvilinear_abscissa: ChebyshevPolynomial,
     inverse_abscissa: ChebyshevPolynomial,
 }
