@@ -531,9 +531,9 @@ impl Helix {
                 let axis = c.curve.axis_at_pos(n, forward)?;
 
                 // THIS WORKS FOR BEZIER CURVES
-                // Some(dvec_to_vec(axis[2]))
+                Some(dvec_to_vec(axis[2]))
                 // THIS WORKS FOR T1
-                Some(dvec_to_vec(axis[2]).rotated_by(self.orientation))
+                // Some(dvec_to_vec(axis[2]).rotated_by(self.orientation))
             })
             .unwrap_or_else(|| Vec3::unit_x().rotated_by(self.orientation))
     }
