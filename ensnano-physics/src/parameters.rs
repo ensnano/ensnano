@@ -82,9 +82,9 @@ impl RapierFloatParameter {
     pub fn name(&self) -> &'static str {
         match self {
             Self::DeltaTime => "Delta time (dt)",
-            Self::RepulsionStrength => "Repulsion strength",
-            Self::RepulsionRange => "Repulsion range",
-            Self::BrownianStrength => "Brownian motion strength",
+            Self::RepulsionStrength => "Electrostatic repulsion strength",
+            Self::RepulsionRange => "Electrostatic repulsion range",
+            Self::BrownianStrength => "Brownian jiggling amplitude",
             Self::EntropicStrength => "Entropic springs strength",
             Self::EntropicDamping => "Entropic springs damping",
             Self::PlanarStrength => "Planar squish strength",
@@ -205,12 +205,12 @@ impl RapierFloatParameter {
     pub fn unit(&self) -> &'static str {
         match self {
             Self::DeltaTime => "s",
-            Self::RepulsionStrength => "nN",
+            Self::RepulsionStrength => "nN.nm⁻²",
             Self::RepulsionRange
             | Self::PlanarCutoff
             | Self::CrossoverRestLength
             | Self::FreeRestLength
-            | Self::BrownianStrength => "nm",
+            | Self::BrownianStrength => "nm.s⁻¹",
             Self::EntropicStrength
             | Self::InterbaseStiffness
             | Self::CrossoverStiffness
