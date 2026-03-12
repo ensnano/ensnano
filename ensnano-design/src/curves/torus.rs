@@ -767,7 +767,6 @@ impl Helix {
             self.curve.as_ref().map(Arc::as_ref)
         {
             // Never called ?
-            println!("I thought this code would never be called");
             Some(curve)
         } else {
             None
