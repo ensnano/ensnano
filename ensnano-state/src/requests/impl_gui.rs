@@ -514,6 +514,10 @@ impl Requests {
             .get_or_insert_default()
             .push(priority);
     }
+
+    pub fn toggle_external_objects_visibility(&mut self) {
+        self.toggle_external_objects_visibility = Some(());
+    }
 }
 
 fn rigid_parameters(parameters: RigidBodyParametersRequest) -> RigidBodyConstants {

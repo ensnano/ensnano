@@ -128,4 +128,6 @@ pub struct Requests {
     pub switched_to_revolution_tab: Option<()>,
     /// A request to toggle the keyboard priority mode.
     pub set_keyboard_priority: Option<Vec<PriorityRequest>>,
+    /// A request to toggle the visibility of external 3D objects.
+    pub toggle_external_objects_visibility: Option<()>,
 }

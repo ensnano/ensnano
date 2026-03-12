@@ -257,7 +257,7 @@ impl DesignInteractor {
 
     pub(super) fn set_visibility_sieve(
         &mut self,
-        selection: Vec<Selection>,
+        selection: &[Selection],
         compl: bool,
     ) -> AppStateOperationResult {
         self.presenter

@@ -956,6 +956,7 @@ impl Controller {
     }
 }
 
+#[derive(Clone)]
 pub enum CopyOperation {
     CopyGrids(Vec<GridId>),
     CopyStrands(Vec<usize>),

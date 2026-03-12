@@ -239,6 +239,8 @@ fn build_colliders(
                     let capsule =
                         ColliderBuilder::capsule_from_endpoints(i_a, j_a, PAIR_CAPSULE_RADIUS)
                             .position(Isometry::translation(middle[0], middle[1], middle[2]))
+                            // near 0 mass
+                            .density(0.01)
                             .collision_groups(InteractionGroups::new(
                                 Group::GROUP_1,
                                 Group::GROUP_1,

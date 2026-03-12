@@ -187,4 +187,5 @@ pub struct DrawOptions {
     pub all_helices_on_axis: bool,
     pub h_bonds: HBondDisplay,
     pub show_bezier_planes: bool,
+    pub show_external_objects: bool,
 }

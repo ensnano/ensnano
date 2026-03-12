@@ -1218,6 +1218,7 @@ pub struct IntervalResult {
     intervals: Vec<(isize, isize)>,
 }
 
+#[derive(Clone)]
 pub enum SimulationOperation<'pres> {
     StartHelices {
         presenter: &'pres Presenter,
