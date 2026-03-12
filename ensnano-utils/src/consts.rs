@@ -78,6 +78,7 @@ pub const ICON_PHYSICAL_ENGINE: char = '\u{e917}';
 pub const ICON_ATGC: char = '\u{e90d}';
 pub const ICON_SQUARE_GRID: char = '\u{e90e}';
 pub const ICON_HONEYCOMB_GRID: char = '\u{e907}';
+pub const ICON_ROTATED_HONEYCOMB_GRID: char = '\u{e907}';
 pub const ICON_NANOTUBE: char = '\u{e914}';
 
 pub const CTRL: &str = if cfg!(target_os = "macos") {

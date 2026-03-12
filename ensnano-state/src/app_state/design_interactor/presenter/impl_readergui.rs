@@ -15,6 +15,10 @@ use std::sync::Arc;
 use ultraviolet::{Rotor3, Vec2, Vec3};
 
 impl DesignInteractor {
+    pub fn grid_type_name(&self, g_id: GridId) -> String {
+        self.presenter.content.grid_type_name(g_id)
+    }
+
     pub fn grid_has_small_spheres(&self, g_id: GridId) -> bool {
         self.presenter.content.grid_has_small_spheres(g_id)
     }

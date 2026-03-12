@@ -162,6 +162,14 @@ impl DesignContent {
         self.grid_manager.get_persistent_phantom_helices_id()
     }
 
+    pub fn grid_type_name(&self, g_id: GridId) -> String {
+        if let Some(g) = self.grid_manager.grids.get(&g_id) {
+            format!("{:?}", g.grid_type)
+        } else {
+            "".into()
+        }
+    }
+
     pub fn grid_has_small_spheres(&self, g_id: GridId) -> bool {
         self.grid_manager.small_spheres.contains(&g_id)
     }
@@ -1186,16 +1194,6 @@ impl DesignContent {
             println!("axis_points = {s1}\n}}");
             println!("points = {s2}\n}}");
         }
-
-        // // PLAYING AROUND
-        // // Get the lengths of the helices attached to a closed bezier curve
-        // for (h_id, h) in design.helices.iter() {
-        //     if let Some(curve) = h.instantiated_curve.as_ref() {
-        //         println!("Helix {h_id} is curved");
-        //         let len = curve.compute_length();
-        //         println!("Helix {h_id}: {len}");
-        //     }
-        // }
 
         // Output
         let mut ret = Self {

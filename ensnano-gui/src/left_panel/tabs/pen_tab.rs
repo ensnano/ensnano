@@ -6,7 +6,7 @@ use crate::{
 use ensnano_design::grid::GridTypeDescr;
 use ensnano_state::app_state::AppState;
 use ensnano_utils::{
-    consts::{ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID},
+    consts::{ICON_HONEYCOMB_GRID, ICON_ROTATED_HONEYCOMB_GRID, ICON_SQUARE_GRID},
     ui_size::UiSize,
 };
 use iced::widget::{checkbox, column, row, text};
@@ -60,6 +60,12 @@ impl GuiTab for PenTab {
                         LeftPanelMessage::TurnPathIntoGrid {
                             path_id,
                             grid_type: GridTypeDescr::Honeycomb { twist: None },
+                        }
+                    ),
+                    icon_button(ICON_ROTATED_HONEYCOMB_GRID, ui_size).on_press(
+                        LeftPanelMessage::TurnPathIntoGrid {
+                            path_id,
+                            grid_type: GridTypeDescr::RotatedHoneycomb { twist: None },
                         }
                     ),
                 ]

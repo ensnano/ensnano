@@ -14,6 +14,10 @@ enum NewGridTypeDescr {
         #[serde(skip_serializing_if = "Option::is_none", default)]
         twist: Option<f64>,
     },
+    RotatedHoneycomb {
+        #[serde(skip_serializing_if = "Option::is_none", default)]
+        twist: Option<f64>,
+    },
     Hyperboloid {
         radius: usize,
         shift: f32,
@@ -31,6 +35,7 @@ impl NewGridTypeDescr {
         match self {
             Self::Square { twist } => GridTypeDescr::Square { twist },
             Self::Honeycomb { twist } => GridTypeDescr::Honeycomb { twist },
+            Self::RotatedHoneycomb { twist } => GridTypeDescr::RotatedHoneycomb { twist },
             Self::Hyperboloid {
                 radius,
                 shift,
@@ -54,6 +59,7 @@ impl NewGridTypeDescr {
 enum OldGridTypeDescr {
     Square,
     Honeycomb,
+    RotatedHoneycomb,
     Hyperboloid {
         radius: usize,
         shift: f32,
@@ -71,6 +77,7 @@ impl OldGridTypeDescr {
         match self {
             Self::Square => GridTypeDescr::Square { twist: None },
             Self::Honeycomb => GridTypeDescr::Honeycomb { twist: None },
+            Self::RotatedHoneycomb => GridTypeDescr::RotatedHoneycomb { twist: None },
             Self::Hyperboloid {
                 radius,
                 shift,

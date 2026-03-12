@@ -10,7 +10,7 @@ use ensnano_state::{
     gui::messages::{FactoryId, ValueId},
 };
 use ensnano_utils::{
-    consts::{ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID},
+    consts::{ICON_HONEYCOMB_GRID, ICON_ROTATED_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID},
     ui_size::UiSize,
 };
 use iced::{
@@ -64,6 +64,9 @@ impl GuiTab for GridTab {
                 )),
                 icon_button(ICON_HONEYCOMB_GRID, ui_size).on_press(LeftPanelMessage::NewGrid(
                     GridTypeDescr::Honeycomb { twist: None }
+                )),
+                icon_button(ICON_ROTATED_HONEYCOMB_GRID, ui_size).on_press(LeftPanelMessage::NewGrid(
+                    GridTypeDescr::RotatedHoneycomb { twist: None }
                 )),
             ]
             .spacing(ui_size.button_spacing()),

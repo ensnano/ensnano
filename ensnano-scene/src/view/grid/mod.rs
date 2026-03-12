@@ -174,6 +174,11 @@ impl GridInstanceExt for GridInstance {
                     + self.grid.helix_parameters.inter_helix_gap;
                 (x * 2. / (3f32.sqrt() * r), (y - r / 2.) * 2. / (3. * r))
             }
+            GridType::RotatedHoneycomb(_) => {
+                let r = self.grid.helix_parameters.helix_radius * 2.
+                    + self.grid.helix_parameters.inter_helix_gap;
+                (-(x - r / 2.) * 2. / (3. * r), y * 2. / (3f32.sqrt() * r))
+            }
             GridType::Hyperboloid(_) => unreachable!(),
         }
     }
@@ -371,13 +376,15 @@ impl Vertexable for GridVertex {
 pub struct GridTextures {
     square_texture: texture::SquareTexture,
     honey_texture: texture::HoneyTexture,
+    rotated_honey_texture: texture::HoneyTexture,
 }
 
 impl GridTextures {
     pub fn new(device: &Device, encoder: &mut wgpu::CommandEncoder) -> Self {
         Self {
             square_texture: texture::SquareTexture::new(device, encoder),
-            honey_texture: texture::HoneyTexture::new(device, encoder),
+            honey_texture: texture::HoneyTexture::new(device, encoder, false),
+            rotated_honey_texture: texture::HoneyTexture::new(device, encoder, true),
         }
     }
 }
@@ -417,6 +424,22 @@ impl ResourceProvider for GridTextures {
                 ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
                 count: None,
             },
+            wgpu::BindGroupLayoutEntry {
+                binding: 4,
+                visibility: wgpu::ShaderStages::FRAGMENT,
+                ty: wgpu::BindingType::Texture {
+                    multisampled: false,
+                    view_dimension: wgpu::TextureViewDimension::D2,
+                    sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                },
+                count: None,
+            },
+            wgpu::BindGroupLayoutEntry {
+                binding: 5,
+                visibility: wgpu::ShaderStages::FRAGMENT,
+                ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                count: None,
+            },
         ]
     }
 
@@ -437,6 +460,14 @@ impl ResourceProvider for GridTextures {
             wgpu::BindGroupEntry {
                 binding: 3,
                 resource: wgpu::BindingResource::Sampler(&self.honey_texture.sampler),
+            },
+            wgpu::BindGroupEntry {
+                binding: 4,
+                resource: wgpu::BindingResource::TextureView(&self.rotated_honey_texture.view),
+            },
+            wgpu::BindGroupEntry {
+                binding: 5,
+                resource: wgpu::BindingResource::Sampler(&self.rotated_honey_texture.sampler),
             },
         ]
     }

@@ -508,6 +508,7 @@ fn add_grid_content<'a>(
                 text_button("Twist", ui_size).on_press(LeftPanelMessage::StartTwist),
             TwistStatus::CannotTwist => text_button("Twist", ui_size),
         },
+        text(info_values[2].clone()),
         checkbox(
             "Persistent phantoms",
             info_values[0].parse::<bool>().unwrap()
@@ -756,6 +757,7 @@ fn values_of_selection(selection: &Selection, reader: &DesignInteractor) -> Vec<
                     }
                 })
                 .collect();
+            ret.push(reader.grid_type_name(*g_id));
             if let Some(f) = reader.get_grid_nb_turn(*g_id) {
                 ret.push(f.to_string());
             }

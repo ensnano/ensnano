@@ -40,7 +40,13 @@ buffer InstancesBlock {
 };
 
 
+
 void main() {
+    uint SQUARE_GRID_TYPE = 0;
+    uint HONEYCOMB_GRID_TYPE = 1;
+    uint ROTATED_HONEYCOMB_GRID_TYPE = 2;
+    uint HYPERBOLOID_GRID_TYPE = 3;
+
     uint grid_type = instances[gl_InstanceIndex].grid_type;
     v_grid_type = grid_type % 1000;
     v_fake = grid_type / 1000;
@@ -65,15 +71,15 @@ void main() {
 
     mat4 model_matrix = design_matrix * instances[gl_InstanceIndex].model;
     
-    vec2 coeff = v_grid_type == 0 ? vec2(2. * r, 2. * r) : vec2(sqrt(3) * r,  3 * r);
+    vec2 coeff = v_grid_type == SQUARE_GRID_TYPE ? vec2(2. * r, 2. * r) : vec2(sqrt(3) * r,  3 * r);
 
-    if (v_grid_type == 2) {
+    if (v_grid_type == HYPERBOLOID_GRID_TYPE) {
         coeff = vec2(1.);
     }
 
     vec2 pos = position * coeff;
-    float y_shift = v_grid_type == 0 ? 0.0 : r;
-    if (v_grid_type == 2) {
+    float y_shift = v_grid_type == SQUARE_GRID_TYPE ? 0.0 : r;
+    if (v_grid_type == HYPERBOLOID_GRID_TYPE) {
         y_shift = 0.;
     }
     vec4 model_space = model_matrix * vec4(0., pos.y + y_shift, pos.x, 1.0); 
