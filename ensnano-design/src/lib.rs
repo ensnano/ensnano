@@ -543,7 +543,7 @@ pub trait AdditionalStructure: Send + Sync {
     fn nt_paths(&self) -> Option<Vec<Vec<Vec3>>>;
     fn current_length(&self) -> Option<usize>;
     fn number_of_sections(&self) -> usize;
-    /// Message to be displayed if needed
+    /// Message to be displayed if needed.
     fn info(&self) -> Option<String>;
 }
 

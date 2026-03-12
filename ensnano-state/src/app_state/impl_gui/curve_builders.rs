@@ -149,9 +149,9 @@ fn build_bezier(parameters: &[InstantiatedParameter], app: &AppState) -> Option<
         //     .max(1)); // 0 is not allowed
 
         return Some(CurveDescriptor2D::Bezier(bezier));
-    } else {
-        return None;
     }
+
+    None
 }
 
 fn no_bezier_path_id(_: &[InstantiatedParameter]) -> Option<usize> {

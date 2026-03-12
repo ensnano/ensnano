@@ -353,11 +353,11 @@ impl Curve {
         } else {
             NB_DISCRETIZATION_STEP
         };
-        let len = match self.cached_polynomials.as_ref() {
+
+        match self.cached_polynomials.as_ref() {
             Some(p) => p.curvilinear_abscissa.evaluate(t1) - p.curvilinear_abscissa.evaluate(t0),
             None => self.length_by_discretization(t0, t1, nb_step),
-        };
-        len
+        }
     }
 
     /// NS: Should not be used to compute length of a translated curve because speed(t) outputs then a wrong value.

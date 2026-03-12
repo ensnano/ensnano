@@ -1219,6 +1219,7 @@ pub struct IntervalResult {
 }
 
 #[derive(Clone)]
+#[expect(clippy::large_enum_variant)]
 pub enum SimulationOperation<'pres> {
     StartHelices {
         presenter: &'pres Presenter,

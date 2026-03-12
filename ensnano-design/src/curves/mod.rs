@@ -261,6 +261,11 @@ pub trait Curved {
     fn use_original_iterative_frame_algorithm(&self) -> bool {
         false
     }
+
+    /// Fixes bezier curves's normal_at_pos.
+    fn accounts_for_orientation_in_coordinates(&self) -> bool {
+        false
+    }
 }
 
 /// The bounds of the curve. This describe the interval in which t can be taken.
