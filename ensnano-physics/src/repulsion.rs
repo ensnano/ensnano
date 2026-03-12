@@ -13,10 +13,9 @@ impl RapierPhysicsSystem {
     }
 }
 
-// Following three functions from the "Particle-based Viscoelastic Fluid Simulation"
 fn simple_kernel_2(r: f32, h: f32) -> f32 {
-    let v = 1.0 - r / h;
-    v * v
+    let v = 1.0 / (r * r) - 1.0 / (h * h);
+    v.max(0.0)
 }
 
 /// Operates a repulsion between all rigid bodies
