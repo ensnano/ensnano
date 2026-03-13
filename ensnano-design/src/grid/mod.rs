@@ -125,7 +125,6 @@ impl std::fmt::Display for GridTypeDescr {
     }
 }
 
-
 pub const SQUARE_GRID_TYPE: u32 = 0;
 pub const HONEYCOMB_GRID_TYPE: u32 = 1;
 pub const ROTATED_HONEYCOMB_GRID_TYPE: u32 = 2;
@@ -239,7 +238,7 @@ impl GridType {
     }
 
     pub fn rotated_honeycomb(twist: Option<f64>) -> Self {
-        Self::RotatedHoneycomb(RotatedHoneyComb  { twist })
+        Self::RotatedHoneycomb(RotatedHoneyComb { twist })
     }
 
     pub fn hyperboloid(h: Hyperboloid) -> Self {
@@ -250,7 +249,9 @@ impl GridType {
         match self {
             Self::Square(SquareGrid { twist }) => GridTypeDescr::Square { twist: *twist },
             Self::Honeycomb(HoneyComb { twist }) => GridTypeDescr::Honeycomb { twist: *twist },
-            Self::RotatedHoneycomb(RotatedHoneyComb { twist }) => GridTypeDescr::RotatedHoneycomb { twist: *twist },
+            Self::RotatedHoneycomb(RotatedHoneyComb { twist }) => {
+                GridTypeDescr::RotatedHoneycomb { twist: *twist }
+            }
             Self::Hyperboloid(h) => GridTypeDescr::Hyperboloid {
                 radius: h.radius,
                 shift: h.shift,

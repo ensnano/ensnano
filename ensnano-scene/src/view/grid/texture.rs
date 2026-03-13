@@ -170,7 +170,11 @@ impl HoneyTexture {
             dimension: wgpu::TextureDimension::D2,
             format: TEXTURE_FORMAT,
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::RENDER_ATTACHMENT,
-            label: Some(if rotated { "honeycomb rotated texture" } else { "honeycomb texture" }),
+            label: Some(if rotated {
+                "honeycomb rotated texture"
+            } else {
+                "honeycomb texture"
+            }),
             view_formats: Default::default(),
         });
 
@@ -194,7 +198,7 @@ fn fill_honeycomb_texture(
     target: &TextureView,
     device: &Device,
     encoder: &mut wgpu::CommandEncoder,
-    rotated: bool
+    rotated: bool,
 ) {
     let pipeline = pipeline(device);
     let vertices = honeycomb_texture_vertices(rotated);
@@ -281,16 +285,16 @@ fn honeycomb_texture_vertices(rotated: bool) -> Vertices {
                 } else {
                     builder.line_to(point(*x, *y));
                 }
-            }    
+            }
         }
-        true => {   
+        true => {
             for (i, (x, y)) in points.iter().enumerate() {
                 if i == 0 {
                     builder.begin(point(-*y, *x));
                 } else {
                     builder.line_to(point(-*y, *x));
                 }
-            }    
+            }
         }
     }
     builder.end(false);

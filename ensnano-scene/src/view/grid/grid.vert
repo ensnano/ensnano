@@ -64,7 +64,7 @@ void main() {
     vec2 position = vec2((max_x - min_x) * a_position.x + min_x,
                     (max_y - min_y) * a_position.y + min_y);
 
-    v_tex_honey_coords = position * vec2(1., -1.);
+    v_tex_honey_coords = position * vec2(1., 1.);
     v_tex_square_coords = position;
 
     mat4 design_matrix = model_matrix2[instances[gl_InstanceIndex].design_id];

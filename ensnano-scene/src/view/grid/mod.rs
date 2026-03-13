@@ -10,7 +10,10 @@ use crate::{
         letter::LetterInstance,
     },
 };
-use ensnano_design::{grid::{GridDivision as _, GridId, GridInstance, GridPosition, GridType}, parameters::HelixParameters};
+use ensnano_design::{
+    grid::{GridDivision as _, GridId, GridInstance, GridPosition, GridType},
+    parameters::HelixParameters,
+};
 use ensnano_utils::instance::Instance;
 use std::collections::BTreeMap;
 use ultraviolet::{Mat4, Vec2, Vec3, Vec4};
@@ -109,23 +112,23 @@ impl GridInstanceExt for GridInstance {
                 max_x = h.grid_radius(&self.grid.helix_parameters);
                 min_y = -h.grid_radius(&self.grid.helix_parameters);
                 max_y = h.grid_radius(&self.grid.helix_parameters);
-            },
-            // GridType::RotatedHoneycomb(h) => {
-            //     // [[NS:]] No comprendo lo que debo hacer
-            //     // let ix = self.min_x;
-            //     // let ax = self.max_x;
-            //     // let iy = self.min_y;
-            //     // let ay = self.max_y;
-                
-            //     // for (x,y) in vec![(ix,iy), (ix, ay), (ax, iy), (ax, ay)] {
-            //     //     println!("{:?}",h.origin_helix(&HelixParameters::GEARY_2014_DNA, y as isize, x as isize));
-            //     // }
-            //     // println!("{ix} {ax} {iy} {ay}");
-            //     min_x = self.min_y as f32;
-            //     max_x = self.max_y as f32;
-            //     min_y = self.min_x as f32;
-            //     max_y = self.max_x as f32;
-            // },
+            }
+            GridType::RotatedHoneycomb(h) => {
+                //     // [[NS:]] No comprendo lo que debo hacer
+                //     // let ix = self.min_x;
+                //     // let ax = self.max_x;
+                //     // let iy = self.min_y;
+                //     // let ay = self.max_y;
+
+                //     // for (x,y) in vec![(ix,iy), (ix, ay), (ax, iy), (ax, ay)] {
+                //     //     println!("{:?}",h.origin_helix(&HelixParameters::GEARY_2014_DNA, y as isize, x as isize));
+                //     // }
+                //     // println!("{ix} {ax} {iy} {ay}");
+                min_x = self.min_y as f32;
+                max_x = self.max_y as f32;
+                min_y = self.min_x as f32;
+                max_y = self.max_x as f32;
+            }
             _ => {
                 min_x = self.min_x as f32;
                 max_x = self.max_x as f32;
@@ -167,12 +170,12 @@ impl GridInstanceExt for GridInstance {
             (vec.dot(x_dir), vec.dot(y_dir))
         };
         self.contains_point(x, y).then(|| {
-            let (u,v) = self.convert_coord(x,y);
+            let (u, v) = self.convert_coord(x, y);
             let (x, y) = self
                 .grid
                 .grid_type
                 .interpolate(&self.grid.helix_parameters, x, y);
-            println!("[[NS:]]{u} == {x} et {v} == {y} {} {} {} {}", self.min_x, self.max_x, self.min_y, self.max_y);
+            // println!("[[NS:]]{u} == {x} et {v} == {y} {} {} {} {}", self.min_x, self.max_x, self.min_y, self.max_y);
             GridIntersection {
                 depth: ret,
                 grid_id: self.id,
@@ -209,14 +212,26 @@ impl GridInstanceExt for GridInstance {
             h.contains_point(&self.grid.helix_parameters, x, y)
         } else {
             let (x, y) = self.convert_coord(x, y);
-            println!("[[NS:]]{} ≤ {x} ≤ {} ? et {} ≤ {y} ≤ {} ?", self.min_x, self.max_x, self.min_y, self.max_y);
 
-            let ret = x >= self.min_x as f32 - 0.025
+            // let ret =
+            // match self.grid.grid_type {
+            // GridType::RotatedHoneycomb(_) => {
+            //     println!("[[NS:]]{} ≤ {x} ≤ {} ? et {} ≤ {y} ≤ {} ?", self.min_x, self.max_x, self.min_y, self.max_y);
+            //     x >= self.min_x as f32 - 0.025
+            //         && x <= self.max_x as f32 + 0.025
+            //         && y >= self.min_y as f32 - 0.025
+            //         && y <= self.max_y as f32 + 0.025
+            // },
+            // _ => {
+            //     // println!("[[NS:]]{} ≤ {x} ≤ {} ? et {} ≤ {y} ≤ {} ?", self.min_y, self.max_y, self.min_x, self.max_x);
+            x >= self.min_x as f32 - 0.025
                 && x <= self.max_x as f32 + 0.025
                 && y >= self.min_y as f32 - 0.025
-                && y <= self.max_y as f32 + 0.025;
-            println!("[[NS:]] contains: {ret}");
-            ret
+                && y <= self.max_y as f32 + 0.025
+            // },
+            // };
+            // println!("[[NS:]] contains: {ret}");
+            // ret
         }
     }
 }
