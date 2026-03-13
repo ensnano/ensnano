@@ -41,9 +41,9 @@ fn brownian_motion_step(system: &mut RapierPhysicsSystem, parameters: &RapierPar
         return;
     }
 
-    let dt0 = RapierParameters::default().dt;
+    let dt0 = RapierParameters::default().speed;
 
-    let delta = (parameters.dt / dt0).sqrt();
+    let delta = (parameters.speed / dt0).sqrt();
 
     let displacements = handles
         .clone()
