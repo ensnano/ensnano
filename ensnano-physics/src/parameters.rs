@@ -127,7 +127,7 @@ impl RapierFloatParameter {
 
     pub fn min_value(&self) -> f32 {
         match self {
-            Self::Speed => 1.0,
+            Self::Speed => 0.1,
             Self::RepulsionRange => 0.0001,
             Self::RepulsionStrength
             | Self::BrownianStrength

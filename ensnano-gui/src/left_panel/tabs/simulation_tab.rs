@@ -241,7 +241,7 @@ impl GuiTab for SimulationTab {
                 self.rapier_parameters,
                 &self.rapier_parameter_fields,
                 ui_size,
-            )
+            ),
         ]
         .spacing(5);
 
@@ -357,7 +357,14 @@ fn rapier_parameters_field_editor(
                     |_| LeftPanelMessage::Nothing,
                 )
                 .width(Length::FillPortion(2))
-            }
+            },
+            Space::with_width(ui_size.checkbox_spacing()),
+            text_button("↺", ui_size).on_press_maybe(enabled.then(|| {
+                LeftPanelMessage::UpdateRapierParameters(copy.with_parameter(
+                    parameter,
+                    RapierParameters::default().get_parameter(parameter),
+                ))
+            }))
         ]
         .align_items(Alignment::Center)
         .width(Length::FillPortion(3)),
