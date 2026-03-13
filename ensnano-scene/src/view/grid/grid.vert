@@ -62,7 +62,7 @@ void main() {
     float max_y = -instances[gl_InstanceIndex].min_y + 0.025;
 
     vec2 position = vec2((max_x - min_x) * a_position.x + min_x,
-                         (max_y - min_y) * a_position.y + min_y);
+                    (max_y - min_y) * a_position.y + min_y);
 
     v_tex_honey_coords = position * vec2(1., -1.);
     v_tex_square_coords = position;
@@ -78,7 +78,7 @@ void main() {
         pos = vec2(sqrt(3) * r,  3 * r) * position;
         pos.y += r;
     } else if (v_grid_type == ROTATED_HONEYCOMB_GRID_TYPE) {
-        pos = vec2(-3 * r * position.y + r, -sqrt(3) * r * position.x);
+        pos = vec2(-3 * r * position.y + r, sqrt(3) * r * position.x);
     } else if (v_grid_type == HYPERBOLOID_GRID_TYPE) {
         pos = position;
     }

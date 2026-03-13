@@ -652,7 +652,7 @@ impl GridDivision for RotatedHoneyComb {
             } else {
                 upper
             },
-            -y as f32 * r * 3f32.sqrt(),
+            y as f32 * r * 3f32.sqrt(),
         )
     }
 
@@ -660,7 +660,7 @@ impl GridDivision for RotatedHoneyComb {
         let r = helix_parameters.inter_helix_gap / 2. + helix_parameters.helix_radius;
         let first_guess = (
             (-x / (-3. * r)).floor() as isize,
-            (-y / (r * 3f32.sqrt())).round() as isize,
+            (y / (r * 3f32.sqrt())).round() as isize,
         );
 
         let mut ret = first_guess;
