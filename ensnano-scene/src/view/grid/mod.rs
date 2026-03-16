@@ -10,7 +10,10 @@ use crate::{
         letter::LetterInstance,
     },
 };
-use ensnano_design::grid::{GridDivision as _, GridId, GridInstance, GridPosition, GridType};
+use ensnano_design::{
+    grid::{GridDivision as _, GridId, GridInstance, GridPosition, GridType},
+    parameters::HelixParameters,
+};
 use ensnano_utils::instance::Instance;
 use std::collections::BTreeMap;
 use ultraviolet::{Mat4, Vec2, Vec3, Vec4};
@@ -103,16 +106,35 @@ impl GridInstanceExt for GridInstance {
 
     fn to_raw(&self) -> GridInstanceRaw {
         let (min_x, min_y, max_x, max_y);
-        if let GridType::Hyperboloid(h) = &self.grid.grid_type {
-            min_x = -h.grid_radius(&self.grid.helix_parameters);
-            max_x = h.grid_radius(&self.grid.helix_parameters);
-            min_y = -h.grid_radius(&self.grid.helix_parameters);
-            max_y = h.grid_radius(&self.grid.helix_parameters);
-        } else {
-            min_x = self.min_x as f32;
-            max_x = self.max_x as f32;
-            min_y = self.min_y as f32;
-            max_y = self.max_y as f32;
+        match &self.grid.grid_type {
+            GridType::Hyperboloid(h) => {
+                min_x = -h.grid_radius(&self.grid.helix_parameters);
+                max_x = h.grid_radius(&self.grid.helix_parameters);
+                min_y = -h.grid_radius(&self.grid.helix_parameters);
+                max_y = h.grid_radius(&self.grid.helix_parameters);
+            }
+            GridType::RotatedHoneycomb(h) => {
+                //     // [[NS:]] No comprendo lo que debo hacer
+                //     // let ix = self.min_x;
+                //     // let ax = self.max_x;
+                //     // let iy = self.min_y;
+                //     // let ay = self.max_y;
+
+                //     // for (x,y) in vec![(ix,iy), (ix, ay), (ax, iy), (ax, ay)] {
+                //     //     println!("{:?}",h.origin_helix(&HelixParameters::GEARY_2014_DNA, y as isize, x as isize));
+                //     // }
+                //     // println!("{ix} {ax} {iy} {ay}");
+                min_x = self.min_y as f32;
+                max_x = self.max_y as f32;
+                min_y = self.min_x as f32;
+                max_y = self.max_x as f32;
+            }
+            _ => {
+                min_x = self.min_x as f32;
+                max_x = self.max_x as f32;
+                min_y = self.min_y as f32;
+                max_y = self.max_y as f32;
+            }
         }
         let grid_type = if self.fake {
             self.grid.grid_type.descr().to_u32() + 1000
@@ -148,10 +170,12 @@ impl GridInstanceExt for GridInstance {
             (vec.dot(x_dir), vec.dot(y_dir))
         };
         self.contains_point(x, y).then(|| {
+            let (u, v) = self.convert_coord(x, y);
             let (x, y) = self
                 .grid
                 .grid_type
                 .interpolate(&self.grid.helix_parameters, x, y);
+            // println!("[[NS:]]{u} == {x} et {v} == {y} {} {} {} {}", self.min_x, self.max_x, self.min_y, self.max_y);
             GridIntersection {
                 depth: ret,
                 grid_id: self.id,
@@ -167,12 +191,17 @@ impl GridInstanceExt for GridInstance {
             GridType::Square(_) => {
                 let r = self.grid.helix_parameters.helix_radius * 2.
                     + self.grid.helix_parameters.inter_helix_gap;
-                (x / r, y / r)
+                (x / r, -y / r)
             }
             GridType::Honeycomb(_) => {
                 let r = self.grid.helix_parameters.helix_radius * 2.
                     + self.grid.helix_parameters.inter_helix_gap;
-                (x * 2. / (3f32.sqrt() * r), (y - r / 2.) * 2. / (3. * r))
+                (x * 2. / (3f32.sqrt() * r), (-y - r / 2.) * 2. / (3. * r))
+            }
+            GridType::RotatedHoneycomb(_) => {
+                let r = self.grid.helix_parameters.helix_radius * 2.
+                    + self.grid.helix_parameters.inter_helix_gap;
+                ((x - r / 2.) * 2. / (3. * r), y * 2. / (3f32.sqrt() * r))
             }
             GridType::Hyperboloid(_) => unreachable!(),
         }
@@ -183,10 +212,26 @@ impl GridInstanceExt for GridInstance {
             h.contains_point(&self.grid.helix_parameters, x, y)
         } else {
             let (x, y) = self.convert_coord(x, y);
+
+            // let ret =
+            // match self.grid.grid_type {
+            // GridType::RotatedHoneycomb(_) => {
+            //     println!("[[NS:]]{} ≤ {x} ≤ {} ? et {} ≤ {y} ≤ {} ?", self.min_x, self.max_x, self.min_y, self.max_y);
+            //     x >= self.min_x as f32 - 0.025
+            //         && x <= self.max_x as f32 + 0.025
+            //         && y >= self.min_y as f32 - 0.025
+            //         && y <= self.max_y as f32 + 0.025
+            // },
+            // _ => {
+            //     // println!("[[NS:]]{} ≤ {x} ≤ {} ? et {} ≤ {y} ≤ {} ?", self.min_y, self.max_y, self.min_x, self.max_x);
             x >= self.min_x as f32 - 0.025
                 && x <= self.max_x as f32 + 0.025
-                && y >= -self.max_y as f32 - 0.025
-                && y <= -self.min_y as f32 + 0.025
+                && y >= self.min_y as f32 - 0.025
+                && y <= self.max_y as f32 + 0.025
+            // },
+            // };
+            // println!("[[NS:]] contains: {ret}");
+            // ret
         }
     }
 }
@@ -371,13 +416,15 @@ impl Vertexable for GridVertex {
 pub struct GridTextures {
     square_texture: texture::SquareTexture,
     honey_texture: texture::HoneyTexture,
+    rotated_honey_texture: texture::HoneyTexture,
 }
 
 impl GridTextures {
     pub fn new(device: &Device, encoder: &mut wgpu::CommandEncoder) -> Self {
         Self {
             square_texture: texture::SquareTexture::new(device, encoder),
-            honey_texture: texture::HoneyTexture::new(device, encoder),
+            honey_texture: texture::HoneyTexture::new(device, encoder, false),
+            rotated_honey_texture: texture::HoneyTexture::new(device, encoder, true),
         }
     }
 }
@@ -417,6 +464,22 @@ impl ResourceProvider for GridTextures {
                 ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
                 count: None,
             },
+            // wgpu::BindGroupLayoutEntry {
+            //     binding: 4,
+            //     visibility: wgpu::ShaderStages::FRAGMENT,
+            //     ty: wgpu::BindingType::Texture {
+            //         multisampled: false,
+            //         view_dimension: wgpu::TextureViewDimension::D2,
+            //         sample_type: wgpu::TextureSampleType::Float { filterable: true },
+            //     },
+            //     count: None,
+            // },
+            // wgpu::BindGroupLayoutEntry {
+            //     binding: 5,
+            //     visibility: wgpu::ShaderStages::FRAGMENT,
+            //     ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+            //     count: None,
+            // },
         ]
     }
 
@@ -438,6 +501,14 @@ impl ResourceProvider for GridTextures {
                 binding: 3,
                 resource: wgpu::BindingResource::Sampler(&self.honey_texture.sampler),
             },
+            // wgpu::BindGroupEntry {
+            //     binding: 4,
+            //     resource: wgpu::BindingResource::TextureView(&self.rotated_honey_texture.view),
+            // },
+            // wgpu::BindGroupEntry {
+            //     binding: 5,
+            //     resource: wgpu::BindingResource::Sampler(&self.rotated_honey_texture.sampler),
+            // },
         ]
     }
 }

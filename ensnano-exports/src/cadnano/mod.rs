@@ -70,6 +70,9 @@ fn get_grid_type(grids: &GridData) -> Result<GridType, CadnanoError> {
 
     for g in grids.source_free_grids.values() {
         match g.grid_type {
+            GridTypeDescr::RotatedHoneycomb { .. } => {
+                return Err(CadnanoError::NonHomogeneousGridTypes);
+            }
             GridTypeDescr::Square { .. } => {
                 if ret == Some(GridType::HoneyComb) {
                     return Err(CadnanoError::NonHomogeneousGridTypes);

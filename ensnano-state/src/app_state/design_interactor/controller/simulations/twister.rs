@@ -157,7 +157,8 @@ impl TwistState {
                 nb_turn_per_100_nt_to_omega(*nb_turn_per_100_nt, helix_parameters)
             }
             GridTypeDescr::Square { twist: grid_twist }
-            | GridTypeDescr::Honeycomb { twist: grid_twist } => {
+            | GridTypeDescr::Honeycomb { twist: grid_twist }
+            | GridTypeDescr::RotatedHoneycomb { twist: grid_twist } => {
                 *grid_twist = Some(twist);
                 twist_to_omega(twist, helix_parameters)
             }

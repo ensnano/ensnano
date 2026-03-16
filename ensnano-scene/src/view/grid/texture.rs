@@ -158,7 +158,7 @@ pub(super) struct HoneyTexture {
 }
 
 impl HoneyTexture {
-    pub(super) fn new(device: &Device, encoder: &mut wgpu::CommandEncoder) -> Self {
+    pub(super) fn new(device: &Device, encoder: &mut wgpu::CommandEncoder, rotated: bool) -> Self {
         let texture = device.create_texture(&wgpu::TextureDescriptor {
             size: wgpu::Extent3d {
                 width: TEXTURE_SIZE,
@@ -170,12 +170,16 @@ impl HoneyTexture {
             dimension: wgpu::TextureDimension::D2,
             format: TEXTURE_FORMAT,
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::RENDER_ATTACHMENT,
-            label: Some("honeycomb texture"),
+            label: Some(if rotated {
+                "honeycomb rotated texture"
+            } else {
+                "honeycomb texture"
+            }),
             view_formats: Default::default(),
         });
 
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
-        fill_honeycomb_texture(&view, device, encoder);
+        fill_honeycomb_texture(&view, device, encoder, rotated);
         let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
             address_mode_u: wgpu::AddressMode::MirrorRepeat,
             address_mode_v: wgpu::AddressMode::MirrorRepeat,
@@ -194,9 +198,10 @@ fn fill_honeycomb_texture(
     target: &TextureView,
     device: &Device,
     encoder: &mut wgpu::CommandEncoder,
+    rotated: bool,
 ) {
     let pipeline = pipeline(device);
-    let vertices = honeycomb_texture_vertices();
+    let vertices = honeycomb_texture_vertices(rotated);
     let vbo = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: None,
         contents: bytemuck::cast_slice(&vertices.vertices),
@@ -265,17 +270,38 @@ fn fill_honeycomb_texture(
     render_pass.draw_indexed(0..vertices.indices.len() as u32, 0, 0..1);
 }
 
-fn honeycomb_texture_vertices() -> Vertices {
+fn honeycomb_texture_vertices(rotated: bool) -> Vertices {
     let mut vertices = Vertices::new();
     let mut stroke_tess = StrokeTessellator::new();
 
     let mut builder = Path::builder();
 
-    builder.begin(point(1., -1.));
-    builder.line_to(point(1., -1. / 3.));
-    builder.line_to(point(-1., 1. / 3.));
-    builder.line_to(point(-1., 1.));
+    let points: [(f32, f32); 4] = [(1., -1.), (1., -1. / 3.), (-1., 1. / 3.), (-1., 1.)];
+    match rotated {
+        false => {
+            for (i, (x, y)) in points.iter().enumerate() {
+                if i == 0 {
+                    builder.begin(point(*x, *y));
+                } else {
+                    builder.line_to(point(*x, *y));
+                }
+            }
+        }
+        true => {
+            for (i, (x, y)) in points.iter().enumerate() {
+                if i == 0 {
+                    builder.begin(point(-*y, *x));
+                } else {
+                    builder.line_to(point(-*y, *x));
+                }
+            }
+        }
+    }
     builder.end(false);
+    // builder.begin(point(1., -1.));
+    // builder.line_to(point(1., -1. / 3.));
+    // builder.line_to(point(-1., 1. / 3.));
+    // builder.line_to(point(-1., 1.));
     let path = builder.build();
 
     stroke_tess
