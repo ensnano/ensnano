@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.7.0
+- New outline view mode
+- New nanostructure relaxation module
+- New revolution surface module interface
+- Better PDB and oxDNA exports
+- Added rotated honeycomb grid 
+- Fixed a lot of typos and bugs
+
+## 0.6.0
+
+- Fixed a lot of typos
+- Changes in filed names in .ens file format (older file still load and will be updated to the new fields) 
+- Improved customizable 3D view
+- Better algorithm for curved DNA strand 3D embedding
+- Better visualisation of twisted revolution shape helix routing algorithm
+=======
+## 0.5.1.1
+
+- Changes in the file format, older files can still be read and will be automatically converted to the new file format when saved.
+>>>>>>> 2fdd3fa8d55515165fa9783effb74cadfaee6e4b
+
 ## 0.5.1
 - Fixed a lot of typos
 - Adding new curve functionality
