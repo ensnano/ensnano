@@ -1,29 +1,8 @@
-
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-
 pub mod bezier;
 mod chebyshev;
 pub mod circle_curve;
 mod discretization;
 mod legacy;
-
 pub mod revolution;
 pub mod sphere_concentric_circle;
 pub mod sphere_like_spiral;
@@ -34,7 +13,6 @@ pub mod torus;
 pub mod torus_concentric_circle;
 pub mod tube_spiral;
 pub mod twist;
-
 
 #[cfg(feature = "ensnano_upcoming")]
 use ensnano_upcoming::{
@@ -609,7 +587,6 @@ pub enum CurveDescriptor {
     SphereLikeSpiral(SphereLikeSpiralDescriptor),
     SpiralCylinder(SpiralCylinderDescriptor),
     TubeSpiral(TubeSpiralDescriptor),
-
     SphereConcentricCircle(SphereConcentricCircleDescriptor),
     Circle(CircleDescriptor),
     #[cfg(feature = "ensnano_upcoming")]
@@ -618,7 +595,6 @@ pub enum CurveDescriptor {
     PillTennisBallSeam(PillTennisBallSeamDescriptor),
     #[cfg(feature = "ensnano_upcoming")]
     PillConcentricStadium(PillConcentricStadiumDescriptor),
-
     Twist(Twist),
     Torus(Torus),
     #[cfg(feature = "ensnano_upcoming")]
@@ -900,6 +876,8 @@ impl InstantiatedCurveDescriptor {
             CurveDescriptor::SpiralCylinder(s) => {
                 Some(InstantiatedCurveDescriptor_::SpiralCylinder(s.clone()))
             }
+            CurveDescriptor::Twist(t) => Some(InstantiatedCurveDescriptor_::Twist(t.clone())),
+            CurveDescriptor::Torus(t) => Some(InstantiatedCurveDescriptor_::Torus(t.clone())),
             #[cfg(feature = "ensnano_upcoming")]
             CurveDescriptor::TorusConcentricCircle(t) => Some(
                 InstantiatedCurveDescriptor_::TorusConcentricCircle(t.clone()),
@@ -916,6 +894,7 @@ impl InstantiatedCurveDescriptor {
             }
             CurveDescriptor::TwistedTorus(t) => {
                 Some(InstantiatedCurveDescriptor_::TwistedTorus(t.clone()))
+            }
             CurveDescriptor::PiecewiseBezier { .. } | CurveDescriptor::TranslatedPath { .. } => {
                 None
             }
