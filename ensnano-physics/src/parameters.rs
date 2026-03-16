@@ -5,9 +5,7 @@
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct RapierParameters {
     pub is_simulation_running: bool,
-    pub cap_ups: bool,
-    pub target_ups: u32,
-    pub dt: f32,
+    pub speed: f32,
     pub ignore_local_parameters: bool,
     pub linear_damping: f32,
     pub angular_damping: f32,
@@ -31,7 +29,7 @@ pub struct RapierParameters {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum RapierFloatParameter {
-    DeltaTime,
+    Speed,
     RepulsionStrength,
     RepulsionRange,
     BrownianStrength,
@@ -57,7 +55,7 @@ pub const RAPIER_FLOAT_PARAMETERS_COUNT: usize = 19;
 impl RapierFloatParameter {
     pub fn values() -> [Self; RAPIER_FLOAT_PARAMETERS_COUNT] {
         [
-            Self::DeltaTime,
+            Self::Speed,
             Self::RepulsionStrength,
             Self::RepulsionRange,
             Self::BrownianStrength,
@@ -81,7 +79,7 @@ impl RapierFloatParameter {
 
     pub fn name(&self) -> &'static str {
         match self {
-            Self::DeltaTime => "Delta time (dt)",
+            Self::Speed => "Speed",
             Self::RepulsionStrength => "Electrostatic repulsion strength",
             Self::RepulsionRange => "Electrostatic repulsion range",
             Self::BrownianStrength => "Brownian jiggling amplitude",
@@ -105,7 +103,7 @@ impl RapierFloatParameter {
 
     pub fn live_editability(&self) -> bool {
         match self {
-            Self::DeltaTime
+            Self::Speed
             | Self::RepulsionStrength
             | Self::RepulsionRange
             | Self::BrownianStrength
@@ -129,7 +127,7 @@ impl RapierFloatParameter {
 
     pub fn min_value(&self) -> f32 {
         match self {
-            Self::DeltaTime => 1.0 / 60.0,
+            Self::Speed => 0.1,
             Self::RepulsionRange => 0.0001,
             Self::RepulsionStrength
             | Self::BrownianStrength
@@ -153,7 +151,7 @@ impl RapierFloatParameter {
 
     pub fn max_value(&self) -> f32 {
         match self {
-            Self::DeltaTime => 2.0,
+            Self::Speed => 200.0,
             Self::RepulsionRange | Self::CrossoverRestLength | Self::FreeRestLength => 10.0,
             Self::BrownianStrength => 0.1,
             Self::FreeStiffness | Self::CrossoverStiffness | Self::InterbaseStiffness => 500.0,
@@ -172,7 +170,7 @@ impl RapierFloatParameter {
 
     pub fn increment(&self) -> f32 {
         match self {
-            Self::DeltaTime => 1.0 / 120.0,
+            Self::Speed => 0.5,
             Self::RepulsionRange
             | Self::CrossoverRestLength
             | Self::FreeRestLength
@@ -204,7 +202,7 @@ impl RapierFloatParameter {
     //
     pub fn unit(&self) -> &'static str {
         match self {
-            Self::DeltaTime => "s",
+            Self::Speed => "",
             Self::RepulsionStrength => "nN.nm⁻²",
             Self::RepulsionRange
             | Self::PlanarCutoff
@@ -230,9 +228,7 @@ impl RapierFloatParameter {
 impl RapierParameters {
     const DEFAULT: Self = Self {
         is_simulation_running: false,
-        cap_ups: false,
-        target_ups: 24,
-        dt: 1.0 / 60.0,
+        speed: 1.0,
         ignore_local_parameters: true,
         linear_damping: 0.06,
         angular_damping: 0.6,
@@ -256,7 +252,7 @@ impl RapierParameters {
 
     fn parameters_array(&self) -> [f32; RAPIER_FLOAT_PARAMETERS_COUNT] {
         [
-            self.dt,
+            self.speed,
             self.repulsion_strength,
             self.repulsion_range,
             self.brownian_motion_strength,
@@ -280,7 +276,7 @@ impl RapierParameters {
 
     fn parameters_array_mut(&mut self) -> [&mut f32; RAPIER_FLOAT_PARAMETERS_COUNT] {
         [
-            &mut self.dt,
+            &mut self.speed,
             &mut self.repulsion_strength,
             &mut self.repulsion_range,
             &mut self.brownian_motion_strength,

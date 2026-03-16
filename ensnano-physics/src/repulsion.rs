@@ -25,8 +25,8 @@ fn repulsion_step(system: &mut RapierPhysicsSystem, parameters: &RapierParameter
 
     let constant_factor = 1.0 / 24.0;
 
-    let dt0 = RapierParameters::default().dt;
-    let virtual_seconds = parameters.dt / dt0;
+    let dt0 = RapierParameters::default().speed;
+    let virtual_seconds = parameters.speed / dt0;
 
     let forces = handles
         .clone()

@@ -67,8 +67,7 @@ impl RapierPhysicsSystem {
 
     pub fn step(&mut self, parameters: &RapierParameters) {
         // here we synchronize rapier's parameters to our own
-        self.integration_parameters.dt = parameters.dt;
-        self.integration_parameters.min_ccd_dt = parameters.dt / 100.0;
+        self.integration_parameters.dt = parameters.speed / 60.0;
 
         // actual computation starts here
         self.reset_forces();
