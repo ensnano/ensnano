@@ -18,7 +18,7 @@ use ensnano_utils::{
 };
 use iced::{
     Alignment, Length,
-    widget::{Column, Space, checkbox, column, row, scrollable, slider, text, text_input},
+    widget::{Column, Space, column, row, scrollable, slider, text, text_input},
 };
 use iced_aw::TabLabel;
 use std::{
@@ -151,11 +151,6 @@ impl SimulationTab {
                 self.rapier_parameters.get_parameter(parameter).to_string(),
             );
         }
-
-        self.rapier_parameter_fields.insert(
-            "Target UPS:".to_owned(),
-            self.rapier_parameters.target_ups.to_string(),
-        );
     }
 }
 
@@ -246,7 +241,7 @@ impl GuiTab for SimulationTab {
                 self.rapier_parameters,
                 &self.rapier_parameter_fields,
                 ui_size,
-            )
+            ),
         ]
         .spacing(5);
 
@@ -288,10 +283,6 @@ fn apply_parameter_fields(
         {
             result.set_parameter(parameter, value);
         }
-    }
-
-    if let Some(value) = fields.get("Target UPS:") {
-        result.target_ups = value.parse::<u32>().unwrap_or(parameters.target_ups);
     }
 
     result
@@ -366,66 +357,14 @@ fn rapier_parameters_field_editor(
                     |_| LeftPanelMessage::Nothing,
                 )
                 .width(Length::FillPortion(2))
-            }
-        ]
-        .align_items(Alignment::Center)
-        .width(Length::FillPortion(3)),
-        Space::with_width(Length::FillPortion(1)),
-    ]
-    .align_items(Alignment::Center)
-    .width(Length::Fill)
-    .into()
-}
-
-fn view_ups(
-    parameters: RapierParameters,
-    fields: &HashMap<String, String>,
-    ui_size: UiSize,
-) -> iced::Element<'static, LeftPanelMessage> {
-    let description = "Target UPS:";
-    let default_field_value = parameters.target_ups.to_string();
-    let current_value = fields.get(description).unwrap_or(&default_field_value);
-
-    row![
-        row![
-            text(description),
+            },
             Space::with_width(ui_size.checkbox_spacing()),
-            checkbox("", parameters.cap_ups).on_toggle(move |value| {
-                LeftPanelMessage::UpdateRapierParameters(RapierParameters {
-                    cap_ups: value,
-                    ..parameters
-                })
-            }),
-        ]
-        .align_items(Alignment::Center)
-        .width(Length::FillPortion(2)),
-        Space::with_width(ui_size.checkbox_spacing()),
-        row![
-            keyboard_priority(
-                "Rapier parameters ".to_owned() + description,
-                LeftPanelMessage::SetKeyboardPriority,
-                text_input(current_value, current_value)
-                    .on_input(move |str| {
-                        LeftPanelMessage::UpdateRapierParameterField(description.to_owned(), str)
-                    })
-                    .on_submit(LeftPanelMessage::UpdateRapierParameters(RapierParameters {
-                        target_ups: current_value
-                            .parse::<u32>()
-                            .unwrap_or(parameters.target_ups)
-                            // prevents division by 0 related crash
-                            .max(1),
-                        ..parameters
-                    }))
-                    .width(70),
-            ),
-            Space::with_width(ui_size.checkbox_spacing()),
-            slider(1..=300, parameters.target_ups.clamp(1, 300), move |value| {
-                LeftPanelMessage::UpdateRapierParameters(RapierParameters {
-                    target_ups: value,
-                    ..parameters
-                })
-            })
-            .width(Length::FillPortion(2))
+            text_button("↺", ui_size).on_press_maybe(enabled.then(|| {
+                LeftPanelMessage::UpdateRapierParameters(copy.with_parameter(
+                    parameter,
+                    RapierParameters::default().get_parameter(parameter),
+                ))
+            }))
         ]
         .align_items(Alignment::Center)
         .width(Length::FillPortion(3)),
@@ -443,8 +382,6 @@ fn view_rapier_parameters(
 ) -> iced::Element<'static, LeftPanelMessage> {
     let mut elements: Vec<iced::Element<'static, LeftPanelMessage>> =
         vec![subsection("Relaxation parameters", ui_size).into()];
-
-    elements.push(view_ups(parameters, fields, ui_size));
 
     for parameter in RapierFloatParameter::values() {
         let enabled = parameter.live_editability() || !parameters.is_simulation_running;
