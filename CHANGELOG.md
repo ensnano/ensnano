@@ -5,7 +5,7 @@
 - New nanostructure relaxation module
 - New revolution surface module interface
 - Better PDB and oxDNA exports
-- Added rotated honeycimb grid 
+- Added rotated honeycomb grid 
 - Fixed a lot of typos and bugs
 
 ## 0.6.0
