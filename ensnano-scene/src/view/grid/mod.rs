@@ -12,7 +12,6 @@ use crate::{
 };
 use ensnano_design::{
     grid::{GridDivision as _, GridId, GridInstance, GridPosition, GridType},
-    parameters::HelixParameters,
 };
 use ensnano_utils::instance::Instance;
 use std::collections::BTreeMap;
@@ -113,17 +112,7 @@ impl GridInstanceExt for GridInstance {
                 min_y = -h.grid_radius(&self.grid.helix_parameters);
                 max_y = h.grid_radius(&self.grid.helix_parameters);
             }
-            GridType::RotatedHoneycomb(h) => {
-                //     // [[NS:]] No comprendo lo que debo hacer
-                //     // let ix = self.min_x;
-                //     // let ax = self.max_x;
-                //     // let iy = self.min_y;
-                //     // let ay = self.max_y;
-
-                //     // for (x,y) in vec![(ix,iy), (ix, ay), (ax, iy), (ax, ay)] {
-                //     //     println!("{:?}",h.origin_helix(&HelixParameters::GEARY_2014_DNA, y as isize, x as isize));
-                //     // }
-                //     // println!("{ix} {ax} {iy} {ay}");
+            GridType::RotatedHoneycomb(_) => {
                 min_x = self.min_y as f32;
                 max_x = self.max_y as f32;
                 min_y = self.min_x as f32;
@@ -170,12 +159,10 @@ impl GridInstanceExt for GridInstance {
             (vec.dot(x_dir), vec.dot(y_dir))
         };
         self.contains_point(x, y).then(|| {
-            let (u, v) = self.convert_coord(x, y);
             let (x, y) = self
                 .grid
                 .grid_type
                 .interpolate(&self.grid.helix_parameters, x, y);
-            // println!("[[NS:]]{u} == {x} et {v} == {y} {} {} {} {}", self.min_x, self.max_x, self.min_y, self.max_y);
             GridIntersection {
                 depth: ret,
                 grid_id: self.id,
@@ -416,7 +403,6 @@ impl Vertexable for GridVertex {
 pub struct GridTextures {
     square_texture: texture::SquareTexture,
     honey_texture: texture::HoneyTexture,
-    rotated_honey_texture: texture::HoneyTexture,
 }
 
 impl GridTextures {
@@ -424,7 +410,6 @@ impl GridTextures {
         Self {
             square_texture: texture::SquareTexture::new(device, encoder),
             honey_texture: texture::HoneyTexture::new(device, encoder, false),
-            rotated_honey_texture: texture::HoneyTexture::new(device, encoder, true),
         }
     }
 }

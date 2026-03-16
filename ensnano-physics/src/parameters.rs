@@ -30,7 +30,7 @@ pub struct RapierParameters {
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum RapierFloatParameter {
     Speed,
-    RepulsionStrength,
+    RepulsionCharge,
     RepulsionRange,
     BrownianStrength,
     EntropicStrength,
@@ -56,7 +56,7 @@ impl RapierFloatParameter {
     pub fn values() -> [Self; RAPIER_FLOAT_PARAMETERS_COUNT] {
         [
             Self::Speed,
-            Self::RepulsionStrength,
+            Self::RepulsionCharge,
             Self::RepulsionRange,
             Self::BrownianStrength,
             Self::EntropicStrength,
@@ -80,7 +80,7 @@ impl RapierFloatParameter {
     pub fn name(&self) -> &'static str {
         match self {
             Self::Speed => "Speed",
-            Self::RepulsionStrength => "Electrostatic repulsion strength",
+            Self::RepulsionCharge => "Electrostatic repulsion charge",
             Self::RepulsionRange => "Electrostatic repulsion range",
             Self::BrownianStrength => "Brownian jiggling amplitude",
             Self::EntropicStrength => "Entropic springs strength",
@@ -104,7 +104,7 @@ impl RapierFloatParameter {
     pub fn live_editability(&self) -> bool {
         match self {
             Self::Speed
-            | Self::RepulsionStrength
+            | Self::RepulsionCharge
             | Self::RepulsionRange
             | Self::BrownianStrength
             | Self::EntropicStrength
@@ -129,7 +129,7 @@ impl RapierFloatParameter {
         match self {
             Self::Speed => 0.1,
             Self::RepulsionRange => 0.0001,
-            Self::RepulsionStrength
+            Self::RepulsionCharge
             | Self::BrownianStrength
             | Self::EntropicStrength
             | Self::PlanarStrength
@@ -151,11 +151,11 @@ impl RapierFloatParameter {
 
     pub fn max_value(&self) -> f32 {
         match self {
-            Self::Speed => 200.0,
+            Self::Speed => 50.0,
             Self::RepulsionRange | Self::CrossoverRestLength | Self::FreeRestLength => 10.0,
             Self::BrownianStrength => 0.1,
             Self::FreeStiffness | Self::CrossoverStiffness | Self::InterbaseStiffness => 500.0,
-            Self::RepulsionStrength => 4.0,
+            Self::RepulsionCharge => 4.0,
             Self::EntropicStrength | Self::PlanarStrength => 100.0,
             Self::EntropicDamping
             | Self::PlanarDamping
@@ -178,7 +178,7 @@ impl RapierFloatParameter {
             Self::FreeStiffness
             | Self::CrossoverStiffness
             | Self::InterbaseStiffness
-            | Self::RepulsionStrength
+            | Self::RepulsionCharge
             | Self::EntropicStrength
             | Self::PlanarStrength
             | Self::EntropicDamping
@@ -203,7 +203,7 @@ impl RapierFloatParameter {
     pub fn unit(&self) -> &'static str {
         match self {
             Self::Speed => "",
-            Self::RepulsionStrength => "nN.nm⁻²",
+            Self::RepulsionCharge => "nN.nm⁻²",
             Self::RepulsionRange
             | Self::PlanarCutoff
             | Self::CrossoverRestLength
@@ -241,7 +241,7 @@ impl RapierParameters {
         free_nucleotide_damping: 40.0,
         free_nucleotide_rest_length: 0.7,
         repulsion_strength: 0.45,
-        repulsion_range: 8.0,
+        repulsion_range: 6.0,
         brownian_motion_strength: 0.0,
         entropic_spring_strength: 3.0,
         entropic_spring_damping: 40.0,
