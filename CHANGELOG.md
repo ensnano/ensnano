@@ -4,9 +4,9 @@
 - New outline view mode
 - New nanostructure relaxation module
 - New revolution surface module interface
-- Fixed a lot of typos
 - Better PDB and oxDNA exports
 - Added rotated honeycimb grid 
+- Fixed a lot of typos and bugs
 
 ## 0.6.0
 
