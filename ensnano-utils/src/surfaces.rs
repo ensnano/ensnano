@@ -1,0 +1,566 @@
+use crate::{
+    colors::hsv_color,
+    instance::Instance,
+    obj_loader::{GltfMesh, ModelVertex},
+};
+use ensnano_design::{
+    curves::{
+        revolution::{InterpolatedCurveDescriptor, InterpolationDescriptor},
+        torus::{CurveDescriptor2D, PointOnSurface},
+    },
+    parameters::HelixParameters,
+    utils::ultraviolet::dvec_to_vec,
+};
+use rayon::iter::{IntoParallelIterator as _, ParallelIterator as _};
+use std::f64::consts::TAU;
+use ultraviolet::{DVec3, Isometry3, Rotor3, Similarity3, Vec3};
+
+#[derive(Debug, Clone)]
+pub struct RevolutionSurfaceSystemDescriptor {
+    pub scaffold_len_target: usize,
+    pub target: RootedRevolutionSurface,
+    pub helix_parameters: HelixParameters,
+    pub simulation_parameters: RevolutionSimulationParameters,
+}
+
+#[derive(Debug, Clone)]
+pub struct RootedRevolutionSurface {
+    surface: UnrootedRevolutionSurfaceDescriptor,
+    scale: f64,
+    pub rooting_parameters: RootingParameters,
+    area_radius_0: f64,
+    area_per_radius_unit: f64,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct UnrootedRevolutionSurfaceDescriptor {
+    pub curve: CurveDescriptor2D,
+    pub revolution_radius: RevolutionSurfaceRadius,
+    pub curve_plane_position: Vec3,
+    pub curve_plane_orientation: Rotor3,
+
+    pub simplified_twist: usize,
+    pub simplified_rotational_symmetry_order: usize,
+}
+
+#[derive(Debug, Clone)]
+pub struct RootingParameters {
+    pub nb_helices: usize,
+    pub nb_spirals: usize,
+    pub winding: isize,
+    pub junction_smoothening: f64,
+}
+
+impl UnrootedRevolutionSurfaceDescriptor {
+    pub fn rooted(
+        mut self,
+        rooting_parameters: RootingParameters,
+        compute_areas: bool,
+    ) -> RootedRevolutionSurface {
+        let (mut area_radius_0, mut area_per_radius_unit) = if compute_areas {
+            self.area_affine_function().unwrap_or((1., 1.))
+        } else {
+            (1., 1.)
+        };
+        // NS: to be fixed later to take into account twist
+        let scale = rooting_parameters.nb_helices as f64 * HelixParameters::INTER_CENTER_GAP as f64
+            / self.curve.perimeter();
+        area_radius_0 *= scale;
+        area_per_radius_unit *= scale;
+
+        // In order to keep the same aspect ratio, the revolution radius needs to be rescaled as
+        // well as the section.
+        self.revolution_radius = self.revolution_radius.scaled(scale);
+
+        RootedRevolutionSurface {
+            surface: self,
+            rooting_parameters,
+            scale,
+            area_radius_0,
+            area_per_radius_unit,
+        }
+    }
+
+    pub fn get_frame(&self) -> Isometry3 {
+        let Similarity3 {
+            translation,
+            rotation,
+            ..
+        } = self.get_frame_when_scaled(1.);
+        Isometry3 {
+            translation,
+            rotation,
+        }
+    }
+
+    fn get_frame_when_scaled(&self, scale: f64) -> Similarity3 {
+        let mut ret = {
+            let Isometry3 {
+                translation,
+                rotation,
+            } = CurveDescriptor2D::get_frame_3d();
+            let mut s = Similarity3 {
+                translation,
+                rotation,
+                scale: 1.,
+            };
+            s.append_scaling(scale as f32);
+            s
+        };
+
+        // Then convert into the plane's frame
+        ret.append_rotation(self.curve_plane_orientation);
+        ret.append_translation(self.curve_plane_position);
+
+        // To get the rotation axis as it is drawn on the plane, we must scale the revolution
+        // radius
+        let mut scaled = self.clone();
+        scaled.revolution_radius = scaled.revolution_radius.scaled(scale);
+        // Center on the rotation axis as drawn on the plane
+        let rotation_axis_translation = (Vec3::unit_z()
+            * scaled.get_revolution_axis_position() as f32)
+            .rotated_by(self.curve_plane_orientation);
+        ret.append_translation(rotation_axis_translation);
+        ret
+    }
+
+    pub fn get_revolution_axis_position(&self) -> f64 {
+        self.get_axis_position_when_scaled(1.)
+    }
+
+    /// Return the position of the axis of revolution, assuming that the section is scaled.
+    ///
+    /// Note that the revolution radius is *not* scaled.
+    pub fn get_axis_position_when_scaled(&self, scale: f64) -> f64 {
+        match self.revolution_radius {
+            RevolutionSurfaceRadius::Left(x) => self.curve.min_x() * scale - x,
+            RevolutionSurfaceRadius::Right(x) => x + self.curve.max_x() * scale,
+            RevolutionSurfaceRadius::Inside(x) => x,
+        }
+    }
+
+    pub fn set_axis_position(&mut self, position: f64) {
+        self.set_axis_position_when_scaled(position, 1.);
+    }
+
+    /// Set the position of the axis of revolution, assuming that the section is scaled.
+    ///
+    /// Note that the revolution radius is *not* scaled.
+    fn set_axis_position_when_scaled(&mut self, position: f64, scale: f64) {
+        let min_x = self.curve.min_x() * scale;
+        let max_x = self.curve.max_x() * scale;
+        let new_radius = if position <= min_x {
+            RevolutionSurfaceRadius::Left(min_x - position)
+        } else if position >= max_x {
+            RevolutionSurfaceRadius::Right(position - max_x)
+        } else {
+            RevolutionSurfaceRadius::Inside(position)
+        };
+        self.revolution_radius = new_radius;
+    }
+
+    /// Assuming that the area of the surface is of the form a*radius + b, return (b, a).
+    pub fn area_affine_function(&self) -> Option<(f64, f64)> {
+        let mut with_radius_0 = self.clone();
+        let mut with_radius_1 = self.clone();
+        match self.revolution_radius {
+            RevolutionSurfaceRadius::Inside(_) => return None,
+            RevolutionSurfaceRadius::Left(_) => {
+                with_radius_0.revolution_radius = RevolutionSurfaceRadius::Left(0.);
+                with_radius_1.revolution_radius = RevolutionSurfaceRadius::Left(1.);
+            }
+            RevolutionSurfaceRadius::Right(_) => {
+                with_radius_0.revolution_radius = RevolutionSurfaceRadius::Right(0.);
+                with_radius_1.revolution_radius = RevolutionSurfaceRadius::Right(1.);
+            }
+        }
+
+        let area_0 = with_radius_0.approx_surface_area(1000, 1000)?;
+        let area_1 = with_radius_1.approx_surface_area(1000, 1000)?;
+
+        // DEBUG
+        // let a = area_0.clone();
+        // let b = area_1 - area_0;
+        // let p = self.curve.perimeter() * TAU;
+        // println!("a:{a} - b:{b} - 2πp:{p}"); // b == p for untwisted revolution curve
+
+        Some((area_0, area_1 - area_0))
+    }
+
+    /// Approximate the area of the surface by slicing it into strips of triangles.
+    ///
+    /// The surface is split into `nb_strip` strips of 2 * `nb_section_per_strip` triangles.
+    pub fn approx_surface_area(&self, nb_strip: usize, nb_section_per_strip: usize) -> Option<f64> {
+        if matches!(self.revolution_radius, RevolutionSurfaceRadius::Inside(_)) {
+            return None;
+        }
+
+        let ret = (0..nb_strip)
+            .into_par_iter()
+            .map(|strip_idx| {
+                // Parameters along the section for the top and bottom of the strip
+                let s_high = strip_idx as f64 / nb_strip as f64;
+                let s_low = s_high + 1. / nb_strip as f64;
+
+                let vertices = (0..=nb_section_per_strip).flat_map(|section_idx| {
+                    [s_high, s_low].into_iter().map(move |section_parameter| {
+                        let revolution_fract = section_idx as f64 / nb_section_per_strip as f64;
+                        let revolution_angle = TAU * revolution_fract;
+                        self.position(section_parameter, revolution_angle)
+                    })
+                });
+
+                area_strip(vertices, nb_section_per_strip)
+            })
+            .sum::<f64>();
+        Some(ret)
+    }
+
+    fn position(&self, section_parameter: f64, revolution_angle: f64) -> DVec3 {
+        self.position_when_scaled(section_parameter, revolution_angle, 1.)
+    }
+
+    fn position_when_scaled(
+        &self,
+        section_parameter: f64,
+        revolution_angle: f64,
+        scale: f64,
+    ) -> DVec3 {
+        let surface_point = PointOnSurface {
+            revolution_angle,
+            section_parameter,
+            revolution_axis_position: self.get_axis_position_when_scaled(scale),
+            twist: self.simplified_twist as isize,
+            rotational_symmetry_order: self.simplified_rotational_symmetry_order,
+            curve_scale_factor: scale,
+        };
+        self.curve.point_on_surface(&surface_point)
+    }
+
+    pub fn meshes(&self) -> Vec<GltfMesh> {
+        const NB_STRIP: usize = 100;
+        const STRIP_WIDTH: f64 = 0.3;
+        const NB_SECTION_PER_STRIP: usize = 1_000;
+
+        let frame = self.get_frame();
+
+        (0..NB_STRIP)
+            .map(|strip_idx| {
+                let s_high = strip_idx as f64 / NB_STRIP as f64;
+                let s_low = s_high + STRIP_WIDTH / NB_STRIP as f64;
+
+                let vertices: Vec<ModelVertex> = (0..=(NB_SECTION_PER_STRIP + 1))
+                    .flat_map(|section_idx| {
+                        [s_high, s_low].into_iter().map(move |s| {
+                            let revolution_fract = section_idx as f64 / NB_SECTION_PER_STRIP as f64;
+                            let revolution_angle = TAU * revolution_fract;
+
+                            let surface_point = PointOnSurface {
+                                revolution_angle,
+                                section_parameter: s,
+                                revolution_axis_position: self.get_revolution_axis_position(),
+                                twist: self.simplified_twist as isize,
+                                rotational_symmetry_order: self
+                                    .simplified_rotational_symmetry_order,
+                                curve_scale_factor: 1.,
+                            };
+                            let position = frame.transform_vec(dvec_to_vec(
+                                self.curve.point_on_surface(&surface_point),
+                            ));
+
+                            let normal = frame.transform_vec(dvec_to_vec(
+                                self.curve.normal_of_surface(&surface_point),
+                            ));
+
+                            let vertex_color = hsv_color(revolution_angle.to_degrees(), 0.7, 0.7);
+                            let color = Instance::color_from_u32(vertex_color);
+
+                            ModelVertex {
+                                position: position.into(),
+                                normal: normal.into(),
+                                color: color.into(),
+                            }
+                        })
+                    })
+                    .collect();
+                GltfMesh {
+                    vertices,
+                    indices: (0u32..=(2 * (NB_SECTION_PER_STRIP + 1) as u32)).collect(),
+                }
+            })
+            .collect()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct RevolutionSimulationParameters {
+    pub nb_section_per_segment: usize,
+    pub spring_stiffness: f64,
+    pub torsion_stiffness: f64,
+    pub fluid_friction: f64,
+    pub ball_mass: f64,
+    pub time_span: f64,
+    pub simulation_step: f64,
+    pub method: EquadiffSolvingMethod,
+    pub avg_vs_min_max_ext_weight: f64,
+}
+
+impl Default for RevolutionSimulationParameters {
+    fn default() -> Self {
+        Self {
+            nb_section_per_segment: 100,
+            spring_stiffness: 8.0,
+            torsion_stiffness: 30.0,
+            fluid_friction: 1.0,
+            ball_mass: 10.0,
+            time_span: 5.0e-2,
+            simulation_step: 1e-3,
+            method: EquadiffSolvingMethod::Ralston,
+            avg_vs_min_max_ext_weight: 0.9,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EquadiffSolvingMethod {
+    Euler,
+    Ralston,
+}
+
+impl EquadiffSolvingMethod {
+    pub const ALL_METHODS: &'static [Self] = &[Self::Euler, Self::Ralston];
+}
+
+impl std::fmt::Display for EquadiffSolvingMethod {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Euler => write!(f, "Euler"),
+            Self::Ralston => write!(f, "Ralston"),
+        }
+    }
+}
+
+/// The position of the axis of revolution of a revolution surface.
+#[derive(Debug, Clone, PartialEq, Copy)]
+pub enum RevolutionSurfaceRadius {
+    /// The axis is on the left of the leftmost point of the section.
+    Left(f64),
+    /// The axis is on the right of the rightmost point of the section.
+    Right(f64),
+    /// The axis is inside the section.
+    Inside(f64),
+}
+
+impl Default for RevolutionSurfaceRadius {
+    fn default() -> Self {
+        Self::Left(0.)
+    }
+}
+
+impl RevolutionSurfaceRadius {
+    /// Convert to Self from an f64. The sign indicate the position of the revolution axis relative
+    /// to the section.
+    ///
+    /// Positive value indicate that the axis of revolution is on the right of the section.
+    /// Negative value indicate that the axis of revolution is on the left of the section.
+    pub fn from_signed_f64(radius: f64) -> Self {
+        if radius.is_sign_positive() {
+            Self::Right(radius)
+        } else {
+            Self::Left(-radius)
+        }
+    }
+
+    /// Convert self to an f64. The sign indicate the position of the revolution axis relative to
+    /// the section.
+    ///
+    /// Positive value indicate that the axis of revolution is on the right of the section.
+    /// Negative value indicate that the axis of revolution is on the left of the section.
+    pub fn to_signed_f64(self) -> Option<f64> {
+        match self {
+            Self::Left(x) => Some(-x),
+            Self::Right(x) => Some(x),
+            Self::Inside(_) => None,
+        }
+    }
+
+    #[must_use]
+    pub fn scaled(self, scale: f64) -> Self {
+        match self {
+            Self::Left(x) => Self::Left(scale * x),
+            Self::Right(x) => Self::Right(scale * x),
+            Self::Inside(x) => Self::Inside(scale * x),
+        }
+    }
+}
+
+impl RootedRevolutionSurface {
+    pub fn position(&self, revolution_angle: f64, section_t: f64) -> DVec3 {
+        self.surface
+            .position_when_scaled(section_t, revolution_angle, self.scale)
+    }
+
+    pub fn dpos_dtheta(&self, revolution_angle: f64, section_parameter: f64) -> DVec3 {
+        let surface_point = PointOnSurface {
+            revolution_angle,
+            section_parameter,
+            revolution_axis_position: self.surface.get_axis_position_when_scaled(self.scale),
+            twist: self.surface.simplified_twist as isize,
+            rotational_symmetry_order: self.surface.simplified_rotational_symmetry_order,
+            curve_scale_factor: self.scale,
+        };
+
+        self.surface
+            .curve
+            .derivative_position_on_surface_wrp_section_parameter(&surface_point)
+            * self.scale
+    }
+
+    pub fn d2pos_dtheta2(&self, revolution_angle: f64, section_parameter: f64) -> DVec3 {
+        let surface_point = PointOnSurface {
+            revolution_angle,
+            section_parameter,
+            revolution_axis_position: self.surface.get_axis_position_when_scaled(self.scale),
+            twist: self.surface.simplified_twist as isize,
+            rotational_symmetry_order: self.surface.simplified_rotational_symmetry_order,
+            curve_scale_factor: self.scale,
+        };
+
+        self.surface
+            .curve
+            .second_derivative_position_on_surface_wrp_section_parameter(&surface_point)
+            * self.scale
+    }
+
+    pub fn axis(&self, revolution_angle: f64) -> DVec3 {
+        DVec3 {
+            x: -revolution_angle.sin(),
+            y: revolution_angle.cos(),
+            z: 0.,
+        }
+    }
+
+    pub fn total_shift(&self) -> isize {
+        let rot_shift = (self.rooting_parameters.nb_helices * self.surface.simplified_twist)
+            / self.surface.simplified_rotational_symmetry_order;
+        self.rooting_parameters.winding + rot_shift as isize
+    }
+
+    pub fn curve_is_open(&self) -> bool {
+        self.surface.curve.is_open()
+    }
+
+    pub fn nb_spirals(&self) -> usize {
+        self.rooting_parameters.nb_spirals
+    }
+
+    pub fn twist(&self) -> isize {
+        self.surface.simplified_twist as isize
+    }
+
+    pub fn rotational_symmetry_order(&self) -> isize {
+        self.surface.simplified_rotational_symmetry_order as isize
+    }
+
+    pub fn section_fraction_rotation_per_revolution(&self) -> f64 {
+        -(self.surface.simplified_twist as f64
+            / self.surface.simplified_rotational_symmetry_order as f64)
+    }
+
+    pub fn curve_descriptor(
+        &self,
+        interpolations: Vec<InterpolationDescriptor>,
+        objective_number_of_nts: Option<usize>,
+    ) -> InterpolatedCurveDescriptor {
+        InterpolatedCurveDescriptor {
+            curve: self.surface.curve.clone(),
+            curve_scale_factor: self.scale,
+            chebyshev_smoothening: self.rooting_parameters.junction_smoothening,
+            interpolation: interpolations,
+            twist: self.surface.simplified_twist as isize,
+            rotational_symmetry_order: self.surface.simplified_rotational_symmetry_order,
+            revolution_radius: -self.surface.get_axis_position_when_scaled(self.scale),
+            nb_turn: None,
+            revolution_angle_init: None,
+            known_number_of_helices_in_shape: Some(self.nb_spirals()),
+            known_helix_id_in_shape: None,
+            objective_number_of_nts,
+            full_turn_at_nt: None,
+            use_original_iterative_frame_algorithm: None,
+        }
+    }
+
+    pub fn curve_2d(&self) -> &CurveDescriptor2D {
+        &self.surface.curve
+    }
+
+    pub fn rescale_section(&mut self, scaling_factor: f64) {
+        self.scale *= scaling_factor;
+        self.surface.revolution_radius = self.surface.revolution_radius.scaled(1. / scaling_factor);
+        // fix by NS: scaling section account just by ^1 not ^2
+        self.area_per_radius_unit *= scaling_factor; //.powi(2); // TO BE CHECKED BY NS
+        self.area_radius_0 *= scaling_factor;
+    }
+
+    pub fn rescale_radius(&mut self, objective: usize, actual: usize) {
+        // let incr = (objective as f64 - actual as f64) / self.area_per_radius_unit;
+
+        // match &mut self.surface.revolution_radius {
+        //     RevolutionSurfaceRadius::Left(x) | RevolutionSurfaceRadius::Right(x) => *x += incr,
+        //     RevolutionSurfaceRadius::Inside(_) => (),
+        // }
+        let scale = objective as f64 / actual.max(1) as f64;
+        match &mut self.surface.revolution_radius {
+            RevolutionSurfaceRadius::Left(x) | RevolutionSurfaceRadius::Right(x) => *x *= scale,
+            RevolutionSurfaceRadius::Inside(_) => (),
+        }
+    }
+
+    pub fn get_frame(&self) -> Similarity3 {
+        self.surface.get_frame_when_scaled(1. / self.scale)
+    }
+}
+
+/// Compute the area of the triangles of the strip using the formula
+/// area(ABC) = 1/2 * mag(AB cross AC).
+fn area_strip<I: Iterator<Item = DVec3> + Clone>(vertices: I, nb_section_per_strip: usize) -> f64 {
+    vertices
+        .clone()
+        .zip(vertices.clone().skip(1))
+        .zip(vertices.skip(2))
+        .take(2 * nb_section_per_strip)
+        .map(|((a, b), c)| 0.5 * (b - a).cross(c - a).mag())
+        .sum::<f64>()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::f64::consts::PI;
+
+    #[test]
+    #[expect(non_snake_case)]
+    fn surface_area() {
+        let r = 1.0;
+        let R = 3.0;
+        let surface = UnrootedRevolutionSurfaceDescriptor {
+            curve: CurveDescriptor2D::Ellipse {
+                semi_minor_axis: r.into(),
+                semi_major_axis: R.into(),
+            },
+            revolution_radius: RevolutionSurfaceRadius::Left(R - r),
+            simplified_twist: 0,
+            simplified_rotational_symmetry_order: 2,
+            curve_plane_position: Vec3::zero(),
+            curve_plane_orientation: Rotor3::identity(),
+        };
+
+        let expected = 4. * PI * PI * r * R;
+        let actual = surface.approx_surface_area(1_000, 1_000).unwrap();
+
+        assert!(
+            (expected - actual).abs() < 1e-3,
+            "expected {expected},  actual {actual}"
+        );
+    }
+}

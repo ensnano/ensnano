@@ -1,34 +1,16 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 use relative_path::RelativePathBuf;
-use serde_derive::{Deserialize, Serialize};
-use std::collections::HashMap;
-use std::path::{Path, PathBuf};
-use std::sync::Arc;
+use serde::{Deserialize, Serialize};
+use std::{
+    collections::HashMap,
+    path::{Component, Path, PathBuf},
+    sync::Arc,
+};
 use ultraviolet::{Rotor3, Vec3};
-
-use crate::Collection;
 
 const DEFAULT_OPACITY: f32 = 1.0;
 const DEFAULT_COLOR: u32 = 0xdb5530; // orange/red
 
-/// An external object to be drawn in the scene
+/// An external object to be drawn in the scene.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct External3DObject {
     opacity: f32,
@@ -38,9 +20,9 @@ pub struct External3DObject {
     source_file: String,
 }
 
-pub struct External3DObjectDescriptor<P1: AsRef<Path>, P2: AsRef<Path>> {
-    pub object_path: P1,
-    pub design_path: P2,
+pub struct External3DObjectDescriptor {
+    pub object_path: PathBuf,
+    pub design_path: PathBuf,
 }
 
 impl External3DObject {
@@ -48,10 +30,8 @@ impl External3DObject {
         RelativePathBuf::from(&self.source_file).to_path(design_path)
     }
 
-    pub fn new<P1: AsRef<Path>, P2: AsRef<Path>>(
-        desc: External3DObjectDescriptor<P1, P2>,
-    ) -> Option<Self> {
-        if let Some(rel_path) = pathdiff::diff_paths(&desc.object_path, &desc.design_path)
+    pub fn new(desc: External3DObjectDescriptor) -> Option<Self> {
+        if let Some(rel_path) = diff_paths(&desc.object_path, &desc.design_path)
             .and_then(|rel_path| RelativePathBuf::from_path(rel_path).ok())
         {
             Some(Self {
@@ -63,9 +43,9 @@ impl External3DObject {
             })
         } else {
             log::error!(
-                "Coud not compute path diff between {:?} and {:?}",
-                desc.object_path.as_ref().to_string_lossy(),
-                desc.design_path.as_ref().to_string_lossy()
+                "Could not compute path diff between {:?} and {:?}",
+                desc.object_path.to_string_lossy(),
+                desc.design_path.to_string_lossy()
             );
             None
         }
@@ -81,36 +61,11 @@ pub struct External3DObjects(Arc<HashMap<External3DObjectId, External3DObject>>)
 #[derive(Debug, Copy, Clone)]
 pub struct External3DObjectsStamp(*const HashMap<External3DObjectId, External3DObject>);
 
-impl Collection for External3DObjects {
-    type Key = External3DObjectId;
-    type Item = External3DObject;
-
-    fn get(&self, id: &Self::Key) -> Option<&Self::Item> {
-        self.0.get(id)
-    }
-
-    fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a Self::Key, &'a Self::Item)> + 'a> {
-        Box::new(self.0.iter())
-    }
-
-    fn values<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Self::Item> + 'a> {
-        Box::new(self.0.values())
-    }
-
-    fn keys<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Self::Key> + 'a> {
-        Box::new(self.0.keys())
-    }
-
-    fn len(&self) -> usize {
-        self.0.len()
-    }
-
-    fn contains_key(&self, k: &Self::Key) -> bool {
-        self.0.contains_key(k)
-    }
-}
-
 impl External3DObjects {
+    pub fn iter(&self) -> impl Iterator<Item = (&External3DObjectId, &External3DObject)> {
+        self.0.iter()
+    }
+
     pub fn was_updated(
         &self,
         old_stamp: Option<External3DObjectsStamp>,
@@ -130,8 +85,145 @@ impl External3DObjects {
             .0
             .keys()
             .min_by_key(|k| k.0)
-            .map(|k| External3DObjectId(k.0 + 1))
-            .unwrap_or(External3DObjectId(0));
+            .map_or(External3DObjectId(0), |k| External3DObjectId(k.0 + 1));
         Arc::make_mut(&mut self.0).insert(key, object);
+    }
+}
+
+// Shamelessly copied from the pathdiff crate (MIT license)
+// https://github.com/Manishearth/pathdiff/blob/bf1ea6a5e528f6f2/src/lib.rs#L43
+fn diff_paths(path: impl AsRef<Path>, base: impl AsRef<Path>) -> Option<PathBuf> {
+    let path = path.as_ref();
+    let base = base.as_ref();
+
+    if path.is_absolute() != base.is_absolute() {
+        return path.is_absolute().then(|| PathBuf::from(path));
+    }
+
+    let mut ita = path.components();
+    let mut itb = base.components();
+    let mut comps: Vec<Component> = vec![];
+
+    // ./foo and foo are the same
+    if ita.clone().next() == Some(Component::CurDir) {
+        ita.next();
+    }
+    if itb.clone().next() == Some(Component::CurDir) {
+        itb.next();
+    }
+
+    loop {
+        match (ita.next(), itb.next()) {
+            (None, None) => break,
+            (Some(a), None) => {
+                comps.push(a);
+                comps.extend(ita.by_ref());
+                break;
+            }
+            (None, _) => comps.push(Component::ParentDir),
+            (Some(a), Some(b)) if comps.is_empty() && a == b => (),
+            (Some(a), Some(Component::CurDir)) => comps.push(a),
+            (Some(_), Some(Component::ParentDir)) => return None,
+            (Some(a), Some(_)) => {
+                comps.push(Component::ParentDir);
+                for _ in itb {
+                    comps.push(Component::ParentDir);
+                }
+                comps.push(a);
+                comps.extend(ita.by_ref());
+                break;
+            }
+        }
+    }
+
+    Some(comps.iter().map(|c| c.as_os_str()).collect())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn absolute() {
+        fn abs(path: &str) -> String {
+            // Absolute paths look different on Windows vs Unix.
+            if cfg!(windows) {
+                format!("C:\\{path}")
+            } else {
+                format!("/{path}")
+            }
+        }
+
+        assert_diff_paths(&abs("foo"), &abs("bar"), Some("../foo"));
+        assert_diff_paths(&abs("foo"), "bar", Some(&abs("foo")));
+        assert_diff_paths("foo", &abs("bar"), None);
+        assert_diff_paths("foo", "bar", Some("../foo"));
+    }
+
+    #[test]
+    fn identity() {
+        assert_diff_paths(".", ".", Some(""));
+        assert_diff_paths("../foo", "../foo", Some(""));
+        assert_diff_paths("./foo", "./foo", Some(""));
+        assert_diff_paths("/foo", "/foo", Some(""));
+        assert_diff_paths("foo", "foo", Some(""));
+        assert_diff_paths("./foo", "foo", Some(""));
+        assert_diff_paths("././foo", "foo", Some(""));
+        assert_diff_paths("foo", "./foo", Some(""));
+        assert_diff_paths("foo/foo", "./foo/foo", Some(""));
+
+        assert_diff_paths("../foo/bar/baz", "../foo/bar/baz", Some(""));
+        assert_diff_paths("foo/bar/baz", "foo/bar/baz", Some(""));
+    }
+
+    #[test]
+    fn subset() {
+        assert_diff_paths("foo", "fo", Some("../foo"));
+        assert_diff_paths("./././fo", "foo", Some("../fo"));
+    }
+
+    #[test]
+    fn empty() {
+        assert_diff_paths("", "", Some(""));
+        assert_diff_paths("foo", "", Some("foo"));
+        assert_diff_paths("", "foo", Some(".."));
+    }
+
+    #[test]
+    fn relative() {
+        assert_diff_paths("../foo", "../bar", Some("../foo"));
+        assert_diff_paths("../foo", "../foo/bar/baz", Some("../.."));
+        assert_diff_paths("../foo/bar/baz", "../foo", Some("bar/baz"));
+        assert_diff_paths("../foo", "bar", Some("../../foo"));
+        assert_diff_paths("foo", "../bar", None);
+
+        assert_diff_paths("foo/bar/baz", "foo", Some("bar/baz"));
+        assert_diff_paths("foo/bar/baz", "foo/bar", Some("baz"));
+        assert_diff_paths("foo/bar/baz", "foo/bar/baz", Some(""));
+        assert_diff_paths("foo/bar/baz", "foo/bar/baz/", Some(""));
+
+        assert_diff_paths("foo/bar/baz/", "foo", Some("bar/baz"));
+        assert_diff_paths("foo/bar/baz/", "foo/bar", Some("baz"));
+        assert_diff_paths("foo/bar/baz/", "foo/bar/baz", Some(""));
+        assert_diff_paths("foo/bar/baz/", "foo/bar/baz/", Some(""));
+
+        assert_diff_paths("foo/bar/baz", "foo/", Some("bar/baz"));
+        assert_diff_paths("foo/bar/baz", "foo/bar/", Some("baz"));
+        assert_diff_paths("foo/bar/baz", "foo/bar/baz", Some(""));
+    }
+
+    #[test]
+    fn current_directory() {
+        assert_diff_paths(".", "foo", Some("../."));
+        assert_diff_paths("foo", ".", Some("foo"));
+        assert_diff_paths("/foo", "/.", Some("foo"));
+
+        assert_diff_paths("./foo/bar/baz", "foo", Some("bar/baz"));
+        assert_diff_paths("foo/bar/baz", "./foo", Some("bar/baz"));
+        assert_diff_paths("./foo/bar/baz", "./foo", Some("bar/baz"));
+    }
+
+    fn assert_diff_paths(path: &str, base: &str, expected: Option<&str>) {
+        assert_eq!(diff_paths(path, base), expected.map(Into::into));
     }
 }

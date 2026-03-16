@@ -1,51 +1,32 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use lyon::math::Point;
-use lyon::path::Path;
-use lyon::tessellation;
-use lyon::tessellation::{StrokeVertex, StrokeVertexConstructor};
+use ensnano_utils::{TEXTURE_FORMAT, consts::SAMPLE_COUNT, texture::Texture};
+use lyon::{
+    math::point,
+    path::Path,
+    tessellation::{
+        BuffersBuilder, StrokeOptions, StrokeTessellator, StrokeVertex, StrokeVertexConstructor,
+        VertexBuffers,
+    },
+};
+use wgpu::{Device, Sampler, TextureView, util::DeviceExt as _};
 
 const TEXTURE_SIZE: u32 = 512;
-use ensnano_interactor::consts::*;
-
-use ensnano_utils::wgpu;
-use wgpu::util::DeviceExt;
-use wgpu::{Device, Sampler, Texture, TextureView};
 
 #[derive(Clone, Copy, bytemuck::Zeroable, bytemuck::Pod)]
 #[repr(C)]
-pub struct Vertex {
-    #[allow(dead_code)] // the values are used in the shader
+pub(super) struct Vertex {
     position: [f32; 2],
-    #[allow(dead_code)] // the values are used in the shader
     normal: [f32; 2],
 }
 
-type Vertices = lyon::tessellation::VertexBuffers<Vertex, u16>;
+type Vertices = VertexBuffers<Vertex, u16>;
 
-pub struct SquareTexture {
-    pub texture: Texture,
+pub(super) struct SquareTexture {
     pub view: TextureView,
     pub sampler: Sampler,
 }
 
 impl SquareTexture {
-    pub fn new(device: &Device, encoder: &mut wgpu::CommandEncoder) -> Self {
+    pub(super) fn new(device: &Device, encoder: &mut wgpu::CommandEncoder) -> Self {
         let texture = device.create_texture(&wgpu::TextureDescriptor {
             size: wgpu::Extent3d {
                 width: TEXTURE_SIZE,
@@ -55,9 +36,10 @@ impl SquareTexture {
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
-            format: ensnano_utils::TEXTURE_FORMAT,
+            format: TEXTURE_FORMAT,
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::RENDER_ATTACHMENT,
             label: Some("square texture"),
+            view_formats: Default::default(),
         });
 
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
@@ -72,11 +54,7 @@ impl SquareTexture {
             ..Default::default()
         });
 
-        Self {
-            texture,
-            view,
-            sampler,
-        }
+        Self { view, sampler }
     }
 }
 
@@ -98,47 +76,41 @@ fn fill_square_texture(target: &TextureView, device: &Device, encoder: &mut wgpu
         r: 1.,
         g: 1.,
         b: 1.,
-        a: 0.4, // this will be usefull to discard fragments that are not on the grid
+        a: 0.4, // this will be useful to discard fragments that are not on the grid
     };
 
-    let texture_size = ensnano_utils::winit::dpi::PhysicalSize {
+    let texture_size = winit::dpi::PhysicalSize {
         width: TEXTURE_SIZE,
         height: TEXTURE_SIZE,
     };
 
-    let msaa_texture = if SAMPLE_COUNT > 1 {
-        Some(ensnano_utils::texture::Texture::create_msaa_texture(
+    let msaa_texture = (SAMPLE_COUNT > 1).then(|| {
+        Texture::create_msaa_texture(
             device,
             &texture_size,
             SAMPLE_COUNT,
             wgpu::TextureFormat::Bgra8UnormSrgb,
-        ))
-    } else {
-        None
+        )
+    });
+
+    let (attachment, resolve_target) = match msaa_texture.as_ref() {
+        Some(msaa_texture) => (msaa_texture, Some(target)),
+        None => (target, None),
     };
 
-    let attachment = if msaa_texture.is_some() {
-        msaa_texture.as_ref().unwrap()
-    } else {
-        target
-    };
-
-    let resolve_target = if msaa_texture.is_some() {
-        Some(target)
-    } else {
-        None
-    };
     let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
         label: None,
-        color_attachments: &[wgpu::RenderPassColorAttachment {
+        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
             view: attachment,
             resolve_target,
             ops: wgpu::Operations {
                 load: wgpu::LoadOp::Clear(clear_color),
-                store: true,
+                store: wgpu::StoreOp::Store,
             },
-        }],
+        })],
         depth_stencil_attachment: None,
+        timestamp_writes: None,
+        occlusion_query_set: None,
     });
 
     render_pass.set_viewport(
@@ -159,35 +131,34 @@ fn fill_square_texture(target: &TextureView, device: &Device, encoder: &mut wgpu
 
 fn square_texture_vertices() -> Vertices {
     let mut vertices = Vertices::new();
-    let mut stroke_tess = lyon::tessellation::StrokeTessellator::new();
+    let mut stroke_tess = StrokeTessellator::new();
 
     let mut builder = Path::builder();
 
-    builder.begin(Point::new(-1., -1.));
-    builder.line_to(Point::new(-1., 1.));
-    builder.line_to(Point::new(1., 1.));
-    builder.line_to(Point::new(1., -1.));
+    builder.begin(point(-1., -1.));
+    builder.line_to(point(-1., 1.));
+    builder.line_to(point(1., 1.));
+    builder.line_to(point(1., -1.));
     builder.end(true);
     let path = builder.build();
 
     stroke_tess
         .tessellate_path(
             &path,
-            &tessellation::StrokeOptions::default(),
-            &mut tessellation::BuffersBuilder::new(&mut vertices, Custom),
+            &StrokeOptions::default(),
+            &mut BuffersBuilder::new(&mut vertices, Custom),
         )
-        .expect("error durring tessellation");
+        .expect("error during tessellation");
     vertices
 }
 
-pub struct HonneyTexture {
-    pub texture: Texture,
+pub(super) struct HoneyTexture {
     pub view: TextureView,
     pub sampler: Sampler,
 }
 
-impl HonneyTexture {
-    pub fn new(device: &Device, encoder: &mut wgpu::CommandEncoder) -> Self {
+impl HoneyTexture {
+    pub(super) fn new(device: &Device, encoder: &mut wgpu::CommandEncoder, rotated: bool) -> Self {
         let texture = device.create_texture(&wgpu::TextureDescriptor {
             size: wgpu::Extent3d {
                 width: TEXTURE_SIZE,
@@ -197,13 +168,18 @@ impl HonneyTexture {
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
-            format: ensnano_utils::TEXTURE_FORMAT,
+            format: TEXTURE_FORMAT,
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::RENDER_ATTACHMENT,
-            label: Some("honneycomb texture"),
+            label: Some(if rotated {
+                "honeycomb rotated texture"
+            } else {
+                "honeycomb texture"
+            }),
+            view_formats: Default::default(),
         });
 
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
-        fill_honneycomb_texture(&view, device, encoder);
+        fill_honeycomb_texture(&view, device, encoder, rotated);
         let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
             address_mode_u: wgpu::AddressMode::MirrorRepeat,
             address_mode_v: wgpu::AddressMode::MirrorRepeat,
@@ -214,21 +190,18 @@ impl HonneyTexture {
             ..Default::default()
         });
 
-        Self {
-            texture,
-            view,
-            sampler,
-        }
+        Self { view, sampler }
     }
 }
 
-fn fill_honneycomb_texture(
+fn fill_honeycomb_texture(
     target: &TextureView,
     device: &Device,
     encoder: &mut wgpu::CommandEncoder,
+    rotated: bool,
 ) {
     let pipeline = pipeline(device);
-    let vertices = honeycomb_texture_vertices();
+    let vertices = honeycomb_texture_vertices(rotated);
     let vbo = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: None,
         contents: bytemuck::cast_slice(&vertices.vertices),
@@ -244,47 +217,41 @@ fn fill_honneycomb_texture(
         r: 0.,
         g: 0.,
         b: 1.,
-        a: 0.4, // this will be usefull to discard fragments that are not on the grid
+        a: 0.4, // this will be useful to discard fragments that are not on the grid
     };
 
-    let texture_size = ensnano_utils::winit::dpi::PhysicalSize {
+    let texture_size = winit::dpi::PhysicalSize {
         width: TEXTURE_SIZE,
         height: TEXTURE_SIZE,
     };
 
-    let msaa_texture = if SAMPLE_COUNT > 1 {
-        Some(ensnano_utils::texture::Texture::create_msaa_texture(
+    let msaa_texture = (SAMPLE_COUNT > 1).then(|| {
+        Texture::create_msaa_texture(
             device,
             &texture_size,
             SAMPLE_COUNT,
             wgpu::TextureFormat::Bgra8UnormSrgb,
-        ))
-    } else {
-        None
+        )
+    });
+
+    let (attachment, resolve_target) = match msaa_texture.as_ref() {
+        Some(msaa_texture) => (msaa_texture, Some(target)),
+        None => (target, None),
     };
 
-    let attachment = if msaa_texture.is_some() {
-        msaa_texture.as_ref().unwrap()
-    } else {
-        target
-    };
-
-    let resolve_target = if msaa_texture.is_some() {
-        Some(target)
-    } else {
-        None
-    };
     let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
         label: None,
-        color_attachments: &[wgpu::RenderPassColorAttachment {
+        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
             view: attachment,
             resolve_target,
             ops: wgpu::Operations {
                 load: wgpu::LoadOp::Clear(clear_color),
-                store: true,
+                store: wgpu::StoreOp::Store,
             },
-        }],
+        })],
         depth_stencil_attachment: None,
+        timestamp_writes: None,
+        occlusion_query_set: None,
     });
 
     render_pass.set_viewport(
@@ -303,26 +270,47 @@ fn fill_honneycomb_texture(
     render_pass.draw_indexed(0..vertices.indices.len() as u32, 0, 0..1);
 }
 
-fn honeycomb_texture_vertices() -> Vertices {
+fn honeycomb_texture_vertices(rotated: bool) -> Vertices {
     let mut vertices = Vertices::new();
-    let mut stroke_tess = lyon::tessellation::StrokeTessellator::new();
+    let mut stroke_tess = StrokeTessellator::new();
 
     let mut builder = Path::builder();
 
-    builder.begin(Point::new(1., -1.));
-    builder.line_to(Point::new(1., -1. / 3.));
-    builder.line_to(Point::new(-1., 1. / 3.));
-    builder.line_to(Point::new(-1., 1.));
+    let points: [(f32, f32); 4] = [(1., -1.), (1., -1. / 3.), (-1., 1. / 3.), (-1., 1.)];
+    match rotated {
+        false => {
+            for (i, (x, y)) in points.iter().enumerate() {
+                if i == 0 {
+                    builder.begin(point(*x, *y));
+                } else {
+                    builder.line_to(point(*x, *y));
+                }
+            }
+        }
+        true => {
+            for (i, (x, y)) in points.iter().enumerate() {
+                if i == 0 {
+                    builder.begin(point(-*y, *x));
+                } else {
+                    builder.line_to(point(-*y, *x));
+                }
+            }
+        }
+    }
     builder.end(false);
+    // builder.begin(point(1., -1.));
+    // builder.line_to(point(1., -1. / 3.));
+    // builder.line_to(point(-1., 1. / 3.));
+    // builder.line_to(point(-1., 1.));
     let path = builder.build();
 
     stroke_tess
         .tessellate_path(
             &path,
-            &tessellation::StrokeOptions::default(),
-            &mut tessellation::BuffersBuilder::new(&mut vertices, Custom),
+            &StrokeOptions::default(),
+            &mut BuffersBuilder::new(&mut vertices, Custom),
         )
-        .expect("error durring tessellation");
+        .expect("error during tessellation");
     vertices
 }
 
@@ -338,18 +326,18 @@ impl StrokeVertexConstructor<Vertex> for Custom {
 }
 
 fn pipeline(device: &Device) -> wgpu::RenderPipeline {
-    let vs_module = &device.create_shader_module(&wgpu::include_spirv!("texture.vert.spv"));
-    let fs_module = &device.create_shader_module(&wgpu::include_spirv!("texture.frag.spv"));
+    let vs_module = &device.create_shader_module(wgpu::include_spirv!("texture.vert.spv"));
+    let fs_module = &device.create_shader_module(wgpu::include_spirv!("texture.frag.spv"));
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         bind_group_layouts: &[],
         push_constant_ranges: &[],
         label: None,
     });
-    let targets = &[wgpu::ColorTargetState {
+    let targets = &[Some(wgpu::ColorTargetState {
         format: wgpu::TextureFormat::Bgra8UnormSrgb,
         blend: Some(wgpu::BlendState::REPLACE),
         write_mask: wgpu::ColorWrites::ALL,
-    }];
+    })];
 
     let primitive = wgpu::PrimitiveState {
         topology: wgpu::PrimitiveTopology::TriangleList,
@@ -361,16 +349,16 @@ fn pipeline(device: &Device) -> wgpu::RenderPipeline {
     let desc = wgpu::RenderPipelineDescriptor {
         layout: Some(&pipeline_layout),
         vertex: wgpu::VertexState {
-            module: &vs_module,
+            module: vs_module,
             entry_point: "main",
             buffers: &[wgpu::VertexBufferLayout {
-                array_stride: std::mem::size_of::<Vertex>() as u64,
+                array_stride: size_of::<Vertex>() as u64,
                 step_mode: wgpu::VertexStepMode::Vertex,
                 attributes: &wgpu::vertex_attr_array![0 => Float32x2, 1 => Float32x2],
             }],
         },
         fragment: Some(wgpu::FragmentState {
-            module: &fs_module,
+            module: fs_module,
             entry_point: "main",
             targets,
         }),

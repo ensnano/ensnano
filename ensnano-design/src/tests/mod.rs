@@ -1,23 +1,11 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 use super::*;
-use std::fmt::Write;
+use crate::{
+    domains::{helix_interval::HelixInterval, sanitize_domains},
+    scadnano::ScadnanoDesign,
+    strands::{DomainJunction, Strand, read_junctions},
+};
+use regex::Regex;
+use std::fmt::Write as _;
 
 #[test]
 fn sanitize_with_insertions() {
@@ -39,7 +27,7 @@ fn sanitize_with_insertions() {
             sequence: None,
         }),
     ];
-    assert_sane_domains_non_cyclic(sanitize_domains(&domains, false).as_slice())
+    assert_sane_domains_non_cyclic(sanitize_domains(&domains, false).as_slice());
 }
 
 #[test]
@@ -63,11 +51,10 @@ fn sanitize_domains_scadnano() {
     }
   ]
       }"##;
-    let scadnano_design: super::scadnano::ScadnanoDesign =
-        serde_json::from_str(&input).expect("Failed to parse scadnano input");
-    let ensnano_design = Design::from_scadnano(&scadnano_design)
-        .ok()
-        .expect("Could not convert to ensnano");
+    let scadnano_design: ScadnanoDesign =
+        serde_json::from_str(input).expect("Failed to parse scadnano input");
+    let ensnano_design =
+        Design::from_scadnano(&scadnano_design).expect("Could not convert to ensnano");
     assert_eq!(ensnano_design.strands.len(), 1);
     let strand = ensnano_design.strands.values().next().unwrap();
     assert_eq!(strand.domains.len(), 3);
@@ -80,8 +67,8 @@ fn sanitize_domains_scadnano() {
         junctions,
         vec![
             DomainJunction::Adjacent,
-            DomainJunction::UnindentifiedXover,
-            DomainJunction::UnindentifiedXover
+            DomainJunction::UnidentifiedXover,
+            DomainJunction::UnidentifiedXover
         ]
     );
 }
@@ -107,21 +94,19 @@ fn scadnano_import_one_loopout() {
     }
   ]
       }"##;
-    let scadnano_design: super::scadnano::ScadnanoDesign =
-        serde_json::from_str(&input).expect("Failed to parse scadnano input");
-    let ensnano_design = Design::from_scadnano(&scadnano_design)
-        .ok()
-        .expect("Could not convert to ensnano");
+    let scadnano_design: ScadnanoDesign =
+        serde_json::from_str(input).expect("Failed to parse scadnano input");
+    let ensnano_design =
+        Design::from_scadnano(&scadnano_design).expect("Could not convert to ensnano");
     assert_eq!(ensnano_design.strands.len(), 1);
     let strand = ensnano_design.strands.values().next().unwrap();
-    assert_good_strand(&strand, "[H0: 8 -> 15] [@5] [H1: 8 <- 15]")
+    assert_good_strand(strand, "[H0: 8 -> 15] [@5] [H1: 8 <- 15]");
 }
 
 fn assert_good_strand<S: std::ops::Deref<Target = str>>(strand: &Strand, objective: S) {
-    use regex::Regex;
-    let re = Regex::new(r#"\[[^\]]*\]"#).unwrap();
-    let formated_strand = strand.formated_domains();
-    let left = re.find_iter(&formated_strand);
+    let re = Regex::new(r"\[[^\]]*\]").unwrap();
+    let formatted_strand = strand.formatted_domains();
+    let left = re.find_iter(&formatted_strand);
     let right = re.find_iter(&objective);
     for (a, b) in left.zip(right) {
         assert_eq!(a.as_str(), b.as_str());
@@ -130,10 +115,10 @@ fn assert_good_strand<S: std::ops::Deref<Target = str>>(strand: &Strand, objecti
 
 fn assert_sane_domains_non_cyclic(dom: &[Domain]) {
     let mut prev_insertion = false;
-    for d in dom.iter() {
+    for d in dom {
         if let Domain::Insertion { .. } = d {
             if prev_insertion {
-                panic!("Two successive Insertions in {:?}", dom);
+                panic!("Two successive Insertions in {dom:?}");
             } else {
                 prev_insertion = true;
             }
@@ -144,36 +129,35 @@ fn assert_sane_domains_non_cyclic(dom: &[Domain]) {
 }
 
 fn assert_sane_domains_cyclic(dom: &[Domain]) {
-    if dom.len() >= 2 {
-        if let Some(Domain::Insertion { .. }) = dom.first() {
-            if let Some(Domain::Insertion { .. }) = dom.last() {
-                panic!("First and last domains are both insertions in cyclic strand")
-            }
-        }
+    if dom.len() >= 2
+        && let Some(Domain::Insertion { .. }) = dom.first()
+        && let Some(Domain::Insertion { .. }) = dom.last()
+    {
+        panic!("First and last domains are both insertions in cyclic strand")
     }
 }
 
 #[test]
-fn correct_sanetization() {
+fn correct_sanitization() {
     let mut strand = strand_with_insertion();
     let sane_domains = sanitize_domains(&strand.domains, false);
     strand.domains = sane_domains;
-    assert_good_strand(&strand, formated_sane_strand_with_insertion());
+    assert_good_strand(&strand, formatted_sane_strand_with_insertion());
 }
 
 #[test]
-fn correct_sanetization_cyclic() {
+fn correct_sanitization_cyclic() {
     let mut strand = strand_with_insertion();
     strand.is_cyclic = true;
     let sane_domains = sanitize_domains(&strand.domains, true);
     assert_eq!(
-        sane_domains.iter().map(|d| d.length()).collect::<Vec<_>>(),
+        sane_domains.iter().map(Domain::length).collect::<Vec<_>>(),
         vec![4, 8, 4, 5, 8]
     );
 }
 
 #[test]
-fn correct_sanetization_cyclic_pathological() {
+fn correct_sanitization_cyclic_pathological() {
     let mut strand = strand_with_insertion();
     strand.is_cyclic = true;
     let add_prime5 = 123;
@@ -182,17 +166,17 @@ fn correct_sanetization_cyclic_pathological() {
     strand.domains.push(Domain::new_insertion(add_prime3));
     let sane_domains = sanitize_domains(&strand.domains, true);
     assert_eq!(
-        sane_domains.iter().map(|d| d.length()).collect::<Vec<_>>(),
+        sane_domains.iter().map(Domain::length).collect::<Vec<_>>(),
         vec![4, 8, 4, 5, 8, add_prime5 + add_prime3]
     );
     strand.domains = sane_domains;
-    let mut expected = String::from(formated_sane_strand_with_insertion());
+    let mut expected = String::from(formatted_sane_strand_with_insertion());
     write!(&mut expected, "[@{}]", add_prime5 + add_prime3).unwrap();
     assert_good_strand(&strand, expected);
 }
 
 #[test]
-fn correct_sanetization_cyclic_insertion_5prime() {
+fn correct_sanitization_cyclic_insertion_5prime() {
     let mut strand = strand_with_insertion();
     strand.is_cyclic = true;
     let insertion_prime5 = 17;
@@ -201,26 +185,26 @@ fn correct_sanetization_cyclic_insertion_5prime() {
         .insert(0, Domain::new_insertion(insertion_prime5));
     let sane_domains = sanitize_domains(&strand.domains, true);
     assert_eq!(
-        sane_domains.iter().map(|d| d.length()).collect::<Vec<_>>(),
+        sane_domains.iter().map(Domain::length).collect::<Vec<_>>(),
         vec![4, 8, 4, 5, 8, insertion_prime5]
     );
 }
 
 #[test]
-fn correct_sanetization_cyclic_insertion_3prime() {
+fn correct_sanitization_cyclic_insertion_3prime() {
     let mut strand = strand_with_insertion();
     strand.is_cyclic = true;
     let insertion_prime3 = 17;
     strand.domains.push(Domain::new_insertion(insertion_prime3));
     let sane_domains = sanitize_domains(&strand.domains, true);
     assert_eq!(
-        sane_domains.iter().map(|d| d.length()).collect::<Vec<_>>(),
+        sane_domains.iter().map(Domain::length).collect::<Vec<_>>(),
         vec![4, 8, 4, 5, 8, insertion_prime3]
     );
 }
 
 #[test]
-fn correct_sanetization_cyclic_insertion_3prime_5prime() {
+fn correct_sanitization_cyclic_insertion_3prime_5prime() {
     let mut strand = strand_with_insertion();
     strand.is_cyclic = true;
     let insertion_prime5 = 12;
@@ -231,7 +215,7 @@ fn correct_sanetization_cyclic_insertion_3prime_5prime() {
     strand.domains.push(Domain::new_insertion(insertion_prime3));
     let sane_domains = sanitize_domains(&strand.domains, true);
     assert_eq!(
-        sane_domains.iter().map(|d| d.length()).collect::<Vec<_>>(),
+        sane_domains.iter().map(Domain::length).collect::<Vec<_>>(),
         vec![4, 8, 4, 5, 8, insertion_prime3 + insertion_prime5]
     );
 }
@@ -249,7 +233,7 @@ fn correct_junction_insertions() {
             DomainJunction::Adjacent,
             DomainJunction::Adjacent,
             DomainJunction::Adjacent,
-            DomainJunction::UnindentifiedXover,
+            DomainJunction::UnidentifiedXover,
             DomainJunction::Prime3
         ]
     );
@@ -556,15 +540,15 @@ fn correct_junction_cyclic_pathological() {
             DomainJunction::Adjacent,
             DomainJunction::Adjacent,
             DomainJunction::Adjacent,
-            DomainJunction::UnindentifiedXover,
+            DomainJunction::UnidentifiedXover,
             DomainJunction::Adjacent,
-            DomainJunction::UnindentifiedXover
+            DomainJunction::UnidentifiedXover
         ]
     );
 }
 
 #[test]
-fn test_insertion_left_to_right() {
+fn correct_insertion_left_to_right() {
     let mut strand = strand_with_insertion();
     let domains = sanitize_domains(&strand.domains, strand.is_cyclic);
     strand.domains = domains;
@@ -589,14 +573,13 @@ fn test_insertion_left_to_right() {
     );
 
     let objective = format!(
-        "[H1: 0 -> 3] [@8] [H1: 4 -> 6] [@{}] [H1: 7 -> 7] [@5] [H2: 5 <- 7] [@{}] [H2: 0 <- 4]",
-        first_insertion, second_insertion
+        "[H1: 0 -> 3] [@8] [H1: 4 -> 6] [@{first_insertion}] [H1: 7 -> 7] [@5] [H2: 5 <- 7] [@{second_insertion}] [H2: 0 <- 4]",
     );
     assert_good_strand(&strand, objective);
 }
 
 #[test]
-fn test_insertion_right_to_left() {
+fn correct_insertion_right_to_left() {
     let mut strand = strand_with_insertion();
     let domains = sanitize_domains(&strand.domains, strand.is_cyclic);
     strand.domains = domains;
@@ -621,29 +604,28 @@ fn test_insertion_right_to_left() {
     );
 
     let objective = format!(
-        "[H1: 0 -> 3] [@8] [H1: 4 -> 6] [@{}] [H1: 7 -> 7] [@5] [H2: 5 <- 7] [@{}] [H2: 0 <- 4]",
-        first_insertion, second_insertion
+        "[H1: 0 -> 3] [@8] [H1: 4 -> 6] [@{first_insertion}] [H1: 7 -> 7] [@5] [H2: 5 <- 7] [@{second_insertion}] [H2: 0 <- 4]",
     );
     assert_good_strand(&strand, objective);
 }
 
-/// A strand whose inital topology is [H1: 0 -> 3] [@5] [@3] [H1: 4 -> 7] [@5] [H2: 0 <- 7]
+/// A strand whose initial topology is [H1: 0 -> 3] [@5] [@3] [H1: 4 -> 7] [@5] [H2: 0 <- 7].
 fn strand_with_insertion() -> Strand {
     let strand_str = include_str!("./strand_with_insertion.json");
-    let strand: Strand = serde_json::from_str(&strand_str).expect("Could not parse strand");
+    let strand: Strand = serde_json::from_str(strand_str).expect("Could not parse strand");
     strand
 }
 
-fn formated_strand_with_insertion() -> &'static str {
+fn formatted_strand_with_insertion() -> &'static str {
     "[H1: 0 -> 3] [@5] [@3] [H1: 4 -> 7] [@5] [H2: 0 <- 7]"
 }
 
-fn formated_sane_strand_with_insertion() -> &'static str {
+fn formatted_sane_strand_with_insertion() -> &'static str {
     "[H1: 0 -> 3] [@8] [H1: 4 -> 7] [@5] [H2: 0 <- 7]"
 }
 
 #[test]
-fn check_formated_strand_with_insertion() {
+fn check_formatted_strand_with_insertion() {
     let strand = strand_with_insertion();
-    assert_good_strand(&strand, formated_strand_with_insertion())
+    assert_good_strand(&strand, formatted_strand_with_insertion());
 }

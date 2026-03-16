@@ -12,18 +12,23 @@ layout(location=0) out vec4 f_color;
 
 layout(set = 3, binding = 0) uniform texture2D t_square;
 layout(set = 3, binding = 1) uniform sampler s_square;
-layout(set = 3, binding = 2) uniform texture2D t_honney;
-layout(set = 3, binding = 3) uniform sampler s_honney;
+layout(set = 3, binding = 2) uniform texture2D t_honey;
+layout(set = 3, binding = 3) uniform sampler s_honey;
 
 
 void main() {
+    uint SQUARE_GRID_TYPE = 0;
+    uint HONEYCOMB_GRID_TYPE = 1;
+    uint ROTATED_HONEYCOMB_GRID_TYPE = 2;
+    uint HYPERBOLOID_GRID_TYPE = 3;
+    
     vec4 color;
 
     vec4 grid_color = texture(sampler2D(t_square, s_square), v_tex_square_coords);
-    vec4 honey_color = texture(sampler2D(t_honney, s_honney), v_tex_honey_coords);
-    if (v_grid_type == 0) {
+    vec4 honey_color = texture(sampler2D(t_honey, s_honey), v_tex_honey_coords);
+    if (v_grid_type == SQUARE_GRID_TYPE) {
        color = grid_color;
-    } else if (v_grid_type == 1) {
+    } else if (v_grid_type == HONEYCOMB_GRID_TYPE || v_grid_type == ROTATED_HONEYCOMB_GRID_TYPE) {
        color = honey_color;
     } else {
        color = vec4(1., 1., 1., 0.4);

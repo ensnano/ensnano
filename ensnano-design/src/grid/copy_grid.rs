@@ -1,24 +1,15 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::*;
-use crate::strands::*;
-use std::borrow::Cow;
+use crate::{
+    Design,
+    domains::{Domain, helix_interval::HelixInterval},
+    grid::{
+        GridDescriptor, GridId, HelixGridPosition,
+        grid_collection::{FreeGridId, FreeGrids, FreeGridsMut},
+    },
+    helices::Helix,
+    strands::{DomainJunction, Strand},
+};
+use std::{borrow::Cow, collections::HashMap};
+use ultraviolet::{Rotor3, Vec3};
 
 impl Design {
     pub fn copy_grids(
@@ -28,7 +19,7 @@ impl Design {
         orientation: Rotor3,
     ) -> Result<(), GridCopyError> {
         let (base_position, base_orientation) = {
-            let grid_id_0 = grid_ids.get(0).ok_or(GridCopyError::NoGridToCopy)?;
+            let grid_id_0 = grid_ids.first().ok_or(GridCopyError::NoGridToCopy)?;
             let source_grid = self
                 .free_grids
                 .get(grid_id_0)
@@ -43,34 +34,34 @@ impl Design {
         let mut new_grids = grids_clone.make_mut();
 
         let new_grid_ids = self.make_grid_copy_grid_map(
-            &grid_ids,
+            grid_ids,
             base_position,
             base_orientation,
             &mut new_grids,
         )?;
 
-        let new_helix_map = self.make_grid_copy_helix_map(&grid_ids);
-        let source_strand_ids = self.get_id_of_strands_on_grids(&grid_ids);
+        let new_helix_map = self.make_grid_copy_helix_map(grid_ids);
+        let source_strand_ids = self.get_id_of_strands_on_grids(grid_ids);
 
-        for s_id in source_strand_ids.into_iter() {
+        for s_id in source_strand_ids {
             let strand = self.copy_strand_on_new_grids(s_id, &new_helix_map)?;
             self.strands.push(strand);
         }
 
-        for (old_h_id, new_h_id) in new_helix_map.iter() {
+        for (old_h_id, new_h_id) in &new_helix_map {
             let old_helix = self
                 .helices
                 .get(old_h_id)
                 .ok_or(GridCopyError::HelixDoesNotExist(*old_h_id))?;
             let grid_position = old_helix.grid_position.and_then(|gp| {
                 let new_grid_id = if let GridId::FreeGrid(id) = gp.grid {
-                    new_grid_ids.get(&FreeGridId(id)).cloned()
+                    new_grid_ids.get(&FreeGridId(id)).copied()
                 } else {
                     None
                 }?;
                 Some(HelixGridPosition {
                     grid: new_grid_id,
-                    ..gp.clone()
+                    ..gp
                 })
             });
             if grid_position.is_none() {
@@ -96,7 +87,7 @@ impl Design {
         new_grids: &mut FreeGridsMut,
     ) -> Result<HashMap<FreeGridId, GridId>, GridCopyError> {
         let mut ret = HashMap::new();
-        for grid_id in grid_ids.iter() {
+        for grid_id in grid_ids {
             let source_grid = self
                 .free_grids
                 .get(grid_id)
@@ -118,17 +109,16 @@ impl Design {
     }
 
     fn make_grid_copy_helix_map(&self, grid_ids: &[FreeGridId]) -> HashMap<usize, usize> {
-        let mut new_helix_id = self.helices.keys().max().map(|n| n + 1).unwrap_or(0);
+        let mut new_helix_id = self.helices.keys().max().map_or(0, |n| n + 1);
 
         let mut ret = HashMap::new();
 
         for (h_id, h) in self.helices.iter() {
-            if let Some(grid_position) = h.grid_position {
-                if matches!(grid_position.grid, GridId::FreeGrid(g_id) if grid_ids.contains(&FreeGridId(g_id)))
-                {
-                    ret.insert(*h_id, new_helix_id);
-                    new_helix_id += 1;
-                }
+            if let Some(grid_position) = h.grid_position
+                && matches!(grid_position.grid, GridId::FreeGrid(g_id) if grid_ids.contains(&FreeGridId(g_id)))
+            {
+                ret.insert(*h_id, new_helix_id);
+                new_helix_id += 1;
             }
         }
         ret
@@ -138,7 +128,7 @@ impl Design {
         let mut ret = Vec::new();
         for (s_id, s) in self.strands.iter() {
             let mut insert = true;
-            for d in s.domains.iter() {
+            for d in &s.domains {
                 if matches!(d, Domain::HelixDomain(HelixInterval { helix, .. }) if !self.helix_is_on_grids(*helix, grid_ids))
                 {
                     insert = false;
@@ -146,7 +136,7 @@ impl Design {
                 }
             }
             if insert {
-                ret.push(*s_id)
+                ret.push(*s_id);
             }
         }
         ret
@@ -170,7 +160,7 @@ impl Design {
             .strands
             .get(&s_id)
             .ok_or(GridCopyError::StrandDoesNotExist(s_id))?;
-        for d in source_strand.domains.iter() {
+        for d in &source_strand.domains {
             match d {
                 Domain::Insertion {
                     nb_nucl,
@@ -179,7 +169,7 @@ impl Design {
                     ..
                 } => new_strand_domains.push(Domain::Insertion {
                     nb_nucl: *nb_nucl,
-                    instanciation: None,
+                    instantiation: None,
                     sequence: sequence.clone(),
                     attached_to_prime3: *attached_to_prime3,
                 }),
@@ -192,7 +182,7 @@ impl Design {
                 }) => {
                     let new_domain_helix = new_helices_map
                         .get(helix)
-                        .cloned()
+                        .copied()
                         .ok_or(GridCopyError::HelixIdNotInNewHelixMap(*helix))?;
                     let new_domain = Domain::HelixDomain(HelixInterval {
                         helix: new_domain_helix,
@@ -207,11 +197,11 @@ impl Design {
         }
 
         let mut new_junctions = Vec::new();
-        for j in source_strand.junctions.iter() {
+        for j in &source_strand.junctions {
             match j {
                 DomainJunction::Prime3 => new_junctions.push(DomainJunction::Prime3),
-                DomainJunction::IdentifiedXover(_) | DomainJunction::UnindentifiedXover => {
-                    new_junctions.push(DomainJunction::UnindentifiedXover)
+                DomainJunction::IdentifiedXover(_) | DomainJunction::UnidentifiedXover => {
+                    new_junctions.push(DomainJunction::UnidentifiedXover);
                 }
                 DomainJunction::Adjacent => new_junctions.push(DomainJunction::Adjacent),
             }
@@ -226,7 +216,7 @@ impl Design {
             name: source_strand
                 .name
                 .as_ref()
-                .map(|n| Cow::from(format!("{}_copy", n))),
+                .map(|n| Cow::from(format!("{n}_copy"))),
         })
     }
 }

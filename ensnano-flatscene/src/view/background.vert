@@ -1,9 +1,3 @@
-/*
-This file contains fragment of code that were originally published in the `lyon` crate
-Original source: https://github.com/nical/lyon/blob/master/examples/wgpu/shaders/background.vert.glsl
-The original source was distributed under the MIT License by Nicolas Silva.
-A copy of the original license is available in thirdparties/lyon/LICENSE
-*/
 #version 450
 
 layout(set = 0, binding = 0) uniform Globals {
@@ -11,7 +5,7 @@ layout(set = 0, binding = 0) uniform Globals {
     vec2 u_scroll_offset;
     float u_zoom;
     float u_tilt;
-    vec2 u_symetry;
+    vec2 u_symmetry;
 };
 
 layout(location = 0) in vec2 a_position;
@@ -30,7 +24,7 @@ mat2 rotation(float angle) {
 
 void main() {
     gl_Position = vec4(a_position,1. - 0.0000001, 1.0);
-    v_position = a_position * u_symetry;
+    v_position = a_position * u_symmetry;
     v_resolution = u_resolution;
     v_scroll_offset = u_scroll_offset;
     v_zoom = u_zoom;

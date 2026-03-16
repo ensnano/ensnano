@@ -1,0 +1,2 @@
+ensnano_design = { path = "ensnano-design", features = ["ensnano_upcoming"] }
+ensnano_upcoming = { path = "../ensnano-upcoming" } # git = "ssh://git@gitlab.aliens-lyon.fr/nschaban/ensnano-upcoming.git" }

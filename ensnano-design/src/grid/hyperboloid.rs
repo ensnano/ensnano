@@ -1,51 +1,36 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::*;
-use crate::curves::Twist;
-use crate::{CurveDescriptor, Helix};
-use std::sync::Arc;
-
+use crate::{
+    curves::CurveDescriptor,
+    grid::{CurveInfo, Edge, GridDivision, GridTypeDescr},
+    helices::Helix,
+    parameters::HelixParameters,
+};
+use std::{f32::consts::PI, sync::Arc};
 use ultraviolet::{Isometry2, Rotor2, Rotor3, Vec2, Vec3};
 
 /// A structure made of helices arranged circularly on two planes.
 #[derive(Clone, Debug)]
 pub struct Hyperboloid {
-    /// The number of helices on each plane
+    /// The number of helices on each plane.
     pub radius: usize,
     /// The angle between the two planes.
     pub shift: f32,
     /// The distance between the planes.
     pub length: f32,
     /// The difference between the actual sheet radius and the radius needed for the helices to
-    /// fit perfectly at the tightest point of the hyperboloid
+    /// fit perfectly at the tightest point of the hyperboloid.
     pub radius_shift: f32,
 
     /// A forced grid radius, for when user modifies the shift but still wants the radius in the
     /// center to be constant.
     pub forced_radius: Option<f32>,
-    /// The number of turns arround the grid made by the helices every 100 nucleotides.
+    /// The number of turns around the grid made by the helices every 100 nucleotides.
     ///
     /// Note that this value is subject to the constraint
     /// |Ω| ≤ Z * r / sqrt(2π)
-    /// where
+    /// where:
     ///  * Ω is `self.nb_turn_per_100_nt`,
     ///  * Z is `100.0 * Parameters::step`
-    ///  * r is `self.radius`
+    ///  * r is `self.radius`.
     pub nb_turn_per_100_nt: f64,
 }
 
@@ -66,7 +51,6 @@ impl GridDivision for Hyperboloid {
     }
 
     fn interpolate(&self, _helix_parameters: &HelixParameters, x: f32, y: f32) -> (isize, isize) {
-        use std::f32::consts::PI;
         let angle = PI / self.radius as f32;
         let plane_angle = y.atan2(x);
         let i = (plane_angle / angle / 2.).round();
@@ -84,34 +68,7 @@ impl GridDivision for Hyperboloid {
         }
     }
 
-    fn grid_type(&self) -> GridType {
-        GridType::Hyperboloid(self.clone())
-    }
-
     fn curve(&self, _x: isize, _y: isize, _info: CurveInfo) -> Option<Arc<CurveDescriptor>> {
-        /*
-        if self.nb_turn_per_100_nt != 0.0 {
-            if let Some(omega) =
-                nb_turn_per_100_nt_to_omega(self.nb_turn_per_100_nt, &info.parameters)
-            {
-                let mut ret = self.curve(x as usize, &info.parameters, omega);
-                ret.orientation = info.orientation;
-                ret.position = info.position;
-                ret.t_max = info.t_max;
-                ret.t_min = info.t_min;
-                Some(Arc::new(CurveDescriptor::Twist(ret)))
-            } else {
-                log::error!("Too high number of turn per 100 nt");
-                None
-            }
-        } else {
-            let mut ret = self.curve(x as usize, &info.parameters, 0.0);
-            ret.orientation = info.orientation;
-            ret.position = info.position;
-            ret.t_max = info.t_max;
-            ret.t_min = info.t_min;
-            Some(Arc::new(CurveDescriptor::Twist(ret)))
-        }*/
         None
     }
 }
@@ -128,8 +85,7 @@ impl Hyperboloid {
                 (right_helix - left_helix).normalized(),
             );
             let mut helix = Helix::new(origin, orientation);
-            helix.curve = <Self as GridDivision>::curve(
-                self,
+            helix.curve = self.curve(
                 i as isize,
                 0,
                 CurveInfo {
@@ -137,7 +93,7 @@ impl Hyperboloid {
                     t_min: None,
                     t_max: None,
                     orientation,
-                    helix_parameters: helix_parameters.clone(),
+                    helix_parameters: *helix_parameters,
                     grid_center: origin,
                 },
             );
@@ -170,10 +126,9 @@ impl Hyperboloid {
     }
 
     /// Return the radii of the sheet so that the helices respectively fits perfectly at the center of the
-    /// hyperboloid or at the extremity of the hyperboloid
+    /// hyperboloid or at the extremity of the hyperboloid.
     fn sheet_radii(&self, helix_parameters: &HelixParameters) -> (f32, f32) {
         // First determine the radius in the center of the hyperboloid.
-        use std::f32::consts::PI;
         let angle = PI / self.radius as f32;
         let center_radius =
             (helix_parameters.helix_radius + helix_parameters.inter_helix_gap / 2.) / angle.sin();
@@ -183,14 +138,14 @@ impl Hyperboloid {
         // + delta), sin(theta + delta), h), the radius in the center is
         // r =  R * (((cos(theta) + cos(theta + delta)/ 2)^2 + (sin(theta) + sin(theta+delta))/2)^2)
         // this is a constant to we can take theta = 0 which gives
-        // r = R * 1/4 (2 + 2cos(delta))
+        // r = R * 1/4 (2 + 2cos(delta)).
         (
             (2. * center_radius / (2. + 2. * self.shift.cos()).sqrt()),
             center_radius,
         )
     }
 
-    /// Return true iff the grid supporting self contains the point (x, y)
+    /// Return true iff the grid supporting self contains the point (x, y).
     pub fn contains_point(&self, helix_parameters: &HelixParameters, x: f32, y: f32) -> bool {
         let r = self.grid_radius(helix_parameters);
         x.abs() <= r && y.abs() <= r
@@ -198,21 +153,6 @@ impl Hyperboloid {
 
     fn radius(&self, helix_parameters: &HelixParameters) -> f32 {
         self.sheet_radii(helix_parameters).0
-    }
-
-    #[allow(dead_code)] // TODO re-implement twisted structure
-    fn curve(&self, n: usize, helix_parameters: &HelixParameters, omega: f64) -> Twist {
-        let radius = self.sheet_radii(helix_parameters).1;
-        let angle = std::f64::consts::TAU / self.radius as f64;
-        Twist {
-            theta0: n as f64 * angle,
-            radius: radius as f64,
-            position: Vec3::zero(),
-            orientation: Rotor3::identity(),
-            omega,
-            t_min: None,
-            t_max: None,
-        }
     }
 
     pub fn grid_radius(&self, helix_parameters: &HelixParameters) -> f32 {
@@ -224,7 +164,6 @@ impl Hyperboloid {
     }
 
     fn origin(&self, i: isize, helix_parameters: &HelixParameters) -> Vec3 {
-        use std::f32::consts::PI;
         let angle = PI / self.radius as f32;
         let grid_radius = self.radius(helix_parameters);
         let i = i % (self.radius as isize);
@@ -233,7 +172,6 @@ impl Hyperboloid {
     }
 
     fn destination(&self, i: isize, helix_parameters: &HelixParameters) -> Vec3 {
-        use std::f32::consts::PI;
         let angle = PI / self.radius as f32;
         let grid_radius = self.radius(helix_parameters);
         let i = i % (self.radius as isize);

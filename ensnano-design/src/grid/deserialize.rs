@@ -1,31 +1,20 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+use crate::{
+    bezier_plane::BezierVertexId,
+    grid::{GridId, GridTypeDescr},
+};
+use serde::Deserialize;
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use crate::BezierVertexId;
-
-use super::*;
-
-#[derive(Deserialize)]
+#[derive(Clone, Copy, Deserialize)]
 enum NewGridTypeDescr {
     Square {
         #[serde(skip_serializing_if = "Option::is_none", default)]
         twist: Option<f64>,
     },
     Honeycomb {
+        #[serde(skip_serializing_if = "Option::is_none", default)]
+        twist: Option<f64>,
+    },
+    RotatedHoneycomb {
         #[serde(skip_serializing_if = "Option::is_none", default)]
         twist: Option<f64>,
     },
@@ -46,6 +35,7 @@ impl NewGridTypeDescr {
         match self {
             Self::Square { twist } => GridTypeDescr::Square { twist },
             Self::Honeycomb { twist } => GridTypeDescr::Honeycomb { twist },
+            Self::RotatedHoneycomb { twist } => GridTypeDescr::RotatedHoneycomb { twist },
             Self::Hyperboloid {
                 radius,
                 shift,
@@ -65,10 +55,11 @@ impl NewGridTypeDescr {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Copy, Deserialize)]
 enum OldGridTypeDescr {
     Square,
     Honeycomb,
+    RotatedHoneycomb,
     Hyperboloid {
         radius: usize,
         shift: f32,
@@ -86,6 +77,7 @@ impl OldGridTypeDescr {
         match self {
             Self::Square => GridTypeDescr::Square { twist: None },
             Self::Honeycomb => GridTypeDescr::Honeycomb { twist: None },
+            Self::RotatedHoneycomb => GridTypeDescr::RotatedHoneycomb { twist: None },
             Self::Hyperboloid {
                 radius,
                 shift,
@@ -112,7 +104,6 @@ enum NewOrOld {
     Old(OldGridTypeDescr),
 }
 
-use serde::Deserialize;
 impl<'de> Deserialize<'de> for GridTypeDescr {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -126,7 +117,7 @@ impl<'de> Deserialize<'de> for GridTypeDescr {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Copy, Deserialize)]
 enum NewGridId {
     FreeGrid(usize),
     BezierPathGrid(BezierVertexId),
@@ -155,7 +146,7 @@ impl<'de> Deserialize<'de> for GridId {
     {
         match NewOrOldGridId::deserialize(deserializer) {
             Ok(NewOrOldGridId::New(id)) => Ok(id.to_real()),
-            Ok(NewOrOldGridId::Old(id)) => Ok(GridId::FreeGrid(id)),
+            Ok(NewOrOldGridId::Old(id)) => Ok(Self::FreeGrid(id)),
             Err(e) => Err(e),
         }
     }

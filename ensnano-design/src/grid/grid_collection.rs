@@ -1,27 +1,11 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::*;
-use crate::HasMap;
+use crate::grid::{GridDescriptor, GridId};
+use serde::{Deserialize, Serialize};
+use std::{collections::BTreeMap, sync::Arc};
 
 #[derive(
     Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Default, Hash,
 )]
-/// Identifier of a free grid
+/// Identifier of a free grid.
 pub struct FreeGridId(pub usize);
 
 impl FreeGridId {
@@ -39,19 +23,11 @@ impl FreeGridId {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Default)]
-/// Collection of free grids descriptor
+/// Collection of free grids descriptor.
 pub struct FreeGrids(pub(super) Arc<BTreeMap<FreeGridId, Arc<GridDescriptor>>>);
 
-impl HasMap for FreeGrids {
-    type Key = FreeGridId;
-    type Item = GridDescriptor;
-    fn get_map(&self) -> &BTreeMap<Self::Key, Arc<Self::Item>> {
-        &self.0
-    }
-}
-
 impl FreeGrids {
-    pub fn make_mut(&mut self) -> FreeGridsMut {
+    pub fn make_mut(&mut self) -> FreeGridsMut<'_> {
         FreeGridsMut {
             new_map: BTreeMap::clone(&self.0),
             source: self,
@@ -75,6 +51,26 @@ impl FreeGrids {
         let free_id = FreeGridId::try_from_grid_id(*key)?;
         self.get(&free_id)
     }
+
+    pub fn get(&self, grid_id: &FreeGridId) -> Option<&GridDescriptor> {
+        self.0.get(grid_id).map(AsRef::as_ref)
+    }
+
+    pub fn keys(&self) -> impl Iterator<Item = &FreeGridId> {
+        self.0.keys()
+    }
+
+    pub fn values(&self) -> impl Iterator<Item = &GridDescriptor> {
+        self.0.values().map(AsRef::as_ref)
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = (&FreeGridId, &GridDescriptor)> {
+        self.0.iter().map(|(k, v)| (k, v.as_ref()))
+    }
+
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
 }
 
 pub struct FreeGridsMut<'a> {
@@ -82,7 +78,7 @@ pub struct FreeGridsMut<'a> {
     new_map: BTreeMap<FreeGridId, Arc<GridDescriptor>>,
 }
 
-impl<'a> FreeGridsMut<'a> {
+impl FreeGridsMut<'_> {
     pub fn push(&mut self, desc: GridDescriptor) -> GridId {
         let new_key = self
             .new_map
@@ -95,7 +91,7 @@ impl<'a> FreeGridsMut<'a> {
     }
 
     pub fn get_mut(&mut self, g_id: &FreeGridId) -> Option<&mut GridDescriptor> {
-        self.new_map.get_mut(&g_id).map(Arc::make_mut)
+        self.new_map.get_mut(g_id).map(Arc::make_mut)
     }
 
     pub fn get_mut_g_id(&mut self, g_id: &GridId) -> Option<&mut GridDescriptor> {
@@ -109,8 +105,8 @@ impl<'a> FreeGridsMut<'a> {
     }
 }
 
-impl<'a> Drop for FreeGridsMut<'a> {
+impl Drop for FreeGridsMut<'_> {
     fn drop(&mut self) {
-        *self.source = FreeGrids(Arc::new(std::mem::take(&mut self.new_map)))
+        *self.source = FreeGrids(Arc::new(std::mem::take(&mut self.new_map)));
     }
 }

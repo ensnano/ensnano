@@ -1,71 +1,59 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::{messages, MainState, NormalState, State, TransitionMessage};
-
-use crate::dialog;
-use dialog::{MustAckMessage, PathInput};
+use super::{
+    AutomataState, TransitionMessage,
+    messages::{
+        NO_FILE_RECEIVED_STAPLE, NO_SCAFFOLD_SEQUENCE_SET, NO_SCAFFOLD_SET, STAPLES_FILTERS,
+        successful_staples_export_msg,
+    },
+    normal_state::NormalState,
+};
+use crate::{
+    MainStateView,
+    dialog::{self, MustAckMessage, PathInput},
+};
+use ensnano_state::app_state::design_interactor::{
+    DesignInteractor,
+    presenter::impl_main_reader::{DownloadStapleError, DownloadStapleOk},
+};
 use std::path::PathBuf;
 
 #[derive(Default)]
-pub(super) struct DownloadStaples {
+pub(crate) struct DownloadStaples {
     step: Step,
 }
 
+#[derive(Default)]
 enum Step {
-    /// The staple downloading request has just started
+    /// The staple downloading request has just started.
+    #[default]
     Init,
-    /// Asking the user where to write the result
+    /// Asking the user where to write the result.
     AskingPath(AskingPath_),
-    /// The path was asked, waiting for user to chose it
+    /// The path was asked, waiting for user to chose it.
     PathAsked {
-        path_input: dialog::PathInput,
+        path_input: PathInput,
         design_id: usize,
     },
-    /// Downloading
-    Downloading { design_id: usize, path: PathBuf },
+    /// Downloading.
+    Downloading { path: PathBuf },
 }
 
-impl Default for Step {
-    fn default() -> Self {
-        Self::Init
-    }
-}
-
-impl State for DownloadStaples {
-    fn make_progress(self: Box<Self>, main_state: &mut dyn MainState) -> Box<dyn State> {
-        let downloader = main_state.get_staple_downloader();
+impl AutomataState for DownloadStaples {
+    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn AutomataState> {
+        let downloader = main_state.get_design_interactor();
         match self.step {
-            Step::Init => get_design_providing_staples(downloader.as_ref()),
+            Step::Init => get_design_providing_staples(&downloader),
             Step::AskingPath(state) => ask_path(state, main_state),
             Step::PathAsked {
                 path_input,
                 design_id,
             } => poll_path(path_input, design_id),
-            Step::Downloading { design_id, path } => {
-                download_staples(downloader.as_ref(), design_id, path)
-            }
+            Step::Downloading { path } => download_staples(&downloader, path),
         }
     }
 }
 
-fn get_design_providing_staples(downlader: &dyn StaplesDownloader) -> Box<dyn State> {
-    let result = downlader.download_staples();
+fn get_design_providing_staples(downloader: &DesignInteractor) -> Box<dyn AutomataState> {
+    let result = downloader.download_staples();
     match result {
         Ok(DownloadStapleOk { warnings }) => AskingPath_ {
             warnings,
@@ -74,37 +62,31 @@ fn get_design_providing_staples(downlader: &dyn StaplesDownloader) -> Box<dyn St
         }
         .to_state(),
         Err(DownloadStapleError::NoScaffoldSet) => TransitionMessage::new(
-            messages::NO_SCAFFOLD_SET,
+            NO_SCAFFOLD_SET,
             rfd::MessageLevel::Error,
             Box::new(NormalState),
         ),
         Err(DownloadStapleError::ScaffoldSequenceNotSet) => TransitionMessage::new(
-            messages::NO_SCAFFOLD_SEQUENCE_SET,
-            rfd::MessageLevel::Error,
-            Box::new(NormalState),
-        ),
-        Err(DownloadStapleError::SeveralDesignNoneSelected) => TransitionMessage::new(
-            messages::NO_DESIGN_SELECTED,
+            NO_SCAFFOLD_SEQUENCE_SET,
             rfd::MessageLevel::Error,
             Box::new(NormalState),
         ),
     }
 }
 
-fn ask_path(mut state: AskingPath_, main_state: &dyn MainState) -> Box<DownloadStaples> {
-    if let Some(must_ack) = state.warning_ack.as_ref() {
-        if !must_ack.was_ack() {
-            return Box::new(DownloadStaples {
-                step: Step::AskingPath(state),
-            });
-        }
-    }
-    if let Some(msg) = state.warnings.pop() {
+fn ask_path(mut state: AskingPath_, main_state: &MainStateView) -> Box<DownloadStaples> {
+    if let Some(must_ack) = state.warning_ack.as_ref()
+        && !must_ack.was_ack()
+    {
+        Box::new(DownloadStaples {
+            step: Step::AskingPath(state),
+        })
+    } else if let Some(msg) = state.warnings.pop() {
         let must_ack = dialog::blocking_message(msg.into(), rfd::MessageLevel::Warning);
         state.with_ack(must_ack)
     } else {
         let path_input = dialog::get_file_to_write(
-            &messages::STAPLES_FILTER,
+            STAPLES_FILTERS,
             main_state.get_current_design_directory(),
             main_state.get_current_file_name(),
         );
@@ -136,15 +118,15 @@ impl AskingPath_ {
     }
 }
 
-fn poll_path(path_input: PathInput, design_id: usize) -> Box<dyn State> {
+fn poll_path(path_input: PathInput, design_id: usize) -> Box<dyn AutomataState> {
     if let Some(result) = path_input.get() {
         if let Some(path) = result {
             Box::new(DownloadStaples {
-                step: Step::Downloading { path, design_id },
+                step: Step::Downloading { path },
             })
         } else {
             TransitionMessage::new(
-                messages::NO_FILE_RECIEVED_STAPLE,
+                NO_FILE_RECEIVED_STAPLE,
                 rfd::MessageLevel::Error,
                 Box::new(NormalState),
             )
@@ -159,33 +141,8 @@ fn poll_path(path_input: PathInput, design_id: usize) -> Box<dyn State> {
     }
 }
 
-fn download_staples(
-    downlader: &dyn StaplesDownloader,
-    _design_id: usize,
-    path: PathBuf,
-) -> Box<dyn State> {
-    downlader.write_staples_xlsx(&path);
-    let msg = messages::successfull_staples_export_msg(&path);
-    TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(NormalState))
-}
-
-pub trait StaplesDownloader {
-    fn download_staples(&self) -> Result<DownloadStapleOk, DownloadStapleError>;
-    fn write_staples_xlsx(&self, xlsx_path: &PathBuf);
-    fn write_intervals(&self, origami_path: &PathBuf);
-    fn default_shift(&self) -> Option<usize>;
-}
-
-pub enum DownloadStapleError {
-    /// There are several designs and none is selected.
-    #[allow(dead_code)]
-    SeveralDesignNoneSelected,
-    /// No strand is set as the scaffold
-    NoScaffoldSet,
-    /// There is no sequence set for the scaffold
-    ScaffoldSequenceNotSet,
-}
-
-pub struct DownloadStapleOk {
-    pub warnings: Vec<String>,
+fn download_staples(downloader: &DesignInteractor, path: PathBuf) -> Box<dyn AutomataState> {
+    downloader.write_staples_xlsx(&path);
+    let msg = successful_staples_export_msg(&path);
+    TransitionMessage::new(msg, rfd::MessageLevel::Info, Box::new(NormalState))
 }

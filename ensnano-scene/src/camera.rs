@@ -1,39 +1,36 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::maths_3d;
-use super::{controller::Data as SurfaceInfoProvider, ClickMode, PhySize, Stereography};
-use ensnano_design::{ultraviolet, SurfaceInfo, SurfacePoint};
-use ensnano_utils::winit;
-use std::cell::RefCell;
-use std::f32::consts::{FRAC_PI_2, PI};
-use std::rc::Rc;
-use std::time::Duration;
-use ultraviolet::{Mat3, Mat4, Rotor3, Vec3};
-use winit::dpi::PhysicalPosition;
-use winit::event::*;
+use crate::{
+    data::Data,
+    maths_3d::{Basis3D, FiniteVec3, Plane, cast_ray, unproject_point_on_plane},
+    view::uniforms::Stereography,
+};
+use ensnano_design::curves::{SurfaceInfo, SurfacePoint};
+use ensnano_utils::{
+    consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP},
+    graphics::PhySize,
+};
+use std::{
+    cell::RefCell,
+    f32::consts::{FRAC_PI_2, PI},
+    rc::Rc,
+    time::Duration,
+};
+use ultraviolet::{Mat3, Mat4, Rotor3, Vec2, Vec3, projection::rh_yup};
+use winit::{
+    dpi::PhysicalPosition,
+    event::{ElementState, MouseScrollDelta},
+    keyboard::{KeyCode, ModifiersState},
+};
 
 const DEFAULT_DIST_TO_SURFACE: f32 = 20.;
 const SURFACE_ABSCISSA_FACTOR: f64 = 1.;
 const SURFACE_REVOLUTION_ANGLE_FACTOR: f64 = 1.;
 
+pub(crate) type CameraPtr = Rc<RefCell<Camera>>;
+pub(crate) type ProjectionPtr = Rc<RefCell<Projection>>;
+
 #[derive(Debug, Clone)]
 pub struct Camera {
-    /// The eye of the camera
+    /// The eye of the camera.
     pub position: Vec3,
     /// The orientation of the camera.
     ///
@@ -43,28 +40,23 @@ pub struct Camera {
     pub rotor: Rotor3,
 }
 
-pub type CameraPtr = Rc<RefCell<Camera>>;
-
 impl Camera {
-    pub fn new<V: Into<Vec3>>(position: V, rotor: Rotor3) -> Self {
-        Self {
-            position: position.into(),
-            rotor,
-        }
+    pub fn new(position: Vec3, rotor: Rotor3) -> Self {
+        Self { position, rotor }
     }
 
-    /// The view matrix of the camera
+    /// The view matrix of the camera.
     pub fn calc_matrix(&self) -> Mat4 {
         let at = self.position + self.direction();
         Mat4::look_at(self.position, at, self.up_vec())
     }
 
-    /// The direction of the camera, expressed in the world coordinates
+    /// The direction of the camera, expressed in the world coordinates.
     pub fn direction(&self) -> Vec3 {
         self.rotor.reversed() * Vec3::from([0., 0., -1.])
     }
 
-    /// The right vector of the camera, expressed in the world coordinates
+    /// The right vector of the camera, expressed in the world coordinates.
     pub fn right_vec(&self) -> Vec3 {
         self.rotor.reversed() * Vec3::from([1., 0., 0.])
     }
@@ -74,8 +66,8 @@ impl Camera {
         self.right_vec().cross(self.direction())
     }
 
-    pub fn get_basis(&self) -> maths_3d::Basis3D {
-        maths_3d::Basis3D::from_vecs(self.right_vec(), self.up_vec(), -self.direction())
+    pub fn get_basis(&self) -> Basis3D {
+        Basis3D::from_vecs(self.right_vec(), self.up_vec(), -self.direction())
     }
 }
 
@@ -83,14 +75,12 @@ impl Camera {
 /// This structure holds the information needed to compute the projection matrix.
 pub struct Projection {
     aspect: f32,
-    /// Field of view in *radiants*
+    /// Field of view in *radians*.
     fovy: f32,
     znear: f32,
     zfar: f32,
     pub stereographic_zoom: f32,
 }
-
-pub type ProjectionPtr = Rc<RefCell<Projection>>;
 
 impl Projection {
     pub fn new(width: u32, height: u32, fovy: f32, znear: f32, zfar: f32) -> Self {
@@ -99,7 +89,7 @@ impl Projection {
             fovy,
             znear,
             zfar,
-            stereographic_zoom: ensnano_interactor::consts::DEFAULT_STEREOGRAPHIC_ZOOM,
+            stereographic_zoom: DEFAULT_STEREOGRAPHIC_ZOOM,
         }
     }
 
@@ -109,12 +99,7 @@ impl Projection {
 
     /// Computes the projection matrix.
     pub fn calc_matrix(&self) -> Mat4 {
-        ultraviolet::projection::rh_yup::perspective_wgpu_dx(
-            self.fovy,
-            self.aspect,
-            self.znear,
-            self.zfar,
-        )
+        rh_yup::perspective_wgpu_dx(self.fovy, self.aspect, self.znear, self.zfar)
     }
 
     pub fn get_fovy(&self) -> f32 {
@@ -149,12 +134,12 @@ impl ConstrainedRotation {
                 // if the current position is not on a pole, use it to compute theta
 
                 // We project on the zx plane (z to the right, x up) so the z coordinate is the `x` argument of atan2 and the
-                // x coordinate is the `y` arugment of atan2
+                // x coordinate is the `y` argument of atan2
                 current_pos_on_sphere
                     .dot(horizon_x)
                     .atan2(current_pos_on_sphere.dot(horizon_z))
             } else {
-                // The current right vector is in the xz plane so we can use it to dertermine theta
+                // The current right vector is in the xz plane so we can use it to determine theta
 
                 // We project the right vector in the x(-z) plane
                 let current_right = current_rotor.reversed() * Vec3::from([1., 0., 0.]);
@@ -182,19 +167,6 @@ impl ConstrainedRotation {
         } else {
             let horizon_x = current_rotor.reversed() * Vec3::unit_x();
 
-            /*
-            let horizon_z = if horizon_x.cross(Vec3::unit_y()).mag() > 1e-3 {
-                let current_up = current_rotor.reversed() * Vec3::from([0., 1., 0.]);
-                let upside_down = if current_up.dot(Vec3::unit_y()) >= 0. {
-                    1.
-                } else {
-                    // We are looking upside down
-                    -1.
-                };
-               upside_down * horizon_x.cross(Vec3::unit_y()).normalized()
-            } else {
-                current_rotor.reversed() * Vec3::unit_z()
-            };*/
             let horizon_z = current_rotor.reversed() * Vec3::unit_z();
             let theta = current_pos_on_sphere
                 .dot(horizon_x)
@@ -237,7 +209,7 @@ impl ConstrainedRotation {
     }
 }
 
-pub struct CameraController {
+pub(crate) struct CameraController {
     speed: f32,
     amount_up: f32,
     amount_down: f32,
@@ -246,8 +218,6 @@ pub struct CameraController {
     mouse_horizontal: f32,
     mouse_vertical: f32,
     scroll: f32,
-    #[allow(dead_code)]
-    last_rotor: Rotor3,
     processed_move: bool,
     camera: CameraPtr,
     cam0: Camera,
@@ -256,9 +226,9 @@ pub struct CameraController {
     zoom_plane: Option<Plane>,
     x_scroll: f32,
     y_scroll: f32,
-    /// The xz angle accumulated during a free camera rotation
+    /// The xz angle accumulated during a free camera rotation.
     free_xz_angle: f32,
-    /// The yz angle accumulated during a free camera rotation
+    /// The yz angle accumulated during a free camera rotation.
     free_yz_angle: f32,
     current_constrained_rotation: Option<ConstrainedRotation>,
     surface_point: Option<SurfacePoint>,
@@ -266,35 +236,8 @@ pub struct CameraController {
     dist_to_surface: Option<f32>,
 }
 
-#[derive(Clone, Copy, Debug)]
-pub struct FiniteVec3(Vec3);
-
-use std::convert::TryFrom;
-impl TryFrom<Vec3> for FiniteVec3 {
-    type Error = ();
-    fn try_from(value: Vec3) -> Result<Self, Self::Error> {
-        if !value.x.is_finite() || !value.y.is_finite() || !value.z.is_finite() {
-            Err(())
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-
-impl FiniteVec3 {
-    pub fn zero() -> Self {
-        Self(Vec3::zero())
-    }
-}
-
-impl From<FiniteVec3> for Vec3 {
-    fn from(v: FiniteVec3) -> Self {
-        v.0
-    }
-}
-
 impl CameraController {
-    pub fn new(speed: f32, camera: CameraPtr, projection: ProjectionPtr) -> Self {
+    pub(crate) fn new(speed: f32, camera: CameraPtr, projection: ProjectionPtr) -> Self {
         Self {
             speed,
             amount_left: 0.0,
@@ -304,7 +247,6 @@ impl CameraController {
             mouse_horizontal: 0.0,
             mouse_vertical: 0.0,
             scroll: 0.0,
-            last_rotor: camera.borrow().rotor,
             processed_move: false,
             camera: camera.clone(),
             cam0: camera.borrow().clone(), // clone the camera not the pointer !
@@ -322,85 +264,53 @@ impl CameraController {
         }
     }
 
-    pub fn process_keyboard(&mut self, key: VirtualKeyCode, state: ElementState) -> bool {
-        let amount = if state == ElementState::Pressed {
-            1.0
-        } else {
-            0.0
+    pub(crate) fn process_keyboard(&mut self, key: KeyCode, state: ElementState) -> bool {
+        let process_translation = |amount: &mut f32| {
+            *amount = state.is_pressed() as u8 as f32;
+            true
         };
+
+        let mut process_rotation = |xz: f32, yz: f32| {
+            const ROTATE_AMOUNT: f32 = FRAC_PI_2 / 20.;
+            if state.is_pressed() {
+                let pivot = self.pivot_point.unwrap_or_else(FiniteVec3::zero);
+                self.rotate_camera_around(xz * ROTATE_AMOUNT, yz * ROTATE_AMOUNT, pivot);
+                self.cam0 = self.camera.borrow().clone();
+                true
+            } else {
+                false
+            }
+        };
+
         match key {
-            VirtualKeyCode::Up => {
-                self.amount_up = amount;
-                true
-            }
-            VirtualKeyCode::Down => {
-                self.amount_down = amount;
-                true
-            }
-            VirtualKeyCode::Left => {
-                self.amount_left = amount;
-                true
-            }
-            VirtualKeyCode::Right => {
-                self.amount_right = amount;
-                true
-            }
-            VirtualKeyCode::H if amount > 0. => {
-                self.rotate_camera_around(
-                    FRAC_PI_2 / 20.,
-                    0.,
-                    self.pivot_point.unwrap_or_else(FiniteVec3::zero),
-                );
-                self.cam0 = self.camera.borrow().clone();
-                true
-            }
-            VirtualKeyCode::L if amount > 0. => {
-                self.rotate_camera_around(
-                    -FRAC_PI_2 / 20.,
-                    0.,
-                    self.pivot_point.unwrap_or_else(FiniteVec3::zero),
-                );
-                self.cam0 = self.camera.borrow().clone();
-                true
-            }
-            VirtualKeyCode::J if amount > 0. => {
-                self.rotate_camera_around(
-                    0.,
-                    FRAC_PI_2 / 20.,
-                    self.pivot_point.unwrap_or_else(FiniteVec3::zero),
-                );
-                self.cam0 = self.camera.borrow().clone();
-                true
-            }
-            VirtualKeyCode::K if amount > 0. => {
-                self.rotate_camera_around(
-                    0.,
-                    -FRAC_PI_2 / 20.,
-                    self.pivot_point.unwrap_or_else(FiniteVec3::zero),
-                );
-                self.cam0 = self.camera.borrow().clone();
-                true
-            }
+            KeyCode::ArrowUp => process_translation(&mut self.amount_up),
+            KeyCode::ArrowRight => process_translation(&mut self.amount_right),
+            KeyCode::ArrowDown => process_translation(&mut self.amount_down),
+            KeyCode::ArrowLeft => process_translation(&mut self.amount_left),
+            KeyCode::KeyH => process_rotation(1., 0.),
+            KeyCode::KeyL => process_rotation(-1., 0.),
+            KeyCode::KeyJ => process_rotation(0., 1.),
+            KeyCode::KeyK => process_rotation(0., -1.),
             _ => false,
         }
     }
 
-    pub fn is_moving(&self) -> bool {
-        self.amount_down > 0.
-            || self.amount_up > 0.
-            || self.amount_right > 0.
-            || self.amount_left > 0.
-            || self.scroll.abs() > 0.
+    pub(crate) fn is_moving(&self) -> bool {
+        self.amount_down != 0.
+            || self.amount_up != 0.
+            || self.amount_right != 0.
+            || self.amount_left != 0.
+            || self.scroll != 0.
     }
 
-    pub fn stop_camera_movement(&mut self) {
+    pub(crate) fn stop_camera_movement(&mut self) {
         self.amount_left = 0.;
         self.amount_right = 0.;
         self.amount_up = 0.;
         self.amount_down = 0.;
     }
 
-    pub fn set_pivot_point(&mut self, point: Option<FiniteVec3>) {
+    pub(crate) fn set_pivot_point(&mut self, point: Option<FiniteVec3>) {
         if let Some(origin) = point {
             let origin: Vec3 = origin.into();
             self.zoom_plane = Some(Plane {
@@ -408,39 +318,39 @@ impl CameraController {
                 normal: (self.camera.borrow().position - origin),
             });
         }
-        self.pivot_point = point
+        self.pivot_point = point;
     }
 
-    pub fn get_projection(
+    pub(crate) fn get_projection(
         &self,
         origin: Vec3,
         x: f64,
         y: f64,
-        streography: Option<&Stereography>,
+        stereography: Option<&Stereography>,
     ) -> Vec3 {
         let plane = Plane {
             origin,
             normal: (self.camera.borrow().position - origin),
         };
-        maths_3d::unproject_point_on_plane(
+        unproject_point_on_plane(
             plane.origin,
             plane.normal,
             self.camera.clone(),
             self.projection.clone(),
             x as f32,
             y as f32,
-            streography,
+            stereography,
         )
         .unwrap_or(origin)
     }
 
-    pub fn process_mouse(&mut self, mouse_dx: f64, mouse_dy: f64) {
+    pub(crate) fn process_mouse(&mut self, mouse_dx: f64, mouse_dy: f64) {
         self.mouse_horizontal = -mouse_dx as f32;
         self.mouse_vertical = -mouse_dy as f32;
         self.processed_move = true;
     }
 
-    pub fn process_scroll(
+    pub(crate) fn process_scroll(
         &mut self,
         delta: &MouseScrollDelta,
         x_cursor: f32,
@@ -451,45 +361,25 @@ impl CameraController {
         self.y_scroll = y_cursor;
         self.scroll = match delta {
             // I'm assuming a line is about 100 pixels
-            MouseScrollDelta::LineDelta(_, scroll) => scroll.min(1.).max(-1.),
+            MouseScrollDelta::LineDelta(_, scroll) => scroll.clamp(-1., 1.),
             MouseScrollDelta::PixelDelta(PhysicalPosition { y: scroll, .. }) => {
                 scroll.signum() as f32
             }
         } * sensitivity;
     }
 
-    pub fn update_stereographic_zoom(&mut self, delta: &MouseScrollDelta) {
+    pub(crate) fn update_stereographic_zoom(&self, delta: &MouseScrollDelta) {
         let direction = match delta {
             MouseScrollDelta::LineDelta(_, scroll) => scroll.signum(),
             MouseScrollDelta::PixelDelta(PhysicalPosition { y: scroll, .. }) => {
                 scroll.signum() as f32
             }
         };
-        self.projection.borrow_mut().stereographic_zoom *=
-            ensnano_interactor::consts::STEREOGRAPHIC_ZOOM_STEP.powf(direction);
+        self.projection.borrow_mut().stereographic_zoom *= STEREOGRAPHIC_ZOOM_STEP.powf(direction);
     }
 
-    /// Rotate the head of the camera on its yz plane and xz plane according to the values of
-    /// self.mouse_horizontal and self.mouse_vertical
-    fn process_angles(&mut self) {
-        let xz_angle = self.mouse_horizontal * FRAC_PI_2;
-        let yz_angle = self.mouse_vertical * FRAC_PI_2;
-
-        // We want to build a rotation that will
-        // first maps (1, 0, 0) to (cos(yz_angle), -sin(yz_angle), 0)
-        // and then (0, 1, 0) to (0, cos(xz_angle), -sin(yz_angle))
-
-        let rotation = Rotor3::from_rotation_xz(xz_angle) * Rotor3::from_rotation_yz(yz_angle);
-
-        self.camera.borrow_mut().rotor = rotation * self.cam0.rotor;
-
-        // Since we have rotated the camera we can reset those values
-        self.mouse_horizontal = 0.0;
-        self.mouse_vertical = 0.0;
-    }
-
-    /// Translate the camera
-    fn translate_camera(&mut self, surface_info_provider: &dyn SurfaceInfoProvider) {
+    /// Translate the camera.
+    fn translate_camera(&mut self, surface_info_provider: &Data) {
         let right = self.mouse_horizontal;
         let up = -self.mouse_vertical;
 
@@ -528,12 +418,12 @@ impl CameraController {
         self.mouse_vertical = 0.0;
     }
 
-    /// Move the camera according to the keyboard input
+    /// Move the camera according to the keyboard input.
     fn move_camera(
         &mut self,
         dt: Duration,
         modifier: &ModifiersState,
-        surface_info_provider: &dyn SurfaceInfoProvider,
+        surface_info_provider: &Data,
     ) {
         let dt = dt.as_secs_f32();
 
@@ -542,77 +432,74 @@ impl CameraController {
         let up_vec = self.camera.borrow().up_vec();
         let forward_vec = self.camera.borrow().direction();
 
-        let (amount_right, amount_roll_right, amount_rotate_right) = if modifier.shift() {
+        let (amount_right, amount_roll_right, amount_rotate_right) = if modifier.shift_key() {
             (0., 0., self.amount_right)
-        } else if modifier.alt() {
+        } else if modifier.alt_key() {
             (0., self.amount_right, 0.)
         } else {
             (self.amount_right, 0., 0.)
         };
 
-        let (amount_left, amount_roll_left, amount_rotate_left) = if modifier.shift() {
+        let (amount_left, amount_roll_left, amount_rotate_left) = if modifier.shift_key() {
             (0., 0., self.amount_left)
-        } else if modifier.alt() {
+        } else if modifier.alt_key() {
             (0., self.amount_left, 0.)
         } else {
             (self.amount_left, 0., 0.)
         };
 
-        let (amount_up, amount_forward, amount_rotate_up) = if modifier.alt() {
+        let (amount_up, amount_forward, amount_rotate_up) = if modifier.alt_key() {
             (0., 0., self.amount_up)
-        } else if modifier.shift() {
+        } else if modifier.shift_key() {
             (0., self.amount_up, 0.)
         } else {
             (self.amount_up, 0., 0.)
         };
 
-        let (amount_down, amount_backward, amount_rotate_down) = if modifier.alt() {
+        let (amount_down, amount_backward, amount_rotate_down) = if modifier.alt_key() {
             (0., 0., self.amount_down)
-        } else if modifier.shift() {
+        } else if modifier.shift_key() {
             (0., self.amount_down, 0.)
         } else {
             (self.amount_down, 0., 0.)
         };
 
-        let rotation_speed = 0.1;
         {
             let mut camera = self.camera.borrow_mut();
             camera.position += right * (amount_right - amount_left) * self.speed * dt;
             camera.position += up_vec * (amount_up - amount_down) * self.speed * dt;
             camera.position += forward_vec * (amount_forward - amount_backward) * self.speed * dt;
-            camera.rotor = Rotor3::from_rotation_xz(
-                (amount_rotate_left - amount_rotate_right) * rotation_speed * self.speed * dt,
-            ) * camera.rotor;
-            camera.rotor = Rotor3::from_rotation_yz(
-                (amount_rotate_down - amount_rotate_up) * rotation_speed * self.speed * dt,
-            ) * camera.rotor;
-            camera.rotor = Rotor3::from_rotation_xy(
-                (amount_roll_left - amount_roll_right) * rotation_speed * self.speed * dt,
-            ) * camera.rotor;
+            let dr = 0.1 * self.speed * dt;
+            camera.rotor = Rotor3::from_rotation_xy((amount_roll_left - amount_roll_right) * dr)
+                * Rotor3::from_rotation_yz((amount_rotate_down - amount_rotate_up) * dr)
+                * Rotor3::from_rotation_xz((amount_rotate_left - amount_rotate_right) * dr)
+                * camera.rotor;
         }
 
-        let pivot = self.zoom_plane.as_ref().and_then(|plane| {
-            if self
-                .camera
-                .borrow()
-                .direction()
-                .normalized()
-                .dot(-plane.normal.normalized())
-                > 0.9
-            {
-                maths_3d::unproject_point_on_plane(
-                    plane.origin,
-                    plane.normal,
-                    self.camera.clone(),
-                    self.projection.clone(),
-                    self.x_scroll,
-                    self.y_scroll,
-                    None,
-                )
-            } else {
-                None
-            }
-        });
+        let pivot = self
+            .zoom_plane
+            .as_ref()
+            .and_then(|plane| {
+                (self
+                    .camera
+                    .borrow()
+                    .direction()
+                    .normalized()
+                    .dot(-plane.normal.normalized())
+                    > 0.9)
+                    .then(|| {
+                        unproject_point_on_plane(
+                            plane.origin,
+                            plane.normal,
+                            self.camera.clone(),
+                            self.projection.clone(),
+                            self.x_scroll,
+                            self.y_scroll,
+                            None,
+                        )
+                    })
+            })
+            .flatten();
 
         // Move in/out (aka. "zoom")
         // Note: this isn't an actual zoom. The camera's position
@@ -633,49 +520,45 @@ impl CameraController {
         } else {
             self.camera.borrow().direction()
         };
-        {
-            if let Some((dist_to_surface, surface_info)) = self.dist_to_surface.as_mut().zip(
-                self.surface_point
-                    .as_ref()
-                    .and_then(|p| surface_info_provider.get_surface_info(p.clone())),
-            ) {
-                if self.scroll > 0. {
-                    *dist_to_surface /= 1.1
-                } else {
-                    *dist_to_surface *= 1.1
-                };
-                let cam_pos = surface_info.position
-                    + self.dist_to_surface.unwrap_or(DEFAULT_DIST_TO_SURFACE)
-                        * Vec3::unit_z().rotated_by(surface_info.local_frame);
-                self.teleport_camera(cam_pos, surface_info.local_frame.reversed());
+
+        if let Some((dist_to_surface, surface_info)) = self.dist_to_surface.as_mut().zip(
+            self.surface_point
+                .as_ref()
+                .and_then(|p| surface_info_provider.get_surface_info(p.clone())),
+        ) {
+            if self.scroll > 0. {
+                *dist_to_surface /= 1.1;
             } else {
-                let mut camera = self.camera.borrow_mut();
-                camera.position += scrollward * self.scroll * self.speed * 3.0;
+                *dist_to_surface *= 1.1;
             }
+            let cam_pos = surface_info.position
+                + self.dist_to_surface.unwrap_or(DEFAULT_DIST_TO_SURFACE)
+                    * Vec3::unit_z().rotated_by(surface_info.local_frame);
+            self.teleport_camera(cam_pos, surface_info.local_frame.reversed());
+        } else {
+            let mut camera = self.camera.borrow_mut();
+            camera.position += scrollward * self.scroll * self.speed * 3.0;
         }
+
         self.cam0 = self.camera.borrow().clone();
         self.scroll = 0.;
     }
 
-    pub(super) fn update_camera(
+    pub(crate) fn update_camera(
         &mut self,
         dt: Duration,
-        click_mode: ClickMode,
         modifier: &ModifiersState,
-        surface_info_provider: &dyn SurfaceInfoProvider,
+        surface_info_provider: &Data,
     ) {
         if self.processed_move {
-            match click_mode {
-                ClickMode::RotateCam => self.process_angles(),
-                ClickMode::TranslateCam => self.translate_camera(surface_info_provider),
-            }
+            self.translate_camera(surface_info_provider);
         }
         if self.is_moving() {
             self.move_camera(dt, modifier, surface_info_provider);
         }
     }
 
-    pub fn init_movement(&mut self, along_surface: bool) {
+    pub(crate) fn init_movement(&mut self, along_surface: bool) {
         self.processed_move = false;
         if !along_surface {
             log::info!("Setting info to None");
@@ -684,19 +567,18 @@ impl CameraController {
         }
     }
 
-    pub fn init_constrained_rotation(&mut self, force_horizon: bool) {
+    pub(crate) fn init_constrained_rotation(&mut self, force_horizon: bool) {
         self.current_constrained_rotation = Some(ConstrainedRotation::init(
             self.camera.borrow().rotor,
             force_horizon,
         ));
     }
 
-    pub fn end_constrained_rotation(&mut self) {
+    fn end_constrained_rotation(&mut self) {
         self.current_constrained_rotation = None;
     }
 
-    pub fn end_movement(&mut self) {
-        self.last_rotor = self.camera.borrow().rotor;
+    pub(crate) fn end_movement(&mut self) {
         self.cam0 = self.camera.borrow().clone();
         self.surface_point0 = self.surface_point.clone();
         self.mouse_horizontal = 0.;
@@ -713,21 +595,20 @@ impl CameraController {
         self.end_constrained_rotation();
     }
 
-    pub fn teleport_camera(&mut self, position: Vec3, rotation: Rotor3) {
+    pub(crate) fn teleport_camera(&mut self, position: Vec3, rotation: Rotor3) {
         let mut camera = self.camera.borrow_mut();
         camera.position = position;
         camera.rotor = rotation;
-        self.last_rotor = rotation;
         self.cam0 = camera.clone();
     }
 
-    pub fn set_surface_point_if_unset(&mut self, info: SurfaceInfo) {
+    pub(crate) fn set_surface_point_if_unset(&mut self, info: SurfaceInfo) {
         if self.surface_point.is_none() {
-            self.set_surface_point(info)
+            self.set_surface_point(info);
         }
     }
 
-    pub fn set_surface_point(&mut self, info: SurfaceInfo) {
+    pub(crate) fn set_surface_point(&mut self, info: SurfaceInfo) {
         let cam_pos =
             info.position + DEFAULT_DIST_TO_SURFACE * Vec3::unit_z().rotated_by(info.local_frame);
         self.dist_to_surface = self.dist_to_surface.or(Some(DEFAULT_DIST_TO_SURFACE));
@@ -736,10 +617,7 @@ impl CameraController {
         self.surface_point = Some(info.point);
     }
 
-    pub(super) fn reverse_surface_direction(
-        &mut self,
-        surface_info_provider: &dyn SurfaceInfoProvider,
-    ) {
+    pub(crate) fn reverse_surface_direction(&mut self, surface_info_provider: &Data) {
         if let Some(point) = self.surface_point.as_mut() {
             point.reversed_direction ^= true;
             if let Some(surface_info) = surface_info_provider.get_surface_info(point.clone()) {
@@ -748,45 +626,45 @@ impl CameraController {
         }
     }
 
-    pub fn horizon_angle(&self) -> f32 {
+    pub(crate) fn horizon_angle(&self) -> f32 {
         let pv_matrix = self.projection.borrow().calc_matrix() * self.camera.borrow().calc_matrix();
         let far_dist = 1000.;
-        let mut percieved_x_far = pv_matrix
+        let mut perceived_x_far = pv_matrix
             .transform_point3(far_dist * Vec3::unit_z() + far_dist * Vec3::unit_x())
             - pv_matrix.transform_point3(far_dist * Vec3::unit_z());
-        percieved_x_far.x *= self.projection.borrow().get_ratio();
-        let mut percieved_z_far = pv_matrix
+        perceived_x_far.x *= self.projection.borrow().get_ratio();
+        let mut perceived_z_far = pv_matrix
             .transform_point3(far_dist * Vec3::unit_z() + far_dist * Vec3::unit_x())
             - pv_matrix.transform_point3(far_dist * Vec3::unit_x());
-        percieved_z_far.x *= self.projection.borrow().get_ratio();
-        let mut angle = if ultraviolet::Vec2::new(percieved_x_far.x, percieved_x_far.y).mag()
-            > ultraviolet::Vec2::new(percieved_z_far.x, percieved_z_far.y).mag()
+        perceived_z_far.x *= self.projection.borrow().get_ratio();
+        let mut angle = if Vec2::new(perceived_x_far.x, perceived_x_far.y).mag()
+            > Vec2::new(perceived_z_far.x, perceived_z_far.y).mag()
         {
-            -percieved_x_far.y.atan2(percieved_x_far.x)
+            -perceived_x_far.y.atan2(perceived_x_far.x)
         } else {
-            -percieved_z_far.y.atan2(percieved_z_far.x)
+            -perceived_z_far.y.atan2(perceived_z_far.x)
         };
-        if angle > std::f32::consts::FRAC_PI_2 {
-            angle -= std::f32::consts::PI;
-        } else if angle < -std::f32::consts::FRAC_PI_2 {
-            angle += std::f32::consts::PI;
-        };
+        if angle > FRAC_PI_2 {
+            angle -= PI;
+        } else if angle < -FRAC_PI_2 {
+            angle += PI;
+        }
         angle
     }
 
-    pub fn set_camera_position(&mut self, position: Vec3) {
+    pub(crate) fn set_camera_position(&mut self, position: Vec3) {
         let mut camera = self.camera.borrow_mut();
         camera.position = position;
         self.cam0 = camera.clone();
     }
 
-    pub fn resize(&mut self, size: PhySize) {
-        self.projection.borrow_mut().resize(size.width, size.height)
+    pub(crate) fn resize(&self, size: PhySize) {
+        self.projection.borrow_mut().resize(size.width, size.height);
     }
 
-    /// Swing the camera arrond `self.pivot_point`. Assumes that the pivot_point is where the
+    /// Swing the camera around `self.pivot_point`. Assumes that the pivot_point is where the
     /// camera points at.
-    pub fn swing(&mut self, x: f64, y: f64) {
+    pub(crate) fn swing(&mut self, x: f64, y: f64) {
         let new_angle_yz = -((y + 1.).rem_euclid(2.) - 1.) as f32 * PI;
         let new_angle_xz = ((x + 1.).rem_euclid(2.) - 1.) as f32 * PI;
         let delta_angle_yz = new_angle_yz - self.free_yz_angle;
@@ -800,9 +678,9 @@ impl CameraController {
         self.free_yz_angle = new_angle_yz;
     }
 
-    /// Rotate the camera arround a point.
-    /// `point` is given in the world's coordiantes.
-    pub fn rotate_camera_around(
+    /// Rotate the camera around a point.
+    /// `point` is given in the world's coordinates.
+    fn rotate_camera_around(
         &mut self,
         delta_xz_angle: f32,
         delta_yz_angle: f32,
@@ -831,12 +709,12 @@ impl CameraController {
         let new_up = self.camera.borrow().up_vec();
         let new_right = self.camera.borrow().right_vec();
         self.camera.borrow_mut().position =
-            point - dir * new_direction - up * new_up - right * new_right
+            point - dir * new_direction - up * new_up - right * new_right;
     }
 
     /// Modify the camera's rotor so that the camera looks at `point`.
-    /// `point` is given in the world's coordinates
-    pub fn look_at_point(&mut self, point: Vec3, up: Vec3) {
+    /// `point` is given in the world's coordinates.
+    fn look_at_point(&self, point: Vec3, up: Vec3) {
         let new_direction = (point - self.camera.borrow().position).normalized();
         let right = new_direction.cross(up);
         let matrix = Mat3::new(right, up, -new_direction);
@@ -845,8 +723,8 @@ impl CameraController {
     }
 
     /// Modify the camera's rotor so that the camera looks at `self.position + point`.
-    /// `point` is given in the world's coordinates
-    pub fn look_at_orientation(&mut self, point: Vec3, up: Vec3, pivot: Option<Vec3>) {
+    /// `point` is given in the world's coordinates.
+    pub(crate) fn look_at_orientation(&mut self, point: Vec3, up: Vec3, pivot: Option<Vec3>) {
         let dist = pivot.map(|p| (self.camera.borrow().position - p).mag());
         let point = self.camera.borrow().position + point;
         self.look_at_point(point, up);
@@ -872,9 +750,9 @@ impl CameraController {
         }
     }
 
-    pub fn rotate_camera(&mut self, angle_xz: f32, angle_yz: f32, pivot: Option<Vec3>) {
+    pub(crate) fn rotate_camera(&mut self, x: f32, y: f32, pivot: Option<Vec3>) {
         let dist = pivot.map(|p| (self.camera.borrow().position - p).mag());
-        let rotation = Rotor3::from_rotation_yz(angle_yz) * Rotor3::from_rotation_xz(angle_xz);
+        let rotation = Rotor3::from_rotation_yz(x) * Rotor3::from_rotation_xz(y);
 
         // and we apply this rotation to the camera
         let new_rotor = rotation * self.cam0.rotor;
@@ -887,7 +765,7 @@ impl CameraController {
         }
     }
 
-    pub fn tilt_camera(&mut self, angle_xy: f32) {
+    pub(crate) fn tilt_camera(&mut self, angle_xy: f32) {
         let rotation = Rotor3::from_rotation_xy(angle_xy);
 
         let new_rotor = rotation * self.cam0.rotor;
@@ -895,27 +773,27 @@ impl CameraController {
         self.cam0.rotor = new_rotor;
     }
 
-    pub fn continuous_tilt(&mut self, angle_xy: f32) {
+    pub(crate) fn continuous_tilt(&self, angle_xy: f32) {
         let rotation = Rotor3::from_rotation_xy(angle_xy);
         let new_rotor = rotation * self.cam0.rotor;
         self.camera.borrow_mut().rotor = new_rotor;
     }
 
-    pub fn shift(&mut self) {
+    pub(crate) fn shift(&mut self) {
         let vec = 0.01 * self.camera.borrow().right_vec() + 0.01 * self.camera.borrow().up_vec();
         self.camera.borrow_mut().position += vec;
         self.cam0.position = self.camera.borrow().position;
         self.cam0.rotor = self.camera.borrow().rotor;
     }
 
-    pub fn center_camera(&mut self, center: Vec3) {
+    pub(crate) fn center_camera(&mut self, center: Vec3) {
         let new_position = center - 5. * self.camera.borrow().direction();
         let orientation = self.camera.borrow().rotor;
         self.teleport_camera(new_position, orientation);
     }
 
-    pub fn ray(&self, x_ndc: f32, y_ndc: f32) -> (Vec3, Vec3) {
-        maths_3d::cast_ray(
+    pub(crate) fn ray(&self, x_ndc: f32, y_ndc: f32) -> (Vec3, Vec3) {
+        cast_ray(
             x_ndc,
             y_ndc,
             self.camera.clone(),
@@ -924,19 +802,10 @@ impl CameraController {
         )
     }
 
-    pub fn get_current_surface_pivot(&self) -> Option<Vec3> {
-        if self.surface_point.is_some() {
+    pub(crate) fn get_current_surface_pivot(&self) -> Option<Vec3> {
+        self.surface_point.is_some().then(|| {
             let dist = self.dist_to_surface.unwrap_or(DEFAULT_DIST_TO_SURFACE);
-            Some(self.camera.borrow().direction() * dist + self.camera.borrow().position)
-        } else {
-            None
-        }
+            self.camera.borrow().direction() * dist + self.camera.borrow().position
+        })
     }
-}
-
-/// A plane in space defined by an origin and a normal
-#[derive(Debug)]
-struct Plane {
-    origin: Vec3,
-    normal: Vec3,
 }

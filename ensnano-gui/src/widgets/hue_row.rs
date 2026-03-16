@@ -1,0 +1,229 @@
+//! A Iced Widget to select Hue.
+
+use color_space::{Hsv, Rgb};
+use ensnano_state::gui::messages::ColorPickerMessage;
+use iced::{
+    Length, Point, Rectangle, Size, Vector,
+    advanced::{
+        Clipboard, Layout, Renderer as _, Shell, Widget, layout, mouse, renderer::Style, widget,
+    },
+    event,
+    mouse::Cursor,
+};
+use iced_graphics::{
+    Primitive,
+    color::pack,
+    mesh::{Indexed, Mesh, SolidVertex2D},
+};
+use iced_wgpu::primitive::Custom;
+
+const DEFAULT_SIZE: f32 = 90.0;
+
+/// The internal state of a [`HueRow`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub(crate) struct State {
+    is_dragging: bool,
+}
+
+/// A HueColumn Widget.
+pub struct HueRow {
+    width: Length,
+    height: Length,
+    on_slide: Option<Box<dyn Fn(f64) -> ColorPickerMessage>>,
+}
+
+impl Default for HueRow {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl HueRow {
+    pub fn new() -> Self {
+        Self {
+            width: Length::Fixed(4.0 * DEFAULT_SIZE),
+            height: Length::Fixed(DEFAULT_SIZE),
+            on_slide: None,
+        }
+    }
+
+    #[must_use]
+    pub fn on_slide<F>(mut self, f: F) -> Self
+    where
+        F: 'static + Fn(f64) -> ColorPickerMessage,
+    {
+        self.on_slide = Some(Box::new(f));
+        self
+    }
+
+    #[must_use]
+    pub fn on_slide_maybe<F>(mut self, f: Option<F>) -> Self
+    where
+        F: 'static + Fn(f64) -> ColorPickerMessage,
+    {
+        self.on_slide = f.map(|f| Box::new(f) as _);
+        self
+    }
+
+    #[must_use]
+    pub fn width(mut self, width: impl Into<Length>) -> Self {
+        self.width = width.into();
+        self
+    }
+
+    #[must_use]
+    pub fn height(mut self, height: impl Into<Length>) -> Self {
+        self.height = height.into();
+        self
+    }
+}
+
+impl Widget<ColorPickerMessage, iced::Theme, iced::Renderer> for HueRow {
+    fn state(&self) -> widget::tree::State {
+        widget::tree::State::Some(Box::new(State::default()))
+    }
+    fn size(&self) -> Size<Length> {
+        Size {
+            width: self.width,
+            height: self.height,
+        }
+    }
+
+    fn layout(
+        &self,
+        _tree: &mut widget::Tree,
+        _renderer: &iced::Renderer,
+        limits: &layout::Limits,
+    ) -> layout::Node {
+        layout::atomic(limits, self.width, self.height)
+    }
+
+    fn draw(
+        &self,
+        _tree: &widget::Tree,
+        renderer: &mut iced::Renderer,
+        _theme: &iced::Theme,
+        _style: &Style,
+        layout: Layout,
+        _cursor: Cursor,
+        _viewport: &Rectangle,
+    ) {
+        let b = layout.bounds();
+
+        let x_max = b.width;
+        let y_max = b.height;
+
+        let nb_column = u32::min(100, x_max.ceil() as u32);
+
+        let mut vertices = Vec::new();
+        let mut indices = Vec::new();
+        for i in 0..=nb_column {
+            let hsv = Hsv::new((360 * i) as f64 / nb_column as f64, 1., 1.);
+            let Rgb { r, g, b } = Rgb::from(hsv);
+            let color = pack([r as f32 / 255., g as f32 / 255., b as f32 / 255., 1.]);
+
+            vertices.push(SolidVertex2D {
+                position: [x_max * (i as f32 / nb_column as f32), 0.],
+                color,
+            });
+            vertices.push(SolidVertex2D {
+                position: [x_max * (i as f32 / nb_column as f32), y_max],
+                color,
+            });
+            if i > 0 {
+                indices.push(2 * i - 2);
+                indices.push(2 * i + 1);
+                indices.push(2 * i);
+                indices.push(2 * i - 2);
+                indices.push(2 * i + 1);
+                indices.push(2 * i - 1);
+            }
+        }
+
+        let mesh = Custom::Mesh(Mesh::Solid {
+            buffers: Indexed { vertices, indices },
+            size: b.size(),
+        });
+
+        match renderer {
+            iced::Renderer::Wgpu(wgpu_renderer) => {
+                wgpu_renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
+                    renderer.draw_primitive(Primitive::Custom(mesh));
+                });
+            }
+            iced::Renderer::TinySkia(_) => unreachable!(),
+        }
+    }
+
+    fn on_event(
+        &mut self,
+        tree: &mut widget::Tree,
+        event: event::Event,
+        layout: Layout,
+        cursor: Cursor,
+        _renderer: &iced::Renderer,
+        _clipboard: &mut dyn Clipboard,
+        shell: &mut Shell<'_, ColorPickerMessage>,
+        _viewport: &Rectangle,
+    ) -> event::Status {
+        // A closure that takes an absolute position and send Message.
+        let mut change = |Point { x, .. }| {
+            let bounds = layout.bounds();
+            if x <= bounds.x {
+                if let Some(on_slide) = &self.on_slide {
+                    shell.publish(on_slide(0.));
+                }
+            } else if x >= bounds.x + bounds.width {
+                if let Some(on_slide) = &self.on_slide {
+                    shell.publish(on_slide(360.));
+                }
+            } else if let Some(on_slide) = &self.on_slide {
+                let percent = (x - bounds.x) / bounds.width;
+                let value: f32 = percent * 360.;
+                shell.publish(on_slide(value.into()));
+            }
+        };
+
+        if let event::Event::Mouse(mouse_event) = event {
+            let state = tree.state.downcast_mut::<State>();
+            let position = cursor.position_over(layout.bounds());
+            match mouse_event {
+                mouse::Event::ButtonPressed(mouse::Button::Left) => {
+                    if let Some(pos) = position {
+                        change(pos);
+                        state.is_dragging = true;
+                    }
+                    event::Status::Captured
+                }
+                mouse::Event::ButtonReleased(mouse::Button::Left) => {
+                    if state.is_dragging {
+                        state.is_dragging = false;
+                    }
+                    event::Status::Captured
+                }
+                mouse::Event::CursorMoved { .. } => {
+                    // NOTE: Using "position" attribute from mouse::Event::CursorMoved doesn't work because
+                    //       it is not the good coordinates.
+                    if state.is_dragging {
+                        if let Some(pos) = position {
+                            change(pos);
+                        }
+                        event::Status::Captured
+                    } else {
+                        event::Status::Ignored
+                    }
+                }
+                _ => event::Status::Ignored,
+            }
+        } else {
+            // Not a mouse event.
+            event::Status::Ignored
+        }
+    }
+}
+
+impl From<HueRow> for iced::Element<'_, ColorPickerMessage> {
+    fn from(hue_row: HueRow) -> Self {
+        Self::new(hue_row)
+    }
+}

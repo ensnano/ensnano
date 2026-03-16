@@ -1,19 +1,20 @@
 [package]
 name = "ensnano_exports"
-version = "0.1.0"
-edition = "2021"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lints]
+workspace = true
 
 [dependencies]
-ensnano_interactor = { path = "../ensnano-interactor" }
-ensnano_design = { path = "../ensnano-design" }
-ensnano_scene = { path = "../ensnano-scene" }
-ensnano_utils = { path = "../ensnano-utils" }
-ahash = "0.8.6" # "0.6.2"
-rand = "0.8.3"
-itertools = "0.10.3"
-serde_json = "1.0.57"
-serde = "1.0.116"
-serde_derive = "1.0.116"
-strum = { version = "0.24", features = ["derive"] }
+ensnano_design.workspace = true
+ensnano_utils.workspace = true
+
+ahash.workspace = true
+itertools.workspace = true
+rand.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+ultraviolet.workspace = true

@@ -1,34 +1,43 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+use crate::{
+    helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
+    left_panel::{
+        BrownianParametersFactory, LeftPanelMessage, RigidBodyFactory, RigidBodyParametersRequest,
+        discrete_value::RequestFactory,
+        tabs::{GuiTab, gostop::GoStop},
+    },
+};
+use ensnano_physics::parameters::{RapierFloatParameter, RapierParameters};
+use ensnano_state::{
+    app_state::AppState,
+    gui::messages::{FactoryId, ValueId},
+    requests::Requests,
+};
+use ensnano_utils::{
+    RollRequest, SimulationState, consts::ICON_PHYSICAL_ENGINE,
+    keyboard_priority::keyboard_priority, ui_size::UiSize,
+};
+use iced::{
+    Alignment, Length,
+    widget::{Column, Space, column, row, scrollable, slider, text, text_input},
+};
+use iced_aw::TabLabel;
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-use super::*;
-
-pub struct SimulationTab<S: AppState> {
+pub struct SimulationTab {
     rigid_body_factory: RequestFactory<RigidBodyFactory>,
     brownian_factory: RequestFactory<BrownianParametersFactory>,
-    rigid_grid_button: GoStop<S>,
-    rigid_helices_button: GoStop<S>,
-    scroll: scrollable::State,
+    //rigid_grid_button: GoStop,
+    rigid_helices_button: GoStop,
     physical_simulation: PhysicalSimulation,
-    reset_state: button::State,
+    pub rapier_parameters: RapierParameters,
+    // holds the value of the string fields
+    pub rapier_parameter_fields: HashMap<String, String>,
 }
 
-impl<S: AppState> SimulationTab<S> {
+impl SimulationTab {
     pub fn new() -> Self {
         let init_brownian = BrownianParametersFactory {
             rate: 0.,
@@ -46,93 +55,11 @@ impl<S: AppState> SimulationTab<S> {
             brownian_factory: RequestFactory::new(FactoryId::Brownian, init_brownian),
             rigid_helices_button: GoStop::new(
                 String::from("Rigid Helices"),
-                Message::RigidHelicesSimulation,
+                LeftPanelMessage::RigidHelicesSimulation,
             ),
-            rigid_grid_button: GoStop::new(
-                String::from("Rigid Grids"),
-                Message::RigidGridSimulation,
-            ),
-            scroll: Default::default(),
             physical_simulation: Default::default(),
-            reset_state: Default::default(),
-        }
-    }
-
-    pub fn view<'a>(&'a mut self, ui_size: UiSize, app_state: &S) -> Element<'a, Message<S>> {
-        let sim_state = &app_state.get_simulation_state();
-        let grid_active = sim_state.is_none() || sim_state.simulating_grid();
-        let roll_active = sim_state.is_none() || sim_state.is_rolling();
-        let mut ret = Column::new().spacing(5);
-        section!(ret, ui_size, "Simulation (Beta)");
-        ret = ret.push(self.physical_simulation.view(
-            &ui_size,
-            "Roll",
-            roll_active,
-            sim_state.is_rolling(),
-        ));
-        ret = ret
-            .push(
-                self.rigid_grid_button
-                    .view(grid_active, sim_state.simulating_grid()),
-            )
-            .push(Self::helix_btns(
-                &mut self.rigid_helices_button,
-                &mut self.reset_state,
-                app_state,
-                ui_size.clone(),
-            ));
-
-        let volume_exclusion = self.rigid_body_factory.requestable.volume_exclusion;
-        let brownian_motion = self.rigid_body_factory.requestable.brownian_motion;
-        subsection!(ret, ui_size, "Parameters for helices simulation");
-        for view in self
-            .rigid_body_factory
-            .view(true, ui_size.main_text())
-            .into_iter()
-        {
-            ret = ret.push(view);
-        }
-        ret = ret.push(right_checkbox(
-            volume_exclusion,
-            "Volume exclusion",
-            Message::VolumeExclusion,
-            ui_size,
-        ));
-        ret = ret.push(right_checkbox(
-            brownian_motion,
-            "Unmatched nt jiggling",
-            Message::BrownianMotion,
-            ui_size,
-        ));
-        for view in self
-            .brownian_factory
-            .view(brownian_motion, ui_size.main_text())
-            .into_iter()
-        {
-            ret = ret.push(view);
-        }
-
-        Scrollable::new(&mut self.scroll).push(ret).into()
-    }
-
-    fn helix_btns<'a>(
-        go_stop: &'a mut GoStop<S>,
-        reset_state: &'a mut button::State,
-        app_state: &S,
-        ui_size: UiSize,
-    ) -> Element<'a, Message<S>> {
-        let sim_state = app_state.get_simulation_state();
-        if sim_state.is_paused() {
-            Row::new()
-                .push(go_stop.view(true, false))
-                .spacing(3)
-                .push(text_btn(reset_state, "Reset", ui_size).on_press(Message::ResetSimulation))
-                .into()
-        } else {
-            let helices_active = sim_state.is_none() || sim_state.simulating_helices();
-            go_stop
-                .view(helices_active, sim_state.simulating_helices())
-                .into()
+            rapier_parameters: Default::default(),
+            rapier_parameter_fields: Default::default(),
         }
     }
 
@@ -144,8 +71,8 @@ impl<S: AppState> SimulationTab<S> {
         self.rigid_body_factory.requestable.brownian_motion = brownian_motion;
     }
 
-    pub fn make_rigid_body_request(&mut self, request: &mut Option<RigidBodyParametersRequest>) {
-        self.rigid_body_factory.make_request(request)
+    pub fn make_rigid_body_request(&self, request: &mut Option<RigidBodyParametersRequest>) {
+        self.rigid_body_factory.make_request(request);
     }
 
     pub fn update_request(
@@ -155,7 +82,7 @@ impl<S: AppState> SimulationTab<S> {
         request: &mut Option<RigidBodyParametersRequest>,
     ) {
         self.rigid_body_factory
-            .update_request(value_id, value, request)
+            .update_request(value_id, value, request);
     }
 
     pub fn update_brownian(
@@ -166,61 +93,339 @@ impl<S: AppState> SimulationTab<S> {
     ) {
         let new_brownian = self.brownian_factory.update_value(value_id, value);
         self.rigid_body_factory.requestable.brownian_parameters = new_brownian;
-        self.rigid_body_factory.make_request(request)
+        self.rigid_body_factory.make_request(request);
     }
 
     pub fn get_physical_simulation_request(&self) -> RollRequest {
         self.physical_simulation.request()
     }
 
-    pub fn leave_tab<R: Requests>(&mut self, requests: Arc<Mutex<R>>, app_state: &S) {
-        if app_state.get_simulation_state() == SimulationState::RigidGrid {
+    pub fn leave_tab(&self, requests: Arc<Mutex<Requests>>, app_state: &AppState) {
+        if SimulationState::RigidGrid == app_state.get_simulation_state() {
             self.request_stop_rigid_body_simulation(requests);
             println!("stop grids");
-        } else if app_state.get_simulation_state() == SimulationState::RigidHelices {
+        } else if SimulationState::RigidHelices == app_state.get_simulation_state() {
             self.request_stop_rigid_body_simulation(requests);
             println!("stop helices");
         }
     }
 
-    fn request_stop_rigid_body_simulation<R: Requests>(&mut self, requests: Arc<Mutex<R>>) {
+    fn request_stop_rigid_body_simulation(&self, requests: Arc<Mutex<Requests>>) {
         let mut request = None;
         self.make_rigid_body_request(&mut request);
         if let Some(request) = request {
             requests
                 .lock()
                 .unwrap()
-                .update_rigid_body_simulation_parameters(request)
+                .update_rigid_body_simulation_parameters(request);
+        }
+    }
+
+    fn helix_btns<'a>(
+        go_stop: &'a GoStop,
+        app_state: &AppState,
+        ui_size: UiSize,
+    ) -> iced::Element<'a, LeftPanelMessage> {
+        let sim_state = app_state.get_simulation_state();
+        if sim_state.is_paused() {
+            row![
+                go_stop.view(true, false),
+                text_button("Reset", ui_size).on_press(LeftPanelMessage::ResetSimulation),
+            ]
+            .spacing(3)
+            .into()
+        } else {
+            let helices_active = sim_state.is_none() || sim_state.simulating_helices();
+            go_stop.view(helices_active, sim_state.simulating_helices())
+        }
+    }
+
+    /// Updates the fields using the parameters.
+    ///
+    /// Used when modifications to the parameters are made by
+    /// actors that are not the fields, like other parts of the GUI.
+    pub fn update_parameters_fields(&mut self) {
+        for parameter in RapierFloatParameter::values() {
+            self.rapier_parameter_fields.insert(
+                parameter.name().to_owned(),
+                self.rapier_parameters.get_parameter(parameter).to_string(),
+            );
         }
     }
 }
 
-#[derive(Default)]
-struct PhysicalSimulation {
-    go_stop_button: button::State,
+impl GuiTab for SimulationTab {
+    type Message = LeftPanelMessage;
+
+    fn label(&self) -> TabLabel {
+        TabLabel::Icon(ICON_PHYSICAL_ENGINE)
+    }
+
+    fn content(&self, ui_size: UiSize, app_state: &AppState) -> iced::Element<'_, Self::Message> {
+        let sim_state = &app_state.get_simulation_state();
+        let rigid_grid_is_active = sim_state.is_none() || sim_state.simulating_grid();
+        let roll_active = sim_state.is_none() || sim_state.is_rolling();
+
+        let volume_exclusion = self.rigid_body_factory.requestable.volume_exclusion;
+        let brownian_motion = self.rigid_body_factory.requestable.brownian_motion;
+
+        let content = column![
+            section("Simulation (Beta)", ui_size),
+            column![
+                self.physical_simulation
+                    .view(ui_size, "Roll", roll_active, sim_state.is_rolling(),),
+                start_stop_button(
+                    "Rigid Grids",
+                    ui_size,
+                    rigid_grid_is_active.then_some(LeftPanelMessage::RigidGridSimulation),
+                    sim_state.simulating_grid()
+                ),
+                Self::helix_btns(&self.rigid_helices_button, app_state, ui_size,),
+            ]
+            .spacing(ui_size.button_spacing()),
+            subsection("Parameters for helices simulation", ui_size),
+            Column::with_children(self.rigid_body_factory.view(true, ui_size.main_text())),
+            right_checkbox(
+                volume_exclusion,
+                "Volume exclusion",
+                LeftPanelMessage::VolumeExclusion,
+                ui_size,
+                true
+            ),
+            right_checkbox(
+                brownian_motion,
+                "Unmatched nt jiggling",
+                LeftPanelMessage::BrownianMotion,
+                ui_size,
+                true
+            ),
+            Column::with_children(
+                self.brownian_factory
+                    .view(brownian_motion, ui_size.main_text())
+            ),
+            section("Relaxation", ui_size),
+            column![row![
+                text_button("Start", ui_size).on_press_maybe(
+                    if self.rapier_parameters.is_simulation_running {
+                        None
+                    } else {
+                        Some(LeftPanelMessage::UpdateRapierParameters(
+                            apply_parameter_fields(
+                                &self.rapier_parameter_fields,
+                                &RapierParameters {
+                                    is_simulation_running: true,
+                                    ..self.rapier_parameters
+                                },
+                            ),
+                        ))
+                    }
+                ),
+                Space::with_width(ui_size.button_spacing()),
+                text_button("Stop", ui_size).on_press_maybe(
+                    if !self.rapier_parameters.is_simulation_running || sim_state.is_paused() {
+                        None
+                    } else {
+                        Some(LeftPanelMessage::StopSimulation)
+                    }
+                ),
+                Space::with_width(ui_size.button_spacing()),
+                text_button("Reset", ui_size).on_press_maybe(
+                    sim_state
+                        .is_paused()
+                        .then(|| LeftPanelMessage::ResetSimulation)
+                ),
+            ],]
+            .spacing(ui_size.button_spacing()),
+            ignore_local_parameters_checkbox(&self.rapier_parameters, ui_size),
+            view_rapier_parameters(
+                self.rapier_parameters,
+                &self.rapier_parameter_fields,
+                ui_size,
+            ),
+        ]
+        .spacing(5);
+
+        scrollable(content).into()
+    }
 }
 
+fn ignore_local_parameters_checkbox(
+    parameters: &RapierParameters,
+    ui_size: UiSize,
+) -> iced::Element<'static, LeftPanelMessage> {
+    let parameters = *parameters;
+    right_checkbox(
+        parameters.ignore_local_parameters,
+        "Ignore local helix parameters",
+        move |value| {
+            LeftPanelMessage::UpdateRapierParameters(RapierParameters {
+                ignore_local_parameters: value,
+                ..parameters
+            })
+        },
+        ui_size,
+        !parameters.is_simulation_running,
+    )
+    .into()
+}
+
+/// Updates the parameters using the fields.
+fn apply_parameter_fields(
+    fields: &HashMap<String, String>,
+    parameters: &RapierParameters,
+) -> RapierParameters {
+    let mut result = *parameters;
+
+    for parameter in RapierFloatParameter::values() {
+        if let Some(value) = fields
+            .get(&parameter.name().to_owned())
+            .and_then(|str| str.parse::<f32>().ok())
+        {
+            result.set_parameter(parameter, value);
+        }
+    }
+
+    result
+}
+
+fn rapier_parameters_field_editor(
+    parameter: RapierFloatParameter,
+    ui_size: UiSize,
+    fields: &HashMap<String, String>,
+    parameters: &RapierParameters,
+    enabled: bool,
+) -> iced::Element<'static, LeftPanelMessage> {
+    let description = parameter.name().to_owned();
+    let default_value = parameters.get_parameter(parameter);
+    let default_field_value = default_value.to_string();
+    let current_value = fields.get(&description).unwrap_or(&default_field_value);
+
+    let unit = parameter.unit();
+
+    let copy = *parameters;
+
+    row![
+        row![text(&description)]
+            .align_items(Alignment::Center)
+            .width(Length::FillPortion(2)),
+        Space::with_width(ui_size.checkbox_spacing()),
+        row![
+            keyboard_priority(
+                "Rapier parameters ".to_owned() + &description,
+                LeftPanelMessage::SetKeyboardPriority,
+                // if parameters.is_simulation_running {
+                //     text_input(current_value, current_value)
+                // } else {
+                if enabled {
+                    text_input(current_value, current_value)
+                        .on_input(move |str| {
+                            LeftPanelMessage::UpdateRapierParameterField(description.clone(), str)
+                        })
+                        .on_submit(LeftPanelMessage::UpdateRapierParameters(
+                            apply_parameter_fields(fields, parameters),
+                        ))
+                        // }
+                        .width(70)
+                } else {
+                    text_input(current_value, current_value).width(70)
+                }
+            ),
+            Space::with_width(ui_size.checkbox_spacing()),
+            text(unit).width(Length::FillPortion(1)),
+            Space::with_width(ui_size.checkbox_spacing()),
+            if enabled {
+                slider(
+                    parameter.min_value()..=parameter.max_value(),
+                    parameters
+                        .get_parameter(parameter)
+                        .clamp(parameter.min_value(), parameter.max_value()),
+                    move |value| {
+                        LeftPanelMessage::UpdateRapierParameters(
+                            copy.with_parameter(parameter, value),
+                        )
+                    },
+                )
+                .step(parameter.increment())
+                .shift_step(parameter.increment() / 10.0)
+                .width(Length::FillPortion(2))
+            } else {
+                slider(
+                    parameter.min_value()..=parameter.max_value(),
+                    parameters
+                        .get_parameter(parameter)
+                        .clamp(parameter.min_value(), parameter.max_value()),
+                    |_| LeftPanelMessage::Nothing,
+                )
+                .width(Length::FillPortion(2))
+            },
+            Space::with_width(ui_size.checkbox_spacing()),
+            text_button("↺", ui_size).on_press_maybe(enabled.then(|| {
+                LeftPanelMessage::UpdateRapierParameters(copy.with_parameter(
+                    parameter,
+                    RapierParameters::default().get_parameter(parameter),
+                ))
+            }))
+        ]
+        .align_items(Alignment::Center)
+        .width(Length::FillPortion(3)),
+        Space::with_width(Length::FillPortion(1)),
+    ]
+    .align_items(Alignment::Center)
+    .width(Length::Fill)
+    .into()
+}
+
+fn view_rapier_parameters(
+    parameters: RapierParameters,
+    fields: &HashMap<String, String>,
+    ui_size: UiSize,
+) -> iced::Element<'static, LeftPanelMessage> {
+    let mut elements: Vec<iced::Element<'static, LeftPanelMessage>> =
+        vec![subsection("Relaxation parameters", ui_size).into()];
+
+    for parameter in RapierFloatParameter::values() {
+        let enabled = parameter.live_editability() || !parameters.is_simulation_running;
+        elements.push(rapier_parameters_field_editor(
+            parameter,
+            ui_size,
+            fields,
+            &parameters,
+            enabled,
+        ));
+    }
+
+    Column::from_vec(elements)
+        .width(Length::Fill)
+        .spacing(ui_size.button_spacing())
+        .into()
+}
+
+#[derive(Default)]
+struct PhysicalSimulation;
+
 impl PhysicalSimulation {
-    fn view<'a, 'b, S: AppState>(
-        &'a mut self,
-        _ui_size: &'b UiSize,
+    fn view(
+        &self,
+        ui_size: UiSize,
         name: &'static str,
         active: bool,
         running: bool,
-    ) -> Row<'a, Message<S>> {
+    ) -> iced::Element<'_, LeftPanelMessage> {
         let button_str = if running { "Stop" } else { name };
-        let mut button = Button::new(&mut self.go_stop_button, Text::new(button_str))
-            .style(ButtonColor::red_green(running));
+        let mut button = text_button(button_str, ui_size);
+        button = if running {
+            button.style(iced::theme::Button::Destructive)
+        } else {
+            button.style(iced::theme::Button::Positive)
+        };
         if active {
-            button = button.on_press(Message::SimRequest);
+            button = button.on_press(LeftPanelMessage::RollSimulationRequest);
         }
-        Row::new().push(button)
+        row![button].into()
     }
 
     fn request(&self) -> RollRequest {
         RollRequest {
-            roll: true,
-            springs: false,
             target_helices: None,
         }
     }

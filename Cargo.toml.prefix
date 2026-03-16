@@ -1,0 +1,29 @@
+[workspace]
+members = [
+    "ensnano-design",
+    "ensnano-exports",
+    "ensnano-flatscene",
+    "ensnano-gui",
+    "ensnano-physics",
+    "ensnano-scene",
+    "ensnano-state",
+    "ensnano-utils",
+]
+resolver = "3"
+
+[workspace.package]
+authors = [
+    "thenlevy <nicolaspierrelevy@gmail.com>",
+    "Nicolas Schabanel <nicolas.schabanel@gmail.com>",
+    "Joris Picot <joris.picot@ens-lyon.fr>",
+    "Pacôme Perrotin <pacome.perrotin@gmail.com>",
+    "Axel Brisse <axel.brisse@gmail.com>",
+    "Eliott Mercier Del Forno <eliottmercierjuge@gmail.com>",
+]
+edition = "2024"
+homepage = "https://www.ens-lyon.fr/ensnano/"
+license = "GPL-3.0-or-later"
+repository = "https://github.com/ensnano/ensnano"
+version = "0.7.0"
+
+[workspace.dependencies]

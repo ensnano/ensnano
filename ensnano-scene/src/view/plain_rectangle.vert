@@ -45,38 +45,26 @@ buffer InstancesBlock {
     readonly Instances instances[];
 };
 
-/*
-// expected_length is 0.64 nm for DNA if normal view and 2.65 if axis view
-const float LOW_CRIT = 1. / 0.7; // bond starts getting grey if length > expected_length / 0.7, i.e. if 42% too high
-const float HIGH_CRIT = 2. / 0.7; // bond gets black if length > 2*expected_length /0.7, i.e. if 185% too high
-*/
-
 void main() {
     int model_idx = 0;
 
-    //mat4 model_matrix = model_matrix2[model_idx] * instances[gl_InstanceIndex].model;
     mat4 model_matrix = model_matrix2[model_idx] * instances[gl_InstanceIndex].model;
     mat4 inversed_model_matrix = instances[gl_InstanceIndex].inversed_model;
     mat3 normal_matrix = mat3(transpose(inversed_model_matrix));
 
-    /*Note: I'm currently doing things in world space .
-    Doing things in view-space also known as eye-space, is more standard as objects can have
-    lighting issues when they are further away from the origin. 
-    If we wanted to use view-space, we would use something along the lines
-    of mat3(transpose(inverse(view_matrix * model_matrix))).
-    Currently we are combining the view matrix and projection matrix before we draw,
-    so we'd have to pass those in separately. We'd also have to transform our 
-    light's position using something like view_matrix * model_matrix * */
+    // Note: I'm currently doing things in world space .
+    // Doing things in view-space also known as eye-space, is more standard as objects can have
+    // lighting issues when they are further away from the origin. 
+    // If we wanted to use view-space, we would use something along the lines
+    // of mat3(transpose(inverse(view_matrix * model_matrix))).
+    // Currently we are combining the view matrix and projection matrix before we draw,
+    // so we'd have to pass those in separately. We'd also have to transform our 
+    // light's position using something like view_matrix * model_matrix
     v_normal = vec3(0,0,-1);
     v_color = instances[gl_InstanceIndex].color;
     vec3 scale = instances[gl_InstanceIndex].scale;
 
     vec4 model_space = model_matrix * vec4(a_position * scale, 1.0); 
-
-	// y is in -0.5..0.5
-	// float a = - (0.5 + model_space.y) * 2. * 3.141592653589793;
-	// float r = 0.15*(2.*model_space.x + 4.*model_space.y);
-	// model_space =  vec4(r * cos(a), r * sin(a), 0., 1.);
 
     v_discard_fake = 1;
     

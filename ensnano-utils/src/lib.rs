@@ -1,55 +1,248 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+//! This modules defines types and operations used by the graphical component of ENSnano to
+//! interact with the design.
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-pub use iced_wgpu;
-pub use iced_wgpu::wgpu;
-pub use iced_winit;
-pub use iced_winit::winit;
-use serde::{Deserialize, Serialize};
-use wgpu::util::{BufferInitDescriptor, DeviceExt};
-pub use winit::dpi::{PhysicalPosition, PhysicalSize, Pixel};
-
+pub mod app_state_parameters;
 pub mod bindgroup_manager;
-pub mod camera2d;
-pub mod chars2d;
-pub mod circles2d;
-pub mod full_isometry;
-pub mod id_generator;
+pub mod buffer_dimensions;
+pub mod clipboard;
+pub mod colors;
+pub mod consts;
+pub mod export;
+pub mod filename;
+pub mod graphics;
 pub mod instance;
-pub mod light;
-pub mod mesh;
+pub mod keyboard_priority;
 pub mod obj_loader;
+pub mod overlay;
+pub mod strand_builder;
+pub mod surfaces;
 pub mod text;
 pub mod texture;
+pub mod torsion;
+pub mod ui_size;
 
-pub mod clic_counter;
+use crate::graphics::PhySize;
+use ensnano_design::{grid::GridId, nucl::Nucl};
+use wgpu::util::{BufferInitDescriptor, DeviceExt as _};
 
-pub mod colors;
-
-pub mod filename;
-
-pub type PhySize = PhysicalSize<u32>;
 pub const TEXTURE_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8UnormSrgb;
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct StrandNucleotidesPositions {
-    pub is_cyclic: bool,
-    pub positions: Vec<[f32; 3]>,
-    pub curvatures: Vec<f64>,
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub enum ObjectType {
+    /// A nucleotide identified by its identifier.
+    Nucleotide(u32),
+    /// A bond, identified by the identifier of the two nucleotides that it binds.
+    Bond(u32, u32),
+    /// A bond, identified by the identifier of the four nucleotides prev_nucl, nucl1, nucl2, next_nucl. If prev == nucl1 or newt == nucl2, it needs a lid.
+    SlicedBond(u32, u32, u32, u32),
+    /// A Helix cylinder, identified by the identifier of the two nucleotides at its ends.
+    HelixCylinder(u32, u32),
+    /// A Helix cylinder, identified by the identifier of the two nucleotides at its ends, together with the list of the colors of the slices.
+    ColoredHelixCylinder(u32, u32, Vec<u32>),
+}
+
+impl ObjectType {
+    pub fn is_bond(&self) -> bool {
+        matches!(self, Self::Bond(_, _))
+    }
+
+    pub fn is_helix_cylinder(&self) -> bool {
+        matches!(self, Self::HelixCylinder(_, _))
+    }
+
+    pub fn same_type(&self, other: &Self) -> bool {
+        std::mem::discriminant(self) == std::mem::discriminant(other)
+    }
+}
+
+/// The referential in which one wants to get an element's coordinates.
+#[derive(Debug, Clone, Copy)]
+pub enum Referential {
+    World,
+    Model,
+}
+
+#[derive(Clone, Debug)]
+pub struct RollRequest {
+    pub target_helices: Option<Vec<usize>>,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum RapierSimulationRequest {
+    Start,
+}
+
+#[derive(Clone, Debug)]
+pub struct RigidBodyConstants {
+    pub k_spring: f32,
+    pub k_friction: f32,
+    pub mass: f32,
+    pub volume_exclusion: bool,
+    pub brownian_motion: bool,
+    pub brownian_rate: f32,
+    pub brownian_amplitude: f32,
+}
+
+impl Default for RigidBodyConstants {
+    fn default() -> Self {
+        Self {
+            k_friction: 1.,
+            k_spring: 1.,
+            mass: 1.,
+            volume_exclusion: false,
+            brownian_amplitude: 1.,
+            brownian_rate: 1.,
+            brownian_motion: false,
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct ScaffoldInfo {
+    pub id: usize,
+    pub length: usize,
+    pub starting_nucl: Option<Nucl>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum SimulationState {
+    #[default]
+    None,
+    Rolling,
+    RigidGrid,
+    RigidHelices,
+    Paused,
+    Twisting {
+        grid_id: GridId,
+    },
+    Relaxing,
+}
+
+impl SimulationState {
+    pub fn is_none(&self) -> bool {
+        matches!(self, Self::None)
+    }
+
+    pub fn is_rolling(&self) -> bool {
+        matches!(self, Self::Rolling)
+    }
+
+    pub fn simulating_grid(&self) -> bool {
+        matches!(self, Self::RigidGrid)
+    }
+
+    pub fn simulating_helices(&self) -> bool {
+        matches!(self, Self::RigidHelices)
+    }
+
+    pub fn is_paused(&self) -> bool {
+        matches!(self, Self::Paused)
+    }
+
+    pub fn is_running(&self) -> bool {
+        !matches!(self, Self::Paused | Self::None)
+    }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Default)]
+pub enum WidgetBasis {
+    #[default]
+    World,
+    Object,
+}
+
+impl WidgetBasis {
+    pub fn toggle(&mut self) {
+        *self = if self.is_axis_aligned() {
+            Self::Object
+        } else {
+            Self::World
+        };
+    }
+
+    pub fn is_axis_aligned(&self) -> bool {
+        matches!(self, Self::World)
+    }
+}
+
+/// Information about the domain being elongated.
+#[derive(Debug, Clone)]
+pub struct StrandBuildingStatus {
+    pub nt_length: usize,
+    pub nm_length: f32,
+    pub prime3: Nucl,
+    pub prime5: Nucl,
+    pub dragged_nucl: Nucl,
+}
+
+impl StrandBuildingStatus {
+    pub fn to_info(&self) -> String {
+        format!(
+            "Current domain length: {} nt ({:.2} nm). 5': {}, 3': {}",
+            self.nt_length, self.nm_length, self.prime5.position, self.prime3.position
+        )
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PastingStatus {
+    Copy,
+    Duplication,
+    None,
+}
+
+impl PastingStatus {
+    pub fn is_pasting(&self) -> bool {
+        match self {
+            Self::Copy | Self::Duplication => true,
+            Self::None => false,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+/// One of the standard scaffold sequence shipped with ENSnano.
+#[derive(Default)]
+pub enum StandardSequence {
+    P4844,
+    #[default]
+    P7249,
+    P7560,
+    P8064,
+}
+
+impl StandardSequence {
+    pub fn description(&self) -> &'static str {
+        match self {
+            Self::P4844 => "m13 p4844",
+            Self::P7249 => "m13 p7249",
+            Self::P7560 => "m13 p7560",
+            Self::P8064 => "m13 p8064",
+        }
+    }
+
+    pub fn sequence(&self) -> &'static str {
+        match self {
+            Self::P4844 => include_str!("../sequences/p4844-Tilibit.txt"),
+            Self::P7249 => include_str!("../sequences/p7249-Tilibit.txt"),
+            Self::P7560 => include_str!("../sequences/p7560.txt"),
+            Self::P8064 => include_str!("../sequences/m13-p8064.txt"),
+        }
+    }
+
+    /// Return the variant of Self whose associated sequence length is closest to n.
+    pub fn from_length(n: usize) -> Self {
+        let mut best_score = isize::MAX;
+        let mut ret = Self::default();
+        for candidate in [Self::P4844, Self::P7249, Self::P7560, Self::P8064] {
+            let score = (candidate.sequence().len() as isize - (n as isize)).abs();
+            if score < best_score {
+                best_score = score;
+                ret = candidate;
+            }
+        }
+        ret
+    }
 }
 
 pub fn create_buffer_with_data(
@@ -66,50 +259,18 @@ pub fn create_buffer_with_data(
     device.create_buffer_init(&descriptor)
 }
 
-/// This struct handle the alignment of row in WGPU buffers.
-pub struct BufferDimensions {
-    pub width: usize,
-    pub height: usize,
-    pub unpadded_bytes_per_row: usize,
-    pub padded_bytes_per_row: usize,
+pub fn apply_update<T: Clone, F>(obj: &mut T, update_func: F)
+where
+    F: FnOnce(T) -> T,
+{
+    let tmp = obj.clone();
+    *obj = update_func(tmp);
 }
 
-impl BufferDimensions {
-    pub fn new(width: usize, height: usize) -> Self {
-        let bytes_per_pixel = std::mem::size_of::<u32>();
-        let unpadded_bytes_per_row = width * bytes_per_pixel;
-        let block_size = wgpu::COPY_BYTES_PER_ROW_ALIGNMENT as usize;
-        let padding = (block_size - unpadded_bytes_per_row % block_size) % block_size;
-        let padded_bytes_per_row = unpadded_bytes_per_row + padding;
-        Self {
-            width,
-            height,
-            unpadded_bytes_per_row,
-            padded_bytes_per_row,
-        }
-    }
-    pub fn buffer_size(&self) -> usize {
-        self.padded_bytes_per_row * self.height
-    }
+pub fn convert_size_f32(size: PhySize) -> iced::Size<f32> {
+    iced::Size::new(size.width as f32, size.height as f32)
 }
 
-#[repr(C)]
-#[derive(Debug, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct Ndc {
-    pub x: f32,
-    pub y: f32,
-}
-
-impl Ndc {
-    pub fn from_physical<S: Pixel, T: Pixel>(
-        position: PhysicalPosition<S>,
-        window_size: PhysicalSize<T>,
-    ) -> Self {
-        let position = position.cast::<f32>();
-        let size = window_size.cast::<f32>();
-        Self {
-            x: position.x / size.width * 2. - 1.,
-            y: position.y / size.height * -2. + 1.,
-        }
-    }
+pub fn convert_size_u32(size: PhySize) -> iced::Size<u32> {
+    iced::Size::new(size.width, size.height)
 }

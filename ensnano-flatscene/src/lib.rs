@@ -1,21 +1,4 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-//! This module handles the 2D view
+//! This module handles the 2D view.
 //!
 //! # Coordinate systems
 //!
@@ -29,46 +12,59 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!    bottom right (or top right?) corner has coordinate (1, 1).
 //!
 //! 3. **world coordinates**: this is the absolute coordinate system in which elements are
-//!    positionned.
+//!    positioned.
 
-use ensnano_design::{consts::ITERATIVE_AXIS_ALGORITHM, Nucl};
-use ensnano_interactor::{
-    application::{AppId, Application, Duration, Notification},
-    consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE},
-    graphics::DrawArea,
-    operation::*,
-    ActionMode, DesignOperation, PhantomElement, Selection, SelectionMode, StrandBuilder,
-    StrandBuildingStatus,
-};
-use ensnano_utils::filename;
-use ensnano_utils::wgpu;
-use ensnano_utils::winit;
-use ensnano_utils::PhySize;
-use lyon::geom::euclid::rect;
-use std::cell::RefCell;
-use std::collections::HashMap;
-use std::path::{Path, PathBuf};
-use std::rc::Rc;
-use std::sync::{Arc, Mutex};
-use wgpu::{Device, Queue};
-use winit::dpi::PhysicalPosition;
-use winit::event::WindowEvent;
-
-use ensnano_utils::camera2d;
+mod camera2d;
+mod chars2d;
+mod circles2d;
 mod controller;
-mod data;
-mod flattypes;
+pub mod data;
+mod flat_types;
+mod full_isometry;
+mod ndc;
 mod view;
-pub use camera2d::{Camera2D, FitRectangle};
-use controller::Controller;
-use data::Data;
-pub use data::{DesignReader, NuclCollection};
-use flattypes::*;
-use std::time::Instant;
-use view::View;
+
+use crate::{
+    camera2d::{Camera2D, FitRectangle},
+    controller::{Consequence, FlatSceneController},
+    data::Data,
+    flat_types::FlatNucl,
+    view::View,
+};
+use ensnano_design::{consts::ITERATIVE_AXIS_ALGORITHM, phantom_element::PhantomElement};
+use ensnano_state::{
+    app_state::{AppState, design_interactor::DesignInteractor},
+    design::{
+        operation::DesignOperation,
+        selection::{Selection, extract_nucls_and_xover_ends},
+    },
+    requests::Requests,
+    state::MainState,
+    utils::{
+        application::{AppId, Application, Notification},
+        operation::{CrossCut, Cut, Xover},
+    },
+};
+use ensnano_utils::{
+    buffer_dimensions::BufferDimensions,
+    consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE},
+    filename::derive_path_with_prefix_and_time_stamp_and_suffix,
+    graphics::{DrawArea, PhySize},
+};
+use itertools::Itertools as _;
+use std::{
+    cell::RefCell,
+    io::Write as _,
+    path::PathBuf,
+    rc::Rc,
+    sync::{Arc, Mutex},
+    time::{Duration, Instant},
+};
+use wgpu::{Device, Queue};
+use winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon};
 
 type ViewPtr = Rc<RefCell<View>>;
-type DataPtr<R> = Rc<RefCell<Data<R>>>;
+type DataPtr = Rc<RefCell<Data>>;
 type CameraPtr = Rc<RefCell<Camera2D>>;
 
 fn png_resolution([w, h]: [f32; 2]) -> [f32; 2] {
@@ -82,39 +78,39 @@ fn png_resolution([w, h]: [f32; 2]) -> [f32; 2] {
     }
 }
 
-/// A Flatscene handles one design at a time
-pub struct FlatScene<S: AppState> {
+/// A Flatscene handles one design at a time.
+pub struct FlatScene {
     /// Handle the data to send to the GPU.
     view: Vec<ViewPtr>,
     /// Handle the data representing the design.
-    data: Vec<DataPtr<S::Reader>>,
+    data: Vec<DataPtr>,
     /// Handle inputs.
-    controller: Vec<Controller<S>>,
+    controller: Vec<FlatSceneController>,
     /// The area on which the flatscene is displayed.
     area: DrawArea,
     /// The size of the window on which the flatscene is displayed.
     window_size: PhySize,
-    /// The identifer of the design being drawn.
+    /// The identifier of the design being drawn.
     selected_design: usize,
     /// Graphics device.
     device: Rc<Device>,
     /// Command queue on the graphics device.
     queue: Rc<Queue>,
     last_update: Instant,
-    /// Wether the flatscene is split in two.
-    splited: bool,
-    old_state: S,
-    requests: Arc<Mutex<dyn Requests>>,
+    /// Whether the flatscene is split in two.
+    is_split: bool,
+    old_state: AppState,
+    requests: Arc<Mutex<Requests>>,
 }
 
-impl<S: AppState> FlatScene<S> {
+impl FlatScene {
     pub fn new(
         device: Rc<Device>,
         queue: Rc<Queue>,
         window_size: PhySize,
         area: DrawArea,
-        requests: Arc<Mutex<dyn Requests>>,
-        initial_state: S,
+        requests: Arc<Mutex<Requests>>,
+        initial_state: AppState,
     ) -> Self {
         let mut ret = Self {
             view: Vec::new(),
@@ -126,7 +122,7 @@ impl<S: AppState> FlatScene<S> {
             device,
             queue,
             last_update: Instant::now(),
-            splited: false,
+            is_split: false,
             old_state: initial_state.clone(),
             requests: requests.clone(),
         };
@@ -136,15 +132,15 @@ impl<S: AppState> FlatScene<S> {
 
     /// Add a design to the scene.
     ///
-    /// This creates a new `View`, a new `Data` and a new `Controller`
-    fn add_design(&mut self, reader: S::Reader, requests: Arc<Mutex<dyn Requests>>) {
-        let height = if self.splited {
+    /// This creates a new `View`, a new `Data` and a new `Controller`.
+    fn add_design(&mut self, reader: DesignInteractor, requests: Arc<Mutex<Requests>>) {
+        let height = if self.is_split {
             self.area.size.height as f32 / 2.
         } else {
             self.area.size.height as f32
         };
 
-        // Allocate resources even if the screen is not splited.
+        // Allocate resources even if the screen is not split.
         let globals_top = camera2d::Globals::from_resolution([self.area.size.width as f32, height]);
         let globals_bottom =
             camera2d::Globals::from_resolution([self.area.size.width as f32, height]);
@@ -163,19 +159,19 @@ impl<S: AppState> FlatScene<S> {
             self.area,
             camera_top.clone(),
             camera_bottom.clone(),
-            self.splited,
+            self.is_split,
         )));
         let data = Rc::new(RefCell::new(Data::new(view.clone(), reader, 0, requests)));
         //data.borrow_mut().perform_update();
         // TODO is this update necessary ?
-        let controller = Controller::new(
+        let controller = FlatSceneController::new(
             view.clone(),
             data.clone(),
             self.window_size,
             self.area.size,
             camera_top,
             camera_bottom,
-            self.splited,
+            self.is_split,
         );
         if !self.view.is_empty() {
             self.view[0] = view;
@@ -188,46 +184,45 @@ impl<S: AppState> FlatScene<S> {
         }
     }
 
-    /// Draw the view of the currently selected design
-    fn draw_view(&mut self, encoder: &mut wgpu::CommandEncoder, target: &wgpu::TextureView) {
+    /// Draw the view of the currently selected design.
+    fn draw_view(&self, encoder: &mut wgpu::CommandEncoder, target: &wgpu::TextureView) {
         if let Some(view) = self.view.get(self.selected_design) {
             log::trace!("draw flatscene");
             view.borrow_mut().draw(encoder, target, None, None);
         }
     }
 
-    /// This function must be called when the drawing area of the flatscene is modified
+    /// This function must be called when the drawing area of the flatscene is modified.
     fn resize(&mut self, window_size: PhySize, area: DrawArea) {
         self.window_size = window_size;
         self.area = area;
-        for view in self.view.iter() {
+        for view in &self.view {
             view.borrow_mut().resize(area);
         }
-        for controller in self.controller.iter_mut() {
+        for controller in &mut self.controller {
             controller.resize(window_size, area.size);
         }
     }
 
-    /// Handle an input that happend while the cursor was on the flatscene drawing area
+    /// Handle an input that happened while the cursor was on the flatscene drawing area.
     fn input(
         &mut self,
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
-        app_state: &S,
-    ) -> Option<ensnano_interactor::CursorIcon> {
+        main_state: &mut MainState,
+    ) -> Option<CursorIcon> {
         if let Some(controller) = self.controller.get_mut(self.selected_design) {
-            let consequence = controller.input(event, cursor_position, app_state);
+            let consequence = controller.input(event, cursor_position, main_state);
             let icon = controller.get_icon();
-            self.read_consequence(consequence, Some(app_state));
+            self.read_consequence(consequence, Some(main_state));
             icon
         } else {
             None
         }
     }
 
-    fn read_consequence(&mut self, consequence: controller::Consequence, new_state: Option<&S>) {
-        let app_state = new_state.unwrap_or(&self.old_state);
-        use controller::Consequence;
+    fn read_consequence(&self, consequence: Consequence, main_state: Option<&mut MainState>) {
+        let app_state = main_state.map_or(&self.old_state, |s| &s.app_state);
         match consequence {
             Consequence::Xover(nucl1, nucl2) => {
                 let (prime5_id, prime3_id) =
@@ -235,26 +230,21 @@ impl<S: AppState> FlatScene<S> {
                 self.requests
                     .lock()
                     .unwrap()
-                    .update_opperation(Arc::new(Xover {
+                    .update_operation(Arc::new(Xover {
                         prime3_id,
                         prime5_id,
                         undo: false,
-                        design_id: self.selected_design,
-                    }))
+                    }));
             }
             Consequence::Cut(nucl) => {
                 let strand_id = self.data[self.selected_design].borrow().get_strand_id(nucl);
-                if let Some(strand_id) = strand_id {
-                    log::info!("cutting {:?}", nucl);
+                if strand_id.is_some() {
+                    log::info!("cutting {nucl:?}");
                     let nucl = nucl.to_real();
                     self.requests
                         .lock()
                         .unwrap()
-                        .update_opperation(Arc::new(Cut {
-                            nucl,
-                            strand_id,
-                            design_id: self.selected_design,
-                        }))
+                        .update_operation(Arc::new(Cut { nucl }));
                 }
             }
             Consequence::FreeEnd(free_end) => {
@@ -275,17 +265,13 @@ impl<S: AppState> FlatScene<S> {
             }
             Consequence::CutFreeEnd(nucl, free_end) => {
                 let strand_id = self.data[self.selected_design].borrow().get_strand_id(nucl);
-                if let Some(strand_id) = strand_id {
-                    log::info!("cutting {:?}", nucl);
+                if strand_id.is_some() {
+                    log::info!("cutting {nucl:?}");
                     let nucl = nucl.to_real();
                     self.requests
                         .lock()
                         .unwrap()
-                        .update_opperation(Arc::new(Cut {
-                            nucl,
-                            strand_id,
-                            design_id: self.selected_design,
-                        }))
+                        .update_operation(Arc::new(Cut { nucl }));
                 }
                 self.data[self.selected_design]
                     .borrow_mut()
@@ -299,13 +285,12 @@ impl<S: AppState> FlatScene<S> {
                         self.requests
                             .lock()
                             .unwrap()
-                            .update_opperation(Arc::new(CrossCut {
+                            .update_operation(Arc::new(CrossCut {
                                 source_id,
                                 target_id,
                                 target_3prime,
                                 nucl: to.to_real(),
-                                design_id: self.selected_design,
-                            }))
+                            }));
                     }
                 }
             }
@@ -313,7 +298,7 @@ impl<S: AppState> FlatScene<S> {
                 .requests
                 .lock()
                 .unwrap()
-                .set_paste_candidate(candidate.map(|n| n.to_real())),
+                .set_paste_candidate(candidate.map(FlatNucl::to_real)),
             Consequence::NewCandidate(candidate) => {
                 let phantom = candidate.map(|n| PhantomElement {
                     position: n.flat_position.to_real(n.helix.segment_left) as i32,
@@ -334,7 +319,7 @@ impl<S: AppState> FlatScene<S> {
                 self.requests
                     .lock()
                     .unwrap()
-                    .new_candidates(candidate.iter().cloned().collect())
+                    .new_candidates(candidate.iter().copied().collect());
             }
             Consequence::Built => {
                 self.requests.lock().unwrap().suspend_op();
@@ -361,16 +346,6 @@ impl<S: AppState> FlatScene<S> {
                     }
                 }
             }
-            Consequence::Centering(nucl, bottom) => {
-                self.view[self.selected_design]
-                    .borrow_mut()
-                    .center_nucl(nucl, bottom);
-                let nucl = nucl.to_real();
-                self.requests
-                    .lock()
-                    .unwrap()
-                    .request_centering_on_nucl(nucl, self.selected_design)
-            }
             Consequence::DrawingSelection(c1, c2) => self.view[self.selected_design]
                 .borrow_mut()
                 .update_rectangle(c1, c2),
@@ -387,7 +362,7 @@ impl<S: AppState> FlatScene<S> {
                 self.requests
                     .lock()
                     .unwrap()
-                    .attempt_paste(nucl.map(|n| n.to_real()));
+                    .attempt_paste(nucl.map(FlatNucl::to_real));
             }
             Consequence::AddClick(click, add) => {
                 let mut new_selection = app_state.get_selection().to_vec();
@@ -413,10 +388,10 @@ impl<S: AppState> FlatScene<S> {
                     self.requests
                         .lock()
                         .unwrap()
-                        .request_center_selection(selection, AppId::FlatScene)
+                        .request_center_selection(selection, AppId::FlatScene);
                 }
             }
-            Consequence::Helix2DMvmtEnded => self.requests.lock().unwrap().suspend_op(),
+            Consequence::Helix2DMovementEnded => self.requests.lock().unwrap().suspend_op(),
             Consequence::Snap {
                 pivots,
                 translation,
@@ -444,7 +419,7 @@ impl<S: AppState> FlatScene<S> {
                         center,
                         angle,
                     },
-                )
+                );
             }
             Consequence::Symmetry {
                 helices,
@@ -458,10 +433,10 @@ impl<S: AppState> FlatScene<S> {
                         symmetry,
                         centers,
                     },
-                )
+                );
             }
             Consequence::InitBuilding(nucl) => {
-                let mut nucls = ensnano_interactor::extract_nucls_and_xover_ends(
+                let mut nucls = extract_nucls_and_xover_ends(
                     app_state.get_selection(),
                     &app_state.get_design_reader(),
                 );
@@ -495,23 +470,22 @@ impl<S: AppState> FlatScene<S> {
                     helix_id: flat_helix.segment.helix_idx,
                     segment_id: flat_helix.segment.segment_idx,
                 }]),
-            /// OBSOLETE ?
             Consequence::PngExport(corner1, corner2) => {
                 println!("I'd like to know how you got there !");
                 let glob_png = camera2d::Globals::from_corners(corner1, corner2, png_resolution);
-                let path = filename::derive_path_with_prefix_and_time_stamp_and_suffix(
+                let path = derive_path_with_prefix_and_time_stamp_and_suffix(
                     Some(Arc::from(PathBuf::new())),
                     Some("export_2d"),
                     Some(format!("{ITERATIVE_AXIS_ALGORITHM}").as_str()),
                     Some("png"),
                 );
-                println!("2D PNG export to {:?}", path);
+                println!("2D PNG export to {}", path.display());
                 self.export_2d_png(path, glob_png);
                 self.view[self.selected_design]
                     .borrow_mut()
                     .clear_rectangle();
             }
-            _ => (),
+            Consequence::Nothing => {}
         }
     }
 
@@ -520,23 +494,23 @@ impl<S: AppState> FlatScene<S> {
         self.read_consequence(consequence, None);
     }
 
-    fn attempt_xover(&self, nucl1: FlatNucl, nucl2: FlatNucl) {
-        let source = nucl1.to_real();
-        let target = nucl2.to_real();
+    fn attempt_xover(&self, source: FlatNucl, target: FlatNucl) {
+        let source = source.to_real();
+        let target = target.to_real();
         self.requests
             .lock()
             .unwrap()
             .xover_request(source, target, self.selected_design);
     }
 
-    /// Ask the view if it has been modified since the last drawing
-    fn needs_redraw_(&mut self, new_state: S) -> bool {
+    /// Ask the view if it has been modified since the last drawing.
+    fn needs_redraw_(&mut self, new_state: &AppState) -> bool {
         self.check_timers();
         if let Some(view) = self.view.get(self.selected_design) {
             self.data[self.selected_design]
                 .borrow_mut()
-                .perform_update(&new_state, &self.old_state);
-            self.old_state = new_state;
+                .perform_update(new_state, &self.old_state);
+            self.old_state = new_state.clone();
             let ret = view.borrow().needs_redraw();
             if ret {
                 log::debug!("Flatscene requests redraw");
@@ -548,23 +522,23 @@ impl<S: AppState> FlatScene<S> {
     }
 
     fn toggle_split_from_btn(&mut self) {
-        self.splited ^= true;
-        for c in self.controller.iter_mut() {
-            c.set_splited(self.splited, true);
+        self.is_split ^= true;
+        for c in &mut self.controller {
+            c.set_split(self.is_split, true);
         }
 
-        for v in self.view.iter_mut() {
-            v.borrow_mut().set_splited(self.splited);
+        for v in &mut self.view {
+            v.borrow_mut().set_is_split(self.is_split);
         }
     }
 
     fn split_and_center(&mut self, n1: FlatNucl, n2: FlatNucl) {
-        self.splited = true;
-        for v in self.view.iter_mut() {
-            v.borrow_mut().set_splited(self.splited);
+        self.is_split = true;
+        for v in &mut self.view {
+            v.borrow_mut().set_is_split(self.is_split);
         }
-        for c in self.controller.iter_mut() {
-            c.set_splited(self.splited, false);
+        for c in &mut self.controller {
+            c.set_split(self.is_split, false);
         }
         self.view[self.selected_design]
             .borrow_mut()
@@ -586,6 +560,7 @@ impl<S: AppState> FlatScene<S> {
                 | wgpu::TextureUsages::TEXTURE_BINDING
                 | wgpu::TextureUsages::COPY_SRC,
             label: Some("desc"),
+            view_formats: Default::default(),
         };
         let texture_view_descriptor = wgpu::TextureViewDescriptor {
             label: Some("texture_view_descriptor"),
@@ -608,9 +583,7 @@ impl<S: AppState> FlatScene<S> {
         let device = self.device.as_ref();
         let queue = self.queue.as_ref();
 
-        log::info!("2D PNG export to {:?}", path);
-        use ensnano_utils::BufferDimensions;
-        use std::io::Write;
+        log::info!("2D PNG export to {}", path.display());
 
         let png_size = PhySize::from(glob.resolution);
 
@@ -631,7 +604,7 @@ impl<S: AppState> FlatScene<S> {
             .draw(&mut encoder, &texture_view, Some(png_size), Some(glob));
 
         // create a buffer and fill it with the texture
-        let extent = size.clone();
+        let extent = size;
 
         let buffer_dimensions =
             BufferDimensions::new(extent.width as usize, extent.height as usize);
@@ -645,48 +618,48 @@ impl<S: AppState> FlatScene<S> {
             buffer: &staging_buffer,
             layout: wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: (buffer_dimensions.padded_bytes_per_row as u32)
-                    .try_into()
-                    .ok(),
+                bytes_per_row: Some(buffer_dimensions.padded_bytes_per_row as u32),
                 rows_per_image: None,
             },
         };
-        let origin = wgpu::Origin3d { x: 0, y: 0, z: 0 };
         let texture_copy_view = wgpu::ImageCopyTexture {
             texture: &texture,
             mip_level: 0,
-            origin,
+            origin: wgpu::Origin3d::ZERO,
             aspect: Default::default(),
         };
 
         encoder.copy_texture_to_buffer(texture_copy_view, buffer_copy_view, extent);
         queue.submit(Some(encoder.finish()));
 
+        let (sender, receiver) = futures_channel::oneshot::channel();
         let buffer_slice = staging_buffer.slice(..);
-        let buffer_future = buffer_slice.map_async(wgpu::MapMode::Read);
+        buffer_slice.map_async(wgpu::MapMode::Read, |result| {
+            let _ = sender.send(result);
+        });
         device.poll(wgpu::Maintain::Wait);
+        futures::executor::block_on(async {
+            receiver
+                .await
+                .expect("communication failed")
+                .expect("buffer_reading_failed");
+        });
+        // This pattern is copied from
+        //  https://stackoverflow.com/questions/76839881/creating-writing-and-reading-from-buffer-wgpu
 
-        let pixels = async {
-            if let Ok(()) = buffer_future.await {
-                let pixels_slice = buffer_slice.get_mapped_range();
-                let mut pixels = Vec::with_capacity((size.height * size.width) as usize);
-                for chunck in pixels_slice.chunks(buffer_dimensions.padded_bytes_per_row) {
-                    for chunk in chunck.chunks(4) {
-                        // convert Bgra to Rgba
-                        pixels.push(chunk[2]);
-                        pixels.push(chunk[1]);
-                        pixels.push(chunk[0]);
-                        pixels.push(chunk[3]);
-                    }
+        let pixels = {
+            let pixels_slice = buffer_slice.get_mapped_range();
+            let mut pixels = Vec::with_capacity((size.height * size.width) as usize);
+            for row in pixels_slice.chunks(buffer_dimensions.padded_bytes_per_row) {
+                // convert BGRA to RGBA
+                for (b, g, r, a) in row.iter().copied().tuples() {
+                    pixels.extend_from_slice(&[r, g, b, a]);
                 }
-                drop(pixels_slice);
-                staging_buffer.unmap();
-                pixels
-            } else {
-                panic!("could not read fake texture");
             }
+            drop(pixels_slice);
+            staging_buffer.unmap();
+            pixels
         };
-        let pixels = futures::executor::block_on(pixels);
         if let Ok(f_out) = std::fs::File::create(path) {
             let mut png_encoder = png::Encoder::new(f_out, png_size.width, png_size.height);
             png_encoder.set_depth(png::BitDepth::Eight);
@@ -706,30 +679,26 @@ impl<S: AppState> FlatScene<S> {
     }
 }
 
-impl<S: AppState> Application for FlatScene<S> {
-    type AppState = S;
+impl Application for FlatScene {
     fn on_notify(&mut self, notification: Notification) {
         match notification {
-            Notification::FitRequest => (), // Temporarilly don't fit to make the moebius ring
             Notification::ToggleText(b) => {
-                self.view[self.selected_design].borrow_mut().set_show_sec(b)
+                self.view[self.selected_design].borrow_mut().set_show_sec(b);
             }
             Notification::ShowTorsion(b) => {
-                for v in self.view.iter() {
+                for v in &self.view {
                     v.borrow_mut().set_show_torsion(b);
                 }
             }
-            Notification::CameraTarget(_) => (),
             Notification::ClearDesigns => self.data[0].borrow_mut().clear_design(),
-            Notification::Centering(_, _) => (),
             Notification::CenterSelection(selection, app_id) => {
-                log::info!("2D view centering selection {:?}", selection);
+                log::info!("2D view centering selection {selection:?}");
                 let flat_selection = self.data[self.selected_design]
                     .borrow()
                     .convert_to_flat(selection);
                 let flat_selection_bonds = self.data[self.selected_design]
                     .borrow()
-                    .xover_to_nuclpair(flat_selection);
+                    .xover_to_nucl_pair(flat_selection);
                 if app_id != AppId::FlatScene {
                     let xover = self.view[self.selected_design]
                         .borrow_mut()
@@ -739,10 +708,9 @@ impl<S: AppState> Application for FlatScene<S> {
                     }
                 }
             }
-            Notification::CameraRotation(_, _, _) => (),
-            Notification::ModifersChanged(modifiers) => {
-                for c in self.controller.iter_mut() {
-                    c.update_modifiers(modifiers)
+            Notification::ModifiersChanged(modifiers) => {
+                for c in &mut self.controller {
+                    c.update_modifiers(modifiers.state());
                 }
             }
             Notification::Split2d => self.toggle_split_from_btn(),
@@ -754,14 +722,9 @@ impl<S: AppState> Application for FlatScene<S> {
                 };
                 self.data[self.selected_design]
                     .borrow_mut()
-                    .redim_helices(selection)
+                    .redim_helices(selection);
             }
-            Notification::Fog(_) => (),
-            Notification::WindowFocusLost => (),
-            Notification::TeleportCamera(_) => (),
-            Notification::NewStereographicCamera(_) => (),
             Notification::FlipSplitViews => self.controller[0].flip_split_views(),
-            Notification::HorizonAligned => (),
             Notification::ScreenShot2D(design_path) => {
                 // NOTE: When flatscene is split, return the whole view.
                 let rectangle = self.data[0].borrow().get_fit_rectangle();
@@ -785,7 +748,7 @@ impl<S: AppState> Application for FlatScene<S> {
                             .into(),
                             png_resolution,
                         );
-                        let path = filename::derive_path_with_prefix_and_time_stamp_and_suffix(
+                        let path = derive_path_with_prefix_and_time_stamp_and_suffix(
                             design_path.clone(),
                             Some("export_2d"),
                             Some(
@@ -793,89 +756,63 @@ impl<S: AppState> Application for FlatScene<S> {
                             ),
                             Some("png"),
                         );
-                        println!("2D PNG export to {:?}", path);
+                        println!("2D PNG export to {}", path.display());
                         self.export_2d_png(path.clone(), glob_png);
                         println!(
-                            "File {:?} saved [{}/{}]",
-                            path.file_stem().unwrap(),
+                            "File {} saved [{}/{}]",
+                            path.file_stem().unwrap().display(),
                             i * h_cuts + j + 1,
                             w_cuts * h_cuts
                         );
                     }
                 }
             }
-            Notification::ScreenShot3D(_) => (), // Nothing to do in the flatscene.
-            Notification::SaveNucleotidesPositions(_) => (), // Nothing to do in the flatscene.
-            Notification::StlExport(_) => (),
+            Notification::FitRequest  // Temporarily don't fit to make the moebius ring
+            | Notification::CameraTarget(_)
+            | Notification::CameraRotation(_, _, _)
+            | Notification::Fog(_)
+            | Notification::WindowFocusLost
+            | Notification::TeleportCamera(_)
+            | Notification::NewStereographicCamera(_)
+            | Notification::HorizonAligned
+            | Notification::ScreenShot3D(_)  // Nothing to do in the flatscene.
+            | Notification::SaveNucleotidesPositions(_)  // Nothing to do in the flatscene.
+            | Notification::StlExport(_) => (),
         }
     }
 
     fn on_resize(&mut self, window_size: PhySize, area: DrawArea) {
-        self.resize(window_size, area)
+        self.resize(window_size, area);
     }
 
     fn on_event(
         &mut self,
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
-        state: &S,
-    ) -> Option<ensnano_interactor::CursorIcon> {
-        self.input(event, cursor_position, state)
+        main_state: &mut MainState,
+    ) -> Option<CursorIcon> {
+        self.input(event, cursor_position, main_state)
     }
 
     fn on_redraw_request(
         &mut self,
         encoder: &mut wgpu::CommandEncoder,
         target: &wgpu::TextureView,
-        _dt: Duration,
     ) {
-        //println!("draw flatscene");
-        self.draw_view(encoder, target)
+        self.draw_view(encoder, target);
     }
 
-    fn needs_redraw(&mut self, _: Duration, state: S) -> bool {
+    fn needs_redraw(&mut self, _: Duration, main_state: &mut MainState) -> bool {
         let now = Instant::now();
         if (now - self.last_update).as_millis() < 25 {
             false
         } else {
             self.last_update = now;
-            self.needs_redraw_(state)
+            self.needs_redraw_(&main_state.app_state)
         }
     }
 
-    fn is_splited(&self) -> bool {
-        self.splited
+    fn is_split(&self) -> bool {
+        self.is_split
     }
-}
-
-pub trait AppState: Clone {
-    type Reader: DesignReader + ensnano_interactor::DesignReader;
-    fn selection_was_updated(&self, other: &Self) -> bool;
-    fn candidate_was_updated(&self, other: &Self) -> bool;
-    fn get_selection(&self) -> &[Selection];
-    fn get_candidates(&self) -> &[Selection];
-    fn get_selection_mode(&self) -> SelectionMode;
-    fn get_design_reader(&self) -> Self::Reader;
-    fn get_strand_builders(&self) -> &[StrandBuilder];
-    fn design_was_updated(&self, other: &Self) -> bool;
-    fn is_changing_color(&self) -> bool;
-    fn is_pasting(&self) -> bool;
-    fn get_building_state(&self) -> Option<StrandBuildingStatus>;
-}
-
-use ensnano_design::ultraviolet::Isometry2;
-pub trait Requests {
-    fn xover_request(&mut self, source: Nucl, target: Nucl, design_id: usize);
-    fn request_center_selection(&mut self, selection: Selection, app_id: AppId);
-    fn new_selection(&mut self, selection: Vec<Selection>);
-    fn new_candidates(&mut self, candidates: Vec<Selection>);
-    fn attempt_paste(&mut self, nucl: Option<Nucl>);
-    fn request_centering_on_nucl(&mut self, nucl: Nucl, design_id: usize);
-    fn update_opperation(&mut self, operation: Arc<dyn Operation>);
-    fn set_isometry(&mut self, helix: usize, segment_idx: usize, isometry: Isometry2);
-    fn set_visibility_helix(&mut self, helix: usize, visibility: bool);
-    fn flip_group(&mut self, helix: usize);
-    fn suspend_op(&mut self);
-    fn apply_design_operation(&mut self, op: DesignOperation);
-    fn set_paste_candidate(&mut self, candidate: Option<Nucl>);
 }

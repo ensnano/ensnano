@@ -1,35 +1,21 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use std::rc::Rc;
-
-use super::{Device, DrawArea, DrawType, Queue, ViewPtr};
-use ensnano_design::grid::{GridId, GridPosition};
-use ensnano_design::{BezierPathId, BezierPlaneId, BezierVertexId};
-use ensnano_interactor::{phantom_helix_decoder, BezierControlPoint, PhantomElement};
-use ensnano_utils as utils;
-use futures::executor;
+use crate::view::{DrawType, ViewPtr};
+use ensnano_design::{
+    bezier_plane::{BezierPathId, BezierPlaneId, BezierVertexId},
+    curves::bezier::BezierControlPoint,
+    grid::{GridId, GridPosition},
+    phantom_element::{PhantomElement, phantom_helix_decoder},
+};
+use ensnano_utils::{
+    buffer_dimensions::BufferDimensions,
+    consts::{BEZIER_END_WIDGET_ID, BEZIER_START_WIDGET_ID},
+    graphics::DrawArea,
+};
 use num_enum::IntoPrimitive;
-use std::convert::TryInto;
-use utils::wgpu;
-use utils::winit::dpi::{PhysicalPosition, PhysicalSize};
-use utils::BufferDimensions;
+use std::rc::Rc;
+use wgpu::{Device, Queue};
+use winit::dpi::{PhysicalPosition, PhysicalSize};
 
-pub struct ElementSelector {
+pub(crate) struct ElementSelector {
     pub device: Rc<Device>,
     pub queue: Rc<Queue>,
     readers: Vec<SceneReader>,
@@ -40,7 +26,7 @@ pub struct ElementSelector {
 }
 
 impl ElementSelector {
-    pub fn new(
+    pub(crate) fn new(
         device: Rc<Device>,
         queue: Rc<Queue>,
         window_size: PhysicalSize<u32>,
@@ -64,26 +50,26 @@ impl ElementSelector {
         }
     }
 
-    pub fn set_stereographic(&mut self, stereographic: bool) {
+    pub(crate) fn set_stereographic(&mut self, stereographic: bool) {
         if self.stereographic != stereographic {
             self.readers[0].pixels = None;
         }
         self.stereographic = stereographic;
     }
 
-    pub fn resize(&mut self, window_size: PhysicalSize<u32>, area: DrawArea) {
+    pub(crate) fn resize(&mut self, window_size: PhysicalSize<u32>, area: DrawArea) {
         self.area = area;
         self.window_size = window_size;
     }
 
-    pub fn set_selected_id(
+    pub(crate) fn set_selected_id(
         &mut self,
         clicked_pixel: PhysicalPosition<f64>,
     ) -> Option<SceneElement> {
         if self.readers[0].pixels.is_none() || self.view.borrow().need_redraw_fake() {
             for i in 0..self.readers.len() {
                 let pixels = self.update_fake_pixels(self.readers[i].draw_type, self.stereographic);
-                self.readers[i].pixels = Some(pixels)
+                self.readers[i].pixels = Some(pixels);
             }
         }
 
@@ -105,9 +91,8 @@ impl ElementSelector {
             let max_y = (pixel.1 + max_delta).min(self.window_size.height - 1);
             for x in min_x..=max_x {
                 for y in min_y..=max_y {
-                    let byte0 =
-                        (y * self.window_size.width + x) as usize * std::mem::size_of::<u32>();
-                    for reader in self.readers.iter() {
+                    let byte0 = (y * self.window_size.width + x) as usize * size_of::<u32>();
+                    for reader in &self.readers {
                         if let Some(element) = reader.read_pixel(byte0) {
                             return Some(element);
                         }
@@ -161,44 +146,47 @@ impl ElementSelector {
             buffer: &staging_buffer,
             layout: wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: (buffer_dimensions.padded_bytes_per_row as u32)
-                    .try_into()
-                    .ok(),
+                bytes_per_row: Some(buffer_dimensions.padded_bytes_per_row as u32),
                 rows_per_image: None,
             },
         };
-        let origin = wgpu::Origin3d { x: 0, y: 0, z: 0 };
         let texture_copy_view = wgpu::ImageCopyTexture {
             texture: &texture,
             mip_level: 0,
-            origin,
+            origin: wgpu::Origin3d::ZERO,
             aspect: Default::default(),
         };
 
         encoder.copy_texture_to_buffer(texture_copy_view, buffer_copy_view, extent);
         self.queue.submit(Some(encoder.finish()));
 
+        let (sender, receiver) = futures_channel::oneshot::channel();
         let buffer_slice = staging_buffer.slice(..);
-        let buffer_future = buffer_slice.map_async(wgpu::MapMode::Read);
+        buffer_slice.map_async(wgpu::MapMode::Read, |result| {
+            let _ = sender.send(result);
+        });
         self.device.poll(wgpu::Maintain::Wait);
+        futures::executor::block_on(async {
+            receiver
+                .await
+                .expect("communication failed")
+                .expect("buffer_reading_failed");
+        });
+        // This pattern is copied from
+        //  https://stackoverflow.com/questions/76839881/creating-writing-and-reading-from-buffer-wgpu
 
-        let pixels = async {
-            if let Ok(()) = buffer_future.await {
-                let pixels_slice = buffer_slice.get_mapped_range();
-                let mut pixels = Vec::with_capacity((size.height * size.width) as usize);
-                for chunck in pixels_slice.chunks(buffer_dimensions.padded_bytes_per_row) {
-                    for byte in chunck[..buffer_dimensions.unpadded_bytes_per_row].iter() {
-                        pixels.push(*byte);
-                    }
+        {
+            let pixels_slice = buffer_slice.get_mapped_range();
+            let mut pixels = Vec::with_capacity((size.height * size.width) as usize);
+            for chunk in pixels_slice.chunks(buffer_dimensions.padded_bytes_per_row) {
+                for byte in &chunk[..buffer_dimensions.unpadded_bytes_per_row] {
+                    pixels.push(*byte);
                 }
-                drop(pixels_slice);
-                staging_buffer.unmap();
-                pixels
-            } else {
-                panic!("could not read fake texture");
             }
-        };
-        executor::block_on(pixels)
+            drop(pixels_slice);
+            staging_buffer.unmap();
+            pixels
+        }
     }
 
     fn create_fake_scene_texture(
@@ -216,6 +204,7 @@ impl ElementSelector {
                 | wgpu::TextureUsages::TEXTURE_BINDING
                 | wgpu::TextureUsages::COPY_SRC,
             label: Some("desc"),
+            view_formats: Default::default(),
         };
         let texture_view_descriptor = wgpu::TextureViewDescriptor {
             label: Some("texture_view_descriptor"),
@@ -300,37 +289,24 @@ impl CornerType {
 impl SceneElement {
     pub fn get_design(&self) -> Option<u32> {
         match self {
-            SceneElement::DesignElement(d, _) => Some(*d),
-            SceneElement::WidgetElement(_) => None,
-            SceneElement::PhantomElement(p) => Some(p.design_id),
-            SceneElement::Grid(d, _) => Some(*d),
-            SceneElement::GridCircle(d, _) => Some(*d),
-            SceneElement::BezierControl { .. } => None,
-            SceneElement::BezierVertex { .. } => Some(0),
-            SceneElement::PlaneCorner { .. } => Some(0),
-            SceneElement::BezierTangent { .. } => Some(0),
-        }
-    }
-
-    #[allow(dead_code)]
-    pub fn is_widget(&self) -> bool {
-        match self {
-            SceneElement::WidgetElement(_) => true,
-            _ => false,
+            Self::DesignElement(design_id, _)
+            | Self::PhantomElement(PhantomElement { design_id, .. })
+            | Self::Grid(design_id, _)
+            | Self::GridCircle(design_id, _) => Some(*design_id),
+            Self::BezierVertex { .. } | Self::PlaneCorner { .. } | Self::BezierTangent { .. } => {
+                Some(0)
+            }
+            Self::WidgetElement(_) | Self::BezierControl { .. } => None,
         }
     }
 
     pub fn transform_into_bezier(self) -> Self {
-        if let Self::WidgetElement(id) = self {
-            if let Some((helix_id, bezier_control)) =
-                ensnano_interactor::consts::widget_id_to_bezier(id)
-            {
-                Self::BezierControl {
-                    bezier_control,
-                    helix_id,
-                }
-            } else {
-                self
+        if let Self::WidgetElement(id) = self
+            && let Some((helix_id, bezier_control)) = widget_id_to_bezier(id)
+        {
+            Self::BezierControl {
+                bezier_control,
+                helix_id,
             }
         } else {
             self
@@ -369,7 +345,7 @@ enum ObjType {
 }
 
 impl SceneReader {
-    pub fn new(draw_type: DrawType) -> Self {
+    pub(crate) fn new(draw_type: DrawType) -> Self {
         Self {
             pixels: None,
             draw_type,
@@ -382,78 +358,82 @@ impl SceneReader {
         let r = (*pixels.get(byte0 + 2)? as u32) << 16;
         let g = (*pixels.get(byte0 + 1)? as u32) << 8;
         let b = (*pixels.get(byte0)?) as u32;
-        log::trace!(
-            "pixel color: r {} \n  g  \n {} \n b {}  \n a {}",
-            r,
-            g,
-            b,
-            a
-        );
-        let color = r + g + b;
+        log::trace!("pixel color:\n r={r}\n g={g}\n b={b}\n a={a}",);
+
         if a == u32::from(ObjType::None) {
-            None
-        } else {
-            match self.draw_type {
-                DrawType::Grid => {
-                    if a == u32::from(ObjType::BezierVertex) {
-                        let vertex = BezierVertexId {
-                            path_id: BezierPathId(r >> 16),
-                            vertex_id: (g + b) as usize,
-                        };
-                        Some(SceneElement::Grid(0, GridId::BezierPathGrid(vertex)))
-                    } else {
-                        Some(SceneElement::Grid(0, GridId::FreeGrid(color as usize)))
-                    }
-                }
-                DrawType::Design => {
-                    if a == u32::from(ObjType::BezierVertex) {
-                        Some(SceneElement::BezierVertex {
-                            path_id: BezierPathId(r >> 16),
-                            vertex_id: (g + b) as usize,
-                        })
-                    } else if a == u32::from(ObjType::BezierPlaneCorner) {
-                        Some(SceneElement::PlaneCorner {
-                            plane_id: BezierPlaneId(g + b),
-                            corner_type: CornerType::from_u32(r >> 16),
-                        })
-                    } else if a == u32::from(ObjType::BezierTangentIn) {
-                        Some(SceneElement::BezierTangent {
-                            path_id: BezierPathId(r >> 16),
-                            vertex_id: (g + b) as usize,
-                            tangent_in: true,
-                        })
-                    } else if a == u32::from(ObjType::BezierTangentOut) {
-                        Some(SceneElement::BezierTangent {
-                            path_id: BezierPathId(r >> 16),
-                            vertex_id: (g + b) as usize,
-                            tangent_in: false,
-                        })
-                    } else {
-                        Some(SceneElement::DesignElement(a, color))
-                    }
-                }
-                DrawType::Phantom => {
-                    Some(SceneElement::PhantomElement(phantom_helix_decoder(color)))
-                }
-                DrawType::Widget => {
-                    Some(SceneElement::WidgetElement(color).transform_into_bezier())
-                }
-                DrawType::Scene => unreachable!(),
-                DrawType::Png { .. } => unreachable!(),
-            }
+            return None;
         }
+
+        let color = r + g + b;
+
+        Some(match self.draw_type {
+            DrawType::Grid => {
+                if a == u32::from(ObjType::BezierVertex) {
+                    let vertex = BezierVertexId {
+                        path_id: BezierPathId(r >> 16),
+                        vertex_id: (g + b) as usize,
+                    };
+                    SceneElement::Grid(0, GridId::BezierPathGrid(vertex))
+                } else {
+                    SceneElement::Grid(0, GridId::FreeGrid(color as usize))
+                }
+            }
+            DrawType::Design => {
+                if a == u32::from(ObjType::BezierVertex) {
+                    SceneElement::BezierVertex {
+                        path_id: BezierPathId(r >> 16),
+                        vertex_id: (g + b) as usize,
+                    }
+                } else if a == u32::from(ObjType::BezierPlaneCorner) {
+                    SceneElement::PlaneCorner {
+                        plane_id: BezierPlaneId(g + b),
+                        corner_type: CornerType::from_u32(r >> 16),
+                    }
+                } else if a == u32::from(ObjType::BezierTangentIn) {
+                    SceneElement::BezierTangent {
+                        path_id: BezierPathId(r >> 16),
+                        vertex_id: (g + b) as usize,
+                        tangent_in: true,
+                    }
+                } else if a == u32::from(ObjType::BezierTangentOut) {
+                    SceneElement::BezierTangent {
+                        path_id: BezierPathId(r >> 16),
+                        vertex_id: (g + b) as usize,
+                        tangent_in: false,
+                    }
+                } else {
+                    SceneElement::DesignElement(a, color)
+                }
+            }
+            DrawType::Phantom => SceneElement::PhantomElement(phantom_helix_decoder(color)),
+            DrawType::Widget => SceneElement::WidgetElement(color).transform_into_bezier(),
+            DrawType::Scene | DrawType::Png { .. } => unreachable!(),
+        })
     }
 }
 
-pub fn bezier_vertex_id(path_id: BezierPathId, vertex_id: usize) -> u32 {
+pub(crate) fn bezier_vertex_id(path_id: BezierPathId, vertex_id: usize) -> u32 {
     (u32::from(ObjType::BezierVertex) << 24) | ((path_id.0) << 16) | (vertex_id as u32)
 }
 
-pub fn bezier_tangent_id(path_id: BezierPathId, vertex_id: usize, tangent_in: bool) -> u32 {
+pub(crate) fn bezier_tangent_id(path_id: BezierPathId, vertex_id: usize, tangent_in: bool) -> u32 {
     let front = if tangent_in {
         u32::from(ObjType::BezierTangentIn)
     } else {
         u32::from(ObjType::BezierTangentOut)
     };
     (front << 24) | ((path_id.0) << 16) | (vertex_id as u32)
+}
+
+fn widget_id_to_bezier(id: u32) -> Option<(usize, BezierControlPoint)> {
+    let control = match id & 0xFF {
+        n if n > BEZIER_END_WIDGET_ID => Some(BezierControlPoint::PiecewiseBezier(
+            (n - 1 - BEZIER_END_WIDGET_ID) as usize,
+        )),
+        n => {
+            let control = ((n - BEZIER_START_WIDGET_ID) as usize).try_into().ok();
+            control.map(BezierControlPoint::CubicBezier)
+        }
+    };
+    Some((id >> 8) as usize).zip(control)
 }

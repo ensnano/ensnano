@@ -1,33 +1,17 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-use super::camera::{CameraPtr, ProjectionPtr};
-use ensnano_design::ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
-use ensnano_interactor::consts::NB_RAY_TUBE;
-pub use ensnano_interactor::graphics::CutPlaneParameters;
-pub use ensnano_interactor::graphics::FogParameters;
+use crate::camera::{CameraPtr, ProjectionPtr};
+use ensnano_utils::{
+    consts::NB_RAY_TUBE,
+    graphics::{FogParameters, fog_kind},
+};
+use ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
 
 #[repr(C)] // We need this for Rust to store our data correctly for the shaders
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable, Default)] // This is so we can store this in a buffer
-/// Hold informations relative to camera: The camera position and the Projection,
-/// and View matrices.
+/// Hold information relative to camera:
+/// the camera position and the Projection and View matrices.
 pub struct Uniforms {
-    //  name: type, // alignement of the next field
-    pub camera_position: Vec4,    //0
+    //  name: type, // alignment of the next field
+    pub camera_position: Vec4,    // 0
     pub view: Mat4,               // 0
     pub proj: Mat4,               // 0
     pub inversed_view: Mat4,      // 0
@@ -41,10 +25,7 @@ pub struct Uniforms {
     pub aspect_ratio: f32,        // 1
     pub stereography_zoom: f32,   // 2
     pub nb_ray_tube: u32,         // 3
-    pub is_cut: u32,              // 0
-    pub cut_normal: Vec3,         // 3
-    pub cut_dot_value: f32,       // 0
-    pub _padding: [f32; 4],
+    _padding: [f32; 1],
 }
 
 #[derive(Clone, Debug)]
@@ -55,18 +36,18 @@ pub struct Stereography {
 }
 
 impl Stereography {
-    /// The view matrix of the camera
+    /// The view matrix of the camera.
     pub fn calc_matrix(&self) -> Option<Mat4> {
         let at = self.position? + self.direction()?;
         Some(Mat4::look_at(self.position?, at, self.up_vec()?))
     }
 
-    /// The direction of the camera, expressed in the world coordinates
+    /// The direction of the camera, expressed in the world coordinates.
     fn direction(&self) -> Option<Vec3> {
         Some(self.orientation?.reversed() * Vec3::from([0., 0., -1.]))
     }
 
-    /// The right vector of the camera, expressed in the world coordinates
+    /// The right vector of the camera, expressed in the world coordinates.
     fn right_vec(&self) -> Option<Vec3> {
         Some(self.orientation?.reversed() * Vec3::from([1., 0., 0.]))
     }
@@ -89,7 +70,7 @@ impl Uniforms {
         } else {
             Mat4::identity()
         };
-        let stereography_radius = stereography.as_ref().map(|s| s.radius).unwrap_or(0.0);
+        let stereography_radius = stereography.as_ref().map_or(0.0, |s| s.radius);
         Self {
             camera_position: camera.borrow().position.into_homogeneous_point(),
             view: camera.borrow().calc_matrix(),
@@ -105,9 +86,6 @@ impl Uniforms {
             aspect_ratio: projection.borrow().get_ratio(),
             stereography_zoom: projection.borrow().stereographic_zoom,
             nb_ray_tube: NB_RAY_TUBE as u32,
-            is_cut: 0,
-            cut_normal: Vec3::unit_x(),
-            cut_dot_value: 0.,
             _padding: Default::default(),
         }
     }
@@ -117,7 +95,6 @@ impl Uniforms {
         projection: ProjectionPtr,
         fog: &FogParameters,
         stereography: Option<&Stereography>,
-        cut: &Option<CutPlaneParameters>,
     ) -> Self {
         let stereography_view = if let Some(s) = stereography {
             s.calc_matrix()
@@ -125,15 +102,11 @@ impl Uniforms {
         } else {
             Mat4::identity()
         };
-        let stereography_radius = stereography.as_ref().map(|s| s.radius).unwrap_or(0.0);
-        let mut make_fog = fog.fog_kind;
-        if !fog.from_camera && fog.alt_fog_center.is_none() {
-            make_fog = ensnano_interactor::graphics::fog_kind::NO_FOG;
-        }
-        let (is_cut, cut_normal, cut_dot_value) = if let Some(cut_param) = cut {
-            (1, cut_param.normal, cut_param.dot_value)
+        let stereography_radius = stereography.as_ref().map_or(0.0, |s| s.radius);
+        let make_fog = if !fog.from_camera && fog.alt_fog_center.is_none() {
+            fog_kind::NO_FOG
         } else {
-            (0, Vec3::zero(), 0.)
+            fog.fog_kind
         };
 
         Self {
@@ -142,18 +115,15 @@ impl Uniforms {
             proj: projection.borrow().calc_matrix(),
             inversed_view: camera.borrow().calc_matrix().inversed(),
             fog_length: fog.length,
-            fog_radius: fog.radius,
+            fog_radius: fog.softness,
             make_fog,
             fog_from_camera: fog.from_camera as u32,
-            fog_alt_center: fog.alt_fog_center.unwrap_or(Vec3::zero()),
+            fog_alt_center: fog.alt_fog_center.unwrap_or_default(),
             stereography_view,
             stereography_radius,
             aspect_ratio: projection.borrow().get_ratio(),
             stereography_zoom: projection.borrow().stereographic_zoom,
             nb_ray_tube: NB_RAY_TUBE as u32,
-            is_cut: 0,
-            cut_normal,
-            cut_dot_value,
             _padding: Default::default(),
         }
     }
