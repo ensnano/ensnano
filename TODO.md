@@ -21,6 +21,7 @@
 - Distance fog is broken ([NS message](https://discord.com/channels/689053746604670995/1419689469472411691/1459186505888170035))
 - Maximization of window on startup is slow and ugly
 - Crash when finishing diverging relaxation computation: `memory allocation of XXXXXXXXXXXX bytes failed`
+- Massive discrepancy in `surface_area` test
 
 ## Bugs that should be fixed
 

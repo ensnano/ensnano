@@ -14,7 +14,7 @@ VERT_SRCS := $(shell find . -name '*.vert')
 SHADERS := $(patsubst %.frag,%.frag.spv,$(FRAG_SRCS)) $(patsubst %.vert,%.vert.spv,$(VERT_SRCS))
 
 validate:
-	@rustup update
+	@rustup update stable
 	@$(MAKE) -s shaders
 	@$(MAKE) -s format
 	@$(MAKE) -s spell # If the command fails, install npm
