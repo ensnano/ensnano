@@ -203,14 +203,12 @@ impl Curve {
         log::debug!("t_nucl {t_nucl:.4?}");
 
         // Computing the discrete torsion
-        if points_forward.len() >= 4 {
-            for (p0, (p1, (p2, p3))) in points_forward.iter().zip(
-                points_forward[1..]
-                    .iter()
-                    .zip(points_forward[2..].iter().zip(points_forward[3..].iter())),
-            ) {
-                torsion.push(Self::discrete_torsion([p0, p1, p2, p3]).abs());
-            }
+        for (p0, (p1, (p2, p3))) in points_forward.iter().zip(
+            points_forward[1..]
+                .iter()
+                .zip(points_forward[2..].iter().zip(points_forward[3..].iter())),
+        ) {
+            torsion.push(Self::discrete_torsion([p0, p1, p2, p3]).abs());
         }
         let last_torsion = *torsion.last().unwrap_or(&0.);
         for _ in torsion.len()..points_forward.len() {
