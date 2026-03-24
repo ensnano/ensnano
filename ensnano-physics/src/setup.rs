@@ -19,7 +19,7 @@ use rapier3d::{
     prelude::*,
 };
 
-const NUCLEOTIDE_RADIUS: f32 = 0.32;
+const NUCLEOTIDE_RADIUS: f32 = 0.20;
 const PAIR_CAPSULE_RADIUS: f32 = 0.1;
 
 /// A trait to represent a strategy of how to attach
