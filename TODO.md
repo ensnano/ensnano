@@ -11,7 +11,6 @@
 - Recycle the identifiers
 - Possibility to remap the identifiers
 - work on bezier interface:
-  - make buttons have hover text like in the top bar
   - make the "add bezier points" stay green when active
   - make that button turn off when changing tabs
   - while adding bezier points, the coordinates are visible / editable. Make the control point distances editable as well
