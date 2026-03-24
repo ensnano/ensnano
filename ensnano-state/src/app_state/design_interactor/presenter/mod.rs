@@ -564,28 +564,25 @@ impl Presenter {
     ) -> Vec<(usize, f64, usize)> {
         match self.current_design.bezier_paths.get(&path_id) {
             None => Vec::new(),
-            Some(path) => {
-                let helices_lengths_attached = self
-                    .current_design
-                    .helices
-                    .iter()
-                    .filter(|(_, h)| h.get_bezier_path_id() == Some(path_id))
-                    .map(|(k, h)| {
-                        let length = h.translated_bezier_length(path.is_cyclic);
-                        let rise = h
-                            .helix_parameters
-                            .unwrap_or(
-                                self.current_design
-                                    .helix_parameters
-                                    .unwrap_or(HelixParameters::GEARY_2014_DNA),
-                            )
-                            .rise as f64;
-                        let length_nt = f64::round(length / rise) as usize;
-                        (*k, length, length_nt)
-                    })
-                    .collect();
-                helices_lengths_attached
-            }
+            Some(path) => self
+                .current_design
+                .helices
+                .iter()
+                .filter(|(_, h)| h.get_bezier_path_id() == Some(path_id))
+                .map(|(k, h)| {
+                    let length = h.translated_bezier_length(path.is_cyclic);
+                    let rise = h
+                        .helix_parameters
+                        .unwrap_or_else(|| {
+                            self.current_design
+                                .helix_parameters
+                                .unwrap_or(HelixParameters::GEARY_2014_DNA)
+                        })
+                        .rise as f64;
+                    let length_nt = f64::round(length / rise) as usize;
+                    (*k, length, length_nt)
+                })
+                .collect(),
         }
     }
 }

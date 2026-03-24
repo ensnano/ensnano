@@ -346,10 +346,7 @@ impl ContextualPanel {
                         }
                     }
                 }
-                Selection::BezierControlPoint { .. } => {
-                    column = column.push(text(info_values[0].clone()));
-                }
-                Selection::BezierVertex(_) => {
+                Selection::BezierControlPoint { .. } | Selection::BezierVertex(_) => {
                     column = column.push(text(info_values[0].clone()));
                 }
                 _ => (),
@@ -789,7 +786,7 @@ fn values_of_selection(selection: &Selection, reader: &DesignInteractor) -> Vec<
             let helices_lengths = reader
                 .presenter
                 .get_lengths_of_helices_attached_to_bezier_path(vertex_id.path_id);
-            if helices_lengths.len() == 0 {
+            if helices_lengths.is_empty() {
                 return vec!["No Helices attached".into()];
             }
             let total_length_nt: usize = helices_lengths.iter().map(|(_, _, l)| *l).sum();

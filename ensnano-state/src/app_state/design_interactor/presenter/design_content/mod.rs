@@ -166,7 +166,7 @@ impl DesignContent {
         if let Some(g) = self.grid_manager.grids.get(&g_id) {
             format!("{:?}", g.grid_type)
         } else {
-            "".into()
+            String::new()
         }
     }
 

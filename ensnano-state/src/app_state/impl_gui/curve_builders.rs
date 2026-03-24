@@ -51,10 +51,9 @@ fn rotational_symmetry_order_ellipse(parameters: &[InstantiatedParameter]) -> Op
         .get(1)
         .copied()
         .and_then(InstantiatedParameter::get_float)?;
-    if a == b {
-        return Some(0);
-    }
-    return Some(2);
+
+    #[expect(clippy::float_cmp)]
+    Some(if a == b { 0 } else { 2 })
 }
 
 pub(super) const TWO_SPHERES_BUILDER: CurveDescriptorBuilder = CurveDescriptorBuilder {
@@ -230,13 +229,11 @@ fn build_star(parameters: &[InstantiatedParameter], _: &AppState) -> Option<Curv
     let r2: f64 = parameters
         .get(1)
         .copied()
-        .and_then(InstantiatedParameter::get_float)?
-        .into();
+        .and_then(InstantiatedParameter::get_float)?;
     let r1: f64 = parameters
         .get(2)
         .copied()
-        .and_then(InstantiatedParameter::get_float)?
-        .into();
+        .and_then(InstantiatedParameter::get_float)?;
 
     let a = PI / nb_branches as f64;
     let mut points = Vec::new();
@@ -257,7 +254,7 @@ fn build_star(parameters: &[InstantiatedParameter], _: &AppState) -> Option<Curv
         .zip(points.iter().cycle().skip(2))
     {
         bezier_points.push(bezier::BezierEndCoordinates {
-            position: v.clone(),
+            position: *v,
             vector_in: (*w - *u) / 6.,
             vector_out: (*w - *u) / 6.,
         });

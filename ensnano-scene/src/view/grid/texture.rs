@@ -277,26 +277,24 @@ fn honeycomb_texture_vertices(rotated: bool) -> Vertices {
     let mut builder = Path::builder();
 
     let points: [(f32, f32); 4] = [(1., -1.), (1., -1. / 3.), (-1., 1. / 3.), (-1., 1.)];
-    match rotated {
-        false => {
-            for (i, (x, y)) in points.iter().enumerate() {
-                if i == 0 {
-                    builder.begin(point(*x, *y));
-                } else {
-                    builder.line_to(point(*x, *y));
-                }
+    if rotated {
+        for (i, (x, y)) in points.iter().enumerate() {
+            if i == 0 {
+                builder.begin(point(-*y, *x));
+            } else {
+                builder.line_to(point(-*y, *x));
             }
         }
-        true => {
-            for (i, (x, y)) in points.iter().enumerate() {
-                if i == 0 {
-                    builder.begin(point(-*y, *x));
-                } else {
-                    builder.line_to(point(-*y, *x));
-                }
+    } else {
+        for (i, (x, y)) in points.iter().enumerate() {
+            if i == 0 {
+                builder.begin(point(*x, *y));
+            } else {
+                builder.line_to(point(*x, *y));
             }
         }
     }
+
     builder.end(false);
     // builder.begin(point(1., -1.));
     // builder.line_to(point(1., -1. / 3.));
