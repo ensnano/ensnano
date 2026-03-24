@@ -610,6 +610,7 @@ impl SimulationUpdate for HelicesRouting {
             translation,
             rotation,
         } = &self.frame;
+        println!("[[NS]] self.curves.len() = {}", self.curves.len());
         for (c_id, c) in self.curves.iter().enumerate() {
             let mut helix = Helix::new_with_curve(c.clone());
             helix.isometry2d = Some(Isometry2 {

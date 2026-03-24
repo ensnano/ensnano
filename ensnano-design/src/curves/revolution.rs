@@ -22,6 +22,8 @@ pub struct InterpolatedCurveDescriptor {
     pub twist: isize,
     #[serde(default = "default_rotational_symmetry_order")]
     pub rotational_symmetry_order: usize,
+    pub total_shift: isize,
+    pub nb_helices_per_section: usize,
     /// Radius of the revolution trajectory.
     pub revolution_radius: f64,
     /// Scale factor of the section.
@@ -65,6 +67,8 @@ impl InterpolatedCurveDescriptor {
             curve_scale_factor: self.curve_scale_factor,
             twist: self.twist,
             rotational_symmetry_order: self.rotational_symmetry_order,
+            total_shift: self.total_shift,
+            nb_helices_per_section: self.nb_helices_per_section,
             inverse_curvilinear_abscissa: vec![],
             curvilinear_abscissa: vec![],
             init_revolution_angle: self.revolution_angle_init.unwrap_or(0.),
@@ -265,6 +269,8 @@ pub(super) struct Revolution {
     curve_scale_factor: f64,
     twist: isize,
     rotational_symmetry_order: usize,
+    total_shift: isize,
+    nb_helices_per_section: usize,
     /// The element at index i of this vector is a polynomial interpolating the function that maps
     /// a point x in [curvilinear_abscissa(i), curvilinear_abscissa(i+1)] to a time t so that
     /// curvilinear_abscissa(t) = x.
@@ -506,12 +512,17 @@ impl Curved for Revolution {
     fn additional_isometry(&self, segment_idx: usize) -> Option<Isometry2> {
         self.known_number_of_helices_in_shape
             .zip(self.known_helix_id_in_shape)
-            .map(|(nb_helices, h_id)| Isometry2 {
-                translation: (h_id as f32 + (segment_idx + 1) as f32 * nb_helices as f32)
-                    * 5.
-                    * Vec2::unit_y(),
-                rotation: Rotor2::identity(),
-            })
+            .map(|(nb_helices, h_id)| {
+                println!("[[NS]] nb_helices: {nb_helices} h_id: {h_id} seg_idx: {segment_idx} total_shift: {}", self.total_shift);
+                Isometry2 {
+                    translation: ((h_id as isize + (segment_idx as isize + 1) * self.total_shift) % self.nb_helices_per_section as isize) as f32 
+                        * 5.
+                        * Vec2::unit_y(),
+                    // translation: (h_id as f32 + (segment_idx + 1) as f32 * nb_helices as f32)
+                    //     * 5.
+                    //     * Vec2::unit_y(),
+                    rotation: Rotor2::identity(),
+                }})
     }
 
     fn objective_nb_nt(&self) -> Option<usize> {

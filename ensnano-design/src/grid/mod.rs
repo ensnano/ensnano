@@ -1304,6 +1304,7 @@ impl GridData {
             .is_none_or(|p| helix.need_curve_update(&self.source_free_grids, p))
             && let Some(desc) = helix.instantiated_descriptor.as_ref()
         {
+            println!("[[NS]] I am");
             let hp = helix.helix_parameters.unwrap_or(self.helix_parameters);
             let curve = desc.make_curve(&hp, cached_curve);
             curve.update_additional_segments(&mut helix.additional_isometries);

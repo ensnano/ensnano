@@ -94,7 +94,7 @@ impl Curve {
         // Decide if the the point at t = self.geometry.t_min() belongs to the backward or the
         // forward strand.
         #[expect(clippy::useless_let_if_seq)]
-        let first_forward;
+        let first_forward: bool;
         if inclination >= 0. {
             // The forward strand is behind
             points_forward.push(point);
@@ -184,6 +184,7 @@ impl Curve {
                     t_nucl.push(t);
                     let segment_idx = self.geometry.subdivision_for_t(t).unwrap_or(0);
                     if segment_idx != current_segment {
+                        println!("[[NS]] here I am");
                         current_segment = segment_idx;
                         self.additional_segment_left.push(points_forward.len());
                     }

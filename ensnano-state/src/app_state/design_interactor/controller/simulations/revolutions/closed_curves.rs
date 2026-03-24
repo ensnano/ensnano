@@ -184,6 +184,7 @@ impl CloseSurfaceTopology {
                     .rem_euclid(self.nb_segment as isize)
             });
             let theta_0 = thetas[i * self.nb_section_per_segment];
+            // println!("[[NS]] theta_0 = {theta_0} for i = {i}");
             for s_idx in segment_indices {
                 let start = s_idx as usize * self.nb_section_per_segment;
                 let end = start + self.nb_section_per_segment - 1;
@@ -214,6 +215,7 @@ impl CloseSurfaceTopology {
             }
             let rem = self.target_scaffold_length % self.target.nb_spirals();
 
+            // [[NS]] Pourquoi toutes les spirales devraient avoir à peu près la même longueur scaffold/nb_spirals ??
             let target_len = if i >= self.target.nb_spirals() - rem {
                 self.target_scaffold_length / self.target.nb_spirals() + 1
             } else {
