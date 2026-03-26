@@ -184,7 +184,6 @@ impl Curve {
                     t_nucl.push(t);
                     let segment_idx = self.geometry.subdivision_for_t(t).unwrap_or(0);
                     if segment_idx != current_segment {
-                        // println!("[[NS]] here I am");
                         current_segment = segment_idx;
                         self.additional_segment_left.push(points_forward.len());
                     }
@@ -283,6 +282,7 @@ impl Curve {
 
         self.t_nucl = Arc::new(t_nucl);
         if self.geometry.is_time_maps_singleton() {
+            // Creation du time map pour la vue 2D!
             self.abscissa_converter = AbscissaConverter::from_single_map(self.t_nucl.clone());
         }
     }

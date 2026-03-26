@@ -113,7 +113,7 @@ impl RevolutionSurfaceSystem {
             }
         }
 
-        let curve_desc = self.to_curve_desc(false, &vec![]).unwrap();
+        let curve_desc = self.to_curve_desc(false, None).unwrap();
 
         // let thetas = self
         //     .last_thetas
@@ -348,7 +348,7 @@ impl RevolutionSurfaceSystem {
     fn to_curve_desc(
         &self,
         finished: bool,
-        all_spirals_len: &Vec<usize>,
+        all_spirals_len: Option<&Vec<usize>>,
     ) -> Option<Vec<CurveDescriptor>> {
         self.last_thetas.clone().map(|t| {
             self.topology
@@ -483,7 +483,7 @@ impl RevolutionSystemThread {
                     || current_total_len == self.system.scaffold_len_target
                 {
                     if let Some(curve_descriptors) =
-                        self.system.to_curve_desc(true, &all_spirals_len)
+                        self.system.to_curve_desc(true, Some(&all_spirals_len))
                     {
                         let Similarity3 {
                             translation,
@@ -492,8 +492,6 @@ impl RevolutionSystemThread {
                         } = self.system.topology.get_frame();
                         let routing = HelicesRouting {
                             curves: curve_descriptors,
-                            // lengths: all_spirals_len,
-                            // target_scaffold_length: self.system.scaffold_len_target,
                             frame: Isometry3 {
                                 translation,
                                 rotation,
@@ -549,7 +547,7 @@ impl AdditionalStructure for RevolutionSurfaceSystem {
 
     fn nt_paths(&self) -> Option<Vec<Vec<Vec3>>> {
         let mut ret = Vec::new();
-        let curve_desc = self.to_curve_desc(false, &vec![])?;
+        let curve_desc = self.to_curve_desc(false, None)?;
         for desc in curve_desc {
             let nts = desc.path()?;
             ret.push(nts.into_iter().map(dvec_to_vec).collect());
@@ -617,6 +615,7 @@ struct HelicesRouting {
 }
 
 impl SimulationUpdate for HelicesRouting {
+    /// Update the design at the end of the Revolution relaxation
     fn update_design(&self, design: &mut Design) {
         let helix_parameters = design.helix_parameters.unwrap_or_default();
         let mut helices = design.helices.make_mut();
@@ -625,39 +624,21 @@ impl SimulationUpdate for HelicesRouting {
             translation,
             rotation,
         } = &self.frame;
-        // println!("[[NS]] self.curves.len() = {}\n target_scaffold_length: {}\n total_length = {}\n all spiral lengths: {:?}", self.curves.len(), self.target_scaffold_length, self.lengths.iter().sum::<usize>(), self.lengths);
-        // Scale the lengths of the spirals to match the target scaffold length
-        // let nb_spirals = self.curves.len();
-        // let current_total_len = self.lengths.iter().sum::<usize>();
-        // let scale_len = self.target_scaffold_length as f64 / current_total_len as f64;
-        // let mut final_lengths: Vec::<isize> = self.lengths.iter().map(|x| (*x as f64 * scale_len).round() as isize).collect();
-        // println!("New lengths: {} = {:?}", final_lengths.iter().sum::<isize>(), final_lengths);
-        // let diff_len = self.target_scaffold_length as isize - final_lengths.iter().sum::<isize>();
-        // if diff_len != 0 {
-        //     println!("New lengths: {} = {:?}", final_lengths.iter().sum::<isize>(), final_lengths);
-        //     let delta = if diff_len > 0 { 1 } else { -1 };
-        //     let mut indices_by_decreasing_length = final_lengths.iter().enumerate().map(|(i,x)|(i,*x)).collect::<Vec<(usize, isize)>>();
-        //     indices_by_decreasing_length.sort_by_key(|(_,l)| -l);
-        //     let indices_by_decreasing_length = indices_by_decreasing_length.iter().map(|(i,_)| *i).collect::<Vec<usize>>();
-        //     println!("[[NS]] difflen: {diff_len} delta = {delta}");
-        //     println!("[[NS]] dec length indices: {indices_by_decreasing_length:?}");
-        //     for i in 0..diff_len.abs() {
-        //         final_lengths[indices_by_decreasing_length[i as usize % nb_spirals]] += delta;
-        //     }
-        // }
-        // println!("New lengths: {} = {:?}", final_lengths.iter().sum::<isize>(), final_lengths);
+
+        // compute the 2d scales
+        let lengths: Vec<usize> = self
+            .curves
+            .iter()
+            .map(|c| match c {
+                CurveDescriptor::InterpolatedCurve(desc) => {
+                    desc.objective_number_of_nts.unwrap_or(0)
+                }
+                _ => 0,
+            })
+            .collect();
+        let max_len: f64 = lengths.iter().max().map_or(1., |x| (*x).max(1) as f64);
+
         for (c_id, c) in self.curves.iter().enumerate() {
-            // let mut c = c.clone();
-            if let CurveDescriptor::InterpolatedCurve(desc) = c {
-                // create a new descriptor with the final length
-                // let mut desc = desc.clone();
-                println!("Length of {c_id}: {:?}", desc.objective_number_of_nts);
-                // desc.objective_number_of_nts = Some(*l as usize);
-                // c = CurveDescriptor::InterpolatedCurve(desc);
-            }
-            // if let CurveDescriptor::InterpolatedCurve(ref desc) = c {
-            //     println!("[[NS]] length: {:?}", desc.objective_number_of_nts);
-            // }
             let mut helix = Helix::new_with_curve(c.clone());
             helix.isometry2d = Some(Isometry2 {
                 translation: 5. * c_id as f32 * Vec2::unit_y(),
@@ -665,19 +646,22 @@ impl SimulationUpdate for HelicesRouting {
             });
             helix.position = *translation;
             helix.orientation = *rotation;
-            let h_id = helices.push_helix(helix);
 
             let len = if let CurveDescriptor::InterpolatedCurve(desc) = c {
                 desc.objective_number_of_nts.map(|x| x as isize)
             } else {
                 None
             };
-            if let Some(len_nt) = len.or_else(|| {
-                c.compute_length()
-                    .map(|len| (len / helix_parameters.rise as f64).floor() as isize)
-            }) {
-                strand_to_be_added.push((h_id, len_nt));
-            }
+            let len = len.unwrap_or(if let Some(l) = c.compute_length() {
+                (l / helix_parameters.rise as f64).floor() as isize
+            } else {
+                1
+            });
+
+            helix.scale2d = Some(max_len / len.max(1) as f64);
+            let h_id = helices.push_helix(helix);
+
+            strand_to_be_added.push((h_id, len));
         }
 
         drop(helices);

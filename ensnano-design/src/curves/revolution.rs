@@ -513,7 +513,6 @@ impl Curved for Revolution {
         self.known_number_of_helices_in_shape
             .zip(self.known_helix_id_in_shape)
             .map(|(_nb_helices, h_id)| {
-                // println!("[[NS]] nb_helices: {nb_helices} h_id: {h_id} seg_idx: {segment_idx} total_shift: {}", self.total_shift);
                 Isometry2 {
                     translation: (h_id as isize
                         + ((segment_idx as isize + 1) * self.total_shift)

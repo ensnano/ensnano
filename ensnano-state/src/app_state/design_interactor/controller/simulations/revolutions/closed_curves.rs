@@ -172,35 +172,29 @@ impl CloseSurfaceTopology {
         &self,
         thetas: Vec<f64>,
         finished: bool,
-        all_spirals_len: &Vec<usize>,
+        all_spirals_len: Option<&Vec<usize>>,
     ) -> Vec<CurveDescriptor> {
         let mut ret = Vec::new();
 
-        let mut all_spirals_len = all_spirals_len.clone();
-        if finished {
-            assert!(all_spirals_len.len() == self.target.nb_spirals());
-            println!("[[NS]] all spirals len: {all_spirals_len:?}");
+        let mut final_lengths: Vec<isize> = all_spirals_len
+            .clone()
+            .unwrap_or(&Vec::<usize>::new())
+            .iter()
+            .map(|x| *x as isize)
+            .collect();
+        if finished || final_lengths.len() > 0 {
+            assert!(!all_spirals_len.is_none());
             // update the length to match the scaffold length
-            let nb_spirals = all_spirals_len.len();
-            let current_total_len = all_spirals_len.iter().sum::<usize>();
+            let nb_spirals = final_lengths.len();
+            let current_total_len = final_lengths.iter().sum::<isize>();
             let scale_len = self.target_scaffold_length as f64 / current_total_len as f64;
-            let mut final_lengths: Vec<isize> = all_spirals_len
+            final_lengths = final_lengths
                 .iter()
                 .map(|x| (*x as f64 * scale_len).round() as isize)
                 .collect();
-            println!(
-                "New lengths: {} = {:?}",
-                final_lengths.iter().sum::<isize>(),
-                final_lengths
-            );
             let diff_len =
                 self.target_scaffold_length as isize - final_lengths.iter().sum::<isize>();
             if diff_len != 0 {
-                println!(
-                    "New lengths: {} = {:?}",
-                    final_lengths.iter().sum::<isize>(),
-                    final_lengths
-                );
                 let delta = if diff_len > 0 { 1 } else { -1 };
                 let mut indices_by_decreasing_length = final_lengths
                     .iter()
@@ -212,18 +206,10 @@ impl CloseSurfaceTopology {
                     .iter()
                     .map(|(i, _)| *i)
                     .collect::<Vec<usize>>();
-                println!("[[NS]] difflen: {diff_len} delta = {delta}");
-                println!("[[NS]] dec length indices: {indices_by_decreasing_length:?}");
                 for i in 0..diff_len.abs() {
                     final_lengths[indices_by_decreasing_length[i as usize % nb_spirals]] += delta;
                 }
             }
-            println!(
-                "New lengths: {} = {:?}",
-                final_lengths.iter().sum::<isize>(),
-                final_lengths
-            );
-            all_spirals_len = final_lengths.iter().map(|x| *x as usize).collect();
         }
 
         let nb_segment_per_helix = self.nb_segment / self.target.nb_spirals();
@@ -234,17 +220,13 @@ impl CloseSurfaceTopology {
                     .rem_euclid(self.nb_segment as isize)
             });
             let theta_0 = thetas[i * self.nb_section_per_segment];
-            println!("[[NS]] theta_0 = {theta_0} for i = {i}");
             for s_idx in segment_indices {
                 let start = s_idx as usize * self.nb_section_per_segment;
                 let end = start + self.nb_section_per_segment - 1;
                 let mut segment_thetas = thetas[start..=end].to_vec();
                 let mut next_value = thetas[self.next_section[end]]
                     + self.target.section_fraction_rotation_per_revolution();
-                // NS: obsolete
-                // if self.target.twist() % 2 == 1 {
-                //     next_value += 0.5;
-                // }
+
                 let last_value = segment_thetas.last().unwrap();
                 while next_value >= 0.5 + last_value {
                     next_value -= 1.;
@@ -264,29 +246,11 @@ impl CloseSurfaceTopology {
                 });
             }
 
-            println!("[[NS]] interpolations: {interpolations:?}");
-
-            // [[NS]] The code is dropped because we don't want all spirals to be forced to have the same length
-            // let rem = self.target_scaffold_length % self.target.nb_spirals();
-            // let target_len = if i >= self.target.nb_spirals() - rem {
-            //     self.target_scaffold_length / self.target.nb_spirals() + 1
-            // } else {
-            //     self.target_scaffold_length / self.target.nb_spirals()
-            // };
-            // let objective_number_of_nts = finished.then_some(target_len);
-
-            // [NS] the final length are later calculated to be proportioned to the length
-            // let objective_number_of_nts = Some(self.target_scaffold_length / self.target.nb_spirals());
-            let objective_number_of_nts = Some(if finished {
-                all_spirals_len[i]
+            let objective_number_of_nts = if finished || final_lengths.len() > 0 {
+                Some(final_lengths[i] as usize)
             } else {
-                let rem = self.target_scaffold_length % self.target.nb_spirals();
-                if i >= self.target.nb_spirals() - rem {
-                    self.target_scaffold_length / self.target.nb_spirals() + 1
-                } else {
-                    self.target_scaffold_length / self.target.nb_spirals()
-                }
-            });
+                None
+            };
             ret.push((
                 self.target
                     .curve_descriptor(interpolations, objective_number_of_nts),

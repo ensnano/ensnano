@@ -801,26 +801,34 @@ impl GuiTab for RevolutionTab {
             ui_size
         );
 
-        let twist_buttons = button_widget!(
-            {
-                match self.get_rotational_symmetry_order() {
-                    None | Some(0 | 1) => "Twist (Nb of turns)".into(),
-                    Some(sym_order) => format!("Twist (Nb of 1/{sym_order}-turns)"),
-                }
-            },
-            Some(self.twist), // self.get_nb_spirals(app_state),
-            DecrTwist,
-            IncrTwist,
-            "",
-            ui_size
-        );
+        let twist_buttons = if self.get_rotational_symmetry_order() == Some(0) {
+            row![]
+        } else {
+            button_widget!(
+                {
+                    match self.get_rotational_symmetry_order() {
+                        None | Some(0 | 1) => "Twist (Nb of turns)".into(),
+                        Some(sym_order) => format!("Twist (Nb of 1/{sym_order}-turns)"),
+                    }
+                },
+                Some(self.twist), // self.get_nb_spirals(app_state),
+                DecrTwist,
+                IncrTwist,
+                "",
+                ui_size
+            )
+        };
 
         let simulation_buttons = if SimulationState::Relaxing == app_state.get_simulation_state() {
             column![
                 row![
-                    text_button("Abort", ui_size).on_press(LeftPanelMessage::StopSimulation),
+                    text_button("Abort", ui_size)
+                        .on_press(LeftPanelMessage::StopSimulation)
+                        .style(iced::theme::Button::Destructive),
                     Space::with_width(ui_size.checkbox_spacing()),
-                    text_button("Finish", ui_size).on_press(LeftPanelMessage::FinishRelaxation),
+                    text_button("Finish", ui_size)
+                        .on_press(LeftPanelMessage::FinishRelaxation)
+                        .style(iced::theme::Button::Positive),
                 ]
                 .align_items(Alignment::Center),
                 jump_by(2),
@@ -832,7 +840,7 @@ impl GuiTab for RevolutionTab {
                 ),
             ]
         } else {
-            let mut button = text_button("Start", ui_size);
+            let mut button = text_button("Start", ui_size).style(iced::theme::Button::Positive);
             if SimulationState::None == app_state.get_simulation_state() && desc.is_some() {
                 button = button.on_press(LeftPanelMessage::InitRevolutionRelaxation);
             }

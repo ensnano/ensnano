@@ -327,6 +327,7 @@ impl Helix {
             roll: 0f32,
             locked_for_simulations: false,
             curve: None,
+            scale2d: None,
             instantiated_curve: None,
             instantiated_descriptor: None,
             delta_bases_per_turn: 0.,

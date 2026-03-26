@@ -552,6 +552,17 @@ impl Curve {
     pub fn has_its_own_encoded_frame(&self) -> bool {
         self.geometry.translation().is_some()
     }
+
+    pub fn rescaled2d_by(&self, scale: f64) -> Self {
+        if let Some(abscissa_converter) = &self.abscissa_converter {
+            Self {
+                abscissa_converter: Some(abscissa_converter.rescaled_by(scale)),
+                ..self.clone()
+            }
+        } else {
+            self.clone()
+        }
+    }
 }
 
 pub fn perpendicular_basis(point: DVec3) -> DMat3 {

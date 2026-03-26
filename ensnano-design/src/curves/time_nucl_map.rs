@@ -143,6 +143,7 @@ impl AbscissaConverter {
         }
     }
 
+    /// NS: Appelé lors de la update_all_curves pour les courbes de révolution
     pub(super) fn from_single_map(time_points: Arc<Vec<f64>>) -> Option<Self> {
         if time_points.len() < 2 {
             return None;
@@ -155,6 +156,22 @@ impl AbscissaConverter {
             nb_negative_nucl: 0,
             nucl_time: time_points,
         })))
+    }
+
+    /// rescale the time map to extend the helix in 2d by a factor scale
+    pub fn rescaled_by(&self, scale: f64) -> Self {
+        match self {
+            AbscissaConverter(AbscissaConverter_::TimeMap(helix_time_map)) => {
+                AbscissaConverter(AbscissaConverter_::TimeMap(HelixTimeMap {
+                    square_per_time: helix_time_map.square_per_time * scale,
+                    nucl_time: helix_time_map.nucl_time.clone(),
+                    ..*helix_time_map
+                }))
+            }
+            AbscissaConverter(AbscissaConverter_::Linear(value)) => {
+                AbscissaConverter(AbscissaConverter_::Linear(value * scale))
+            }
+        }
     }
 }
 
