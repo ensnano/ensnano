@@ -87,18 +87,19 @@ impl RevolutionSurfaceSystem {
         }
     }
 
+    /// return the total lengths of the spirals (in nt) and the vec of the lengths (in nt) computed for each spiral
     fn one_radius_optimization_step(
         &mut self,
         first: &mut bool,
         interface: Option<Arc<Mutex<RevolutionSystemInterface>>>,
-    ) -> usize {
+    ) -> (usize, Vec<usize>) {
         let mut current_default;
         for _ in 0..10 {
             if let Some(interface) = interface.as_ref() {
                 let mut interface_lock = interface.lock().unwrap();
                 if !interface_lock.still_valid() {
                     // no need to continue the computations
-                    return 0;
+                    return (0, vec![]);
                 }
                 if interface_lock.finished {
                     break;
@@ -112,18 +113,21 @@ impl RevolutionSurfaceSystem {
             }
         }
 
-        let curve_desc = self.to_curve_desc(false).unwrap();
+        let curve_desc = self.to_curve_desc(false, &vec![]).unwrap();
 
         // let thetas = self
         //     .last_thetas
         //     .clone()
         //     .unwrap_or_else(|| self.topology.theta_ball_init());
         let mut total_len = 0;
+        let mut all_spirals_len = Vec::with_capacity(curve_desc.len());
         for desc in curve_desc {
             let len = desc.compute_length().unwrap();
             // println!("length ~= {len:?} nm");
             // println!("length ~= {:?} nt", len / self.helix_parameters.rise as f64);
-            total_len += (len / self.helix_parameters.rise as f64).floor() as usize;
+            let len_spiral = (len / self.helix_parameters.rise as f64).floor() as usize;
+            all_spirals_len.push(len_spiral);
+            total_len += len_spiral;
         }
 
         // println!("total len {total_len} nt");
@@ -132,7 +136,7 @@ impl RevolutionSurfaceSystem {
         // println!("total len by sum {len_by_sum} nt");
         self.topology
             .rescale_radius(self.scaffold_len_target, total_len);
-        total_len
+        (total_len, all_spirals_len)
     }
 
     fn one_simulation_step(&mut self, first: &mut bool) -> f64 {
@@ -341,10 +345,15 @@ impl RevolutionSurfaceSystem {
         }
     }
 
-    fn to_curve_desc(&self, finished: bool) -> Option<Vec<CurveDescriptor>> {
-        self.last_thetas
-            .clone()
-            .map(|t| self.topology.to_curve_descriptor(t, finished))
+    fn to_curve_desc(
+        &self,
+        _finished: bool,
+        all_spirals_len: &Vec<usize>,
+    ) -> Option<Vec<CurveDescriptor>> {
+        self.last_thetas.clone().map(|t| {
+            self.topology
+                .to_curve_descriptor(t, _finished, all_spirals_len)
+        })
     }
 }
 
@@ -467,13 +476,15 @@ impl RevolutionSystemThread {
         std::thread::spawn(move || {
             let mut first = true;
             while let Some(interface_ptr) = self.interface.upgrade() {
-                let current_len = self
+                let (current_total_len, all_spirals_len) = self
                     .system
                     .one_radius_optimization_step(&mut first, Some(interface_ptr.clone()));
                 if interface_ptr.lock().unwrap().finished
-                    || current_len == self.system.scaffold_len_target
+                    || current_total_len == self.system.scaffold_len_target
                 {
-                    if let Some(curve_descriptors) = self.system.to_curve_desc(true) {
+                    if let Some(curve_descriptors) =
+                        self.system.to_curve_desc(true, &all_spirals_len)
+                    {
                         let Similarity3 {
                             translation,
                             rotation,
@@ -481,6 +492,8 @@ impl RevolutionSystemThread {
                         } = self.system.topology.get_frame();
                         let routing = HelicesRouting {
                             curves: curve_descriptors,
+                            // lengths: all_spirals_len,
+                            // target_scaffold_length: self.system.scaffold_len_target,
                             frame: Isometry3 {
                                 translation,
                                 rotation,
@@ -490,7 +503,7 @@ impl RevolutionSystemThread {
                     }
                     break;
                 }
-                self.system.current_scaffold_length = Some(current_len);
+                self.system.current_scaffold_length = Some(current_total_len);
             }
         });
     }
@@ -536,7 +549,7 @@ impl AdditionalStructure for RevolutionSurfaceSystem {
 
     fn nt_paths(&self) -> Option<Vec<Vec<Vec3>>> {
         let mut ret = Vec::new();
-        let curve_desc = self.to_curve_desc(false)?;
+        let curve_desc = self.to_curve_desc(false, &vec![])?;
         for desc in curve_desc {
             let nts = desc.path()?;
             ret.push(nts.into_iter().map(dvec_to_vec).collect());
@@ -598,6 +611,8 @@ impl SimulationInterface for RevolutionSystemInterface {
 
 struct HelicesRouting {
     curves: Vec<CurveDescriptor>,
+    // lengths: Vec<usize>,
+    // target_scaffold_length: usize,
     frame: Isometry3,
 }
 
@@ -610,8 +625,39 @@ impl SimulationUpdate for HelicesRouting {
             translation,
             rotation,
         } = &self.frame;
-        println!("[[NS]] self.curves.len() = {}", self.curves.len());
+        // println!("[[NS]] self.curves.len() = {}\n target_scaffold_length: {}\n total_length = {}\n all spiral lengths: {:?}", self.curves.len(), self.target_scaffold_length, self.lengths.iter().sum::<usize>(), self.lengths);
+        // Scale the lengths of the spirals to match the target scaffold length
+        // let nb_spirals = self.curves.len();
+        // let current_total_len = self.lengths.iter().sum::<usize>();
+        // let scale_len = self.target_scaffold_length as f64 / current_total_len as f64;
+        // let mut final_lengths: Vec::<isize> = self.lengths.iter().map(|x| (*x as f64 * scale_len).round() as isize).collect();
+        // println!("New lengths: {} = {:?}", final_lengths.iter().sum::<isize>(), final_lengths);
+        // let diff_len = self.target_scaffold_length as isize - final_lengths.iter().sum::<isize>();
+        // if diff_len != 0 {
+        //     println!("New lengths: {} = {:?}", final_lengths.iter().sum::<isize>(), final_lengths);
+        //     let delta = if diff_len > 0 { 1 } else { -1 };
+        //     let mut indices_by_decreasing_length = final_lengths.iter().enumerate().map(|(i,x)|(i,*x)).collect::<Vec<(usize, isize)>>();
+        //     indices_by_decreasing_length.sort_by_key(|(_,l)| -l);
+        //     let indices_by_decreasing_length = indices_by_decreasing_length.iter().map(|(i,_)| *i).collect::<Vec<usize>>();
+        //     println!("[[NS]] difflen: {diff_len} delta = {delta}");
+        //     println!("[[NS]] dec length indices: {indices_by_decreasing_length:?}");
+        //     for i in 0..diff_len.abs() {
+        //         final_lengths[indices_by_decreasing_length[i as usize % nb_spirals]] += delta;
+        //     }
+        // }
+        // println!("New lengths: {} = {:?}", final_lengths.iter().sum::<isize>(), final_lengths);
         for (c_id, c) in self.curves.iter().enumerate() {
+            // let mut c = c.clone();
+            if let CurveDescriptor::InterpolatedCurve(desc) = c {
+                // create a new descriptor with the final length
+                // let mut desc = desc.clone();
+                println!("Length of {c_id}: {:?}", desc.objective_number_of_nts);
+                // desc.objective_number_of_nts = Some(*l as usize);
+                // c = CurveDescriptor::InterpolatedCurve(desc);
+            }
+            // if let CurveDescriptor::InterpolatedCurve(ref desc) = c {
+            //     println!("[[NS]] length: {:?}", desc.objective_number_of_nts);
+            // }
             let mut helix = Helix::new_with_curve(c.clone());
             helix.isometry2d = Some(Isometry2 {
                 translation: 5. * c_id as f32 * Vec2::unit_y(),
@@ -620,6 +666,8 @@ impl SimulationUpdate for HelicesRouting {
             helix.position = *translation;
             helix.orientation = *rotation;
             let h_id = helices.push_helix(helix);
+
+            // Old code unchanged but useless computation of the length which are already computed
             let len = if let CurveDescriptor::InterpolatedCurve(desc) = c {
                 desc.objective_number_of_nts.map(|x| x as isize)
             } else {
@@ -661,7 +709,7 @@ impl SimulationUpdate for HelicesRouting {
                     domains: vec![domain],
                     junctions: vec![DomainJunction::Prime3],
                     name: None,
-                    is_cyclic: false,
+                    is_cyclic: true, // [NS] before it was false
                     sequence: None,
                 });
             }

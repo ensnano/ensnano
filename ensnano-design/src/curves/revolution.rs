@@ -512,17 +512,21 @@ impl Curved for Revolution {
     fn additional_isometry(&self, segment_idx: usize) -> Option<Isometry2> {
         self.known_number_of_helices_in_shape
             .zip(self.known_helix_id_in_shape)
-            .map(|(nb_helices, h_id)| {
-                println!("[[NS]] nb_helices: {nb_helices} h_id: {h_id} seg_idx: {segment_idx} total_shift: {}", self.total_shift);
+            .map(|(_nb_helices, h_id)| {
+                // println!("[[NS]] nb_helices: {nb_helices} h_id: {h_id} seg_idx: {segment_idx} total_shift: {}", self.total_shift);
                 Isometry2 {
-                    translation: (h_id as isize + ((segment_idx as isize + 1) * self.total_shift) % self.nb_helices_per_section as isize) as f32 
+                    translation: (h_id as isize
+                        + ((segment_idx as isize + 1) * self.total_shift)
+                            % self.nb_helices_per_section as isize)
+                        as f32
                         * 5.
                         * Vec2::unit_y(),
                     // translation: (h_id as f32 + (segment_idx + 1) as f32 * nb_helices as f32)
                     //     * 5.
                     //     * Vec2::unit_y(),
                     rotation: Rotor2::identity(),
-                }})
+                }
+            })
     }
 
     fn objective_nb_nt(&self) -> Option<usize> {

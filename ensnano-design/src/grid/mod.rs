@@ -984,7 +984,6 @@ impl GridData {
                 maps_mut.insert(k.curve.clone(), Arc::new(curve_time_map));
             }
         }
-        self.source_helices = new_helices;
     }
 
     /// Recompute the position of helix `h_id` on its grid. Return false if there is already an
@@ -1304,7 +1303,7 @@ impl GridData {
             .is_none_or(|p| helix.need_curve_update(&self.source_free_grids, p))
             && let Some(desc) = helix.instantiated_descriptor.as_ref()
         {
-            println!("[[NS]] I am");
+            // println!("[[NS]] I am");
             let hp = helix.helix_parameters.unwrap_or(self.helix_parameters);
             let curve = desc.make_curve(&hp, cached_curve);
             curve.update_additional_segments(&mut helix.additional_isometries);

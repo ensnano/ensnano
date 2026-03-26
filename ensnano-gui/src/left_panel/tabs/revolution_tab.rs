@@ -817,7 +817,12 @@ impl GuiTab for RevolutionTab {
 
         let simulation_buttons = if SimulationState::Relaxing == app_state.get_simulation_state() {
             column![
-                text_button("Abort", ui_size).on_press(LeftPanelMessage::StopSimulation),
+                row![
+                    text_button("Abort", ui_size).on_press(LeftPanelMessage::StopSimulation),
+                    Space::with_width(ui_size.checkbox_spacing()),
+                    text_button("Finish", ui_size).on_press(LeftPanelMessage::FinishRelaxation),
+                ]
+                .align_items(Alignment::Center),
                 jump_by(2),
                 text(
                     app_state
@@ -825,7 +830,6 @@ impl GuiTab for RevolutionTab {
                         .get_additional_structure_info()
                         .unwrap_or_else(|| "—".into())
                 ),
-                text_button("Finish", ui_size).on_press(LeftPanelMessage::FinishRelaxation),
             ]
         } else {
             let mut button = text_button("Start", ui_size);
