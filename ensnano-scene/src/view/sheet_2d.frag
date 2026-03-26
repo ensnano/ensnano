@@ -11,7 +11,7 @@ float arith_mod(float x, float y) {
     if (x >= 0) {
         return mod(x, y);
     } else {
-        return y + mod(x, y);
+        return y - mod(-x, y);
     }
 }
 
@@ -28,7 +28,7 @@ void main() {
 
     float grid_scale = graduation_unit;
 
-    float grid_width = grid_scale * 0.1;
+    float grid_width = grid_scale * 0.1; // line thickness
 
     float small_bar_coeff = min(
             arith_mod(v_tex_pos.x + grid_width / 2., grid_scale),
@@ -45,15 +45,18 @@ void main() {
     out_color /= darken;
     out_color.w = 0.8;
 
+    // Draw the extra features
     float x = v_tex_pos.x;
     float y = v_tex_pos.y;
 
+    // Draw the revolution axis
     bool is_in_dotted = (mod(abs(y) / 6., 1.) < 0.7);
     if (abs((x - revolution_axis_position)) < grid_width / 6. && is_in_dotted) {
       out_color = vec4(0., 0., 1., 0.9);
 
     }
 
+    // Draw the center green cross
     bool is_in_center = (min(abs(x), abs(y)) < 2. && max(abs(x), abs(y)) < 5.);
     if (is_in_center) {
         out_color += vec4(0., 1., 0., 0.);
