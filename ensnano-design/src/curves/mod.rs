@@ -526,6 +526,7 @@ impl Curve {
     }
 
     pub fn update_additional_segments(&self, segments: &mut Vec<AdditionalHelix2D>) {
+        //[[NS]] I miss two informations: total nb_helices + step in index per revolution
         segments.truncate(self.additional_segment_left.len());
         let mut iter = self
             .additional_segment_left

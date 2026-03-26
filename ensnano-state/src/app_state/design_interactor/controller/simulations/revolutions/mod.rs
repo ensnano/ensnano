@@ -347,12 +347,12 @@ impl RevolutionSurfaceSystem {
 
     fn to_curve_desc(
         &self,
-        _finished: bool,
+        finished: bool,
         all_spirals_len: &Vec<usize>,
     ) -> Option<Vec<CurveDescriptor>> {
         self.last_thetas.clone().map(|t| {
             self.topology
-                .to_curve_descriptor(t, _finished, all_spirals_len)
+                .to_curve_descriptor(t, finished, all_spirals_len)
         })
     }
 }
@@ -667,7 +667,6 @@ impl SimulationUpdate for HelicesRouting {
             helix.orientation = *rotation;
             let h_id = helices.push_helix(helix);
 
-            // Old code unchanged but useless computation of the length which are already computed
             let len = if let CurveDescriptor::InterpolatedCurve(desc) = c {
                 desc.objective_number_of_nts.map(|x| x as isize)
             } else {

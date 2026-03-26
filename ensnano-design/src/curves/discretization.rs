@@ -283,7 +283,6 @@ impl Curve {
 
         self.t_nucl = Arc::new(t_nucl);
         if self.geometry.is_time_maps_singleton() {
-            println!("[NS] time map is a singleton");
             self.abscissa_converter = AbscissaConverter::from_single_map(self.t_nucl.clone());
         }
     }
