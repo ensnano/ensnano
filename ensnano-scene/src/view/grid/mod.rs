@@ -10,9 +10,7 @@ use crate::{
         letter::LetterInstance,
     },
 };
-use ensnano_design::{
-    grid::{GridDivision as _, GridId, GridInstance, GridPosition, GridType},
-};
+use ensnano_design::grid::{GridDivision as _, GridId, GridInstance, GridPosition, GridType};
 use ensnano_utils::instance::Instance;
 use std::collections::BTreeMap;
 use ultraviolet::{Mat4, Vec2, Vec3, Vec4};

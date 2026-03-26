@@ -189,6 +189,9 @@ pub struct Helix {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub curve: Option<Arc<CurveDescriptor>>,
 
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scale2d: Option<f64>,
+
     #[serde(
         default,
         skip,
@@ -258,6 +261,7 @@ impl Helix {
             roll: 0f32,
             locked_for_simulations: false,
             curve: None,
+            scale2d: None,
             instantiated_curve: None,
             instantiated_descriptor: None,
             delta_bases_per_turn: 0.,
@@ -287,6 +291,7 @@ impl Helix {
             roll: 0f32,
             locked_for_simulations: false,
             curve: None,
+            scale2d: None,
             instantiated_curve: None,
             instantiated_descriptor: None,
             delta_bases_per_turn: 0.,
@@ -309,6 +314,7 @@ impl Helix {
             roll: 0f32,
             locked_for_simulations: false,
             curve: Some(Arc::new(CurveDescriptor::SphereLikeSpiral(desc))),
+            scale2d: None,
             instantiated_curve: None,
             instantiated_descriptor: None,
             delta_bases_per_turn: 0.,
@@ -331,6 +337,7 @@ impl Helix {
             roll: 0f32,
             locked_for_simulations: false,
             curve: Some(Arc::new(CurveDescriptor::TubeSpiral(desc))),
+            scale2d: None,
             instantiated_curve: None,
             instantiated_descriptor: None,
             delta_bases_per_turn: 0.,
@@ -353,6 +360,7 @@ impl Helix {
             roll: 0f32,
             locked_for_simulations: false,
             curve: Some(Arc::new(desc)),
+            scale2d: None,
             instantiated_curve: None,
             instantiated_descriptor: None,
             delta_bases_per_turn: 0.,
@@ -431,6 +439,7 @@ impl Helix {
             roll: 0f32,
             locked_for_simulations: false,
             curve: Some(Arc::new(constructor)),
+            scale2d: None,
             instantiated_curve: None,
             instantiated_descriptor: None,
             delta_bases_per_turn: 0.,
@@ -475,6 +484,7 @@ impl Helix {
             roll: 0f32,
             locked_for_simulations: false,
             curve,
+            scale2d: None,
             instantiated_curve: None,
             instantiated_descriptor: None,
             delta_bases_per_turn: 0.,
@@ -639,6 +649,7 @@ impl Helix {
             symmetry: Vec2::one(),
             locked_for_simulations: false,
             curve: None,
+            scale2d: None,
             instantiated_curve: None,
             instantiated_descriptor: None,
             delta_bases_per_turn: 0.,

@@ -472,8 +472,7 @@ impl RevolutionTab {
             .avg_vs_min_max_ext_weight_input
             .get_value()
             .and_then(InstantiatedParameter::get_float)?
-            .max(0.)
-            .min(1.);
+            .clamp(0., 1.);
 
         Some(RevolutionSimulationParameters {
             nb_section_per_segment,
@@ -494,14 +493,14 @@ impl RevolutionTab {
         false
     }
 
-    /// Increase the twist of the revolution surface
+    /// Increase the twist of the revolution surface.
     pub(crate) fn inc_twist(&mut self) -> usize {
         self.twist += 1;
         self.check_and_adapt_nb_helices();
         self.twist
     }
 
-    /// Decrease the twist of the revolution surface
+    /// Decrease the twist of the revolution surface.
     pub(crate) fn dec_twist(&mut self) -> usize {
         if self.twist > 0 {
             self.twist -= 1;
@@ -510,7 +509,7 @@ impl RevolutionTab {
         self.twist
     }
 
-    /// Simplify the fraction twist / rotational_sym_order to allow nb_helices to be a multiple of only normalized_rot_sym_order
+    /// Simplify the fraction twist / rotational_sym_order to allow nb_helices to be a multiple of only normalized_rot_sym_order.
     pub(crate) fn get_simplified_twist_and_rotational_symmetry_order(&self) -> (usize, usize) {
         match self.get_rotational_symmetry_order() {
             None => (self.twist, 1),
@@ -524,7 +523,7 @@ impl RevolutionTab {
         }
     }
 
-    /// Increase the number of helices to next multiple of 2 and normalized rotational order symmetry; and adapt the number of spirals if needed
+    /// Increase the number of helices to next multiple of 2 and normalized rotational order symmetry; and adapt the number of spirals if needed.
     pub(crate) fn inc_nb_helices(&mut self) -> usize {
         let (_tw, rso) = self.get_simplified_twist_and_rotational_symmetry_order();
         let m = lcm(2, rso);
@@ -538,7 +537,7 @@ impl RevolutionTab {
         let (_, rso) = self.get_simplified_twist_and_rotational_symmetry_order();
         let m = lcm(2, rso);
         if self.nb_helices > m {
-            self.nb_helices = self.nb_helices - m;
+            self.nb_helices -= m;
         }
         if self.nb_helices < m.max(4) {
             self.nb_helices = match m {
@@ -550,13 +549,13 @@ impl RevolutionTab {
         self.check_and_adapt_nb_helices()
     }
 
-    /// Makes sure the number of helices is even and at least 4
+    /// Makes sure the number of helices is even and at least 4.
     pub(crate) fn check_and_adapt_nb_helices(&mut self) -> usize {
         let (_, rso) = self.get_simplified_twist_and_rotational_symmetry_order();
         let m = lcm(2, rso);
         let r = self.nb_helices % m;
         if r != 0 {
-            self.nb_helices = self.nb_helices - r;
+            self.nb_helices -= r;
         }
         if self.nb_helices < m.max(4) {
             self.nb_helices = match m {
@@ -569,7 +568,7 @@ impl RevolutionTab {
         self.nb_helices
     }
 
-    /// Look for the next divisor of number of helices and at most nb_helices
+    /// Look for the next divisor of number of helices and at most nb_helices.
     pub(crate) fn inc_nb_spirals(&mut self) -> usize {
         let nb_sp = self.nb_spirals;
         let nb_hx = self.nb_helices;
@@ -577,7 +576,7 @@ impl RevolutionTab {
             self.nb_spirals = nb_hx;
         } else {
             for i in nb_sp + 1..=nb_hx / 2 {
-                if nb_hx % i == 0 {
+                if nb_hx.is_multiple_of(i) {
                     self.nb_spirals = i;
                     break;
                 }
@@ -587,7 +586,7 @@ impl RevolutionTab {
         self.nb_spirals
     }
 
-    /// Look for the previous divisor of number of helices and at least 1
+    /// Look for the previous divisor of number of helices and at least 1.
     pub(crate) fn dec_nb_spirals(&mut self) -> usize {
         let nb_sp = self.nb_spirals;
         let nb_hx = self.nb_helices;
@@ -595,7 +594,7 @@ impl RevolutionTab {
             self.nb_spirals = 1;
         } else {
             for i in (1..nb_sp).rev() {
-                if nb_hx % i == 0 {
+                if nb_hx.is_multiple_of(i) {
                     self.nb_spirals = i;
                     break;
                 }
@@ -605,18 +604,19 @@ impl RevolutionTab {
         self.nb_spirals
     }
 
-    /// Make sure the nb of spirals is ≥ 1 and divide nb_helices
+    /// Make sure the nb of spirals is ≥ 1 and divide nb_helices.
     pub(crate) fn check_and_adapt_nb_spirals(&mut self) -> usize {
         if self.nb_spirals == 0 {
             self.nb_spirals = 1;
         }
-        if self.nb_helices % self.nb_spirals != 0 {
+        if !self.nb_helices.is_multiple_of(self.nb_spirals) {
             self.dec_nb_spirals();
         }
         self.check_and_adapt_winding();
         self.nb_spirals
     }
 
+    #[expect(clippy::doc_lazy_continuation, clippy::doc_overindented_list_items)] // FIXME
     /// Check and adapt the winding parameter
     /// Winding parameter must be such that:
     /// - given n = number of helices per section
@@ -646,7 +646,7 @@ impl RevolutionTab {
         self.winding
     }
 
-    /// Increase the winding parameter
+    /// Increase the winding parameter.
     pub(crate) fn inc_winding(&mut self) -> isize {
         let wd = self.winding;
         let nb_hx = self.nb_helices as isize;
@@ -674,7 +674,7 @@ impl RevolutionTab {
         self.winding
     }
 
-    /// Decrease the winding parameter
+    /// Decrease the winding parameter.
     pub(crate) fn dec_winding(&mut self) -> isize {
         let wd = self.winding;
         let nb_hx = self.nb_helices as isize;
@@ -801,34 +801,46 @@ impl GuiTab for RevolutionTab {
             ui_size
         );
 
-        let twist_buttons = button_widget!(
-            {
-                match self.get_rotational_symmetry_order() {
-                    None | Some(0) | Some(1) => "Twist (Nb of turns)".into(),
-                    Some(sym_order) => format!("Twist (Nb of 1/{sym_order}-turns)"),
-                }
-            },
-            Some(self.twist), // self.get_nb_spirals(app_state),
-            DecrTwist,
-            IncrTwist,
-            "",
-            ui_size
-        );
+        let twist_buttons = if self.get_rotational_symmetry_order() == Some(0) {
+            row![]
+        } else {
+            button_widget!(
+                {
+                    match self.get_rotational_symmetry_order() {
+                        None | Some(0 | 1) => "Twist (Nb of turns)".into(),
+                        Some(sym_order) => format!("Twist (Nb of 1/{sym_order}-turns)"),
+                    }
+                },
+                Some(self.twist), // self.get_nb_spirals(app_state),
+                DecrTwist,
+                IncrTwist,
+                "",
+                ui_size
+            )
+        };
 
         let simulation_buttons = if SimulationState::Relaxing == app_state.get_simulation_state() {
             column![
-                text_button("Abort", ui_size).on_press(LeftPanelMessage::StopSimulation),
+                row![
+                    text_button("Abort", ui_size)
+                        .on_press(LeftPanelMessage::StopSimulation)
+                        .style(iced::theme::Button::Destructive),
+                    Space::with_width(ui_size.checkbox_spacing()),
+                    text_button("Finish", ui_size)
+                        .on_press(LeftPanelMessage::FinishRelaxation)
+                        .style(iced::theme::Button::Positive),
+                ]
+                .align_items(Alignment::Center),
                 jump_by(2),
                 text(
                     app_state
                         .get_reader()
                         .get_additional_structure_info()
-                        .unwrap_or("—".into())
+                        .unwrap_or_else(|| "—".into())
                 ),
-                text_button("Finish", ui_size).on_press(LeftPanelMessage::FinishRelaxation),
             ]
         } else {
-            let mut button = text_button("Start", ui_size);
+            let mut button = text_button("Start", ui_size).style(iced::theme::Button::Positive);
             if SimulationState::None == app_state.get_simulation_state() && desc.is_some() {
                 button = button.on_press(LeftPanelMessage::InitRevolutionRelaxation);
             }

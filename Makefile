@@ -2,6 +2,7 @@ VULKAN_SHADER_COMPILER=glslang -V
 EXE=ensnano
 MACOS_BIN=target/x86_64-apple-darwin/release/$(EXE)
 WINDOWS_BIN=target/x86_64-pc-windows-gnu/release/$(EXE)
+WINDOWS_BIN_AARCH=target/aarch64-pc-windows-msvc/release/$(EXE)-aarch
 MACOS_M1_BIN=target/aarch64-apple-darwin/release/$(EXE)
 
 RELEASE_OPT= #--features=log_after_renderer_setup
@@ -14,7 +15,7 @@ VERT_SRCS := $(shell find . -name '*.vert')
 SHADERS := $(patsubst %.frag,%.frag.spv,$(FRAG_SRCS)) $(patsubst %.vert,%.vert.spv,$(VERT_SRCS))
 
 validate:
-	@rustup update
+	@rustup update stable
 	@$(MAKE) -s shaders
 	@$(MAKE) -s format
 	@$(MAKE) -s spell # If the command fails, install npm
@@ -82,6 +83,10 @@ wingnu:
 	cargo build --release --target=x86_64-pc-windows-gnu $(RELEASE_OPT)
 	cp $(WINDOWS_BIN).exe $(WINDOWS_BIN)_windows_vulkan.exe
 
+winarm:
+	cargo xwin build --release --target aarch64-pc-windows-msvc $(RELEASE_OPT)
+	cp $(WINDOWS_BIN_AARCH).exe $(WINDOWS_BIN_AARCH)_windows_vulkan_aarch64.exe
+
 wingnudx12:
 	cargo build --release --target=x86_64-pc-windows-gnu --features="dx12_only log_after_renderer_setup" $(RELEASE_OPT)
 	cp $(WINDOWS_BIN).exe $(WINDOWS_BIN)_windows_directx12.exe
@@ -145,6 +150,9 @@ $(WINDOWS_BIN): src
 
 win: 
 	make $(WINDOWS_BIN)
+
+win-aarch:
+	make $(WINDOWS_BIN_AARCH)
 
 upcoming:
 	mv -i Cargo.toml Cargo.toml.saved

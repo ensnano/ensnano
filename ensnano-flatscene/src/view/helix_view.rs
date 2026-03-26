@@ -48,6 +48,14 @@ impl HelixView {
     }
 
     pub(super) fn draw<'a>(&'a self, render_pass: &mut RenderPass<'a>) {
+        if self.index_buffer.length == 0 || self.num_instance == 0 || self.vertex_buffer.length == 0
+        {
+            println!(
+                "[[Bug in ensnano_flatscene::view::helix_view::HelixView::draw]]: should not be empty\n\tindex_buffer={} num_instance={} vertex_buffer={}",
+                self.index_buffer.length, self.num_instance, self.index_buffer.length
+            );
+            return;
+        }
         render_pass.set_index_buffer(self.index_buffer.get_slice(), wgpu::IndexFormat::Uint16);
         render_pass.set_vertex_buffer(0, self.vertex_buffer.get_slice());
         render_pass.draw_indexed(0..self.num_instance, 0, 0..1);

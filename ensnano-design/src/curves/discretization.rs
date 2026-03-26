@@ -94,7 +94,7 @@ impl Curve {
         // Decide if the the point at t = self.geometry.t_min() belongs to the backward or the
         // forward strand.
         #[expect(clippy::useless_let_if_seq)]
-        let first_forward;
+        let first_forward: bool;
         if inclination >= 0. {
             // The forward strand is behind
             points_forward.push(point);
@@ -203,12 +203,14 @@ impl Curve {
         log::debug!("t_nucl {t_nucl:.4?}");
 
         // Computing the discrete torsion
-        for (p0, (p1, (p2, p3))) in points_forward.iter().zip(
-            points_forward[1..]
-                .iter()
-                .zip(points_forward[2..].iter().zip(points_forward[3..].iter())),
-        ) {
-            torsion.push(Self::discrete_torsion([p0, p1, p2, p3]).abs());
+        if points_forward.len() >= 4 {
+            for (p0, (p1, (p2, p3))) in points_forward.iter().zip(
+                points_forward[1..]
+                    .iter()
+                    .zip(points_forward[2..].iter().zip(points_forward[3..].iter())),
+            ) {
+                torsion.push(Self::discrete_torsion([p0, p1, p2, p3]).abs());
+            }
         }
         let last_torsion = *torsion.last().unwrap_or(&0.);
         for _ in torsion.len()..points_forward.len() {
@@ -280,6 +282,7 @@ impl Curve {
 
         self.t_nucl = Arc::new(t_nucl);
         if self.geometry.is_time_maps_singleton() {
+            // Creation du time map pour la vue 2D!
             self.abscissa_converter = AbscissaConverter::from_single_map(self.t_nucl.clone());
         }
     }

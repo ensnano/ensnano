@@ -9,7 +9,7 @@ use ensnano_utils::{
     consts::{ICON_HONEYCOMB_GRID, ICON_ROTATED_HONEYCOMB_GRID, ICON_SQUARE_GRID},
     ui_size::UiSize,
 };
-use iced::widget::{checkbox, column, row, text};
+use iced::widget::{checkbox, column, row, text, tooltip};
 use iced_aw::TabLabel;
 
 const NEW_BEZIER_PLANE_ICON: MaterialIcon = MaterialIcon::HistoryEdu;
@@ -35,14 +35,41 @@ impl GuiTab for PenTab {
         let content = column![
             section("Bezier Planes", ui_size),
             column![
-                material_icon_button(MaterialIcon::FileOpen, MaterialIconStyle::Light, ui_size)
-                    .on_press(LeftPanelMessage::LoadSvgFile),
                 // add_buttons!
                 row![
-                    material_icon_button(NEW_BEZIER_PLANE_ICON, MaterialIconStyle::Light, ui_size)
+                    tooltip(
+                        material_icon_button(
+                            MaterialIcon::FileOpen,
+                            MaterialIconStyle::Light,
+                            ui_size
+                        )
+                        .on_press(LeftPanelMessage::LoadSvgFile),
+                        "Open bezier file",
+                        tooltip::Position::FollowCursor,
+                    )
+                    .style(iced::theme::Container::Box),
+                    tooltip(
+                        material_icon_button(
+                            NEW_BEZIER_PLANE_ICON,
+                            MaterialIconStyle::Light,
+                            ui_size
+                        )
                         .on_press(LeftPanelMessage::NewBezierPlane),
-                    material_icon_button(EDIT_BEZIER_PATH_ICON, MaterialIconStyle::Light, ui_size)
+                        "Make a new bezier plane",
+                        tooltip::Position::FollowCursor,
+                    )
+                    .style(iced::theme::Container::Box),
+                    tooltip(
+                        material_icon_button(
+                            EDIT_BEZIER_PATH_ICON,
+                            MaterialIconStyle::Light,
+                            ui_size
+                        )
                         .on_press(LeftPanelMessage::StartBezierPath),
+                        "Edit bezier path",
+                        tooltip::Position::FollowCursor,
+                    )
+                    .style(iced::theme::Container::Box),
                 ]
                 .spacing(ui_size.button_spacing()),
             ]

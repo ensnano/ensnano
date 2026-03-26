@@ -526,6 +526,7 @@ impl Curve {
     }
 
     pub fn update_additional_segments(&self, segments: &mut Vec<AdditionalHelix2D>) {
+        //[[NS]] I miss two informations: total nb_helices + step in index per revolution
         segments.truncate(self.additional_segment_left.len());
         let mut iter = self
             .additional_segment_left
@@ -550,6 +551,17 @@ impl Curve {
     /// be ignored.
     pub fn has_its_own_encoded_frame(&self) -> bool {
         self.geometry.translation().is_some()
+    }
+
+    pub fn rescaled2d_by(&self, scale: f64) -> Self {
+        if let Some(abscissa_converter) = &self.abscissa_converter {
+            Self {
+                abscissa_converter: Some(abscissa_converter.rescaled_by(scale)),
+                ..self.clone()
+            }
+        } else {
+            self.clone()
+        }
     }
 }
 

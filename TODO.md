@@ -10,6 +10,10 @@
 - Limit undo pile (100 undos)
 - Recycle the identifiers
 - Possibility to remap the identifiers
+- work on bezier interface:
+  - make the "add bezier points" stay green when active
+  - make that button turn off when changing tabs
+  - while adding bezier points, the coordinates are visible / editable. Make the control point distances editable as well
 
 ## Bugs
 
@@ -21,6 +25,7 @@
 - Distance fog is broken ([NS message](https://discord.com/channels/689053746604670995/1419689469472411691/1459186505888170035))
 - Maximization of window on startup is slow and ugly
 - Crash when finishing diverging relaxation computation: `memory allocation of XXXXXXXXXXXX bytes failed`
+- Massive discrepancy in `surface_area` test
 
 ## Bugs that should be fixed
 

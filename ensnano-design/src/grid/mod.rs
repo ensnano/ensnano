@@ -1305,8 +1305,11 @@ impl GridData {
             && let Some(desc) = helix.instantiated_descriptor.as_ref()
         {
             let hp = helix.helix_parameters.unwrap_or(self.helix_parameters);
-            let curve = desc.make_curve(&hp, cached_curve);
+            let mut curve = desc.make_curve(&hp, cached_curve);
             curve.update_additional_segments(&mut helix.additional_isometries);
+            if let Some(scale2d) = helix.scale2d {
+                curve = curve.rescaled2d_by(scale2d).into();
+            }
             helix.instantiated_curve = Some(InstantiatedCurve {
                 curve,
                 source: desc.clone(),

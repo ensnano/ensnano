@@ -172,11 +172,47 @@ impl CloseSurfaceTopology {
         &self,
         thetas: Vec<f64>,
         finished: bool,
+        all_spirals_len: Option<&Vec<usize>>,
     ) -> Vec<CurveDescriptor> {
         let mut ret = Vec::new();
 
+        let mut final_lengths: Vec<isize> = all_spirals_len
+            .clone()
+            .unwrap_or(&Vec::<usize>::new())
+            .iter()
+            .map(|x| *x as isize)
+            .collect();
+        if finished || final_lengths.len() > 0 {
+            assert!(!all_spirals_len.is_none());
+            // update the length to match the scaffold length
+            let nb_spirals = final_lengths.len();
+            let current_total_len = final_lengths.iter().sum::<isize>();
+            let scale_len = self.target_scaffold_length as f64 / current_total_len as f64;
+            final_lengths = final_lengths
+                .iter()
+                .map(|x| (*x as f64 * scale_len).round() as isize)
+                .collect();
+            let diff_len =
+                self.target_scaffold_length as isize - final_lengths.iter().sum::<isize>();
+            if diff_len != 0 {
+                let delta = if diff_len > 0 { 1 } else { -1 };
+                let mut indices_by_decreasing_length = final_lengths
+                    .iter()
+                    .enumerate()
+                    .map(|(i, x)| (i, *x))
+                    .collect::<Vec<(usize, isize)>>();
+                indices_by_decreasing_length.sort_by_key(|(_, l)| -l);
+                let indices_by_decreasing_length = indices_by_decreasing_length
+                    .iter()
+                    .map(|(i, _)| *i)
+                    .collect::<Vec<usize>>();
+                for i in 0..diff_len.abs() {
+                    final_lengths[indices_by_decreasing_length[i as usize % nb_spirals]] += delta;
+                }
+            }
+        }
+
         let nb_segment_per_helix = self.nb_segment / self.target.nb_spirals();
-        // println!("Nb spirals {}", self.target.nb_spirals());
         for i in 0..self.target.nb_spirals() {
             let mut interpolations = Vec::new();
             let segment_indices = (0..nb_segment_per_helix).map(|n| {
@@ -190,10 +226,7 @@ impl CloseSurfaceTopology {
                 let mut segment_thetas = thetas[start..=end].to_vec();
                 let mut next_value = thetas[self.next_section[end]]
                     + self.target.section_fraction_rotation_per_revolution();
-                // NS: obsolete
-                // if self.target.twist() % 2 == 1 {
-                //     next_value += 0.5;
-                // }
+
                 let last_value = segment_thetas.last().unwrap();
                 while next_value >= 0.5 + last_value {
                     next_value -= 1.;
@@ -212,15 +245,12 @@ impl CloseSurfaceTopology {
                     interval,
                 });
             }
-            let rem = self.target_scaffold_length % self.target.nb_spirals();
 
-            let target_len = if i >= self.target.nb_spirals() - rem {
-                self.target_scaffold_length / self.target.nb_spirals() + 1
+            let objective_number_of_nts = if finished || final_lengths.len() > 0 {
+                Some(final_lengths[i] as usize)
             } else {
-                self.target_scaffold_length / self.target.nb_spirals()
+                None
             };
-
-            let objective_number_of_nts = finished.then_some(target_len);
             ret.push((
                 self.target
                     .curve_descriptor(interpolations, objective_number_of_nts),

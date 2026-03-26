@@ -208,13 +208,13 @@ impl AppState {
         // let half_number_helix =
         //     (scaled_perimeter / 2. / HelixParameters::INTER_CENTER_GAP as f64).floor() as usize;
 
-        // New formula taking the twist into account: the helices make go from 0 to twist/rotational_sym_order over the distance 2π*radius hence an angle which must be compensated acording to 1/sqrt(1+u*u)
+        // New formula taking the twist into account: the helices make go from 0 to twist/rotational_sym_order over the distance 2π*radius hence an angle which must be compensated according to 1/sqrt(1+u*u)
         let u = twist as f64 / (TAU * rotational_symmetry_order as f64 * scaled_revolution_radius);
 
         let nb_helices = (scaled_perimeter
             / (helix_parameters.inter_helix_axis_gap() as f64 * ((1. + u * u).sqrt())))
         .round() as usize;
-        let even_nb_helices = 2 * ((nb_helices + 1) / 2);
+        let even_nb_helices = 2 * nb_helices.div_ceil(2);
 
         Some(RevolutionScaling {
             suggested_nb_helix: even_nb_helices, // half_number_helix * 2,
