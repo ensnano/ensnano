@@ -3,7 +3,7 @@ use crate::{
     helpers::{extra_jump, icon_button, material_icon_button, section},
     left_panel::{LeftPanelMessage, tabs::GuiTab},
 };
-use ensnano_design::grid::GridTypeDescr;
+use ensnano_design::{grid::GridTypeDescr, interaction_modes::ActionMode};
 use ensnano_state::app_state::AppState;
 use ensnano_utils::{
     consts::{ICON_HONEYCOMB_GRID, ICON_ROTATED_HONEYCOMB_GRID, ICON_SQUARE_GRID},
@@ -64,6 +64,14 @@ impl GuiTab for PenTab {
                             EDIT_BEZIER_PATH_ICON,
                             MaterialIconStyle::Light,
                             ui_size
+                        )
+                        .on_press(LeftPanelMessage::StartBezierPath)
+                        .style(
+                            if app_state.get_action_mode() == ActionMode::EditBezierPath {
+                                iced::theme::Button::Positive
+                            } else {
+                                iced::theme::Button::Primary
+                            }
                         )
                         .on_press(LeftPanelMessage::StartBezierPath),
                         "Edit bezier path",
