@@ -435,14 +435,17 @@ impl CurveDescriptor2D {
         }
     }
 
-    fn instantiate(self) -> Arc<InstantiatedEllipse> {
+    fn instantiate(self) -> Option<Arc<InstantiatedEllipse>> {
         match self {
             Self::Ellipse {
                 semi_minor_axis,
                 semi_major_axis,
                 ..
-            } => Arc::new(InstantiatedEllipse::new(*semi_minor_axis, *semi_major_axis)),
-            _ => todo!(),
+            } => Some(Arc::new(InstantiatedEllipse::new(
+                *semi_minor_axis,
+                *semi_major_axis,
+            ))),
+            _ => None,
         }
     }
 }
@@ -653,9 +656,8 @@ impl TwistedTorus {
     pub(super) fn new(
         descriptor: TwistedTorusDescriptor,
         helix_parameters: &HelixParameters,
-    ) -> Self {
-        println!("called23");
-        let instantiated_curve = descriptor.curve.clone().instantiate();
+    ) -> Option<Self> {
+        let instantiated_curve = descriptor.curve.clone().instantiate()?;
         let scale = 2.
             * Self::inter_helix_gap(helix_parameters)
             * descriptor.number_of_helix_per_section as f64
@@ -688,14 +690,14 @@ impl TwistedTorus {
         //  =>   k = nb_helices / gcd(total_shift, nb_helices)
         let nb_turn_per_helix = nb_helices / gcd(nb_helices as isize, total_shift) as usize;
 
-        Self {
+        Some(Self {
             descriptor,
             scale,
             perimeter: instantiated_curve.perimeter(),
             instantiated_curve,
             nb_turn_per_helix,
             helix_parameters: *helix_parameters,
-        }
+        })
     }
 
     fn theta(&self, t: f64) -> f64 {
