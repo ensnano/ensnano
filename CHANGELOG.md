@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.1
+- Fixed issues with revolution surfaces: even better 2D view; helices with different lengths are now supported 
+- Fixed crash in Bezier curve when two points are too close
+- Improved GUI
+
 ## 0.7.0
 - New outline view mode
 - New nanostructure relaxation module
