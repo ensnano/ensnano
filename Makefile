@@ -2,7 +2,7 @@ VULKAN_SHADER_COMPILER=glslang -V
 EXE=ensnano
 MACOS_BIN=target/x86_64-apple-darwin/release/$(EXE)
 WINDOWS_BIN=target/x86_64-pc-windows-gnu/release/$(EXE)
-WINDOWS_BIN_AARCH=target/aarch64-pc-windows-msvc/release/$(EXE)-aarch
+WINDOWS_BIN_AARCH=target/aarch64-pc-windows-msvc/release/$(EXE)
 MACOS_M1_BIN=target/aarch64-apple-darwin/release/$(EXE)
 
 RELEASE_OPT= #--features=log_after_renderer_setup
@@ -74,7 +74,7 @@ $(MACOS_BIN): src
 	@otool -l $(MACOS_BIN) | grep -A 3 minos || echo no match for minos
 	@echo "\n**** VERSION VERIFICATION ****\n"
 
-all: mo m1 wingnu wingnudx12 winmsvc winmsvcdx12
+all: mo m1 wingnu winarm wingnudx12 winmsvc winmsvcdx12
 
 rm_mo:
 	rm $(MACOS_BIN)
