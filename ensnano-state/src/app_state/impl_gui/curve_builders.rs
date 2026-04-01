@@ -116,7 +116,7 @@ fn build_two_spheres(
 }
 
 pub(super) const BEZIER_CURVE_BUILDER: CurveDescriptorBuilder = CurveDescriptorBuilder {
-    curve_name: "Bezier",
+    curve_name: "Bezier (closed only)",
     parameters: &[CurveDescriptorParameter {
         name: "Path n°",
         default_value: InstantiatedParameter::Uint(0),

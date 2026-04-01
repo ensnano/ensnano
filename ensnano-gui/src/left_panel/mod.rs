@@ -490,6 +490,16 @@ impl Program for LeftPanelState {
                 Command::none()
             }
             LeftPanelMessage::TabSelected(tab_id) => {
+                // we deactivate bezier edition if it was on.
+                if self.application_state.get_action_mode() == ActionMode::EditBezierPath
+                    && tab_id != TabId::Pen
+                {
+                    self.requests
+                        .lock()
+                        .unwrap()
+                        .change_action_mode(ActionMode::Normal);
+                }
+
                 if let ActionMode::BuildHelix { .. } = self.application_state.get_action_mode()
                     && tab_id != TabId::Grid
                 {

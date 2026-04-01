@@ -1173,7 +1173,8 @@ impl InstantiatedCurveDescriptor_ {
                     curve.clone()
                 } else {
                     let ret = Arc::new(Curve::new(
-                        TwistedTorus::new(desc.clone(), helix_parameters),
+                        TwistedTorus::new(desc.clone(), helix_parameters)
+                            .expect("tried to make a torus out of a non-ellips descriptor"),
                         helix_parameters,
                     ));
                     // println!("Number of nucleotides {}", ret.nb_points());
