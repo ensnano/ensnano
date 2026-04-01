@@ -842,7 +842,9 @@ impl GuiTab for RevolutionTab {
         } else {
             let mut button = text_button("Start", ui_size).style(iced::theme::Button::Positive);
             if SimulationState::None == app_state.get_simulation_state() && desc.is_some() {
-                button = button.on_press(LeftPanelMessage::InitRevolutionRelaxation);
+                if !desc.unwrap().target.curve_is_open() {
+                    button = button.on_press(LeftPanelMessage::InitRevolutionRelaxation);
+                }
             }
             column![button]
         };
