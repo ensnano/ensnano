@@ -43,7 +43,7 @@ impl CharDrawer {
         character: char,
     ) -> Self {
         let instances_bg = DynamicBindGroup::new(device.clone(), queue.clone(), "chars instances");
-        let char_texture = Rc::new(Letter::new(character, device.clone(), queue));
+        let char_texture = Rc::new(Letter::new(character, &device, &queue));
 
         let new_instances = vec![CharInstance {
             top_left: Vec2::zero(),
@@ -65,8 +65,7 @@ impl CharDrawer {
         ret
     }
 
-    pub(crate) fn draw<'a>(&'a mut self, render_pass: &mut RenderPass<'a>) {
-        self.update_instances();
+    pub(crate) fn draw<'a>(&'a self, render_pass: &mut RenderPass<'a>) {
         render_pass.set_pipeline(self.pipeline.as_ref().unwrap());
         render_pass.set_bind_group(1, self.instances_bg.get_bindgroup(), &[]);
         render_pass.set_bind_group(TEXTURE_BINDING_ID, &self.letter.bind_group, &[]);
@@ -76,6 +75,7 @@ impl CharDrawer {
 
     pub(crate) fn new_instances(&mut self, instances: Rc<Vec<CharInstance>>) {
         self.new_instances = Some(instances);
+        self.update_instances();
     }
 
     fn update_instances(&mut self) {

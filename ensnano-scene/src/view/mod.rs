@@ -173,7 +173,7 @@ impl View {
         let letter_drawer = PRINTABLE_CHARS
             .iter()
             .map(|c| {
-                let letter = Letter::new(*c, device.clone(), queue.clone());
+                let letter = Letter::new(*c, &device, &queue);
                 InstanceDrawer::new(
                     device.clone(),
                     queue.clone(),
@@ -189,7 +189,7 @@ impl View {
         let helix_letter_drawer = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
             .iter()
             .map(|c| {
-                let letter = Letter::new(*c, device.clone(), queue.clone());
+                let letter = Letter::new(*c, &device, &queue);
                 InstanceDrawer::new(
                     device.clone(),
                     queue.clone(),
