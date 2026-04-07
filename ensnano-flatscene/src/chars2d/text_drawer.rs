@@ -51,12 +51,6 @@ impl TextDrawer {
     }
 
     pub fn prepare(&mut self, device: &Device, queue: &Queue) {
-        for d in self.char_drawers.values_mut() {
-            d.prepare(device, queue);
-        }
-    }
-
-    pub fn draw<'a>(&'a mut self, render_pass: &mut RenderPass<'a>) {
         for (c, v) in &self.char_map {
             if let Some(drawer_mut) = self.char_drawers.get_mut(c) {
                 drawer_mut.new_instances(Rc::new(v.clone()));
@@ -64,6 +58,12 @@ impl TextDrawer {
                 log::warn!("Unprintable char: '{c}'");
             }
         }
+        for d in self.char_drawers.values_mut() {
+            d.prepare(device, queue);
+        }
+    }
+
+    pub fn draw<'a>(&'a self, render_pass: &mut RenderPass<'a>) {
         for d in self.char_drawers.values() {
             d.draw(render_pass);
         }

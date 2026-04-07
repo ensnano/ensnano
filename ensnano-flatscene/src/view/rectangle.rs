@@ -115,7 +115,7 @@ impl Rectangle {
         self.update_vertices(corners);
     }
 
-    pub(super) fn prepare(&mut self, queue: &Queue) {
+    pub(super) fn prepare(&self, queue: &Queue) {
         queue.write_buffer(&self.vbo, 0, bytemuck::cast_slice(&self.vertices));
     }
 
