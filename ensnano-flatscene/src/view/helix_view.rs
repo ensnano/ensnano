@@ -6,7 +6,6 @@ use crate::{
     },
     flat_types::FlatNucl,
 };
-use std::rc::Rc;
 use wgpu::{Buffer, Device, Queue, RenderPass};
 
 pub(super) struct HelixView {
@@ -66,9 +65,6 @@ impl HelixView {
 }
 
 pub(super) struct StrandView {
-    device: Rc<Device>,
-    queue: Rc<Queue>,
-
     vertex_buffer_top: DynamicBuffer,
     index_buffer_top: DynamicBuffer,
     num_instance_top: u32,
@@ -85,39 +81,37 @@ pub(super) struct StrandView {
 }
 
 impl StrandView {
-    pub(super) fn new(device: Rc<Device>, queue: Rc<Queue>) -> Self {
+    pub(super) fn new(device: &Device) -> Self {
         Self {
-            device: device.clone(),
-            queue,
             vertex_buffer_top: DynamicBuffer::new(
-                &device,
+                device,
                 wgpu::BufferUsages::VERTEX,
                 "vertex buffer top",
             ),
             index_buffer_top: DynamicBuffer::new(
-                &device,
+                device,
                 wgpu::BufferUsages::INDEX,
                 "index buffer top",
             ),
-            split_vbo_top: DynamicBuffer::new(&device, wgpu::BufferUsages::VERTEX, "split vbo top"),
-            split_ibo_top: DynamicBuffer::new(&device, wgpu::BufferUsages::INDEX, "split ibo top"),
+            split_vbo_top: DynamicBuffer::new(device, wgpu::BufferUsages::VERTEX, "split vbo top"),
+            split_ibo_top: DynamicBuffer::new(device, wgpu::BufferUsages::INDEX, "split ibo top"),
             split_vbo_bottom: DynamicBuffer::new(
-                &device,
+                device,
                 wgpu::BufferUsages::VERTEX,
                 "split vbo bottom",
             ),
             split_ibo_bottom: DynamicBuffer::new(
-                &device,
+                device,
                 wgpu::BufferUsages::INDEX,
                 "split ibo bottom",
             ),
             vertex_buffer_bottom: DynamicBuffer::new(
-                &device,
+                device,
                 wgpu::BufferUsages::VERTEX,
                 "vertex buffer bottom",
             ),
             index_buffer_bottom: DynamicBuffer::new(
-                &device,
+                device,
                 wgpu::BufferUsages::INDEX,
                 "index buffer bottom",
             ),
@@ -173,18 +167,18 @@ impl StrandView {
         self.num_instance_bottom = vertices.indices.len() as u32;
     }
 
-    pub(super) fn draw<'a>(&'a mut self, render_pass: &mut RenderPass<'a>, bottom: bool) {
-        // temp
+    pub(super) fn prepare(&mut self, device: &Device, queue: &Queue) {
+        self.vertex_buffer_top.prepare(device, queue);
+        self.index_buffer_top.prepare(device, queue);
+        self.vertex_buffer_bottom.prepare(device, queue);
+        self.index_buffer_bottom.prepare(device, queue);
+        self.split_vbo_top.prepare(device, queue);
+        self.split_ibo_top.prepare(device, queue);
+        self.split_vbo_bottom.prepare(device, queue);
+        self.split_ibo_bottom.prepare(device, queue);
+    }
 
-        self.vertex_buffer_top.prepare(&self.device, &self.queue);
-        self.index_buffer_top.prepare(&self.device, &self.queue);
-        self.vertex_buffer_bottom.prepare(&self.device, &self.queue);
-        self.index_buffer_bottom.prepare(&self.device, &self.queue);
-        self.split_vbo_top.prepare(&self.device, &self.queue);
-        self.split_ibo_top.prepare(&self.device, &self.queue);
-        self.split_vbo_bottom.prepare(&self.device, &self.queue);
-        self.split_ibo_bottom.prepare(&self.device, &self.queue);
-
+    pub(super) fn draw<'a>(&'a self, render_pass: &mut RenderPass<'a>, bottom: bool) {
         if bottom {
             render_pass.set_index_buffer(
                 self.index_buffer_bottom.get_slice(),

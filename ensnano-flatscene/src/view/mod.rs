@@ -311,8 +311,7 @@ impl View {
     }
 
     pub fn add_strand(&mut self, strand: &Strand, helices: &[Helix]) {
-        self.strands
-            .push(StrandView::new(self.device.clone(), self.queue.clone()));
+        self.strands.push(StrandView::new(&self.device));
         let other_cam = if self.is_split {
             &self.camera_bottom
         } else {
@@ -374,7 +373,7 @@ impl View {
             &self.camera_top
         };
         for s in strands {
-            let mut strand_view = StrandView::new(self.device.clone(), self.queue.clone());
+            let mut strand_view = StrandView::new(&self.device);
             strand_view.update(s, helices, None, &self.camera_top, other_cam);
             self.selected_strands.push(strand_view);
         }
@@ -389,7 +388,7 @@ impl View {
             &self.camera_top
         };
         for s in strands {
-            let mut strand_view = StrandView::new(self.device.clone(), self.queue.clone());
+            let mut strand_view = StrandView::new(&self.device);
             strand_view.update(s, helices, None, &self.camera_top, other_cam);
             self.candidate_strands.push(strand_view);
         }
@@ -408,7 +407,7 @@ impl View {
         self.pasted_strands = strand
             .iter()
             .map(|strand| {
-                let mut pasted_strand = StrandView::new(self.device.clone(), self.queue.clone());
+                let mut pasted_strand = StrandView::new(&self.device);
                 pasted_strand.update(strand, helices, None, &self.camera_top, &self.camera_bottom);
                 pasted_strand
             })
@@ -540,6 +539,22 @@ impl View {
         self.nucl_highlighter_top.prepare(&self.device, &self.queue);
         self.nucl_highlighter_bottom
             .prepare(&self.device, &self.queue);
+
+        for strand in &mut self.strands {
+            strand.prepare(&self.device, &self.queue);
+        }
+        for strand in &mut self.pasted_strands {
+            strand.prepare(&self.device, &self.queue);
+        }
+        for suggestion in &mut self.suggestions_view {
+            suggestion.prepare(&self.device, &self.queue);
+        }
+        for highlight in &mut self.selected_strands {
+            highlight.prepare(&self.device, &self.queue);
+        }
+        for highlight in &mut self.candidate_strands {
+            highlight.prepare(&self.device, &self.queue);
+        }
 
         for background in &mut self.helices_background {
             background.prepare(&self.device, &self.queue);
@@ -692,7 +707,7 @@ impl View {
         self.insertion_drawer.draw(&mut render_pass);
         render_pass.set_pipeline(&self.strand_pipeline);
         log::trace!("Draw strands..");
-        for strand in &mut self.strands {
+        for strand in &self.strands {
             strand.draw(&mut render_pass, bottom);
         }
         log::trace!("..OK");
@@ -1182,7 +1197,7 @@ impl View {
     fn view_suggestion(&mut self) {
         self.suggestions_view.clear();
         for (n1, n2) in &self.suggestions {
-            let mut view = StrandView::new(self.device.clone(), self.queue.clone());
+            let mut view = StrandView::new(&self.device);
             view.set_indication(*n1, *n2, &self.helices);
             self.suggestions_view.push(view);
         }
@@ -1201,7 +1216,7 @@ impl View {
         self.suggestions_view.clear();
         self.was_updated |= self.suggestion_candidate != candidate.zip(other);
         if let Some((n1, n2)) = candidate.zip(other) {
-            let mut view = StrandView::new(self.device.clone(), self.queue.clone());
+            let mut view = StrandView::new(&self.device);
             view.set_indication(n1, n2, &self.helices);
             self.suggestions_view.push(view);
         }
