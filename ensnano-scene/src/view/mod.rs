@@ -213,7 +213,7 @@ impl View {
                 wgpu::TextureFormat::Bgra8UnormSrgb,
             )
         });
-        let models = DynamicBindGroup::new(device.clone(), queue.clone(), "models");
+        let models = DynamicBindGroup::new(&device, "models");
 
         let grid_textures = GridTextures::new(device.as_ref(), encoder);
         log::info!("Create grid drawer");
@@ -545,6 +545,9 @@ impl View {
         stereographic: bool,
         draw_options: DrawOptions,
     ) {
+        // temp
+        self.models.prepare(&self.device, &self.queue);
+
         if let Some(size) = self.new_size.take() {
             self.depth_texture =
                 Texture::create_depth_texture(self.device.as_ref(), &area.size, SAMPLE_COUNT);

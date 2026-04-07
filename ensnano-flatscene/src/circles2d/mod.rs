@@ -51,6 +51,7 @@ impl CircleInstance {
 
 pub(crate) struct CircleDrawer {
     device: Rc<Device>,
+    queue: Rc<Queue>,
     /// A possible updates to the instances to be drawn. Must be taken into account before drawing
     /// next frame.
     new_instances: Option<Rc<Vec<CircleInstance>>>,
@@ -74,10 +75,11 @@ impl CircleDrawer {
         globals_layout: &BindGroupLayout,
         circle_kind: CircleKind,
     ) -> Self {
-        let instances_bg = DynamicBindGroup::new(device.clone(), queue, "circles instances");
+        let instances_bg = DynamicBindGroup::new(&device, "circles instances");
 
         let mut ret = Self {
             device,
+            queue,
             new_instances: None,
             number_instances: 0,
             pipeline: None,
@@ -89,8 +91,8 @@ impl CircleDrawer {
     }
 
     pub(crate) fn draw<'a>(&'a mut self, render_pass: &mut RenderPass<'a>) {
-        self.update_instances();
         if self.number_instances > 0 {
+            self.instances_bg.prepare(&self.device, &self.queue);
             render_pass.set_pipeline(self.pipeline.as_ref().unwrap());
             render_pass.set_bind_group(1, self.instances_bg.get_bindgroup(), &[]);
             render_pass.draw(0..4, 0..self.number_instances as u32);
@@ -99,6 +101,7 @@ impl CircleDrawer {
 
     pub(crate) fn new_instances(&mut self, instances: Rc<Vec<CircleInstance>>) {
         self.new_instances = Some(instances);
+        self.update_instances();
     }
 
     fn update_instances(&mut self) {

@@ -36,7 +36,7 @@ use std::{
     rc::Rc,
     sync::Arc,
 };
-use wgpu::{BindGroup, CommandEncoder, Device, Queue, RenderPass, RenderPipeline, TextureView};
+use wgpu::{BindGroup, CommandEncoder, Device, Queue, RenderPipeline, TextureView};
 use winit::dpi::{PhysicalPosition, PhysicalSize};
 
 const SHOW_SUGGESTION: bool = false;
@@ -111,7 +111,7 @@ impl View {
             &area.size,
             SAMPLE_COUNT,
         ));
-        let models = DynamicBindGroup::new(device.clone(), queue.clone(), "2d models");
+        let models = DynamicBindGroup::new(&device, "2d models");
         let globals_top = UniformBindGroup::new(
             device.clone(),
             queue.clone(),
@@ -540,6 +540,11 @@ impl View {
         self.was_updated = true;
     }
 
+    /// Allocates buffer using the device and queue for rendering
+    pub fn prepare(&mut self, device: &Device, queue: &Queue) {
+        self.models.prepare(device, queue);
+    }
+
     fn render_pass(
         &mut self,
         target: &TextureView,
@@ -549,6 +554,9 @@ impl View {
         depth_texture: &Arc<Texture>,
         global_top_bindgroup: Option<&BindGroup>,
     ) {
+        // temp
+        self.models.prepare(&self.device, &self.queue);
+
         #[expect(clippy::useless_let_if_seq)] // false positive in my opinion
         let mut need_new_circles = false;
         if let Some(globals) = self.camera_top.borrow_mut().update() {

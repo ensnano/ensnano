@@ -7,18 +7,17 @@ use wgpu::{BindGroup, BindGroupLayout, Buffer, BufferDescriptor, Device, Queue};
 /// A bind group with an associated buffer whose size may vary.
 pub struct DynamicBindGroup {
     layout: BindGroupLayout,
+    bytes: Vec<u8>,
     buffer: Buffer,
+    length: usize,
     capacity: usize,
-    length: u64,
     bind_group: BindGroup,
-    device: Rc<Device>,
-    queue: Rc<Queue>,
 }
 
 const INITIAL_CAPACITY: u64 = 1024;
 
 impl DynamicBindGroup {
-    pub fn new(device: Rc<Device>, queue: Rc<Queue>, label: &str) -> Self {
+    pub fn new(device: &Device, label: &str) -> Self {
         let buffer = device.create_buffer(&BufferDescriptor {
             label: Some(label),
             size: INITIAL_CAPACITY,
@@ -59,55 +58,47 @@ impl DynamicBindGroup {
 
         Self {
             layout,
+            bytes: vec![],
             buffer,
             capacity,
             length,
             bind_group,
-            device,
-            queue,
         }
     }
 
     /// Replace the data of the associated buffer.
     pub fn update<I: bytemuck::Pod>(&mut self, data: &[I]) {
-        let bytes = bytemuck::cast_slice(data);
-        if self.capacity < bytes.len() {
-            self.length = bytes.len() as u64;
-            self.buffer = self.device.create_buffer(&BufferDescriptor {
-                label: Some(&format!("capacity = {}", 2 * bytes.len())),
-                size: 2 * bytes.len() as u64,
+        let bytes = bytemuck::cast_slice::<_, u8>(data);
+        self.bytes = bytes.to_vec();
+    }
+
+    pub fn prepare(&mut self, device: &Device, queue: &Queue) {
+        // We lack capacity; we reallocate a buffer of size 2 x the required size.
+        if self.capacity < self.bytes.len() {
+            self.capacity = self.bytes.len() * 2;
+            self.buffer = device.create_buffer(&BufferDescriptor {
+                label: Some(&format!("capacity = {}", self.capacity)),
+                size: self.capacity as u64,
                 usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
                 mapped_at_creation: false,
             });
-            self.capacity = 2 * bytes.len();
-            self.bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                layout: &self.layout,
-                entries: &[wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
-                        buffer: &self.buffer,
-                        size: wgpu::BufferSize::new(self.length),
-                        offset: 0,
-                    }),
-                }],
-                label: None,
-            });
-        } else if self.length != bytes.len() as u64 {
-            self.length = bytes.len() as u64;
-            self.bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                layout: &self.layout,
-                entries: &[wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
-                        buffer: &self.buffer,
-                        size: wgpu::BufferSize::new(self.length),
-                        offset: 0,
-                    }),
-                }],
-                label: None,
-            });
         }
-        self.queue.write_buffer(&self.buffer, 0, bytes);
+
+        queue.write_buffer(&self.buffer, 0, &self.bytes);
+        self.length = self.bytes.len();
+
+        self.bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout: &self.layout,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
+                    buffer: &self.buffer,
+                    size: wgpu::BufferSize::new(self.length as u64),
+                    offset: 0,
+                }),
+            }],
+            label: None,
+        });
     }
 
     pub fn get_bindgroup(&self) -> &BindGroup {

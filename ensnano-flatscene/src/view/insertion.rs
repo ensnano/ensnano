@@ -17,6 +17,10 @@ use wgpu::{
 };
 
 pub(crate) struct InsertionDrawer {
+    // temp
+    device: Rc<Device>,
+    queue: Rc<Queue>,
+
     new_instances: Option<Vec<InsertionInstance>>,
     vertex_buffer: Buffer,
     index_buffer: Buffer,
@@ -33,7 +37,7 @@ impl InsertionDrawer {
         globals: &BindGroupLayout,
         depth_stencil_state: Option<DepthStencilState>,
     ) -> Self {
-        let instances = DynamicBindGroup::new(device.clone(), queue, "insertion instances");
+        let instances = DynamicBindGroup::new(&device, "insertion instances");
         let pipeline = insertion_pipeline(
             device.as_ref(),
             globals,
@@ -62,6 +66,8 @@ impl InsertionDrawer {
             color: [0., 0., 0., 1.],
         }]);
         Self {
+            device,
+            queue,
             new_instances,
             instances,
             index_buffer,
@@ -72,8 +78,14 @@ impl InsertionDrawer {
         }
     }
 
+    pub(crate) fn prepare(&mut self, device: &Device, queue: &Queue) {
+        self.instances.prepare(device, queue);
+    }
+
     pub(crate) fn draw<'a>(&'a mut self, render_pass: &mut RenderPass<'a>) {
-        self.update_instances();
+        // temp
+        self.instances.prepare(&self.device, &self.queue);
+
         render_pass.set_pipeline(&self.pipeline);
         render_pass.set_bind_group(1, self.instances.get_bindgroup(), &[]);
         render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
@@ -87,6 +99,7 @@ impl InsertionDrawer {
 
     pub(crate) fn new_instances(&mut self, instances: Vec<InsertionInstance>) {
         self.new_instances = Some(instances);
+        self.update_instances();
     }
 
     fn update_instances(&mut self) {
