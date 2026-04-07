@@ -150,33 +150,16 @@ impl View {
             globals_top.get_layout(),
             depth_stencil_state.as_ref(),
         );
-        let circle_drawer_top = CircleDrawer::new(
-            device.clone(),
-            queue.clone(),
-            globals_top.get_layout(),
-            CircleKind::FullCircle,
-        );
-        let circle_drawer_bottom = CircleDrawer::new(
-            device.clone(),
-            queue.clone(),
-            globals_top.get_layout(),
-            CircleKind::FullCircle,
-        );
-        let nucl_highlighter_top = CircleDrawer::new(
-            device.clone(),
-            queue.clone(),
-            globals_top.get_layout(),
-            CircleKind::FullCircle,
-        );
-        let nucl_highlighter_bottom = CircleDrawer::new(
-            device.clone(),
-            queue.clone(),
-            globals_top.get_layout(),
-            CircleKind::FullCircle,
-        );
+        let circle_drawer_top =
+            CircleDrawer::new(&device, globals_top.get_layout(), CircleKind::FullCircle);
+        let circle_drawer_bottom =
+            CircleDrawer::new(&device, globals_top.get_layout(), CircleKind::FullCircle);
+        let nucl_highlighter_top =
+            CircleDrawer::new(&device, globals_top.get_layout(), CircleKind::FullCircle);
+        let nucl_highlighter_bottom =
+            CircleDrawer::new(&device, globals_top.get_layout(), CircleKind::FullCircle);
         let rotation_widget = CircleDrawer::new(
-            device.clone(),
-            queue.clone(),
+            &device,
             globals_top.get_layout(),
             CircleKind::RotationWidget,
         );
@@ -531,13 +514,6 @@ impl View {
         self.was_updated = true;
     }
 
-    /// Allocates buffer using the device and queue for rendering
-    pub fn prepare(&mut self, device: &Device, queue: &Queue) {
-        self.models.prepare(device, queue);
-        self.globals_top.prepare(queue);
-        self.globals_bottom.prepare(queue);
-    }
-
     fn update(&mut self) {
         if let Some(globals) = self.camera_top.borrow_mut().update() {
             log::debug!("new camera globals: {globals:?}");
@@ -565,8 +541,13 @@ impl View {
         self.globals_bottom.prepare(&self.queue);
         self.text_drawer_top.prepare(&self.device, &self.queue);
         self.text_drawer_bottom.prepare(&self.device, &self.queue);
+        self.rotation_widget.prepare(&self.device, &self.queue);
+        self.circle_drawer_top.prepare(&self.device, &self.queue);
+        self.circle_drawer_bottom.prepare(&self.device, &self.queue);
+        self.nucl_highlighter_top.prepare(&self.device, &self.queue);
+        self.nucl_highlighter_bottom
+            .prepare(&self.device, &self.queue);
 
-        #[expect(clippy::useless_let_if_seq)] // false positive in my opinion
         if self.was_updated {
             let instances_top = self.generate_circle_instances(&self.camera_top);
             let instances_bottom = self.generate_circle_instances(&self.camera_bottom);
