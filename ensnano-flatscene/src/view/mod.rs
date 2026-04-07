@@ -163,7 +163,7 @@ impl View {
             globals_top.get_layout(),
             CircleKind::RotationWidget,
         );
-        let rectangle = Rectangle::new(&device, queue.clone());
+        let rectangle = Rectangle::new(&device);
 
         let text_drawer_top =
             TextDrawer::new(PRINTABLE_CHARS, &device, &queue, globals_top.get_layout());
@@ -536,6 +536,7 @@ impl View {
         self.nucl_highlighter_bottom
             .prepare(&self.device, &self.queue);
         self.insertion_drawer.prepare(&self.device, &self.queue);
+        self.rectangle.prepare(&self.queue);
 
         for strand in &mut self.strands {
             strand.prepare(&self.device, &self.queue);
