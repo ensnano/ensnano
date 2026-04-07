@@ -174,12 +174,8 @@ impl View {
             globals_bottom.get_layout(),
         );
 
-        let insertion_drawer = InsertionDrawer::new(
-            device.clone(),
-            queue.clone(),
-            globals_top.get_layout(),
-            depth_stencil_state,
-        );
+        let insertion_drawer =
+            InsertionDrawer::new(&device, globals_top.get_layout(), depth_stencil_state);
 
         Self {
             device,
@@ -539,6 +535,7 @@ impl View {
         self.nucl_highlighter_top.prepare(&self.device, &self.queue);
         self.nucl_highlighter_bottom
             .prepare(&self.device, &self.queue);
+        self.insertion_drawer.prepare(&self.device, &self.queue);
 
         for strand in &mut self.strands {
             strand.prepare(&self.device, &self.queue);
