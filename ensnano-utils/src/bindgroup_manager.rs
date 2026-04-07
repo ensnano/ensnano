@@ -113,9 +113,9 @@ impl DynamicBindGroup {
 /// A structure that manages a bind group associated to a uniform buffer.
 pub struct UniformBindGroup {
     layout: BindGroupLayout,
+    bytes: Vec<u8>,
     buffer: Buffer,
     bind_group: BindGroup,
-    queue: Rc<Queue>,
 }
 
 static UNIFORM_BG_ENTRY: &[wgpu::BindGroupLayoutEntry] = &[wgpu::BindGroupLayoutEntry {
@@ -132,15 +132,11 @@ static UNIFORM_BG_ENTRY: &[wgpu::BindGroupLayoutEntry] = &[wgpu::BindGroupLayout
 }];
 
 impl UniformBindGroup {
-    pub fn new<I: bytemuck::Pod>(
-        device: Rc<Device>,
-        queue: Rc<Queue>,
-        viewer_data: &I,
-        label: &str,
-    ) -> Self {
+    pub fn new<I: bytemuck::Pod>(device: &Device, viewer_data: &I, label: &str) -> Self {
+        let bytes = bytemuck::cast_slice(&[*viewer_data]).to_vec();
         let buffer = create_buffer_with_data(
-            &device,
-            bytemuck::cast_slice(&[*viewer_data]),
+            device,
+            &bytes,
             wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
             label,
         );
@@ -167,15 +163,18 @@ impl UniformBindGroup {
 
         Self {
             layout,
+            bytes,
             buffer,
             bind_group,
-            queue,
         }
     }
 
-    pub fn update<I: bytemuck::Pod>(&self, new_data: &I) {
-        self.queue
-            .write_buffer(&self.buffer, 0, bytemuck::cast_slice(&[*new_data]));
+    pub fn update<I: bytemuck::Pod>(&mut self, new_data: &I) {
+        self.bytes = bytemuck::cast_slice::<I, u8>(&[*new_data]).to_vec();
+    }
+
+    pub fn prepare(&self, queue: &Queue) {
+        queue.write_buffer(&self.buffer, 0, &self.bytes);
     }
 
     pub fn get_bindgroup(&self) -> &BindGroup {

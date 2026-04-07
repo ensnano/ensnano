@@ -112,15 +112,10 @@ impl View {
             SAMPLE_COUNT,
         ));
         let models = DynamicBindGroup::new(&device, "2d models");
-        let globals_top = UniformBindGroup::new(
-            device.clone(),
-            queue.clone(),
-            camera_top.borrow().get_globals(),
-            "global top",
-        );
+        let globals_top =
+            UniformBindGroup::new(&device, camera_top.borrow().get_globals(), "global top");
         let globals_bottom = UniformBindGroup::new(
-            device.clone(),
-            queue.clone(),
+            &device,
             camera_bottom.borrow().get_globals(),
             "global bottom",
         );
@@ -543,6 +538,20 @@ impl View {
     /// Allocates buffer using the device and queue for rendering
     pub fn prepare(&mut self, device: &Device, queue: &Queue) {
         self.models.prepare(device, queue);
+        self.globals_top.prepare(queue);
+        self.globals_bottom.prepare(queue);
+    }
+
+    fn update(&mut self) {
+        if let Some(globals) = self.camera_top.borrow_mut().update() {
+            log::debug!("new camera globals: {globals:?}");
+            self.globals_top.update(globals);
+            self.was_updated = true;
+        }
+        if let Some(globals) = self.camera_bottom.borrow_mut().update() {
+            self.globals_bottom.update(globals);
+            self.was_updated = true;
+        }
     }
 
     fn render_pass(
@@ -556,20 +565,11 @@ impl View {
     ) {
         // temp
         self.models.prepare(&self.device, &self.queue);
+        self.globals_top.prepare(&self.queue);
+        self.globals_bottom.prepare(&self.queue);
 
         #[expect(clippy::useless_let_if_seq)] // false positive in my opinion
-        let mut need_new_circles = false;
-        if let Some(globals) = self.camera_top.borrow_mut().update() {
-            log::debug!("new camera globals: {globals:?}");
-            self.globals_top.update(globals);
-            need_new_circles = true;
-        }
-        if let Some(globals) = self.camera_bottom.borrow_mut().update() {
-            self.globals_bottom.update(globals);
-            need_new_circles = true;
-        }
-
-        if need_new_circles || self.was_updated {
+        if self.was_updated {
             let instances_top = self.generate_circle_instances(&self.camera_top);
             let instances_bottom = self.generate_circle_instances(&self.camera_bottom);
             if SHOW_SUGGESTION {
@@ -1013,12 +1013,10 @@ impl View {
         png_size: PhySize,
         globals: Globals,
     ) {
-        let globals_bing_group = UniformBindGroup::new(
-            self.device.clone(),
-            self.queue.clone(),
-            &globals,
-            "global png",
-        );
+        // temp
+        self.update();
+
+        let globals_bing_group = UniformBindGroup::new(&self.device, &globals, "global png");
 
         let depth_texture = {
             Arc::new(Texture::create_depth_texture(
@@ -1036,6 +1034,7 @@ impl View {
             &depth_texture,
             Some(globals_bing_group.get_bindgroup()),
         );
+
         self.was_updated = false;
     }
 
@@ -1046,6 +1045,9 @@ impl View {
     /// * png_size: Export resolution; use area's size if None.
     ///
     pub fn draw(&mut self, encoder: &mut CommandEncoder, target: &TextureView) {
+        // temp
+        self.update();
+
         self.render_pass(
             target,
             self.area_size,
@@ -1054,6 +1056,7 @@ impl View {
             &self.depth_texture.clone(),
             None,
         );
+
         self.was_updated = false;
     }
 

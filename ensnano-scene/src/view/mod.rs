@@ -154,14 +154,12 @@ impl View {
             position: None,
         };
         let viewer = UniformBindGroup::new(
-            device.clone(),
-            queue.clone(),
+            &device,
             &Uniforms::from_view_proj(camera.clone(), projection.clone(), None),
             "3d viewer",
         );
         let stereographic_viewer = UniformBindGroup::new(
-            device.clone(),
-            queue.clone(),
+            &device,
             &Uniforms::from_view_proj(camera.clone(), projection.clone(), Some(&stereography)),
             "stereographic viewer",
         );
@@ -410,7 +408,7 @@ impl View {
         }
     }
 
-    fn update_viewers(&self) {
+    fn update_viewers(&mut self) {
         self.viewer.update(&Uniforms::from_view_proj_fog(
             self.camera.clone(),
             self.projection.clone(),
@@ -547,6 +545,8 @@ impl View {
     ) {
         // temp
         self.models.prepare(&self.device, &self.queue);
+        self.viewer.prepare(&self.queue);
+        self.stereographic_viewer.prepare(&self.queue);
 
         if let Some(size) = self.new_size.take() {
             self.depth_texture =
