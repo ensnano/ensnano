@@ -10,6 +10,8 @@ use std::rc::Rc;
 use wgpu::{Buffer, Device, Queue, RenderPass};
 
 pub(super) struct HelixView {
+    device: Rc<Device>,
+    queue: Rc<Queue>,
     vertex_buffer: DynamicBuffer,
     index_buffer: DynamicBuffer,
     num_instance: u32,
@@ -19,15 +21,15 @@ pub(super) struct HelixView {
 impl HelixView {
     pub(super) fn new(device: Rc<Device>, queue: Rc<Queue>, background: bool) -> Self {
         Self {
+            device: device.clone(),
+            queue,
             vertex_buffer: DynamicBuffer::new(
-                device.clone(),
-                queue.clone(),
+                &device,
                 wgpu::BufferUsages::VERTEX,
                 "helix vertex buffer",
             ),
             index_buffer: DynamicBuffer::new(
-                device,
-                queue,
+                &device,
                 wgpu::BufferUsages::INDEX,
                 "helix index buffer",
             ),
@@ -42,12 +44,16 @@ impl HelixView {
         } else {
             helix.to_vertices()
         };
-        self.vertex_buffer.update(vertices.vertices.as_slice());
-        self.index_buffer.update(vertices.indices.as_slice());
+        self.vertex_buffer.update(vertices.vertices.as_slice(), 0);
+        self.index_buffer.update(vertices.indices.as_slice(), 0);
         self.num_instance = vertices.indices.len() as u32;
     }
 
-    pub(super) fn draw<'a>(&'a self, render_pass: &mut RenderPass<'a>) {
+    pub(super) fn draw<'a>(&'a mut self, render_pass: &mut RenderPass<'a>) {
+        // temp
+        self.vertex_buffer.prepare(&self.device, &self.queue);
+        self.index_buffer.prepare(&self.device, &self.queue);
+
         if self.index_buffer.length == 0 || self.num_instance == 0 || self.vertex_buffer.length == 0
         {
             println!(
@@ -63,6 +69,9 @@ impl HelixView {
 }
 
 pub(super) struct StrandView {
+    device: Rc<Device>,
+    queue: Rc<Queue>,
+
     vertex_buffer_top: DynamicBuffer,
     index_buffer_top: DynamicBuffer,
     num_instance_top: u32,
@@ -81,51 +90,37 @@ pub(super) struct StrandView {
 impl StrandView {
     pub(super) fn new(device: Rc<Device>, queue: Rc<Queue>) -> Self {
         Self {
+            device: device.clone(),
+            queue,
             vertex_buffer_top: DynamicBuffer::new(
-                device.clone(),
-                queue.clone(),
+                &device,
                 wgpu::BufferUsages::VERTEX,
                 "vertex buffer top",
             ),
             index_buffer_top: DynamicBuffer::new(
-                device.clone(),
-                queue.clone(),
+                &device,
                 wgpu::BufferUsages::INDEX,
                 "index buffer top",
             ),
-            split_vbo_top: DynamicBuffer::new(
-                device.clone(),
-                queue.clone(),
-                wgpu::BufferUsages::VERTEX,
-                "split vbo top",
-            ),
-            split_ibo_top: DynamicBuffer::new(
-                device.clone(),
-                queue.clone(),
-                wgpu::BufferUsages::INDEX,
-                "split ibo top",
-            ),
+            split_vbo_top: DynamicBuffer::new(&device, wgpu::BufferUsages::VERTEX, "split vbo top"),
+            split_ibo_top: DynamicBuffer::new(&device, wgpu::BufferUsages::INDEX, "split ibo top"),
             split_vbo_bottom: DynamicBuffer::new(
-                device.clone(),
-                queue.clone(),
+                &device,
                 wgpu::BufferUsages::VERTEX,
                 "split vbo bottom",
             ),
             split_ibo_bottom: DynamicBuffer::new(
-                device.clone(),
-                queue.clone(),
+                &device,
                 wgpu::BufferUsages::INDEX,
                 "split ibo bottom",
             ),
             vertex_buffer_bottom: DynamicBuffer::new(
-                device.clone(),
-                queue.clone(),
+                &device,
                 wgpu::BufferUsages::VERTEX,
                 "vertex buffer bottom",
             ),
             index_buffer_bottom: DynamicBuffer::new(
-                device,
-                queue,
+                &device,
                 wgpu::BufferUsages::INDEX,
                 "index buffer bottom",
             ),
@@ -144,46 +139,57 @@ impl StrandView {
         top_cam: &CameraPtr,
         bottom_cam: &CameraPtr,
     ) {
-        // TODO: check if update is needed
-
         let (vertices_top, split_vertices_top) =
             strand.to_vertices(helices, free_end, top_cam, bottom_cam);
         self.vertex_buffer_top
-            .update(vertices_top.vertices.as_slice());
+            .update(vertices_top.vertices.as_slice(), 0);
         self.index_buffer_top
-            .update(vertices_top.indices.as_slice());
+            .update(vertices_top.indices.as_slice(), 0);
         self.num_instance_top = vertices_top.indices.len() as u32;
         self.split_vbo_top
-            .update(split_vertices_top.vertices.as_slice());
+            .update(split_vertices_top.vertices.as_slice(), 0);
         self.split_ibo_top
-            .update(split_vertices_top.indices.as_slice());
+            .update(split_vertices_top.indices.as_slice(), 0);
         self.num_instance_split_top = split_vertices_top.indices.len() as u32;
         let (vertices_bottom, split_vertices_bottom) =
             strand.to_vertices(helices, free_end, bottom_cam, top_cam);
         self.vertex_buffer_bottom
-            .update(vertices_bottom.vertices.as_slice());
+            .update(vertices_bottom.vertices.as_slice(), 0);
         self.index_buffer_bottom
-            .update(vertices_bottom.indices.as_slice());
+            .update(vertices_bottom.indices.as_slice(), 0);
         self.num_instance_bottom = vertices_bottom.indices.len() as u32;
         self.split_vbo_bottom
-            .update(split_vertices_bottom.vertices.as_slice());
+            .update(split_vertices_bottom.vertices.as_slice(), 0);
         self.split_ibo_bottom
-            .update(split_vertices_bottom.indices.as_slice());
+            .update(split_vertices_bottom.indices.as_slice(), 0);
         self.num_instance_split_bottom = split_vertices_bottom.indices.len() as u32;
     }
 
     pub(super) fn set_indication(&mut self, nucl1: FlatNucl, nucl2: FlatNucl, helices: &[Helix]) {
         let vertices = Strand::indication(nucl1, nucl2, helices);
-        self.vertex_buffer_top.update(vertices.vertices.as_slice());
-        self.index_buffer_top.update(vertices.indices.as_slice());
+        self.vertex_buffer_top
+            .update(vertices.vertices.as_slice(), 0);
+        self.index_buffer_top.update(vertices.indices.as_slice(), 0);
         self.num_instance_top = vertices.indices.len() as u32;
         self.vertex_buffer_bottom
-            .update(vertices.vertices.as_slice());
-        self.index_buffer_bottom.update(vertices.indices.as_slice());
+            .update(vertices.vertices.as_slice(), 0);
+        self.index_buffer_bottom
+            .update(vertices.indices.as_slice(), 0);
         self.num_instance_bottom = vertices.indices.len() as u32;
     }
 
-    pub(super) fn draw<'a>(&'a self, render_pass: &mut RenderPass<'a>, bottom: bool) {
+    pub(super) fn draw<'a>(&'a mut self, render_pass: &mut RenderPass<'a>, bottom: bool) {
+        // temp
+
+        self.vertex_buffer_top.prepare(&self.device, &self.queue);
+        self.index_buffer_top.prepare(&self.device, &self.queue);
+        self.vertex_buffer_bottom.prepare(&self.device, &self.queue);
+        self.index_buffer_bottom.prepare(&self.device, &self.queue);
+        self.split_vbo_top.prepare(&self.device, &self.queue);
+        self.split_ibo_top.prepare(&self.device, &self.queue);
+        self.split_vbo_bottom.prepare(&self.device, &self.queue);
+        self.split_ibo_bottom.prepare(&self.device, &self.queue);
+
         if bottom {
             render_pass.set_index_buffer(
                 self.index_buffer_bottom.get_slice(),
@@ -216,21 +222,15 @@ impl StrandView {
 }
 
 struct DynamicBuffer {
+    bytes: Vec<u8>,
     buffer: Buffer,
     capacity: usize,
-    length: u64,
-    device: Rc<Device>,
-    queue: Rc<Queue>,
+    length: usize,
     usage: wgpu::BufferUsages,
 }
 
 impl DynamicBuffer {
-    pub(crate) fn new(
-        device: Rc<Device>,
-        queue: Rc<Queue>,
-        usage: wgpu::BufferUsages,
-        label: &str,
-    ) -> Self {
+    pub(crate) fn new(device: &Device, usage: wgpu::BufferUsages, label: &str) -> Self {
         let buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some(label),
             size: 0,
@@ -241,38 +241,41 @@ impl DynamicBuffer {
         let length = 0;
 
         Self {
+            bytes: vec![],
             buffer,
             capacity,
             length,
-            device,
-            queue,
             usage,
         }
     }
 
-    /// Replace the data of the associated buffer.
-    pub(crate) fn update<I: bytemuck::Pod>(&mut self, data: &[I]) {
-        let mut bytes: Vec<u8> = bytemuck::cast_slice(data).into();
-        let length = bytes.len();
-        while !bytes.len().is_multiple_of(4) {
-            bytes.push(0);
-        }
-        if self.capacity < bytes.len() {
-            self.length = length as u64;
-            self.buffer = self.device.create_buffer(&wgpu::BufferDescriptor {
-                label: Some(&format!("capacity = {}", 2 * bytes.len())),
-                size: 2 * bytes.len() as u64,
+    /// Uploads the buffer to the GPU.
+    pub(crate) fn prepare(&mut self, device: &Device, queue: &Queue) {
+        if self.capacity < self.bytes.len() {
+            self.capacity = 2 * self.bytes.len();
+            self.buffer = device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some(&format!("capacity = {}", self.capacity)),
+                size: self.capacity as u64,
                 usage: self.usage | wgpu::BufferUsages::COPY_DST,
                 mapped_at_creation: false,
             });
-            self.capacity = 2 * bytes.len();
-        } else if self.length != length as u64 {
-            self.length = length as u64;
         }
-        self.queue.write_buffer(&self.buffer, 0, bytes.as_slice());
+
+        self.length = self.bytes.len();
+        queue.write_buffer(&self.buffer, 0, self.bytes.as_slice());
+    }
+
+    /// Replace the data of the associated buffer.
+    pub(crate) fn update<I: bytemuck::Pod>(&mut self, data: &[I], a: u32) {
+        let mut bytes: Vec<u8> = bytemuck::cast_slice(data).into();
+        while !bytes.len().is_multiple_of(4) {
+            bytes.push(0);
+        }
+
+        self.bytes = bytes;
     }
 
     pub(crate) fn get_slice(&self) -> wgpu::BufferSlice<'_> {
-        self.buffer.slice(..self.length)
+        self.buffer.slice(..self.length as u64)
     }
 }

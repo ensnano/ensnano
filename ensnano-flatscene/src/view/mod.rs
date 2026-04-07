@@ -629,12 +629,12 @@ impl View {
         render_pass.set_pipeline(&self.helices_pipeline);
 
         log::trace!("Draw helices background..");
-        for background in &self.helices_background {
+        for background in &mut self.helices_background {
             background.draw(&mut render_pass);
         }
         log::trace!("Done..");
         log::trace!("Draw helices..");
-        for helix in &self.helices_view {
+        for helix in &mut self.helices_view {
             helix.draw(&mut render_pass);
         }
         log::trace!("Done..");
@@ -690,27 +690,27 @@ impl View {
         self.insertion_drawer.draw(&mut render_pass);
         render_pass.set_pipeline(&self.strand_pipeline);
         log::trace!("Draw strands..");
-        for strand in &self.strands {
+        for strand in &mut self.strands {
             strand.draw(&mut render_pass, bottom);
         }
         log::trace!("..OK");
         log::trace!("Draw pasted strands..");
-        for strand in &self.pasted_strands {
+        for strand in &mut self.pasted_strands {
             strand.draw(&mut render_pass, bottom);
         }
         log::trace!("..OK");
         log::trace!("Draw suggestion..");
-        for suggestion in &self.suggestions_view {
+        for suggestion in &mut self.suggestions_view {
             suggestion.draw(&mut render_pass, bottom);
         }
         log::trace!("..OK");
         log::trace!("Draw selected strands..");
-        for highlight in &self.selected_strands {
+        for highlight in &mut self.selected_strands {
             highlight.draw(&mut render_pass, bottom);
         }
         log::trace!("..OK");
         log::trace!("Draw candidate strands..");
-        for highlight in &self.candidate_strands {
+        for highlight in &mut self.candidate_strands {
             highlight.draw(&mut render_pass, bottom);
         }
         log::trace!("..OK");
@@ -826,10 +826,10 @@ impl View {
 
             render_pass.set_pipeline(&self.helices_pipeline);
 
-            for background in &self.helices_background {
+            for background in &mut self.helices_background {
                 background.draw(&mut render_pass);
             }
-            for helix in &self.helices_view {
+            for helix in &mut self.helices_view {
                 helix.draw(&mut render_pass);
             }
             self.rotation_widget.draw(&mut render_pass);
@@ -878,19 +878,19 @@ impl View {
             self.text_drawer_bottom.draw(&mut render_pass);
             self.insertion_drawer.draw(&mut render_pass);
             render_pass.set_pipeline(&self.strand_pipeline);
-            for strand in &self.strands {
+            for strand in &mut self.strands {
                 strand.draw(&mut render_pass, bottom);
             }
-            for strand in &self.pasted_strands {
+            for strand in &mut self.pasted_strands {
                 strand.draw(&mut render_pass, bottom);
             }
-            for suggestion in &self.suggestions_view {
+            for suggestion in &mut self.suggestions_view {
                 suggestion.draw(&mut render_pass, bottom);
             }
-            for highlight in &self.selected_strands {
+            for highlight in &mut self.selected_strands {
                 highlight.draw(&mut render_pass, bottom);
             }
-            for highlight in &self.candidate_strands {
+            for highlight in &mut self.candidate_strands {
                 highlight.draw(&mut render_pass, bottom);
             }
             render_pass.set_pipeline(&self.helices_pipeline);
