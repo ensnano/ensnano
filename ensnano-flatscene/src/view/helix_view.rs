@@ -36,7 +36,7 @@ impl HelixView {
 
     pub(super) fn update(&mut self, helix: &Helix) {
         match self {
-            HelixView::Unprepared {
+            Self::Unprepared {
                 vertices,
                 background,
             } => {
@@ -46,7 +46,7 @@ impl HelixView {
                     helix.background_vertices()
                 };
             }
-            HelixView::Prepared {
+            Self::Prepared {
                 vertex_buffer,
                 index_buffer,
                 num_instance,

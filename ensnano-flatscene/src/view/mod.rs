@@ -36,7 +36,7 @@ use std::{
     rc::Rc,
     sync::Arc,
 };
-use wgpu::{BindGroup, CommandEncoder, Device, Queue, RenderPipeline, TextureView};
+use wgpu::{CommandEncoder, Device, Queue, RenderPipeline, TextureView};
 use winit::dpi::{PhysicalPosition, PhysicalSize};
 
 const SHOW_SUGGESTION: bool = false;
@@ -88,7 +88,6 @@ pub struct View {
     hovered_nucl: Option<FlatNucl>,
 
     msaa_texture: Option<TextureView>,
-    png_msaa_texture: Option<TextureView>,
 
     depth_texture: Arc<Texture>,
     png_depth_texture: Arc<Texture>,
@@ -229,7 +228,6 @@ impl View {
             hovered_nucl: None,
 
             msaa_texture: None,
-            png_msaa_texture: None,
 
             depth_texture,
             png_depth_texture,
@@ -558,6 +556,8 @@ impl View {
         png_size: PhySize,
         globals: Globals,
     ) {
+        self.prepare_buffers(device, queue, png_size);
+
         self.png_depth_texture = {
             Arc::new(Texture::create_depth_texture(
                 device,
@@ -615,7 +615,7 @@ impl View {
 
         self.msaa_texture = (SAMPLE_COUNT > 1).then(|| {
             Texture::create_msaa_texture(
-                &device,
+                device,
                 &target_size,
                 SAMPLE_COUNT,
                 wgpu::TextureFormat::Bgra8UnormSrgb,

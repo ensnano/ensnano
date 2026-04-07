@@ -1,6 +1,5 @@
 use crate::ndc::Ndc;
 use ensnano_utils::consts::SAMPLE_COUNT;
-use std::rc::Rc;
 use wgpu::{Device, Queue, RenderPipeline, util::DeviceExt as _};
 
 const SELECT_COLOR: [f32; 4] = [0.26, 0.64, 0.85, 0.6];
