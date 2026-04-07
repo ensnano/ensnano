@@ -36,8 +36,8 @@ use std::{
     rc::Rc,
     sync::Arc,
 };
-use wgpu::{Device, Queue, RenderPipeline};
-use winit::dpi::PhysicalPosition;
+use wgpu::{BindGroup, CommandEncoder, Device, Queue, RenderPass, RenderPipeline, TextureView};
+use winit::dpi::{PhysicalPosition, PhysicalSize};
 
 const SHOW_SUGGESTION: bool = false;
 
@@ -540,43 +540,15 @@ impl View {
         self.was_updated = true;
     }
 
-    /// Draw `target` using encoder.
-    ///
-    /// # Arguments
-    ///
-    /// * png_size: Export resolution; use area's size if None.
-    ///
-    pub fn draw(
+    fn render_pass(
         &mut self,
-        encoder: &mut wgpu::CommandEncoder,
-        target: &wgpu::TextureView,
-        png_size: Option<PhySize>,
-        png_globals: Option<Globals>,
+        target: &TextureView,
+        target_size: PhysicalSize<u32>,
+        encoder: &mut CommandEncoder,
+        exporting_png: bool,
+        depth_texture: &Arc<Texture>,
+        global_top_bindgroup: Option<&BindGroup>,
     ) {
-        let exporting_png = png_size.is_some();
-        let globals_png = if let Some(globals) = png_globals {
-            Some(UniformBindGroup::new(
-                self.device.clone(),
-                self.queue.clone(),
-                &globals,
-                "global png",
-            ))
-        } else {
-            None
-        };
-        let png_glob_bg = globals_png.as_ref().map(UniformBindGroup::get_bindgroup);
-        let depth_texture = if let Some(size) = png_size {
-            Arc::new(Texture::create_depth_texture(
-                self.device.clone().as_ref(),
-                &size,
-                SAMPLE_COUNT,
-            ))
-        } else {
-            self.depth_texture.clone()
-        };
-        let depth_texture_view = &depth_texture.view;
-        let target_size = png_size.unwrap_or(self.area_size);
-
         #[expect(clippy::useless_let_if_seq)] // false positive in my opinion
         let mut need_new_circles = false;
         if let Some(globals) = self.camera_top.borrow_mut().update() {
@@ -632,7 +604,7 @@ impl View {
                 },
             })],
             depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                view: depth_texture_view,
+                view: &depth_texture.view,
                 depth_ops: Some(wgpu::Operations {
                     load: wgpu::LoadOp::Clear(1.),
                     store: wgpu::StoreOp::Store,
@@ -658,10 +630,11 @@ impl View {
         }
         render_pass.set_bind_group(
             0,
-            png_glob_bg.unwrap_or_else(|| self.globals_top.get_bindgroup()),
+            global_top_bindgroup.unwrap_or_else(|| self.globals_top.get_bindgroup()),
             &[],
         );
         render_pass.set_bind_group(1, self.models.get_bindgroup(), &[]);
+
         if !exporting_png {
             self.background.draw(&mut render_pass);
         }
@@ -695,7 +668,7 @@ impl View {
                 },
             })],
             depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                view: depth_texture_view,
+                view: &depth_texture.view,
                 depth_ops: Some(wgpu::Operations {
                     load: wgpu::LoadOp::Clear(1.),
                     store: wgpu::StoreOp::Store,
@@ -721,7 +694,7 @@ impl View {
         }
         render_pass.set_bind_group(
             0,
-            png_glob_bg.unwrap_or_else(|| self.globals_top.get_bindgroup()),
+            global_top_bindgroup.unwrap_or_else(|| self.globals_top.get_bindgroup()),
             &[],
         );
         render_pass.set_bind_group(1, self.models.get_bindgroup(), &[]);
@@ -768,7 +741,7 @@ impl View {
                 },
             })],
             depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                view: depth_texture_view,
+                view: &depth_texture.view,
                 depth_ops: Some(wgpu::Operations {
                     load: wgpu::LoadOp::Clear(1.),
                     store: wgpu::StoreOp::Store,
@@ -794,7 +767,7 @@ impl View {
         }
         render_pass.set_bind_group(
             0,
-            png_glob_bg.unwrap_or_else(|| self.globals_top.get_bindgroup()),
+            global_top_bindgroup.unwrap_or_else(|| self.globals_top.get_bindgroup()),
             &[],
         );
         render_pass.set_bind_group(1, self.models.get_bindgroup(), &[]);
@@ -833,7 +806,7 @@ impl View {
                     },
                 })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: depth_texture_view,
+                    view: &depth_texture.view,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(1.),
                         store: wgpu::StoreOp::Store,
@@ -885,7 +858,7 @@ impl View {
                     },
                 })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: depth_texture_view,
+                    view: &depth_texture.view,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(1.),
                         store: wgpu::StoreOp::Store,
@@ -947,7 +920,7 @@ impl View {
                     },
                 })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: depth_texture_view,
+                    view: &depth_texture.view,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(1.),
                         store: wgpu::StoreOp::Store,
@@ -995,6 +968,7 @@ impl View {
                 highlight.draw_split(&mut render_pass, bottom);
             }
         }
+
         if !exporting_png {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: None,
@@ -1007,7 +981,7 @@ impl View {
                     },
                 })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: depth_texture_view,
+                    view: &depth_texture.view,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(1.),
                         store: wgpu::StoreOp::Store,
@@ -1022,6 +996,56 @@ impl View {
             });
             self.rectangle.draw(&mut render_pass);
         }
+    }
+
+    pub fn draw_png(
+        &mut self,
+        encoder: &mut CommandEncoder,
+        target: &TextureView,
+        png_size: PhySize,
+        globals: Globals,
+    ) {
+        let globals_bing_group = UniformBindGroup::new(
+            self.device.clone(),
+            self.queue.clone(),
+            &globals,
+            "global png",
+        );
+
+        let depth_texture = {
+            Arc::new(Texture::create_depth_texture(
+                self.device.clone().as_ref(),
+                &png_size,
+                SAMPLE_COUNT,
+            ))
+        };
+
+        self.render_pass(
+            target,
+            png_size,
+            encoder,
+            true,
+            &depth_texture,
+            Some(globals_bing_group.get_bindgroup()),
+        );
+        self.was_updated = false;
+    }
+
+    /// Draw `target` using encoder.
+    ///
+    /// # Arguments
+    ///
+    /// * png_size: Export resolution; use area's size if None.
+    ///
+    pub fn draw(&mut self, encoder: &mut CommandEncoder, target: &TextureView) {
+        self.render_pass(
+            target,
+            self.area_size,
+            encoder,
+            false,
+            &self.depth_texture.clone(),
+            None,
+        );
         self.was_updated = false;
     }
 

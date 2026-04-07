@@ -188,7 +188,7 @@ impl FlatScene {
     fn draw_view(&self, encoder: &mut wgpu::CommandEncoder, target: &wgpu::TextureView) {
         if let Some(view) = self.view.get(self.selected_design) {
             log::trace!("draw flatscene");
-            view.borrow_mut().draw(encoder, target, None, None);
+            view.borrow_mut().draw(encoder, target);
         }
     }
 
@@ -601,7 +601,7 @@ impl FlatScene {
 
         self.view[0]
             .borrow_mut()
-            .draw(&mut encoder, &texture_view, Some(png_size), Some(glob));
+            .draw_png(&mut encoder, &texture_view, png_size, glob);
 
         // create a buffer and fill it with the texture
         let extent = size;
