@@ -271,12 +271,9 @@ impl View {
     }
 
     fn add_helix(&mut self, helix: &Helix) {
-        let id_helix = self.helices_view.len() as u32;
-        self.helices_view.push(HelixView::new(&self.device, false));
+        self.helices_view.push(HelixView::from_helix(helix, false));
         self.helices_background
-            .push(HelixView::new(&self.device, true));
-        self.helices_view[id_helix as usize].update(helix);
-        self.helices_background[id_helix as usize].update(helix);
+            .push(HelixView::from_helix(helix, true));
         self.helices_model.push(helix.model());
         self.models.update(self.helices_model.as_slice());
     }
@@ -317,19 +314,18 @@ impl View {
     }
 
     pub fn add_strand(&mut self, strand: &Strand, helices: &[Helix]) {
-        self.strands.push(StrandView::new(&self.device));
         let other_cam = if self.is_split {
             &self.camera_bottom
         } else {
             &self.camera_top
         };
-        self.strands.iter_mut().last().unwrap().update(
+        self.strands.push(StrandView::from_strand(
             strand,
             helices,
             self.free_end.as_ref(),
             &self.camera_top,
             other_cam,
-        );
+        ));
     }
 
     pub fn reset(&mut self) {
@@ -349,7 +345,7 @@ impl View {
                 &self.camera_top
             };
             if i < strands.len() {
-                s.update(
+                s.update_strand(
                     &strands[i],
                     helices,
                     self.free_end.as_ref(),
@@ -379,9 +375,13 @@ impl View {
             &self.camera_top
         };
         for s in strands {
-            let mut strand_view = StrandView::new(&self.device);
-            strand_view.update(s, helices, None, &self.camera_top, other_cam);
-            self.selected_strands.push(strand_view);
+            self.selected_strands.push(StrandView::from_strand(
+                s,
+                helices,
+                None,
+                &self.camera_top,
+                other_cam,
+            ));
         }
         self.was_updated = true;
     }
@@ -394,9 +394,15 @@ impl View {
             &self.camera_top
         };
         for s in strands {
-            let mut strand_view = StrandView::new(&self.device);
-            strand_view.update(s, helices, None, &self.camera_top, other_cam);
-            self.candidate_strands.push(strand_view);
+            // let mut strand_view = StrandView::new(&self.device);
+            // strand_view.update(s, helices, None, &self.camera_top, other_cam);
+            self.candidate_strands.push(StrandView::from_strand(
+                s,
+                helices,
+                None,
+                &self.camera_top,
+                other_cam,
+            ));
         }
         self.was_updated = true;
     }
@@ -413,9 +419,13 @@ impl View {
         self.pasted_strands = strand
             .iter()
             .map(|strand| {
-                let mut pasted_strand = StrandView::new(&self.device);
-                pasted_strand.update(strand, helices, None, &self.camera_top, &self.camera_bottom);
-                pasted_strand
+                StrandView::from_strand(
+                    strand,
+                    helices,
+                    None,
+                    &self.camera_top,
+                    &self.camera_bottom,
+                )
             })
             .collect();
     }
@@ -1214,9 +1224,8 @@ impl View {
     fn view_suggestion(&mut self) {
         self.suggestions_view.clear();
         for (n1, n2) in &self.suggestions {
-            let mut view = StrandView::new(&self.device);
-            view.set_indication(*n1, *n2, &self.helices);
-            self.suggestions_view.push(view);
+            self.suggestions_view
+                .push(StrandView::from_indication(*n1, *n2, &self.helices))
         }
     }
 
@@ -1233,9 +1242,8 @@ impl View {
         self.suggestions_view.clear();
         self.was_updated |= self.suggestion_candidate != candidate.zip(other);
         if let Some((n1, n2)) = candidate.zip(other) {
-            let mut view = StrandView::new(&self.device);
-            view.set_indication(n1, n2, &self.helices);
-            self.suggestions_view.push(view);
+            self.suggestions_view
+                .push(StrandView::from_indication(n1, n2, &self.helices));
         }
         self.suggestion_candidate = candidate.zip(other);
     }
