@@ -182,16 +182,12 @@ impl View {
         );
         let rectangle = Rectangle::new(&device, queue.clone());
 
-        let text_drawer_top = TextDrawer::new(
-            PRINTABLE_CHARS,
-            device.clone(),
-            queue.clone(),
-            globals_top.get_layout(),
-        );
+        let text_drawer_top =
+            TextDrawer::new(PRINTABLE_CHARS, &device, &queue, globals_top.get_layout());
         let text_drawer_bottom = TextDrawer::new(
             PRINTABLE_CHARS,
-            device.clone(),
-            queue.clone(),
+            &device,
+            &queue,
             globals_bottom.get_layout(),
         );
 
@@ -567,6 +563,8 @@ impl View {
         self.models.prepare(&self.device, &self.queue);
         self.globals_top.prepare(&self.queue);
         self.globals_bottom.prepare(&self.queue);
+        self.text_drawer_top.prepare(&self.device, &self.queue);
+        self.text_drawer_bottom.prepare(&self.device, &self.queue);
 
         #[expect(clippy::useless_let_if_seq)] // false positive in my opinion
         if self.was_updated {

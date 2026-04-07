@@ -5,8 +5,6 @@ use ultraviolet::{Mat2, Rotor2, Vec2, Vec4};
 use wgpu::{BindGroupLayout, Device, Queue, RenderPass};
 
 pub struct TextDrawer {
-    device: Rc<Device>,
-    queue: Rc<Queue>,
     char_drawers: HashMap<char, CharDrawer>,
     char_map: HashMap<char, Vec<CharInstance>>,
     layout: Layout<()>,
@@ -26,8 +24,8 @@ const PX_PER_SQUARE: f32 = 512.0;
 impl TextDrawer {
     pub fn new(
         chars: &[char],
-        device: Rc<Device>,
-        queue: Rc<Queue>,
+        device: &Device,
+        queue: &Queue,
         globals_layout: &BindGroupLayout,
     ) -> Self {
         let mut char_drawers = HashMap::new();
@@ -36,12 +34,10 @@ impl TextDrawer {
             .iter()
             .chain(['A', 'a'].iter().filter(|c| !chars.contains(c)))
         {
-            char_drawers.insert(*c, CharDrawer::new(&device, &queue, globals_layout, *c));
+            char_drawers.insert(*c, CharDrawer::new(device, queue, globals_layout, *c));
             char_map.insert(*c, Vec::new());
         }
         Self {
-            device,
-            queue,
             char_map,
             char_drawers,
             layout: Layout::new(CoordinateSystem::PositiveYDown),
@@ -54,12 +50,13 @@ impl TextDrawer {
         }
     }
 
-    pub fn draw<'a>(&'a mut self, render_pass: &mut RenderPass<'a>) {
-        //temp
+    pub fn prepare(&mut self, device: &Device, queue: &Queue) {
         for d in self.char_drawers.values_mut() {
-            d.prepare(&self.device, &self.queue);
+            d.prepare(device, queue);
         }
+    }
 
+    pub fn draw<'a>(&'a mut self, render_pass: &mut RenderPass<'a>) {
         for (c, v) in &self.char_map {
             if let Some(drawer_mut) = self.char_drawers.get_mut(c) {
                 drawer_mut.new_instances(Rc::new(v.clone()));
