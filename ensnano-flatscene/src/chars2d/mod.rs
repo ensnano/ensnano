@@ -22,8 +22,6 @@ pub(crate) struct CharInstance {
 }
 
 pub(crate) struct CharDrawer {
-    device: Rc<Device>,
-    queue: Rc<Queue>,
     /// A possible updates to the instances to be drawn. Must be taken into account before drawing
     /// next frame.
     new_instances: Option<Rc<Vec<CharInstance>>>,
@@ -38,8 +36,8 @@ pub(crate) struct CharDrawer {
 
 impl CharDrawer {
     pub(crate) fn new(
-        device: Rc<Device>,
-        queue: Rc<Queue>,
+        device: &Device,
+        queue: &Queue,
         globals_layout: &BindGroupLayout,
         character: char,
     ) -> Self {
@@ -54,8 +52,6 @@ impl CharDrawer {
             color: Vec4::zero(),
         }];
         let mut ret = Self {
-            device: device.clone(),
-            queue,
             new_instances: Some(Rc::new(new_instances)),
             number_instances: 0,
             pipeline: None,
@@ -67,13 +63,11 @@ impl CharDrawer {
         ret
     }
 
-    // pub(crate) fn prepare(&mut self, device: &Device, queue: &Queue) {
-    //     self.instances_bg.prepare(device, queue);
-    // }
+    pub(crate) fn prepare(&mut self, device: &Device, queue: &Queue) {
+        self.instances_bg.prepare(device, queue);
+    }
 
-    pub(crate) fn draw<'a>(&'a mut self, render_pass: &mut RenderPass<'a>) {
-        self.instances_bg.prepare(&self.device, &self.queue);
-
+    pub(crate) fn draw<'a>(&'a self, render_pass: &mut RenderPass<'a>) {
         render_pass.set_pipeline(self.pipeline.as_ref().unwrap());
         render_pass.set_bind_group(1, self.instances_bg.get_bindgroup(), &[]);
         render_pass.set_bind_group(TEXTURE_BINDING_ID, &self.letter.bind_group, &[]);

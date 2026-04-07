@@ -1,7 +1,6 @@
 //! This modules contains structure that manipulate bind groups and their associated buffers.
 
 use crate::create_buffer_with_data;
-use std::rc::Rc;
 use wgpu::{BindGroup, BindGroupLayout, Buffer, BufferDescriptor, Device, Queue};
 
 /// A bind group with an associated buffer whose size may vary.
