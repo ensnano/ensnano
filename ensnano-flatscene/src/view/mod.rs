@@ -266,16 +266,9 @@ impl View {
 
     fn add_helix(&mut self, helix: &Helix) {
         let id_helix = self.helices_view.len() as u32;
-        self.helices_view.push(HelixView::new(
-            self.device.clone(),
-            self.queue.clone(),
-            false,
-        ));
-        self.helices_background.push(HelixView::new(
-            self.device.clone(),
-            self.queue.clone(),
-            true,
-        ));
+        self.helices_view.push(HelixView::new(&self.device, false));
+        self.helices_background
+            .push(HelixView::new(&self.device, true));
         self.helices_view[id_helix as usize].update(helix);
         self.helices_background[id_helix as usize].update(helix);
         self.helices_model.push(helix.model());
@@ -548,6 +541,15 @@ impl View {
         self.nucl_highlighter_bottom
             .prepare(&self.device, &self.queue);
 
+        for background in &mut self.helices_background {
+            background.prepare(&self.device, &self.queue);
+        }
+        for helix in &mut self.helices_view {
+            helix.prepare(&self.device, &self.queue);
+        }
+
+        // render starts here
+
         if self.was_updated {
             let instances_top = self.generate_circle_instances(&self.camera_top);
             let instances_bottom = self.generate_circle_instances(&self.camera_bottom);
@@ -629,12 +631,12 @@ impl View {
         render_pass.set_pipeline(&self.helices_pipeline);
 
         log::trace!("Draw helices background..");
-        for background in &mut self.helices_background {
+        for background in &self.helices_background {
             background.draw(&mut render_pass);
         }
         log::trace!("Done..");
         log::trace!("Draw helices..");
-        for helix in &mut self.helices_view {
+        for helix in &self.helices_view {
             helix.draw(&mut render_pass);
         }
         log::trace!("Done..");
@@ -826,10 +828,10 @@ impl View {
 
             render_pass.set_pipeline(&self.helices_pipeline);
 
-            for background in &mut self.helices_background {
+            for background in &self.helices_background {
                 background.draw(&mut render_pass);
             }
-            for helix in &mut self.helices_view {
+            for helix in &self.helices_view {
                 helix.draw(&mut render_pass);
             }
             self.rotation_widget.draw(&mut render_pass);

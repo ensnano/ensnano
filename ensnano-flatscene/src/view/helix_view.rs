@@ -10,8 +10,6 @@ use std::rc::Rc;
 use wgpu::{Buffer, Device, Queue, RenderPass};
 
 pub(super) struct HelixView {
-    device: Rc<Device>,
-    queue: Rc<Queue>,
     vertex_buffer: DynamicBuffer,
     index_buffer: DynamicBuffer,
     num_instance: u32,
@@ -19,17 +17,15 @@ pub(super) struct HelixView {
 }
 
 impl HelixView {
-    pub(super) fn new(device: Rc<Device>, queue: Rc<Queue>, background: bool) -> Self {
+    pub(super) fn new(device: &Device, background: bool) -> Self {
         Self {
-            device: device.clone(),
-            queue,
             vertex_buffer: DynamicBuffer::new(
-                &device,
+                device,
                 wgpu::BufferUsages::VERTEX,
                 "helix vertex buffer",
             ),
             index_buffer: DynamicBuffer::new(
-                &device,
+                device,
                 wgpu::BufferUsages::INDEX,
                 "helix index buffer",
             ),
@@ -44,16 +40,17 @@ impl HelixView {
         } else {
             helix.to_vertices()
         };
-        self.vertex_buffer.update(vertices.vertices.as_slice(), 0);
-        self.index_buffer.update(vertices.indices.as_slice(), 0);
+        self.vertex_buffer.update(vertices.vertices.as_slice());
+        self.index_buffer.update(vertices.indices.as_slice());
         self.num_instance = vertices.indices.len() as u32;
     }
 
-    pub(super) fn draw<'a>(&'a mut self, render_pass: &mut RenderPass<'a>) {
-        // temp
-        self.vertex_buffer.prepare(&self.device, &self.queue);
-        self.index_buffer.prepare(&self.device, &self.queue);
+    pub(super) fn prepare(&mut self, device: &Device, queue: &Queue) {
+        self.vertex_buffer.prepare(device, queue);
+        self.index_buffer.prepare(device, queue);
+    }
 
+    pub(super) fn draw<'a>(&'a self, render_pass: &mut RenderPass<'a>) {
         if self.index_buffer.length == 0 || self.num_instance == 0 || self.vertex_buffer.length == 0
         {
             println!(
@@ -142,39 +139,37 @@ impl StrandView {
         let (vertices_top, split_vertices_top) =
             strand.to_vertices(helices, free_end, top_cam, bottom_cam);
         self.vertex_buffer_top
-            .update(vertices_top.vertices.as_slice(), 0);
+            .update(vertices_top.vertices.as_slice());
         self.index_buffer_top
-            .update(vertices_top.indices.as_slice(), 0);
+            .update(vertices_top.indices.as_slice());
         self.num_instance_top = vertices_top.indices.len() as u32;
         self.split_vbo_top
-            .update(split_vertices_top.vertices.as_slice(), 0);
+            .update(split_vertices_top.vertices.as_slice());
         self.split_ibo_top
-            .update(split_vertices_top.indices.as_slice(), 0);
+            .update(split_vertices_top.indices.as_slice());
         self.num_instance_split_top = split_vertices_top.indices.len() as u32;
         let (vertices_bottom, split_vertices_bottom) =
             strand.to_vertices(helices, free_end, bottom_cam, top_cam);
         self.vertex_buffer_bottom
-            .update(vertices_bottom.vertices.as_slice(), 0);
+            .update(vertices_bottom.vertices.as_slice());
         self.index_buffer_bottom
-            .update(vertices_bottom.indices.as_slice(), 0);
+            .update(vertices_bottom.indices.as_slice());
         self.num_instance_bottom = vertices_bottom.indices.len() as u32;
         self.split_vbo_bottom
-            .update(split_vertices_bottom.vertices.as_slice(), 0);
+            .update(split_vertices_bottom.vertices.as_slice());
         self.split_ibo_bottom
-            .update(split_vertices_bottom.indices.as_slice(), 0);
+            .update(split_vertices_bottom.indices.as_slice());
         self.num_instance_split_bottom = split_vertices_bottom.indices.len() as u32;
     }
 
     pub(super) fn set_indication(&mut self, nucl1: FlatNucl, nucl2: FlatNucl, helices: &[Helix]) {
         let vertices = Strand::indication(nucl1, nucl2, helices);
-        self.vertex_buffer_top
-            .update(vertices.vertices.as_slice(), 0);
-        self.index_buffer_top.update(vertices.indices.as_slice(), 0);
+        self.vertex_buffer_top.update(vertices.vertices.as_slice());
+        self.index_buffer_top.update(vertices.indices.as_slice());
         self.num_instance_top = vertices.indices.len() as u32;
         self.vertex_buffer_bottom
-            .update(vertices.vertices.as_slice(), 0);
-        self.index_buffer_bottom
-            .update(vertices.indices.as_slice(), 0);
+            .update(vertices.vertices.as_slice());
+        self.index_buffer_bottom.update(vertices.indices.as_slice());
         self.num_instance_bottom = vertices.indices.len() as u32;
     }
 
@@ -266,7 +261,7 @@ impl DynamicBuffer {
     }
 
     /// Replace the data of the associated buffer.
-    pub(crate) fn update<I: bytemuck::Pod>(&mut self, data: &[I], a: u32) {
+    pub(crate) fn update<I: bytemuck::Pod>(&mut self, data: &[I]) {
         let mut bytes: Vec<u8> = bytemuck::cast_slice(data).into();
         while !bytes.len().is_multiple_of(4) {
             bytes.push(0);
