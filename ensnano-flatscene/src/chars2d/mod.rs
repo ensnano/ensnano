@@ -22,7 +22,6 @@ pub(crate) struct CharInstance {
 }
 
 pub(crate) struct CharDrawer {
-    device: Rc<Device>,
     /// A possible updates to the instances to be drawn. Must be taken into account before drawing
     /// next frame.
     new_instances: Option<Rc<Vec<CharInstance>>>,
@@ -37,13 +36,13 @@ pub(crate) struct CharDrawer {
 
 impl CharDrawer {
     pub(crate) fn new(
-        device: Rc<Device>,
-        queue: Rc<Queue>,
+        device: &Device,
+        queue: &Queue,
         globals_layout: &BindGroupLayout,
         character: char,
     ) -> Self {
-        let instances_bg = DynamicBindGroup::new(device.clone(), queue.clone(), "chars instances");
-        let char_texture = Rc::new(Letter::new(character, device.clone(), queue));
+        let instances_bg = DynamicBindGroup::new(device, "chars instances");
+        let char_texture = Rc::new(Letter::new(character, device, queue));
 
         let new_instances = vec![CharInstance {
             top_left: Vec2::zero(),
@@ -53,20 +52,22 @@ impl CharDrawer {
             color: Vec4::zero(),
         }];
         let mut ret = Self {
-            device,
             new_instances: Some(Rc::new(new_instances)),
             number_instances: 0,
             pipeline: None,
             instances_bg,
             letter: char_texture,
         };
-        let pipeline = ret.create_pipeline(globals_layout);
+        let pipeline = ret.create_pipeline(device, globals_layout);
         ret.pipeline = Some(pipeline);
         ret
     }
 
-    pub(crate) fn draw<'a>(&'a mut self, render_pass: &mut RenderPass<'a>) {
-        self.update_instances();
+    pub(crate) fn prepare(&mut self, device: &Device, queue: &Queue) {
+        self.instances_bg.prepare(device, queue);
+    }
+
+    pub(crate) fn draw<'a>(&'a self, render_pass: &mut RenderPass<'a>) {
         render_pass.set_pipeline(self.pipeline.as_ref().unwrap());
         render_pass.set_bind_group(1, self.instances_bg.get_bindgroup(), &[]);
         render_pass.set_bind_group(TEXTURE_BINDING_ID, &self.letter.bind_group, &[]);
@@ -76,6 +77,7 @@ impl CharDrawer {
 
     pub(crate) fn new_instances(&mut self, instances: Rc<Vec<CharInstance>>) {
         self.new_instances = Some(instances);
+        self.update_instances();
     }
 
     fn update_instances(&mut self) {
@@ -88,24 +90,19 @@ impl CharDrawer {
 
     /// Create a render pipeline. This function is meant to be called once, before drawing for the
     /// first time.
-    fn create_pipeline(&self, globals_layout: &BindGroupLayout) -> RenderPipeline {
-        let vertex_module = self
-            .device
-            .create_shader_module(include_spirv!("chars.vert.spv"));
-        let fragment_module = self
-            .device
-            .create_shader_module(include_spirv!("chars.frag.spv"));
+    fn create_pipeline(&self, device: &Device, globals_layout: &BindGroupLayout) -> RenderPipeline {
+        let vertex_module = device.create_shader_module(include_spirv!("chars.vert.spv"));
+        let fragment_module = device.create_shader_module(include_spirv!("chars.frag.spv"));
         let render_pipeline_layout =
-            self.device
-                .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                    bind_group_layouts: &[
-                        globals_layout,
-                        self.instances_bg.get_layout(),
-                        &self.letter.bind_group_layout,
-                    ],
-                    push_constant_ranges: &[],
-                    label: Some("render_pipeline_layout"),
-                });
+            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                bind_group_layouts: &[
+                    globals_layout,
+                    self.instances_bg.get_layout(),
+                    &self.letter.bind_group_layout,
+                ],
+                push_constant_ranges: &[],
+                label: Some("render_pipeline_layout"),
+            });
 
         let targets = &[Some(wgpu::ColorTargetState {
             format: wgpu::TextureFormat::Bgra8UnormSrgb,
@@ -121,34 +118,33 @@ impl CharDrawer {
             ..Default::default()
         };
 
-        self.device
-            .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-                layout: Some(&render_pipeline_layout),
-                vertex: wgpu::VertexState {
-                    module: &vertex_module,
-                    entry_point: "main",
-                    buffers: &[text::Vertex::desc()],
-                },
-                fragment: Some(wgpu::FragmentState {
-                    module: &fragment_module,
-                    entry_point: "main",
-                    targets,
-                }),
-                primitive,
-                depth_stencil: Some(wgpu::DepthStencilState {
-                    format: Texture::DEPTH_FORMAT,
-                    depth_write_enabled: true,
-                    depth_compare: wgpu::CompareFunction::Less,
-                    stencil: Default::default(),
-                    bias: Default::default(),
-                }),
-                multisample: wgpu::MultisampleState {
-                    count: SAMPLE_COUNT,
-                    mask: !0,
-                    alpha_to_coverage_enabled: false,
-                },
-                multiview: None,
-                label: Some("Char drawer render pipeline"),
-            })
+        device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            layout: Some(&render_pipeline_layout),
+            vertex: wgpu::VertexState {
+                module: &vertex_module,
+                entry_point: "main",
+                buffers: &[text::Vertex::desc()],
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: &fragment_module,
+                entry_point: "main",
+                targets,
+            }),
+            primitive,
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: Texture::DEPTH_FORMAT,
+                depth_write_enabled: true,
+                depth_compare: wgpu::CompareFunction::Less,
+                stencil: Default::default(),
+                bias: Default::default(),
+            }),
+            multisample: wgpu::MultisampleState {
+                count: SAMPLE_COUNT,
+                mask: !0,
+                alpha_to_coverage_enabled: false,
+            },
+            multiview: None,
+            label: Some("Char drawer render pipeline"),
+        })
     }
 }

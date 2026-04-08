@@ -38,7 +38,7 @@ use std::{
 };
 use ultraviolet::{Mat2, Rotor2, Vec2, Vec4};
 
-type Vertices = VertexBuffers<GpuVertex, u16>;
+pub(crate) type GpuVertices = VertexBuffers<GpuVertex, u16>;
 
 const CIRCLE_WIDGET_RADIUS: f32 = 1.5;
 const ZOOM_THRESHOLD: f32 = 7.0;
@@ -125,8 +125,8 @@ impl Helix {
         });
     }
 
-    pub fn background_vertices(&self) -> Vertices {
-        let mut vertices = Vertices::new();
+    pub fn background_vertices(&self) -> GpuVertices {
+        let mut vertices = GpuVertices::new();
         let left = self
             .abscissa_converter
             .nucl_to_x_conversion(self.get_flat_left()) as f32;
@@ -162,8 +162,8 @@ impl Helix {
         vertices
     }
 
-    pub fn to_vertices(&self) -> Vertices {
-        let mut vertices = Vertices::new();
+    pub fn to_vertices(&self) -> GpuVertices {
+        let mut vertices = GpuVertices::new();
         let left = self
             .abscissa_converter
             .nucl_to_x_conversion(self.get_flat_left()) as f32;

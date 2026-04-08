@@ -9,7 +9,6 @@ use lyon::{
         VertexBuffers,
     },
 };
-use std::rc::Rc;
 use ultraviolet::{Mat2, Rotor2, Vec2};
 use wgpu::{
     BindGroupLayout, Buffer, DepthStencilState, Device, Queue, RenderPass, RenderPipeline,
@@ -28,18 +27,13 @@ pub(crate) struct InsertionDrawer {
 
 impl InsertionDrawer {
     pub(crate) fn new(
-        device: Rc<Device>,
-        queue: Rc<Queue>,
+        device: &Device,
         globals: &BindGroupLayout,
         depth_stencil_state: Option<DepthStencilState>,
     ) -> Self {
-        let instances = DynamicBindGroup::new(device.clone(), queue, "insertion instances");
-        let pipeline = insertion_pipeline(
-            device.as_ref(),
-            globals,
-            instances.get_layout(),
-            depth_stencil_state,
-        );
+        let instances = DynamicBindGroup::new(device, "insertion instances");
+        let pipeline =
+            insertion_pipeline(device, globals, instances.get_layout(), depth_stencil_state);
         let vertices = make_vertices();
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: None,
@@ -72,8 +66,11 @@ impl InsertionDrawer {
         }
     }
 
-    pub(crate) fn draw<'a>(&'a mut self, render_pass: &mut RenderPass<'a>) {
-        self.update_instances();
+    pub(crate) fn prepare(&mut self, device: &Device, queue: &Queue) {
+        self.instances.prepare(device, queue);
+    }
+
+    pub(crate) fn draw<'a>(&'a self, render_pass: &mut RenderPass<'a>) {
         render_pass.set_pipeline(&self.pipeline);
         render_pass.set_bind_group(1, self.instances.get_bindgroup(), &[]);
         render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
@@ -87,6 +84,7 @@ impl InsertionDrawer {
 
     pub(crate) fn new_instances(&mut self, instances: Vec<InsertionInstance>) {
         self.new_instances = Some(instances);
+        self.update_instances();
     }
 
     fn update_instances(&mut self) {

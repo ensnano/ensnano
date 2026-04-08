@@ -36,15 +36,12 @@ use std::{
     rc::Rc,
     sync::Arc,
 };
-use wgpu::{Device, Queue, RenderPipeline};
-use winit::dpi::PhysicalPosition;
+use wgpu::{CommandEncoder, Device, Queue, RenderPipeline, TextureView};
+use winit::dpi::{PhysicalPosition, PhysicalSize};
 
 const SHOW_SUGGESTION: bool = false;
 
 pub struct View {
-    device: Rc<Device>,
-    queue: Rc<Queue>,
-    depth_texture: Arc<Texture>,
     helices: Vec<Helix>,
     helices_view: Vec<HelixView>,
     helices_background: Vec<HelixView>,
@@ -89,6 +86,13 @@ pub struct View {
     nucl_collection: Arc<NuclCollection>,
     edition_info: Option<EditionInfo>,
     hovered_nucl: Option<FlatNucl>,
+
+    msaa_texture: Option<TextureView>,
+
+    depth_texture: Arc<Texture>,
+    png_depth_texture: Arc<Texture>,
+
+    png_globals_bind_group: Option<UniformBindGroup>,
 }
 
 pub struct EditionInfo {
@@ -99,28 +103,28 @@ pub struct EditionInfo {
 
 impl View {
     pub(super) fn new(
-        device: Rc<Device>,
-        queue: Rc<Queue>,
+        device: &Device,
+        queue: &Queue,
         area: DrawArea,
         camera_top: CameraPtr,
         camera_bottom: CameraPtr,
         is_split: bool,
     ) -> Self {
         let depth_texture = Arc::new(Texture::create_depth_texture(
-            device.as_ref(),
+            device,
             &area.size,
             SAMPLE_COUNT,
         ));
-        let models = DynamicBindGroup::new(device.clone(), queue.clone(), "2d models");
-        let globals_top = UniformBindGroup::new(
-            device.clone(),
-            queue.clone(),
-            camera_top.borrow().get_globals(),
-            "global top",
-        );
+        let png_depth_texture = Arc::new(Texture::create_depth_texture(
+            device,
+            &area.size,
+            SAMPLE_COUNT,
+        ));
+        let models = DynamicBindGroup::new(device, "2d models");
+        let globals_top =
+            UniformBindGroup::new(device, camera_top.borrow().get_globals(), "global top");
         let globals_bottom = UniformBindGroup::new(
-            device.clone(),
-            queue.clone(),
+            device,
             camera_bottom.borrow().get_globals(),
             "global bottom",
         );
@@ -139,78 +143,45 @@ impl View {
         });
 
         let helices_pipeline = helices_pipeline_descr(
-            &device,
+            device,
             globals_top.get_layout(), // the layout is the same for both globals
             models.get_layout(),
             depth_stencil_state.clone(),
         );
         let strand_pipeline = strand_pipeline_descr(
-            &device,
+            device,
             globals_top.get_layout(),
             depth_stencil_state.clone(),
         );
 
         let background = Background::new(
-            &device,
+            device,
             globals_top.get_layout(),
             depth_stencil_state.as_ref(),
         );
-        let circle_drawer_top = CircleDrawer::new(
-            device.clone(),
-            queue.clone(),
-            globals_top.get_layout(),
-            CircleKind::FullCircle,
-        );
-        let circle_drawer_bottom = CircleDrawer::new(
-            device.clone(),
-            queue.clone(),
-            globals_top.get_layout(),
-            CircleKind::FullCircle,
-        );
-        let nucl_highlighter_top = CircleDrawer::new(
-            device.clone(),
-            queue.clone(),
-            globals_top.get_layout(),
-            CircleKind::FullCircle,
-        );
-        let nucl_highlighter_bottom = CircleDrawer::new(
-            device.clone(),
-            queue.clone(),
-            globals_top.get_layout(),
-            CircleKind::FullCircle,
-        );
-        let rotation_widget = CircleDrawer::new(
-            device.clone(),
-            queue.clone(),
-            globals_top.get_layout(),
-            CircleKind::RotationWidget,
-        );
-        let rectangle = Rectangle::new(&device, queue.clone());
+        let circle_drawer_top =
+            CircleDrawer::new(device, globals_top.get_layout(), CircleKind::FullCircle);
+        let circle_drawer_bottom =
+            CircleDrawer::new(device, globals_top.get_layout(), CircleKind::FullCircle);
+        let nucl_highlighter_top =
+            CircleDrawer::new(device, globals_top.get_layout(), CircleKind::FullCircle);
+        let nucl_highlighter_bottom =
+            CircleDrawer::new(device, globals_top.get_layout(), CircleKind::FullCircle);
+        let rotation_widget =
+            CircleDrawer::new(device, globals_top.get_layout(), CircleKind::RotationWidget);
+        let rectangle = Rectangle::new(device);
 
-        let text_drawer_top = TextDrawer::new(
-            PRINTABLE_CHARS,
-            device.clone(),
-            queue.clone(),
-            globals_top.get_layout(),
-        );
-        let text_drawer_bottom = TextDrawer::new(
-            PRINTABLE_CHARS,
-            device.clone(),
-            queue.clone(),
-            globals_bottom.get_layout(),
-        );
+        let text_drawer_top =
+            TextDrawer::new(PRINTABLE_CHARS, device, queue, globals_top.get_layout());
+        let text_drawer_bottom =
+            TextDrawer::new(PRINTABLE_CHARS, device, queue, globals_bottom.get_layout());
 
-        let insertion_drawer = InsertionDrawer::new(
-            device.clone(),
-            queue.clone(),
-            globals_top.get_layout(),
-            depth_stencil_state,
-        );
+        let insertion_drawer =
+            InsertionDrawer::new(device, globals_top.get_layout(), depth_stencil_state);
+
+        let globals_bind_group = None;
 
         Self {
-            device,
-            queue,
-            depth_texture,
             helices: Vec::new(),
             helices_view: Vec::new(),
             strands: Vec::new(),
@@ -255,6 +226,13 @@ impl View {
             selected_nucl: vec![],
             candidate_nucl: vec![],
             hovered_nucl: None,
+
+            msaa_texture: None,
+
+            depth_texture,
+            png_depth_texture,
+
+            png_globals_bind_group: globals_bind_group,
         }
     }
 
@@ -280,9 +258,9 @@ impl View {
         self.edition_info = info;
     }
 
-    pub fn resize(&mut self, area: DrawArea) {
+    pub fn resize(&mut self, device: &Device, area: DrawArea) {
         self.depth_texture = Arc::new(Texture::create_depth_texture(
-            self.device.clone().as_ref(),
+            device,
             &area.size,
             SAMPLE_COUNT,
         ));
@@ -291,19 +269,9 @@ impl View {
     }
 
     fn add_helix(&mut self, helix: &Helix) {
-        let id_helix = self.helices_view.len() as u32;
-        self.helices_view.push(HelixView::new(
-            self.device.clone(),
-            self.queue.clone(),
-            false,
-        ));
-        self.helices_background.push(HelixView::new(
-            self.device.clone(),
-            self.queue.clone(),
-            true,
-        ));
-        self.helices_view[id_helix as usize].update(helix);
-        self.helices_background[id_helix as usize].update(helix);
+        self.helices_view.push(HelixView::from_helix(helix, false));
+        self.helices_background
+            .push(HelixView::from_helix(helix, true));
         self.helices_model.push(helix.model());
         self.models.update(self.helices_model.as_slice());
     }
@@ -344,20 +312,18 @@ impl View {
     }
 
     pub fn add_strand(&mut self, strand: &Strand, helices: &[Helix]) {
-        self.strands
-            .push(StrandView::new(self.device.clone(), self.queue.clone()));
         let other_cam = if self.is_split {
             &self.camera_bottom
         } else {
             &self.camera_top
         };
-        self.strands.iter_mut().last().unwrap().update(
+        self.strands.push(StrandView::from_strand(
             strand,
             helices,
             self.free_end.as_ref(),
             &self.camera_top,
             other_cam,
-        );
+        ));
     }
 
     pub fn reset(&mut self) {
@@ -377,7 +343,7 @@ impl View {
                 &self.camera_top
             };
             if i < strands.len() {
-                s.update(
+                s.update_strand(
                     &strands[i],
                     helices,
                     self.free_end.as_ref(),
@@ -407,9 +373,13 @@ impl View {
             &self.camera_top
         };
         for s in strands {
-            let mut strand_view = StrandView::new(self.device.clone(), self.queue.clone());
-            strand_view.update(s, helices, None, &self.camera_top, other_cam);
-            self.selected_strands.push(strand_view);
+            self.selected_strands.push(StrandView::from_strand(
+                s,
+                helices,
+                None,
+                &self.camera_top,
+                other_cam,
+            ));
         }
         self.was_updated = true;
     }
@@ -422,9 +392,15 @@ impl View {
             &self.camera_top
         };
         for s in strands {
-            let mut strand_view = StrandView::new(self.device.clone(), self.queue.clone());
-            strand_view.update(s, helices, None, &self.camera_top, other_cam);
-            self.candidate_strands.push(strand_view);
+            // let mut strand_view = StrandView::new(&self.device);
+            // strand_view.update(s, helices, None, &self.camera_top, other_cam);
+            self.candidate_strands.push(StrandView::from_strand(
+                s,
+                helices,
+                None,
+                &self.camera_top,
+                other_cam,
+            ));
         }
         self.was_updated = true;
     }
@@ -441,9 +417,13 @@ impl View {
         self.pasted_strands = strand
             .iter()
             .map(|strand| {
-                let mut pasted_strand = StrandView::new(self.device.clone(), self.queue.clone());
-                pasted_strand.update(strand, helices, None, &self.camera_top, &self.camera_bottom);
-                pasted_strand
+                StrandView::from_strand(
+                    strand,
+                    helices,
+                    None,
+                    &self.camera_top,
+                    &self.camera_bottom,
+                )
             })
             .collect();
     }
@@ -540,56 +520,18 @@ impl View {
         self.was_updated = true;
     }
 
-    /// Draw `target` using encoder.
-    ///
-    /// # Arguments
-    ///
-    /// * png_size: Export resolution; use area's size if None.
-    ///
-    pub fn draw(
-        &mut self,
-        encoder: &mut wgpu::CommandEncoder,
-        target: &wgpu::TextureView,
-        png_size: Option<PhySize>,
-        png_globals: Option<Globals>,
-    ) {
-        let exporting_png = png_size.is_some();
-        let globals_png = if let Some(globals) = png_globals {
-            Some(UniformBindGroup::new(
-                self.device.clone(),
-                self.queue.clone(),
-                &globals,
-                "global png",
-            ))
-        } else {
-            None
-        };
-        let png_glob_bg = globals_png.as_ref().map(UniformBindGroup::get_bindgroup);
-        let depth_texture = if let Some(size) = png_size {
-            Arc::new(Texture::create_depth_texture(
-                self.device.clone().as_ref(),
-                &size,
-                SAMPLE_COUNT,
-            ))
-        } else {
-            self.depth_texture.clone()
-        };
-        let depth_texture_view = &depth_texture.view;
-        let target_size = png_size.unwrap_or(self.area_size);
-
-        #[expect(clippy::useless_let_if_seq)] // false positive in my opinion
-        let mut need_new_circles = false;
+    fn update(&mut self) {
         if let Some(globals) = self.camera_top.borrow_mut().update() {
             log::debug!("new camera globals: {globals:?}");
             self.globals_top.update(globals);
-            need_new_circles = true;
+            self.was_updated = true;
         }
         if let Some(globals) = self.camera_bottom.borrow_mut().update() {
             self.globals_bottom.update(globals);
-            need_new_circles = true;
+            self.was_updated = true;
         }
 
-        if need_new_circles || self.was_updated {
+        if self.was_updated {
             let instances_top = self.generate_circle_instances(&self.camera_top);
             let instances_bottom = self.generate_circle_instances(&self.camera_bottom);
             if SHOW_SUGGESTION {
@@ -605,17 +547,126 @@ impl View {
             self.nucl_highlighter_bottom
                 .new_instances(nucleotide_highlighting);
         }
+    }
 
-        let msaa_texture = (SAMPLE_COUNT > 1).then(|| {
+    pub fn prepare_png(
+        &mut self,
+        device: &Device,
+        queue: &Queue,
+        png_size: PhySize,
+        globals: Globals,
+    ) {
+        self.prepare_buffers(device, queue, png_size);
+
+        self.png_depth_texture = {
+            Arc::new(Texture::create_depth_texture(
+                device,
+                &png_size,
+                SAMPLE_COUNT,
+            ))
+        };
+
+        let bind_group = UniformBindGroup::new(device, &globals, "global png");
+        bind_group.prepare(queue);
+
+        self.png_globals_bind_group = Some(bind_group);
+    }
+
+    pub fn prepare(&mut self, device: &Device, queue: &Queue) {
+        self.prepare_buffers(device, queue, self.area_size);
+    }
+
+    fn prepare_buffers(&mut self, device: &Device, queue: &Queue, target_size: PhysicalSize<u32>) {
+        self.models.prepare(device, queue);
+        self.globals_top.prepare(queue);
+        self.globals_bottom.prepare(queue);
+        self.text_drawer_top.prepare(device, queue);
+        self.text_drawer_bottom.prepare(device, queue);
+        self.rotation_widget.prepare(device, queue);
+        self.circle_drawer_top.prepare(device, queue);
+        self.circle_drawer_bottom.prepare(device, queue);
+        self.nucl_highlighter_top.prepare(device, queue);
+        self.nucl_highlighter_bottom.prepare(device, queue);
+        self.insertion_drawer.prepare(device, queue);
+        self.rectangle.prepare(queue);
+
+        for strand in &mut self.strands {
+            strand.prepare(device, queue);
+        }
+        for strand in &mut self.pasted_strands {
+            strand.prepare(device, queue);
+        }
+        for suggestion in &mut self.suggestions_view {
+            suggestion.prepare(device, queue);
+        }
+        for highlight in &mut self.selected_strands {
+            highlight.prepare(device, queue);
+        }
+        for highlight in &mut self.candidate_strands {
+            highlight.prepare(device, queue);
+        }
+
+        for background in &mut self.helices_background {
+            background.prepare(device, queue);
+        }
+        for helix in &mut self.helices_view {
+            helix.prepare(device, queue);
+        }
+
+        self.msaa_texture = (SAMPLE_COUNT > 1).then(|| {
             Texture::create_msaa_texture(
-                self.device.clone().as_ref(),
+                device,
                 &target_size,
                 SAMPLE_COUNT,
                 wgpu::TextureFormat::Bgra8UnormSrgb,
             )
         });
+    }
 
-        let (attachment, resolve_target) = match msaa_texture.as_ref() {
+    pub fn draw_png(
+        &mut self,
+        encoder: &mut CommandEncoder,
+        target: &TextureView,
+        png_size: PhySize,
+    ) {
+        // temp
+        self.update();
+
+        self.render_pass(target, png_size, encoder, true, &self.png_depth_texture);
+
+        self.was_updated = false;
+    }
+
+    /// Draw `target` using encoder.
+    ///
+    /// # Arguments
+    ///
+    /// * png_size: Export resolution; use area's size if None.
+    ///
+    pub fn draw(&mut self, encoder: &mut CommandEncoder, target: &TextureView) {
+        // temp
+        self.update();
+
+        self.render_pass(
+            target,
+            self.area_size,
+            encoder,
+            false,
+            &self.depth_texture.clone(),
+        );
+
+        self.was_updated = false;
+    }
+
+    fn render_pass(
+        &self,
+        target: &TextureView,
+        target_size: PhysicalSize<u32>,
+        encoder: &mut CommandEncoder,
+        exporting_png: bool,
+        depth_texture: &Arc<Texture>,
+    ) {
+        let (attachment, resolve_target) = match self.msaa_texture.as_ref() {
             Some(msaa_texture) => (msaa_texture, Some(target)),
             None => (target, None),
         };
@@ -632,7 +683,7 @@ impl View {
                 },
             })],
             depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                view: depth_texture_view,
+                view: &depth_texture.view,
                 depth_ops: Some(wgpu::Operations {
                     load: wgpu::LoadOp::Clear(1.),
                     store: wgpu::StoreOp::Store,
@@ -656,12 +707,15 @@ impl View {
             );
             render_pass.set_scissor_rect(0, 0, target_size.width, target_size.height / 2);
         }
-        render_pass.set_bind_group(
-            0,
-            png_glob_bg.unwrap_or_else(|| self.globals_top.get_bindgroup()),
-            &[],
-        );
+
+        if let Some(bind_group) = &self.png_globals_bind_group {
+            render_pass.set_bind_group(0, bind_group.get_bindgroup(), &[]);
+        } else {
+            render_pass.set_bind_group(0, self.globals_top.get_bindgroup(), &[]);
+        }
+
         render_pass.set_bind_group(1, self.models.get_bindgroup(), &[]);
+
         if !exporting_png {
             self.background.draw(&mut render_pass);
         }
@@ -695,7 +749,7 @@ impl View {
                 },
             })],
             depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                view: depth_texture_view,
+                view: &depth_texture.view,
                 depth_ops: Some(wgpu::Operations {
                     load: wgpu::LoadOp::Clear(1.),
                     store: wgpu::StoreOp::Store,
@@ -719,11 +773,13 @@ impl View {
             );
             render_pass.set_scissor_rect(0, 0, target_size.width, target_size.height / 2);
         }
-        render_pass.set_bind_group(
-            0,
-            png_glob_bg.unwrap_or_else(|| self.globals_top.get_bindgroup()),
-            &[],
-        );
+
+        if let Some(bind_group) = &self.png_globals_bind_group {
+            render_pass.set_bind_group(0, bind_group.get_bindgroup(), &[]);
+        } else {
+            render_pass.set_bind_group(0, self.globals_top.get_bindgroup(), &[]);
+        }
+
         render_pass.set_bind_group(1, self.models.get_bindgroup(), &[]);
         self.circle_drawer_top.draw(&mut render_pass);
         self.text_drawer_top.draw(&mut render_pass);
@@ -768,7 +824,7 @@ impl View {
                 },
             })],
             depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                view: depth_texture_view,
+                view: &depth_texture.view,
                 depth_ops: Some(wgpu::Operations {
                     load: wgpu::LoadOp::Clear(1.),
                     store: wgpu::StoreOp::Store,
@@ -792,11 +848,13 @@ impl View {
             );
             render_pass.set_scissor_rect(0, 0, target_size.width, target_size.height / 2);
         }
-        render_pass.set_bind_group(
-            0,
-            png_glob_bg.unwrap_or_else(|| self.globals_top.get_bindgroup()),
-            &[],
-        );
+
+        if let Some(bind_group) = &self.png_globals_bind_group {
+            render_pass.set_bind_group(0, bind_group.get_bindgroup(), &[]);
+        } else {
+            render_pass.set_bind_group(0, self.globals_top.get_bindgroup(), &[]);
+        }
+
         render_pass.set_bind_group(1, self.models.get_bindgroup(), &[]);
         if !exporting_png {
             self.background.draw_border(&mut render_pass);
@@ -833,7 +891,7 @@ impl View {
                     },
                 })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: depth_texture_view,
+                    view: &depth_texture.view,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(1.),
                         store: wgpu::StoreOp::Store,
@@ -885,7 +943,7 @@ impl View {
                     },
                 })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: depth_texture_view,
+                    view: &depth_texture.view,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(1.),
                         store: wgpu::StoreOp::Store,
@@ -947,7 +1005,7 @@ impl View {
                     },
                 })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: depth_texture_view,
+                    view: &depth_texture.view,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(1.),
                         store: wgpu::StoreOp::Store,
@@ -995,6 +1053,7 @@ impl View {
                 highlight.draw_split(&mut render_pass, bottom);
             }
         }
+
         if !exporting_png {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: None,
@@ -1007,7 +1066,7 @@ impl View {
                     },
                 })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: depth_texture_view,
+                    view: &depth_texture.view,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(1.),
                         store: wgpu::StoreOp::Store,
@@ -1022,7 +1081,6 @@ impl View {
             });
             self.rectangle.draw(&mut render_pass);
         }
-        self.was_updated = false;
     }
 
     /// Return all the circles that must be displayed to represent the flatscene.
@@ -1166,9 +1224,8 @@ impl View {
     fn view_suggestion(&mut self) {
         self.suggestions_view.clear();
         for (n1, n2) in &self.suggestions {
-            let mut view = StrandView::new(self.device.clone(), self.queue.clone());
-            view.set_indication(*n1, *n2, &self.helices);
-            self.suggestions_view.push(view);
+            self.suggestions_view
+                .push(StrandView::from_indication(*n1, *n2, &self.helices))
         }
     }
 
@@ -1185,9 +1242,8 @@ impl View {
         self.suggestions_view.clear();
         self.was_updated |= self.suggestion_candidate != candidate.zip(other);
         if let Some((n1, n2)) = candidate.zip(other) {
-            let mut view = StrandView::new(self.device.clone(), self.queue.clone());
-            view.set_indication(n1, n2, &self.helices);
-            self.suggestions_view.push(view);
+            self.suggestions_view
+                .push(StrandView::from_indication(n1, n2, &self.helices));
         }
         self.suggestion_candidate = candidate.zip(other);
     }

@@ -154,14 +154,12 @@ impl View {
             position: None,
         };
         let viewer = UniformBindGroup::new(
-            device.clone(),
-            queue.clone(),
+            &device,
             &Uniforms::from_view_proj(camera.clone(), projection.clone(), None),
             "3d viewer",
         );
         let stereographic_viewer = UniformBindGroup::new(
-            device.clone(),
-            queue.clone(),
+            &device,
             &Uniforms::from_view_proj(camera.clone(), projection.clone(), Some(&stereography)),
             "stereographic viewer",
         );
@@ -173,7 +171,7 @@ impl View {
         let letter_drawer = PRINTABLE_CHARS
             .iter()
             .map(|c| {
-                let letter = Letter::new(*c, device.clone(), queue.clone());
+                let letter = Letter::new(*c, &device, &queue);
                 InstanceDrawer::new(
                     device.clone(),
                     queue.clone(),
@@ -189,7 +187,7 @@ impl View {
         let helix_letter_drawer = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
             .iter()
             .map(|c| {
-                let letter = Letter::new(*c, device.clone(), queue.clone());
+                let letter = Letter::new(*c, &device, &queue);
                 InstanceDrawer::new(
                     device.clone(),
                     queue.clone(),
@@ -213,7 +211,7 @@ impl View {
                 wgpu::TextureFormat::Bgra8UnormSrgb,
             )
         });
-        let models = DynamicBindGroup::new(device.clone(), queue.clone(), "models");
+        let models = DynamicBindGroup::new(&device, "models");
 
         let grid_textures = GridTextures::new(device.as_ref(), encoder);
         log::info!("Create grid drawer");
@@ -410,7 +408,7 @@ impl View {
         }
     }
 
-    fn update_viewers(&self) {
+    fn update_viewers(&mut self) {
         self.viewer.update(&Uniforms::from_view_proj_fog(
             self.camera.clone(),
             self.projection.clone(),
@@ -545,6 +543,11 @@ impl View {
         stereographic: bool,
         draw_options: DrawOptions,
     ) {
+        // temp
+        self.models.prepare(&self.device, &self.queue);
+        self.viewer.prepare(&self.queue);
+        self.stereographic_viewer.prepare(&self.queue);
+
         if let Some(size) = self.new_size.take() {
             self.depth_texture =
                 Texture::create_depth_texture(self.device.as_ref(), &area.size, SAMPLE_COUNT);

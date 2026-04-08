@@ -180,6 +180,7 @@ pub struct InstanceDrawer<D: Instantiable + ?Sized> {
     nb_indices: u32,
     resource: D::Resource,
     device: Rc<Device>,
+    queue: Rc<Queue>,
     label: String,
 }
 
@@ -311,11 +312,8 @@ impl<D: Instantiable> InstanceDrawer<D> {
             outliner,
             label,
         );
-        let instances = DynamicBindGroup::new(
-            device.clone(),
-            queue,
-            format!("{label_string} instances").as_str(),
-        );
+        let instances =
+            DynamicBindGroup::new(&device, format!("{label_string} instances").as_str());
 
         let additional_resources_layout = D::Resource::resources_layout();
         let additional_bind_group = (!additional_resources_layout.is_empty()).then(|| {
@@ -339,8 +337,13 @@ impl<D: Instantiable> InstanceDrawer<D> {
             additional_bind_group,
             resource,
             device,
+            queue,
             label: label_string,
         }
+    }
+
+    pub fn prepare(&mut self, device: &Device, queue: &Queue) {
+        self.instances.prepare(device, queue);
     }
 
     pub fn new_instances(&mut self, instances: Vec<D>) {
@@ -530,6 +533,9 @@ impl<D: Instantiable> RawDrawer for InstanceDrawer<D> {
         model_bind_group: &'a wgpu::BindGroup,
     ) {
         if self.nb_instances > 0 {
+            // temp
+            self.instances.prepare(&self.device, &self.queue);
+
             let pipeline = &self.pipeline;
             render_pass.set_pipeline(pipeline);
             let vbo = if let Some(vbo) = self.resource.vertex_buffer() {
