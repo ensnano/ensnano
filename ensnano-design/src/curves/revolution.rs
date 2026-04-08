@@ -15,6 +15,14 @@ fn default_rotational_symmetry_order() -> usize {
     0 // legacy: unknown or circle => will be checked and replaced with the correct value in into_curve() of InstantiatedCurveDescriptor_ in mod.rs 
 }
 
+fn default_total_shift() -> isize {
+    -1 // legacy: is this field necessary? 
+}
+
+fn default_nb_helices_per_section() -> usize {
+    0 // legacy: is this field necessary? 
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct InterpolatedCurveDescriptor {
     pub curve: CurveDescriptor2D,
@@ -22,7 +30,9 @@ pub struct InterpolatedCurveDescriptor {
     pub twist: isize,
     #[serde(default = "default_rotational_symmetry_order")]
     pub rotational_symmetry_order: usize,
+    #[serde(default = "default_total_shift")]
     pub total_shift: isize,
+    #[serde(default = "default_nb_helices_per_section")]
     pub nb_helices_per_section: usize,
     /// Radius of the revolution trajectory.
     pub revolution_radius: f64,

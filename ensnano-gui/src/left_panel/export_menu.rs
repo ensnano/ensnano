@@ -8,7 +8,9 @@ pub(super) struct ExportMenu;
 impl ExportMenu {
     pub(super) fn view(&self) -> iced::Element<'_, LeftPanelMessage> {
         let content = column![
-            button("Cancel").style(iced::theme::Button::Destructive).on_press(LeftPanelMessage::CancelExport),
+            button("Cancel")
+                .style(iced::theme::Button::Destructive)
+                .on_press(LeftPanelMessage::CancelExport),
             button("Oxdna").on_press(LeftPanelMessage::Export(ExportType::Oxdna)),
             button("Pdb").on_press(LeftPanelMessage::Export(ExportType::Pdb)),
             button("Cadnano").on_press(LeftPanelMessage::Export(ExportType::Cadnano)),

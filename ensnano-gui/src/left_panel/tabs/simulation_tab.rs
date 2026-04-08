@@ -205,8 +205,9 @@ impl GuiTab for SimulationTab {
             ),
             section("Relaxation", ui_size),
             column![row![
-                text_button("Start", ui_size).on_press_maybe(
-                    if self.rapier_parameters.is_simulation_running {
+                text_button("Start", ui_size)
+                    .style(iced::theme::Button::Positive)
+                    .on_press_maybe(if self.rapier_parameters.is_simulation_running {
                         None
                     } else {
                         Some(LeftPanelMessage::UpdateRapierParameters(
@@ -218,22 +219,25 @@ impl GuiTab for SimulationTab {
                                 },
                             ),
                         ))
-                    }
-                ),
+                    }),
                 Space::with_width(ui_size.button_spacing()),
-                text_button("Stop", ui_size).on_press_maybe(
-                    if !self.rapier_parameters.is_simulation_running || sim_state.is_paused() {
-                        None
-                    } else {
-                        Some(LeftPanelMessage::StopSimulation)
-                    }
-                ),
+                text_button("Stop", ui_size)
+                    .style(iced::theme::Button::Destructive)
+                    .on_press_maybe(
+                        if !self.rapier_parameters.is_simulation_running || sim_state.is_paused() {
+                            None
+                        } else {
+                            Some(LeftPanelMessage::StopSimulation)
+                        }
+                    ),
                 Space::with_width(ui_size.button_spacing()),
-                text_button("Reset", ui_size).on_press_maybe(
-                    sim_state
-                        .is_paused()
-                        .then(|| LeftPanelMessage::ResetSimulation)
-                ),
+                text_button("Reset", ui_size)
+                    .style(iced::theme::Button::Primary)
+                    .on_press_maybe(
+                        sim_state
+                            .is_paused()
+                            .then(|| LeftPanelMessage::ResetSimulation)
+                    ),
             ],]
             .spacing(ui_size.button_spacing()),
             ignore_local_parameters_checkbox(&self.rapier_parameters, ui_size),
