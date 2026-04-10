@@ -1,7 +1,6 @@
 //! This module provides utilities for drawing text in the applications.
 
 use fontdue::{Font, FontSettings};
-use std::rc::Rc;
 use wgpu::{
     BindGroup, BindGroupLayout, Device, Extent3d, Queue, Sampler, TextureView, util::DeviceExt as _,
 };
@@ -43,7 +42,7 @@ const MIN_SIZE: u32 = 1;
 const MIP_LEVEL_COUNT: u32 = MAX_SIZE - MIN_SIZE + 1;
 
 impl Letter {
-    pub fn new(character: char, device: Rc<Device>, queue: Rc<Queue>) -> Self {
+    pub fn new(character: char, device: &Device, queue: &Queue) -> Self {
         let size = Extent3d {
             width: 1 << MAX_SIZE,
             height: 1 << MAX_SIZE,

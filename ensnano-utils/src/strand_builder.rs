@@ -301,7 +301,7 @@ impl StrandBuilder {
         position: isize,
         fixed_position: isize,
     ) {
-        log::info!("updating {identifier:?}, position {position}, fixed_position {fixed_position}",);
+        log::info!("updating {identifier:?}, position {position}, fixed_position {fixed_position}");
         let domain =
             &mut design.strands.get_mut(&identifier.strand).unwrap().domains[identifier.domain];
         if let Domain::HelixDomain(domain) = domain {

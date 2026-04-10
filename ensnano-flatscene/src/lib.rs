@@ -154,8 +154,8 @@ impl FlatScene {
             .borrow_mut()
             .fit_top_left(FitRectangle::INITIAL_RECTANGLE);
         let view = Rc::new(RefCell::new(View::new(
-            self.device.clone(),
-            self.queue.clone(),
+            &self.device,
+            &self.queue,
             self.area,
             camera_top.clone(),
             camera_bottom.clone(),
@@ -188,7 +188,8 @@ impl FlatScene {
     fn draw_view(&self, encoder: &mut wgpu::CommandEncoder, target: &wgpu::TextureView) {
         if let Some(view) = self.view.get(self.selected_design) {
             log::trace!("draw flatscene");
-            view.borrow_mut().draw(encoder, target, None, None);
+            view.borrow_mut().prepare(&self.device, &self.queue);
+            view.borrow_mut().draw(encoder, target);
         }
     }
 
@@ -197,7 +198,7 @@ impl FlatScene {
         self.window_size = window_size;
         self.area = area;
         for view in &self.view {
-            view.borrow_mut().resize(area);
+            view.borrow_mut().resize(&self.device, area);
         }
         for controller in &mut self.controller {
             controller.resize(window_size, area.size);
@@ -601,7 +602,10 @@ impl FlatScene {
 
         self.view[0]
             .borrow_mut()
-            .draw(&mut encoder, &texture_view, Some(png_size), Some(glob));
+            .prepare_png(&self.device, &self.queue, png_size, glob);
+        self.view[0]
+            .borrow_mut()
+            .draw_png(&mut encoder, &texture_view, png_size);
 
         // create a buffer and fill it with the texture
         let extent = size;

@@ -24,8 +24,8 @@ const PX_PER_SQUARE: f32 = 512.0;
 impl TextDrawer {
     pub fn new(
         chars: &[char],
-        device: Rc<Device>,
-        queue: Rc<Queue>,
+        device: &Device,
+        queue: &Queue,
         globals_layout: &BindGroupLayout,
     ) -> Self {
         let mut char_drawers = HashMap::new();
@@ -34,10 +34,7 @@ impl TextDrawer {
             .iter()
             .chain(['A', 'a'].iter().filter(|c| !chars.contains(c)))
         {
-            char_drawers.insert(
-                *c,
-                CharDrawer::new(device.clone(), queue.clone(), globals_layout, *c),
-            );
+            char_drawers.insert(*c, CharDrawer::new(device, queue, globals_layout, *c));
             char_map.insert(*c, Vec::new());
         }
         Self {
@@ -53,7 +50,7 @@ impl TextDrawer {
         }
     }
 
-    pub fn draw<'a>(&'a mut self, render_pass: &mut RenderPass<'a>) {
+    pub fn prepare(&mut self, device: &Device, queue: &Queue) {
         for (c, v) in &self.char_map {
             if let Some(drawer_mut) = self.char_drawers.get_mut(c) {
                 drawer_mut.new_instances(Rc::new(v.clone()));
@@ -62,6 +59,12 @@ impl TextDrawer {
             }
         }
         for d in self.char_drawers.values_mut() {
+            d.prepare(device, queue);
+        }
+    }
+
+    pub fn draw<'a>(&'a self, render_pass: &mut RenderPass<'a>) {
+        for d in self.char_drawers.values() {
             d.draw(render_pass);
         }
     }

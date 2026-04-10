@@ -553,6 +553,7 @@ impl Curve {
         self.geometry.translation().is_some()
     }
 
+    #[must_use]
     pub fn rescaled2d_by(&self, scale: f64) -> Self {
         if let Some(abscissa_converter) = &self.abscissa_converter {
             Self {
@@ -1488,8 +1489,8 @@ impl Helix {
         if let Some(current_desc) = self.curve.as_ref() {
             self.instantiated_descriptor
                 .as_ref()
-                .filter(|desc| desc.is_up_to_date(current_desc, grid_data, paths_data))
-                .is_none()
+                .as_ref()
+                .is_none_or(|desc| !desc.is_up_to_date(current_desc, grid_data, paths_data))
         } else {
             // If helix should not be a curved, the descriptor is up-to-date iff there is no
             // descriptor.
