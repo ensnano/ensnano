@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.7.1.1
+## 0.7.2
 - Fixed legacy revolution design file opening issue
 - Added color to relaxation buttons
 
