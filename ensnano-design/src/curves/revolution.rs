@@ -156,7 +156,7 @@ impl SmoothInterpolatedCurve {
             for interpolation in interpolations {
                 let interpolator = match interpolation {
                     InterpolationDescriptor::PointsValues { points, values } => {
-                        let points_values = points.into_iter().zip(values).collect();
+                        let points_values = points.into_iter().zip(values.into_iter()).collect();
                         chebyshev_polynomials::interpolate_points(points_values, 1e-4)
                     }
                     InterpolationDescriptor::Chebyshev { coeffs, interval } => {

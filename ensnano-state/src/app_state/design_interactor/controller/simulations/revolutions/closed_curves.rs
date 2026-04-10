@@ -246,8 +246,11 @@ impl CloseSurfaceTopology {
                 });
             }
 
-            let objective_number_of_nts =
-                (finished || !final_lengths.is_empty()).then(|| final_lengths[i] as usize);
+            let objective_number_of_nts = if finished || final_lengths.len() > 0 {
+                Some(final_lengths[i] as usize)
+            } else {
+                None
+            };
             ret.push((
                 self.target
                     .curve_descriptor(interpolations, objective_number_of_nts),
