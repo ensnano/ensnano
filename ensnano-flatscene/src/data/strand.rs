@@ -15,7 +15,7 @@ use lyon::{
 };
 use ultraviolet::Vec2;
 
-pub type StrandVertices = VertexBuffers<StrandVertex, u16>;
+type Vertices = VertexBuffers<StrandVertex, u16>;
 
 macro_rules! vec2_to_point {
     ($point: ident) => {
@@ -63,9 +63,9 @@ impl Strand {
         free_end: Option<&FreeEnd>,
         my_cam: &CameraPtr,
         other_cam: &CameraPtr,
-    ) -> (StrandVertices, StrandVertices) {
-        let mut vertices = StrandVertices::new();
-        let mut cross_split_vertices = StrandVertices::new();
+    ) -> (Vertices, Vertices) {
+        let mut vertices = Vertices::new();
+        let mut cross_split_vertices = Vertices::new();
         if self.points.is_empty() {
             return (vertices, cross_split_vertices);
         }
@@ -134,8 +134,8 @@ impl Strand {
         ret
     }
 
-    pub fn indication(nucl1: FlatNucl, nucl2: FlatNucl, helices: &[Helix]) -> StrandVertices {
-        let mut vertices = StrandVertices::new();
+    pub fn indication(nucl1: FlatNucl, nucl2: FlatNucl, helices: &[Helix]) -> Vertices {
+        let mut vertices = Vertices::new();
         let mut builder = Path::builder_with_attributes(2);
         let color = [0.823, 0.525, 0.058, 0.75];
         let start = helices[nucl1.helix].get_nucl_position(&nucl1, Shift::No);

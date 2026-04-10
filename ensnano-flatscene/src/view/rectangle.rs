@@ -1,14 +1,16 @@
 use crate::ndc::Ndc;
 use ensnano_utils::consts::SAMPLE_COUNT;
+use std::rc::Rc;
 use wgpu::{Device, Queue, RenderPipeline, util::DeviceExt as _};
 
 const SELECT_COLOR: [f32; 4] = [0.26, 0.64, 0.85, 0.6];
 
 pub(super) struct Rectangle {
-    vertices: [Vertex; 4],
+    corner: Option<Option<[Ndc; 2]>>,
     pipeline: RenderPipeline,
     vbo: wgpu::Buffer,
     ibo: wgpu::Buffer,
+    queue: Rc<Queue>,
 }
 
 #[derive(Default, Clone, Copy, Debug, bytemuck::Pod, bytemuck::Zeroable)]
@@ -31,7 +33,7 @@ impl Vertex {
 }
 
 impl Rectangle {
-    pub(super) fn new(device: &Device) -> Self {
+    pub(super) fn new(device: &Device, queue: Rc<Queue>) -> Self {
         let vs_module = device.create_shader_module(wgpu::include_spirv!("rectangle.vert.spv"));
         let fs_module = device.create_shader_module(wgpu::include_spirv!("rectangle.frag.spv"));
 
@@ -103,30 +105,30 @@ impl Rectangle {
         });
 
         Self {
-            vertices: [Vertex::default(); 4],
             pipeline: render_pipeline,
+            corner: None,
             ibo: index_buffer,
             vbo: vertex_buffer,
+            queue,
         }
     }
 
-    pub(super) fn update_corners(&mut self, corners: Option<[Ndc; 2]>) {
-        self.update_vertices(corners);
+    pub(super) fn update_corners(&mut self, corner: Option<[Ndc; 2]>) {
+        self.corner = Some(corner);
     }
 
-    pub(super) fn prepare(&self, queue: &Queue) {
-        queue.write_buffer(&self.vbo, 0, bytemuck::cast_slice(&self.vertices));
-    }
-
-    pub(super) fn draw<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>) {
+    pub(super) fn draw<'a>(&'a mut self, render_pass: &mut wgpu::RenderPass<'a>) {
+        if let Some(corners) = self.corner.take() {
+            self.update_vertices(corners);
+        }
         render_pass.set_pipeline(&self.pipeline);
         render_pass.set_index_buffer(self.ibo.slice(..), wgpu::IndexFormat::Uint16);
         render_pass.set_vertex_buffer(0, self.vbo.slice(..));
         render_pass.draw_indexed(0..4, 0, 0..1);
     }
 
-    fn update_vertices(&mut self, corners: Option<[Ndc; 2]>) {
-        self.vertices = if let Some([c1, c2]) = corners {
+    fn update_vertices(&self, corners: Option<[Ndc; 2]>) {
+        let vertices = if let Some([c1, c2]) = corners {
             let min_x = c1.x.min(c2.x);
             let max_x = c1.x.max(c2.x);
             let min_y = c1.y.min(c2.y);
@@ -152,5 +154,7 @@ impl Rectangle {
         } else {
             [Vertex::default(); 4]
         };
+        self.queue
+            .write_buffer(&self.vbo, 0, bytemuck::cast_slice(&vertices));
     }
 }

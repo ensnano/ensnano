@@ -559,7 +559,7 @@ impl InterpolatedC1PiecewiseBezierDescriptor {
         }
 
         let mut ends = Vec::with_capacity(n);
-        for (p, dp) in self.points.into_iter().zip(diffs) {
+        for (p, dp) in self.points.into_iter().zip(diffs.into_iter()) {
             ends.push(BezierEndCoordinates {
                 position: p,
                 vector_in: dp,

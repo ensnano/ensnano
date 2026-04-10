@@ -1,9 +1,5 @@
 # Changelog
 
-## 0.7.2
-- Fixed legacy revolution design file opening issue
-- Added color to relaxation buttons
-
 ## 0.7.1
 - Fixed issues with revolution surfaces: even better 2D view; helices with different lengths are now supported 
 - Fixed crash in Bezier curve when two points are too close
