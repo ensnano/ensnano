@@ -2,8 +2,10 @@ VULKAN_SHADER_COMPILER=glslang -V
 EXE=ensnano
 MACOS_BIN=target/x86_64-apple-darwin/release/$(EXE)
 WINDOWS_BIN=target/x86_64-pc-windows-gnu/release/$(EXE)
+WINDOWS_BIN_MSCV=target/x86_64-pc-windows-gnu/release/$(EXE)
 WINDOWS_BIN_AARCH=target/aarch64-pc-windows-msvc/release/$(EXE)
 MACOS_M1_BIN=target/aarch64-apple-darwin/release/$(EXE)
+RELEASE_BIN=release_web/$(EXE)
 
 RELEASE_OPT= #--features=log_after_renderer_setup
 
@@ -67,6 +69,7 @@ $(MACOS_BIN): 	export MACOSX_DEPLOYMENT_TARGET=10.13
 $(MACOS_M1_BIN): export MACOSX_DEPLOYMENT_TARGET=11.0
 
 $(MACOS_BIN): src
+	cargo clean --target x86_64-apple-darwin
 	@echo MACOSX_DEPLOYMENT_TARGET = $$MACOSX_DEPLOYMENT_TARGET
 	cargo build --release --target x86_64-apple-darwin $(RELEASE_OPT)
 	@echo "\n**** VERSION VERIFICATION ****\n"
@@ -80,26 +83,35 @@ rm_mo:
 	rm $(MACOS_BIN)
 
 wingnu:
+	cargo clean --target x86_64-pc-windows-gnu
 	cargo build --release --target=x86_64-pc-windows-gnu $(RELEASE_OPT)
-	cp $(WINDOWS_BIN).exe $(WINDOWS_BIN)_windows_vulkan.exe
+	cp $(WINDOWS_BIN).exe $(RELEASE_BIN)_windows_vulkan.exe
 
 winarm:
+	cargo clean --target aarch64-pc-windows-msvc
 	cargo xwin build --release --target aarch64-pc-windows-msvc $(RELEASE_OPT)
-	cp $(WINDOWS_BIN_AARCH).exe $(WINDOWS_BIN_AARCH)_windows_vulkan_aarch64.exe
+	cp $(WINDOWS_BIN_AARCH).exe $(RELEASE_BIN)_windows_vulkan_aarch64.exe
 
 wingnudx12:
+	cargo clean --target x86_64-pc-windows-gnu
 	cargo build --release --target=x86_64-pc-windows-gnu --features="dx12_only log_after_renderer_setup" $(RELEASE_OPT)
-	cp $(WINDOWS_BIN).exe $(WINDOWS_BIN)_windows_directx12.exe
+	cp $(WINDOWS_BIN).exe $(RELEASE_BIN)_windows_directx12.exe
 
 winmsvc:
-	cargo build --release --target=x86_64-pc-windows-msvc $(RELEASE_OPT)
+	cargo clean --release --target=x86_64-pc-windows-msvc
+	cargo xwin build --release --target=x86_64-pc-windows-msvc  $(RELEASE_OPT)
+	cp $(WINDOWS_BIN).exe $(RELEASE_BIN)_windows_vulkan_msvc.exe
 
 winmsvcdx12:
-	cargo build --release --target=x86_64-pc-windows-msvc --features="dx12_only log_after_renderer_setup" $(RELEASE_OPT)
+	cargo clean --release --target=x86_64-pc-windows-msvc
+	cargo xwin build --release --target=x86_64-pc-windows-msvc --features="dx12_only log_after_renderer_setup" $(RELEASE_OPT)
+	cp $(WINDOWS_BIN_MSCV).exe $(RELEASE_BIN)_windows_directx12_msvc.exe
 
 mo: 
+	cargo clean --target x86_64-apple-darwin
 	make $(MACOS_BIN)
 	cargo build --release --target x86_64-apple-darwin $(RELEASE_OPT)
+	cp $(MACOS_BIN) $(RELEASE_BIN)_macos_intel
 
 mo_bt: 
 	make $(MACOS_BIN)
@@ -119,12 +131,14 @@ mos: $(MACOS_BIN)
 	codesign -dvvvv $(MACOS_BIN)
 
 $(MACOS_M1_BIN): src
+	cargo clean --target aarch64-apple-darwin
 	@echo MACOSX_DEPLOYMENT_TARGET = $$MACOSX_DEPLOYMENT_TARGET
 	cargo build --release --target aarch64-apple-darwin $(RELEASE_OPT)
 	@echo "\n**** VERSION VERIFICATION ****\n"
 	@otool -l $(MACOS_M1_BIN) | grep -A 3 LC_VERSION_MIN_MACOSX || echo no match for LC_VERSION_MIN_MACOSX
 	@otool -l $(MACOS_M1_BIN) | grep -A 3 minos || echo no match for minos
 	@echo "\n**** VERSION VERIFICATION ****\n"
+	cp $(MACOS_M1_BIN) $(RELEASE_BIN)_macos_apple_silicon
 
 m1: 
 	make $(MACOS_M1_BIN)
