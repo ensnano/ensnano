@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.2
+- Fixed legacy revolution design file opening issue
+- Added color to relaxation buttons
+
+## 0.7.1
+- Fixed issues with revolution surfaces: even better 2D view; helices with different lengths are now supported 
+- Fixed crash in Bezier curve when two points are too close
+- Improved GUI
+
 ## 0.7.0
 - New outline view mode
 - New nanostructure relaxation module
@@ -9,7 +18,6 @@
 - Fixed a lot of typos and bugs
 
 ## 0.6.0
-
 - Fixed a lot of typos
 - Changes in filed names in .ens file format (older file still load and will be updated to the new fields) 
 - Improved customizable 3D view
@@ -17,7 +25,6 @@
 - Better visualization of twisted revolution shape helix routing algorithm
 
 ## 0.5.1.1
-
 - Changes in the file format, older files can still be read and will be automatically converted to the new file format when saved.
 
 ## 0.5.1

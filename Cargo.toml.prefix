@@ -24,6 +24,6 @@ edition = "2024"
 homepage = "https://www.ens-lyon.fr/ensnano/"
 license = "GPL-3.0-or-later"
 repository = "https://github.com/ensnano/ensnano"
-version = "0.7.1"
+version = "0.7.2"
 
 [workspace.dependencies]

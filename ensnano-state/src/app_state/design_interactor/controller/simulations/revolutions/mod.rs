@@ -65,17 +65,18 @@ impl Clone for RevolutionSurfaceSystem {
 }
 
 impl RevolutionSurfaceSystem {
-    pub(crate) fn new(desc: RevolutionSurfaceSystemDescriptor) -> Self {
+    pub(crate) fn new(desc: RevolutionSurfaceSystemDescriptor) -> Option<Self> {
         let scaffold_len_target = desc.scaffold_len_target;
         let dna_parameters = desc.helix_parameters;
         let simulation_parameters = desc.simulation_parameters.clone();
         let topology = if desc.target.curve_is_open() {
-            todo!("Refactor open curves")
+            log::warn!("Open curves are not currently implemented.");
+            return None;
         } else {
             CloseSurfaceTopology::new(desc)
         };
 
-        Self {
+        Some(Self {
             topology,
             helix_parameters: dna_parameters,
             last_thetas: None,
@@ -84,7 +85,7 @@ impl RevolutionSurfaceSystem {
             current_scaffold_length: None,
             simulation_parameters,
             spring_relaxation_state: None,
-        }
+        })
     }
 
     /// return the total lengths of the spirals (in nt) and the vec of the lengths (in nt) computed for each spiral
@@ -456,7 +457,7 @@ impl RevolutionSystemThread {
         let ret = Arc::new(Mutex::new(RevolutionSystemInterface::default()));
         //let ret_dyn: Arc<Mutex<dyn SimulationInterface>> = ret.clone();
         //reader.attach_state(&ret_dyn);
-        let simulation_thread = Self::new(system, &ret);
+        let simulation_thread = Self::new(system, &ret).ok_or(OperationError::NotImplemented)?;
         simulation_thread.run();
         Ok(ret)
     }
@@ -464,12 +465,12 @@ impl RevolutionSystemThread {
     fn new(
         system_desc: RevolutionSurfaceSystemDescriptor,
         interface: &Arc<Mutex<RevolutionSystemInterface>>,
-    ) -> Self {
-        let system = RevolutionSurfaceSystem::new(system_desc);
-        Self {
+    ) -> Option<Self> {
+        let system = RevolutionSurfaceSystem::new(system_desc)?;
+        Some(Self {
             interface: Arc::downgrade(interface),
             system,
-        }
+        })
     }
 
     fn run(mut self) {
