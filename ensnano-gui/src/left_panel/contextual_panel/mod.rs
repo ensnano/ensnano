@@ -358,12 +358,15 @@ impl ContextualPanel {
         };
 
         if let Some(info_values) = xover_len.map(|v| fmt_xover_len(Some(v))) {
-            if let Some(info) = info_values.first() {
-                content = content.push(text(info));
+            for info in info_values.iter() {
+                content = content.push(section(info, ui_size));
             }
-            if let Some(info) = info_values.get(1) {
-                content = content.push(text(info));
-            }
+            // if let Some(info) = info_values.first() {
+            //     content = content.push(text(info));
+            // }
+            // if let Some(info) = info_values.get(1) {
+            //     content = content.push(text(info));
+            // }
         }
 
         if let Some(len) = app_state
@@ -804,10 +807,9 @@ fn values_of_selection(selection: &Selection, reader: &DesignInteractor) -> Vec<
 fn fmt_xover_len(info: Option<(f32, Option<f32>)>) -> Vec<String> {
     match info {
         Some((len_self, Some(len_neighbor))) => vec![
-            format!("length {:.2} nm", len_self),
-            format!("{:.2} nm", len_neighbor),
+            format!("Xover lengths: {len_self:.2} nm - {len_neighbor:.2} nm"),
         ],
-        Some((len, None)) => vec![format!("length {:.2} nm", len)],
+        Some((len, None)) => vec![format!("Xover length: {len:.2} nm")],
         None => vec![String::from("Error getting length")],
     }
 }
