@@ -347,7 +347,10 @@ impl ContextualPanel {
                     }
                 }
                 Selection::BezierControlPoint { .. } | Selection::BezierVertex(_) => {
-                    column = column.push(text(info_values[0].clone()));
+                    column = column.push(subsection(info_values[0].clone(), ui_size));
+                    if info_values.len() > 1 {
+                        column = column.push(text(info_values[1].clone()));
+                    }
                 }
                 _ => (),
             }
@@ -798,7 +801,10 @@ fn values_of_selection(selection: &Selection, reader: &DesignInteractor) -> Vec<
                 .map(|(k, l1, l2)| format!("Helix {k}: {l2} nt ({l1:.2} nm)"))
                 .collect::<Vec<String>>()
                 .join("\n");
-            vec![format!("Total length: {total_length_nt} nt\n{hx_len}")]
+            vec![
+                format!("Total length: {total_length_nt} nt"),
+                format!("{hx_len}"),
+            ]
         }
         _ => Vec::new(),
     }
