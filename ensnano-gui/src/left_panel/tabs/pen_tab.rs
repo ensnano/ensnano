@@ -85,47 +85,82 @@ impl GuiTab for PenTab {
             // add_grid_buttons!
             if let Some(path_id) = app_state.get_selected_bezier_path() {
                 row![
-                    icon_button(ICON_SQUARE_GRID, ui_size).on_press(
-                        LeftPanelMessage::TurnPathIntoGrid {
-                            path_id,
-                            grid_type: GridTypeDescr::Square { twist: None },
-                        }
-                    ),
-                    icon_button(ICON_HONEYCOMB_GRID, ui_size).on_press(
-                        LeftPanelMessage::TurnPathIntoGrid {
-                            path_id,
-                            grid_type: GridTypeDescr::Honeycomb { twist: None },
-                        }
-                    ),
-                    icon_button(ICON_ROTATED_HONEYCOMB_GRID, ui_size).on_press(
-                        LeftPanelMessage::TurnPathIntoGrid {
-                            path_id,
-                            grid_type: GridTypeDescr::RotatedHoneycomb { twist: None },
-                        }
-                    ),
+                    tooltip(
+                        icon_button(ICON_SQUARE_GRID, ui_size).on_press(
+                            LeftPanelMessage::TurnPathIntoGrid {
+                                path_id,
+                                grid_type: GridTypeDescr::Square { twist: None },
+                            }
+                        ),
+                        "Attach square grid",
+                        tooltip::Position::FollowCursor,
+                    )
+                    .style(iced::theme::Container::Box),
+                    tooltip(
+                        icon_button(ICON_HONEYCOMB_GRID, ui_size).on_press(
+                            LeftPanelMessage::TurnPathIntoGrid {
+                                path_id,
+                                grid_type: GridTypeDescr::Honeycomb { twist: None },
+                            }
+                        ),
+                        "Attach honeycomb grid",
+                        tooltip::Position::FollowCursor,
+                    )
+                    .style(iced::theme::Container::Box),
+                    tooltip(
+                        icon_button(ICON_ROTATED_HONEYCOMB_GRID, ui_size).on_press(
+                            LeftPanelMessage::TurnPathIntoGrid {
+                                path_id,
+                                grid_type: GridTypeDescr::RotatedHoneycomb { twist: None },
+                            }
+                        ),
+                        "Attach rotated honeycomb grid",
+                        tooltip::Position::FollowCursor,
+                    )
+                    .style(iced::theme::Container::Box),
                 ]
-                .spacing(5)
+                .spacing(ui_size.button_spacing())
             } else {
-                row![] // Yes, an empty row…
+                row![
+                    icon_button(ICON_SQUARE_GRID, ui_size),
+                    icon_button(ICON_HONEYCOMB_GRID, ui_size),
+                    icon_button(ICON_ROTATED_HONEYCOMB_GRID, ui_size),
+                ] // same buttons inactivated
+                .spacing(ui_size.button_spacing())
             },
-            text(format!("Selected path {path_txt}")),
+            text(format!("Selected path: {path_txt}")),
             if let Some(b) =
                 selected_path_id.and_then(|p_id| app_state.get_reader().is_bezier_path_cyclic(p_id))
             {
-                row![checkbox("Cyclic", b).on_toggle(move |cyclic| {
-                    LeftPanelMessage::MakeBezierPathCyclic {
-                        path_id: selected_path_id.unwrap(),
-                        cyclic,
-                    }
-                })]
+                row![
+                    tooltip(
+                        checkbox("Cyclic", b).on_toggle(move |cyclic| {
+                            LeftPanelMessage::MakeBezierPathCyclic {
+                                path_id: selected_path_id.unwrap(),
+                                cyclic,
+                            }
+                        }),
+                        "Make path cyclic",
+                        tooltip::Position::FollowCursor,
+                    )
+                    .style(iced::theme::Container::Box),
+                ]
             } else {
-                row![] // This is trickery to always return the same object.
+                row![checkbox("Cyclic", false)] // This is trickery to always return the same object.
             },
             extra_jump(),
-            checkbox("Show bezier paths", app_state.get_show_bezier_paths())
+            tooltip(
+                checkbox(
+                    "Show bezier paths and planes",
+                    app_state.get_show_bezier_paths()
+                )
                 .on_toggle(LeftPanelMessage::SetShowBezierPaths,),
+                "Show/Hide Bezier paths and planes",
+                tooltip::Position::FollowCursor,
+            )
+            .style(iced::theme::Container::Box),
         ]
-        .spacing(5);
+        .spacing(ui_size.button_spacing());
         content.into()
     }
 }
