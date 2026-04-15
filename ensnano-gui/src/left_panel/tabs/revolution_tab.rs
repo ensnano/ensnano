@@ -891,7 +891,7 @@ impl GuiTab for RevolutionTab {
                             .map(|w| w.builder.clone()),
                         LeftPanelMessage::CurveBuilderPicked,
                     )
-                    .placeholder("Pick.."),
+                    .placeholder("Pick a closed curve.."),
                 ]
                 .align_items(Alignment::Center),
                 if let Some(widget) = &self.curve_descriptor_widget {
