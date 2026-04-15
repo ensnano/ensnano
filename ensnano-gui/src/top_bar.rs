@@ -19,7 +19,7 @@ use ensnano_state::{app_state::AppState, gui::messages::TopBarMessage, requests:
 use ensnano_utils::{graphics::SplitMode, ui_size::UiSize};
 use iced::{
     Element, Length, Padding, theme,
-    widget::{Space, Button, Row, container, image, row, text, tooltip},
+    widget::{Space, Button, button, Row, container, image, row, text, tooltip},
 };
 use iced_runtime::{Command, Program};
 use std::sync::{Arc, Mutex};
@@ -439,12 +439,14 @@ impl Program for TopBarState {
             Row::from_vec(selection_mode_buttons).spacing(self.ui_size.button_spacing()),
             row![button_help, button_tutorial,].spacing(self.ui_size.button_spacing()),
             // ENSnano logo, placed on the right.
-            text("\u{e91c}")
+            button(text("\u{e91c}")
                 .font(ENSNANO_FONT)
                 .width(Length::Fill)
                 .horizontal_alignment(iced::alignment::Horizontal::Right)
-                .vertical_alignment(iced::alignment::Vertical::Center),
-            Space::with_width(0), // cast the ENSnano logo away from the window border 
+                .vertical_alignment(iced::alignment::Vertical::Center))
+                .height(self.ui_size.button())
+                .style(theme::Button::Text),
+            Space::with_width(0), // place the ENSnano logo away from the window border 
         ]
         .spacing(self.ui_size.button_group_spacing())
         .width(Length::Fill);
