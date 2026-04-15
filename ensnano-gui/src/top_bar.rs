@@ -19,7 +19,7 @@ use ensnano_state::{app_state::AppState, gui::messages::TopBarMessage, requests:
 use ensnano_utils::{graphics::SplitMode, ui_size::UiSize};
 use iced::{
     Element, Length, Padding, theme,
-    widget::{Button, Row, container, image, row, text, tooltip},
+    widget::{Space, Button, Row, container, image, row, text, tooltip},
 };
 use iced_runtime::{Command, Program};
 use std::sync::{Arc, Mutex};
@@ -444,6 +444,7 @@ impl Program for TopBarState {
                 .width(Length::Fill)
                 .horizontal_alignment(iced::alignment::Horizontal::Right)
                 .vertical_alignment(iced::alignment::Vertical::Center),
+            Space::with_width(0), // cast the ENSnano logo away from the window border 
         ]
         .spacing(self.ui_size.button_group_spacing())
         .width(Length::Fill);
