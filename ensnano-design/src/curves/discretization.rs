@@ -358,8 +358,14 @@ impl Curve {
         };
 
         match self.cached_polynomials.as_ref() {
-            Some(p) => p.curvilinear_abscissa.evaluate(t1) - p.curvilinear_abscissa.evaluate(t0),
-            None => self.length_by_discretization(t0, t1, nb_step),
+            Some(p) => {
+                println!("[[NS]] pas discretization");
+                p.curvilinear_abscissa.evaluate(t1) - p.curvilinear_abscissa.evaluate(t0)
+            }
+            None => {
+                println!("[[NS]] discretization");
+                self.length_by_discretization(t0, t1, nb_step)
+            }
         }
     }
 
@@ -548,6 +554,10 @@ impl Curve {
     /// NS: it would be better to use a bezier interpolation to compute the chebyshev polynomial (it's smoother) and should reduce the degree.
     fn compute_polynomials(&self) -> Option<PreComputedPolynomials> {
         self.geometry.pre_compute_polynomials().then(|| {
+            println!(
+                "Recompute polynomials {:?}",
+                self.geometry.nucl_pos_full_turn()
+            );
             let mut t = self.geometry.t_min();
             let mut abscissa = 0.;
             let mut current_axis = self.iterative_axis(t, None);

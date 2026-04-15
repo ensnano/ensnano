@@ -55,7 +55,7 @@ impl GuiTab for PenTab {
                             ui_size
                         )
                         .on_press(LeftPanelMessage::NewBezierPlane),
-                        "Make a new bezier plane",
+                        "Create a new bezier plane",
                         tooltip::Position::FollowCursor,
                     )
                     .style(iced::theme::Container::Box),
@@ -74,7 +74,7 @@ impl GuiTab for PenTab {
                             }
                         )
                         .on_press(LeftPanelMessage::StartBezierPath),
-                        "Edit bezier path",
+                        "Add bezier vertex mode",
                         tooltip::Position::FollowCursor,
                     )
                     .style(iced::theme::Container::Box),
