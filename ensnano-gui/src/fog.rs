@@ -39,10 +39,12 @@ impl FogGuiParameters {
             text("Softness").style(theme::DISABLED_TEXT)
         };
 
+        let max_fog_radius = if self.from_camera { 300f32 } else { 100f32 };
+
         let length_slider = if self.is_activated {
-            slider(0f32..=100f32, self.length, LeftPanelMessage::FogLength)
+            slider(0f32..=max_fog_radius, self.length, LeftPanelMessage::FogLength)
         } else {
-            slider(0f32..=100f32, self.length, |_| LeftPanelMessage::Nothing)
+            slider(0f32..=max_fog_radius, self.length, |_| LeftPanelMessage::Nothing)
                 .style(theme::DeactivatedSlider)
         };
 

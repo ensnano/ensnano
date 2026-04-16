@@ -510,7 +510,8 @@ impl DesignContent {
             let strand_color = strand.color;
 
             // Compute strand drawing style
-            let strand_style = drawing_styles
+            let strand_style = {
+                let ds = drawing_styles
                 .get(&DesignElementKey::Strand(*s_id))
                 .copied()
                 .unwrap_or_default()
@@ -518,6 +519,15 @@ impl DesignContent {
                     DrawingAttribute::SphereColor(ColorType::Plain(strand_color)), // strand color gets after color in strand style
                     DrawingAttribute::BondColor(ColorType::Plain(strand_color)), // strand color gets after color in strand style
                 ]);
+                if ds.xover_color.is_none() {
+                    DrawingStyle {
+                        xover_color: ds.bond_color,
+                        ..ds
+                    }
+                } else {
+                        ds
+                }
+            };
 
             // Compute the length for rainbow coloring
             let rainbow_len =
@@ -633,16 +643,33 @@ impl DesignContent {
                         });
 
                         let rainbow_color = rainbow_iterator.next();
-                        let bond_color =
-                            rainbow_color.unwrap_or_else(|| domain_style.bond_color.unwrap());
+                        let basic_bond_color = 
+                            rainbow_color.unwrap_or(domain_style.bond_color.unwrap());
 
-                        let nucl_color =
-                            rainbow_color.unwrap_or_else(|| domain_style.sphere_color.unwrap());
+                        let basic_xover_color = 
+                            rainbow_color.unwrap_or(domain_style.xover_color.unwrap());
+
+                        let basic_nucl_color =
+                            rainbow_color.unwrap_or(domain_style.sphere_color.unwrap());
+
+                        let (nucl_color, strand_bond_color) = if let Some(alpha) = domain_style.alpha {
+                            (Instance::color_au32_with_alpha_scaled_by(basic_nucl_color, alpha), 
+                            Instance::color_au32_with_alpha_scaled_by(basic_bond_color, alpha))
+                        } else {
+                            (basic_nucl_color, basic_bond_color)
+                        };
+
+                        let xover_bond_color = if let Some(alpha) = domain_style.xover_alpha {
+                            Instance::color_au32_with_alpha_scaled_by(basic_xover_color, alpha)
+                        } else {
+                            basic_xover_color
+                        };
+
                         if let Some(prev_pos) = prev_loopout_pos.take() {
                             loopout_bonds.push(LoopoutBond {
                                 position_prime5: prev_pos,
                                 position_prime3: position,
-                                color: bond_color,
+                                color: strand_bond_color,
                                 repr_bond_identifier: id_tmp,
                             });
                         }
@@ -655,6 +682,12 @@ impl DesignContent {
                             bond_ids_sequence.push(bond_id);
                             identifier_bond.insert(bond, bond_id);
                             nucleotides_involved.insert(bond_id, bond);
+                            let bond_color = if prev_nucl.helix != nucl.helix || prev_nucl.forward != nucl.forward || (prev_nucl.position - nucl.position).abs() > 1 {
+                                // xover
+                                xover_bond_color
+                            } else {
+                                strand_bond_color
+                            };
                             color_map.insert(bond_id, bond_color); // color given to the bond
                             radius_map.insert(bond_id, bond_radius); // radius given to the bond
                             strand_map.insert(bond_id, *s_id); // get strand_id from bond_id

@@ -55,6 +55,7 @@ pub enum FogChoices {
     DarkFromCamera,
     DarkFromPivot,
     ReversedFromPivot,
+    ReversedFromCamera,
 }
 
 pub const ALL_FOG_CHOICES: &[FogChoices] = &[
@@ -64,6 +65,7 @@ pub const ALL_FOG_CHOICES: &[FogChoices] = &[
     FogChoices::DarkFromCamera,
     FogChoices::DarkFromPivot,
     FogChoices::ReversedFromPivot,
+    FogChoices::ReversedFromCamera,
 ];
 
 impl std::fmt::Display for FogChoices {
@@ -75,6 +77,7 @@ impl std::fmt::Display for FogChoices {
             Self::DarkFromCamera => "Dark from Camera",
             Self::DarkFromPivot => "Dark from Pivot",
             Self::ReversedFromPivot => "Reversed from Pivot",
+            Self::ReversedFromCamera => "Reversed from Camera",
         };
         write!(f, "{ret}")
     }
@@ -117,12 +120,14 @@ impl FogChoices {
             match self {
                 Self::FromPivot => Self::FromCamera,
                 Self::DarkFromPivot => Self::DarkFromCamera,
+                Self::ReversedFromPivot => Self::ReversedFromCamera,
                 _ => self,
             }
         } else {
             match self {
                 Self::FromCamera => Self::FromPivot,
                 Self::DarkFromCamera => Self::DarkFromPivot,
+                Self::ReversedFromCamera => Self::ReversedFromPivot,
                 _ => self,
             }
         }
@@ -133,6 +138,8 @@ impl FogChoices {
         match (self, reversed) {
             (Self::FromPivot, true) => Self::ReversedFromPivot,
             (Self::ReversedFromPivot, false) => Self::FromPivot,
+            (Self::FromCamera, true) => Self::ReversedFromCamera,
+            (Self::ReversedFromCamera, false) => Self::FromCamera,
             _ => self,
         }
     }
@@ -159,7 +166,7 @@ impl FogChoices {
     }
 
     pub fn is_from_camera(&self) -> bool {
-        matches!(self, Self::FromCamera | Self::DarkFromCamera)
+        matches!(self, Self::FromCamera | Self::DarkFromCamera | Self::ReversedFromCamera)
     }
 
     pub fn is_dark(&self) -> bool {
@@ -167,7 +174,7 @@ impl FogChoices {
     }
 
     pub fn is_reversed(&self) -> bool {
-        matches!(self, Self::ReversedFromPivot)
+        matches!(self, Self::ReversedFromPivot | Self::ReversedFromCamera)
     }
 
     pub fn fog_kind(&self) -> u32 {
@@ -175,7 +182,7 @@ impl FogChoices {
             Self::None => fog_kind::NO_FOG,
             Self::FromCamera | Self::FromPivot => fog_kind::TRANSPARENT_FOG,
             Self::DarkFromPivot | Self::DarkFromCamera => fog_kind::DARK_FOG,
-            Self::ReversedFromPivot => fog_kind::REVERSED_FOG,
+            Self::ReversedFromPivot | Self::ReversedFromCamera => fog_kind::REVERSED_FOG,
         }
     }
 }

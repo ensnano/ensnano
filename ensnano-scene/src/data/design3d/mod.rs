@@ -681,12 +681,13 @@ impl Design3D {
                 let id = id | self.id << 24;
                 // Adjust the color and radius of the bond according to the REAL length of the bond
                 let xover_coloring = self.get_xover_coloring(id).unwrap_or(true);
-                let (color, radius_scale) = (if xover_coloring {
+                let (bond_color, radius_scale) = (if xover_coloring {
                     self.length_adjusted_color_and_radius_for_bond(nucl1_id, nucl2_id)
                 } else {
                     None
                 })
                 .unwrap_or((color, 1.0));
+                let color = (bond_color & 0xFF_FF_FF) | (color & 0xFF_00_00_00); // keep the transparency of the bond
                 let radius = radius_scale * self.get_radius(id).unwrap_or(BOND_RADIUS);
                 let color = Instance::unclear_color_from_u32(color);
                 let sliced_tube = SlicedTubeInstance {

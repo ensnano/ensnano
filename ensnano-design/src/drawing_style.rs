@@ -22,6 +22,9 @@ pub enum DrawingAttribute {
     BondRadius(f32),
     SphereColor(ColorType),
     BondColor(ColorType),
+    XoverColor(ColorType),
+    Alpha(f32),
+    XoverAlpha(f32),
     DoubleHelixAsCylinderRadius(f32),
     DoubleHelixAsCylinderColor(ColorType), // with alpha
     RainbowStrand(bool),
@@ -41,11 +44,14 @@ impl FromStr for DrawingAttribute {
 
     /// Parse a DrawingAttribute:
     /// - %rs / %nors for RainbowStrand(true / false) - default = false
-    /// - %xc / %noxc for XoverColoring(true / false) - default = true
+    /// - %xc / %noxc for XoverColoring(true / false) - default = true - set the color depending on length
+    /// - %xoc(HHHHHHHH) for XoverColor(0xHHHHHHHH) or HHHHHH = a material color - set the xover color
     /// - %sr(r) for SphereRadius(r)
     /// - %sc(HHHHHHHH) for SphereColor(0xHHHHHHHH) or HHHHHH = a material color
     /// - %br(r) for BondRadius(r)
     /// - %bc(HHHHHHHH) for BondColor(0xHHHHHHHH)
+    /// - %a(a) for Alpha(a) - set the strand transparency
+    /// - %xa(a) for XoverAlpha(a) - set the xover transparency
     /// - %hr(r) for DoubleHelixAsCylinderRadius(r)
     /// - %hc(HHHHHHHH) for DoubleHelixAsCylinderColor(0xHHHHHHHH)
     /// - %wc / %noc for WithCones(true / false) - default = true
@@ -82,7 +88,7 @@ impl FromStr for DrawingAttribute {
                     }
                 }
             }
-            "sc" | "bc" | "hc" | "cs" if (2..=4).contains(&len) => {
+            "sc" | "bc" | "xoc" | "hc" | "cs" if (2..=4).contains(&len) => {
                 let mut color = 0xFF_FF_FF_FF;
                 let mut hue_range = None;
                 if let Ok(value) = MaterialColor::from_str(parsed[1]) {
@@ -106,9 +112,20 @@ impl FromStr for DrawingAttribute {
                 match parsed[0] {
                     "sc" => return Ok(Self::SphereColor(ColorType::Plain(color))),
                     "bc" => return Ok(Self::BondColor(ColorType::Plain(color))),
+                    "xoc" => return Ok(Self::XoverColor(ColorType::Plain(color))),
                     "hc" => return Ok(Self::DoubleHelixAsCylinderColor(ColorType::Plain(color))),
                     "cs" => return Ok(Self::ColorShade(color, hue_range)),
                     _ => (),
+                }
+            }
+            "a" if len == 2  => {
+                if let Ok(alpha) = f32::from_str(parsed[1]) {
+                    return Ok(Self::Alpha(alpha));
+                }
+            }
+            "xa" if len == 2  => {
+                if let Ok(alpha) = f32::from_str(parsed[1]) {
+                    return Ok(Self::XoverAlpha(alpha));
                 }
             }
             "cv" if len == 3 => {
@@ -144,6 +161,12 @@ pub struct DrawingStyle {
     pub sphere_color: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub bond_color: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub xover_color: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub alpha: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub xover_alpha: Option<f32>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub helix_as_cylinder_color: Option<ColorType>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
@@ -183,6 +206,15 @@ impl From<Vec<DrawingAttribute>> for DrawingStyle {
                 }
                 DrawingAttribute::BondColor(c) => {
                     ret.bond_color = ret.bond_color.or_else(|| Some(c.to_u32()));
+                }
+                DrawingAttribute::XoverColor(c) => {
+                    ret.xover_color = ret.xover_color.or_else(|| Some(c.to_u32()));
+                }
+                DrawingAttribute::Alpha(a) => {
+                    ret.alpha = ret.alpha.or(Some(a));
+                }
+                DrawingAttribute::XoverAlpha(a) => {
+                    ret.xover_alpha = ret.xover_alpha.or(Some(a));
                 }
                 DrawingAttribute::DoubleHelixAsCylinderColor(c) => {
                     ret.helix_as_cylinder_color = ret.helix_as_cylinder_color.or(Some(c));
@@ -233,6 +265,18 @@ impl DrawingStyle {
             },
             DrawingAttribute::BondColor(c) => Self {
                 bond_color: self.bond_color.or_else(|| Some(c.to_u32())),
+                ..*self
+            },
+            DrawingAttribute::XoverColor(c) => Self {
+                xover_color: self.xover_color.or_else(|| Some(c.to_u32())),
+                ..*self
+            },
+            DrawingAttribute::Alpha(a) => Self {
+                alpha: self.alpha.or(Some(a)),
+                ..*self
+            },
+            DrawingAttribute::XoverAlpha(a) => Self {
+                xover_alpha: self.xover_alpha.or(Some(a)),
                 ..*self
             },
             DrawingAttribute::DoubleHelixAsCylinderColor(c) => Self {
@@ -290,6 +334,9 @@ impl DrawingStyle {
                 .or(other.helix_as_cylinder_radius),
             sphere_color: self.sphere_color.or(other.sphere_color),
             bond_color: self.bond_color.or(other.bond_color),
+            xover_color: self.xover_color.or(other.bond_color),
+            alpha: self.alpha.or(other.alpha),
+            xover_alpha: self.xover_alpha.or(other.xover_alpha),
             helix_as_cylinder_color: self
                 .helix_as_cylinder_color
                 .or(other.helix_as_cylinder_color),
