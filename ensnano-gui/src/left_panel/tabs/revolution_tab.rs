@@ -826,7 +826,7 @@ impl GuiTab for RevolutionTab {
                 text_button("Abort", ui_size).style(iced::theme::Button::Secondary);
             let mut finish_button =
                 text_button("Finish", ui_size).style(iced::theme::Button::Secondary);
-            let mut default_text = ">> Select a closed curve <<\n—".to_string();
+            let mut default_text = ">> Select a closed curve <<".to_string();
             if SimulationState::Relaxing == app_state.get_simulation_state() {
                 start_button = start_button.style(iced::theme::Button::Primary);
                 abort_button = abort_button
@@ -839,7 +839,7 @@ impl GuiTab for RevolutionTab {
                 && desc.is_some()
                 && !desc.unwrap().target.curve_is_open()
             {
-                default_text = ">> Ready to relax <<\n—".to_string();
+                default_text = ">> Ready to relax <<".to_string();
                 start_button = start_button.on_press(LeftPanelMessage::InitRevolutionRelaxation);
             }
             column![
@@ -948,8 +948,9 @@ impl GuiTab for RevolutionTab {
                 // ]
                 nb_spirals_buttons,
                 winding_buttons,
+                extra_jump(),
                 row![
-                    "Target total length",
+                    subsection("Target total length", ui_size),
                     Space::with_width(ui_size.checkbox_spacing()),
                     self.scaffold_len_target
                         .input_view(RevolutionParameterId::ScaffoldLenTarget),

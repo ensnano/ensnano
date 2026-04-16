@@ -545,7 +545,7 @@ fn add_strand_content<'a>(
                     .size(ui_size.main_text())
             )
         ],
-        text(format!("length {}", info_values[0])).size(ui_size.main_text()),
+        text(format!("Length: {} nt", info_values[0])).size(ui_size.main_text()),
         checkbox("Scaffold", info_values[1].parse().unwrap())
             .on_toggle(move |b| { LeftPanelMessage::ScaffoldIdSet(s_id, b) }),
         text(info_values[3].as_str()).size(ui_size.main_text()),
