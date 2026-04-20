@@ -513,7 +513,9 @@ impl RootedRevolutionSurface {
         // }
         let scale = objective as f64 / actual.max(1) as f64;
         match &mut self.surface.revolution_radius {
-            RevolutionSurfaceRadius::Left(x) | RevolutionSurfaceRadius::Right(x) => *x *= scale,
+            RevolutionSurfaceRadius::Left(x) | RevolutionSurfaceRadius::Right(x) => {
+                *x *= scale
+            },
             RevolutionSurfaceRadius::Inside(_) => (),
         }
     }

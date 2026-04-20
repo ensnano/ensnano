@@ -359,11 +359,11 @@ impl Curve {
 
         match self.cached_polynomials.as_ref() {
             Some(p) => {
-                println!("[[NS]] pas discretization");
+                // println!("[[NS]] pas discretization");
                 p.curvilinear_abscissa.evaluate(t1) - p.curvilinear_abscissa.evaluate(t0)
             }
             None => {
-                println!("[[NS]] discretization");
+                // println!("[[NS]] discretization");
                 self.length_by_discretization(t0, t1, nb_step)
             }
         }

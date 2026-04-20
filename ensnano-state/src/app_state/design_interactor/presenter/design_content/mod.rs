@@ -921,6 +921,21 @@ impl DesignContent {
             });
         }
 
+        // Display the average torsion of curved helices
+        // let mut _t = 0f64;
+        // let mut _n = 0;
+        // for (h_id, h) in design.helices.iter() {
+        //     for i in 0..5000 {
+        //         if let Some(_u) = h.torsion_at_pos(i) {
+        //             _t += _u;
+        //             _n += 1;
+        //         }
+        //     }
+        // }
+        // if _n > 0 {
+        //     println!("Average torsion: {:.4}", _t / _n as f64);
+        // }
+
         // Make the helices tubes
         if nucl_collection.nb_nucls() > 0 {
             let all_nt = nucl_collection
