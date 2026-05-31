@@ -9,9 +9,10 @@ use ensnano_utils::{
     StandardSequence, consts::ICON_ATGC, keyboard_priority::keyboard_priority, ui_size::UiSize,
 };
 use iced::{
-    Length,
-    widget::{column, row, scrollable, text, text_input},
+    Length, 
+    widget::{column, row, scrollable, text, text_input, tooltip, container},
 };
+
 use iced_aw::TabLabel;
 
 pub struct SequenceTab {
@@ -133,7 +134,15 @@ impl GuiTab for SequenceTab {
                     button_selection_to_scaffold = button_selection_to_scaffold
                         .on_press(LeftPanelMessage::ScaffoldIdSet(n, true));
                 }
-                row![button_selection_to_scaffold, button_selection_from_scaffold,]
+                row![
+                    tooltip(button_selection_to_scaffold,
+                        "Define the selected strand as the scaffold", 
+                        tooltip::Position::FollowCursor,
+                    ).style(iced::theme::Container::Box),
+                    tooltip(button_selection_from_scaffold,
+                        "Show and select the scaffold", 
+                        tooltip::Position::FollowCursor,                    
+                    ).style(iced::theme::Container::Box),]
                     .spacing(ui_size.button_spacing())
             },
             extra_jump(),
@@ -191,8 +200,11 @@ impl GuiTab for SequenceTab {
                 .width(Length::FillPortion(1))
             ],
             // add_optimize_scaffold_shift_button!
-            text_button("Optimize starting position", ui_size)
+            tooltip(text_button("Optimize starting position", ui_size)
                 .on_press(LeftPanelMessage::OptimizeScaffoldShiftPressed),
+                "Optimize the rotation of the scaffold to minimise staple synthesis issues", 
+                tooltip::Position::FollowCursor,                    
+            ).style(iced::theme::Container::Box),
             // add_scaffold_start_position!
             {
                 let starting_nucl = app_state
@@ -224,9 +236,16 @@ impl GuiTab for SequenceTab {
             extra_jump(),
             // add_download_staples_button!
             column![
-                text_button("Export Staples", ui_size).on_press(LeftPanelMessage::StaplesRequested),
-                text_button("Export Origamis", ui_size)
+                tooltip(text_button("Export Staples", ui_size)
+                    .on_press(LeftPanelMessage::StaplesRequested),
+                    "Save the staples as an Excel file", 
+                    tooltip::Position::FollowCursor,                    
+                ).style(iced::theme::Container::Box),
+                tooltip(text_button("Export Origamis", ui_size)
                     .on_press(LeftPanelMessage::OrigamisRequested),
+                    "Export the staples as an origami file", 
+                    tooltip::Position::FollowCursor,                    
+                ).style(iced::theme::Container::Box),
             ]
             .spacing(ui_size.button_spacing()),
         ];

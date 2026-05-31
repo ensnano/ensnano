@@ -105,20 +105,21 @@ impl GuiTab for CameraTab {
             ]
             .align_items(Alignment::Center)
             .spacing(5),
-            right_checkbox(
-                app_state.show_stereographic_camera(),
-                "Show stereographic camera",
-                LeftPanelMessage::ShowStereographicCamera,
-                ui_size,
-                true
-            ),
-            right_checkbox(
-                app_state.follow_stereographic_camera(),
-                "Follow stereographic camera",
-                LeftPanelMessage::FollowStereographicCamera,
-                ui_size,
-                true
-            ),
+            // [[NS:]] supression de la vue stéréographique
+            // right_checkbox(
+            //     app_state.show_stereographic_camera(),
+            //     "Show stereographic camera",
+            //     LeftPanelMessage::ShowStereographicCamera,
+            //     ui_size,
+            //     true
+            // ),
+            // right_checkbox(
+            //     app_state.follow_stereographic_camera(),
+            //     "Follow stereographic camera",
+            //     LeftPanelMessage::FollowStereographicCamera,
+            //     ui_size,
+            //     true
+            // ),
             extra_jump(),
             row![
                 subsection("Highlight Xovers", ui_size),

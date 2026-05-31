@@ -12,7 +12,7 @@ use ensnano_utils::{keyboard_priority::keyboard_priority, ui_size::UiSize};
 use iced::{
     Alignment, Command, Length,
     alignment::Horizontal,
-    widget::{Column, Space, column, row, scrollable, text, text_input},
+    widget::{Column, Space, column, row, scrollable, text, text_input, tooltip},
 };
 use std::f32::consts::PI;
 use ultraviolet::Vec3;
@@ -298,10 +298,16 @@ impl CameraShortcutPanel {
                         //     .height(ui_size.button()),
                         // extra_jump(),
                         column![
-                            fixed_text_button("2D", 1.0, ui_size)
+                            tooltip(fixed_text_button("2D", 1.0, ui_size)
                                 .on_press(LeftPanelMessage::ScreenShot2D),
-                            fixed_text_button("3D", 1.0, ui_size)
+                                "Save a high-res snapshot of the 2D view in the design file directory", 
+                                tooltip::Position::FollowCursor,                    
+                            ).style(iced::theme::Container::Box),
+                            tooltip(fixed_text_button("3D", 1.0, ui_size)
                                 .on_press(LeftPanelMessage::ScreenShot3D),
+                                "Save a high-res snapshot of the 3D view in the design file directory", 
+                                tooltip::Position::FollowCursor,                    
+                            ).style(iced::theme::Container::Box),
                         ]
                         .spacing(ui_size.button_spacing()),
                     ]
@@ -313,10 +319,16 @@ impl CameraShortcutPanel {
                         // Space::with_height(ui_size.button()),
                         // extra_jump(),
                         column![
-                            fixed_text_button("STL", 2.0, ui_size)
+                            tooltip(fixed_text_button("STL", 2.0, ui_size)
                                 .on_press(LeftPanelMessage::StlExport),
-                            fixed_text_button("Nucl", 2.0, ui_size)
+                                "Export a STL model in the design file directory", 
+                                tooltip::Position::FollowCursor,                    
+                            ).style(iced::theme::Container::Box),
+                            tooltip(fixed_text_button("Nucl", 2.0, ui_size)
                                 .on_press(LeftPanelMessage::SaveNucleotidesPositions),
+                                "Export a JSON file containing the coordinates of the nucleotides in the design file directory", 
+                                tooltip::Position::FollowCursor,                    
+                            ).style(iced::theme::Container::Box),
                         ]
                         .spacing(ui_size.button_spacing()),
                     ]

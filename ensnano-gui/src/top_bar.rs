@@ -235,7 +235,7 @@ impl Program for TopBarState {
         let button_2d = tooltip(
             fixed_text_button("2D", 1.0, self.ui_size)
                 .on_press(TopBarMessage::ToggleView(SplitMode::Flat)),
-            "Switch to flatscene only view",
+            "Show 2D view only",
             tooltip::Position::FollowCursor,
         )
         .style(theme::Container::Box);
@@ -243,7 +243,7 @@ impl Program for TopBarState {
         let button_3d = tooltip(
             fixed_text_button("3D", 1.0, self.ui_size)
                 .on_press(TopBarMessage::ToggleView(SplitMode::Scene3D)),
-            "Switch to scene only view",
+            "Show 3D view only",
             tooltip::Position::FollowCursor,
         )
         .style(theme::Container::Box);
@@ -257,7 +257,7 @@ impl Program for TopBarState {
                 material_icon_button(MaterialIcon::Water, MaterialIconStyle::Light, self.ui_size)
                     .on_press(TopBarMessage::ThickHelices(true))
             },
-            "Toggle helices",
+            "Show strands on/off helix axis",
             tooltip::Position::FollowCursor,
         )
         .style(theme::Container::Box);
@@ -270,7 +270,7 @@ impl Program for TopBarState {
 
         let button_split = tooltip(
             text_button("3D+2D", self.ui_size).on_press(TopBarMessage::ToggleView(SplitMode::Both)),
-            "Switch to both flat and 3d view",
+            "Show 3D and 2D views",
             tooltip::Position::FollowCursor,
         )
         .style(theme::Container::Box);
@@ -286,18 +286,19 @@ impl Program for TopBarState {
                 self.ui_size,
             )
             .on_press_maybe(self.state.can_split_2d.then_some(TopBarMessage::Split2D)),
-            "Toggle split of flat scene",
+            "(Un)split 2D view",
             tooltip::Position::FollowCursor,
         )
         .style(theme::Container::Box);
 
-        let button_toggle_2d = tooltip(
-            text_button("Toggle 2D", self.ui_size)
-                .on_press_maybe(self.state.can_toggle_2d.then_some(TopBarMessage::Toggle2D)),
-            "Toggle flat view",
-            tooltip::Position::FollowCursor,
-        )
-        .style(theme::Container::Box);
+        // [[NS:]] Remove stereographic view
+        // let button_toggle_2d = tooltip(
+        //     text_button("Toggle 2D", self.ui_size)
+        //         .on_press_maybe(self.state.can_toggle_2d.then_some(TopBarMessage::Toggle2D)),
+        //     "Toggle flat view",
+        //     tooltip::Position::FollowCursor,
+        // )
+        // .style(theme::Container::Box);
 
         let button_flip_split = tooltip(
             material_icon_button(
@@ -310,7 +311,7 @@ impl Program for TopBarState {
                     .is_split_2d
                     .then_some(TopBarMessage::FlipSplitViews),
             ),
-            "Swap flat views",
+            "Swap splitted 2D views",
             tooltip::Position::FollowCursor,
         )
         .style(theme::Container::Box);
@@ -322,7 +323,7 @@ impl Program for TopBarState {
                 self.ui_size,
             )
             .on_press(TopBarMessage::SceneFitRequested),
-            "Request fit",
+            "Fit 3D view",
             tooltip::Position::FollowCursor,
         )
         .style(theme::Container::Box);
@@ -426,7 +427,7 @@ impl Program for TopBarState {
                 button_2d,
                 button_split,
                 button_split_2d,
-                button_toggle_2d,
+                // button_toggle_2d, // [[NS:]] No stereographic view
                 button_flip_split,
             ]
             .spacing(self.ui_size.button_spacing()),
