@@ -57,7 +57,7 @@ fn rotational_symmetry_order_ellipse(parameters: &[InstantiatedParameter]) -> Op
 }
 
 pub(super) const TWO_SPHERES_BUILDER: CurveDescriptorBuilder = CurveDescriptorBuilder {
-    curve_name: "Two spheres",
+    curve_name: "C-shape (nested spheres)",
     parameters: &[
         CurveDescriptorParameter {
             name: "Radius extern",
