@@ -461,6 +461,16 @@ impl MainState {
     }
 
     pub fn save_design(&mut self, path: &PathBuf) -> Result<(), SaveDesignError> {
+        if let Ok(file) = std::fs::File::open(path)
+            && let Ok(metadata) = file.metadata()
+            && metadata.permissions().readonly()
+        {
+            return Err(SaveDesignError(format!(
+                "Could not save to read-only file at {}",
+                path.display()
+            )));
+        }
+
         let camera = self
             .applications
             .get(&GuiComponentType::Scene)
@@ -483,18 +493,6 @@ impl MainState {
     }
 
     pub fn save_backup(&mut self) -> Result<(), SaveDesignError> {
-        let camera = self
-            .applications
-            .get(&GuiComponentType::Scene)
-            .and_then(|s| s.lock().unwrap().get_camera())
-            .map(|camera| Camera {
-                id: Default::default(),
-                name: String::from("Saved Camera"),
-                position: camera.0.position,
-                orientation: camera.0.orientation,
-                pivot_position: camera.0.pivot_position,
-            });
-        let save_info = SavingInformation { camera };
         let path = if let Some(mut path) = self.app_state.path_to_current_design().cloned() {
             path.set_extension(ENS_BACKUP_EXTENSION);
             path
@@ -511,8 +509,7 @@ impl MainState {
         };
 
         if self.app_state.is_in_stable_state() {
-            self.app_state.save_design(&path, save_info)?;
-            self.last_backed_up_state = self.app_state.clone();
+            self.save_design(&path)?;
             log::warn!("Saved backup to {}", path.to_string_lossy());
         }
 
