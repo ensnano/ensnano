@@ -1627,7 +1627,7 @@ impl Curved for LogoCurve {
     }
 }
 
-// [[ NS ]] Tentative use of _Curved, I will see to make it work later -- it is almost working
+// [[ NS ]] Tentative use of Curved_, I will see to make it work later -- it is almost working
 // #[cfg(feature = "ensnano_upcoming")]
 // impl Curved for dyn Curved_ {
 //     fn t_max(&self) -> f64 {

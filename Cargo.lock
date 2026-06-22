@@ -847,6 +847,7 @@ name = "ensnano_design"
 version = "0.7.3"
 dependencies = [
  "ahash",
+ "ensnano_upcoming",
  "iced",
  "icondata",
  "log",
@@ -992,6 +993,15 @@ dependencies = [
  "version-compare",
  "wgpu",
  "winit",
+]
+
+[[package]]
+name = "ensnano_upcoming"
+version = "0.1.0"
+dependencies = [
+ "ordered-float",
+ "serde",
+ "ultraviolet",
 ]
 
 [[package]]
