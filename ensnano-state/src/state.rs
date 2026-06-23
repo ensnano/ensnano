@@ -460,7 +460,11 @@ impl MainState {
         }
     }
 
-    pub fn save_design(&mut self, path: &PathBuf) -> Result<(), SaveDesignError> {
+    pub fn save_design(
+        &mut self,
+        path: &PathBuf,
+        change_path: bool,
+    ) -> Result<(), SaveDesignError> {
         if let Ok(file) = std::fs::File::open(path)
             && let Ok(metadata) = file.metadata()
             && metadata.permissions().readonly()
@@ -483,7 +487,7 @@ impl MainState {
                 pivot_position: camera.0.pivot_position,
             });
         let save_info = SavingInformation { camera };
-        self.app_state.save_design(path, save_info)?;
+        self.app_state.save_design(path, save_info, change_path)?;
 
         if self.app_state.is_in_stable_state() {
             self.last_saved_state = self.app_state.clone();
@@ -509,7 +513,7 @@ impl MainState {
         };
 
         if self.app_state.is_in_stable_state() {
-            self.save_design(&path)?;
+            self.save_design(&path, false)?;
             log::warn!("Saved backup to {}", path.to_string_lossy());
         }
 
