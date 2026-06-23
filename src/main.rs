@@ -1054,7 +1054,7 @@ impl MainStateView<'_> {
     }
 
     fn save_design(&mut self, path: &PathBuf) -> Result<(), SaveDesignError> {
-        self.main_state.save_design(path)?;
+        self.main_state.save_design(path, true)?;
         self.main_state.last_backup_date = Instant::now();
         Ok(())
     }
