@@ -87,7 +87,7 @@ impl std::fmt::Display for ActionMode {
                 Self::Normal => "Select",
                 Self::Translate => "Move",
                 Self::Rotate => "Rotate",
-                Self::BuildHelix { .. } => "Build",
+                Self::BuildHelix { .. } => "Add helix",
                 Self::Cut => "Cut",
                 Self::EditBezierPath => "Edit path",
             }
@@ -103,12 +103,12 @@ impl ActionMode {
     pub fn tooltip_description(&self) -> &'static str {
         // TODO: better descriptions
         match self {
-            Self::Normal => "Normal",
+            Self::Normal => "Select/Edit",
             Self::Translate => "Translate",
             Self::Rotate => "Rotate",
-            Self::BuildHelix { .. } => "BuildHelix",
+            Self::BuildHelix { .. } => "Add helix",
             Self::Cut => "Cut",
-            Self::EditBezierPath => "EditBezierPath",
+            Self::EditBezierPath => "Edit path",
         }
     }
 

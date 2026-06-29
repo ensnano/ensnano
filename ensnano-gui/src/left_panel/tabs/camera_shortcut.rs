@@ -12,7 +12,7 @@ use ensnano_utils::{keyboard_priority::keyboard_priority, ui_size::UiSize};
 use iced::{
     Alignment, Command, Length,
     alignment::Horizontal,
-    widget::{Column, Space, column, row, scrollable, text, text_input},
+    widget::{Column, Space, column, row, scrollable, text, text_input, tooltip},
 };
 use std::f32::consts::PI;
 use ultraviolet::Vec3;
@@ -263,10 +263,10 @@ impl CameraShortcutPanel {
                 Space::with_width(ui_size.button_spacing()),
                 // add_target_buttons!
                 column![
-                    subsection("Fixed", ui_size)
-                        .height(ui_size.button())
-                        .horizontal_alignment(Horizontal::Center),
-                    extra_jump(),
+                    // subsection("Fixed", ui_size)
+                    //     .height(ui_size.button())
+                    //     .horizontal_alignment(Horizontal::Center),
+                    // extra_jump(),
                     column(NAMED_CAMERA_GRID.iter().map(|camera_row| {
                         row(camera_row.iter().map(|cam| cam.button(ui_size)))
                             .spacing(ui_size.button_spacing())
@@ -279,10 +279,10 @@ impl CameraShortcutPanel {
                 row![
                     // add_rotate_buttons!
                     column![
-                        subsection("Rotation", ui_size)
-                            .height(ui_size.button())
-                            .horizontal_alignment(Horizontal::Center),
-                        extra_jump(),
+                    //     subsection("Rotation", ui_size)
+                    //         .height(ui_size.button())
+                    //         .horizontal_alignment(Horizontal::Center),
+                    //     extra_jump(),
                         column(ROTATION_GRID.iter().map(|rotation_row| {
                             row(rotation_row.iter().map(|rotation| rotation.button(ui_size)))
                                 .spacing(ui_size.button_spacing())
@@ -294,14 +294,20 @@ impl CameraShortcutPanel {
                     Space::with_width(2.0 * ui_size.button_spacing()),
                     // add_screenshot_button!
                     column![
-                        material_icon(MaterialIcon::PhotoCamera, MaterialIconStyle::Dark, ui_size)
-                            .height(ui_size.button()),
-                        extra_jump(),
+                        // material_icon(MaterialIcon::PhotoCamera, MaterialIconStyle::Dark, ui_size)
+                        //     .height(ui_size.button()),
+                        // extra_jump(),
                         column![
-                            fixed_text_button("2D", 1.0, ui_size)
+                            tooltip(fixed_text_button("2D", 1.0, ui_size)
                                 .on_press(LeftPanelMessage::ScreenShot2D),
-                            fixed_text_button("3D", 1.0, ui_size)
+                                "Save a high-res snapshot of the 2D view in the design file directory", 
+                                tooltip::Position::FollowCursor,                    
+                            ).style(iced::theme::Container::Box),
+                            tooltip(fixed_text_button("3D", 1.0, ui_size)
                                 .on_press(LeftPanelMessage::ScreenShot3D),
+                                "Save a high-res snapshot of the 3D view in the design file directory", 
+                                tooltip::Position::FollowCursor,                    
+                            ).style(iced::theme::Container::Box),
                         ]
                         .spacing(ui_size.button_spacing()),
                     ]
@@ -310,13 +316,19 @@ impl CameraShortcutPanel {
                     // add_stl_export_button!
                     // add_nucleotides_positions_export_button!
                     column![
-                        Space::with_height(ui_size.button()),
-                        extra_jump(),
+                        // Space::with_height(ui_size.button()),
+                        // extra_jump(),
                         column![
-                            fixed_text_button("STL", 2.0, ui_size)
+                            tooltip(fixed_text_button("STL", 2.0, ui_size)
                                 .on_press(LeftPanelMessage::StlExport),
-                            fixed_text_button("Nucl", 2.0, ui_size)
+                                "Export a STL model in the design file directory", 
+                                tooltip::Position::FollowCursor,                    
+                            ).style(iced::theme::Container::Box),
+                            tooltip(fixed_text_button("Nucl", 2.0, ui_size)
                                 .on_press(LeftPanelMessage::SaveNucleotidesPositions),
+                                "Export a JSON file containing the coordinates of the nucleotides in the design file directory", 
+                                tooltip::Position::FollowCursor,                    
+                            ).style(iced::theme::Container::Box),
                         ]
                         .spacing(ui_size.button_spacing()),
                     ]

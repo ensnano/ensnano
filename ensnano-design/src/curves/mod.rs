@@ -20,6 +20,14 @@ use ensnano_upcoming::{
     PillTennisBallSeamDescriptor, SphereTennisBallSeamDescriptor, TorusConcentricCircleDescriptor,
 };
 
+#[cfg(feature = "ensnano_upcoming")]
+use ensnano_upcoming::logo_curve::{
+    Turtle, Step, LogoCurve, LogoCurveDescriptor,
+};
+
+#[cfg(feature = "ensnano_upcoming")]
+use ensnano_upcoming::curved_::{Curved_, CurveBounds_};
+
 use self::{
     bezier::{
         BezierEnd, CubicBezierConstructor, InstantiatedPiecewiseBezier,
@@ -37,6 +45,9 @@ use self::{
     tube_spiral::TubeSpiralDescriptor,
     twist::Twist,
 };
+#[cfg(feature = "ensnano_upcoming")]
+use crate::curves::CurveBounds::BiInfinite;
+use crate::curves::InstantiatedCurveDescriptor_::InterpolatedCurve;
 use crate::{
     bezier_plane::{BezierPathData, BezierPathId},
     chebyshev_polynomials::{self, ChebyshevPolynomial},
@@ -526,7 +537,7 @@ impl Curve {
     }
 
     pub fn update_additional_segments(&self, segments: &mut Vec<AdditionalHelix2D>) {
-        //[[NS]] I miss two informations: total nb_helices + step in index per revolution
+        //[[NS]] I miss two pieces of information: total nb_helices + step in index per revolution
         segments.truncate(self.additional_segment_left.len());
         let mut iter = self
             .additional_segment_left
@@ -553,6 +564,7 @@ impl Curve {
         self.geometry.translation().is_some()
     }
 
+    #[must_use]
     pub fn rescaled2d_by(&self, scale: f64) -> Self {
         if let Some(abscissa_converter) = &self.abscissa_converter {
             Self {
@@ -631,6 +643,8 @@ pub enum CurveDescriptor {
     SuperTwist(SuperTwist),
     InterpolatedCurve(InterpolatedCurveDescriptor),
     Chebyshev(PolynomialCoordinates),
+    #[cfg(feature = "ensnano_upcoming")]
+    Logo(LogoCurveDescriptor),
 }
 
 const NO_BEZIER: &[BezierEnd] = &[];
@@ -832,6 +846,9 @@ impl InstantiatedCurveDescriptor {
             CurveDescriptor::Chebyshev(coord) => {
                 InstantiatedCurveDescriptor_::Chebyshev(coord.clone().instantiated())
             }
+            #[cfg(feature = "ensnano_upcoming")]
+            CurveDescriptor::Logo(desc) =>
+                InstantiatedCurveDescriptor_::Logo(desc.clone()),
         };
         Self {
             source: desc,
@@ -916,6 +933,9 @@ impl InstantiatedCurveDescriptor {
             CurveDescriptor::Chebyshev(coord) => Some(InstantiatedCurveDescriptor_::Chebyshev(
                 coord.clone().instantiated(),
             )),
+            #[cfg(feature = "ensnano_upcoming")]
+            CurveDescriptor::Logo(desc) => Some(
+                InstantiatedCurveDescriptor_::Logo(desc.clone())),
         };
         instance.map(|instance| Self {
             source: desc.clone(),
@@ -1032,6 +1052,8 @@ enum InstantiatedCurveDescriptor_ {
     },
     InterpolatedCurve(InterpolatedCurveDescriptor),
     Chebyshev(PolynomialCoordinates_),
+    #[cfg(feature = "ensnano_upcoming")]
+    Logo(LogoCurveDescriptor),
 }
 
 /// An instantiation of a PiecewiseBezier descriptor where reference to grid positions in the
@@ -1164,6 +1186,8 @@ impl InstantiatedCurveDescriptor_ {
                 torus.instantiate_with_parameters(*helix_parameters),
                 helix_parameters,
             )),
+            #[cfg(feature = "ensnano_upcoming")]
+            Self::Logo(desc) => Arc::new(Curve::new(desc.instantiate(), helix_parameters,)),
             Self::InterpolatedPiecewiseBezier(desc) => {
                 Arc::new(Curve::new(desc.instantiate(), helix_parameters))
             }
@@ -1174,7 +1198,7 @@ impl InstantiatedCurveDescriptor_ {
                 } else {
                     let ret = Arc::new(Curve::new(
                         TwistedTorus::new(desc.clone(), helix_parameters)
-                            .expect("tried to make a torus out of a non-ellips descriptor"),
+                            .expect("tried to make a torus out of a non-ellipse descriptor"),
                         helix_parameters,
                     ));
                     // println!("Number of nucleotides {}", ret.nb_points());
@@ -1270,6 +1294,11 @@ impl InstantiatedCurveDescriptor_ {
                 torus.instantiate_with_parameters(*helix_parameters),
                 helix_parameters,
             ))),
+            #[cfg(feature = "ensnano_upcoming")]
+            Self::Logo(desc) => Some(Arc::new(Curve::new(
+                desc.instantiate(),
+                helix_parameters,
+            ))),
             Self::InterpolatedPiecewiseBezier(desc) => Some(Arc::new(Curve::new(
                 desc.clone().instantiate(),
                 helix_parameters,
@@ -1347,6 +1376,10 @@ impl InstantiatedCurveDescriptor_ {
             Self::EllipticTorusConcentricCircle(torus) => Some(Curve::compute_length(
                 torus.instantiate_with_parameters(*helix_parameters),
             )),
+            #[cfg(feature = "ensnano_upcoming")]
+            Self::Logo(desc) => Some(Curve::compute_length(
+                desc.instantiate(),
+            )),
             Self::InterpolatedPiecewiseBezier(desc) => {
                 Some(Curve::compute_length(desc.clone().instantiate()))
             }
@@ -1414,6 +1447,8 @@ impl InstantiatedCurveDescriptor_ {
             Self::InterpolatedPiecewiseBezier(desc) => {
                 Some(Curve::path(desc.clone().instantiate()))
             }
+            #[cfg(feature = "ensnano_upcoming")]
+            Self::Logo(desc) => Some(Curve::path(desc.instantiate())),
             #[cfg(feature = "ensnano_upcoming")]
             Self::EllipticTorusConcentricCircle(torus) => Some(Curve::path(
                 torus.instantiate_with_parameters(*helix_parameters),
@@ -1488,8 +1523,8 @@ impl Helix {
         if let Some(current_desc) = self.curve.as_ref() {
             self.instantiated_descriptor
                 .as_ref()
-                .filter(|desc| desc.is_up_to_date(current_desc, grid_data, paths_data))
-                .is_none()
+                .as_ref()
+                .is_none_or(|desc| !desc.is_up_to_date(current_desc, grid_data, paths_data))
         } else {
             // If helix should not be a curved, the descriptor is up-to-date iff there is no
             // descriptor.
@@ -1546,3 +1581,88 @@ impl InterpolationDescriptor {
         }
     }
 }
+
+
+#[cfg(feature = "ensnano_upcoming")]
+impl Curved for LogoCurve {
+    #[inline(always)]
+    fn position(&self, t: f64) -> DVec3 {
+        self.position_(t)
+    }
+
+    #[inline(always)]
+    fn speed(&self, t: f64) -> DVec3 {
+        self.speed_(t)
+    }
+
+    #[inline(always)]
+    fn acceleration(&self, t: f64) -> DVec3 {
+        self.acceleration_(t)
+    }
+
+    #[inline(always)]
+    fn t_max(&self) -> f64 {
+        return self.t_max_();
+    }
+
+    #[inline(always)]
+    fn t_min(&self) -> f64 {
+        return self.t_min_();
+    }
+
+    #[inline(always)]
+    fn curvilinear_abscissa(&self, _t: f64) -> Option<f64> {
+        return self.curvilinear_abscissa_(_t);
+    }
+ 
+    fn bounds(&self) -> CurveBounds {
+        CurveBounds::Finite
+    }
+
+    fn full_turn_at_t(&self) -> Option<f64> {
+        match self.is_closed {
+            false => None,
+            _ => Some(self.t_max_()),
+        }
+    }
+}
+
+// [[ NS ]] Tentative use of Curved_, I will see to make it work later -- it is almost working
+// #[cfg(feature = "ensnano_upcoming")]
+// impl Curved for dyn Curved_ {
+//     fn t_max(&self) -> f64 {
+//         return self.t_max_();
+//     }
+
+//     fn t_min(&self) -> f64 {
+//         return self.t_min_();
+//     }
+
+//     fn position(&self, t: f64) -> DVec3 {
+//         return self.position_(t);
+//     }
+
+//     fn speed(&self, t: f64) -> DVec3 {
+//         return self.speed_(t);
+//     }
+
+//     fn acceleration(&self, t: f64) -> DVec3 {
+//         return self.acceleration_(t);
+//     }
+
+//     fn curvilinear_abscissa(&self, _t: f64) -> Option<f64> {
+//         return self.current_abscissa_(_t);
+//     }
+
+//     /// The bounds of the curve.
+//     fn bounds(&self) -> CurveBounds {
+//         match self.bounds_() {
+//             CurveBounds_::Finite_ => CurveBounds::Finite,
+//             CurveBounds_::BiInfinite_ => CurveBounds::BiInfinite,
+//         }
+//     }
+
+//     fn full_turn_at_t(&self) -> Option<f64> {
+//         return self.full_turn_at_t_();
+//     }
+// }

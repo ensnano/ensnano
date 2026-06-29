@@ -264,10 +264,13 @@ impl AppState {
         &mut self,
         path: &PathBuf,
         saving_info: SavingInformation,
+        change_path: bool,
     ) -> Result<(), SaveDesignError> {
         self.get_design_interactor()
             .save_design(path, saving_info)?;
-        self.0.make_mut().path_to_current_design = Some(path.clone());
+        if change_path {
+            self.0.make_mut().path_to_current_design = Some(path.clone());
+        }
         Ok(())
     }
 

@@ -175,6 +175,7 @@ pub(crate) trait PieceWiseBezierInstantiator<T: BezierEndCoordinateUnit> {
         } else {
             Some(descriptor.len() as f64 - 1.)
         };
+        // println!("[[NS]] instanciating piecewise bezier curve");
         Some(InstantiatedPiecewiseBezier {
             t_min: None,
             t_max,
