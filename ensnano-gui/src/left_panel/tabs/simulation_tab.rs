@@ -203,7 +203,7 @@ impl GuiTab for SimulationTab {
                 self.brownian_factory
                     .view(brownian_motion, ui_size.main_text())
             ),
-            section("Relaxation", ui_size),
+            section("Relaxation (beta)", ui_size),
             column![row![
                 text_button("Start", ui_size)
                     .style(iced::theme::Button::Positive)
